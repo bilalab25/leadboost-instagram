@@ -1,0 +1,298 @@
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import { useEffect } from "react";
+import Sidebar from "@/components/Sidebar";
+import StatsCard from "@/components/StatsCard";
+import MessageList from "@/components/MessageList";
+import ContentCalendar from "@/components/ContentCalendar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bell, Plus } from "lucide-react";
+
+interface DashboardStats {
+  unreadMessages: number;
+  engagementRate: number;
+  aiPosts: number;
+  revenue: number;
+}
+
+interface ActivityLog {
+  id: string;
+  userId: string;
+  action: string;
+  description: string;
+  createdAt: string;
+}
+
+export default function Dashboard() {
+  const { toast } = useToast();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+  }, [isAuthenticated, isLoading, toast]);
+
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
+    queryKey: ["/api/dashboard/stats"],
+    retry: false,
+  });
+
+  const { data: activities, isLoading: activitiesLoading } = useQuery<ActivityLog[]>({
+    queryKey: ["/api/activity"],
+    retry: false,
+  });
+
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      <Sidebar />
+      
+      {/* Main Content */}
+      <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        {/* Top Header */}
+        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
+          <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
+            <div className="flex-1 flex items-center">
+              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-dashboard-title">Dashboard</h1>
+            </div>
+            
+            <div className="ml-4 flex items-center md:ml-6 space-x-4">
+              <Button variant="ghost" size="icon" data-testid="button-notifications">
+                <Bell className="h-5 w-5" />
+              </Button>
+              
+              <Button className="bg-brand-600 hover:bg-brand-700 text-white" data-testid="button-new-campaign">
+                <Plus className="mr-2 h-4 w-4" />
+                New Campaign
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Dashboard Content */}
+        <main className="flex-1 relative overflow-y-auto focus:outline-none">
+          <div className="py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+              
+              {/* Stats Overview */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                <StatsCard
+                  title="Unread Messages"
+                  value={stats?.unreadMessages?.toString() || "0"}
+                  change="+12%"
+                  changeType="increase"
+                  icon="message"
+                  loading={statsLoading}
+                />
+                <StatsCard
+                  title="Engagement Rate"
+                  value={`${stats?.engagementRate || 0}%`}
+                  change="+2.1%"
+                  changeType="increase"
+                  icon="chart"
+                  loading={statsLoading}
+                />
+                <StatsCard
+                  title="AI Generated Posts"
+                  value={stats?.aiPosts?.toString() || "0"}
+                  change="+8.3%"
+                  changeType="increase"
+                  icon="robot"
+                  loading={statsLoading}
+                />
+                <StatsCard
+                  title="Revenue Impact"
+                  value={`$${((stats?.revenue || 0) / 1000).toFixed(1)}k`}
+                  change="+15.2%"
+                  changeType="increase"
+                  icon="dollar"
+                  loading={statsLoading}
+                />
+              </div>
+              
+              {/* Main Dashboard Grid */}
+              <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
+                
+                {/* Left Column - Unified Inbox & AI Planner */}
+                <div className="xl:col-span-2 space-y-8">
+                  
+                  {/* Unified Inbox */}
+                  <Card>
+                    <CardHeader className="border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Unified Inbox</CardTitle>
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm" data-testid="button-all-channels">
+                            All Channels
+                          </Button>
+                          <Button size="sm" className="bg-brand-600 hover:bg-brand-700" data-testid="button-mark-all-read">
+                            Mark All Read
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <MessageList limit={5} showHeader={false} />
+                    </CardContent>
+                  </Card>
+                  
+                  {/* AI Monthly Planner */}
+                  <Card>
+                    <CardHeader className="border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <CardTitle>AI Monthly Planner</CardTitle>
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            AI Powered
+                          </span>
+                        </div>
+                        <Button size="sm" className="bg-amber-600 hover:bg-amber-700" data-testid="button-regenerate-plan">
+                          Regenerate Plan
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <ContentCalendar />
+                    </CardContent>
+                  </Card>
+                  
+                </div>
+                
+                {/* Right Column - Analytics & Recent Activity */}
+                <div className="space-y-8">
+                  
+                  {/* Analytics */}
+                  <Card>
+                    <CardHeader className="border-b border-gray-200">
+                      <CardTitle>Performance Analytics</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Total Reach</p>
+                            <p className="text-xs text-gray-500">Last 30 days</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-gray-900" data-testid="text-total-reach">125.3K</p>
+                            <p className="text-xs text-green-600">+12.5%</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Engagement</p>
+                            <p className="text-xs text-gray-500">Avg. rate</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-gray-900" data-testid="text-engagement">4.8%</p>
+                            <p className="text-xs text-green-600">+2.1%</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Conversions</p>
+                            <p className="text-xs text-gray-500">Social to POS</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-gray-900" data-testid="text-conversions">3.2%</p>
+                            <p className="text-xs text-green-600">+0.8%</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Recent Activity */}
+                  <Card>
+                    <CardHeader className="border-b border-gray-200">
+                      <CardTitle>Recent Activity</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        {activitiesLoading ? (
+                          <div className="space-y-3">
+                            {[...Array(5)].map((_, i) => (
+                              <div key={i} className="flex items-start space-x-3">
+                                <div className="w-2 h-2 bg-gray-300 rounded-full mt-2 animate-pulse"></div>
+                                <div className="flex-1 space-y-1">
+                                  <div className="h-4 bg-gray-300 rounded animate-pulse"></div>
+                                  <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : activities && activities.length > 0 ? (
+                          activities.slice(0, 5).map((activity) => (
+                            <div key={activity.id} className="flex items-start space-x-3" data-testid={`activity-${activity.id}`}>
+                              <div className="flex-shrink-0">
+                                <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm text-gray-900">{activity.description}</p>
+                                <p className="text-xs text-gray-500">{new Date(activity.createdAt).toLocaleString()}</p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500" data-testid="text-no-activity">No recent activity</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Quick Actions */}
+                  <Card>
+                    <CardHeader className="border-b border-gray-200">
+                      <CardTitle>Quick Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-1 gap-3">
+                        <Button variant="outline" className="justify-center" data-testid="button-create-post">
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create New Post
+                        </Button>
+                        
+                        <Button variant="outline" className="justify-center" data-testid="button-generate-content">
+                          <span className="mr-2">🤖</span>
+                          Generate AI Content
+                        </Button>
+                        
+                        <Button variant="outline" className="justify-center" data-testid="button-schedule-posts">
+                          <span className="mr-2">📅</span>
+                          Schedule Posts
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

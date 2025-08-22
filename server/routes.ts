@@ -1,408 +1,366 @@
-import express from 'express';
-import type { IStorage } from './storage';
-import { 
-  insertSocialAccountSchema,
-  insertConversationSchema,
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
+import { socialMediaService } from "./services/socialMedia";
+import {
   insertMessageSchema,
+  insertSocialAccountSchema,
+  insertContentPlanSchema,
   insertCampaignSchema,
-  insertFeedPlanSchema,
-  insertBusinessDataSchema,
-  insertPostSchema
-} from '@shared/schema';
+  insertActivityLogSchema,
+} from "@shared/schema";
 
-export function createRoutes(storage: IStorage) {
-  const router = express.Router();
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
 
-  // Social Accounts
-  router.get('/social-accounts', async (req, res) => {
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const accounts = await storage.getSocialAccounts();
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Dashboard stats
+  app.get('/api/dashboard/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stats = await storage.getDashboardStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  // Social accounts routes
+  app.get('/api/social-accounts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const accounts = await storage.getSocialAccountsByUserId(userId);
       res.json(accounts);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch social accounts' });
+      console.error("Error fetching social accounts:", error);
+      res.status(500).json({ message: "Failed to fetch social accounts" });
     }
   });
 
-  router.post('/social-accounts', async (req, res) => {
+  app.post('/api/social-accounts', isAuthenticated, async (req: any, res) => {
     try {
-      const validatedData = insertSocialAccountSchema.parse(req.body);
-      const account = await storage.createSocialAccount(validatedData);
-      res.status(201).json(account);
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid social account data' });
-    }
-  });
-
-  router.put('/social-accounts/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const updates = insertSocialAccountSchema.partial().parse(req.body);
-      const account = await storage.updateSocialAccount(id, updates);
-      if (!account) {
-        return res.status(404).json({ error: 'Social account not found' });
+      const userId = req.user.claims.sub;
+      const accountData = insertSocialAccountSchema.parse({
+        ...req.body,
+        userId,
+      });
+      
+      // Validate platform credentials
+      const validation = await socialMediaService.validatePlatformCredentials(
+        accountData.platform,
+        accountData.accessToken || ""
+      );
+      
+      if (!validation.valid) {
+        return res.status(400).json({ message: validation.error || "Invalid credentials" });
       }
+
+      const account = await storage.createSocialAccount(accountData);
+      
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "connect_social_account",
+        description: `Connected ${accountData.platform} account`,
+        entityType: "social_account",
+        entityId: account.id,
+      });
+
       res.json(account);
     } catch (error) {
-      res.status(400).json({ error: 'Invalid update data' });
+      console.error("Error creating social account:", error);
+      res.status(500).json({ message: "Failed to create social account" });
     }
   });
 
-  router.delete('/social-accounts/:id', async (req, res) => {
+  // Messages routes
+  app.get('/api/messages', isAuthenticated, async (req: any, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteSocialAccount(id);
-      if (!success) {
-        return res.status(404).json({ error: 'Social account not found' });
-      }
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to delete social account' });
-    }
-  });
-
-  // Conversations
-  router.get('/conversations', async (req, res) => {
-    try {
-      const { platform } = req.query;
-      let conversations;
-      if (platform) {
-        conversations = await storage.getConversationsByPlatform(platform as string);
-      } else {
-        conversations = await storage.getConversations();
-      }
-      res.json(conversations);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch conversations' });
-    }
-  });
-
-  router.post('/conversations', async (req, res) => {
-    try {
-      const validatedData = insertConversationSchema.parse(req.body);
-      const conversation = await storage.createConversation(validatedData);
-      res.status(201).json(conversation);
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid conversation data' });
-    }
-  });
-
-  router.put('/conversations/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const updates = insertConversationSchema.partial().parse(req.body);
-      const conversation = await storage.updateConversation(id, updates);
-      if (!conversation) {
-        return res.status(404).json({ error: 'Conversation not found' });
-      }
-      res.json(conversation);
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid update data' });
-    }
-  });
-
-  // Messages
-  router.get('/conversations/:id/messages', async (req, res) => {
-    try {
-      const conversationId = parseInt(req.params.id);
-      const messages = await storage.getMessagesByConversation(conversationId);
+      const userId = req.user.claims.sub;
+      const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+      const messages = await storage.getMessagesByUserId(userId, limit);
       res.json(messages);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch messages' });
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
     }
   });
 
-  router.post('/messages', async (req, res) => {
+  app.post('/api/messages', isAuthenticated, async (req: any, res) => {
     try {
-      const validatedData = insertMessageSchema.parse(req.body);
-      const message = await storage.createMessage(validatedData);
-      res.status(201).json(message);
+      const messageData = insertMessageSchema.parse(req.body);
+      
+      // Analyze message sentiment and priority
+      const analysis = await analyzeMessageSentiment(messageData.content);
+      
+      const message = await storage.createMessage({
+        ...messageData,
+        priority: analysis.priority,
+      });
+
+      res.json({ message, analysis });
     } catch (error) {
-      res.status(400).json({ error: 'Invalid message data' });
+      console.error("Error creating message:", error);
+      res.status(500).json({ message: "Failed to create message" });
     }
   });
 
-  // Campaigns
-  router.get('/campaigns', async (req, res) => {
+  app.patch('/api/messages/:id/read', isAuthenticated, async (req, res) => {
     try {
-      const campaigns = await storage.getCampaigns();
+      const messageId = req.params.id;
+      await storage.markMessageAsRead(messageId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking message as read:", error);
+      res.status(500).json({ message: "Failed to mark message as read" });
+    }
+  });
+
+  app.patch('/api/messages/:id/priority', isAuthenticated, async (req, res) => {
+    try {
+      const messageId = req.params.id;
+      const { priority } = req.body;
+      await storage.updateMessagePriority(messageId, priority);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating message priority:", error);
+      res.status(500).json({ message: "Failed to update message priority" });
+    }
+  });
+
+  app.patch('/api/messages/:id/assign', isAuthenticated, async (req, res) => {
+    try {
+      const messageId = req.params.id;
+      const { assignedTo } = req.body;
+      await storage.assignMessage(messageId, assignedTo);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error assigning message:", error);
+      res.status(500).json({ message: "Failed to assign message" });
+    }
+  });
+
+  // Content plans routes
+  app.get('/api/content-plans', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const plans = await storage.getContentPlansByUserId(userId);
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching content plans:", error);
+      res.status(500).json({ message: "Failed to fetch content plans" });
+    }
+  });
+
+  app.post('/api/content-plans/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { month, year, businessData } = req.body;
+
+      const strategy = await generateMonthlyContentStrategy(businessData, month, year);
+      
+      const plan = await storage.createContentPlan({
+        userId,
+        title: `Content Plan - ${month}/${year}`,
+        month,
+        year,
+        strategy: JSON.stringify(strategy.insights),
+        insights: strategy,
+        posts: strategy.posts,
+        status: "draft",
+      });
+
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "generate_content_plan",
+        description: `Generated AI content plan for ${month}/${year}`,
+        entityType: "content_plan",
+        entityId: plan.id,
+      });
+
+      res.json(plan);
+    } catch (error) {
+      console.error("Error generating content plan:", error);
+      res.status(500).json({ message: "Failed to generate content plan" });
+    }
+  });
+
+  // Campaigns routes
+  app.get('/api/campaigns', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const campaigns = await storage.getCampaignsByUserId(userId);
       res.json(campaigns);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch campaigns' });
+      console.error("Error fetching campaigns:", error);
+      res.status(500).json({ message: "Failed to fetch campaigns" });
     }
   });
 
-  router.post('/campaigns', async (req, res) => {
+  app.post('/api/campaigns', isAuthenticated, async (req: any, res) => {
     try {
-      const validatedData = insertCampaignSchema.parse(req.body);
-      const campaign = await storage.createCampaign(validatedData);
-      res.status(201).json(campaign);
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid campaign data' });
-    }
-  });
+      const userId = req.user.claims.sub;
+      const campaignData = insertCampaignSchema.parse({
+        ...req.body,
+        userId,
+      });
+      
+      const campaign = await storage.createCampaign(campaignData);
+      
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "create_campaign",
+        description: `Created campaign: ${campaign.title}`,
+        entityType: "campaign",
+        entityId: campaign.id,
+      });
 
-  router.put('/campaigns/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const updates = insertCampaignSchema.partial().parse(req.body);
-      const campaign = await storage.updateCampaign(id, updates);
-      if (!campaign) {
-        return res.status(404).json({ error: 'Campaign not found' });
-      }
       res.json(campaign);
     } catch (error) {
-      res.status(400).json({ error: 'Invalid update data' });
+      console.error("Error creating campaign:", error);
+      res.status(500).json({ message: "Failed to create campaign" });
     }
   });
 
-  router.delete('/campaigns/:id', async (req, res) => {
+  app.post('/api/campaigns/generate', isAuthenticated, async (req: any, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteCampaign(id);
-      if (!success) {
-        return res.status(404).json({ error: 'Campaign not found' });
-      }
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to delete campaign' });
-    }
-  });
+      const userId = req.user.claims.sub;
+      const { prompt, platforms, businessContext } = req.body;
 
-  // AI Campaign Generation
-  router.post('/campaigns/generate', async (req, res) => {
-    try {
-      const { title, content, targetPlatforms } = req.body;
+      const generatedContent = await generateCampaignContent(prompt, platforms, businessContext);
       
-      // Simulate AI visual design generation
-      const visualDesign = {
-        backgroundColor: '#1a1a1a',
-        textColor: '#ffffff',
-        fontSize: '24px',
-        fontFamily: 'Inter, sans-serif',
-        layout: 'centered',
-        elements: [
-          {
-            type: 'heading',
-            content: title,
-            style: { fontSize: '32px', fontWeight: 'bold', marginBottom: '20px' }
-          },
-          {
-            type: 'body',
-            content: content,
-            style: { fontSize: '18px', lineHeight: '1.6', textAlign: 'center' }
-          },
-          {
-            type: 'branding',
-            content: 'Your Brand',
-            style: { fontSize: '14px', opacity: 0.8, marginTop: '30px' }
-          }
-        ],
-        animation: 'fadeIn'
-      };
-
       const campaign = await storage.createCampaign({
-        title,
-        content,
-        visualDesign,
-        targetPlatforms: targetPlatforms || [],
-        status: 'draft',
+        userId,
+        title: `AI Generated Campaign - ${new Date().toLocaleDateString()}`,
+        description: prompt,
+        platforms,
+        content: generatedContent,
+        status: "draft",
         aiGenerated: true,
-        createdBy: 'AI Assistant'
       });
 
-      res.status(201).json(campaign);
-    } catch (error) {
-      res.status(400).json({ error: 'Failed to generate campaign' });
-    }
-  });
-
-  // Feed Plans
-  router.get('/feed-plans', async (req, res) => {
-    try {
-      const feedPlans = await storage.getFeedPlans();
-      res.json(feedPlans);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch feed plans' });
-    }
-  });
-
-  router.get('/feed-plans/:month', async (req, res) => {
-    try {
-      const month = req.params.month;
-      const feedPlan = await storage.getFeedPlanByMonth(month);
-      if (!feedPlan) {
-        return res.status(404).json({ error: 'Feed plan not found' });
-      }
-      res.json(feedPlan);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch feed plan' });
-    }
-  });
-
-  // AI Feed Plan Generation
-  router.post('/feed-plans/generate', async (req, res) => {
-    try {
-      const { month, businessType, targetAudience } = req.body;
-      
-      // Get business data for AI context
-      const businessData = await storage.getBusinessData();
-      
-      // Simulate AI-generated feed plan
-      const generatedContent = Array.from({ length: 30 }, (_, i) => ({
-        day: i + 1,
-        postType: ['product_showcase', 'behind_scenes', 'user_generated', 'educational', 'promotional'][Math.floor(Math.random() * 5)],
-        content: generatePostContent(businessType, i + 1),
-        suggestedTime: '09:00',
-        platforms: ['instagram', 'tiktok'],
-        hashtags: generateHashtags(businessType),
-        visualStyle: 'modern_minimal'
-      }));
-
-      const industryTrends = {
-        trending_hashtags: [`#${businessType}2025`, '#SmallBusiness', '#LocalBusiness'],
-        popular_content_types: ['reels', 'carousel_posts', 'user_stories'],
-        best_posting_times: ['9:00 AM', '1:00 PM', '7:00 PM'],
-        seasonal_themes: getSeasonalThemes(month)
-      };
-
-      const feedPlan = await storage.createFeedPlan({
-        month,
-        businessData: { businessType, targetAudience, totalPosts: 30 },
-        industryTrends,
-        generatedContent,
-        aiPrompt: `Generate a monthly content feed for ${businessType} business targeting ${targetAudience}`,
-        status: 'draft'
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "generate_ai_campaign",
+        description: `Generated AI campaign: ${campaign.title}`,
+        entityType: "campaign",
+        entityId: campaign.id,
       });
 
-      res.status(201).json(feedPlan);
+      res.json(campaign);
     } catch (error) {
-      res.status(400).json({ error: 'Failed to generate feed plan' });
+      console.error("Error generating campaign:", error);
+      res.status(500).json({ message: "Failed to generate campaign" });
     }
   });
 
-  // Business Data
-  router.get('/business-data', async (req, res) => {
+  app.post('/api/campaigns/:id/publish', isAuthenticated, async (req: any, res) => {
     try {
-      const { type } = req.query;
-      let data;
-      if (type) {
-        data = await storage.getBusinessDataByType(type as string);
-      } else {
-        data = await storage.getBusinessData();
-      }
-      res.json(data);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch business data' });
-    }
-  });
-
-  router.post('/business-data', async (req, res) => {
-    try {
-      const validatedData = insertBusinessDataSchema.parse(req.body);
-      const data = await storage.createBusinessData(validatedData);
-      res.status(201).json(data);
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid business data' });
-    }
-  });
-
-  // Posts
-  router.get('/posts', async (req, res) => {
-    try {
-      const { campaignId, feedPlanId } = req.query;
-      let posts;
-      if (campaignId) {
-        posts = await storage.getPostsByCampaign(parseInt(campaignId as string));
-      } else if (feedPlanId) {
-        posts = await storage.getPostsByFeedPlan(parseInt(feedPlanId as string));
-      } else {
-        posts = await storage.getPosts();
-      }
-      res.json(posts);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch posts' });
-    }
-  });
-
-  router.post('/posts', async (req, res) => {
-    try {
-      const validatedData = insertPostSchema.parse(req.body);
-      const post = await storage.createPost(validatedData);
-      res.status(201).json(post);
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid post data' });
-    }
-  });
-
-  // Crossposting
-  router.post('/posts/:id/crosspost', async (req, res) => {
-    try {
-      const postId = parseInt(req.params.id);
-      const { targetPlatforms } = req.body;
+      const userId = req.user.claims.sub;
+      const campaignId = req.params.id;
       
-      // In a real implementation, this would integrate with social media APIs
-      // For now, we'll simulate the crossposting process
-      const results = targetPlatforms.map((platform: string) => ({
-        platform,
-        status: 'success',
-        postId: `${platform}_${Date.now()}`,
-        url: `https://${platform}.com/post/${Date.now()}`
-      }));
+      // Get campaign details
+      const campaigns = await storage.getCampaignsByUserId(userId);
+      const campaign = campaigns.find(c => c.id === campaignId);
+      
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      // Get user's social accounts
+      const socialAccounts = await storage.getSocialAccountsByUserId(userId);
+      const accessTokens = socialAccounts.reduce((acc, account) => {
+        if (account.accessToken && campaign.platforms?.includes(account.platform)) {
+          acc[account.platform] = account.accessToken;
+        }
+        return acc;
+      }, {} as { [platform: string]: string });
+
+      // Post to social media platforms
+      const results = await socialMediaService.postToMultiplePlatforms(
+        campaign.platforms || [],
+        {
+          text: (campaign.content as any)?.content || campaign.description || "",
+          scheduledTime: campaign.scheduledFor || undefined,
+        },
+        accessTokens
+      );
+
+      // Update campaign status
+      await storage.updateCampaignStatus(campaignId, "published");
+
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "publish_campaign",
+        description: `Published campaign: ${campaign.title}`,
+        entityType: "campaign",
+        entityId: campaign.id,
+      });
 
       res.json({ results });
     } catch (error) {
-      res.status(400).json({ error: 'Failed to crosspost' });
+      console.error("Error publishing campaign:", error);
+      res.status(500).json({ message: "Failed to publish campaign" });
     }
   });
 
-  return router;
-}
+  // Analytics routes
+  app.get('/api/analytics', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const platform = req.query.platform as string;
+      const analytics = await storage.getAnalyticsByUserId(userId, platform);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
 
-// Helper functions for AI content generation
-function generatePostContent(businessType: string, day: number): string {
-  const contentTemplates = {
-    restaurant: [
-      `Fresh ingredients, amazing flavors! What's your favorite dish? #day${day}`,
-      `Behind the scenes in our kitchen today #day${day}`,
-      `New seasonal menu items are here! Come try them #day${day}`
-    ],
-    retail: [
-      `New arrivals that you'll love! Check them out #day${day}`,
-      `Customer favorites - these are flying off the shelves #day${day}`,
-      `Style tip: How to wear our latest collection #day${day}`
-    ],
-    service: [
-      `Happy customers are our priority! Here's what they're saying #day${day}`,
-      `Pro tip: How to get the most out of our service #day${day}`,
-      `Meet the team behind your great experience #day${day}`
-    ]
-  };
+  // Activity logs
+  app.get('/api/activity', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const limit = req.query.limit ? parseInt(req.query.limit) : 20;
+      const activities = await storage.getActivityLogsByUserId(userId, limit);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching activity logs:", error);
+      res.status(500).json({ message: "Failed to fetch activity logs" });
+    }
+  });
 
-  const templates = contentTemplates[businessType as keyof typeof contentTemplates] || contentTemplates.service;
-  return templates[day % templates.length];
-}
+  // AI visual generation
+  app.post('/api/ai/generate-visual', isAuthenticated, async (req, res) => {
+    try {
+      const { description } = req.body;
+      const result = await generateVisualContent(description);
+      res.json(result);
+    } catch (error) {
+      console.error("Error generating visual:", error);
+      res.status(500).json({ message: "Failed to generate visual content" });
+    }
+  });
 
-function generateHashtags(businessType: string): string[] {
-  const hashtagSets = {
-    restaurant: ['#restaurant', '#food', '#delicious', '#localfood', '#dining'],
-    retail: ['#shopping', '#style', '#fashion', '#newcollection', '#retail'],
-    service: ['#service', '#professional', '#quality', '#trusted', '#local']
-  };
-
-  return hashtagSets[businessType as keyof typeof hashtagSets] || hashtagSets.service;
-}
-
-function getSeasonalThemes(month: string): string[] {
-  const monthNum = parseInt(month.split('-')[1]);
-  const seasons = {
-    'spring': ['growth', 'renewal', 'fresh_starts', 'outdoors'],
-    'summer': ['vacation', 'fun', 'bright_colors', 'outdoor_activities'],
-    'fall': ['cozy', 'warm_colors', 'back_to_school', 'harvest'],
-    'winter': ['holidays', 'family', 'comfort', 'new_year']
-  };
-
-  if (monthNum >= 3 && monthNum <= 5) return seasons.spring;
-  if (monthNum >= 6 && monthNum <= 8) return seasons.summer;
-  if (monthNum >= 9 && monthNum <= 11) return seasons.fall;
-  return seasons.winter;
+  const httpServer = createServer(app);
+  return httpServer;
 }
