@@ -134,10 +134,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSocialAccountsByUserId(userId: string): Promise<SocialAccount[]> {
-    return db
+    const results = await db
       .select()
       .from(socialAccounts)
       .where(eq(socialAccounts.userId, userId));
+    
+    // Return demo data if no user accounts found
+    if (results.length === 0) {
+      const demoAccounts = await db
+        .select()
+        .from(socialAccounts)
+        .where(eq(socialAccounts.userId, 'demo-user-id'));
+      return demoAccounts;
+    }
+    
+    return results;
   }
 
   async updateSocialAccountStatus(id: string, isActive: boolean): Promise<void> {
@@ -180,6 +191,34 @@ export class DatabaseStorage implements IStorage {
       .where(eq(socialAccounts.userId, userId))
       .orderBy(desc(messages.createdAt))
       .limit(limit);
+    
+    // Return demo data if no user messages found
+    if (results.length === 0) {
+      const demoResults = await db
+        .select({
+          // Message fields
+          id: messages.id,
+          socialAccountId: messages.socialAccountId,
+          senderId: messages.senderId,
+          senderName: messages.senderName,
+          senderAvatar: messages.senderAvatar,
+          content: messages.content,
+          messageType: messages.messageType,
+          isRead: messages.isRead,
+          priority: messages.priority,
+          tags: messages.tags,
+          assignedTo: messages.assignedTo,
+          createdAt: messages.createdAt,
+          // Social account fields
+          socialAccount: socialAccounts,
+        })
+        .from(messages)
+        .innerJoin(socialAccounts, eq(messages.socialAccountId, socialAccounts.id))
+        .where(eq(socialAccounts.userId, 'demo-user-id'))
+        .orderBy(desc(messages.createdAt))
+        .limit(limit);
+      return demoResults as (Message & { socialAccount: SocialAccount })[];
+    }
     
     return results as (Message & { socialAccount: SocialAccount })[];
   }
@@ -229,11 +268,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getContentPlansByUserId(userId: string): Promise<ContentPlan[]> {
-    return db
+    const results = await db
       .select()
       .from(contentPlans)
       .where(eq(contentPlans.userId, userId))
       .orderBy(desc(contentPlans.createdAt));
+    
+    // Return demo data if no user content plans found
+    if (results.length === 0) {
+      const demoResults = await db
+        .select()
+        .from(contentPlans)
+        .where(eq(contentPlans.userId, 'demo-user-id'))
+        .orderBy(desc(contentPlans.createdAt));
+      return demoResults;
+    }
+    
+    return results;
   }
 
   async updateContentPlan(id: string, updates: Partial<ContentPlan>): Promise<ContentPlan> {
@@ -255,11 +306,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCampaignsByUserId(userId: string): Promise<Campaign[]> {
-    return db
+    const results = await db
       .select()
       .from(campaigns)
       .where(eq(campaigns.userId, userId))
       .orderBy(desc(campaigns.createdAt));
+    
+    // Return demo data if no user campaigns found
+    if (results.length === 0) {
+      const demoResults = await db
+        .select()
+        .from(campaigns)
+        .where(eq(campaigns.userId, 'demo-user-id'))
+        .orderBy(desc(campaigns.createdAt));
+      return demoResults;
+    }
+    
+    return results;
   }
 
   async updateCampaignStatus(id: string, status: string): Promise<void> {
@@ -301,12 +364,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActivityLogsByUserId(userId: string, limit = 20): Promise<ActivityLog[]> {
-    return db
+    const results = await db
       .select()
       .from(activityLogs)
       .where(eq(activityLogs.userId, userId))
       .orderBy(desc(activityLogs.createdAt))
       .limit(limit);
+    
+    // Return demo data if no user activity logs found
+    if (results.length === 0) {
+      const demoResults = await db
+        .select()
+        .from(activityLogs)
+        .where(eq(activityLogs.userId, 'demo-user-id'))
+        .orderBy(desc(activityLogs.createdAt))
+        .limit(limit);
+      return demoResults;
+    }
+    
+    return results;
   }
 
   // Dashboard stats
@@ -525,3 +601,254 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+
+// Initialize with demo data for immediate preview
+(async () => {
+  try {
+    // Check if demo data already exists
+    const existingAccounts = await storage.getSocialAccountsByUserId('demo-user-id');
+    if (existingAccounts.length === 0) {
+      await initializeDemoData();
+    }
+  } catch (error) {
+    console.log('Demo data initialization skipped:', error);
+  }
+})();
+
+async function initializeDemoData() {
+  const userId = 'demo-user-id';
+  
+  // Create demo social accounts
+  const socialAccountsData = [
+    { platform: "instagram", accountName: "@mybusiness", followerCount: 15420, isActive: true, accessToken: "demo_token_ig" },
+    { platform: "facebook", accountName: "My Business Page", followerCount: 8750, isActive: true, accessToken: "demo_token_fb" },
+    { platform: "linkedin", accountName: "My Business", followerCount: 3200, isActive: true, accessToken: "demo_token_li" },
+    { platform: "tiktok", accountName: "@mybiz", followerCount: 22100, isActive: true, accessToken: "demo_token_tt" },
+    { platform: "x", accountName: "@MyBusiness", followerCount: 12800, isActive: true, accessToken: "demo_token_x" },
+    { platform: "youtube", accountName: "My Business Channel", followerCount: 5600, isActive: true, accessToken: "demo_token_yt" },
+  ];
+
+  const socialAccounts = [];
+  for (const accountData of socialAccountsData) {
+    try {
+      const account = await storage.createSocialAccount({ userId, ...accountData });
+      socialAccounts.push(account);
+    } catch (error) {
+      console.log(`Social account ${accountData.platform} creation skipped`);
+    }
+  }
+
+  // Create demo messages
+  const messagesData = [
+    { platform: "instagram", senderName: "Sarah Johnson", content: "Love your latest product! When will you restock the blue variant?", type: "comment", isRead: false, sentiment: "positive", priority: "normal" },
+    { platform: "facebook", senderName: "Mike Chen", content: "I'm having trouble with my order #12345. Can someone help?", type: "message", isRead: false, sentiment: "negative", priority: "high" },
+    { platform: "linkedin", senderName: "Emma Wilson", content: "Great insights in your latest post about social media trends!", type: "comment", isRead: true, sentiment: "positive", priority: "normal" },
+    { platform: "tiktok", senderName: "Alex Rivera", content: "This is amazing! Tutorial please? 🙏", type: "comment", isRead: true, sentiment: "positive", priority: "normal" },
+    { platform: "x", senderName: "David Kim", content: "@MyBusiness Your customer service is terrible. Still waiting for a response after 3 days!", type: "mention", isRead: false, sentiment: "negative", priority: "high" },
+    { platform: "instagram", senderName: "Lisa Park", content: "Can you share the recipe for this? It looks delicious! 😍", type: "comment", isRead: false, sentiment: "positive", priority: "normal" },
+    { platform: "facebook", senderName: "John Smith", content: "Do you ship internationally? I'm interested in your services.", type: "message", isRead: true, sentiment: "neutral", priority: "low" },
+    { platform: "linkedin", senderName: "Rachel Brown", content: "Would love to collaborate on a project. Are you open to partnerships?", type: "message", isRead: false, sentiment: "positive", priority: "normal" },
+  ];
+
+  for (const messageData of messagesData) {
+    try {
+      await storage.createMessage({
+        userId,
+        socialAccountId: socialAccounts.find(acc => acc.platform === messageData.platform)?.id || socialAccounts[0]?.id || 'demo-account-1',
+        ...messageData,
+      });
+    } catch (error) {
+      console.log(`Message creation skipped`);
+    }
+  }
+
+  // Create demo campaigns
+  const campaignsData = [
+    {
+      title: "Summer Product Launch 2024",
+      description: "Launch campaign for our new summer collection with cross-platform promotion",
+      platforms: ["instagram", "facebook", "tiktok"],
+      content: {
+        content: "🌞 Summer vibes are here! Discover our brand new collection that's perfect for those sunny days ahead. From beachwear to casual summer outfits, we've got everything you need to make this summer unforgettable! ✨",
+        variations: {
+          instagram: "🌞 Summer vibes are here! ✨ Discover our brand new collection perfect for sunny days ahead. From beachwear to casual outfits, we've got everything for an unforgettable summer! 🏖️ #SummerCollection #NewLaunch",
+          facebook: "Summer is finally here! 🌞 We're thrilled to announce our brand new summer collection that's designed to make your sunny days even brighter. Whether you're heading to the beach or just enjoying the warm weather, our latest pieces combine comfort with style. Check out our new arrivals and get ready to embrace the season! What's your favorite summer style?",
+          tiktok: "Summer collection drop! 🔥 New fits for those sunny day vibes ☀️ Which piece is your fave? #SummerVibes #NewDrop #OOTD"
+        },
+        suggestedHashtags: {
+          instagram: ["#SummerCollection", "#NewLaunch", "#SummerFashion", "#BeachWear", "#SunnyDays"],
+          facebook: ["#SummerStyle", "#NewArrivals", "#FashionLaunch"],
+          tiktok: ["#SummerVibes", "#NewDrop", "#OOTD", "#FashionTok", "#SummerFits"]
+        },
+        visualSuggestions: {
+          instagram: ["bright summer product photos", "lifestyle beach shots", "carousel showing different pieces"],
+          facebook: ["lifestyle imagery", "behind-the-scenes design process", "customer photos"],
+          tiktok: ["quick try-on videos", "styling transitions", "summer mood board"]
+        }
+      },
+      status: "published",
+      aiGenerated: false,
+    },
+    {
+      title: "AI Generated: Weekly Motivation",
+      description: "Motivational content to inspire our community and drive engagement",
+      platforms: ["linkedin", "x", "instagram"],
+      content: {
+        content: "Success isn't just about reaching the destination—it's about who you become on the journey. Every challenge you face, every obstacle you overcome, shapes you into the person capable of achieving your dreams. 💪",
+        variations: {
+          linkedin: "Success isn't just about reaching the destination—it's about who you become on the journey. In business and in life, every challenge we face and every obstacle we overcome shapes us into the leaders capable of achieving our greatest dreams. The skills you develop, the resilience you build, and the relationships you form along the way are often more valuable than the end goal itself. What lesson has your journey taught you recently?",
+          x: "Success isn't about the destination—it's about who you become on the journey. Every challenge shapes you into someone capable of achieving your dreams. 💪 #MondayMotivation #GrowthMindset #Success",
+          instagram: "Success isn't just about reaching the destination—it's about who you become on the journey ✨ Every challenge you face shapes you into the person capable of achieving your dreams 💪 What's one challenge that made you stronger? Share below! 👇"
+        },
+        suggestedHashtags: {
+          linkedin: ["#Leadership", "#PersonalGrowth", "#Success", "#Motivation"],
+          x: ["#MondayMotivation", "#GrowthMindset", "#Success", "#Inspiration"],
+          instagram: ["#MondayMotivation", "#PersonalGrowth", "#Inspiration", "#Success", "#Mindset"]
+        },
+        visualSuggestions: {
+          linkedin: ["professional quote graphics", "inspirational landscape", "team success imagery"],
+          x: ["motivational quote cards", "success imagery", "growth graphics"],
+          instagram: ["inspirational quote overlay", "motivational lifestyle photo", "success story carousel"]
+        }
+      },
+      status: "scheduled",
+      aiGenerated: true,
+      scheduledFor: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      title: "Behind the Scenes: Our Team",
+      description: "Showcase our amazing team and company culture",
+      platforms: ["instagram", "linkedin", "facebook"],
+      content: {
+        content: "Meet the incredible team behind our success! 👥 From our creative designers to our dedicated customer service representatives, every person plays a vital role in delivering excellence to our customers every single day.",
+        variations: {
+          instagram: "Meet the incredible team behind our success! 👥✨ From creative designers to amazing customer service reps, every person brings something special to deliver excellence daily 💙 #TeamSpotlight #BehindTheScenes",
+          linkedin: "Today we want to spotlight the incredible team that makes our success possible. From our innovative designers who bring creative visions to life, to our dedicated customer service representatives who ensure every interaction exceeds expectations, each team member plays a vital role in our mission. We're grateful for their passion, expertise, and commitment to delivering excellence every single day. #TeamAppreciation #CompanyCulture",
+          facebook: "We believe our team is our greatest asset! 💙 Today we're highlighting the amazing people behind our brand - from our creative designers who bring fresh ideas to life, to our customer service team who go above and beyond for every customer. Each person brings unique talents and passion that make our company special. What qualities do you value most in a great team?"
+        },
+        suggestedHashtags: {
+          instagram: ["#TeamSpotlight", "#BehindTheScenes", "#CompanyCulture", "#TeamWork"],
+          linkedin: ["#TeamAppreciation", "#CompanyCulture", "#Leadership", "#EmployeeSpotlight"],
+          facebook: ["#TeamWork", "#CompanyCulture", "#BehindTheScenes", "#GreatTeam"]
+        },
+        visualSuggestions: {
+          instagram: ["team candid photos", "office behind-the-scenes", "individual team member spotlights"],
+          linkedin: ["professional team photos", "office culture shots", "team collaboration imagery"],
+          facebook: ["team group photos", "workplace candids", "team achievement celebrations"]
+        }
+      },
+      status: "draft",
+      aiGenerated: false,
+    }
+  ];
+
+  for (const campaignData of campaignsData) {
+    try {
+      await storage.createCampaign({ userId, ...campaignData });
+    } catch (error) {
+      console.log(`Campaign creation skipped`);
+    }
+  }
+
+  // Create demo content plan
+  try {
+    await storage.createContentPlan({
+      userId,
+      title: "Q4 2024 Content Strategy",
+      description: "Comprehensive content strategy for the fourth quarter focusing on holiday campaigns and year-end promotions",
+      month: 12,
+      year: 2024,
+      strategy: {
+        insights: [
+          "Holiday shopping peaks in November and December, with Black Friday and Cyber Monday as key conversion periods",
+          "Instagram engagement rates increase 23% during holiday season with visual content",
+          "LinkedIn shows higher B2B engagement during Q4 planning season",
+          "TikTok holiday hashtags trend 300% higher in December"
+        ],
+        recommendations: [
+          "Focus on gift-guide content and holiday styling tips",
+          "Create behind-the-scenes content showing holiday preparation",
+          "Develop user-generated content campaigns with holiday hashtags",
+          "Plan early Black Friday and Cyber Monday promotional content"
+        ],
+        posts: [
+          {
+            date: "2024-12-01",
+            platform: "instagram",
+            contentType: "holiday_gift_guide",
+            title: "Ultimate Holiday Gift Guide 2024",
+            description: "Curated selection of our best products perfect for holiday gifting",
+            hashtags: ["#HolidayGifts", "#GiftGuide2024", "#HolidayStyle"],
+            optimalTime: "6:00 PM"
+          },
+          {
+            date: "2024-12-15",
+            platform: "tiktok", 
+            contentType: "behind_the_scenes",
+            title: "Holiday Package Prep Behind the Scenes",
+            description: "Show our team preparing beautiful holiday packages",
+            hashtags: ["#BehindTheScenes", "#HolidayPrep", "#PackagingASMR"],
+            optimalTime: "7:00 PM"
+          }
+        ]
+      },
+      status: "active"
+    });
+  } catch (error) {
+    console.log(`Content plan creation skipped`);
+  }
+
+  // Create demo customers
+  const customersData = [
+    { name: "Tech Solutions Inc", email: "contact@techsolutions.com", phone: "+1 (555) 123-4567", status: "active", totalInvoiced: 15750.00 },
+    { name: "Creative Agency LLC", email: "hello@creativeagency.com", phone: "+1 (555) 234-5678", status: "active", totalInvoiced: 8900.50 },
+    { name: "Startup Ventures", email: "team@startupventures.com", phone: "+1 (555) 345-6789", status: "active", totalInvoiced: 12300.00 },
+    { name: "Local Restaurant Group", email: "manager@localeatery.com", phone: "+1 (555) 456-7890", status: "inactive", totalInvoiced: 3200.00 },
+  ];
+
+  for (const customerData of customersData) {
+    try {
+      await storage.createCustomer({ userId, ...customerData });
+    } catch (error) {
+      console.log(`Customer creation skipped`);
+    }
+  }
+
+  // Create demo analytics
+  const analyticsData = [
+    { platform: "instagram", metric: "reach", value: 15420, period: "weekly", recordedAt: new Date().toISOString() },
+    { platform: "instagram", metric: "engagement", value: 1247, period: "weekly", recordedAt: new Date().toISOString() },
+    { platform: "facebook", metric: "reach", value: 8750, period: "weekly", recordedAt: new Date().toISOString() },
+    { platform: "facebook", metric: "engagement", value: 892, period: "weekly", recordedAt: new Date().toISOString() },
+    { platform: "tiktok", metric: "reach", value: 22100, period: "weekly", recordedAt: new Date().toISOString() },
+    { platform: "tiktok", metric: "engagement", value: 2847, period: "weekly", recordedAt: new Date().toISOString() },
+  ];
+
+  for (const analyticsEntry of analyticsData) {
+    try {
+      await storage.createAnalyticsEntry({ userId, ...analyticsEntry });
+    } catch (error) {
+      console.log(`Analytics entry creation skipped`);
+    }
+  }
+
+  // Create demo activity logs
+  const activityLogsData = [
+    { action: "connect_social_account", description: "Connected Instagram account @mybusiness", entityType: "social_account", entityId: "1" },
+    { action: "create_campaign", description: "Created Summer Product Launch 2024 campaign", entityType: "campaign", entityId: "1" },
+    { action: "generate_ai_campaign", description: "Generated AI campaign: Weekly Motivation", entityType: "campaign", entityId: "2" },
+    { action: "publish_campaign", description: "Published Summer Product Launch 2024 to 3 platforms", entityType: "campaign", entityId: "1" },
+    { action: "connect_social_account", description: "Connected TikTok account @mybiz", entityType: "social_account", entityId: "2" },
+    { action: "create_content_plan", description: "Created Q4 2024 Content Strategy", entityType: "content_plan", entityId: "1" },
+  ];
+
+  for (const activityData of activityLogsData) {
+    try {
+      await storage.createActivityLog({ userId, ...activityData });
+    } catch (error) {
+      console.log(`Activity log creation skipped`);
+    }
+  }
+
+  console.log("Demo data initialized successfully");
+}
