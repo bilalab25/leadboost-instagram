@@ -44,7 +44,7 @@ const platformIcons = {
 const platformColors = {
   instagram: "text-pink-500 bg-pink-50 border-pink-200",
   whatsapp: "text-green-500 bg-green-50 border-green-200",
-  email: "text-blue-500 bg-blue-50 border-blue-200",
+  email: "text-primary bg-primary/5 border-primary/20",
   tiktok: "text-gray-800 bg-gray-50 border-gray-200",
 };
 
@@ -157,7 +157,7 @@ export default function Analytics() {
                   <CardContent className="p-6">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                           <Eye className="text-white h-5 w-5" />
                         </div>
                       </div>
@@ -357,7 +357,7 @@ export default function Analytics() {
                           </div>
                           
                           <div className="flex items-start space-x-3">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+                            <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
                             <div className="flex-1">
                               <p className="text-sm text-gray-900">New followers gained: +245</p>
                               <p className="text-xs text-gray-500">5 hours ago</p>

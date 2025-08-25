@@ -66,7 +66,7 @@ export default function BrandSwitcher() {
           <Avatar className="h-6 w-6 mr-2">
             <AvatarImage src={selectedBrand?.logo} alt={selectedBrand?.name} />
             <AvatarFallback 
-              style={{ backgroundColor: selectedBrand?.primaryColor || '#0066cc' }}
+              style={{ backgroundColor: selectedBrand?.primaryColor || '#3f82d1' }}
               className="text-white text-xs"
             >
               {selectedBrand?.name?.charAt(0) || 'B'}

@@ -50,8 +50,8 @@ export default function Landing() {
             {/* Unified Inbox */}
             <Card className="border border-gray-200">
               <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <MessageSquare className="h-6 w-6 text-blue-600" />
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                  <MessageSquare className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Unified Inbox</CardTitle>
                 <CardDescription>
@@ -134,7 +134,7 @@ export default function Landing() {
           <h2 className="text-3xl font-bold text-white mb-4">
             Ready to transform your social media management?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-primary/30 mb-8">
             Join thousands of businesses using AI to grow their social media presence and customer engagement.
           </p>
           <Button 

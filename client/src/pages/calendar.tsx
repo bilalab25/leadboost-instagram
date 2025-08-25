@@ -35,14 +35,14 @@ const platformIcons = {
 const platformColors = {
   instagram: "text-pink-500 bg-pink-50",
   whatsapp: "text-green-500 bg-green-50",
-  facebook: "text-blue-500 bg-blue-50",
+  facebook: "text-primary bg-primary/5",
   tiktok: "text-gray-800 bg-gray-50",
-  linkedin: "text-blue-700 bg-blue-50",
+  linkedin: "text-primary bg-primary/5",
 };
 
 const statusColors = {
   draft: "bg-gray-100 text-gray-800",
-  scheduled: "bg-blue-100 text-blue-800",
+  scheduled: "bg-primary/10 text-primary",
   published: "bg-green-100 text-green-800",
 };
 

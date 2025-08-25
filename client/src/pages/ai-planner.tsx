@@ -52,7 +52,7 @@ const platformColors = {
   instagram: "bg-pink-100 text-pink-800",
   whatsapp: "bg-green-100 text-green-800",
   tiktok: "bg-purple-100 text-purple-800",
-  email: "bg-blue-100 text-blue-800",
+  email: "bg-primary/10 text-primary",
   multi: "bg-red-100 text-red-800",
 };
 
@@ -387,11 +387,11 @@ export default function AIPlanner() {
 
                     {/* AI Preview */}
                     <div>
-                      <Card className="border-2 border-blue-100 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                      <Card className="border-2 border-primary/20 shadow-lg">
+                        <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
                           <CardTitle className="flex items-center text-lg">
-                            <div className="bg-blue-100 p-2 rounded-lg mr-3">
-                              <Brain className="h-5 w-5 text-blue-600" />
+                            <div className="bg-primary/10 p-2 rounded-lg mr-3">
+                              <Brain className="h-5 w-5 text-primary" />
                             </div>
                             <div>
                               <div className="text-gray-900 font-semibold">{t.aiPlanner.aiStrategyPreview}</div>
@@ -445,8 +445,8 @@ export default function AIPlanner() {
                             </div>
                           ) : (
                             <div className="text-center py-8">
-                              <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-6 rounded-xl mb-4">
-                                <Brain className="mx-auto h-12 w-12 text-blue-500 mb-4" />
+                              <div className="bg-gradient-to-br from-primary/10 to-primary/20 p-6 rounded-xl mb-4">
+                                <Brain className="mx-auto h-12 w-12 text-primary mb-4" />
                                 <div className="space-y-2">
                                   <p className="text-sm font-medium text-gray-800" data-testid="text-no-preview">
                                     {t.aiPlanner.noPreview}
@@ -507,7 +507,7 @@ export default function AIPlanner() {
                               <Badge 
                                 className={cn(
                                   plan.status === "approved" ? "bg-green-100 text-green-800" :
-                                  plan.status === "published" ? "bg-blue-100 text-blue-800" :
+                                  plan.status === "published" ? "bg-primary/10 text-primary" :
                                   "bg-gray-100 text-gray-800"
                                 )}
                                 data-testid={`plan-status-${plan.id}`}
@@ -594,7 +594,7 @@ export default function AIPlanner() {
                             </div>
                           </div>
                           <div className="flex items-start space-x-3">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                            <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
                             <div>
                               <p className="text-sm font-medium">Authentic Storytelling</p>
                               <p className="text-xs text-gray-600">Behind-the-scenes content drives 40% more customer trust</p>
@@ -615,7 +615,7 @@ export default function AIPlanner() {
                     <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center">
-                          <Users className="mr-2 h-5 w-5 text-blue-600" />
+                          <Users className="mr-2 h-5 w-5 text-primary" />
                           {t.aiPlanner.aiRecommendations}
                         </CardTitle>
                       </CardHeader>

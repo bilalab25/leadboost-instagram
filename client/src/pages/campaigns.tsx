@@ -49,11 +49,11 @@ const platformOptions = [
   { value: "instagram", label: "Instagram Posts", icon: Instagram, color: "text-pink-500" },
   { value: "instagram_story", label: "Instagram Story", icon: Instagram, color: "text-purple-500" },
   { value: "instagram_reels", label: "Instagram Reels", icon: Instagram, color: "text-red-500" },
-  { value: "facebook", label: "Facebook Posts", icon: SiFacebook, color: "text-blue-600" },
-  { value: "facebook_story", label: "Facebook Stories", icon: SiFacebook, color: "text-blue-500" },
-  { value: "linkedin", label: "LinkedIn Posts", icon: SiLinkedin, color: "text-blue-700" },
-  { value: "linkedin_newsletter", label: "LinkedIn Newsletter", icon: SiLinkedin, color: "text-blue-600" },
-  { value: "linkedin_thread", label: "LinkedIn Thread", icon: SiLinkedin, color: "text-blue-500" },
+  { value: "facebook", label: "Facebook Posts", icon: SiFacebook, color: "text-primary" },
+  { value: "facebook_story", label: "Facebook Stories", icon: SiFacebook, color: "text-primary" },
+  { value: "linkedin", label: "LinkedIn Posts", icon: SiLinkedin, color: "text-primary" },
+  { value: "linkedin_newsletter", label: "LinkedIn Newsletter", icon: SiLinkedin, color: "text-primary" },
+  { value: "linkedin_thread", label: "LinkedIn Thread", icon: SiLinkedin, color: "text-primary" },
   { value: "threads", label: "Threads", icon: SiThreads, color: "text-gray-900" },
   { value: "x", label: "X (Twitter)", icon: Twitter, color: "text-gray-900" },
   { value: "tiktok", label: "TikTok", icon: SiTiktok, color: "text-gray-800" },
@@ -66,12 +66,12 @@ const platformOptions = [
   { value: "medium", label: "Medium", icon: SiMedium, color: "text-gray-900" },
   { value: "blog", label: "Blog Posts", icon: FileText, color: "text-gray-700" },
   { value: "whatsapp", label: "WhatsApp", icon: SiWhatsapp, color: "text-green-500" },
-  { value: "email", label: "Gmail/Email", icon: Mail, color: "text-blue-500" },
+  { value: "email", label: "Gmail/Email", icon: Mail, color: "text-primary" },
 ];
 
 const statusColors = {
   draft: "bg-gray-100 text-gray-800",
-  scheduled: "bg-blue-100 text-blue-800",
+  scheduled: "bg-primary/10 text-primary",
   published: "bg-green-100 text-green-800",
   failed: "bg-red-100 text-red-800",
 };
@@ -468,10 +468,10 @@ export default function Campaigns() {
         {/* Campaigns Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
           {/* Hero Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+          <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8">
               <div className="text-center">
-                <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                <div className="inline-flex items-center bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
                   <Zap className="mr-2 h-4 w-4" />
                   {t.campaigns.multiPlatformPublishing}
                 </div>
@@ -488,12 +488,12 @@ export default function Campaigns() {
               
               {/* Campaign Stats */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-8">
-                <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
+                <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
                   <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-900" data-testid="stat-total-campaigns">
+                    <div className="text-2xl font-bold text-primary" data-testid="stat-total-campaigns">
                       {campaigns?.length || 0}
                     </div>
-                    <div className="text-sm text-blue-600 font-medium">{t.campaigns.totalCampaigns}</div>
+                    <div className="text-sm text-primary font-medium">{t.campaigns.totalCampaigns}</div>
                   </CardContent>
                 </Card>
                 <Card className="border-indigo-200 bg-gradient-to-br from-indigo-50 to-indigo-100">

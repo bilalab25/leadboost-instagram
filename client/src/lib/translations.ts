@@ -192,11 +192,11 @@ export const platformOptionsSpanish = [
   { value: "instagram", label: "Publicaciones Instagram", color: "text-pink-500" },
   { value: "instagram_story", label: "Historia Instagram", color: "text-purple-500" },
   { value: "instagram_reels", label: "Reels Instagram", color: "text-red-500" },
-  { value: "facebook", label: "Publicaciones Facebook", color: "text-blue-600" },
-  { value: "facebook_story", label: "Historias Facebook", color: "text-blue-500" },
-  { value: "linkedin", label: "Publicaciones LinkedIn", color: "text-blue-700" },
-  { value: "linkedin_newsletter", label: "Newsletter LinkedIn", color: "text-blue-600" },
-  { value: "linkedin_thread", label: "Hilo LinkedIn", color: "text-blue-500" },
+  { value: "facebook", label: "Publicaciones Facebook", color: "text-primary" },
+  { value: "facebook_story", label: "Historias Facebook", color: "text-primary" },
+  { value: "linkedin", label: "Publicaciones LinkedIn", color: "text-primary" },
+  { value: "linkedin_newsletter", label: "Newsletter LinkedIn", color: "text-primary" },
+  { value: "linkedin_thread", label: "Hilo LinkedIn", color: "text-primary" },
   { value: "threads", label: "Threads", color: "text-gray-900" },
   { value: "x", label: "X (Twitter)", color: "text-gray-900" },
   { value: "tiktok", label: "TikTok", color: "text-gray-800" },
@@ -209,7 +209,7 @@ export const platformOptionsSpanish = [
   { value: "medium", label: "Medium", color: "text-gray-900" },
   { value: "blog", label: "Posts de Blog", color: "text-gray-700" },
   { value: "whatsapp", label: "WhatsApp", color: "text-green-500" },
-  { value: "email", label: "Gmail/Email", color: "text-blue-500" },
+  { value: "email", label: "Gmail/Email", color: "text-primary" },
 ];
 
 export type Language = 'en' | 'es';

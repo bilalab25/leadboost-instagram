@@ -30,7 +30,7 @@ interface ContentPlan {
 }
 
 const platformColors = {
-  instagram: "bg-blue-100 text-blue-800",
+  instagram: "bg-primary/10 text-primary",
   whatsapp: "bg-green-100 text-green-800", 
   tiktok: "bg-purple-100 text-purple-800",
   email: "bg-yellow-100 text-yellow-800",
@@ -219,7 +219,7 @@ export default function ContentCalendar() {
               <div key={index} className="flex items-start space-x-3" data-testid={`recommendation-${index}`}>
                 <div className="flex-shrink-0 mt-1">
                   {index === 0 && <ChartBar className="text-green-500 h-4 w-4" />}
-                  {index === 1 && <Users className="text-blue-500 h-4 w-4" />}
+                  {index === 1 && <Users className="text-primary h-4 w-4" />}
                   {index === 2 && <Video className="text-purple-500 h-4 w-4" />}
                 </div>
                 <p className="text-sm text-gray-600">{recommendation}</p>

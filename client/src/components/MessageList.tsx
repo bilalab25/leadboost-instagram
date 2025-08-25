@@ -47,13 +47,13 @@ const platformIcons = {
 const platformColors = {
   instagram: "bg-pink-500",
   whatsapp: "bg-green-500", 
-  email: "bg-blue-500",
+  email: "bg-primary",
   tiktok: "bg-gray-800",
-  facebook: "bg-blue-600",
+  facebook: "bg-primary",
   twitter: "bg-sky-500",
-  linkedin: "bg-blue-700",
+  linkedin: "bg-primary",
   youtube: "bg-red-600",
-  telegram: "bg-blue-400",
+  telegram: "bg-primary",
   discord: "bg-indigo-600",
 };
 
@@ -164,7 +164,7 @@ export default function MessageList({ limit = 50, showHeader = true, platform }:
               TikTok
             </Button>
             <Button variant={platform === "facebook" ? "default" : "ghost"} size="sm" data-testid="filter-facebook">
-              <SiFacebook className="mr-2 h-4 w-4 text-blue-600" />
+              <SiFacebook className="mr-2 h-4 w-4 text-primary" />
               Facebook
             </Button>
             <Button variant={platform === "whatsapp" ? "default" : "ghost"} size="sm" data-testid="filter-whatsapp">
@@ -176,7 +176,7 @@ export default function MessageList({ limit = 50, showHeader = true, platform }:
               Twitter
             </Button>
             <Button variant={platform === "email" ? "default" : "ghost"} size="sm" data-testid="filter-email">
-              <Mail className="mr-2 h-4 w-4 text-blue-500" />
+              <Mail className="mr-2 h-4 w-4 text-primary" />
               Email
             </Button>
           </div>
@@ -193,7 +193,7 @@ export default function MessageList({ limit = 50, showHeader = true, platform }:
             key={message.id} 
             className={cn(
               "p-6 hover:bg-gray-50 cursor-pointer transition-colors",
-              !message.isRead && "bg-blue-50"
+              !message.isRead && "bg-primary/5"
             )}
             onClick={() => !message.isRead && markAsReadMutation.mutate(message.id)}
             data-testid={`message-${message.id}`}

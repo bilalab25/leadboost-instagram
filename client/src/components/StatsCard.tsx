@@ -19,7 +19,7 @@ const iconMap = {
 };
 
 const iconColorMap = {
-  message: "bg-blue-500",
+  message: "bg-primary",
   chart: "bg-green-500",
   robot: "bg-amber-500",
   dollar: "bg-purple-500",

@@ -390,7 +390,7 @@ export default function CustomersPage() {
                       </TableCell>
                       <TableCell>
                         {invoice.fileUrl ? (
-                          <a href={invoice.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          <a href={invoice.fileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                             View File
                           </a>
                         ) : (
