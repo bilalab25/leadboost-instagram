@@ -1,5 +1,6 @@
 import {
   users,
+  brands,
   socialAccounts,
   messages,
   contentPlans,
@@ -16,6 +17,8 @@ import {
   campaignTriggers,
   type User,
   type UpsertUser,
+  type InsertBrand,
+  type Brand,
   type InsertSocialAccount,
   type SocialAccount,
   type InsertMessage,
@@ -52,6 +55,13 @@ export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+
+  // Brand operations
+  createBrand(brand: InsertBrand): Promise<Brand>;
+  getBrandsByUserId(userId: string): Promise<Brand[]>;
+  getBrandById(id: string, userId: string): Promise<Brand | undefined>;
+  updateBrand(id: string, userId: string, updates: Partial<Brand>): Promise<Brand | undefined>;
+  deleteBrand(id: string, userId: string): Promise<boolean>;
 
   // Social account operations
   createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount>;
@@ -156,6 +166,35 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  // Brand operations
+  async createBrand(brandData: InsertBrand): Promise<Brand> {
+    const [brand] = await db.insert(brands).values(brandData).returning();
+    return brand;
+  }
+
+  async getBrandsByUserId(userId: string): Promise<Brand[]> {
+    return db.select().from(brands).where(eq(brands.userId, userId)).orderBy(desc(brands.createdAt));
+  }
+
+  async getBrandById(id: string, userId: string): Promise<Brand | undefined> {
+    const [brand] = await db.select().from(brands).where(and(eq(brands.id, id), eq(brands.userId, userId)));
+    return brand;
+  }
+
+  async updateBrand(id: string, userId: string, updates: Partial<Brand>): Promise<Brand | undefined> {
+    const [brand] = await db
+      .update(brands)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(brands.id, id), eq(brands.userId, userId)))
+      .returning();
+    return brand;
+  }
+
+  async deleteBrand(id: string, userId: string): Promise<boolean> {
+    const result = await db.delete(brands).where(and(eq(brands.id, id), eq(brands.userId, userId)));
+    return result.rowCount > 0;
   }
 
   // Social account operations

@@ -31,15 +31,32 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role").default("user"),
+  role: varchar("role").default("agency_owner"), // agency_owner, agency_member, client_viewer
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Social media accounts connected to users
+// Brands/Clients table for multi-tenant agency management
+export const brands = pgTable("brands", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }), // agency owner
+  name: varchar("name").notNull(),
+  domain: varchar("domain"),
+  industry: varchar("industry"),
+  logo: varchar("logo"),
+  primaryColor: varchar("primary_color").default("#0066cc"),
+  description: text("description"),
+  settings: jsonb("settings"), // brand-specific settings
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Social media accounts connected to users and brands
 export const socialAccounts = pgTable("social_accounts", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
   platform: varchar("platform").notNull(), // instagram, whatsapp, email, tiktok
   accountId: varchar("account_id").notNull(),
   accountName: varchar("account_name").notNull(),
@@ -65,10 +82,11 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// AI-generated content plans
+// AI-generated content plans per brand
 export const contentPlans = pgTable("content_plans", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
   title: varchar("title").notNull(),
   month: integer("month").notNull(),
   year: integer("year").notNull(),
@@ -80,10 +98,11 @@ export const contentPlans = pgTable("content_plans", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Social media campaigns
+// Social media campaigns per brand
 export const campaigns = pgTable("campaigns", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
   title: varchar("title").notNull(),
   description: text("description"),
   platforms: text("platforms").array(), // which platforms to post to
@@ -96,31 +115,36 @@ export const campaigns = pgTable("campaigns", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Business analytics data
+// Business analytics data per brand
 export const analytics = pgTable("analytics", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
   platform: varchar("platform").notNull(),
-  date: timestamp("date").notNull(),
-  metrics: jsonb("metrics"), // reach, engagement, conversions, etc
+  metric: varchar("metric").notNull(), // reach, engagement, clicks, etc
+  value: integer("value").notNull(),
+  period: varchar("period").default("daily"), // daily, weekly, monthly
+  recordedAt: timestamp("recorded_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Team activity logs
+// Team activity logs per brand
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
   action: varchar("action").notNull(),
   description: text("description"),
-  entityType: varchar("entity_type"), // message, campaign, content_plan
+  entityType: varchar("entity_type"), // message, campaign, content_plan, brand
   entityId: varchar("entity_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// POS system integrations (Square, Shopify, etc.)
+// POS system integrations (Square, Shopify, etc.) per brand
 export const posIntegrations = pgTable("pos_integrations", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
   provider: varchar("provider").notNull(), // square, shopify, stripe, woocommerce, etc.
   storeName: varchar("store_name").notNull(),
   apiKey: text("api_key"), // encrypted
@@ -252,6 +276,7 @@ export const taskCompletions = pgTable("task_completions", {
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
+  brands: many(brands),
   socialAccounts: many(socialAccounts),
   contentPlans: many(contentPlans),
   campaigns: many(campaigns),
@@ -265,10 +290,27 @@ export const usersRelations = relations(users, ({ many }) => ({
   completedTasks: many(taskCompletions),
 }));
 
+export const brandsRelations = relations(brands, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [brands.userId],
+    references: [users.id],
+  }),
+  socialAccounts: many(socialAccounts),
+  contentPlans: many(contentPlans),
+  campaigns: many(campaigns),
+  analytics: many(analytics),
+  activityLogs: many(activityLogs),
+  posIntegrations: many(posIntegrations),
+}));
+
 export const socialAccountsRelations = relations(socialAccounts, ({ one, many }) => ({
   user: one(users, {
     fields: [socialAccounts.userId],
     references: [users.id],
+  }),
+  brand: one(brands, {
+    fields: [socialAccounts.brandId],
+    references: [brands.id],
   }),
   messages: many(messages),
 }));
@@ -415,6 +457,15 @@ export const insertTaskCompletionSchema = createInsertSchema(taskCompletions).om
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Brand types
+export const insertBrandSchema = createInsertSchema(brands).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertBrand = z.infer<typeof insertBrandSchema>;
+export type Brand = typeof brands.$inferSelect;
 
 // POS Integration types
 export type InsertPosIntegration = typeof posIntegrations.$inferInsert;

@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import BrandSwitcher from "@/components/BrandSwitcher";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -75,6 +76,11 @@ export default function Sidebar() {
             alt="LeadBoost Logo" 
             className="max-h-16 max-w-full object-contain"
           />
+        </div>
+        
+        {/* Brand Switcher */}
+        <div className="px-4 mt-6">
+          <BrandSwitcher />
         </div>
         
         {/* Navigation */}

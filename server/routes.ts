@@ -6,6 +6,7 @@ import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessage
 import { socialMediaService } from "./services/socialMedia";
 import {
   insertMessageSchema,
+  insertBrandSchema,
   insertSocialAccountSchema,
   insertContentPlanSchema,
   insertCampaignSchema,
@@ -38,6 +39,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Brand management routes
+  app.get('/api/brands', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const brands = await storage.getBrandsByUserId(userId);
+      res.json(brands);
+    } catch (error) {
+      console.error("Error fetching brands:", error);
+      res.status(500).json({ message: "Failed to fetch brands" });
+    }
+  });
+
+  app.post('/api/brands', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const brandData = insertBrandSchema.parse({
+        ...req.body,
+        userId,
+      });
+      
+      const brand = await storage.createBrand(brandData);
+      
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        brandId: brand.id,
+        action: "create_brand",
+        description: `Created brand: ${brand.name}`,
+        entityType: "brand",
+        entityId: brand.id,
+      });
+
+      res.json(brand);
+    } catch (error) {
+      console.error("Error creating brand:", error);
+      res.status(500).json({ message: "Failed to create brand" });
+    }
+  });
+
+  app.get('/api/brands/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const brandId = req.params.id;
+      const brand = await storage.getBrandById(brandId, userId);
+      
+      if (!brand) {
+        return res.status(404).json({ message: "Brand not found" });
+      }
+      
+      res.json(brand);
+    } catch (error) {
+      console.error("Error fetching brand:", error);
+      res.status(500).json({ message: "Failed to fetch brand" });
+    }
+  });
+
+  app.put('/api/brands/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const brandId = req.params.id;
+      const updates = req.body;
+      
+      const brand = await storage.updateBrand(brandId, userId, updates);
+      
+      if (!brand) {
+        return res.status(404).json({ message: "Brand not found" });
+      }
+
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        brandId: brand.id,
+        action: "update_brand",
+        description: `Updated brand: ${brand.name}`,
+        entityType: "brand",
+        entityId: brand.id,
+      });
+
+      res.json(brand);
+    } catch (error) {
+      console.error("Error updating brand:", error);
+      res.status(500).json({ message: "Failed to update brand" });
+    }
+  });
+
+  app.delete('/api/brands/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const brandId = req.params.id;
+      
+      const success = await storage.deleteBrand(brandId, userId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Brand not found" });
+      }
+
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        brandId: brandId,
+        action: "delete_brand",
+        description: `Deleted brand`,
+        entityType: "brand",
+        entityId: brandId,
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting brand:", error);
+      res.status(500).json({ message: "Failed to delete brand" });
     }
   });
 
