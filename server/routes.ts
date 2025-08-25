@@ -551,9 +551,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Content plans routes
   app.get('/api/content-plans', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const plans = await storage.getContentPlansByUserId(userId);
-      res.json(plans);
+      // Return mock AI-generated content plans
+      const mockContentPlans = [
+        {
+          id: "plan-1",
+          title: "March 2024 Content Strategy",
+          month: 3,
+          year: 2024,
+          status: "active",
+          strategy: JSON.stringify({
+            theme: "Spring Product Launch",
+            objectives: ["Increase brand awareness", "Drive product sales", "Build community engagement"],
+            keyMessages: ["Fresh start with our products", "Spring cleaning made easy", "Community-driven innovation"]
+          }),
+          insights: {
+            theme: "Spring Product Launch",
+            objectives: ["Increase brand awareness by 40%", "Drive product sales for new spring collection", "Build community engagement through UGC campaigns"],
+            keyMessages: ["Fresh start with our products", "Spring cleaning made easy", "Community-driven innovation"],
+            platforms: {
+              instagram: { focus: "Visual storytelling", postFrequency: "Daily" },
+              tiktok: { focus: "Trending challenges", postFrequency: "2x daily" },
+              facebook: { focus: "Community building", postFrequency: "5x weekly" },
+              email: { focus: "Product education", frequency: "Weekly newsletter" }
+            }
+          },
+          posts: [
+            {
+              date: "2024-03-01",
+              platform: "instagram",
+              type: "image",
+              caption: "Spring is here! 🌸 Time to refresh your routine with our new collection. What's your favorite spring ritual?",
+              hashtags: ["#SpringVibes", "#NewCollection", "#FreshStart"],
+              scheduledTime: "09:00"
+            },
+            {
+              date: "2024-03-02", 
+              platform: "tiktok",
+              type: "video",
+              caption: "POV: You're getting your life together this spring ✨ #SpringCleaning #Organized",
+              hashtags: ["#SpringCleaning", "#Organized", "#LifeHacks"],
+              scheduledTime: "15:30"
+            }
+          ],
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
+        },
+        {
+          id: "plan-2",
+          title: "April 2024 Content Strategy", 
+          month: 4,
+          year: 2024,
+          status: "draft",
+          strategy: JSON.stringify({
+            theme: "Earth Month Sustainability",
+            objectives: ["Promote eco-friendly practices", "Showcase sustainable products", "Partner with environmental influencers"],
+            keyMessages: ["Sustainability made simple", "Small changes, big impact", "Eco-conscious living"]
+          }),
+          insights: {
+            theme: "Earth Month Sustainability",
+            objectives: ["Promote eco-friendly practices", "Showcase sustainable product line", "Partner with 5 environmental influencers"],
+            keyMessages: ["Sustainability made simple", "Small changes, big impact", "Eco-conscious living"],
+            platforms: {
+              instagram: { focus: "Educational content", postFrequency: "Daily" },
+              tiktok: { focus: "Eco-tips & hacks", postFrequency: "Daily" },
+              linkedin: { focus: "Industry insights", postFrequency: "3x weekly" },
+              email: { focus: "Sustainability guide", frequency: "Bi-weekly" }
+            }
+          },
+          posts: [
+            {
+              date: "2024-04-01",
+              platform: "instagram",
+              type: "carousel",
+              caption: "5 simple swaps for a more sustainable lifestyle 🌱 Save this post for later!",
+              hashtags: ["#EarthMonth", "#Sustainability", "#EcoFriendly"],
+              scheduledTime: "10:00"
+            }
+          ],
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString()
+        }
+      ];
+      
+      res.json(mockContentPlans);
     } catch (error) {
       console.error("Error fetching content plans:", error);
       res.status(500).json({ message: "Failed to fetch content plans" });
@@ -597,9 +677,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Campaigns routes
   app.get('/api/campaigns', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const campaigns = await storage.getCampaignsByUserId(userId);
-      res.json(campaigns);
+      // Return mock campaigns
+      const mockCampaigns = [
+        {
+          id: "campaign-1",
+          title: "Spring Product Launch",
+          description: "Comprehensive campaign to launch our new spring collection across all social platforms",
+          status: "active",
+          startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+          endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 23).toISOString(),
+          budget: 5000,
+          spent: 2450,
+          platforms: ["instagram", "tiktok", "facebook", "email"],
+          targetAudience: {
+            demographics: "Women 25-40",
+            interests: ["lifestyle", "home decor", "sustainable living"],
+            location: "North America"
+          },
+          content: {
+            posts: 24,
+            videos: 8, 
+            emails: 4,
+            stories: 16
+          },
+          performance: {
+            impressions: 156000,
+            engagements: 12400,
+            clicks: 3200,
+            conversions: 89,
+            revenue: 8940
+          },
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString()
+        },
+        {
+          id: "campaign-2", 
+          title: "TikTok Viral Challenge",
+          description: "Branded hashtag challenge to increase brand awareness and user-generated content",
+          status: "scheduled",
+          startDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString(),
+          endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 17).toISOString(),
+          budget: 3000,
+          spent: 0,
+          platforms: ["tiktok", "instagram"],
+          targetAudience: {
+            demographics: "Gen Z 16-24",
+            interests: ["dance", "trends", "lifestyle"],
+            location: "Global"
+          },
+          content: {
+            posts: 0,
+            videos: 12,
+            emails: 0,
+            stories: 8
+          },
+          performance: {
+            impressions: 0,
+            engagements: 0,
+            clicks: 0,
+            conversions: 0,
+            revenue: 0
+          },
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString()
+        },
+        {
+          id: "campaign-3",
+          title: "Email Nurture Sequence",
+          description: "7-email sequence for new subscribers to introduce brand and products",
+          status: "completed",
+          startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
+          endDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+          budget: 800,
+          spent: 750,
+          platforms: ["email"],
+          targetAudience: {
+            demographics: "New subscribers",
+            interests: ["product education", "brand story"],
+            location: "All regions"
+          },
+          content: {
+            posts: 0,
+            videos: 0,
+            emails: 7,
+            stories: 0
+          },
+          performance: {
+            impressions: 8500,
+            engagements: 3400,
+            clicks: 1200,
+            conversions: 156,
+            revenue: 4680
+          },
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 35).toISOString()
+        }
+      ];
+
+      res.json(mockCampaigns);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       res.status(500).json({ message: "Failed to fetch campaigns" });
@@ -719,10 +891,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics routes
   app.get('/api/analytics', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const platform = req.query.platform as string;
-      const analytics = await storage.getAnalyticsByUserId(userId, platform);
-      res.json(analytics);
+      // Return comprehensive mock analytics
+      const mockAnalytics = {
+        overview: {
+          totalFollowers: 47832,
+          totalEngagement: 156940,
+          avgEngagementRate: 4.2,
+          totalReach: 245600,
+          totalImpressions: 892000,
+          growthRate: 12.5
+        },
+        platformMetrics: {
+          instagram: {
+            followers: 18500,
+            posts: 45,
+            engagement: 4.1,
+            reach: 89000,
+            impressions: 234000,
+            topPost: "Spring collection reveal - 2,340 likes"
+          },
+          tiktok: {
+            followers: 22100,
+            posts: 38,
+            engagement: 6.8,
+            reach: 145000,
+            impressions: 456000,
+            topPost: "Product demo dance - 45.2K views"
+          },
+          facebook: {
+            followers: 5200,
+            posts: 28,
+            engagement: 2.9,
+            reach: 8500,
+            impressions: 67000,
+            topPost: "Behind the scenes - 89 reactions"
+          },
+          email: {
+            subscribers: 2032,
+            campaigns: 12,
+            openRate: 24.5,
+            clickRate: 3.2,
+            unsubscribeRate: 0.8,
+            topEmail: "Weekly newsletter #47"
+          }
+        },
+        timeSeriesData: [
+          { date: "2024-03-01", instagram: 1240, tiktok: 2100, facebook: 340, email: 450 },
+          { date: "2024-03-02", instagram: 1180, tiktok: 2450, facebook: 290, email: 380 },
+          { date: "2024-03-03", instagram: 1350, tiktok: 2200, facebook: 320, email: 420 },
+          { date: "2024-03-04", instagram: 1420, tiktok: 2800, facebook: 380, email: 510 },
+          { date: "2024-03-05", instagram: 1380, tiktok: 2300, facebook: 350, email: 460 },
+          { date: "2024-03-06", instagram: 1500, tiktok: 2600, facebook: 400, email: 520 },
+          { date: "2024-03-07", instagram: 1620, tiktok: 2900, facebook: 420, email: 580 }
+        ],
+        topContent: [
+          {
+            id: "post-1",
+            platform: "tiktok",
+            type: "video",
+            content: "Morning routine with our products",
+            engagement: 12450,
+            views: 89600,
+            date: "2024-03-05"
+          },
+          {
+            id: "post-2", 
+            platform: "instagram",
+            type: "image",
+            content: "Spring collection flat lay",
+            engagement: 3420,
+            views: 28900,
+            date: "2024-03-04"
+          },
+          {
+            id: "post-3",
+            platform: "tiktok", 
+            type: "video",
+            content: "Behind the scenes packaging",
+            engagement: 8900,
+            views: 67200,
+            date: "2024-03-03"
+          }
+        ],
+        demographics: {
+          ageGroups: {
+            "18-24": 32,
+            "25-34": 41,
+            "35-44": 18,
+            "45-54": 7,
+            "55+": 2
+          },
+          gender: {
+            female: 68,
+            male: 29,
+            other: 3
+          },
+          topLocations: [
+            { country: "United States", percentage: 45 },
+            { country: "Canada", percentage: 18 },
+            { country: "United Kingdom", percentage: 12 },
+            { country: "Australia", percentage: 8 },
+            { country: "Germany", percentage: 6 }
+          ]
+        }
+      };
+
+      res.json(mockAnalytics);
     } catch (error) {
       console.error("Error fetching analytics:", error);
       res.status(500).json({ message: "Failed to fetch analytics" });
@@ -791,9 +1065,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customer management routes
   app.get('/api/customers', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const customers = await storage.getCustomersByUserId(userId);
-      res.json(customers);
+      // Return mock customer data
+      const mockCustomers = [
+        {
+          id: "customer-1",
+          name: "Sarah Martinez",
+          email: "sarah.martinez@email.com",
+          phone: "+1-555-0123",
+          avatar: null,
+          totalSpent: 1247.50,
+          lastOrderDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+          orderCount: 8,
+          lifetimeValue: 2340.75,
+          acquisitionChannel: "instagram",
+          status: "active",
+          tags: ["VIP", "influencer"],
+          notes: "Social media influencer with 15K followers. Great brand advocate.",
+          addresses: [{
+            type: "shipping",
+            street: "123 Main St",
+            city: "Los Angeles",
+            state: "CA",
+            zip: "90210",
+            country: "USA"
+          }],
+          preferredPlatform: "instagram",
+          engagementLevel: "high",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120).toISOString()
+        },
+        {
+          id: "customer-2", 
+          name: "Mike Johnson",
+          email: "mike.johnson@gmail.com",
+          phone: "+1-555-0456",
+          avatar: null,
+          totalSpent: 892.25,
+          lastOrderDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+          orderCount: 5,
+          lifetimeValue: 892.25,
+          acquisitionChannel: "facebook",
+          status: "active",
+          tags: ["repeat-customer"],
+          notes: "Prefers email communication. Always asks detailed product questions.",
+          addresses: [{
+            type: "shipping",
+            street: "456 Oak Ave",
+            city: "Chicago",
+            state: "IL", 
+            zip: "60614",
+            country: "USA"
+          }],
+          preferredPlatform: "email",
+          engagementLevel: "medium",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 85).toISOString()
+        },
+        {
+          id: "customer-3",
+          name: "Emma Wilson",
+          email: "emma.wilson@yahoo.com", 
+          phone: "+1-555-0789",
+          avatar: null,
+          totalSpent: 2156.80,
+          lastOrderDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
+          orderCount: 12,
+          lifetimeValue: 3240.90,
+          acquisitionChannel: "tiktok",
+          status: "VIP",
+          tags: ["VIP", "high-value", "brand-advocate"],
+          notes: "Top customer! Creates UGC content regularly. Always leaves positive reviews.",
+          addresses: [{
+            type: "shipping",
+            street: "789 Pine St",
+            city: "New York",
+            state: "NY",
+            zip: "10001", 
+            country: "USA"
+          }],
+          preferredPlatform: "tiktok",
+          engagementLevel: "high",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 200).toISOString()
+        },
+        {
+          id: "customer-4",
+          name: "David Chen",
+          email: "david.chen@outlook.com",
+          phone: "+1-555-0321",
+          avatar: null,
+          totalSpent: 543.75,
+          lastOrderDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
+          orderCount: 3,
+          lifetimeValue: 543.75,
+          acquisitionChannel: "whatsapp",
+          status: "active", 
+          tags: ["business-inquiry"],
+          notes: "Interested in bulk purchasing for his small business. Potential wholesale customer.",
+          addresses: [{
+            type: "shipping",
+            street: "321 Cedar Rd",
+            city: "Seattle",
+            state: "WA",
+            zip: "98101",
+            country: "USA"
+          }],
+          preferredPlatform: "whatsapp",
+          engagementLevel: "medium",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 45).toISOString()
+        }
+      ];
+
+      res.json(mockCustomers);
     } catch (error) {
       console.error("Error fetching customers:", error);
       res.status(500).json({ message: "Failed to fetch customers" });
@@ -881,10 +1261,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Invoice management routes
   app.get('/api/invoices', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const customerId = req.query.customerId;
-      const invoices = await storage.getInvoicesByUserId(userId, customerId);
-      res.json(invoices);
+      // Return mock invoice data
+      const mockInvoices = [
+        {
+          id: "inv-1",
+          invoiceNumber: "INV-2024-001",
+          customerId: "customer-1",
+          customerName: "Sarah Martinez",
+          amount: 234.50,
+          status: "paid",
+          dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+          paidDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+          description: "Social media management services - March 2024",
+          items: [
+            { description: "Instagram management", quantity: 1, rate: 150.00, amount: 150.00 },
+            { description: "TikTok content creation", quantity: 1, rate: 84.50, amount: 84.50 }
+          ],
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString()
+        },
+        {
+          id: "inv-2",
+          invoiceNumber: "INV-2024-002",
+          customerId: "customer-3",
+          customerName: "Emma Wilson",
+          amount: 450.00,
+          status: "pending",
+          dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+          paidDate: null,
+          description: "Premium social media package - April 2024",
+          items: [
+            { description: "Multi-platform management", quantity: 1, rate: 300.00, amount: 300.00 },
+            { description: "AI content planning", quantity: 1, rate: 150.00, amount: 150.00 }
+          ],
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
+        },
+        {
+          id: "inv-3",
+          invoiceNumber: "INV-2024-003",
+          customerId: "customer-2",
+          customerName: "Mike Johnson",
+          amount: 180.00,
+          status: "overdue",
+          dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+          paidDate: null,
+          description: "Facebook advertising consultation",
+          items: [
+            { description: "Ad campaign setup", quantity: 1, rate: 120.00, amount: 120.00 },
+            { description: "Performance analysis", quantity: 1, rate: 60.00, amount: 60.00 }
+          ],
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20).toISOString()
+        }
+      ];
+
+      res.json(mockInvoices);
     } catch (error) {
       console.error("Error fetching invoices:", error);
       res.status(500).json({ message: "Failed to fetch invoices" });
@@ -966,10 +1395,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const assignedOnly = req.query.assigned === 'true';
-      const tasks = assignedOnly 
-        ? await storage.getTasksAssignedToUser(userId)
-        : await storage.getTasksByUserId(userId);
-      res.json(tasks);
+      
+      // Mock team tasks data
+      const mockTasks = [
+        {
+          id: "task-1",
+          title: "Review Q1 Content Performance",
+          description: "Analyze Q1 social media performance across all platforms and create summary report",
+          status: "pending",
+          priority: "high",
+          assignedBy: "manager-1",
+          assignedTo: userId,
+          assignedByName: "Marketing Manager",
+          assignedToName: "Current User",
+          dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5).toISOString(),
+          category: "analytics",
+          tags: ["Q1", "report", "performance"],
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString()
+        },
+        {
+          id: "task-2",
+          title: "Create TikTok Content Calendar",
+          description: "Plan and schedule TikTok content for April 2024, including trending hashtags and challenges",
+          status: "in_progress", 
+          priority: "medium",
+          assignedBy: "manager-1",
+          assignedTo: "user-2",
+          assignedByName: "Marketing Manager",
+          assignedToName: "Content Creator",
+          dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 10).toISOString(),
+          category: "content",
+          tags: ["tiktok", "calendar", "april"],
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString()
+        },
+        {
+          id: "task-3",
+          title: "Update Brand Guidelines",
+          description: "Revise brand guidelines document to include new color palette and typography standards",
+          status: "completed",
+          priority: "low",
+          assignedBy: userId,
+          assignedTo: "user-3",
+          assignedByName: "Current User",
+          assignedToName: "Brand Designer", 
+          dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+          category: "design",
+          tags: ["brand", "guidelines", "design"],
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
+          completedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
+          completionNotes: "Updated brand guidelines with new colors and fonts. Document is ready for review."
+        },
+        {
+          id: "task-4", 
+          title: "Respond to Customer Inquiries",
+          description: "Address high-priority customer messages from Instagram and TikTok platforms",
+          status: "pending",
+          priority: "urgent",
+          assignedBy: "manager-2",
+          assignedTo: userId,
+          assignedByName: "Customer Success Manager",
+          assignedToName: "Current User",
+          dueDate: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
+          category: "support",
+          tags: ["customer", "urgent", "social-media"],
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
+        }
+      ];
+
+      const filteredTasks = assignedOnly 
+        ? mockTasks.filter(task => task.assignedTo === userId)
+        : mockTasks.filter(task => task.assignedBy === userId);
+      
+      res.json(filteredTasks);
     } catch (error) {
       console.error("Error fetching team tasks:", error);
       res.status(500).json({ message: "Failed to fetch team tasks" });
@@ -1051,9 +1552,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's POS integrations
   app.get('/api/pos-integrations', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const integrations = await storage.getPosIntegrationsByUserId(userId);
-      res.json(integrations);
+      // Return mock POS integrations
+      const mockIntegrations = [
+        {
+          id: "pos-1",
+          provider: "square",
+          storeName: "Demo Store",
+          storeUrl: "https://squareup.com/dashboard",
+          status: "connected",
+          isActive: true,
+          lastSyncAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+          syncStatus: "success",
+          productCount: 24,
+          transactionCount: 156,
+          settings: {
+            autoSync: true,
+            syncFrequency: "hourly",
+            campaignTriggers: {
+              newCustomer: true,
+              purchaseAbove: 100,
+              abandonedCart: false
+            }
+          },
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString()
+        },
+        {
+          id: "pos-2",
+          provider: "shopify",
+          storeName: "Demo Shopify Store",
+          storeUrl: "demo-store.myshopify.com",
+          status: "connected",
+          isActive: true,
+          lastSyncAt: new Date(Date.now() - 1000 * 60 * 60 * 1).toISOString(),
+          syncStatus: "success",
+          productCount: 89,
+          transactionCount: 423,
+          settings: {
+            autoSync: true,
+            syncFrequency: "daily",
+            campaignTriggers: {
+              newCustomer: true,
+              purchaseAbove: 50,
+              abandonedCart: true
+            }
+          },
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 45).toISOString()
+        },
+        {
+          id: "pos-3",
+          provider: "stripe",
+          storeName: "Demo Stripe Account",
+          storeUrl: "https://dashboard.stripe.com",
+          status: "error",
+          isActive: false,
+          lastSyncAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+          syncStatus: "failed",
+          productCount: 0,
+          transactionCount: 0,
+          errorMessage: "API key expired. Please reconnect your account.",
+          settings: {
+            autoSync: false,
+            syncFrequency: "manual",
+            campaignTriggers: {
+              newCustomer: false,
+              purchaseAbove: 0,
+              abandonedCart: false
+            }
+          },
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString()
+        }
+      ];
+
+      res.json(mockIntegrations);
     } catch (error) {
       console.error("Error fetching POS integrations:", error);
       res.status(500).json({ message: "Failed to fetch POS integrations" });
@@ -1156,9 +1726,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get products from POS systems
   app.get('/api/products', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const products = await storage.getProductsByUserId(userId);
-      res.json(products);
+      // Return mock products from POS integrations
+      const mockProducts = [
+        {
+          id: "prod-1",
+          externalId: "sq_prod_001",
+          provider: "square",
+          name: "Premium Wireless Headphones",
+          description: "High-quality wireless headphones with noise cancellation",
+          price: 199.99,
+          currency: "USD",
+          sku: "WH-001",
+          category: "Electronics",
+          inventory: 45,
+          status: "active",
+          images: [],
+          tags: ["wireless", "audio", "premium"],
+          lastSoldAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+          totalSold: 23,
+          revenue: 4599.77,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString()
+        },
+        {
+          id: "prod-2",
+          externalId: "shopify_prod_002",
+          provider: "shopify",
+          name: "Organic Green Tea Set",
+          description: "Premium organic green tea collection with ceramic teapot",
+          price: 89.99,
+          currency: "USD",
+          sku: "TEA-002",
+          category: "Food & Beverage",
+          inventory: 12,
+          status: "active",
+          images: [],
+          tags: ["organic", "tea", "wellness"],
+          lastSoldAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
+          totalSold: 67,
+          revenue: 6029.33,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString()
+        },
+        {
+          id: "prod-3",
+          externalId: "sq_prod_003",
+          provider: "square",
+          name: "Yoga Mat & Block Set",
+          description: "Eco-friendly yoga mat with matching blocks and carrying strap",
+          price: 59.99,
+          currency: "USD",
+          sku: "YOGA-003",
+          category: "Fitness",
+          inventory: 8,
+          status: "low_stock",
+          images: [],
+          tags: ["yoga", "fitness", "eco-friendly"],
+          lastSoldAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+          totalSold: 34,
+          revenue: 2039.66,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 45).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
+        },
+        {
+          id: "prod-4",
+          externalId: "shopify_prod_004",
+          provider: "shopify",
+          name: "Handcrafted Leather Wallet",
+          description: "Genuine leather wallet with RFID blocking technology",
+          price: 79.99,
+          currency: "USD",
+          sku: "WALLET-004",
+          category: "Accessories",
+          inventory: 0,
+          status: "out_of_stock",
+          images: [],
+          tags: ["leather", "wallet", "rfid"],
+          lastSoldAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+          totalSold: 89,
+          revenue: 7119.11,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120).toISOString(),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
+        }
+      ];
+
+      res.json(mockProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
       res.status(500).json({ message: "Failed to fetch products" });
