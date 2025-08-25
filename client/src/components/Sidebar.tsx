@@ -66,18 +66,12 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="flex items-center flex-shrink-0 px-6">
           <div className="flex items-center">
-            {/* Replace this section with your logo image */}
-            <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
-              <MessageSquare className="text-white text-lg" />
-            </div>
-            {/* Or uncomment this for image logo:
             <img 
-              src="/path-to-your-logo.png" 
-              alt="Your Company Logo" 
-              className="w-8 h-8 rounded-lg"
+              src="/attached_assets/logo azul sin fondo_1756140873617.png" 
+              alt="LeadBoost Logo" 
+              className="h-8 w-auto"
             />
-            */}
-            <span className="ml-2 text-xl font-bold text-gray-900" data-testid="text-logo">SocialHub</span>
+            <span className="ml-2 text-xl font-bold text-gray-900" data-testid="text-logo">LeadBoost</span>
           </div>
         </div>
         
@@ -148,9 +142,9 @@ export default function Sidebar() {
         <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
           <div className="flex items-center w-full">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.profileImageUrl} alt="User avatar" />
+              <AvatarImage src={user?.profileImageUrl || undefined} alt="User avatar" />
               <AvatarFallback>
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
+                {user?.firstName?.[0] || ''}{user?.lastName?.[0] || ''}
               </AvatarFallback>
             </Avatar>
             <div className="ml-3 flex-1">
