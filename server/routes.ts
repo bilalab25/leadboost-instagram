@@ -256,8 +256,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 32).toISOString(),
           socialAccount: {
-            platform: "instagram",
-            accountName: "@DemoCompany"
+            platform: "facebook",
+            accountName: "Demo Company Facebook"
           }
         },
         {
@@ -270,8 +270,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRead: true,
           createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
           socialAccount: {
-            platform: "instagram", 
-            accountName: "@DemoCompany"
+            platform: "tiktok", 
+            accountName: "@democompany_official"
           }
         },
         {
@@ -298,8 +298,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 67).toISOString(),
           socialAccount: {
-            platform: "whatsapp",
-            accountName: "Demo Company WhatsApp"
+            platform: "twitter",
+            accountName: "@DemoCompany"
           }
         },
         {
@@ -312,8 +312,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRead: true,
           createdAt: new Date(Date.now() - 1000 * 60 * 89).toISOString(),
           socialAccount: {
-            platform: "whatsapp",
-            accountName: "Demo Company WhatsApp"
+            platform: "linkedin",
+            accountName: "Demo Company"
           }
         },
         {
@@ -340,8 +340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 145).toISOString(),
           socialAccount: {
-            platform: "email",
-            accountName: "support@democompany.com"
+            platform: "youtube",
+            accountName: "Demo Company Channel"
           }
         },
         {
@@ -382,8 +382,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
           socialAccount: {
-            platform: "instagram",
-            accountName: "@DemoCompany"
+            platform: "telegram",
+            accountName: "Demo Company Chat"
           }
         },
         {
@@ -396,8 +396,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 275).toISOString(),
           socialAccount: {
-            platform: "whatsapp",
-            accountName: "Demo Company WhatsApp"
+            platform: "discord",
+            accountName: "Demo Company Server"
+          }
+        },
+        {
+          id: "msg-13",
+          senderId: "ana_maria",
+          senderName: "Ana Maria",
+          senderAvatar: null,
+          content: "Your latest TikTok dance with the product was hilarious! 😂 Can you drop the link to buy it? My followers are asking!",
+          priority: "high",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
+          socialAccount: {
+            platform: "tiktok",
+            accountName: "@democompany_official"
+          }
+        },
+        {
+          id: "msg-14",
+          senderId: "marcus_tech",
+          senderName: "Marcus Johnson",
+          senderAvatar: null,
+          content: "Duet with your product review! The tech specs you mentioned were spot on. Where can I get the enterprise version?",
+          priority: "high",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 330).toISOString(),
+          socialAccount: {
+            platform: "tiktok",
+            accountName: "@democompany_official"
+          }
+        },
+        {
+          id: "msg-15",
+          senderId: "sophie_lifestyle",
+          senderName: "Sophie Chen",
+          senderAvatar: null,
+          content: "OMG this product is everything! 💖 Just made a TikTok about my morning routine with it. Can you repost it on your story?",
+          priority: "normal",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
+          socialAccount: {
+            platform: "tiktok",
+            accountName: "@democompany_official"
+          }
+        },
+        {
+          id: "msg-16",
+          senderId: "fitness_guru_jay",
+          senderName: "Jay Thompson",
+          senderAvatar: null,
+          content: "Your workout gear is fire! 🔥 Just posted a transformation video using your products. Let's collab on more content!",
+          priority: "high",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 390).toISOString(),
+          socialAccount: {
+            platform: "tiktok",
+            accountName: "@democompany_official"
+          }
+        },
+        {
+          id: "msg-17",
+          senderId: "creative_mom_lisa",
+          senderName: "Lisa Park",
+          senderAvatar: null,
+          content: "Made a TikTok showing 10 ways to use your product! It's going viral 🚀 My kids love it too. Partnership opportunity?",
+          priority: "urgent",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 420).toISOString(),
+          socialAccount: {
+            platform: "tiktok",
+            accountName: "@democompany_official"
+          }
+        },
+        {
+          id: "msg-18",
+          senderId: "food_blogger_alex",
+          senderName: "Alex Rivera",
+          senderAvatar: null,
+          content: "Your kitchen gadget changed my cooking game! 👨‍🍳 Posted a recipe TikTok featuring it. Mind if I tag you in more content?",
+          priority: "normal",
+          isRead: true,
+          createdAt: new Date(Date.now() - 1000 * 60 * 450).toISOString(),
+          socialAccount: {
+            platform: "tiktok",
+            accountName: "@democompany_official"
           }
         }
       ];
