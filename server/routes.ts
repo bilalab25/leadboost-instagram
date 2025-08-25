@@ -1173,5 +1173,133 @@ async function populateDemoData(userId: string) {
     }
   }
 
+  // Create sample social accounts for different platforms
+  const demoSocialAccountsData = [
+    { platform: "instagram", accountName: "@mybusiness", isActive: true, accessToken: "demo_token_ig", refreshToken: "demo_refresh_ig" },
+    { platform: "whatsapp", accountName: "Business WhatsApp", isActive: true, accessToken: "demo_token_wa", refreshToken: "demo_refresh_wa" },
+    { platform: "email", accountName: "info@mybusiness.com", isActive: true, accessToken: "demo_token_email", refreshToken: "demo_refresh_email" },
+    { platform: "tiktok", accountName: "@mybiz_official", isActive: true, accessToken: "demo_token_tt", refreshToken: "demo_refresh_tt" },
+  ];
+
+  const createdSocialAccounts: { [platform: string]: string } = {};
+  for (const accountData of demoSocialAccountsData) {
+    try {
+      const account = await storage.createSocialAccount({
+        userId,
+        ...accountData,
+      });
+      createdSocialAccounts[accountData.platform] = account.id;
+    } catch (error) {
+      console.log(`Social account ${accountData.platform} might already exist`);
+    }
+  }
+
+  // Create sample conversations/messages for unified inbox
+  const demoConversationsData = [
+    // Instagram Messages
+    {
+      socialAccountId: createdSocialAccounts.instagram,
+      senderId: "sarah_lifestyle_23",
+      senderName: "Sarah Johnson",
+      senderAvatar: "https://images.unsplash.com/photo-1494790108755-2616b73d5ba3?w=50&h=50&fit=crop&crop=face",
+      content: "Hi! I absolutely love your latest product collection! 😍 Is the blue sweater available in medium size?",
+      messageType: "text",
+      priority: "normal",
+      tags: ["product_inquiry", "sizing"],
+      isRead: false,
+    },
+    {
+      socialAccountId: createdSocialAccounts.instagram,
+      senderId: "mike_runner_pro",
+      senderName: "Mike Rodriguez",
+      senderAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
+      content: "The running shoes I ordered last week are amazing! 🏃‍♂️ Can I get them in another color?",
+      messageType: "text",
+      priority: "normal",
+      tags: ["testimonial", "repeat_customer"],
+      isRead: true,
+    },
+    
+    // WhatsApp Messages
+    {
+      socialAccountId: createdSocialAccounts.whatsapp,
+      senderId: "1234567890",
+      senderName: "Emma Chen",
+      senderAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=50&h=50&fit=crop&crop=face",
+      content: "Hello! I saw your ad on Facebook. Do you have any winter jackets available? I'm interested in purchasing for my family.",
+      messageType: "text",
+      priority: "high",
+      tags: ["sales_inquiry", "family_purchase"],
+      isRead: false,
+    },
+    {
+      socialAccountId: createdSocialAccounts.whatsapp,
+      senderId: "9876543210",
+      senderName: "David Park",
+      senderAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
+      content: "Hi, I received my order yesterday but the item doesn't fit well. What's your return policy?",
+      messageType: "text",
+      priority: "urgent",
+      tags: ["support", "returns"],
+      isRead: false,
+    },
+    
+    // Email Messages
+    {
+      socialAccountId: createdSocialAccounts.email,
+      senderId: "jessica.smith@email.com",
+      senderName: "Jessica Smith",
+      content: "Subject: Bulk Order Inquiry\n\nHello, I represent a corporate client interested in placing a bulk order for employee gifts. Could you provide pricing for 50+ units? Thanks!",
+      messageType: "text",
+      priority: "high",
+      tags: ["bulk_order", "corporate"],
+      isRead: false,
+    },
+    {
+      socialAccountId: createdSocialAccounts.email,
+      senderId: "alex.taylor@company.com",
+      senderName: "Alex Taylor",
+      content: "Subject: Collaboration Opportunity\n\nHi there! I'm a lifestyle blogger with 50K followers. Would you be interested in a product collaboration? I'd love to feature your brand!",
+      messageType: "text",
+      priority: "normal",
+      tags: ["influencer", "collaboration"],
+      isRead: true,
+    },
+    
+    // TikTok Messages
+    {
+      socialAccountId: createdSocialAccounts.tiktok,
+      senderId: "trendy_teen_23",
+      senderName: "Maya Williams",
+      senderAvatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=50&h=50&fit=crop&crop=face",
+      content: "OMG your TikTok is so aesthetic! 💫 Where can I buy that pink hoodie from your last video?? It's perfect!",
+      messageType: "text",
+      priority: "normal",
+      tags: ["product_inquiry", "young_demographic"],
+      isRead: false,
+    },
+    {
+      socialAccountId: createdSocialAccounts.tiktok,
+      senderId: "fashion_lover_99",
+      senderName: "Isabella Garcia",
+      senderAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face",
+      content: "Your latest TikTok inspired my whole outfit today! 👗 Do you ship internationally? I'm in Canada 🇨🇦",
+      messageType: "text",
+      priority: "normal",
+      tags: ["inspiration", "international_shipping"],
+      isRead: true,
+    }
+  ];
+
+  for (const messageData of demoConversationsData) {
+    try {
+      if (messageData.socialAccountId) {
+        await storage.createMessage(messageData);
+      }
+    } catch (error) {
+      console.log(`Message might already exist or social account not found`);
+    }
+  }
+
   console.log("Demo data populated successfully for user:", userId);
 }
