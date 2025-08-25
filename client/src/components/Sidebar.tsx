@@ -15,6 +15,7 @@ import {
   Users,
   Settings,
   Instagram,
+  UserCheck,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
@@ -34,6 +35,7 @@ const navigation = [
   { name: "Content Calendar", href: "/calendar", icon: Calendar },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Campaigns", href: "/campaigns", icon: Megaphone },
+  { name: "Customers", href: "/customers", icon: UserCheck },
   { name: "Team", href: "/team", icon: Users },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

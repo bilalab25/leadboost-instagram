@@ -117,6 +117,64 @@ export const activityLogs = pgTable("activity_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Customers table for business customer management
+export const customers = pgTable("customers", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  email: varchar("email"),
+  phone: varchar("phone"),
+  company: varchar("company"),
+  address: text("address"),
+  notes: text("notes"),
+  status: varchar("status").default("active"), // active, inactive, prospect
+  totalInvoiced: integer("total_invoiced").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Invoices table for customer invoicing with file uploads
+export const invoices = pgTable("invoices", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  invoiceNumber: varchar("invoice_number").notNull().unique(),
+  amount: integer("amount").notNull(), // amount in cents
+  currency: varchar("currency").default("USD"),
+  description: text("description"),
+  status: varchar("status").default("pending"), // pending, paid, overdue, cancelled
+  fileUrl: varchar("file_url"), // path to uploaded invoice file
+  dueDate: timestamp("due_date"),
+  paidDate: timestamp("paid_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Team tasks for enhanced team management
+export const teamTasks = pgTable("team_tasks", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  assignedBy: varchar("assigned_by").references(() => users.id, { onDelete: "cascade" }),
+  assignedTo: varchar("assigned_to").references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  priority: varchar("priority").default("medium"), // low, medium, high, urgent
+  status: varchar("status").default("pending"), // pending, in_progress, completed, cancelled
+  dueDate: timestamp("due_date"),
+  requiresProof: boolean("requires_proof").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Task completions with proof file uploads
+export const taskCompletions = pgTable("task_completions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  taskId: uuid("task_id").references(() => teamTasks.id, { onDelete: "cascade" }),
+  completedBy: varchar("completed_by").references(() => users.id, { onDelete: "cascade" }),
+  notes: text("notes"),
+  proofFileUrl: varchar("proof_file_url"), // path to uploaded proof file
+  completedAt: timestamp("completed_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   socialAccounts: many(socialAccounts),
@@ -125,6 +183,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   analytics: many(analytics),
   activityLogs: many(activityLogs),
   assignedMessages: many(messages),
+  customers: many(customers),
+  invoices: many(invoices),
+  assignedTasks: many(teamTasks, { relationName: "assignedTasks" }),
+  createdTasks: many(teamTasks, { relationName: "createdTasks" }),
+  completedTasks: many(taskCompletions),
 }));
 
 export const socialAccountsRelations = relations(socialAccounts, ({ one, many }) => ({
@@ -174,6 +237,50 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   }),
 }));
 
+export const customersRelations = relations(customers, ({ one, many }) => ({
+  user: one(users, {
+    fields: [customers.userId],
+    references: [users.id],
+  }),
+  invoices: many(invoices),
+}));
+
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  customer: one(customers, {
+    fields: [invoices.customerId],
+    references: [customers.id],
+  }),
+  user: one(users, {
+    fields: [invoices.userId],
+    references: [users.id],
+  }),
+}));
+
+export const teamTasksRelations = relations(teamTasks, ({ one, many }) => ({
+  assignedByUser: one(users, {
+    fields: [teamTasks.assignedBy],
+    references: [users.id],
+    relationName: "createdTasks",
+  }),
+  assignedToUser: one(users, {
+    fields: [teamTasks.assignedTo],
+    references: [users.id],
+    relationName: "assignedTasks",
+  }),
+  completions: many(taskCompletions),
+}));
+
+export const taskCompletionsRelations = relations(taskCompletions, ({ one }) => ({
+  task: one(teamTasks, {
+    fields: [taskCompletions.taskId],
+    references: [teamTasks.id],
+  }),
+  completedByUser: one(users, {
+    fields: [taskCompletions.completedBy],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertSocialAccountSchema = createInsertSchema(socialAccounts).omit({
   id: true,
@@ -207,6 +314,29 @@ export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({
   createdAt: true,
 });
 
+export const insertCustomerSchema = createInsertSchema(customers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInvoiceSchema = createInsertSchema(invoices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTeamTaskSchema = createInsertSchema(teamTasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTaskCompletionSchema = createInsertSchema(taskCompletions).omit({
+  id: true,
+  completedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -222,3 +352,11 @@ export type InsertAnalytics = z.infer<typeof insertAnalyticsSchema>;
 export type Analytics = typeof analytics.$inferSelect;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 export type ActivityLog = typeof activityLogs.$inferSelect;
+export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+export type Customer = typeof customers.$inferSelect;
+export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertTeamTask = z.infer<typeof insertTeamTaskSchema>;
+export type TeamTask = typeof teamTasks.$inferSelect;
+export type InsertTaskCompletion = z.infer<typeof insertTaskCompletionSchema>;
+export type TaskCompletion = typeof taskCompletions.$inferSelect;

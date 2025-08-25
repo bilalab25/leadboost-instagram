@@ -11,6 +11,8 @@ import Inbox from "@/pages/inbox";
 import AIPlanner from "@/pages/ai-planner";
 import Analytics from "@/pages/analytics";
 import Campaigns from "@/pages/campaigns";
+import Customers from "@/pages/customers";
+import Team from "@/pages/team";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -34,6 +36,8 @@ function Router() {
           <Route path="/ai-planner" component={AIPlanner} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/campaigns" component={Campaigns} />
+          <Route path="/customers" component={Customers} />
+          <Route path="/team" component={Team} />
         </>
       )}
       <Route component={NotFound} />

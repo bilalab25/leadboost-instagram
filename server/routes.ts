@@ -10,7 +10,15 @@ import {
   insertContentPlanSchema,
   insertCampaignSchema,
   insertActivityLogSchema,
+  insertCustomerSchema,
+  insertInvoiceSchema,
+  insertTeamTaskSchema,
+  insertTaskCompletionSchema,
 } from "@shared/schema";
+import {
+  ObjectStorageService,
+  ObjectNotFoundError,
+} from "./objectStorage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -358,6 +366,299 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating visual:", error);
       res.status(500).json({ message: "Failed to generate visual content" });
+    }
+  });
+
+  // Object Storage routes for file uploads
+  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
+    const userId = req.user?.claims?.sub;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+      });
+      if (!canAccess) {
+        return res.sendStatus(401);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error accessing object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Customer management routes
+  app.get('/api/customers', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const customers = await storage.getCustomersByUserId(userId);
+      res.json(customers);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      res.status(500).json({ message: "Failed to fetch customers" });
+    }
+  });
+
+  app.post('/api/customers', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const customerData = insertCustomerSchema.parse({
+        ...req.body,
+        userId,
+      });
+      const customer = await storage.createCustomer(customerData);
+      
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "customer_created",
+        description: `Created customer: ${customer.name}`,
+        entityType: "customer",
+        entityId: customer.id,
+      });
+
+      res.json(customer);
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      res.status(500).json({ message: "Failed to create customer" });
+    }
+  });
+
+  app.put('/api/customers/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const customerId = req.params.id;
+      const updates = req.body;
+      
+      const customer = await storage.updateCustomer(customerId, userId, updates);
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "customer_updated",
+        description: `Updated customer: ${customer.name}`,
+        entityType: "customer",
+        entityId: customer.id,
+      });
+
+      res.json(customer);
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      res.status(500).json({ message: "Failed to update customer" });
+    }
+  });
+
+  app.delete('/api/customers/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const customerId = req.params.id;
+      
+      const success = await storage.deleteCustomer(customerId, userId);
+      if (!success) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "customer_deleted",
+        description: `Deleted customer`,
+        entityType: "customer",
+        entityId: customerId,
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      res.status(500).json({ message: "Failed to delete customer" });
+    }
+  });
+
+  // Invoice management routes
+  app.get('/api/invoices', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const customerId = req.query.customerId;
+      const invoices = await storage.getInvoicesByUserId(userId, customerId);
+      res.json(invoices);
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+  });
+
+  app.post('/api/invoices', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const invoiceData = insertInvoiceSchema.parse({
+        ...req.body,
+        userId,
+      });
+      
+      const invoice = await storage.createInvoice(invoiceData);
+      
+      // Update customer total invoiced amount
+      if (invoice.customerId) {
+        await storage.updateCustomerTotalInvoiced(invoice.customerId, invoice.amount);
+      }
+      
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "invoice_created",
+        description: `Created invoice ${invoice.invoiceNumber}`,
+        entityType: "invoice",
+        entityId: invoice.id,
+      });
+
+      res.json(invoice);
+    } catch (error) {
+      console.error("Error creating invoice:", error);
+      res.status(500).json({ message: "Failed to create invoice" });
+    }
+  });
+
+  app.put('/api/invoices/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const invoiceId = req.params.id;
+      const updates = req.body;
+      
+      // Handle file upload URL processing
+      if (updates.fileUrl) {
+        const objectStorageService = new ObjectStorageService();
+        updates.fileUrl = await objectStorageService.trySetObjectEntityAclPolicy(
+          updates.fileUrl,
+          {
+            owner: userId,
+            visibility: "private",
+          }
+        );
+      }
+      
+      const invoice = await storage.updateInvoice(invoiceId, userId, updates);
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "invoice_updated",
+        description: `Updated invoice ${invoice.invoiceNumber}`,
+        entityType: "invoice",
+        entityId: invoice.id,
+      });
+
+      res.json(invoice);
+    } catch (error) {
+      console.error("Error updating invoice:", error);
+      res.status(500).json({ message: "Failed to update invoice" });
+    }
+  });
+
+  // Team task management routes
+  app.get('/api/team-tasks', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const assignedOnly = req.query.assigned === 'true';
+      const tasks = assignedOnly 
+        ? await storage.getTasksAssignedToUser(userId)
+        : await storage.getTasksByUserId(userId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching team tasks:", error);
+      res.status(500).json({ message: "Failed to fetch team tasks" });
+    }
+  });
+
+  app.post('/api/team-tasks', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const taskData = insertTeamTaskSchema.parse({
+        ...req.body,
+        assignedBy: userId,
+      });
+      
+      const task = await storage.createTeamTask(taskData);
+      
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "task_assigned",
+        description: `Assigned task: ${task.title} to user`,
+        entityType: "team_task",
+        entityId: task.id,
+      });
+
+      res.json(task);
+    } catch (error) {
+      console.error("Error creating team task:", error);
+      res.status(500).json({ message: "Failed to create team task" });
+    }
+  });
+
+  app.put('/api/team-tasks/:id/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const taskId = req.params.id;
+      const { notes, proofFileUrl } = req.body;
+      
+      // Handle proof file upload URL processing
+      let processedProofUrl = proofFileUrl;
+      if (proofFileUrl) {
+        const objectStorageService = new ObjectStorageService();
+        processedProofUrl = await objectStorageService.trySetObjectEntityAclPolicy(
+          proofFileUrl,
+          {
+            owner: userId,
+            visibility: "private",
+          }
+        );
+      }
+      
+      const completionData = insertTaskCompletionSchema.parse({
+        taskId,
+        completedBy: userId,
+        notes,
+        proofFileUrl: processedProofUrl,
+      });
+      
+      const completion = await storage.createTaskCompletion(completionData);
+      await storage.updateTaskStatus(taskId, "completed");
+      
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "task_completed",
+        description: `Completed task with proof`,
+        entityType: "team_task",
+        entityId: taskId,
+      });
+
+      res.json(completion);
+    } catch (error) {
+      console.error("Error completing task:", error);
+      res.status(500).json({ message: "Failed to complete task" });
     }
   });
 
