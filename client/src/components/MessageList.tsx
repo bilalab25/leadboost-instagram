@@ -6,9 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
-import { Instagram, Reply, Tag, Calendar, Handshake } from "lucide-react";
-import { SiWhatsapp, SiTiktok } from "react-icons/si";
-import { Mail } from "lucide-react";
+import { Instagram, Reply, Tag, Calendar, Handshake, Mail, MessageCircle, Linkedin, Youtube, Twitter } from "lucide-react";
+import { SiWhatsapp, SiTiktok, SiFacebook, SiTelegram, SiDiscord } from "react-icons/si";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -37,13 +36,25 @@ const platformIcons = {
   whatsapp: SiWhatsapp,
   email: Mail,
   tiktok: SiTiktok,
+  facebook: SiFacebook,
+  twitter: Twitter,
+  linkedin: Linkedin,
+  youtube: Youtube,
+  telegram: SiTelegram,
+  discord: SiDiscord,
 };
 
 const platformColors = {
   instagram: "bg-pink-500",
-  whatsapp: "bg-green-500",
+  whatsapp: "bg-green-500", 
   email: "bg-blue-500",
   tiktok: "bg-gray-800",
+  facebook: "bg-blue-600",
+  twitter: "bg-sky-500",
+  linkedin: "bg-blue-700",
+  youtube: "bg-red-600",
+  telegram: "bg-blue-400",
+  discord: "bg-indigo-600",
 };
 
 const priorityColors = {
@@ -148,9 +159,21 @@ export default function MessageList({ limit = 50, showHeader = true, platform }:
               <Instagram className="mr-2 h-4 w-4 text-pink-500" />
               Instagram
             </Button>
+            <Button variant={platform === "tiktok" ? "default" : "ghost"} size="sm" data-testid="filter-tiktok">
+              <SiTiktok className="mr-2 h-4 w-4 text-gray-800" />
+              TikTok
+            </Button>
+            <Button variant={platform === "facebook" ? "default" : "ghost"} size="sm" data-testid="filter-facebook">
+              <SiFacebook className="mr-2 h-4 w-4 text-blue-600" />
+              Facebook
+            </Button>
             <Button variant={platform === "whatsapp" ? "default" : "ghost"} size="sm" data-testid="filter-whatsapp">
               <SiWhatsapp className="mr-2 h-4 w-4 text-green-500" />
               WhatsApp
+            </Button>
+            <Button variant={platform === "twitter" ? "default" : "ghost"} size="sm" data-testid="filter-twitter">
+              <Twitter className="mr-2 h-4 w-4 text-sky-500" />
+              Twitter
             </Button>
             <Button variant={platform === "email" ? "default" : "ghost"} size="sm" data-testid="filter-email">
               <Mail className="mr-2 h-4 w-4 text-blue-500" />
