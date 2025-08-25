@@ -66,9 +66,17 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="flex items-center flex-shrink-0 px-6">
           <div className="flex items-center">
+            {/* Replace this section with your logo image */}
             <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
               <MessageSquare className="text-white text-lg" />
             </div>
+            {/* Or uncomment this for image logo:
+            <img 
+              src="/path-to-your-logo.png" 
+              alt="Your Company Logo" 
+              className="w-8 h-8 rounded-lg"
+            />
+            */}
             <span className="ml-2 text-xl font-bold text-gray-900" data-testid="text-logo">SocialHub</span>
           </div>
         </div>
