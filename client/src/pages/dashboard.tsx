@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { apiRequest } from "@/lib/queryClient";
 import { useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import StatsCard from "@/components/StatsCard";
@@ -9,7 +10,7 @@ import MessageList from "@/components/MessageList";
 import ContentCalendar from "@/components/ContentCalendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, Plus } from "lucide-react";
+import { Bell, Plus, Database } from "lucide-react";
 
 interface DashboardStats {
   unreadMessages: number;
@@ -29,6 +30,7 @@ interface ActivityLog {
 export default function Dashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const queryClient = useQueryClient();
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -55,6 +57,39 @@ export default function Dashboard() {
     retry: false,
   });
 
+  const populateDemoDataMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/populate-demo-data");
+      return response.json();
+    },
+    onSuccess: () => {
+      // Refresh all data
+      queryClient.invalidateQueries();
+      toast({
+        title: "Success!",
+        description: "Demo data has been populated. Refresh to see all the content!",
+      });
+    },
+    onError: (error: Error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   if (isLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -79,6 +114,17 @@ export default function Dashboard() {
             <div className="ml-4 flex items-center md:ml-6 space-x-4">
               <Button variant="ghost" size="icon" data-testid="button-notifications">
                 <Bell className="h-5 w-5" />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => populateDemoDataMutation.mutate()}
+                disabled={populateDemoDataMutation.isPending}
+                data-testid="button-populate-demo"
+                className="border-green-200 text-green-700 hover:bg-green-50"
+              >
+                <Database className="mr-2 h-4 w-4" />
+                {populateDemoDataMutation.isPending ? "Loading..." : "Load Demo Data"}
               </Button>
               
               <Button className="bg-brand-600 hover:bg-brand-700 text-white" data-testid="button-new-campaign">
