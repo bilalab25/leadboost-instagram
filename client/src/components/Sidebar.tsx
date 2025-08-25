@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
+import leadBoostLogo from "@assets/logo azul sin fondo_1756140873617.png";
 
 interface SocialAccount {
   id: string;
@@ -67,7 +68,7 @@ export default function Sidebar() {
         <div className="flex items-center flex-shrink-0 px-6">
           <div className="flex items-center">
             <img 
-              src="/attached_assets/logo azul sin fondo_1756140873617.png" 
+              src={leadBoostLogo} 
               alt="LeadBoost Logo" 
               className="h-8 w-auto"
             />
@@ -84,9 +85,9 @@ export default function Sidebar() {
               
               return (
                 <Link key={item.name} href={item.href}>
-                  <a
+                  <div
                     className={cn(
-                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
                       isActive
                         ? "bg-brand-50 text-brand-700"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -100,7 +101,7 @@ export default function Sidebar() {
                         {item.badge}
                       </span>
                     )}
-                  </a>
+                  </div>
                 </Link>
               );
             })}
