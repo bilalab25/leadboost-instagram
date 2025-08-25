@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import BrandSwitcher from "@/components/BrandSwitcher";
@@ -60,6 +61,7 @@ const platformColors = {
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
+  const { toggleLanguage, isSpanish } = useLanguage();
 
   const { data: socialAccounts } = useQuery<SocialAccount[]>({
     queryKey: ["/api/social-accounts"],
@@ -81,6 +83,19 @@ export default function Sidebar() {
         {/* Brand Switcher */}
         <div className="px-4 mt-6">
           <BrandSwitcher />
+        </div>
+
+        {/* Language Switcher */}
+        <div className="px-4 mt-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={toggleLanguage}
+            className="w-full font-medium text-sm justify-start"
+            data-testid="button-language-toggle"
+          >
+            {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
+          </Button>
         </div>
         
         {/* Navigation */}
