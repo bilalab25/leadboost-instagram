@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLanguage } from "@/hooks/useLanguage";
+import { translations, industriesSpanish, seasonsSpanish, getTranslation } from "@/lib/translations";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,7 +80,9 @@ const seasons = [
 export default function AIPlanner() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const { language, toggleLanguage, isSpanish } = useLanguage();
   const queryClient = useQueryClient();
+  const t = translations[language];
   
   const [businessData, setBusinessData] = useState<BusinessData>({
     industry: "",
@@ -173,14 +177,23 @@ export default function AIPlanner() {
         <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
           <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
             <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-ai-planner-title">AI Monthly Planner</h1>
+              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-ai-planner-title">{t.aiPlanner.title}</h1>
               <Badge className="ml-3 bg-amber-100 text-amber-800">
                 <Bot className="mr-1 h-3 w-3" />
-                AI Powered
+                {t.common.aiPowered}
               </Badge>
             </div>
             
             <div className="ml-4 flex items-center md:ml-6 space-x-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleLanguage}
+                className="font-medium"
+                data-testid="button-language-toggle"
+              >
+                {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
+              </Button>
               <Button variant="ghost" size="icon" data-testid="button-notifications">
                 <Bell className="h-5 w-5" />
               </Button>
@@ -196,11 +209,11 @@ export default function AIPlanner() {
               <div className="text-center">
                 <div className="inline-flex items-center bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
                   <Brain className="mr-2 h-4 w-4" />
-                  Powered by Advanced AI
+                  {t.aiPlanner.poweredByAI}
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">AI Content Strategy Generator</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">{t.aiPlanner.heroTitle}</h2>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  Get month-long content strategies tailored to your business, complete with platform-specific posts, hashtags, and optimal timing.
+                  {t.aiPlanner.heroSubtitle}
                 </p>
               </div>
             </div>
@@ -211,9 +224,9 @@ export default function AIPlanner() {
               
               <Tabs defaultValue="generator" className="space-y-6">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="generator" data-testid="tab-generator">Content Generator</TabsTrigger>
-                  <TabsTrigger value="plans" data-testid="tab-plans">Existing Plans</TabsTrigger>
-                  <TabsTrigger value="insights" data-testid="tab-insights">AI Insights</TabsTrigger>
+                  <TabsTrigger value="generator" data-testid="tab-generator">{t.aiPlanner.contentGenerator}</TabsTrigger>
+                  <TabsTrigger value="plans" data-testid="tab-plans">{t.aiPlanner.existingPlans}</TabsTrigger>
+                  <TabsTrigger value="insights" data-testid="tab-insights">{t.aiPlanner.aiInsights}</TabsTrigger>
                 </TabsList>
 
                 {/* Content Generator Tab */}
@@ -229,8 +242,8 @@ export default function AIPlanner() {
                               <Sparkles className="h-5 w-5 text-amber-600" />
                             </div>
                             <div>
-                              <div className="text-gray-900 font-semibold">Business Intelligence Input</div>
-                              <div className="text-sm text-gray-600 font-normal">Tell our AI about your business for personalized strategies</div>
+                              <div className="text-gray-900 font-semibold">{t.aiPlanner.businessDataInput}</div>
+                              <div className="text-sm text-gray-600 font-normal">{t.aiPlanner.businessDataSubtitle}</div>
                             </div>
                           </CardTitle>
                         </CardHeader>
@@ -238,16 +251,16 @@ export default function AIPlanner() {
                           
                           {/* Industry Selection */}
                           <div className="space-y-2">
-                            <Label htmlFor="industry">Industry</Label>
+                            <Label htmlFor="industry">{t.aiPlanner.industry}</Label>
                             <Select 
                               value={businessData.industry} 
                               onValueChange={(value) => setBusinessData(prev => ({ ...prev, industry: value }))}
                             >
                               <SelectTrigger data-testid="select-industry">
-                                <SelectValue placeholder="Select your industry" />
+                                <SelectValue placeholder={t.aiPlanner.industryPlaceholder} />
                               </SelectTrigger>
                               <SelectContent>
-                                {industries.map((industry) => (
+                                {(isSpanish ? industriesSpanish : industries).map((industry) => (
                                   <SelectItem key={industry} value={industry}>{industry}</SelectItem>
                                 ))}
                               </SelectContent>
@@ -256,16 +269,16 @@ export default function AIPlanner() {
 
                           {/* Top Products */}
                           <div className="space-y-2">
-                            <Label>Top Products/Services</Label>
+                            <Label>{t.aiPlanner.topProducts}</Label>
                             <div className="flex space-x-2">
                               <Input
-                                placeholder="Add a product or service"
+                                placeholder={t.aiPlanner.productPlaceholder}
                                 value={newProduct}
                                 onChange={(e) => setNewProduct(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && addProduct()}
                                 data-testid="input-new-product"
                               />
-                              <Button onClick={addProduct} data-testid="button-add-product">Add</Button>
+                              <Button onClick={addProduct} data-testid="button-add-product">{t.aiPlanner.addButton}</Button>
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {businessData.topProducts.map((product) => (
@@ -284,16 +297,16 @@ export default function AIPlanner() {
 
                           {/* Seasonality */}
                           <div className="space-y-2">
-                            <Label htmlFor="seasonality">Seasonal Focus</Label>
+                            <Label htmlFor="seasonality">{t.aiPlanner.seasonalFocus}</Label>
                             <Select 
                               value={businessData.seasonality} 
                               onValueChange={(value) => setBusinessData(prev => ({ ...prev, seasonality: value }))}
                             >
                               <SelectTrigger data-testid="select-seasonality">
-                                <SelectValue placeholder="Select seasonal focus" />
+                                <SelectValue placeholder={t.aiPlanner.seasonalPlaceholder} />
                               </SelectTrigger>
                               <SelectContent>
-                                {seasons.map((season) => (
+                                {(isSpanish ? seasonsSpanish : seasons).map((season) => (
                                   <SelectItem key={season} value={season}>{season}</SelectItem>
                                 ))}
                               </SelectContent>
@@ -303,7 +316,7 @@ export default function AIPlanner() {
                           {/* Month/Year Selection */}
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Month</Label>
+                              <Label>{t.aiPlanner.month}</Label>
                               <Select 
                                 value={selectedMonth.toString()} 
                                 onValueChange={(value) => setSelectedMonth(parseInt(value))}
@@ -321,7 +334,7 @@ export default function AIPlanner() {
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label>Year</Label>
+                              <Label>{t.aiPlanner.year}</Label>
                               <Select 
                                 value={selectedYear.toString()} 
                                 onValueChange={(value) => setSelectedYear(parseInt(value))}
@@ -341,7 +354,7 @@ export default function AIPlanner() {
                           <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-lg border border-amber-200">
                             <div className="flex items-center mb-3">
                               <Wand2 className="h-5 w-5 text-amber-600 mr-2" />
-                              <span className="text-sm font-medium text-amber-900">Ready to generate your AI strategy?</span>
+                              <span className="text-sm font-medium text-amber-900">{t.aiPlanner.readyToGenerate}</span>
                             </div>
                             <Button
                               onClick={() => generatePlanMutation.mutate()}
@@ -352,19 +365,19 @@ export default function AIPlanner() {
                               {generatePlanMutation.isPending ? (
                                 <>
                                   <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
-                                  <span>AI is analyzing your business...</span>
+                                  <span>{t.aiPlanner.generatingText}</span>
                                 </>
                               ) : (
                                 <>
                                   <Brain className="mr-2 h-5 w-5" />
-                                  <span>Generate AI Content Strategy</span>
+                                  <span>{t.aiPlanner.generateButton}</span>
                                   <ArrowRight className="ml-2 h-5 w-5" />
                                 </>
                               )}
                             </Button>
                             {!businessData.industry && (
                               <p className="text-xs text-amber-700 mt-2 text-center">
-                                Select your industry to enable AI generation
+                                {t.aiPlanner.selectIndustryHint}
                               </p>
                             )}
                           </div>
@@ -381,8 +394,8 @@ export default function AIPlanner() {
                               <Brain className="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                              <div className="text-gray-900 font-semibold">AI Strategy Preview</div>
-                              <div className="text-sm text-gray-600 font-normal">Live preview of your content strategy</div>
+                              <div className="text-gray-900 font-semibold">{t.aiPlanner.aiStrategyPreview}</div>
+                              <div className="text-sm text-gray-600 font-normal">{t.aiPlanner.aiStrategySubtitle}</div>
                             </div>
                           </CardTitle>
                         </CardHeader>
@@ -395,26 +408,26 @@ export default function AIPlanner() {
                                     <div className="bg-green-100 p-1.5 rounded-full mr-2">
                                       <Star className="h-4 w-4 text-green-600" />
                                     </div>
-                                    <p className="text-sm text-green-800 font-semibold">AI Strategy Generated!</p>
+                                    <p className="text-sm text-green-800 font-semibold">{t.aiPlanner.aiStrategyGenerated}</p>
                                   </div>
                                   <Badge className="bg-green-100 text-green-800">
                                     <Zap className="mr-1 h-3 w-3" />
-                                    AI Powered
+                                    {t.common.aiPowered}
                                   </Badge>
                                 </div>
                                 <p className="text-sm text-green-700 font-medium">
-                                  {currentPlan.insights?.posts?.length || 0} personalized posts planned for {new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                  {currentPlan.insights?.posts?.length || 0} {t.aiPlanner.postsPlanned} {new Date(selectedYear, selectedMonth - 1).toLocaleString(isSpanish ? 'es' : 'en', { month: 'long', year: 'numeric' })}
                                 </p>
                                 <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                                   <div className="bg-white/50 rounded p-2">
                                     <Target className="h-3 w-3 text-green-600 mb-1" />
-                                    <div className="font-medium text-green-800">Platform Mix</div>
+                                    <div className="font-medium text-green-800">{t.aiPlanner.platformMix}</div>
                                     <div className="text-green-600">Instagram, TikTok, Email</div>
                                   </div>
                                   <div className="bg-white/50 rounded p-2">
                                     <TrendingUp className="h-3 w-3 text-green-600 mb-1" />
-                                    <div className="font-medium text-green-800">Optimization</div>
-                                    <div className="text-green-600">Peak engagement times</div>
+                                    <div className="font-medium text-green-800">{t.aiPlanner.optimization}</div>
+                                    <div className="text-green-600">{t.aiPlanner.peakEngagement}</div>
                                   </div>
                                 </div>
                               </div>
@@ -436,10 +449,10 @@ export default function AIPlanner() {
                                 <Brain className="mx-auto h-12 w-12 text-blue-500 mb-4" />
                                 <div className="space-y-2">
                                   <p className="text-sm font-medium text-gray-800" data-testid="text-no-preview">
-                                    AI Strategy Preview
+                                    {t.aiPlanner.noPreview}
                                   </p>
                                   <p className="text-xs text-gray-600">
-                                    Complete your business profile to see AI-generated insights
+                                    {t.aiPlanner.completeProfile}
                                   </p>
                                 </div>
                               </div>
@@ -539,10 +552,10 @@ export default function AIPlanner() {
                       <CardContent>
                         <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2" data-testid="text-no-plans">
-                          No content plans yet
+                          {t.aiPlanner.noPlanTitle}
                         </h3>
                         <p className="text-gray-600 mb-4">
-                          Generate your first AI-powered content plan to get started.
+                          {t.aiPlanner.noPlanText}
                         </p>
                         <Button 
                           onClick={() => {
@@ -552,7 +565,7 @@ export default function AIPlanner() {
                           }}
                           data-testid="button-create-first-plan"
                         >
-                          Create First Plan
+                          {t.aiPlanner.createFirstPlan}
                         </Button>
                       </CardContent>
                     </Card>
@@ -568,7 +581,7 @@ export default function AIPlanner() {
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <TrendingUp className="mr-2 h-5 w-5 text-green-600" />
-                          Industry Trends
+                          {t.aiPlanner.industryTrends}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -603,7 +616,7 @@ export default function AIPlanner() {
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <Users className="mr-2 h-5 w-5 text-blue-600" />
-                          AI Recommendations
+                          {t.aiPlanner.aiRecommendations}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">

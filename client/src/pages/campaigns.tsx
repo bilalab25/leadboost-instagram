@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLanguage } from "@/hooks/useLanguage";
+import { translations, platformOptionsSpanish } from "@/lib/translations";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,7 +79,9 @@ const statusColors = {
 export default function Campaigns() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const { language, toggleLanguage, isSpanish } = useLanguage();
   const queryClient = useQueryClient();
+  const t = translations[language];
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
@@ -238,15 +242,24 @@ export default function Campaigns() {
         <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
           <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
             <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-campaigns-title">Campaigns</h1>
+              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-campaigns-title">{t.campaigns.title}</h1>
             </div>
             
             <div className="ml-4 flex items-center md:ml-6 space-x-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleLanguage}
+                className="font-medium"
+                data-testid="button-language-toggle-campaigns"
+              >
+                {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
+              </Button>
               <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200 text-amber-700 hover:from-amber-100 hover:to-yellow-100 font-medium shadow-sm" data-testid="button-ai-generate">
                     <Brain className="mr-2 h-4 w-4" />
-                    <span>AI Generate</span>
+                    <span>{t.campaigns.aiGenerate}</span>
                     <Sparkles className="ml-1 h-3 w-3" />
                   </Button>
                 </DialogTrigger>
@@ -256,18 +269,18 @@ export default function Campaigns() {
                       <Brain className="h-8 w-8 text-amber-600" />
                     </div>
                     <DialogTitle className="text-2xl font-bold text-gray-900">
-                      AI Campaign Generator
+                      {t.campaigns.aiCampaignGenerator}
                     </DialogTitle>
                     <p className="text-sm text-gray-600">
-                      Describe your campaign idea and let AI create optimized content for all platforms
+                      {t.campaigns.aiCampaignSubtitle}
                     </p>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="ai-prompt">Campaign Description</Label>
+                      <Label htmlFor="ai-prompt">{t.campaigns.campaignDescription}</Label>
                       <Textarea
                         id="ai-prompt"
-                        placeholder="Describe what kind of campaign you want to create (e.g., 'Product launch for new fitness equipment targeting young professionals')"
+                        placeholder={t.campaigns.campaignPlaceholder}
                         value={aiPrompt}
                         onChange={(e) => setAiPrompt(e.target.value)}
                         rows={3}
@@ -276,11 +289,11 @@ export default function Campaigns() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label className="text-base font-medium">Target Platforms</Label>
+                      <Label className="text-base font-medium">{t.campaigns.targetPlatforms}</Label>
                       <div className="bg-gray-50 p-3 rounded-lg">
-                        <p className="text-xs text-gray-600 mb-3">Select platforms for your AI-generated campaign</p>
+                        <p className="text-xs text-gray-600 mb-3">{t.campaigns.platformsHint}</p>
                         <div className="grid grid-cols-2 gap-2">
-                          {platformOptions.map((platform) => {
+                          {(isSpanish ? platformOptionsSpanish : platformOptions).map((platform) => {
                             const Icon = platform.icon;
                             return (
                               <div key={platform.value} className="flex items-center space-x-2">
@@ -307,7 +320,7 @@ export default function Campaigns() {
                     <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-lg border border-amber-200 mt-2">
                       <div className="flex items-center mb-3">
                         <Wand2 className="h-4 w-4 text-amber-600 mr-2" />
-                        <span className="text-sm font-medium text-amber-900">AI will create platform-specific content variations</span>
+                        <span className="text-sm font-medium text-amber-900">{t.campaigns.aiWillCreate}</span>
                       </div>
                       <Button
                         onClick={() => generateAICampaignMutation.mutate()}
@@ -318,12 +331,12 @@ export default function Campaigns() {
                         {generateAICampaignMutation.isPending ? (
                           <>
                             <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                            <span>AI is creating your campaign...</span>
+                            <span>{t.campaigns.aiCreating}</span>
                           </>
                         ) : (
                           <>
                             <Brain className="mr-2 h-4 w-4" />
-                            <span>Generate AI Campaign</span>
+                            <span>{t.campaigns.generateAICampaign}</span>
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </>
                         )}
@@ -337,19 +350,19 @@ export default function Campaigns() {
                 <DialogTrigger asChild>
                   <Button className="bg-brand-600 hover:bg-brand-700" data-testid="button-new-campaign">
                     <Plus className="mr-2 h-4 w-4" />
-                    New Campaign
+                    {t.campaigns.newCampaign}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[600px]">
                   <DialogHeader>
-                    <DialogTitle>Create New Campaign</DialogTitle>
+                    <DialogTitle>{t.campaigns.createCampaign}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="title">Campaign Title</Label>
+                      <Label htmlFor="title">{t.campaigns.campaignTitle}</Label>
                       <Input
                         id="title"
-                        placeholder="Enter campaign title"
+                        placeholder={t.campaigns.titlePlaceholder}
                         value={formData.title}
                         onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                         data-testid="input-campaign-title"
@@ -357,10 +370,10 @@ export default function Campaigns() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
+                      <Label htmlFor="description">{t.campaigns.description}</Label>
                       <Textarea
                         id="description"
-                        placeholder="Describe your campaign"
+                        placeholder={t.campaigns.descriptionPlaceholder}
                         value={formData.description}
                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                         rows={3}
@@ -369,10 +382,10 @@ export default function Campaigns() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="content">Content</Label>
+                      <Label htmlFor="content">{t.campaigns.content}</Label>
                       <Textarea
                         id="content"
-                        placeholder="Campaign content (optional - will use description if empty)"
+                        placeholder={t.campaigns.contentPlaceholder}
                         value={formData.content}
                         onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
                         rows={3}
@@ -381,7 +394,7 @@ export default function Campaigns() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Platforms</Label>
+                      <Label>{t.campaigns.platforms}</Label>
                       <div className="grid grid-cols-2 gap-2">
                         {platformOptions.map((platform) => {
                           const Icon = platform.icon;
@@ -407,7 +420,7 @@ export default function Campaigns() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Schedule (Optional)</Label>
+                      <Label>{t.campaigns.scheduleOptional}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -419,7 +432,7 @@ export default function Campaigns() {
                             data-testid="button-schedule-date"
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {scheduledDate ? format(scheduledDate, "PPP") : "Pick a date"}
+                            {scheduledDate ? format(scheduledDate, "PPP") : t.campaigns.pickDate}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -439,7 +452,7 @@ export default function Campaigns() {
                       className="w-full"
                       data-testid="button-create-campaign"
                     >
-                      {createCampaignMutation.isPending ? "Creating..." : "Create Campaign"}
+                      {createCampaignMutation.isPending ? t.campaigns.creating : t.campaigns.createCampaign}
                     </Button>
                   </div>
                 </DialogContent>
@@ -460,11 +473,11 @@ export default function Campaigns() {
               <div className="text-center">
                 <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
                   <Zap className="mr-2 h-4 w-4" />
-                  Multi-Platform Publishing
+                  {t.campaigns.multiPlatformPublishing}
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">AI-Powered Campaign Creator</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">{t.campaigns.heroTitle}</h2>
                 <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  Create engaging campaigns across 21+ platforms with intelligent content optimization and automated scheduling.
+                  {t.campaigns.heroSubtitle}
                 </p>
               </div>
             </div>
@@ -480,7 +493,7 @@ export default function Campaigns() {
                     <div className="text-2xl font-bold text-blue-900" data-testid="stat-total-campaigns">
                       {campaigns?.length || 0}
                     </div>
-                    <div className="text-sm text-blue-600 font-medium">Total Campaigns</div>
+                    <div className="text-sm text-blue-600 font-medium">{t.campaigns.totalCampaigns}</div>
                   </CardContent>
                 </Card>
                 <Card className="border-indigo-200 bg-gradient-to-br from-indigo-50 to-indigo-100">
@@ -491,7 +504,7 @@ export default function Campaigns() {
                         {campaigns?.filter(c => c.status === "scheduled").length || 0}
                       </div>
                     </div>
-                    <div className="text-sm text-indigo-600 font-medium">Scheduled</div>
+                    <div className="text-sm text-indigo-600 font-medium">{t.campaigns.scheduled}</div>
                   </CardContent>
                 </Card>
                 <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100">
@@ -502,7 +515,7 @@ export default function Campaigns() {
                         {campaigns?.filter(c => c.status === "published").length || 0}
                       </div>
                     </div>
-                    <div className="text-sm text-green-600 font-medium">Published</div>
+                    <div className="text-sm text-green-600 font-medium">{t.campaigns.published}</div>
                   </CardContent>
                 </Card>
                 <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-100">
@@ -513,18 +526,18 @@ export default function Campaigns() {
                         {campaigns?.filter(c => c.aiGenerated).length || 0}
                       </div>
                     </div>
-                    <div className="text-sm text-amber-600 font-medium">AI Generated</div>
+                    <div className="text-sm text-amber-600 font-medium">{t.campaigns.aiGenerated}</div>
                   </CardContent>
                 </Card>
               </div>
 
               <Tabs defaultValue="all" className="space-y-6">
                 <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="all" data-testid="tab-all">All</TabsTrigger>
-                  <TabsTrigger value="draft" data-testid="tab-draft">Draft</TabsTrigger>
-                  <TabsTrigger value="scheduled" data-testid="tab-scheduled">Scheduled</TabsTrigger>
-                  <TabsTrigger value="published" data-testid="tab-published">Published</TabsTrigger>
-                  <TabsTrigger value="ai" data-testid="tab-ai">AI Generated</TabsTrigger>
+                  <TabsTrigger value="all" data-testid="tab-all">{t.campaigns.all}</TabsTrigger>
+                  <TabsTrigger value="draft" data-testid="tab-draft">{t.campaigns.draft}</TabsTrigger>
+                  <TabsTrigger value="scheduled" data-testid="tab-scheduled">{t.campaigns.scheduled}</TabsTrigger>
+                  <TabsTrigger value="published" data-testid="tab-published">{t.campaigns.published}</TabsTrigger>
+                  <TabsTrigger value="ai" data-testid="tab-ai">{t.campaigns.aiGenerated}</TabsTrigger>
                 </TabsList>
 
                 {/* All Campaigns */}
