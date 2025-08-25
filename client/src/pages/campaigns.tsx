@@ -16,8 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Bell, Plus, Bot, Calendar as CalendarIcon, Send, Edit, Trash2, Instagram, Clock, Zap, Eye, MessageSquare, Users, Mail, Twitter } from "lucide-react";
-import { SiWhatsapp, SiTiktok, SiLinkedin, SiThreads } from "react-icons/si";
+import { Bell, Plus, Bot, Calendar as CalendarIcon, Send, Edit, Trash2, Instagram, Clock, Zap, Eye, MessageSquare, Users, Mail, Twitter, Youtube, FileText } from "lucide-react";
+import { SiWhatsapp, SiTiktok, SiLinkedin, SiThreads, SiFacebook, SiPinterest, SiReddit, SiDiscord, SiSnapchat, SiMedium } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -44,13 +44,25 @@ interface Campaign {
 }
 
 const platformOptions = [
-  { value: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-500" },
+  { value: "instagram", label: "Instagram Posts", icon: Instagram, color: "text-pink-500" },
   { value: "instagram_story", label: "Instagram Story", icon: Instagram, color: "text-purple-500" },
+  { value: "instagram_reels", label: "Instagram Reels", icon: Instagram, color: "text-red-500" },
+  { value: "facebook", label: "Facebook Posts", icon: SiFacebook, color: "text-blue-600" },
+  { value: "facebook_story", label: "Facebook Stories", icon: SiFacebook, color: "text-blue-500" },
+  { value: "linkedin", label: "LinkedIn Posts", icon: SiLinkedin, color: "text-blue-700" },
   { value: "linkedin_newsletter", label: "LinkedIn Newsletter", icon: SiLinkedin, color: "text-blue-600" },
   { value: "linkedin_thread", label: "LinkedIn Thread", icon: SiLinkedin, color: "text-blue-500" },
   { value: "threads", label: "Threads", icon: SiThreads, color: "text-gray-900" },
   { value: "x", label: "X (Twitter)", icon: Twitter, color: "text-gray-900" },
   { value: "tiktok", label: "TikTok", icon: SiTiktok, color: "text-gray-800" },
+  { value: "youtube", label: "YouTube Description", icon: Youtube, color: "text-red-600" },
+  { value: "youtube_shorts", label: "YouTube Shorts", icon: Youtube, color: "text-red-500" },
+  { value: "pinterest", label: "Pinterest", icon: SiPinterest, color: "text-red-600" },
+  { value: "reddit", label: "Reddit", icon: SiReddit, color: "text-orange-600" },
+  { value: "discord", label: "Discord", icon: SiDiscord, color: "text-indigo-600" },
+  { value: "snapchat", label: "Snapchat", icon: SiSnapchat, color: "text-yellow-400" },
+  { value: "medium", label: "Medium", icon: SiMedium, color: "text-gray-900" },
+  { value: "blog", label: "Blog Posts", icon: FileText, color: "text-gray-700" },
   { value: "whatsapp", label: "WhatsApp", icon: SiWhatsapp, color: "text-green-500" },
   { value: "email", label: "Gmail/Email", icon: Mail, color: "text-blue-500" },
 ];
