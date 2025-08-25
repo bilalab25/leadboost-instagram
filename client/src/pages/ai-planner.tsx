@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Bot, Calendar, Lightbulb, RefreshCw, Sparkles, TrendingUp, Users, Video, BarChart3, Instagram } from "lucide-react";
+import { Bell, Bot, Calendar, Lightbulb, RefreshCw, Sparkles, TrendingUp, Users, Video, BarChart3, Instagram, Brain, Zap, Target, Wand2, Star, ChevronRight, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContentPlan {
@@ -190,6 +190,22 @@ export default function AIPlanner() {
 
         {/* AI Planner Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
+          {/* Hero Section */}
+          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border-b">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8">
+              <div className="text-center">
+                <div className="inline-flex items-center bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                  <Brain className="mr-2 h-4 w-4" />
+                  Powered by Advanced AI
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">AI Content Strategy Generator</h2>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  Get month-long content strategies tailored to your business, complete with platform-specific posts, hashtags, and optimal timing.
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
               
@@ -206,11 +222,16 @@ export default function AIPlanner() {
                     
                     {/* Business Data Input */}
                     <div className="lg:col-span-2">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Sparkles className="mr-2 h-5 w-5 text-amber-600" />
-                            Business Data Input
+                      <Card className="border-2 border-amber-100 shadow-lg">
+                        <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50">
+                          <CardTitle className="flex items-center text-lg">
+                            <div className="bg-amber-100 p-2 rounded-lg mr-3">
+                              <Sparkles className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <div>
+                              <div className="text-gray-900 font-semibold">Business Intelligence Input</div>
+                              <div className="text-sm text-gray-600 font-normal">Tell our AI about your business for personalized strategies</div>
+                            </div>
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
@@ -317,36 +338,85 @@ export default function AIPlanner() {
                           </div>
 
                           {/* Generate Button */}
-                          <Button
-                            onClick={() => generatePlanMutation.mutate()}
-                            disabled={generatePlanMutation.isPending || !businessData.industry}
-                            className="w-full bg-amber-600 hover:bg-amber-700"
-                            data-testid="button-generate-plan"
-                          >
-                            <RefreshCw className={cn("mr-2 h-4 w-4", generatePlanMutation.isPending && "animate-spin")} />
-                            {generatePlanMutation.isPending ? "Generating AI Plan..." : "Generate AI Content Plan"}
-                          </Button>
+                          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-lg border border-amber-200">
+                            <div className="flex items-center mb-3">
+                              <Wand2 className="h-5 w-5 text-amber-600 mr-2" />
+                              <span className="text-sm font-medium text-amber-900">Ready to generate your AI strategy?</span>
+                            </div>
+                            <Button
+                              onClick={() => generatePlanMutation.mutate()}
+                              disabled={generatePlanMutation.isPending || !businessData.industry}
+                              className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white font-medium py-3 text-lg shadow-md"
+                              data-testid="button-generate-plan"
+                            >
+                              {generatePlanMutation.isPending ? (
+                                <>
+                                  <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                                  <span>AI is analyzing your business...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Brain className="mr-2 h-5 w-5" />
+                                  <span>Generate AI Content Strategy</span>
+                                  <ArrowRight className="ml-2 h-5 w-5" />
+                                </>
+                              )}
+                            </Button>
+                            {!businessData.industry && (
+                              <p className="text-xs text-amber-700 mt-2 text-center">
+                                Select your industry to enable AI generation
+                              </p>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     </div>
 
                     {/* AI Preview */}
                     <div>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Lightbulb className="mr-2 h-5 w-5 text-yellow-600" />
-                            AI Preview
+                      <Card className="border-2 border-blue-100 shadow-lg">
+                        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                          <CardTitle className="flex items-center text-lg">
+                            <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                              <Brain className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <div className="text-gray-900 font-semibold">AI Strategy Preview</div>
+                              <div className="text-sm text-gray-600 font-normal">Live preview of your content strategy</div>
+                            </div>
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
                           {currentPlan ? (
                             <div className="space-y-4">
-                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                <p className="text-sm text-green-800 font-medium">Plan Generated!</p>
-                                <p className="text-xs text-green-600 mt-1">
-                                  {currentPlan.insights?.posts?.length || 0} posts planned for {new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center">
+                                    <div className="bg-green-100 p-1.5 rounded-full mr-2">
+                                      <Star className="h-4 w-4 text-green-600" />
+                                    </div>
+                                    <p className="text-sm text-green-800 font-semibold">AI Strategy Generated!</p>
+                                  </div>
+                                  <Badge className="bg-green-100 text-green-800">
+                                    <Zap className="mr-1 h-3 w-3" />
+                                    AI Powered
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-green-700 font-medium">
+                                  {currentPlan.insights?.posts?.length || 0} personalized posts planned for {new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
                                 </p>
+                                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                  <div className="bg-white/50 rounded p-2">
+                                    <Target className="h-3 w-3 text-green-600 mb-1" />
+                                    <div className="font-medium text-green-800">Platform Mix</div>
+                                    <div className="text-green-600">Instagram, TikTok, Email</div>
+                                  </div>
+                                  <div className="bg-white/50 rounded p-2">
+                                    <TrendingUp className="h-3 w-3 text-green-600 mb-1" />
+                                    <div className="font-medium text-green-800">Optimization</div>
+                                    <div className="text-green-600">Peak engagement times</div>
+                                  </div>
+                                </div>
                               </div>
                               
                               {currentPlan.insights?.insights && (
@@ -362,10 +432,31 @@ export default function AIPlanner() {
                             </div>
                           ) : (
                             <div className="text-center py-8">
-                              <Bot className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                              <p className="text-sm text-gray-600" data-testid="text-no-preview">
-                                Fill in your business data and generate an AI plan to see preview
-                              </p>
+                              <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-6 rounded-xl mb-4">
+                                <Brain className="mx-auto h-12 w-12 text-blue-500 mb-4" />
+                                <div className="space-y-2">
+                                  <p className="text-sm font-medium text-gray-800" data-testid="text-no-preview">
+                                    AI Strategy Preview
+                                  </p>
+                                  <p className="text-xs text-gray-600">
+                                    Complete your business profile to see AI-generated insights
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 gap-2 text-xs text-gray-500">
+                                <div className="flex items-center justify-center">
+                                  <ChevronRight className="h-3 w-3 mr-1" />
+                                  Content themes based on your industry
+                                </div>
+                                <div className="flex items-center justify-center">
+                                  <ChevronRight className="h-3 w-3 mr-1" />
+                                  Platform-optimized posting schedule
+                                </div>
+                                <div className="flex items-center justify-center">
+                                  <ChevronRight className="h-3 w-3 mr-1" />
+                                  Trending hashtags and keywords
+                                </div>
+                              </div>
                             </div>
                           )}
                         </CardContent>

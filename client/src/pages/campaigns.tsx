@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Bell, Plus, Bot, Calendar as CalendarIcon, Send, Edit, Trash2, Instagram, Clock, Zap, Eye, MessageSquare, Users, Mail, Twitter, Youtube, FileText } from "lucide-react";
+import { Bell, Plus, Bot, Calendar as CalendarIcon, Send, Edit, Trash2, Instagram, Clock, Zap, Eye, MessageSquare, Users, Mail, Twitter, Youtube, FileText, Brain, Wand2, Star, Target, TrendingUp, Sparkles, ArrowRight, Play, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiLinkedin, SiThreads, SiFacebook, SiPinterest, SiReddit, SiDiscord, SiSnapchat, SiMedium } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -244,17 +244,23 @@ export default function Campaigns() {
             <div className="ml-4 flex items-center md:ml-6 space-x-4">
               <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100" data-testid="button-ai-generate">
-                    <Bot className="mr-2 h-4 w-4" />
-                    AI Generate
+                  <Button variant="outline" className="bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200 text-amber-700 hover:from-amber-100 hover:to-yellow-100 font-medium shadow-sm" data-testid="button-ai-generate">
+                    <Brain className="mr-2 h-4 w-4" />
+                    <span>AI Generate</span>
+                    <Sparkles className="ml-1 h-3 w-3" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center">
-                      <Bot className="mr-2 h-5 w-5 text-amber-600" />
+                <DialogContent className="sm:max-w-[600px]">
+                  <DialogHeader className="text-center pb-4">
+                    <div className="mx-auto bg-gradient-to-br from-amber-100 to-yellow-100 p-3 rounded-full w-fit mb-3">
+                      <Brain className="h-8 w-8 text-amber-600" />
+                    </div>
+                    <DialogTitle className="text-2xl font-bold text-gray-900">
                       AI Campaign Generator
                     </DialogTitle>
+                    <p className="text-sm text-gray-600">
+                      Describe your campaign idea and let AI create optimized content for all platforms
+                    </p>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
@@ -270,39 +276,59 @@ export default function Campaigns() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Target Platforms</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {platformOptions.map((platform) => {
-                          const Icon = platform.icon;
-                          return (
-                            <div key={platform.value} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`ai-${platform.value}`}
-                                checked={selectedPlatforms.includes(platform.value)}
-                                onCheckedChange={() => handlePlatformToggle(platform.value)}
-                                data-testid={`checkbox-ai-${platform.value}`}
-                              />
-                              <Label 
-                                htmlFor={`ai-${platform.value}`} 
-                                className="flex items-center cursor-pointer"
-                              >
-                                <Icon className={cn("mr-2 h-4 w-4", platform.color)} />
-                                {platform.label}
-                              </Label>
-                            </div>
-                          );
-                        })}
+                      <Label className="text-base font-medium">Target Platforms</Label>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-xs text-gray-600 mb-3">Select platforms for your AI-generated campaign</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {platformOptions.map((platform) => {
+                            const Icon = platform.icon;
+                            return (
+                              <div key={platform.value} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`ai-${platform.value}`}
+                                  checked={selectedPlatforms.includes(platform.value)}
+                                  onCheckedChange={() => handlePlatformToggle(platform.value)}
+                                  data-testid={`checkbox-ai-${platform.value}`}
+                                />
+                                <Label 
+                                  htmlFor={`ai-${platform.value}`} 
+                                  className="flex items-center cursor-pointer"
+                                >
+                                  <Icon className={cn("mr-2 h-4 w-4", platform.color)} />
+                                  {platform.label}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                     
-                    <Button
-                      onClick={() => generateAICampaignMutation.mutate()}
-                      disabled={generateAICampaignMutation.isPending || !aiPrompt || selectedPlatforms.length === 0}
-                      className="w-full bg-amber-600 hover:bg-amber-700"
-                      data-testid="button-generate-ai-campaign"
-                    >
-                      {generateAICampaignMutation.isPending ? "Generating..." : "Generate AI Campaign"}
-                    </Button>
+                    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-lg border border-amber-200 mt-2">
+                      <div className="flex items-center mb-3">
+                        <Wand2 className="h-4 w-4 text-amber-600 mr-2" />
+                        <span className="text-sm font-medium text-amber-900">AI will create platform-specific content variations</span>
+                      </div>
+                      <Button
+                        onClick={() => generateAICampaignMutation.mutate()}
+                        disabled={generateAICampaignMutation.isPending || !aiPrompt || selectedPlatforms.length === 0}
+                        className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white font-medium py-3 shadow-md"
+                        data-testid="button-generate-ai-campaign"
+                      >
+                        {generateAICampaignMutation.isPending ? (
+                          <>
+                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                            <span>AI is creating your campaign...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Brain className="mr-2 h-4 w-4" />
+                            <span>Generate AI Campaign</span>
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -428,41 +454,66 @@ export default function Campaigns() {
 
         {/* Campaigns Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
+          {/* Hero Section */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8">
+              <div className="text-center">
+                <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                  <Zap className="mr-2 h-4 w-4" />
+                  Multi-Platform Publishing
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">AI-Powered Campaign Creator</h2>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  Create engaging campaigns across 21+ platforms with intelligent content optimization and automated scheduling.
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
               
               {/* Campaign Stats */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-8">
-                <Card>
+                <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
                   <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-gray-900" data-testid="stat-total-campaigns">
+                    <div className="text-2xl font-bold text-blue-900" data-testid="stat-total-campaigns">
                       {campaigns?.length || 0}
                     </div>
-                    <div className="text-sm text-gray-500">Total Campaigns</div>
+                    <div className="text-sm text-blue-600 font-medium">Total Campaigns</div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-indigo-200 bg-gradient-to-br from-indigo-50 to-indigo-100">
                   <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600" data-testid="stat-scheduled-campaigns">
-                      {campaigns?.filter(c => c.status === "scheduled").length || 0}
+                    <div className="flex items-center justify-center mb-1">
+                      <Clock className="h-5 w-5 text-indigo-600 mr-1" />
+                      <div className="text-2xl font-bold text-indigo-900" data-testid="stat-scheduled-campaigns">
+                        {campaigns?.filter(c => c.status === "scheduled").length || 0}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">Scheduled</div>
+                    <div className="text-sm text-indigo-600 font-medium">Scheduled</div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100">
                   <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-green-600" data-testid="stat-published-campaigns">
-                      {campaigns?.filter(c => c.status === "published").length || 0}
+                    <div className="flex items-center justify-center mb-1">
+                      <CheckCircle className="h-5 w-5 text-green-600 mr-1" />
+                      <div className="text-2xl font-bold text-green-900" data-testid="stat-published-campaigns">
+                        {campaigns?.filter(c => c.status === "published").length || 0}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">Published</div>
+                    <div className="text-sm text-green-600 font-medium">Published</div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-100">
                   <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-amber-600" data-testid="stat-ai-campaigns">
-                      {campaigns?.filter(c => c.aiGenerated).length || 0}
+                    <div className="flex items-center justify-center mb-1">
+                      <Brain className="h-5 w-5 text-amber-600 mr-1" />
+                      <div className="text-2xl font-bold text-amber-900" data-testid="stat-ai-campaigns">
+                        {campaigns?.filter(c => c.aiGenerated).length || 0}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">AI Generated</div>
+                    <div className="text-sm text-amber-600 font-medium">AI Generated</div>
                   </CardContent>
                 </Card>
               </div>
