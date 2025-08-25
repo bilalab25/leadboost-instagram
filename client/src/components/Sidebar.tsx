@@ -71,7 +71,7 @@ export default function Sidebar() {
           <img 
             src={leadBoostLogo} 
             alt="LeadBoost Logo" 
-            className="h-10 w-auto"
+            className="h-60 w-auto"
           />
         </div>
         
