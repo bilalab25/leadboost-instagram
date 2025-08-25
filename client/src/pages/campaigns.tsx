@@ -16,9 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Bell, Plus, Bot, Calendar as CalendarIcon, Send, Edit, Trash2, Instagram, Clock, Zap, Eye } from "lucide-react";
-import { SiWhatsapp, SiTiktok } from "react-icons/si";
-import { Mail } from "lucide-react";
+import { Bell, Plus, Bot, Calendar as CalendarIcon, Send, Edit, Trash2, Instagram, Clock, Zap, Eye, MessageSquare, Users, Mail, Twitter } from "lucide-react";
+import { SiWhatsapp, SiTiktok, SiLinkedin, SiThreads } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -30,8 +29,8 @@ interface Campaign {
   content: {
     content: string;
     variations: { [platform: string]: string };
-    suggestedHashtags: string[];
-    visualSuggestions: string[];
+    suggestedHashtags: { [platform: string]: string[] };
+    visualSuggestions: { [platform: string]: string[] };
   };
   scheduledFor?: string;
   status: "draft" | "scheduled" | "published" | "failed";
@@ -46,9 +45,14 @@ interface Campaign {
 
 const platformOptions = [
   { value: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-500" },
-  { value: "whatsapp", label: "WhatsApp", icon: SiWhatsapp, color: "text-green-500" },
-  { value: "email", label: "Email", icon: Mail, color: "text-blue-500" },
+  { value: "instagram_story", label: "Instagram Story", icon: Instagram, color: "text-purple-500" },
+  { value: "linkedin_newsletter", label: "LinkedIn Newsletter", icon: SiLinkedin, color: "text-blue-600" },
+  { value: "linkedin_thread", label: "LinkedIn Thread", icon: SiLinkedin, color: "text-blue-500" },
+  { value: "threads", label: "Threads", icon: SiThreads, color: "text-gray-900" },
+  { value: "x", label: "X (Twitter)", icon: Twitter, color: "text-gray-900" },
   { value: "tiktok", label: "TikTok", icon: SiTiktok, color: "text-gray-800" },
+  { value: "whatsapp", label: "WhatsApp", icon: SiWhatsapp, color: "text-green-500" },
+  { value: "email", label: "Gmail/Email", icon: Mail, color: "text-blue-500" },
 ];
 
 const statusColors = {
@@ -197,8 +201,8 @@ export default function Campaigns() {
       content: {
         content: formData.content || formData.description,
         variations: {},
-        suggestedHashtags: [],
-        visualSuggestions: [],
+        suggestedHashtags: {},
+        visualSuggestions: {},
       },
       scheduledFor: scheduledDate?.toISOString(),
     });

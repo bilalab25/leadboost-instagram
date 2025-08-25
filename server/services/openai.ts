@@ -45,11 +45,16 @@ export async function generateMonthlyContentStrategy(
     2. Specific recommendations based on industry trends
     3. 15-20 specific post ideas with dates, platforms, and details
     
-    Focus on:
-    - Instagram: Visual content, stories, reels
-    - WhatsApp: Customer service, direct engagement
-    - TikTok: Trending content, behind-the-scenes
-    - Email: Newsletters, promotions
+    Focus on platform-specific optimization:
+    - Instagram: Visual content, stories, reels, engaging captions
+    - Instagram Story: Short visual overlays, interactive elements
+    - WhatsApp: Customer service, direct engagement, personal messages
+    - TikTok: Trending content, viral hooks, behind-the-scenes
+    - Email/Gmail: Newsletters, promotions, professional communication
+    - LinkedIn Newsletter: Thought leadership, industry insights
+    - LinkedIn Thread: Professional networking, business insights
+    - Threads: Authentic conversations, community building
+    - X (Twitter): Real-time updates, trending topics, concise messaging
     
     Return the response in JSON format with the following structure:
     {
@@ -64,6 +69,15 @@ export async function generateMonthlyContentStrategy(
           "description": "Post description",
           "hashtags": ["#hashtag1", "#hashtag2"],
           "optimalTime": "6:00 PM"
+        },
+        {
+          "date": "2024-01-16",
+          "platform": "linkedin_newsletter",
+          "contentType": "thought_leadership",
+          "title": "Industry Insights",
+          "description": "Professional insights",
+          "hashtags": ["#Leadership", "#Industry"],
+          "optimalTime": "9:00 AM"
         }
       ]
     }
@@ -101,33 +115,67 @@ export async function generateCampaignContent(
 ): Promise<{
   content: string;
   variations: { [platform: string]: string };
-  suggestedHashtags: string[];
-  visualSuggestions: string[];
+  suggestedHashtags: { [platform: string]: string[] };
+  visualSuggestions: { [platform: string]: string[] };
 }> {
   try {
     const systemPrompt = `
-    You are a creative social media content creator. Generate engaging campaign content based on the user's request.
+    You are an expert social media content creator and digital marketing strategist. Generate engaging campaign content optimized for multiple platforms with specific formatting requirements.
     
     Business Context: ${businessContext || 'General business'}
     Target Platforms: ${platforms.join(', ')}
     
-    Create platform-optimized variations and include:
-    - Main content that works across platforms
-    - Platform-specific variations (Instagram vs TikTok vs WhatsApp style)
-    - Relevant hashtags
-    - Visual content suggestions
+    PLATFORM OPTIMIZATION RULES:
     
-    Return JSON in this format:
+    📧 EMAIL/GMAIL: Professional tone, compelling subject line, structured paragraphs, clear CTA, 300-500 words
+    📰 LINKEDIN NEWSLETTER: Thought leadership, industry insights, bullet points, 800-1200 words, professional tone
+    🧵 LINKEDIN THREAD: Professional insights broken into 5-10 connected posts, each 150 chars max, numbered format
+    📱 THREADS: Casual, conversational, 500 chars max, trending topics, authentic voice, relatable content
+    📷 INSTAGRAM STORY: Visual-first, short text overlays, emojis, interactive elements, 15-30 words max
+    📸 INSTAGRAM: Visual storytelling, engaging captions, hashtags, 125-150 words, authentic voice
+    🐦 X (TWITTER): Concise, witty, trending hashtags, thread format if needed, 280 chars max per tweet
+    🎵 TIKTOK: Trending sounds, hooks in first 3 seconds, casual language, 100-150 words, viral potential
+    💬 WHATSAPP: Personal, conversational, emojis, brief and actionable, friendly tone
+    
+    Create platform-optimized variations with proper formatting, character limits, and tone for each platform.
+    Include platform-specific hashtags and visual suggestions tailored to each platform's requirements.
+    
+    Return JSON in this exact format:
     {
-      "content": "main content",
+      "content": "main universal content that works across platforms",
       "variations": {
-        "instagram": "instagram optimized version",
-        "tiktok": "tiktok optimized version",
-        "whatsapp": "whatsapp friendly version",
-        "email": "email newsletter version"
+        "email": "professional email with subject line: [SUBJECT] and structured body",
+        "linkedin_newsletter": "comprehensive newsletter format with sections and professional insights",
+        "linkedin_thread": "1/10 Professional insight here... 2/10 Next point... [format as numbered thread]",
+        "threads": "casual conversational version under 500 chars",
+        "instagram_story": "short visual-focused text under 30 words",
+        "instagram": "engaging caption with storytelling and call-to-action",
+        "x": "concise twitter-optimized version under 280 chars",
+        "tiktok": "trending casual format with hook in first line",
+        "whatsapp": "personal conversational message with emojis"
       },
-      "suggestedHashtags": ["#tag1", "#tag2"],
-      "visualSuggestions": ["suggestion1", "suggestion2"]
+      "suggestedHashtags": {
+        "email": [],
+        "linkedin_newsletter": ["#Leadership", "#Industry", "#Business"],
+        "linkedin_thread": ["#Professional", "#Insights", "#Growth"],
+        "threads": ["#authentic", "#relatable", "#community"],
+        "instagram_story": ["#story", "#behindthescenes", "#daily"],
+        "instagram": ["#business", "#motivation", "#growth"],
+        "x": ["#trending", "#business", "#innovation"],
+        "tiktok": ["#fyp", "#trending", "#business"],
+        "whatsapp": []
+      },
+      "visualSuggestions": {
+        "email": ["professional header image", "infographic", "brand logo"],
+        "linkedin_newsletter": ["data visualization", "professional charts", "industry graphics"],
+        "linkedin_thread": ["carousel slides", "data charts", "professional graphics"],
+        "threads": ["authentic photos", "behind-the-scenes", "candid moments"],
+        "instagram_story": ["vertical video", "interactive polls", "behind-the-scenes"],
+        "instagram": ["high-quality photos", "carousel posts", "brand imagery"],
+        "x": ["engaging images", "GIFs", "infographics"],
+        "tiktok": ["vertical videos", "trending effects", "dynamic visuals"],
+        "whatsapp": ["simple graphics", "screenshots", "personal photos"]
+      }
     }
     `;
 
@@ -138,7 +186,7 @@ export async function generateCampaignContent(
         { role: "user", content: prompt },
       ],
       response_format: { type: "json_object" },
-      max_tokens: 1500,
+      max_tokens: 2500,
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
