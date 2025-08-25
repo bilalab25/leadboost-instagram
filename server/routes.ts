@@ -230,10 +230,180 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Messages routes
   app.get('/api/messages', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Return mock conversations for demo
+      const mockMessages = [
+        {
+          id: "msg-1",
+          senderId: "sarah_martinez",
+          senderName: "Sarah Martinez",
+          senderAvatar: null,
+          content: "Hi! I love your new product line! When will the blue version be available? 💙",
+          priority: "high",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+          socialAccount: {
+            platform: "instagram",
+            accountName: "@DemoCompany"
+          }
+        },
+        {
+          id: "msg-2", 
+          senderId: "mike_johnson",
+          senderName: "Mike Johnson",
+          senderAvatar: null,
+          content: "Can you help me with my recent order? The tracking shows it's stuck in transit and I need it for tomorrow's event. Order #12345",
+          priority: "urgent",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 32).toISOString(),
+          socialAccount: {
+            platform: "instagram",
+            accountName: "@DemoCompany"
+          }
+        },
+        {
+          id: "msg-3",
+          senderId: "emma_wilson", 
+          senderName: "Emma Wilson",
+          senderAvatar: null,
+          content: "Amazing customer service! Thank you for resolving my issue so quickly 🙌",
+          priority: "normal",
+          isRead: true,
+          createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+          socialAccount: {
+            platform: "instagram", 
+            accountName: "@DemoCompany"
+          }
+        },
+        {
+          id: "msg-4",
+          senderId: "david_chen",
+          senderName: "David Chen", 
+          senderAvatar: null,
+          content: "Hello, I saw your ad on Facebook and I'm interested in your premium package. Could you send me more details and pricing information?",
+          priority: "high",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 58).toISOString(),
+          socialAccount: {
+            platform: "whatsapp",
+            accountName: "Demo Company WhatsApp"
+          }
+        },
+        {
+          id: "msg-5",
+          senderId: "lisa_rodriguez",
+          senderName: "Lisa Rodriguez",
+          senderAvatar: null,
+          content: "Hi! My order #12345 was supposed to arrive yesterday but I haven't received it yet. Can you check the status? This is urgent!",
+          priority: "urgent",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 67).toISOString(),
+          socialAccount: {
+            platform: "whatsapp",
+            accountName: "Demo Company WhatsApp"
+          }
+        },
+        {
+          id: "msg-6",
+          senderId: "james_brown",
+          senderName: "James Brown",
+          senderAvatar: null,
+          content: "Thanks for the quick response! The replacement arrived today and it's perfect. Great service! 👍",
+          priority: "normal",
+          isRead: true,
+          createdAt: new Date(Date.now() - 1000 * 60 * 89).toISOString(),
+          socialAccount: {
+            platform: "whatsapp",
+            accountName: "Demo Company WhatsApp"
+          }
+        },
+        {
+          id: "msg-7",
+          senderId: "maria_garcia",
+          senderName: "Maria Garcia",
+          senderAvatar: null,
+          content: "Subject: Billing Question\n\nHi, I noticed a charge on my account that I don't recognize. Could you please help me understand what this is for? Invoice #INV-2024-001",
+          priority: "normal",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+          socialAccount: {
+            platform: "email",
+            accountName: "support@democompany.com"
+          }
+        },
+        {
+          id: "msg-8",
+          senderId: "robert_taylor",
+          senderName: "Robert Taylor",
+          senderAvatar: null,
+          content: "Subject: Partnership Opportunity\n\nHello! I represent a company that would like to explore partnership opportunities with your business. Would love to schedule a call this week.",
+          priority: "high",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 145).toISOString(),
+          socialAccount: {
+            platform: "email",
+            accountName: "support@democompany.com"
+          }
+        },
+        {
+          id: "msg-9",
+          senderId: "zoe_creative",
+          senderName: "Zoe Wilson", 
+          senderAvatar: null,
+          content: "Love the behind-the-scenes content! 💕 Could you do a tutorial on how you make these? #tutorial #behindthescenes",
+          priority: "normal",
+          isRead: true,
+          createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+          socialAccount: {
+            platform: "tiktok",
+            accountName: "@democompany_official"
+          }
+        },
+        {
+          id: "msg-10",
+          senderId: "alex_fitness",
+          senderName: "Alex Rodriguez",
+          senderAvatar: null,
+          content: "This product changed my daily routine! Can you share more about the science behind it? Planning to order more soon! 🔥",
+          priority: "normal",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 210).toISOString(),
+          socialAccount: {
+            platform: "tiktok",
+            accountName: "@democompany_official"
+          }
+        },
+        {
+          id: "msg-11",
+          senderId: "jennifer_lee",
+          senderName: "Jennifer Lee",
+          senderAvatar: null,
+          content: "Hi there! Saw your TikTok video and I'm interested in bulk pricing for my small business. Do you offer wholesale rates?",
+          priority: "high",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
+          socialAccount: {
+            platform: "instagram",
+            accountName: "@DemoCompany"
+          }
+        },
+        {
+          id: "msg-12",
+          senderId: "carlos_santos",
+          senderName: "Carlos Santos",
+          senderAvatar: null,
+          content: "Could you schedule a delivery for next Tuesday? I'll be available between 2-5 PM. Also, do you have the green variant in stock?",
+          priority: "normal",
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 275).toISOString(),
+          socialAccount: {
+            platform: "whatsapp",
+            accountName: "Demo Company WhatsApp"
+          }
+        }
+      ];
+      
       const limit = req.query.limit ? parseInt(req.query.limit) : 50;
-      const messages = await storage.getMessagesByUserId(userId, limit);
-      res.json(messages);
+      res.json(mockMessages.slice(0, limit));
     } catch (error) {
       console.error("Error fetching messages:", error);
       res.status(500).json({ message: "Failed to fetch messages" });
