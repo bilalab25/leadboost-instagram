@@ -9,6 +9,7 @@ import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Inbox from "@/pages/inbox";
 import AIPlanner from "@/pages/ai-planner";
+import Calendar from "@/pages/calendar";
 import Analytics from "@/pages/analytics";
 import Campaigns from "@/pages/campaigns";
 import Customers from "@/pages/customers";
@@ -35,6 +36,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/inbox" component={Inbox} />
           <Route path="/ai-planner" component={AIPlanner} />
+          <Route path="/calendar" component={Calendar} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/campaigns" component={Campaigns} />
           <Route path="/customers" component={Customers} />
