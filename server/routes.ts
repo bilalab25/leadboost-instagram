@@ -14,7 +14,12 @@ import {
   insertInvoiceSchema,
   insertTeamTaskSchema,
   insertTaskCompletionSchema,
+  insertPosIntegrationSchema,
+  insertSalesTransactionSchema,
+  insertProductSchema,
+  insertCampaignTriggerSchema,
 } from "@shared/schema";
+import { posIntegrationService } from "./services/posIntegrations";
 import {
   ObjectStorageService,
   ObjectNotFoundError,
@@ -671,6 +676,238 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error completing task:", error);
       res.status(500).json({ message: "Failed to complete task" });
+    }
+  });
+
+  // POS Integration routes
+  // Get user's POS integrations
+  app.get('/api/pos-integrations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const integrations = await storage.getPosIntegrationsByUserId(userId);
+      res.json(integrations);
+    } catch (error) {
+      console.error("Error fetching POS integrations:", error);
+      res.status(500).json({ message: "Failed to fetch POS integrations" });
+    }
+  });
+
+  // Create new POS integration
+  app.post('/api/pos-integrations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const integrationData = insertPosIntegrationSchema.parse({ ...req.body, userId });
+      
+      // Validate credentials with POS provider
+      const validationResult = await posIntegrationService.validateCredentials(
+        integrationData.provider,
+        {
+          accessToken: integrationData.accessToken,
+          storeUrl: integrationData.storeUrl,
+          apiKey: integrationData.apiKey,
+        }
+      );
+
+      if (!validationResult.valid) {
+        return res.status(400).json({ 
+          message: "Invalid credentials", 
+          error: validationResult.error 
+        });
+      }
+
+      // Store integration with encrypted credentials
+      const integration = await storage.createPosIntegration({
+        ...integrationData,
+        settings: validationResult.storeInfo,
+      });
+
+      // Sync products after successful integration
+      try {
+        const products = await posIntegrationService.syncProducts(integration);
+        await Promise.all(products.map(product => storage.createProduct(product)));
+      } catch (syncError) {
+        console.error("Product sync failed but integration created:", syncError);
+      }
+
+      res.status(201).json(integration);
+    } catch (error) {
+      console.error("Error creating POS integration:", error);
+      res.status(500).json({ message: "Failed to create POS integration" });
+    }
+  });
+
+  // Update POS integration
+  app.put('/api/pos-integrations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const integration = await storage.updatePosIntegration(id, updates);
+      
+      if (!integration) {
+        return res.status(404).json({ message: "Integration not found" });
+      }
+      
+      res.json(integration);
+    } catch (error) {
+      console.error("Error updating POS integration:", error);
+      res.status(500).json({ message: "Failed to update POS integration" });
+    }
+  });
+
+  // Delete POS integration
+  app.delete('/api/pos-integrations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const deleted = await storage.deletePosIntegration(id, userId);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Integration not found" });
+      }
+      
+      res.json({ message: "Integration deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting POS integration:", error);
+      res.status(500).json({ message: "Failed to delete POS integration" });
+    }
+  });
+
+  // Get sales transactions
+  app.get('/api/sales-transactions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const transactions = await storage.getSalesTransactionsByUserId(userId, limit);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching sales transactions:", error);
+      res.status(500).json({ message: "Failed to fetch sales transactions" });
+    }
+  });
+
+  // Get products from POS systems
+  app.get('/api/products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const products = await storage.getProductsByUserId(userId);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  // Sync products from specific POS integration
+  app.post('/api/pos-integrations/:id/sync-products', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const integration = await storage.getPosIntegrationsByUserId(req.user.claims.sub);
+      const targetIntegration = integration.find(i => i.id === id);
+      
+      if (!targetIntegration) {
+        return res.status(404).json({ message: "Integration not found" });
+      }
+
+      const products = await posIntegrationService.syncProducts(targetIntegration);
+      await Promise.all(products.map(product => storage.createProduct(product)));
+      
+      res.json({ message: "Products synced successfully", count: products.length });
+    } catch (error) {
+      console.error("Error syncing products:", error);
+      res.status(500).json({ message: "Failed to sync products" });
+    }
+  });
+
+  // Get campaign triggers
+  app.get('/api/campaign-triggers', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const triggers = await storage.getCampaignTriggersByUserId(userId);
+      res.json(triggers);
+    } catch (error) {
+      console.error("Error fetching campaign triggers:", error);
+      res.status(500).json({ message: "Failed to fetch campaign triggers" });
+    }
+  });
+
+  // Create campaign trigger
+  app.post('/api/campaign-triggers', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const triggerData = insertCampaignTriggerSchema.parse({ ...req.body, userId });
+      const trigger = await storage.createCampaignTrigger(triggerData);
+      res.status(201).json(trigger);
+    } catch (error) {
+      console.error("Error creating campaign trigger:", error);
+      res.status(500).json({ message: "Failed to create campaign trigger" });
+    }
+  });
+
+  // Update campaign trigger
+  app.put('/api/campaign-triggers/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const trigger = await storage.updateCampaignTrigger(id, updates);
+      
+      if (!trigger) {
+        return res.status(404).json({ message: "Campaign trigger not found" });
+      }
+      
+      res.json(trigger);
+    } catch (error) {
+      console.error("Error updating campaign trigger:", error);
+      res.status(500).json({ message: "Failed to update campaign trigger" });
+    }
+  });
+
+  // Webhook endpoints for POS systems
+  app.post('/api/webhooks/square', async (req, res) => {
+    try {
+      const signature = req.headers['square-signature'] as string;
+      const result = await posIntegrationService.processWebhook('square', req.body, signature);
+      
+      if (result.processed && result.transactionId) {
+        // Process the transaction and check for campaign triggers
+        // Implementation would go here
+      }
+      
+      res.json({ received: result.processed });
+    } catch (error) {
+      console.error("Error processing Square webhook:", error);
+      res.status(500).json({ message: "Webhook processing failed" });
+    }
+  });
+
+  app.post('/api/webhooks/shopify', async (req, res) => {
+    try {
+      const signature = req.headers['x-shopify-hmac-sha256'] as string;
+      const result = await posIntegrationService.processWebhook('shopify', req.body, signature);
+      res.json({ received: result.processed });
+    } catch (error) {
+      console.error("Error processing Shopify webhook:", error);
+      res.status(500).json({ message: "Webhook processing failed" });
+    }
+  });
+
+  app.post('/api/webhooks/stripe', async (req, res) => {
+    try {
+      const signature = req.headers['stripe-signature'] as string;
+      const result = await posIntegrationService.processWebhook('stripe', req.body, signature);
+      res.json({ received: result.processed });
+    } catch (error) {
+      console.error("Error processing Stripe webhook:", error);
+      res.status(500).json({ message: "Webhook processing failed" });
+    }
+  });
+
+  app.post('/api/webhooks/woocommerce', async (req, res) => {
+    try {
+      const result = await posIntegrationService.processWebhook('woocommerce', req.body);
+      res.json({ received: result.processed });
+    } catch (error) {
+      console.error("Error processing WooCommerce webhook:", error);
+      res.status(500).json({ message: "Webhook processing failed" });
     }
   });
 

@@ -117,6 +117,81 @@ export const activityLogs = pgTable("activity_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// POS system integrations (Square, Shopify, etc.)
+export const posIntegrations = pgTable("pos_integrations", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  provider: varchar("provider").notNull(), // square, shopify, stripe, woocommerce, etc.
+  storeName: varchar("store_name").notNull(),
+  apiKey: text("api_key"), // encrypted
+  accessToken: text("access_token"), // encrypted
+  refreshToken: text("refresh_token"), // encrypted
+  storeUrl: varchar("store_url"),
+  webhookUrl: varchar("webhook_url"),
+  isActive: boolean("is_active").default(true),
+  syncEnabled: boolean("sync_enabled").default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+  settings: jsonb("settings"), // provider-specific settings
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Sales transactions from POS systems
+export const salesTransactions = pgTable("sales_transactions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  posIntegrationId: uuid("pos_integration_id").references(() => posIntegrations.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  transactionId: varchar("transaction_id").notNull(), // external transaction ID
+  customerId: varchar("customer_id"), // external customer ID
+  customerEmail: varchar("customer_email"),
+  customerName: varchar("customer_name"),
+  customerPhone: varchar("customer_phone"),
+  totalAmount: integer("total_amount").notNull(), // in cents
+  currency: varchar("currency").default("USD"),
+  status: varchar("status").notNull(), // completed, refunded, pending
+  paymentMethod: varchar("payment_method"), // card, cash, digital_wallet
+  items: jsonb("items"), // array of purchased items
+  metadata: jsonb("metadata"), // additional transaction data
+  transactionDate: timestamp("transaction_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Product catalog from POS systems
+export const products = pgTable("products", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  posIntegrationId: uuid("pos_integration_id").references(() => posIntegrations.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  externalProductId: varchar("external_product_id").notNull(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  price: integer("price"), // in cents
+  currency: varchar("currency").default("USD"),
+  sku: varchar("sku"),
+  category: varchar("category"),
+  imageUrl: varchar("image_url"),
+  isActive: boolean("is_active").default(true),
+  stockQuantity: integer("stock_quantity"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Automated campaign triggers based on POS data
+export const campaignTriggers = pgTable("campaign_triggers", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  triggerType: varchar("trigger_type").notNull(), // purchase_milestone, low_stock, new_customer, abandoned_cart
+  conditions: jsonb("conditions"), // trigger conditions
+  campaignTemplate: jsonb("campaign_template"), // template for auto-generated campaigns
+  platforms: text("platforms").array(), // which platforms to post to
+  isActive: boolean("is_active").default(true),
+  lastTriggered: timestamp("last_triggered"),
+  triggerCount: integer("trigger_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Customers table for business customer management
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -340,6 +415,19 @@ export const insertTaskCompletionSchema = createInsertSchema(taskCompletions).om
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// POS Integration types
+export type InsertPosIntegration = typeof posIntegrations.$inferInsert;
+export type PosIntegration = typeof posIntegrations.$inferSelect;
+
+export type InsertSalesTransaction = typeof salesTransactions.$inferInsert;
+export type SalesTransaction = typeof salesTransactions.$inferSelect;
+
+export type InsertProduct = typeof products.$inferInsert;
+export type Product = typeof products.$inferSelect;
+
+export type InsertCampaignTrigger = typeof campaignTriggers.$inferInsert;
+export type CampaignTrigger = typeof campaignTriggers.$inferSelect;
 export type InsertSocialAccount = z.infer<typeof insertSocialAccountSchema>;
 export type SocialAccount = typeof socialAccounts.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
@@ -360,3 +448,32 @@ export type InsertTeamTask = z.infer<typeof insertTeamTaskSchema>;
 export type TeamTask = typeof teamTasks.$inferSelect;
 export type InsertTaskCompletion = z.infer<typeof insertTaskCompletionSchema>;
 export type TaskCompletion = typeof taskCompletions.$inferSelect;
+
+// POS Integration schemas
+export const insertPosIntegrationSchema = createInsertSchema(posIntegrations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSalesTransactionSchema = createInsertSchema(salesTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCampaignTriggerSchema = createInsertSchema(campaignTriggers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPosIntegrationType = z.infer<typeof insertPosIntegrationSchema>;
+export type InsertSalesTransactionType = z.infer<typeof insertSalesTransactionSchema>;
+export type InsertProductType = z.infer<typeof insertProductSchema>;
+export type InsertCampaignTriggerType = z.infer<typeof insertCampaignTriggerSchema>;
