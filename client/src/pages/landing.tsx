@@ -4,6 +4,7 @@ import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRigh
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
+import leadBoostLogo from "@assets/logo azul sin fondo_1756142427945.png";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
@@ -15,13 +16,12 @@ export default function Landing() {
       <header className="relative z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">LeadBoost</h1>
-              </div>
+            <div className="flex items-center space-x-3">
+              <img 
+                src={leadBoostLogo} 
+                alt="LeadBoost Logo" 
+                className="h-12 w-auto object-contain"
+              />
             </div>
             
             <div className="flex items-center space-x-4">
