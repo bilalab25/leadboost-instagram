@@ -30,12 +30,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Auth routes (Demo mode - no authentication required)
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      // Return mock user for demo
+      const mockUser = {
+        id: "demo-user",
+        email: "demo@leadboost.com",
+        firstName: "Demo",
+        lastName: "User",
+        profileImageUrl: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      res.json(mockUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -167,12 +175,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dashboard stats
-  app.get('/api/dashboard/stats', isAuthenticated, async (req: any, res) => {
+  // Dashboard stats (Demo mode)
+  app.get('/api/dashboard/stats', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const stats = await storage.getDashboardStats(userId);
-      res.json(stats);
+      // Return mock dashboard stats
+      const mockStats = {
+        totalMessages: 1247,
+        unreadMessages: 23,
+        totalCampaigns: 15,
+        activeCampaigns: 8,
+        totalSocialAccounts: 6,
+        connectedPlatforms: ["instagram", "facebook", "tiktok", "whatsapp", "email", "linkedin"],
+        monthlyEngagement: 15420,
+        responseTime: "2.3 hours"
+      };
+      res.json(mockStats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
@@ -1004,12 +1021,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Activity logs
-  app.get('/api/activity', isAuthenticated, async (req: any, res) => {
+  app.get('/api/activity', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Return mock activity logs for demo
+      const mockActivities = [
+        {
+          id: "activity-1",
+          userId: "demo-user",
+          brandId: null,
+          action: "create_campaign",
+          description: "Created new Instagram campaign: Spring Product Launch",
+          entityType: "campaign",
+          entityId: "camp-1",
+          createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString()
+        },
+        {
+          id: "activity-2",
+          userId: "demo-user",
+          brandId: null,
+          action: "connect_social_account",
+          description: "Connected TikTok account: @democompany_official",
+          entityType: "social_account",
+          entityId: "social-1",
+          createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString()
+        },
+        {
+          id: "activity-3",
+          userId: "demo-user",
+          brandId: null,
+          action: "generate_content_plan",
+          description: "Generated AI content plan for March 2024",
+          entityType: "content_plan",
+          entityId: "plan-1",
+          createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString()
+        }
+      ];
+      
       const limit = req.query.limit ? parseInt(req.query.limit) : 20;
-      const activities = await storage.getActivityLogsByUserId(userId, limit);
-      res.json(activities);
+      res.json(mockActivities.slice(0, limit));
     } catch (error) {
       console.error("Error fetching activity logs:", error);
       res.status(500).json({ message: "Failed to fetch activity logs" });

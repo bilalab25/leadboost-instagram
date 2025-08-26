@@ -29,21 +29,16 @@ function Router() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/inbox" component={Inbox} />
-          <Route path="/ai-planner" component={AIPlanner} />
-          <Route path="/calendar" component={Calendar} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/campaigns" component={Campaigns} />
-          <Route path="/customers" component={Customers} />
-          <Route path="/team" component={Team} />
-          <Route path="/integrations" component={Integrations} />
-        </>
-      )}
+      <Route path="/landing" component={Landing} />
+      <Route path="/" component={Dashboard} />
+      <Route path="/inbox" component={Inbox} />
+      <Route path="/ai-planner" component={AIPlanner} />
+      <Route path="/calendar" component={Calendar} />
+      <Route path="/analytics" component={Analytics} />
+      <Route path="/campaigns" component={Campaigns} />
+      <Route path="/customers" component={Customers} />
+      <Route path="/team" component={Team} />
+      <Route path="/integrations" component={Integrations} />
       <Route component={NotFound} />
     </Switch>
   );
