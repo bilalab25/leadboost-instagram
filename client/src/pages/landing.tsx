@@ -110,7 +110,7 @@ export default function Landing() {
                           <SiX className="h-6 w-6 text-white" />
                         </div>
                         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                          +14
+                          +21
                         </div>
                       </div>
                       <h3 className="text-3xl font-black text-purple-600 mb-2">{isSpanish ? 'TODOS LADOS' : 'EVERYWHERE'}</h3>
