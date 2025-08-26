@@ -44,7 +44,7 @@ export default function Landing() {
       {/* Waterfall Hero Section - THE CENTERPIECE */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-brand-600/5 to-purple-600/5" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           
           {/* Main Waterfall Value Proposition */}
           <div className="text-center mb-16">
