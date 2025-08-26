@@ -178,7 +178,10 @@ export const translations = {
       user: "User",
       logout: "Logout",
       all: "All",
-      noAccountsConnected: "No accounts connected"
+      noAccountsConnected: "No accounts connected",
+      loadDemoData: "Load Demo Data",
+      aiGeneratedPosts: "AI Generated Posts",
+      revenueImpact: "Revenue Impact"
     }
   },
   es: {
@@ -373,7 +376,10 @@ export const translations = {
       user: "Usuario",
       logout: "Cerrar Sesión",
       all: "Todos",
-      noAccountsConnected: "No hay cuentas conectadas"
+      noAccountsConnected: "No hay cuentas conectadas",
+      loadDemoData: "Cargar Datos Demo",
+      aiGeneratedPosts: "Posts Generados por IA",
+      revenueImpact: "Impacto en Ingresos"
     }
   }
 };

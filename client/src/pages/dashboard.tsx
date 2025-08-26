@@ -129,7 +129,7 @@ export default function Dashboard() {
                 className="border-green-200 text-green-700 hover:bg-green-50"
               >
                 <Database className="mr-2 h-4 w-4" />
-                {populateDemoDataMutation.isPending ? t.common.loading : "Cargar Datos Demo"}
+                {populateDemoDataMutation.isPending ? t.common.loading : t.common.loadDemoData}
               </Button>
               
               <Button className="bg-brand-600 hover:bg-brand-700 text-white" data-testid="button-new-campaign">
@@ -155,8 +155,8 @@ export default function Dashboard() {
                           <Sparkles className="h-10 w-10 text-white" />
                         </div>
                         <div>
-                          <h2 className="text-3xl font-black text-gray-900">{language === 'es' ? 'Sistema Waterfall' : 'Waterfall System'}</h2>
-                          <p className="text-brand-600 font-semibold">{language === 'es' ? 'Una idea → Todos lados' : 'One idea → Everywhere'}</p>
+                          <h2 className="text-3xl font-black text-gray-900">{t.dashboard.waterfallSystem}</h2>
+                          <p className="text-brand-600 font-semibold">{t.dashboard.oneIdeaEverywhere}</p>
                         </div>
                       </div>
                       <p className="text-lg text-gray-700 mb-6 max-w-3xl mx-auto">
@@ -232,7 +232,7 @@ export default function Dashboard() {
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title={language === 'es' ? "Posts Generados por IA" : "AI Generated Posts"}
+                  title={t.common.aiGeneratedPosts}
                   value={stats?.aiPosts?.toString() || "0"}
                   change="+8.3%"
                   changeType="increase"
@@ -240,7 +240,7 @@ export default function Dashboard() {
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title={language === 'es' ? "Impacto en Ingresos" : "Revenue Impact"}
+                  title={t.common.revenueImpact}
                   value={`$${((stats?.revenue || 0) / 1000).toFixed(1)}k`}
                   change="+15.2%"
                   changeType="increase"
