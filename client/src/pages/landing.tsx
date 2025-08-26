@@ -20,7 +20,7 @@ export default function Landing() {
               <img 
                 src={leadBoostLogo} 
                 alt="LeadBoost Logo" 
-                className="h-56 w-auto object-contain"
+                className="h-60 w-auto object-contain"
                 style={{ backgroundColor: 'transparent' }}
               />
             </div>
