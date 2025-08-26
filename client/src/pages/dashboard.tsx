@@ -10,7 +10,8 @@ import MessageList from "@/components/MessageList";
 import ContentCalendar from "@/components/ContentCalendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, Plus, Database } from "lucide-react";
+import { Bell, Plus, Database, Sparkles, Zap, Target, ArrowRight } from "lucide-react";
+import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
 
@@ -143,6 +144,76 @@ export default function Dashboard() {
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+              
+              {/* Waterfall System Hero - Primary Feature */}
+              <div className="mb-12">
+                <Card className="bg-gradient-to-br from-brand-50 to-purple-50 border-brand-200 shadow-lg">
+                  <CardContent className="p-8">
+                    <div className="text-center mb-6">
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-purple-600 rounded-2xl flex items-center justify-center mr-4 shadow-lg">
+                          <Sparkles className="h-10 w-10 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-3xl font-black text-gray-900">{language === 'es' ? 'Sistema Waterfall' : 'Waterfall System'}</h2>
+                          <p className="text-brand-600 font-semibold">{language === 'es' ? 'Una idea → Todos lados' : 'One idea → Everywhere'}</p>
+                        </div>
+                      </div>
+                      <p className="text-lg text-gray-700 mb-6 max-w-3xl mx-auto">
+                        {language === 'es' 
+                          ? 'Convierte una sola idea en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.' 
+                          : 'Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.'}
+                      </p>
+                    </div>
+                    
+                    {/* Waterfall Visual Flow */}
+                    <div className="bg-white rounded-2xl p-6 shadow-inner border border-gray-100 mb-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                        
+                        {/* ONE IDEA */}
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
+                            <Target className="h-8 w-8 text-white" />
+                          </div>
+                          <h3 className="text-xl font-bold text-green-600 mb-1">{language === 'es' ? 'UNA IDEA' : 'ONE IDEA'}</h3>
+                          <p className="text-sm text-gray-600">"Lanzar producto nuevo"</p>
+                        </div>
+                        
+                        {/* ARROW */}
+                        <div className="flex justify-center">
+                          <ArrowRight className="h-6 w-6 text-brand-400 hidden md:block" />
+                        </div>
+                        
+                        {/* PLATFORMS */}
+                        <div className="text-center">
+                          <div className="grid grid-cols-3 gap-2 mb-3 max-w-32 mx-auto">
+                            <SiInstagram className="w-8 h-8 text-pink-500" />
+                            <SiTiktok className="w-8 h-8 text-gray-800" />
+                            <SiFacebook className="w-8 h-8 text-blue-600" />
+                            <SiWhatsapp className="w-8 h-8 text-green-500" />
+                            <SiLinkedin className="w-8 h-8 text-blue-700" />
+                            <SiYoutube className="w-8 h-8 text-red-600" />
+                          </div>
+                          <h3 className="text-xl font-bold text-purple-600 mb-1">{language === 'es' ? 'TODOS LADOS' : 'EVERYWHERE'}</h3>
+                          <p className="text-sm text-gray-600">{language === 'es' ? '21+ Plataformas' : '21+ Platforms'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* CTA Button */}
+                    <div className="text-center">
+                      <Button 
+                        size="lg" 
+                        className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-bold shadow-lg transform hover:scale-105 transition-all duration-200"
+                        data-testid="button-start-waterfall"
+                      >
+                        <Zap className="mr-2 h-5 w-5" />
+                        {language === 'es' ? 'Crear Campaña Waterfall' : 'Create Waterfall Campaign'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
               
               {/* Stats Overview */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">

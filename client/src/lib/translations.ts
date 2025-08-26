@@ -77,9 +77,20 @@ export const translations = {
     },
     // Landing
     landing: {
-      heroSubtitle: "The AI-powered social media management platform that unifies all your customer communications and creates intelligent content strategies from your business data.",
-      getStarted: "Get Started",
-      learnMore: "Learn More"
+      waterfallTitle: "The Waterfall System",
+      waterfallSubtitle: "One idea → 21+ platforms → Perfect formats → Instant launch",
+      heroTitle: "Turn ONE idea into campaigns across 21+ platforms",
+      heroSubtitle: "LeadBoost's Waterfall System takes your single campaign idea and instantly creates optimized content for Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube and 16+ more platforms — all in the correct format and size.",
+      oneIdea: "ONE IDEA",
+      everywhere: "EVERYWHERE",
+      instantly: "INSTANTLY",
+      waterfallDemo: "Try the Waterfall System",
+      getStarted: "Start Your Waterfall",
+      learnMore: "See How It Works",
+      platforms21: "21+ Platforms",
+      perfectFormats: "Perfect Formats",
+      instantLaunch: "Instant Launch",
+      uniqueDifferentiator: "This is what makes LeadBoost unique"
     },
     // Dashboard
     dashboard: {
@@ -97,7 +108,9 @@ export const translations = {
       createCampaign: "Create Campaign",
       viewMessages: "View Messages",
       generateContent: "Generate Content",
-      viewAnalytics: "View Analytics"
+      viewAnalytics: "View Analytics",
+      waterfallSystem: "Waterfall System",
+      oneIdeaEverywhere: "One idea → Everywhere"
     },
     // Sidebar
     sidebar: {
