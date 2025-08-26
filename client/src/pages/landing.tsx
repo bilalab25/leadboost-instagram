@@ -1,8 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare, Bot, BarChart3, Users, Zap, Shield } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
+import { translations } from "@/lib/translations";
 
 export default function Landing() {
+  const { language, toggleLanguage, isSpanish } = useLanguage();
+  const t = translations[language];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -13,11 +18,10 @@ export default function Landing() {
               <div className="w-12 h-12 bg-brand-500 rounded-lg flex items-center justify-center mr-4">
                 <MessageSquare className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900">SocialHub</h1>
+              <h1 className="text-4xl font-bold text-gray-900">LeadBoost</h1>
             </div>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              The AI-powered social media management platform that unifies all your customer communications 
-              and creates intelligent content strategies from your business data.
+              {t.landing?.heroSubtitle || "The AI-powered social media management platform that unifies all your customer communications and creates intelligent content strategies from your business data."}
             </p>
             <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
               <Button 
@@ -26,10 +30,10 @@ export default function Landing() {
                 onClick={() => window.location.href = '/api/login'}
                 data-testid="button-login"
               >
-                Get Started
+                {t.landing?.getStarted || "Get Started"}
               </Button>
               <Button variant="outline" size="lg" className="px-8 py-3" data-testid="button-learn-more">
-                Learn More
+                {t.landing?.learnMore || "Learn More"}
               </Button>
             </div>
           </div>
@@ -40,10 +44,24 @@ export default function Landing() {
       <div className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Everything you need to manage social media</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              {isSpanish ? "Todo lo que necesitas para gestionar redes sociales" : "Everything you need to manage social media"}
+            </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Connect all your social accounts, manage conversations, and let AI create your content strategy.
+              {isSpanish ? "Conecta todas tus cuentas sociales, gestiona conversaciones y deja que la IA cree tu estrategia de contenido." : "Connect all your social accounts, manage conversations, and let AI create your content strategy."}
             </p>
+          </div>
+          
+          {/* Language Toggle Button */}
+          <div className="flex justify-center mb-12">
+            <Button 
+              variant="outline" 
+              onClick={toggleLanguage}
+              className="font-medium"
+              data-testid="button-language-toggle"
+            >
+              {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -53,9 +71,9 @@ export default function Landing() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <MessageSquare className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>Unified Inbox</CardTitle>
+                <CardTitle>{isSpanish ? "Bandeja Unificada" : "Unified Inbox"}</CardTitle>
                 <CardDescription>
-                  Manage messages from Instagram, WhatsApp, Email, and TikTok in one place. Never miss a lead again.
+                  {isSpanish ? "Gestiona mensajes de Instagram, WhatsApp, Email y TikTok en un solo lugar. Nunca pierdas un lead otra vez." : "Manage messages from Instagram, WhatsApp, Email, and TikTok in one place. Never miss a lead again."}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -66,9 +84,9 @@ export default function Landing() {
                 <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
                   <Bot className="h-6 w-6 text-amber-600" />
                 </div>
-                <CardTitle>AI Monthly Planner</CardTitle>
+                <CardTitle>{isSpanish ? "Planificador Mensual IA" : "AI Monthly Planner"}</CardTitle>
                 <CardDescription>
-                  AI analyzes your business data to create complete monthly content strategies with optimal posting times.
+                  {isSpanish ? "La IA analiza los datos de tu negocio para crear estrategias completas de contenido mensual con horarios óptimos de publicación." : "AI analyzes your business data to create complete monthly content strategies with optimal posting times."}
                 </CardDescription>
               </CardHeader>
             </Card>

@@ -75,6 +75,12 @@ export const translations = {
       all: "All",
       draft: "Draft"
     },
+    // Landing
+    landing: {
+      heroSubtitle: "The AI-powered social media management platform that unifies all your customer communications and creates intelligent content strategies from your business data.",
+      getStarted: "Get Started",
+      learnMore: "Learn More"
+    },
     // Common
     common: {
       aiPowered: "AI Powered",
@@ -155,6 +161,12 @@ export const translations = {
       aiGenerated: "Generadas por IA",
       all: "Todas",
       draft: "Borrador"
+    },
+    // Landing
+    landing: {
+      heroSubtitle: "La plataforma de gestión de redes sociales impulsada por IA que unifica todas las comunicaciones con tus clientes y crea estrategias de contenido inteligentes a partir de los datos de tu negocio.",
+      getStarted: "Comenzar",
+      learnMore: "Saber Más"
     },
     // Common
     common: {
