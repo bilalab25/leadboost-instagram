@@ -242,7 +242,7 @@ export default function Landing() {
               <ul className="text-sm text-gray-500 space-y-2">
                 <li>• {isSpanish ? 'Contenido personalizado' : 'Personalized content'}</li>
                 <li>• {isSpanish ? 'Basado en métricas virales' : 'Based on viral metrics'}</li>
-                <li>• {isSpanish ? 'Copies optimizados' : 'Optimized copies'}</li>
+                <li>• {isSpanish ? 'Textos de alto impacto' : 'High-impact copywriting'}</li>
               </ul>
             </Card>
 
