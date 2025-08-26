@@ -32,7 +32,7 @@ interface ActivityLog {
 
 export default function Dashboard() {
   const { toast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const { language } = useLanguage();
   const t = translations[language];
@@ -145,106 +145,64 @@ export default function Dashboard() {
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
               
-              {/* Waterfall System Hero - Primary Feature */}
-              <div className="mb-12">
-                <Card className="bg-gradient-to-br from-brand-50 to-purple-50 border-brand-200 shadow-lg">
-                  <CardContent className="p-8">
-                    <div className="text-center mb-6">
-                      <div className="flex items-center justify-center mb-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-purple-600 rounded-2xl flex items-center justify-center mr-4 shadow-lg">
-                          <Sparkles className="h-10 w-10 text-white" />
-                        </div>
-                        <div>
-                          <h2 className="text-3xl font-black text-gray-900">{t.dashboard.waterfallSystem}</h2>
-                          <p className="text-brand-600 font-semibold">{t.dashboard.oneIdeaEverywhere}</p>
-                        </div>
-                      </div>
-                      <p className="text-lg text-gray-700 mb-6 max-w-3xl mx-auto">
-                        {t.dashboard.waterfallDescription}
-                      </p>
-                    </div>
-                    
-                    {/* Waterfall Visual Flow */}
-                    <div className="bg-white rounded-2xl p-6 shadow-inner border border-gray-100 mb-6">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                        
-                        {/* ONE IDEA */}
-                        <div className="text-center">
-                          <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
-                            <Target className="h-8 w-8 text-white" />
-                          </div>
-                          <h3 className="text-xl font-bold text-green-600 mb-1">{(t.landing as any)?.oneIdea || (language === 'es' ? 'UNA IDEA' : 'ONE IDEA')}</h3>
-                          <p className="text-sm text-gray-600">"{ (t.landing as any)?.launchNewProduct || (language === 'es' ? 'Lanzar producto nuevo' : 'Launch new product') }"</p>
-                        </div>
-                        
-                        {/* ARROW */}
-                        <div className="flex justify-center">
-                          <ArrowRight className="h-6 w-6 text-brand-400 hidden md:block" />
-                        </div>
-                        
-                        {/* PLATFORMS */}
-                        <div className="text-center">
-                          <div className="grid grid-cols-3 gap-2 mb-3 max-w-32 mx-auto">
-                            <SiInstagram className="w-8 h-8 text-pink-500" />
-                            <SiTiktok className="w-8 h-8 text-gray-800" />
-                            <SiFacebook className="w-8 h-8 text-blue-600" />
-                            <SiWhatsapp className="w-8 h-8 text-green-500" />
-                            <SiLinkedin className="w-8 h-8 text-blue-700" />
-                            <SiYoutube className="w-8 h-8 text-red-600" />
-                          </div>
-                          <h3 className="text-xl font-bold text-purple-600 mb-1">{(t.landing as any)?.everywhere || (language === 'es' ? 'TODOS LADOS' : 'EVERYWHERE')}</h3>
-                          <p className="text-sm text-gray-600">{(t.landing as any)?.platforms21 || (language === 'es' ? '21+ Plataformas' : '21+ Platforms')}</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* CTA Button */}
-                    <div className="text-center">
-                      <Button 
-                        size="lg" 
-                        className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-bold shadow-lg transform hover:scale-105 transition-all duration-200"
-                        data-testid="button-start-waterfall"
-                      >
-                        <Zap className="mr-2 h-5 w-5" />
-                        {t.dashboard.createWaterfallCampaign}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Welcome Section */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">
+                      {t.dashboard.welcomeBack}, {user?.firstName || 'Usuario'}!
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                      {language === 'es' 
+                        ? 'Aquí tienes un resumen de tu actividad en redes sociales'
+                        : 'Here\'s an overview of your social media activity'}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      className="bg-gradient-to-r from-brand-500 to-purple-600 text-white border-none hover:from-brand-600 hover:to-purple-700"
+                    >
+                      <Zap className="mr-2 h-4 w-4" />
+                      {language === 'es' ? 'Waterfall' : 'Waterfall'}
+                    </Button>
+                  </div>
+                </div>
               </div>
               
               {/* Stats Overview */}
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                 <StatsCard
-                  title={t.dashboard.unreadMessages}
-                  value={stats?.unreadMessages?.toString() || "0"}
+                  title={t.dashboard.totalMessages}
+                  value={"1,847"}
                   change="+12%"
                   changeType="increase"
                   icon="message"
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title={t.dashboard.monthlyEngagement}
-                  value={`${stats?.engagementRate || 0}%`}
-                  change="+2.1%"
+                  title={t.dashboard.unreadMessages}
+                  value={stats?.unreadMessages?.toString() || "0"}
+                  change="Requieren atención"
+                  changeType="increase"
+                  icon="message"
+                  loading={statsLoading}
+                />
+                <StatsCard
+                  title={t.dashboard.totalCampaigns}
+                  value={"28"}
+                  change="+4 este mes"
                   changeType="increase"
                   icon="chart"
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title={t.common.aiGeneratedPosts}
-                  value={stats?.aiPosts?.toString() || "0"}
-                  change="+8.3%"
+                  title={t.dashboard.monthlyEngagement}
+                  value={`${stats?.engagementRate || 24.8}K`}
+                  change="+18% este mes"
                   changeType="increase"
-                  icon="robot"
-                  loading={statsLoading}
-                />
-                <StatsCard
-                  title={t.common.revenueImpact}
-                  value={`$${((stats?.revenue || 0) / 1000).toFixed(1)}k`}
-                  change="+15.2%"
-                  changeType="increase"
-                  icon="dollar"
+                  icon="chart"
                   loading={statsLoading}
                 />
               </div>
