@@ -81,10 +81,49 @@ export const translations = {
       getStarted: "Get Started",
       learnMore: "Learn More"
     },
+    // Dashboard
+    dashboard: {
+      welcomeBack: "Welcome back",
+      totalMessages: "Total Messages",
+      unreadMessages: "Unread Messages",
+      totalCampaigns: "Total Campaigns",
+      activeCampaigns: "Active Campaigns",
+      connectedAccounts: "Connected Accounts",
+      monthlyEngagement: "Monthly Engagement",
+      averageResponseTime: "Avg Response Time",
+      hours: "hours",
+      recentActivity: "Recent Activity",
+      quickActions: "Quick Actions",
+      createCampaign: "Create Campaign",
+      viewMessages: "View Messages",
+      generateContent: "Generate Content",
+      viewAnalytics: "View Analytics"
+    },
+    // Sidebar
+    sidebar: {
+      dashboard: "Dashboard",
+      inbox: "Inbox",
+      aiPlanner: "AI Planner",
+      campaigns: "Campaigns",
+      calendar: "Calendar",
+      analytics: "Analytics",
+      customers: "Customers",
+      team: "Team",
+      integrations: "Integrations"
+    },
     // Common
     common: {
       aiPowered: "AI Powered",
-      notifications: "Notifications"
+      notifications: "Notifications",
+      loading: "Loading",
+      error: "Error",
+      success: "Success",
+      save: "Save",
+      cancel: "Cancel",
+      delete: "Delete",
+      edit: "Edit",
+      create: "Create",
+      update: "Update"
     }
   },
   es: {
@@ -168,10 +207,49 @@ export const translations = {
       getStarted: "Comenzar",
       learnMore: "Saber Más"
     },
+    // Dashboard
+    dashboard: {
+      welcomeBack: "Bienvenido de vuelta",
+      totalMessages: "Total de Mensajes",
+      unreadMessages: "Mensajes No Leídos",
+      totalCampaigns: "Total de Campañas",
+      activeCampaigns: "Campañas Activas",
+      connectedAccounts: "Cuentas Conectadas",
+      monthlyEngagement: "Engagement Mensual",
+      averageResponseTime: "Tiempo de Respuesta Promedio",
+      hours: "horas",
+      recentActivity: "Actividad Reciente",
+      quickActions: "Acciones Rápidas",
+      createCampaign: "Crear Campaña",
+      viewMessages: "Ver Mensajes",
+      generateContent: "Generar Contenido",
+      viewAnalytics: "Ver Analíticas"
+    },
+    // Sidebar
+    sidebar: {
+      dashboard: "Panel Principal",
+      inbox: "Bandeja de Entrada",
+      aiPlanner: "Planificador IA",
+      campaigns: "Campañas",
+      calendar: "Calendario",
+      analytics: "Analíticas",
+      customers: "Clientes",
+      team: "Equipo",
+      integrations: "Integraciones"
+    },
     // Common
     common: {
       aiPowered: "Impulsado por IA",
-      notifications: "Notificaciones"
+      notifications: "Notificaciones",
+      loading: "Cargando",
+      error: "Error",
+      success: "Éxito",
+      save: "Guardar",
+      cancel: "Cancelar",
+      delete: "Eliminar",
+      edit: "Editar",
+      create: "Crear",
+      update: "Actualizar"
     }
   }
 };

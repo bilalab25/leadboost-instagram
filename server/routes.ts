@@ -51,11 +51,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Brand management routes
-  app.get('/api/brands', isAuthenticated, async (req: any, res) => {
+  app.get('/api/brands', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const brands = await storage.getBrandsByUserId(userId);
-      res.json(brands);
+      // Return mock brands for demo in Spanish
+      const mockBrands = [
+        {
+          id: "brand-1",
+          name: "Mi Empresa Principal",
+          description: "La marca principal de nuestra empresa",
+          industry: "Tecnología",
+          targetAudience: "Profesionales jóvenes",
+          website: "https://miempresa.com",
+          logoUrl: null,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "brand-2",
+          name: "Secundaria Corp",
+          description: "Marca secundaria para productos especializados",
+          industry: "E-commerce",
+          targetAudience: "Consumidores generales",
+          website: "https://secundaria.com",
+          logoUrl: null,
+          createdAt: new Date().toISOString()
+        }
+      ];
+      res.json(mockBrands);
     } catch (error) {
       console.error("Error fetching brands:", error);
       res.status(500).json({ message: "Failed to fetch brands" });
@@ -178,16 +199,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats (Demo mode)
   app.get('/api/dashboard/stats', async (req: any, res) => {
     try {
-      // Return mock dashboard stats
+      // Return mock dashboard stats with Spanish data
       const mockStats = {
-        totalMessages: 1247,
-        unreadMessages: 23,
-        totalCampaigns: 15,
-        activeCampaigns: 8,
-        totalSocialAccounts: 6,
-        connectedPlatforms: ["instagram", "facebook", "tiktok", "whatsapp", "email", "linkedin"],
-        monthlyEngagement: 15420,
-        responseTime: "2.3 hours"
+        totalMessages: 1847,
+        unreadMessages: 34,
+        totalCampaigns: 23,
+        activeCampaigns: 12,
+        totalSocialAccounts: 8,
+        connectedPlatforms: ["instagram", "facebook", "tiktok", "whatsapp", "email", "linkedin", "youtube", "telegram"],
+        monthlyEngagement: 25840,
+        responseTime: "1.8 horas",
+        engagementRate: 6.4,
+        aiPosts: 156,
+        revenue: 89500
       };
       res.json(mockStats);
     } catch (error) {
@@ -197,18 +221,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Social accounts routes
-  app.get('/api/social-accounts', isAuthenticated, async (req: any, res) => {
+  app.get('/api/social-accounts', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const accounts = await storage.getSocialAccountsByUserId(userId);
-      res.json(accounts);
+      // Return mock social accounts for demo in Spanish
+      const mockAccounts = [
+        {
+          id: "social-1",
+          platform: "instagram",
+          accountName: "@MiEmpresa",
+          accountId: "12345",
+          isConnected: true,
+          followers: 15420,
+          lastSync: new Date().toISOString()
+        },
+        {
+          id: "social-2", 
+          platform: "facebook",
+          accountName: "Mi Empresa Facebook",
+          accountId: "67890",
+          isConnected: true,
+          followers: 8930,
+          lastSync: new Date().toISOString()
+        },
+        {
+          id: "social-3",
+          platform: "tiktok",
+          accountName: "@miempresa_oficial",
+          accountId: "54321",
+          isConnected: true,
+          followers: 22100,
+          lastSync: new Date().toISOString()
+        },
+        {
+          id: "social-4",
+          platform: "whatsapp",
+          accountName: "Mi Empresa WhatsApp",
+          accountId: "business-123",
+          isConnected: true,
+          followers: 0,
+          lastSync: new Date().toISOString()
+        }
+      ];
+      res.json(mockAccounts);
     } catch (error) {
       console.error("Error fetching social accounts:", error);
       res.status(500).json({ message: "Failed to fetch social accounts" });
     }
   });
 
-  app.post('/api/social-accounts', isAuthenticated, async (req: any, res) => {
+  app.post('/api/social-accounts', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const accountData = insertSocialAccountSchema.parse({
@@ -244,107 +305,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Messages routes
-  app.get('/api/messages', isAuthenticated, async (req: any, res) => {
+  // Messages routes (Demo mode without auth)
+  app.get('/api/messages', async (req: any, res) => {
     try {
-      // Return mock conversations for demo
+      // Return mock conversations for demo in Spanish
       const mockMessages = [
         {
           id: "msg-1",
-          senderId: "sarah_martinez",
-          senderName: "Sarah Martinez",
+          senderId: "maria_gonzalez",
+          senderName: "María González",
           senderAvatar: null,
-          content: "Hi! I love your new product line! When will the blue version be available? 💙",
+          content: "¡Hola! ¡Me encanta su nueva línea de productos! ¿Cuándo estará disponible la versión azul? 💙",
           priority: "high",
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
           socialAccount: {
             platform: "instagram",
-            accountName: "@DemoCompany"
+            accountName: "@MiEmpresa"
           }
         },
         {
           id: "msg-2", 
-          senderId: "mike_johnson",
-          senderName: "Mike Johnson",
+          senderId: "carlos_rivera",
+          senderName: "Carlos Rivera",
           senderAvatar: null,
-          content: "Can you help me with my recent order? The tracking shows it's stuck in transit and I need it for tomorrow's event. Order #12345",
+          content: "¿Pueden ayudarme con mi pedido reciente? El rastreo muestra que está atascado en tránsito y lo necesito para el evento de mañana. Pedido #12345",
           priority: "urgent",
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 32).toISOString(),
           socialAccount: {
             platform: "facebook",
-            accountName: "Demo Company Facebook"
+            accountName: "Mi Empresa Facebook"
           }
         },
         {
           id: "msg-3",
-          senderId: "emma_wilson", 
-          senderName: "Emma Wilson",
+          senderId: "ana_lopez", 
+          senderName: "Ana López",
           senderAvatar: null,
-          content: "Amazing customer service! Thank you for resolving my issue so quickly 🙌",
+          content: "¡Servicio al cliente increíble! Gracias por resolver mi problema tan rápido 🙌",
           priority: "normal",
           isRead: true,
           createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
           socialAccount: {
             platform: "tiktok", 
-            accountName: "@democompany_official"
+            accountName: "@miempresa_oficial"
           }
         },
         {
           id: "msg-4",
-          senderId: "david_chen",
-          senderName: "David Chen", 
+          senderId: "diego_morales",
+          senderName: "Diego Morales", 
           senderAvatar: null,
-          content: "Hello, I saw your ad on Facebook and I'm interested in your premium package. Could you send me more details and pricing information?",
+          content: "Hola, vi su anuncio en Facebook y estoy interesado en su paquete premium. ¿Podrían enviarme más detalles e información de precios?",
           priority: "high",
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 58).toISOString(),
           socialAccount: {
             platform: "whatsapp",
-            accountName: "Demo Company WhatsApp"
+            accountName: "Mi Empresa WhatsApp"
           }
         },
         {
           id: "msg-5",
-          senderId: "lisa_rodriguez",
-          senderName: "Lisa Rodriguez",
+          senderId: "sofia_herrera",
+          senderName: "Sofía Herrera",
           senderAvatar: null,
-          content: "Hi! My order #12345 was supposed to arrive yesterday but I haven't received it yet. Can you check the status? This is urgent!",
+          content: "¡Hola! Mi pedido #12345 debía llegar ayer pero aún no lo he recibido. ¿Pueden verificar el estado? ¡Es urgente!",
           priority: "urgent",
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 67).toISOString(),
           socialAccount: {
             platform: "twitter",
-            accountName: "@DemoCompany"
+            accountName: "@MiEmpresa"
           }
         },
         {
           id: "msg-6",
-          senderId: "james_brown",
-          senderName: "James Brown",
+          senderId: "ricardo_torres",
+          senderName: "Ricardo Torres",
           senderAvatar: null,
-          content: "Thanks for the quick response! The replacement arrived today and it's perfect. Great service! 👍",
+          content: "¡Gracias por la respuesta rápida! El reemplazo llegó hoy y está perfecto. ¡Excelente servicio! 👍",
           priority: "normal",
           isRead: true,
           createdAt: new Date(Date.now() - 1000 * 60 * 89).toISOString(),
           socialAccount: {
             platform: "linkedin",
-            accountName: "Demo Company"
+            accountName: "Mi Empresa"
           }
         },
         {
           id: "msg-7",
-          senderId: "maria_garcia",
-          senderName: "Maria Garcia",
+          senderId: "laura_jimenez",
+          senderName: "Laura Jiménez",
           senderAvatar: null,
-          content: "Subject: Billing Question\n\nHi, I noticed a charge on my account that I don't recognize. Could you please help me understand what this is for? Invoice #INV-2024-001",
+          content: "Asunto: Pregunta sobre Facturación\n\nHola, noté un cargo en mi cuenta que no reconozco. ¿Podrían ayudarme a entender para qué es? Factura #INV-2024-001",
           priority: "normal",
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
           socialAccount: {
             platform: "email",
-            accountName: "support@democompany.com"
+            accountName: "soporte@miempresa.com"
           }
         },
         {
@@ -566,7 +627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Content plans routes
-  app.get('/api/content-plans', isAuthenticated, async (req: any, res) => {
+  app.get('/api/content-plans', async (req: any, res) => {
     try {
       // Return mock AI-generated content plans
       const mockContentPlans = [
@@ -692,7 +753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Campaigns routes
-  app.get('/api/campaigns', isAuthenticated, async (req: any, res) => {
+  app.get('/api/campaigns', async (req: any, res) => {
     try {
       // Return mock campaigns
       const mockCampaigns = [
@@ -795,7 +856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/campaigns', isAuthenticated, async (req: any, res) => {
+  app.post('/api/campaigns', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const campaignData = insertCampaignSchema.parse({
@@ -1023,14 +1084,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Activity logs
   app.get('/api/activity', async (req: any, res) => {
     try {
-      // Return mock activity logs for demo
+      // Return mock activity logs for demo in Spanish
       const mockActivities = [
         {
           id: "activity-1",
           userId: "demo-user",
           brandId: null,
           action: "create_campaign",
-          description: "Created new Instagram campaign: Spring Product Launch",
+          description: "Creada nueva campaña de Instagram: Lanzamiento Producto Primavera",
           entityType: "campaign",
           entityId: "camp-1",
           createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString()
@@ -1040,7 +1101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: "demo-user",
           brandId: null,
           action: "connect_social_account",
-          description: "Connected TikTok account: @democompany_official",
+          description: "Conectada cuenta de TikTok: @miempresa_oficial",
           entityType: "social_account",
           entityId: "social-1",
           createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString()
@@ -1050,10 +1111,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: "demo-user",
           brandId: null,
           action: "generate_content_plan",
-          description: "Generated AI content plan for March 2024",
+          description: "Generado plan de contenido IA para Marzo 2024",
           entityType: "content_plan",
           entityId: "plan-1",
           createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString()
+        },
+        {
+          id: "activity-4",
+          userId: "demo-user",
+          brandId: null,
+          action: "response_message",
+          description: "Respondido mensaje urgente de WhatsApp",
+          entityType: "message",
+          entityId: "msg-4",
+          createdAt: new Date(Date.now() - 1000 * 60 * 240).toISOString()
+        },
+        {
+          id: "activity-5",
+          userId: "demo-user",
+          brandId: null,
+          action: "schedule_post",
+          description: "Programado post de Instagram para mañana 10:00 AM",
+          entityType: "post",
+          entityId: "post-1",
+          createdAt: new Date(Date.now() - 1000 * 60 * 300).toISOString()
         }
       ];
       

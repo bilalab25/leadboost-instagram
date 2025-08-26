@@ -11,6 +11,8 @@ import ContentCalendar from "@/components/ContentCalendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, Plus, Database } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
+import { translations } from "@/lib/translations";
 
 interface DashboardStats {
   unreadMessages: number;
@@ -31,6 +33,8 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
+  const t = translations[language];
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -108,7 +112,7 @@ export default function Dashboard() {
         <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
           <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
             <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-dashboard-title">Dashboard</h1>
+              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-dashboard-title">{t.sidebar.dashboard}</h1>
             </div>
             
             <div className="ml-4 flex items-center md:ml-6 space-x-4">
@@ -124,12 +128,12 @@ export default function Dashboard() {
                 className="border-green-200 text-green-700 hover:bg-green-50"
               >
                 <Database className="mr-2 h-4 w-4" />
-                {populateDemoDataMutation.isPending ? "Loading..." : "Load Demo Data"}
+                {populateDemoDataMutation.isPending ? t.common.loading : "Cargar Datos Demo"}
               </Button>
               
               <Button className="bg-brand-600 hover:bg-brand-700 text-white" data-testid="button-new-campaign">
                 <Plus className="mr-2 h-4 w-4" />
-                New Campaign
+                Nueva Campaña
               </Button>
             </div>
           </div>
@@ -143,7 +147,7 @@ export default function Dashboard() {
               {/* Stats Overview */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                 <StatsCard
-                  title="Unread Messages"
+                  title="Mensajes No Leídos"
                   value={stats?.unreadMessages?.toString() || "0"}
                   change="+12%"
                   changeType="increase"
@@ -151,7 +155,7 @@ export default function Dashboard() {
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title="Engagement Rate"
+                  title="Tasa de Engagement"
                   value={`${stats?.engagementRate || 0}%`}
                   change="+2.1%"
                   changeType="increase"
@@ -159,7 +163,7 @@ export default function Dashboard() {
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title="AI Generated Posts"
+                  title="Posts Generados por IA"
                   value={stats?.aiPosts?.toString() || "0"}
                   change="+8.3%"
                   changeType="increase"
@@ -167,7 +171,7 @@ export default function Dashboard() {
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title="Revenue Impact"
+                  title="Impacto en Ingresos"
                   value={`$${((stats?.revenue || 0) / 1000).toFixed(1)}k`}
                   change="+15.2%"
                   changeType="increase"
@@ -186,13 +190,13 @@ export default function Dashboard() {
                   <Card>
                     <CardHeader className="border-b border-gray-200">
                       <div className="flex items-center justify-between">
-                        <CardTitle>Unified Inbox</CardTitle>
+                        <CardTitle>Bandeja Unificada</CardTitle>
                         <div className="flex space-x-2">
                           <Button variant="outline" size="sm" data-testid="button-all-channels">
-                            All Channels
+                            Todos los Canales
                           </Button>
                           <Button size="sm" className="bg-brand-600 hover:bg-brand-700" data-testid="button-mark-all-read">
-                            Mark All Read
+                            Marcar Todo Leído
                           </Button>
                         </div>
                       </div>
@@ -207,13 +211,13 @@ export default function Dashboard() {
                     <CardHeader className="border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <CardTitle>AI Monthly Planner</CardTitle>
+                          <CardTitle>Planificador Mensual IA</CardTitle>
                           <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                            AI Powered
+                            Impulsado por IA
                           </span>
                         </div>
                         <Button size="sm" className="bg-amber-600 hover:bg-amber-700" data-testid="button-regenerate-plan">
-                          Regenerate Plan
+                          Regenerar Plan
                         </Button>
                       </div>
                     </CardHeader>
@@ -230,14 +234,14 @@ export default function Dashboard() {
                   {/* Analytics */}
                   <Card>
                     <CardHeader className="border-b border-gray-200">
-                      <CardTitle>Performance Analytics</CardTitle>
+                      <CardTitle>Analíticas de Rendimiento</CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Total Reach</p>
-                            <p className="text-xs text-gray-500">Last 30 days</p>
+                            <p className="text-sm font-medium text-gray-900">Alcance Total</p>
+                            <p className="text-xs text-gray-500">Últimos 30 días</p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-semibold text-gray-900" data-testid="text-total-reach">125.3K</p>
@@ -248,7 +252,7 @@ export default function Dashboard() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-gray-900">Engagement</p>
-                            <p className="text-xs text-gray-500">Avg. rate</p>
+                            <p className="text-xs text-gray-500">Tasa promedio</p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-semibold text-gray-900" data-testid="text-engagement">4.8%</p>
@@ -258,8 +262,8 @@ export default function Dashboard() {
                         
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Conversions</p>
-                            <p className="text-xs text-gray-500">Social to POS</p>
+                            <p className="text-sm font-medium text-gray-900">Conversiones</p>
+                            <p className="text-xs text-gray-500">Social a POS</p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-semibold text-gray-900" data-testid="text-conversions">3.2%</p>
@@ -273,7 +277,7 @@ export default function Dashboard() {
                   {/* Recent Activity */}
                   <Card>
                     <CardHeader className="border-b border-gray-200">
-                      <CardTitle>Recent Activity</CardTitle>
+                      <CardTitle>Actividad Reciente</CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="space-y-4">
@@ -302,7 +306,7 @@ export default function Dashboard() {
                             </div>
                           ))
                         ) : (
-                          <p className="text-sm text-gray-500" data-testid="text-no-activity">No recent activity</p>
+                          <p className="text-sm text-gray-500" data-testid="text-no-activity">Sin actividad reciente</p>
                         )}
                       </div>
                     </CardContent>
@@ -311,23 +315,23 @@ export default function Dashboard() {
                   {/* Quick Actions */}
                   <Card>
                     <CardHeader className="border-b border-gray-200">
-                      <CardTitle>Quick Actions</CardTitle>
+                      <CardTitle>Acciones Rápidas</CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="grid grid-cols-1 gap-3">
                         <Button variant="outline" className="justify-center" data-testid="button-create-post">
                           <Plus className="mr-2 h-4 w-4" />
-                          Create New Post
+                          Crear Nuevo Post
                         </Button>
                         
                         <Button variant="outline" className="justify-center" data-testid="button-generate-content">
                           <span className="mr-2">🤖</span>
-                          Generate AI Content
+                          Generar Contenido IA
                         </Button>
                         
                         <Button variant="outline" className="justify-center" data-testid="button-schedule-posts">
                           <span className="mr-2">📅</span>
-                          Schedule Posts
+                          Programar Posts
                         </Button>
                       </div>
                     </CardContent>
