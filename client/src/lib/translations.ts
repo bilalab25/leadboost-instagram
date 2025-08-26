@@ -109,7 +109,8 @@ export const translations = {
       analytics: "Analytics",
       customers: "Customers",
       team: "Team",
-      integrations: "Integrations"
+      integrations: "Integrations",
+      settings: "Settings"
     },
     // Common
     common: {
@@ -223,7 +224,9 @@ export const translations = {
       createCampaign: "Crear Campaña",
       viewMessages: "Ver Mensajes",
       generateContent: "Generar Contenido",
-      viewAnalytics: "Ver Analíticas"
+      viewAnalytics: "Ver Analíticas",
+      smartTools: "Herramientas Inteligentes",
+      aiPoweredFeatures: "Funciones Impulsadas por IA"
     },
     // Sidebar
     sidebar: {
@@ -235,7 +238,60 @@ export const translations = {
       analytics: "Analíticas",
       customers: "Clientes",
       team: "Equipo",
-      integrations: "Integraciones"
+      integrations: "Integraciones",
+      settings: "Configuración"
+    },
+    // Messages and Inbox
+    messages: {
+      unifiedInbox: "Bandeja Unificada",
+      allChannels: "Todos los Canales",
+      markAllRead: "Marcar Todo Leído",
+      reply: "Responder",
+      forward: "Reenviar",
+      archive: "Archivar",
+      priority: "Prioridad",
+      urgent: "Urgente",
+      high: "Alta",
+      normal: "Normal",
+      low: "Baja",
+      noMessages: "No hay mensajes",
+      loadMore: "Cargar Más",
+      connectedAccounts: "Cuentas Conectadas",
+      noAccountsConnected: "No hay cuentas conectadas"
+    },
+    // Tools and Features
+    tools: {
+      aiPlanner: "Planificador IA",
+      campaignCreator: "Creador de Campañas",
+      analytics: "Analíticas",
+      smartInbox: "Bandeja Inteligente",
+      contentLibrary: "Biblioteca de Contenido",
+      socialCalendar: "Calendario Social",
+      brandManager: "Gestor de Marcas",
+      teamCollaboration: "Colaboración de Equipo"
+    },
+    // Analytics
+    analytics: {
+      performanceAnalytics: "Analíticas de Rendimiento",
+      totalReach: "Alcance Total",
+      lastDays: "Últimos 30 días",
+      engagement: "Engagement",
+      averageRate: "Tasa promedio",
+      conversions: "Conversiones",
+      socialToPOS: "Social a POS",
+      topPerforming: "Mejor Rendimiento",
+      insights: "Insights",
+      trends: "Tendencias"
+    },
+    // Actions
+    actions: {
+      quickActions: "Acciones Rápidas",
+      createNewPost: "Crear Nuevo Post",
+      generateContent: "Generar Contenido IA",
+      schedulePosts: "Programar Posts",
+      newCampaign: "Nueva Campaña",
+      loadDemoData: "Cargar Datos Demo",
+      regeneratePlan: "Regenerar Plan"
     },
     // Common
     common: {
@@ -249,7 +305,10 @@ export const translations = {
       delete: "Eliminar",
       edit: "Editar",
       create: "Crear",
-      update: "Actualizar"
+      update: "Actualizar",
+      logout: "Cerrar Sesión",
+      user: "Usuario",
+      role: "Rol"
     }
   }
 };

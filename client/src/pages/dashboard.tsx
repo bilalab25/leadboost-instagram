@@ -133,7 +133,7 @@ export default function Dashboard() {
               
               <Button className="bg-brand-600 hover:bg-brand-700 text-white" data-testid="button-new-campaign">
                 <Plus className="mr-2 h-4 w-4" />
-                Nueva Campaña
+                {t.campaigns.newCampaign}
               </Button>
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function Dashboard() {
               {/* Stats Overview */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                 <StatsCard
-                  title="Mensajes No Leídos"
+                  title={t.dashboard.unreadMessages}
                   value={stats?.unreadMessages?.toString() || "0"}
                   change="+12%"
                   changeType="increase"
@@ -155,7 +155,7 @@ export default function Dashboard() {
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title="Tasa de Engagement"
+                  title={t.dashboard.monthlyEngagement}
                   value={`${stats?.engagementRate || 0}%`}
                   change="+2.1%"
                   changeType="increase"
@@ -163,7 +163,7 @@ export default function Dashboard() {
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title="Posts Generados por IA"
+                  title={language === 'es' ? "Posts Generados por IA" : "AI Generated Posts"}
                   value={stats?.aiPosts?.toString() || "0"}
                   change="+8.3%"
                   changeType="increase"
@@ -171,7 +171,7 @@ export default function Dashboard() {
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title="Impacto en Ingresos"
+                  title={language === 'es' ? "Impacto en Ingresos" : "Revenue Impact"}
                   value={`$${((stats?.revenue || 0) / 1000).toFixed(1)}k`}
                   change="+15.2%"
                   changeType="increase"
@@ -190,13 +190,13 @@ export default function Dashboard() {
                   <Card>
                     <CardHeader className="border-b border-gray-200">
                       <div className="flex items-center justify-between">
-                        <CardTitle>Bandeja Unificada</CardTitle>
+                        <CardTitle>{t.messages.unifiedInbox}</CardTitle>
                         <div className="flex space-x-2">
                           <Button variant="outline" size="sm" data-testid="button-all-channels">
-                            Todos los Canales
+                            {t.messages.allChannels}
                           </Button>
                           <Button size="sm" className="bg-brand-600 hover:bg-brand-700" data-testid="button-mark-all-read">
-                            Marcar Todo Leído
+                            {t.messages.markAllRead}
                           </Button>
                         </div>
                       </div>
@@ -211,13 +211,13 @@ export default function Dashboard() {
                     <CardHeader className="border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <CardTitle>Planificador Mensual IA</CardTitle>
+                          <CardTitle>{t.aiPlanner.title}</CardTitle>
                           <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                            Impulsado por IA
+                            {t.common.aiPowered}
                           </span>
                         </div>
                         <Button size="sm" className="bg-amber-600 hover:bg-amber-700" data-testid="button-regenerate-plan">
-                          Regenerar Plan
+                          {language === 'es' ? "Regenerar Plan" : "Regenerate Plan"}
                         </Button>
                       </div>
                     </CardHeader>
@@ -234,14 +234,14 @@ export default function Dashboard() {
                   {/* Analytics */}
                   <Card>
                     <CardHeader className="border-b border-gray-200">
-                      <CardTitle>Analíticas de Rendimiento</CardTitle>
+                      <CardTitle>{t.analytics.performanceAnalytics}</CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Alcance Total</p>
-                            <p className="text-xs text-gray-500">Últimos 30 días</p>
+                            <p className="text-sm font-medium text-gray-900">{t.analytics.totalReach}</p>
+                            <p className="text-xs text-gray-500">{t.analytics.lastDays}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-semibold text-gray-900" data-testid="text-total-reach">125.3K</p>
@@ -251,8 +251,8 @@ export default function Dashboard() {
                         
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Engagement</p>
-                            <p className="text-xs text-gray-500">Tasa promedio</p>
+                            <p className="text-sm font-medium text-gray-900">{t.analytics.engagement}</p>
+                            <p className="text-xs text-gray-500">{t.analytics.averageRate}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-semibold text-gray-900" data-testid="text-engagement">4.8%</p>
@@ -262,8 +262,8 @@ export default function Dashboard() {
                         
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Conversiones</p>
-                            <p className="text-xs text-gray-500">Social a POS</p>
+                            <p className="text-sm font-medium text-gray-900">{t.analytics.conversions}</p>
+                            <p className="text-xs text-gray-500">{t.analytics.socialToPOS}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-semibold text-gray-900" data-testid="text-conversions">3.2%</p>
@@ -277,7 +277,7 @@ export default function Dashboard() {
                   {/* Recent Activity */}
                   <Card>
                     <CardHeader className="border-b border-gray-200">
-                      <CardTitle>Actividad Reciente</CardTitle>
+                      <CardTitle>{t.dashboard.recentActivity}</CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="space-y-4">
@@ -306,7 +306,7 @@ export default function Dashboard() {
                             </div>
                           ))
                         ) : (
-                          <p className="text-sm text-gray-500" data-testid="text-no-activity">Sin actividad reciente</p>
+                          <p className="text-sm text-gray-500" data-testid="text-no-activity">{language === 'es' ? 'Sin actividad reciente' : 'No recent activity'}</p>
                         )}
                       </div>
                     </CardContent>
@@ -315,23 +315,23 @@ export default function Dashboard() {
                   {/* Quick Actions */}
                   <Card>
                     <CardHeader className="border-b border-gray-200">
-                      <CardTitle>Acciones Rápidas</CardTitle>
+                      <CardTitle>{t.dashboard.quickActions}</CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="grid grid-cols-1 gap-3">
                         <Button variant="outline" className="justify-center" data-testid="button-create-post">
                           <Plus className="mr-2 h-4 w-4" />
-                          Crear Nuevo Post
+                          {t.actions.createNewPost}
                         </Button>
                         
                         <Button variant="outline" className="justify-center" data-testid="button-generate-content">
                           <span className="mr-2">🤖</span>
-                          Generar Contenido IA
+                          {t.actions.generateContent}
                         </Button>
                         
                         <Button variant="outline" className="justify-center" data-testid="button-schedule-posts">
                           <span className="mr-2">📅</span>
-                          Programar Posts
+                          {t.actions.schedulePosts}
                         </Button>
                       </div>
                     </CardContent>

@@ -23,6 +23,7 @@ import {
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
 import leadBoostLogo from "@assets/logo azul sin fondo_1756142427945.png";
+import { translations } from "@/lib/translations";
 
 interface SocialAccount {
   id: string;
@@ -31,18 +32,7 @@ interface SocialAccount {
   isActive: boolean;
 }
 
-const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Unified Inbox", href: "/inbox", icon: Inbox, badge: "12" },
-  { name: "AI Planner", href: "/ai-planner", icon: Bot },
-  { name: "Content Calendar", href: "/calendar", icon: Calendar },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Campaigns", href: "/campaigns", icon: Megaphone },
-  { name: "Customers", href: "/customers", icon: UserCheck },
-  { name: "Team", href: "/team", icon: Users },
-  { name: "Integrations", href: "/integrations", icon: Link2 },
-  { name: "Settings", href: "/settings", icon: Settings },
-];
+// Navigation will be dynamically translated
 
 const platformIcons = {
   instagram: Instagram,
@@ -61,7 +51,21 @@ const platformColors = {
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
-  const { toggleLanguage, isSpanish } = useLanguage();
+  const { toggleLanguage, isSpanish, language } = useLanguage();
+  const t = translations[language];
+
+  const navigation = [
+    { name: t.sidebar.dashboard, href: "/", icon: LayoutDashboard },
+    { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, badge: "12" },
+    { name: t.sidebar.aiPlanner, href: "/ai-planner", icon: Bot },
+    { name: t.sidebar.calendar, href: "/calendar", icon: Calendar },
+    { name: t.sidebar.analytics, href: "/analytics", icon: BarChart3 },
+    { name: t.sidebar.campaigns, href: "/campaigns", icon: Megaphone },
+    { name: t.sidebar.customers, href: "/customers", icon: UserCheck },
+    { name: t.sidebar.team, href: "/team", icon: Users },
+    { name: t.sidebar.integrations, href: "/integrations", icon: Link2 },
+    { name: t.sidebar.settings, href: "/settings", icon: Settings },
+  ];
 
   const { data: socialAccounts } = useQuery<SocialAccount[]>({
     queryKey: ["/api/social-accounts"],
@@ -132,7 +136,7 @@ export default function Sidebar() {
           {/* Connected Accounts */}
           <div className="px-4 mt-8">
             <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Connected Accounts
+              {isSpanish ? "Cuentas Conectadas" : "Connected Accounts"}
             </h3>
             <div className="mt-3 space-y-2">
               {socialAccounts && socialAccounts.length > 0 ? (
@@ -154,7 +158,7 @@ export default function Sidebar() {
                 })
               ) : (
                 <div className="px-3 py-2 text-xs text-gray-500" data-testid="text-no-accounts">
-                  No accounts connected
+                  {isSpanish ? "No hay cuentas conectadas" : "No accounts connected"}
                 </div>
               )}
             </div>
@@ -174,7 +178,7 @@ export default function Sidebar() {
               <p className="text-sm font-medium text-gray-700" data-testid="text-user-name">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs font-medium text-gray-500" data-testid="text-user-role">{user?.role || "User"}</p>
+              <p className="text-xs font-medium text-gray-500" data-testid="text-user-role">{user?.role || (isSpanish ? "Usuario" : "User")}</p>
             </div>
             <Button
               variant="ghost"
@@ -182,7 +186,7 @@ export default function Sidebar() {
               onClick={() => window.location.href = "/api/logout"}
               data-testid="button-logout"
             >
-              Logout
+              {isSpanish ? "Cerrar Sesión" : "Logout"}
             </Button>
           </div>
         </div>
