@@ -112,6 +112,40 @@ export const translations = {
       integrations: "Integrations",
       settings: "Settings"
     },
+    // Messages and Inbox
+    messages: {
+      unifiedInbox: "Unified Inbox",
+      allChannels: "All Channels",
+      markAllRead: "Mark All Read",
+      reply: "Reply",
+      forward: "Forward",
+      archive: "Archive",
+      priority: "Priority",
+      urgent: "Urgent",
+      high: "High",
+      normal: "Normal",
+      low: "Low",
+      noMessages: "No messages",
+      loadMore: "Load More",
+      connectedAccounts: "Connected Accounts",
+      noAccountsConnected: "No accounts connected"
+    },
+    // Analytics
+    analytics: {
+      performanceAnalytics: "Performance Analytics",
+      totalReach: "Total Reach",
+      lastDays: "Last 30 days",
+      engagement: "Engagement",
+      averageRate: "Average rate",
+      conversions: "Conversions",
+      socialToPOS: "Social to POS"
+    },
+    // Actions
+    actions: {
+      createNewPost: "Create New Post",
+      generateContent: "Generate AI Content",
+      schedulePosts: "Schedule Posts"
+    },
     // Common
     common: {
       aiPowered: "AI Powered",
