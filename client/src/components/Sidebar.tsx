@@ -136,7 +136,7 @@ export default function Sidebar() {
           {/* Connected Accounts */}
           <div className="px-4 mt-8">
             <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              {isSpanish ? "Cuentas Conectadas" : "Connected Accounts"}
+              {t.messages.connectedAccounts}
             </h3>
             <div className="mt-3 space-y-2">
               {socialAccounts && socialAccounts.length > 0 ? (
@@ -158,7 +158,7 @@ export default function Sidebar() {
                 })
               ) : (
                 <div className="px-3 py-2 text-xs text-gray-500" data-testid="text-no-accounts">
-                  {isSpanish ? "No hay cuentas conectadas" : "No accounts connected"}
+                  {t.common.noAccountsConnected}
                 </div>
               )}
             </div>
@@ -178,7 +178,7 @@ export default function Sidebar() {
               <p className="text-sm font-medium text-gray-700" data-testid="text-user-name">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs font-medium text-gray-500" data-testid="text-user-role">{user?.role || (isSpanish ? "Usuario" : "User")}</p>
+              <p className="text-xs font-medium text-gray-500" data-testid="text-user-role">{user?.role || t.common.user}</p>
             </div>
             <Button
               variant="ghost"
@@ -186,7 +186,7 @@ export default function Sidebar() {
               onClick={() => window.location.href = "/api/logout"}
               data-testid="button-logout"
             >
-              {isSpanish ? "Cerrar Sesión" : "Logout"}
+              {t.common.logout}
             </Button>
           </div>
         </div>

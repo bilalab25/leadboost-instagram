@@ -110,7 +110,10 @@ export const translations = {
       generateContent: "Generate Content",
       viewAnalytics: "View Analytics",
       waterfallSystem: "Waterfall System",
-      oneIdeaEverywhere: "One idea → Everywhere"
+      oneIdeaEverywhere: "One idea → Everywhere",
+      waterfallDescription: "Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.",
+      createWaterfallCampaign: "Create Waterfall Campaign",
+      regeneratePlan: "Regenerate Plan"
     },
     // Sidebar
     sidebar: {
@@ -171,7 +174,11 @@ export const translations = {
       delete: "Delete",
       edit: "Edit",
       create: "Create",
-      update: "Update"
+      update: "Update",
+      user: "User",
+      logout: "Logout",
+      all: "All",
+      noAccountsConnected: "No accounts connected"
     }
   },
   es: {
@@ -251,9 +258,23 @@ export const translations = {
     },
     // Landing
     landing: {
-      heroSubtitle: "La plataforma de gestión de redes sociales impulsada por IA que unifica todas las comunicaciones con tus clientes y crea estrategias de contenido inteligentes a partir de los datos de tu negocio.",
-      getStarted: "Comenzar",
-      learnMore: "Saber Más"
+      waterfallTitle: "El Sistema Waterfall",
+      waterfallSubtitle: "Una idea → 21+ plataformas → Formatos perfectos → Lanzamiento instantáneo",
+      heroTitle: "Convierte UNA idea en campañas para 21+ plataformas",
+      heroSubtitle: "El Sistema Waterfall de LeadBoost toma tu idea de campaña y crea instantáneamente contenido optimizado para Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube y 16+ plataformas más — todo en el formato y tamaño correcto.",
+      oneIdea: "UNA IDEA",
+      everywhere: "TODOS LADOS",
+      instantly: "INSTANTÁNEO",
+      waterfallDemo: "Prueba el Sistema Waterfall",
+      getStarted: "Inicia tu Waterfall",
+      learnMore: "Ve Cómo Funciona",
+      platforms21: "21+ Plataformas",
+      perfectFormats: "Formatos Perfectos",
+      instantLaunch: "Lanzamiento Instantáneo",
+      uniqueDifferentiator: "Esto es lo que hace único a LeadBoost",
+      launchNewProduct: "Lanzar producto nuevo",
+      justDescribe: "Solo describe tu campaña",
+      perfectFormatSize: "Formato y tamaño perfecto para cada una"
     },
     // Dashboard
     dashboard: {
@@ -272,8 +293,11 @@ export const translations = {
       viewMessages: "Ver Mensajes",
       generateContent: "Generar Contenido",
       viewAnalytics: "Ver Analíticas",
-      smartTools: "Herramientas Inteligentes",
-      aiPoweredFeatures: "Funciones Impulsadas por IA"
+      waterfallSystem: "Sistema Waterfall",
+      oneIdeaEverywhere: "Una idea → Todos lados",
+      waterfallDescription: "Convierte una sola idea en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.",
+      createWaterfallCampaign: "Crear Campaña Waterfall",
+      regeneratePlan: "Regenerar Plan"
     },
     // Sidebar
     sidebar: {
@@ -325,20 +349,13 @@ export const translations = {
       engagement: "Engagement",
       averageRate: "Tasa promedio",
       conversions: "Conversiones",
-      socialToPOS: "Social a POS",
-      topPerforming: "Mejor Rendimiento",
-      insights: "Insights",
-      trends: "Tendencias"
+      socialToPOS: "Social a POS"
     },
     // Actions
     actions: {
-      quickActions: "Acciones Rápidas",
-      createNewPost: "Crear Nuevo Post",
+      createNewPost: "Crear Nueva Publicación",
       generateContent: "Generar Contenido IA",
-      schedulePosts: "Programar Posts",
-      newCampaign: "Nueva Campaña",
-      loadDemoData: "Cargar Datos Demo",
-      regeneratePlan: "Regenerar Plan"
+      schedulePosts: "Programar Publicaciones"
     },
     // Common
     common: {
@@ -353,9 +370,10 @@ export const translations = {
       edit: "Editar",
       create: "Crear",
       update: "Actualizar",
-      logout: "Cerrar Sesión",
       user: "Usuario",
-      role: "Rol"
+      logout: "Cerrar Sesión",
+      all: "Todos",
+      noAccountsConnected: "No hay cuentas conectadas"
     }
   }
 };

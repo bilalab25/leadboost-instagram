@@ -160,9 +160,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <p className="text-lg text-gray-700 mb-6 max-w-3xl mx-auto">
-                        {language === 'es' 
-                          ? 'Convierte una sola idea en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.' 
-                          : 'Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.'}
+                        {t.dashboard.waterfallDescription}
                       </p>
                     </div>
                     
@@ -175,8 +173,8 @@ export default function Dashboard() {
                           <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
                             <Target className="h-8 w-8 text-white" />
                           </div>
-                          <h3 className="text-xl font-bold text-green-600 mb-1">{language === 'es' ? 'UNA IDEA' : 'ONE IDEA'}</h3>
-                          <p className="text-sm text-gray-600">"Lanzar producto nuevo"</p>
+                          <h3 className="text-xl font-bold text-green-600 mb-1">{(t.landing as any)?.oneIdea || (language === 'es' ? 'UNA IDEA' : 'ONE IDEA')}</h3>
+                          <p className="text-sm text-gray-600">"{ (t.landing as any)?.launchNewProduct || (language === 'es' ? 'Lanzar producto nuevo' : 'Launch new product') }"</p>
                         </div>
                         
                         {/* ARROW */}
@@ -194,8 +192,8 @@ export default function Dashboard() {
                             <SiLinkedin className="w-8 h-8 text-blue-700" />
                             <SiYoutube className="w-8 h-8 text-red-600" />
                           </div>
-                          <h3 className="text-xl font-bold text-purple-600 mb-1">{language === 'es' ? 'TODOS LADOS' : 'EVERYWHERE'}</h3>
-                          <p className="text-sm text-gray-600">{language === 'es' ? '21+ Plataformas' : '21+ Platforms'}</p>
+                          <h3 className="text-xl font-bold text-purple-600 mb-1">{(t.landing as any)?.everywhere || (language === 'es' ? 'TODOS LADOS' : 'EVERYWHERE')}</h3>
+                          <p className="text-sm text-gray-600">{(t.landing as any)?.platforms21 || (language === 'es' ? '21+ Plataformas' : '21+ Platforms')}</p>
                         </div>
                       </div>
                     </div>
@@ -208,7 +206,7 @@ export default function Dashboard() {
                         data-testid="button-start-waterfall"
                       >
                         <Zap className="mr-2 h-5 w-5" />
-                        {language === 'es' ? 'Crear Campaña Waterfall' : 'Create Waterfall Campaign'}
+                        {t.dashboard.createWaterfallCampaign}
                       </Button>
                     </div>
                   </CardContent>
@@ -288,7 +286,7 @@ export default function Dashboard() {
                           </span>
                         </div>
                         <Button size="sm" className="bg-amber-600 hover:bg-amber-700" data-testid="button-regenerate-plan">
-                          {language === 'es' ? "Regenerar Plan" : "Regenerate Plan"}
+                          {t.dashboard.regeneratePlan}
                         </Button>
                       </div>
                     </CardHeader>

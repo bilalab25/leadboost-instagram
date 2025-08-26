@@ -47,8 +47,8 @@ export default function Landing() {
                       <Target className="h-12 w-12 text-white" />
                     </div>
                     <h3 className="text-3xl font-black text-green-600 mb-2">{(t.landing as any)?.oneIdea || "ONE IDEA"}</h3>
-                    <p className="text-gray-600 font-medium">"Launch new product"</p>
-                    <p className="text-sm text-gray-500 mt-1">Just describe your campaign</p>
+                    <p className="text-gray-600 font-medium">"{isSpanish ? 'Lanzar producto nuevo' : 'Launch new product'}"</p>
+                    <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Solo describe tu campaña' : 'Just describe your campaign'}</p>
                   </div>
                   
                   {/* ARROW */}
@@ -87,7 +87,7 @@ export default function Landing() {
                     </div>
                     <h3 className="text-3xl font-black text-purple-600 mb-2">{(t.landing as any)?.everywhere || "EVERYWHERE"}</h3>
                     <p className="text-gray-600 font-medium">{(t.landing as any)?.platforms21 || "21+ Platforms"}</p>
-                    <p className="text-sm text-gray-500 mt-1">Perfect format & size for each</p>
+                    <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Formato y tamaño perfecto para cada una' : 'Perfect format & size for each'}</p>
                   </div>
                 </div>
                 
@@ -138,7 +138,7 @@ export default function Landing() {
               {isSpanish ? "El Sistema Waterfall incluye todo lo necesario" : "The Waterfall System includes everything you need"}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {isSpanish ? "Además del sistema central Waterfall, LeadBoost te da herramientas completas para gestionar todo desde un solo lugar." : "Beyond the core Waterfall system, LeadBoost gives you complete tools to manage everything from one place."}
+              {isSpanish ? "Además del sistema central Waterfall, LeadBoost te da herramientas completas para gestionar todo desde un solo lugar." : "Beyond the core Waterfall system, LeudBoost gives you complete tools to manage everything from one place."}
             </p>
           </div>
           
