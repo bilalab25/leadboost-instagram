@@ -153,9 +153,7 @@ export default function Dashboard() {
                       {t.dashboard.welcomeBack}, {user?.firstName || 'Usuario'}!
                     </h1>
                     <p className="text-gray-600 mt-1">
-                      {language === 'es' 
-                        ? 'Aquí tienes un resumen de tu actividad en redes sociales'
-                        : 'Here\'s an overview of your social media activity'}
+                      {t.dashboard.overview}
                     </p>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -184,7 +182,7 @@ export default function Dashboard() {
                 <StatsCard
                   title={t.dashboard.unreadMessages}
                   value={stats?.unreadMessages?.toString() || "0"}
-                  change="Requieren atención"
+                  change={t.dashboard.requiresAttention}
                   changeType="increase"
                   icon="message"
                   loading={statsLoading}
@@ -192,7 +190,7 @@ export default function Dashboard() {
                 <StatsCard
                   title={t.dashboard.totalCampaigns}
                   value={"28"}
-                  change="+4 este mes"
+                  change={language === 'es' ? `+4 ${t.dashboard.thisMonth}` : `+4 ${t.dashboard.thisMonth}`}
                   changeType="increase"
                   icon="chart"
                   loading={statsLoading}
@@ -200,7 +198,7 @@ export default function Dashboard() {
                 <StatsCard
                   title={t.dashboard.monthlyEngagement}
                   value={`${stats?.engagementRate || 24.8}K`}
-                  change="+18% este mes"
+                  change={language === 'es' ? `+18% ${t.dashboard.thisMonth}` : `+18% ${t.dashboard.thisMonth}`}
                   changeType="increase"
                   icon="chart"
                   loading={statsLoading}
@@ -333,7 +331,7 @@ export default function Dashboard() {
                             </div>
                           ))
                         ) : (
-                          <p className="text-sm text-gray-500" data-testid="text-no-activity">{language === 'es' ? 'Sin actividad reciente' : 'No recent activity'}</p>
+                          <p className="text-sm text-gray-500" data-testid="text-no-activity">{t.dashboard.noRecentActivity}</p>
                         )}
                       </div>
                     </CardContent>

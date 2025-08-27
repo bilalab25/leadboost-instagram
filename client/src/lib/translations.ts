@@ -113,7 +113,11 @@ export const translations = {
       oneIdeaEverywhere: "One idea → Everywhere",
       waterfallDescription: "Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.",
       createWaterfallCampaign: "Create Waterfall Campaign",
-      regeneratePlan: "Regenerate Plan"
+      regeneratePlan: "Regenerate Plan",
+      overview: "Here's an overview of your social media activity",
+      requiresAttention: "Requires attention",
+      thisMonth: "this month",
+      noRecentActivity: "No recent activity"
     },
     // Sidebar
     sidebar: {
@@ -300,7 +304,11 @@ export const translations = {
       oneIdeaEverywhere: "Una idea → Todos lados",
       waterfallDescription: "Convierte una sola idea en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.",
       createWaterfallCampaign: "Crear Campaña Waterfall",
-      regeneratePlan: "Regenerar Plan"
+      regeneratePlan: "Regenerar Plan",
+      overview: "Aquí tienes un resumen de tu actividad en redes sociales",
+      requiresAttention: "Requieren atención",
+      thisMonth: "este mes",
+      noRecentActivity: "Sin actividad reciente"
     },
     // Sidebar
     sidebar: {
