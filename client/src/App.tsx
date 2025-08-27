@@ -31,8 +31,8 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/landing" component={Landing} />
-      <Route path="/" component={Dashboard} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/" component={Landing} />
       <Route path="/inbox" component={Inbox} />
       <Route path="/ai-planner" component={AIPlanner} />
       <Route path="/calendar" component={Calendar} />
