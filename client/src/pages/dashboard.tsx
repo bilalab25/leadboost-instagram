@@ -41,8 +41,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: language === 'es' ? "No Autorizado" : "Unauthorized",
+        description: language === 'es' ? "Has cerrado sesión. Iniciando sesión nuevamente..." : "You are logged out. Logging in again...",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -71,15 +71,15 @@ export default function Dashboard() {
       // Refresh all data
       queryClient.invalidateQueries();
       toast({
-        title: "Success!",
-        description: "Demo data has been populated. Refresh to see all the content!",
+        title: language === 'es' ? "¡Éxito!" : "Success!",
+        description: language === 'es' ? "Los datos demo han sido cargados. ¡Actualiza para ver todo el contenido!" : "Demo data has been populated. Refresh to see all the content!",
       });
     },
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
+          title: language === 'es' ? "No Autorizado" : "Unauthorized",
+          description: language === 'es' ? "Has cerrado sesión. Iniciando sesión nuevamente..." : "You are logged out. Logging in again...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -88,7 +88,7 @@ export default function Dashboard() {
         return;
       }
       toast({
-        title: "Error",
+        title: language === 'es' ? "Error" : "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -163,7 +163,7 @@ export default function Dashboard() {
                       className="bg-gradient-to-r from-brand-500 to-purple-600 text-white border-none hover:from-brand-600 hover:to-purple-700"
                     >
                       <Zap className="mr-2 h-4 w-4" />
-                      {language === 'es' ? 'Waterfall' : 'Waterfall'}
+                      Waterfall
                     </Button>
                   </div>
                 </div>
@@ -190,7 +190,7 @@ export default function Dashboard() {
                 <StatsCard
                   title={t.dashboard.totalCampaigns}
                   value={"28"}
-                  change={language === 'es' ? `+4 ${t.dashboard.thisMonth}` : `+4 ${t.dashboard.thisMonth}`}
+                  change={`+4 ${t.dashboard.thisMonth}`}
                   changeType="increase"
                   icon="chart"
                   loading={statsLoading}
@@ -198,7 +198,7 @@ export default function Dashboard() {
                 <StatsCard
                   title={t.dashboard.monthlyEngagement}
                   value={`${stats?.engagementRate || 24.8}K`}
-                  change={language === 'es' ? `+18% ${t.dashboard.thisMonth}` : `+18% ${t.dashboard.thisMonth}`}
+                  change={`+18% ${t.dashboard.thisMonth}`}
                   changeType="increase"
                   icon="chart"
                   loading={statsLoading}
