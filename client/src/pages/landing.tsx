@@ -370,6 +370,45 @@ export default function Landing() {
             </p>
           </div>
           
+          {/* Demo Features */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-6 w-6 text-brand-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                {isSpanish ? 'Configuración en 30s' : '30s Setup'}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Target className="h-6 w-6 text-emerald-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                {isSpanish ? 'Campaña en Vivo' : 'Live Campaign'}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {isSpanish ? 'Mira una campaña real desplegándose' : 'Watch a real campaign being deployed'}
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <BarChart3 className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                {isSpanish ? 'Resultados Reales' : 'Real Results'}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {isSpanish ? 'Datos de clientes reales' : 'Real customer data'}
+              </p>
+            </div>
+          </div>
+          
           <div className="relative rounded-3xl overflow-hidden shadow-3xl bg-black max-w-5xl mx-auto border border-gray-800">
             {/* Video Mockup Container */}
             <div className="relative aspect-video bg-gradient-to-br from-slate-900 via-slate-800 to-black">
@@ -449,45 +488,6 @@ export default function Landing() {
                   <div className="w-5 h-5 border-2 border-current rounded"></div>
                 </button>
               </div>
-            </div>
-          </div>
-          
-          {/* Demo Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-6 w-6 text-brand-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Configuración en 30s' : '30s Setup'}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Target className="h-6 w-6 text-emerald-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Campaña en Vivo' : 'Live Campaign'}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {isSpanish ? 'Mira una campaña real desplegándose' : 'Watch a real campaign being deployed'}
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Resultados Reales' : 'Real Results'}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {isSpanish ? 'Datos de clientes reales' : 'Real customer data'}
-              </p>
             </div>
           </div>
         </div>
