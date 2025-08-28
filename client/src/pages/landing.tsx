@@ -366,10 +366,12 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-brand-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="text-xl font-bold">LeadBoost</h3>
+              <img 
+                src={leadBoostLogo} 
+                alt="LeadBoost Logo" 
+                className="h-12 w-auto object-contain mr-3"
+                style={{ backgroundColor: 'transparent' }}
+              />
             </div>
             <p className="text-gray-400 mb-6">
               {isSpanish 
