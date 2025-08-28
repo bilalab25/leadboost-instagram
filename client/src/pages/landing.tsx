@@ -64,9 +64,9 @@ export default function Landing() {
             </p>
             
             {/* Waterfall Demo Video Mockup */}
-            <div className="mb-12">
-              <Card className="bg-gray-900 rounded-3xl shadow-2xl border border-gray-700 max-w-5xl mx-auto overflow-hidden">
-                <CardContent className="p-0">
+            <div className="mb-16">
+              <div className="bg-gray-900 rounded-3xl shadow-2xl border border-gray-700 w-full overflow-hidden">
+                <div className="p-0">
                   <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                     {/* Video mockup background */}
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-600/10 to-cyan-400/10"></div>
@@ -102,8 +102,8 @@ export default function Landing() {
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
 
             {/* The Waterfall Visual Flow */}
@@ -381,7 +381,7 @@ export default function Landing() {
       </div>
 
       {/* Final CTA */}
-      <div className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 via-brand-600 to-cyan-300">
+      <div className="py-20 bg-gradient-to-br from-slate-900 via-slate-800 via-brand-800 to-brand-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
