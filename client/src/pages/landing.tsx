@@ -636,7 +636,7 @@ export default function Landing() {
                 {isSpanish ? 'Sistema Waterfall GRATIS para siempre' : 'Waterfall System FREE forever'}
               </p>
               <p className="text-blue-100 text-sm">
-                {isSpanish ? '14 días gratis para todas las herramientas' : '14 days free for all tools'}
+                {isSpanish ? '30 días gratis para todas las herramientas' : '30 days free for all tools'}
               </p>
               <p className="text-blue-100 text-sm">
                 {isSpanish ? 'Después $99/mes para acceso completo' : 'Then $99/month for full access'}
