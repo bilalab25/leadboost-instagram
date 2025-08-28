@@ -59,8 +59,8 @@ export default function Landing() {
             
             <p className="text-xl lg:text-2xl text-gray-700 mb-12 max-w-5xl mx-auto leading-relaxed">
               {isSpanish 
-                ? 'Convierte tu marca en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.'
-                : 'Turn your brand into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.'}
+                ? 'Impulsa tu presencia en 21+ plataformas — campañas completas creadas desde tus datos POS, en un clic.'
+                : 'Boost your presence across 21+ platforms — complete campaigns built from your POS data, in one click.'}
             </p>
             
             {/* The Waterfall Visual Flow */}
