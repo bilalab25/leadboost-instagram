@@ -471,24 +471,8 @@ export default function Landing() {
         {/* Floating background elements */}
         <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-brand-200/8 to-brand-400/4 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-br from-brand-300/6 to-brand-500/3 rounded-full blur-3xl"></div>
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-brand-200/40 rounded-full px-8 py-4 mb-8">
-              <Play className="h-6 w-6 text-brand-600" />
-              <span className="text-brand-700 font-semibold text-lg">Live Demo</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-brand-800 mb-4">
-              {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {isSpanish 
-                ? 'Descubre cómo el Sistema Waterfall funciona en tiempo real'
-                : 'Discover how the Waterfall System works in real-time'}
-            </p>
-          </div>
-          
-          <div className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-gray-900 rounded-3xl shadow-2xl border border-brand-600/30">
+        <div className="max-w-full mx-auto relative z-10">
+          <div className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-gray-900">
             {/* Video Mockup Container */}
             <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-900 via-slate-800 to-black">
               {/* Enhanced background pattern */}
