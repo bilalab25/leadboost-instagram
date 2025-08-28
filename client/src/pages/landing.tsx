@@ -442,68 +442,73 @@ export default function Landing() {
       {/* Demo Video Section */}
       <div className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {isSpanish 
-                ? 'Descubre cómo funciona el Sistema Waterfall en menos de 2 minutos'
-                : 'Discover how the Waterfall System works in less than 2 minutes'}
-            </p>
-          </div>
-          
-          {/* Demo Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-6 w-6 text-brand-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Configuración en 30s' : '30s Setup'}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Target className="h-6 w-6 text-emerald-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Campaña en Vivo' : 'Live Campaign'}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {isSpanish ? 'Mira una campaña real desplegándose' : 'Watch a real campaign being deployed'}
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Resultados Reales' : 'Real Results'}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {isSpanish ? 'Datos de clientes reales' : 'Real customer data'}
-              </p>
-            </div>
-          </div>
-          
           <div className="relative rounded-3xl overflow-hidden shadow-3xl bg-black max-w-5xl mx-auto border border-gray-800">
             {/* Video Mockup Container */}
             <div className="relative aspect-video bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-              {/* Sleek Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-black/20 via-transparent to-black/20 cursor-pointer group" data-testid="video-play-button">
-                <div className="relative">
-                  <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 border border-white/20">
-                    <div className="w-20 h-20 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-                      <div className="w-0 h-0 border-l-[20px] border-l-white border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent ml-1"></div>
+              {/* Video Content Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60 cursor-pointer group transition-all duration-500 hover:from-black/70 hover:via-black/50 hover:to-black/70" data-testid="video-play-button">
+                {/* Content Container */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 py-12">
+                  {/* Title Section */}
+                  <div className="mb-8">
+                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+                      {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
+                    </h2>
+                    <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto drop-shadow-md">
+                      {isSpanish 
+                        ? 'Descubre cómo funciona el Sistema Waterfall en menos de 2 minutos'
+                        : 'Discover how the Waterfall System works in less than 2 minutes'}
+                    </p>
+                  </div>
+
+                  {/* Demo Features Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 max-w-4xl">
+                    <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                      <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <Zap className="h-8 w-8 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">
+                        {isSpanish ? 'Configuración en 30s' : '30s Setup'}
+                      </h3>
+                      <p className="text-blue-100 text-sm drop-shadow-sm">
+                        {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
+                      </p>
+                    </div>
+                    
+                    <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <Target className="h-8 w-8 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">
+                        {isSpanish ? 'Campaña en Vivo' : 'Live Campaign'}
+                      </h3>
+                      <p className="text-blue-100 text-sm drop-shadow-sm">
+                        {isSpanish ? 'Mira una campaña real desplegándose' : 'Watch a real campaign being deployed'}
+                      </p>
+                    </div>
+                    
+                    <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <BarChart3 className="h-8 w-8 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">
+                        {isSpanish ? 'Resultados Reales' : 'Real Results'}
+                      </h3>
+                      <p className="text-blue-100 text-sm drop-shadow-sm">
+                        {isSpanish ? 'Datos de clientes reales' : 'Real customer data'}
+                      </p>
                     </div>
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-brand-500/30 to-brand-600/30 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+
+                  {/* Play Button */}
+                  <div className="relative">
+                    <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 border border-white/20">
+                      <div className="w-20 h-20 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                        <div className="w-0 h-0 border-l-[20px] border-l-white border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent ml-1"></div>
+                      </div>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-500/30 to-brand-600/30 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                  </div>
                 </div>
               </div>
               
