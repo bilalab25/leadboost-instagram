@@ -576,69 +576,26 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Enhanced Final CTA */}
-      <div className="py-24 bg-gradient-to-br from-slate-900 via-slate-800 via-brand-700 to-brand-600 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-40 h-40 bg-emerald-400 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-blue-400 rounded-full blur-2xl"></div>
-        </div>
-        
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="mb-8">
-            <div className="inline-flex items-center bg-white/10 backdrop-blur-md rounded-full px-6 py-3 mb-6 border border-white/20">
-              <span className="text-white font-semibold text-sm">
-                {isSpanish ? '🚀 Oferta por Tiempo Limitado' : '🚀 Limited Time Offer'}
-              </span>
-            </div>
-            <h2 className="text-4xl font-bold text-white mb-6">
-              {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
-            </h2>
-            <p className="text-xl text-blue-100 mb-4 max-w-4xl mx-auto">
-              {isSpanish 
-                ? 'Únete a miles de empresas que ya están usando LeadBoost para dominar las redes sociales'
-                : 'Join thousands of companies already using LeadBoost to dominate social media'}
-            </p>
-            <p className="text-lg text-emerald-200 font-medium">
-              {isSpanish ? 'Ahorra hasta 95% del tiempo en gestión de campañas' : 'Save up to 95% of time on campaign management'}
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-10">
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-white to-gray-100 text-brand-700 hover:from-gray-100 hover:to-white px-12 py-4 text-xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-2xl transform hover:scale-105 border-2 border-white/20"
-            >
-              <Sparkles className="mr-3 h-6 w-6" />
-              {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="border-2 border-white/40 text-white hover:bg-white/10 backdrop-blur-md px-12 py-4 text-xl font-semibold rounded-2xl transition-all duration-300"
-            >
-              {isSpanish ? 'Hablar con Ventas' : 'Talk to Sales'}
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-white/90 mb-8">
-            <div className="flex items-center justify-center">
-              <Shield className="h-6 w-6 text-emerald-400 mr-3" />
-              <span className="font-medium">{isSpanish ? '14 días gratis' : '14 days free'}</span>
-            </div>
-            <div className="flex items-center justify-center">
-              <Zap className="h-6 w-6 text-emerald-400 mr-3" />
-              <span className="font-medium">{isSpanish ? 'Sin compromiso' : 'No commitment'}</span>
-            </div>
-            <div className="flex items-center justify-center">
-              <Users className="h-6 w-6 text-emerald-400 mr-3" />
-              <span className="font-medium">{isSpanish ? 'Soporte 24/7' : '24/7 support'}</span>
-            </div>
-          </div>
-          
-          <p className="text-blue-200 text-lg">
-            {isSpanish ? 'Sin tarjeta de crédito • Cancela cuando quieras • Resultados garantizados' : 'No credit card • Cancel anytime • Guaranteed results'}
+      {/* Final CTA */}
+      <div className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 via-brand-700 via-brand-600 to-brand-500">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">
+            {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
+          </h2>
+          <p className="text-xl text-blue-100 mb-8">
+            {isSpanish 
+              ? 'Únete a miles de empresas que ya están usando LeadBoost para dominar las redes sociales'
+              : 'Join thousands of companies already using LeadBoost to dominate social media'}
+          </p>
+          <Button 
+            size="lg" 
+            className="bg-white text-brand-600 hover:bg-gray-100 px-12 py-4 text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl hover-lift"
+          >
+            <Sparkles className="mr-3 h-6 w-6" />
+            {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
+          </Button>
+          <p className="text-blue-100 mt-4">
+            {isSpanish ? '✓ 14 días gratis ✓ Sin compromiso ✓ Soporte 24/7' : '✓ 14 days free ✓ No commitment ✓ 24/7 support'}
           </p>
         </div>
       </div>
