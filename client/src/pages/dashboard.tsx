@@ -206,55 +206,61 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              {/* Revenue and Campaigns - Simple Format */}
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
-                <StatsCard
-                  title={(() => {
-                    if (selectedPeriod === 'weekly') return 'Ingresos Semanales';
-                    if (selectedPeriod === 'monthly') return 'Ingresos Mensuales';
-                    if (selectedPeriod === 'daily') return 'Ingresos Diarios';
-                    return 'Ingresos Semanales';
-                  })()}
-                  value={`$${(() => {
-                    const baseRevenue = stats?.revenue || 100000;
-                    if (selectedPeriod === 'weekly') return Math.round(baseRevenue / 4.33).toLocaleString();
-                    if (selectedPeriod === 'monthly') return baseRevenue.toLocaleString();
-                    if (selectedPeriod === 'daily') return Math.round(baseRevenue / 30).toLocaleString();
-                    return Math.round(baseRevenue / 4.33).toLocaleString();
-                  })()}`}
-                  change={(() => {
-                    if (selectedPeriod === 'weekly') return '+12% esta semana';
-                    if (selectedPeriod === 'monthly') return '+8% este mes';
-                    if (selectedPeriod === 'daily') return '+5% hoy';
-                    return '+12% esta semana';
-                  })()}
-                  changeType="increase"
-                  icon="dollar"
-                  loading={statsLoading}
-                />
-                <StatsCard
-                  title={(() => {
-                    if (selectedPeriod === 'weekly') return 'Campañas Semanales';
-                    if (selectedPeriod === 'monthly') return 'Campañas Mensuales';
-                    if (selectedPeriod === 'daily') return 'Campañas Diarias';
-                    return 'Campañas Semanales';
-                  })()}
-                  value={(() => {
-                    if (selectedPeriod === 'weekly') return '7';
-                    if (selectedPeriod === 'monthly') return '28';
-                    if (selectedPeriod === 'daily') return '1';
-                    return '7';
-                  })()}
-                  change={(() => {
-                    if (selectedPeriod === 'weekly') return '+2 esta semana';
-                    if (selectedPeriod === 'monthly') return '+4 este mes';
-                    if (selectedPeriod === 'daily') return '+1 hoy';
-                    return '+2 esta semana';
-                  })()}
-                  changeType="increase"
-                  icon="chart"
-                  loading={statsLoading}
-                />
+              {/* Revenue and Campaigns - Revenue Priority */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">
+                {/* Revenue - Takes 2 columns for more importance */}
+                <div className="sm:col-span-2">
+                  <StatsCard
+                    title={(() => {
+                      if (selectedPeriod === 'weekly') return 'Ingresos Semanales';
+                      if (selectedPeriod === 'monthly') return 'Ingresos Mensuales';
+                      if (selectedPeriod === 'daily') return 'Ingresos Diarios';
+                      return 'Ingresos Semanales';
+                    })()}
+                    value={`$${(() => {
+                      const baseRevenue = stats?.revenue || 100000;
+                      if (selectedPeriod === 'weekly') return Math.round(baseRevenue / 4.33).toLocaleString();
+                      if (selectedPeriod === 'monthly') return baseRevenue.toLocaleString();
+                      if (selectedPeriod === 'daily') return Math.round(baseRevenue / 30).toLocaleString();
+                      return Math.round(baseRevenue / 4.33).toLocaleString();
+                    })()}`}
+                    change={(() => {
+                      if (selectedPeriod === 'weekly') return '+12% esta semana';
+                      if (selectedPeriod === 'monthly') return '+8% este mes';
+                      if (selectedPeriod === 'daily') return '+5% hoy';
+                      return '+12% esta semana';
+                    })()}
+                    changeType="increase"
+                    icon="dollar"
+                    loading={statsLoading}
+                  />
+                </div>
+                {/* Campaigns - Takes 1 column */}
+                <div>
+                  <StatsCard
+                    title={(() => {
+                      if (selectedPeriod === 'weekly') return 'Campañas Semanales';
+                      if (selectedPeriod === 'monthly') return 'Campañas Mensuales';
+                      if (selectedPeriod === 'daily') return 'Campañas Diarias';
+                      return 'Campañas Semanales';
+                    })()}
+                    value={(() => {
+                      if (selectedPeriod === 'weekly') return '7';
+                      if (selectedPeriod === 'monthly') return '28';
+                      if (selectedPeriod === 'daily') return '1';
+                      return '7';
+                    })()}
+                    change={(() => {
+                      if (selectedPeriod === 'weekly') return '+2 esta semana';
+                      if (selectedPeriod === 'monthly') return '+4 este mes';
+                      if (selectedPeriod === 'daily') return '+1 hoy';
+                      return '+2 esta semana';
+                    })()}
+                    changeType="increase"
+                    icon="chart"
+                    loading={statsLoading}
+                  />
+                </div>
               </div>
               
               {/* Simplified Dashboard - Single Column Layout */}
