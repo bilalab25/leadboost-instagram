@@ -495,7 +495,7 @@ export default function Landing() {
                         <Zap className="h-6 w-6 text-white" />
                       </div>
                       <h3 className="text-lg font-semibold text-white mb-1">
-                        {isSpanish ? 'Configuración en 30s' : '30s Setup'}
+                        {isSpanish ? 'Configuración en 10 min' : '10 min Setup'}
                       </h3>
                       <p className="text-white/80 text-xs">
                         {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
