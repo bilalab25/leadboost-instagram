@@ -311,7 +311,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
             {/* Unified Inbox */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-blue-500 bg-gradient-to-br from-brand-100 to-brand-200 border border-brand-200">
+            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-blue-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
                   <MessageSquare className="h-6 w-6 text-white" />
@@ -333,7 +333,7 @@ export default function Landing() {
             </Card>
 
             {/* AI Content Planner */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-purple-500 bg-gradient-to-br from-brand-100 to-brand-200 border border-brand-200">
+            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-purple-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
                   <Bot className="h-6 w-6 text-white" />
@@ -355,7 +355,7 @@ export default function Landing() {
             </Card>
 
             {/* Advanced Analytics */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-green-500 bg-gradient-to-br from-brand-100 to-brand-200 border border-brand-200">
+            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-green-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mr-4">
                   <BarChart3 className="h-6 w-6 text-white" />
@@ -377,7 +377,7 @@ export default function Landing() {
             </Card>
 
             {/* Team Collaboration */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-orange-500 bg-gradient-to-br from-brand-100 to-brand-200 border border-brand-200">
+            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-orange-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mr-4">
                   <Users className="h-6 w-6 text-white" />
@@ -399,7 +399,7 @@ export default function Landing() {
             </Card>
 
             {/* Campaign Management */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-red-500 bg-gradient-to-br from-brand-100 to-brand-200 border border-brand-200">
+            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-red-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mr-4">
                   <Target className="h-6 w-6 text-white" />
@@ -421,7 +421,7 @@ export default function Landing() {
             </Card>
 
             {/* Global Reach */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-teal-500 bg-gradient-to-br from-brand-100 to-brand-200 border border-brand-200">
+            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-teal-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-teal-500 rounded-lg flex items-center justify-center mr-4">
                   <Globe className="h-6 w-6 text-white" />
