@@ -335,7 +335,7 @@ export const translations = {
     },
     // Messages and Inbox
     messages: {
-      unifiedInbox: "Bandeja Unificada",
+      unifiedInbox: "ChatDeck",
       allChannels: "Todos los Canales",
       markAllRead: "Marcar Todo Leído",
       reply: "Responder",
