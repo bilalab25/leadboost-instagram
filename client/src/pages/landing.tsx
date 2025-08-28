@@ -152,8 +152,8 @@ export default function Landing() {
               
               <Card className="text-center p-6 hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
-                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Target className="h-8 w-8 text-brand-600" />
+                  <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Target className="h-8 w-8 text-purple-600" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     {isSpanish ? 'Formato Perfecto' : 'Perfect Format'}
@@ -168,8 +168,8 @@ export default function Landing() {
               
               <Card className="text-center p-6 hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
-                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <TrendingUp className="h-8 w-8 text-blue-600" />
+                  <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="h-8 w-8 text-orange-600" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     {isSpanish ? 'Máximo Alcance' : 'Maximum Reach'}
