@@ -277,20 +277,20 @@ export default function Dashboard() {
                             <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <div>
-                          {(() => {
-                            if (selectedPeriod === 'weekly') return '+4 esta semana';
-                            if (selectedPeriod === 'monthly') return '+4 este mes';
-                            if (selectedPeriod === 'daily') return '+1 hoy';
-                            return '+4 esta semana';
-                          })()}
-                        </div>
-                        <div className="text-sm text-brand-500 font-medium mt-1">
+                        <div className="text-lg text-brand-600 font-bold mb-1">
                           {(() => {
                             if (selectedPeriod === 'weekly') return '× 21 plataformas = 147 posts';
                             if (selectedPeriod === 'monthly') return '× 21 plataformas = 588 posts';
                             if (selectedPeriod === 'daily') return '× 21 plataformas = 21 posts';
                             return '× 21 plataformas = 147 posts';
+                          })()}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {(() => {
+                            if (selectedPeriod === 'weekly') return '+4 esta semana';
+                            if (selectedPeriod === 'monthly') return '+4 este mes';
+                            if (selectedPeriod === 'daily') return '+1 hoy';
+                            return '+4 esta semana';
                           })()}
                         </div>
                       </div>
