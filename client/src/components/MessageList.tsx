@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 import { Instagram, Reply, Tag, Calendar, Handshake, Mail, MessageCircle, Linkedin, Youtube, Twitter } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiTelegram, SiDiscord } from "react-icons/si";
 import { cn } from "@/lib/utils";
@@ -221,11 +222,11 @@ export default function MessageList({ limit = 50, showHeader = true, platform }:
                   </p>
                   <div className="flex items-center space-x-2 text-sm text-gray-500">
                     <span data-testid={`message-time-${message.id}`}>
-                      {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true, locale: es })}
                     </span>
                     {message.priority !== "normal" && (
                       <Badge className={priorityClass} data-testid={`message-priority-${message.id}`}>
-                        {message.priority}
+                        {message.priority === 'high' ? 'Alta' : message.priority === 'urgent' ? 'Urgente' : message.priority === 'low' ? 'Baja' : 'Normal'}
                       </Badge>
                     )}
                   </div>
@@ -241,22 +242,22 @@ export default function MessageList({ limit = 50, showHeader = true, platform }:
                 <div className="mt-2 flex items-center space-x-2">
                   <Button variant="outline" size="sm" data-testid={`button-reply-${message.id}`}>
                     <Reply className="mr-1 h-3 w-3" />
-                    Reply
+                    Responder
                   </Button>
                   <Button variant="outline" size="sm" data-testid={`button-tag-${message.id}`}>
                     <Tag className="mr-1 h-3 w-3" />
-                    Tag
+                    Etiquetar
                   </Button>
                   {message.socialAccount.platform !== "email" && (
                     <Button variant="outline" size="sm" data-testid={`button-convert-${message.id}`}>
                       <Handshake className="mr-1 h-3 w-3" />
-                      Convert Lead
+                      Convertir Lead
                     </Button>
                   )}
                   {message.content.toLowerCase().includes("schedule") && (
                     <Button variant="outline" size="sm" data-testid={`button-schedule-${message.id}`}>
                       <Calendar className="mr-1 h-3 w-3" />
-                      Schedule
+                      Agendar
                     </Button>
                   )}
                 </div>
@@ -269,7 +270,7 @@ export default function MessageList({ limit = 50, showHeader = true, platform }:
       {filteredMessages.length > limit && (
         <div className="px-6 py-3 border-t border-gray-200 text-center">
           <Button variant="ghost" data-testid="button-view-all-messages">
-            View All Messages ({filteredMessages.length})
+            Ver Todos los Mensajes ({filteredMessages.length})
           </Button>
         </div>
       )}
