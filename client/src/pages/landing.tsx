@@ -11,6 +11,7 @@ export default function Landing() {
   const t = translations[language];
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-100">
       {/* Header */}
       <header className="relative z-50">
@@ -395,6 +396,6 @@ export default function Landing() {
           </div>
         </div>
       </footer>
-    </div>
+    </>
   );
 }
