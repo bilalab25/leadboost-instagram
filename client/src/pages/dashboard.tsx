@@ -227,12 +227,7 @@ export default function Dashboard() {
                           <div className="flex items-center mb-4">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 mr-3"></div>
                             <h3 className="text-lg font-medium text-gray-600">
-                              {(() => {
-                                if (selectedPeriod === 'weekly') return 'Ingresos Semanales';
-                                if (selectedPeriod === 'monthly') return 'Ingresos Mensuales';
-                                if (selectedPeriod === 'daily') return 'Ingresos Diarios';
-                                return 'Ingresos Semanales';
-                              })()}
+                              Ingresos
                             </h3>
                           </div>
                           <div className="text-5xl font-bold text-gray-900 mb-4">
@@ -276,12 +271,7 @@ export default function Dashboard() {
                       <div className="flex items-center mb-4">
                         <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-400 to-brand-500 mr-3"></div>
                         <h3 className="text-lg font-medium text-gray-600">
-                          {(() => {
-                            if (selectedPeriod === 'weekly') return 'Campañas Semanales';
-                            if (selectedPeriod === 'monthly') return 'Campañas Mensuales';
-                            if (selectedPeriod === 'daily') return 'Campañas Diarias';
-                            return 'Campañas Semanales';
-                          })()}
+                          Campañas
                         </h3>
                       </div>
                       <div className="text-4xl font-bold text-gray-900 mb-4">
