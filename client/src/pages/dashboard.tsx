@@ -343,12 +343,21 @@ export default function Dashboard() {
                     <CardHeader className="border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <CardTitle>{t.messages.unifiedInbox}</CardTitle>
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm" data-testid="button-all-channels">
-                            {t.messages.allChannels}
+                        <div className="flex space-x-1">
+                          <Button variant="outline" size="sm" className="text-xs" data-testid="button-filter-all">
+                            Todos
                           </Button>
-                          <Button size="sm" className="bg-brand-600 hover:bg-brand-700" data-testid="button-mark-all-read">
-                            {t.messages.markAllRead}
+                          <Button variant="outline" size="sm" className="text-xs" data-testid="button-filter-unread">
+                            No Leídos (12)
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-xs" data-testid="button-filter-urgent">
+                            Urgentes
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-xs" data-testid="button-filter-important">
+                            Importantes
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-xs" data-testid="button-filter-yesterday">
+                            Ayer
                           </Button>
                         </div>
                       </div>
