@@ -628,9 +628,17 @@ export default function Landing() {
             <Sparkles className="mr-3 h-6 w-6" />
             {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
           </Button>
-          <p className="text-blue-100 mt-4">
-            {isSpanish ? '✓ 30 días gratis ✓ Sin compromiso ✓ Soporte 24/7' : '✓ 30 days free ✓ No commitment ✓ 24/7 support'}
-          </p>
+          <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-2xl p-6 max-w-md mx-auto border border-white/20">
+            <p className="text-white font-semibold text-lg mb-3">
+              {isSpanish ? '💡 Sistema Waterfall GRATIS para siempre' : '💡 Waterfall System FREE forever'}
+            </p>
+            <p className="text-blue-100 text-sm mb-2">
+              {isSpanish ? '🎯 Prueba de 14 días para todas las demás herramientas' : '🎯 14-day trial for all other tools'}
+            </p>
+            <p className="text-blue-100 text-sm">
+              {isSpanish ? '💰 Después solo $99/mes para acceso completo' : '💰 Then just $99/month for full access'}
+            </p>
+          </div>
         </div>
       </div>
 
