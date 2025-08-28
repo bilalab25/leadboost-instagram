@@ -155,66 +155,6 @@ export default function Landing() {
               </Card>
             </div>
             
-            {/* Enhanced Benefits Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
-              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-emerald-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
-                <CardContent className="pt-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
-                    <Zap className="h-10 w-10 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? 'Lanzamiento Instantáneo' : 'Instant Launch'}
-                  </h3>
-                  <p className="text-gray-600">
-                    {isSpanish 
-                      ? 'De tu marca a 21+ plataformas en segundos. Sin configuración manual.'
-                      : 'From your brand to 21+ platforms in seconds. No manual setup.'}
-                  </p>
-                  <div className="mt-6 text-emerald-600 font-bold text-3xl">
-                    30s
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-purple-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
-                <CardContent className="pt-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-rose-500 to-pink-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
-                    <Target className="h-10 w-10 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? 'Auto-Dimensionado' : 'Auto-Sizing'}
-                  </h3>
-                  <p className="text-gray-600">
-                    {isSpanish 
-                      ? 'Stories, posts, emails, threads — dimensionados al instante.'
-                      : 'Stories, posts, emails, threads — sized instantly.'}
-                  </p>
-                  <div className="mt-6 text-rose-600 font-bold text-3xl">
-                    21+
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-orange-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
-                <CardContent className="pt-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
-                    <TrendingUp className="h-10 w-10 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? 'Máximo Alcance' : 'Maximum Reach'}
-                  </h3>
-                  <p className="text-gray-600">
-                    {isSpanish 
-                      ? 'Logra 30x el impacto sin las horas de trabajo.'
-                      : 'Achieve 30x the impact without the hours of work.'}
-                  </p>
-                  <div className="mt-6 text-orange-600 font-bold text-3xl">
-                    30x
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
             {/* Social Proof / Testimonials Section */}
             <div className="bg-gradient-to-br from-brand-100/60 via-brand-50/70 to-white rounded-3xl p-12 mb-16 border border-brand-200/40">
               <div className="text-center mb-12">
@@ -287,6 +227,66 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
+            </div>
+            
+            {/* Enhanced Benefits Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-emerald-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
+                <CardContent className="pt-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <Zap className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {isSpanish ? 'Lanzamiento Instantáneo' : 'Instant Launch'}
+                  </h3>
+                  <p className="text-gray-600">
+                    {isSpanish 
+                      ? 'De tu marca a 21+ plataformas en segundos. Sin configuración manual.'
+                      : 'From your brand to 21+ platforms in seconds. No manual setup.'}
+                  </p>
+                  <div className="mt-6 text-emerald-600 font-bold text-3xl">
+                    30s
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-purple-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
+                <CardContent className="pt-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-rose-500 to-pink-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <Target className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {isSpanish ? 'Auto-Dimensionado' : 'Auto-Sizing'}
+                  </h3>
+                  <p className="text-gray-600">
+                    {isSpanish 
+                      ? 'Stories, posts, emails, threads — dimensionados al instante.'
+                      : 'Stories, posts, emails, threads — sized instantly.'}
+                  </p>
+                  <div className="mt-6 text-rose-600 font-bold text-3xl">
+                    21+
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-orange-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
+                <CardContent className="pt-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <TrendingUp className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {isSpanish ? 'Máximo Alcance' : 'Maximum Reach'}
+                  </h3>
+                  <p className="text-gray-600">
+                    {isSpanish 
+                      ? 'Logra 30x el impacto sin las horas de trabajo.'
+                      : 'Achieve 30x the impact without the hours of work.'}
+                  </p>
+                  <div className="mt-6 text-orange-600 font-bold text-3xl">
+                    30x
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
