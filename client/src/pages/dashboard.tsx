@@ -265,10 +265,10 @@ export default function Dashboard() {
                       </div>
                       <div className="text-4xl font-bold text-gray-900 mb-4">
                         {(() => {
-                          if (selectedPeriod === 'weekly') return '7';
+                          if (selectedPeriod === 'weekly') return '72';
                           if (selectedPeriod === 'monthly') return '28';
                           if (selectedPeriod === 'daily') return '1';
-                          return '7';
+                          return '72';
                         })()}
                       </div>
                       <div className="flex items-center text-brand-600 text-base font-medium">
@@ -278,10 +278,10 @@ export default function Dashboard() {
                           </svg>
                         </div>
                         {(() => {
-                          if (selectedPeriod === 'weekly') return '+2 esta semana';
+                          if (selectedPeriod === 'weekly') return '+4 esta semana';
                           if (selectedPeriod === 'monthly') return '+4 este mes';
                           if (selectedPeriod === 'daily') return '+1 hoy';
-                          return '+2 esta semana';
+                          return '+4 esta semana';
                         })()}
                       </div>
                     </div>
