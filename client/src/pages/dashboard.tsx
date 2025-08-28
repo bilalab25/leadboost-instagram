@@ -35,7 +35,7 @@ export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const { language } = useLanguage();
-  const t = translations[language];
+  const t = translations['es']; // Force Spanish for demo
   const [selectedPeriod, setSelectedPeriod] = useState<'weekly' | 'monthly' | 'daily'>('weekly');
 
   // Redirect to home if not authenticated
