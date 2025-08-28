@@ -264,31 +264,48 @@ export default function Dashboard() {
                   </Card>
                 </div>
                 
-                {/* Campaigns - Takes 1 column, much smaller */}
+                {/* Campaigns - Takes 1 column, same height */}
                 <div>
-                  <StatsCard
-                    title={(() => {
-                      if (selectedPeriod === 'weekly') return 'Campañas Semanales';
-                      if (selectedPeriod === 'monthly') return 'Campañas Mensuales';
-                      if (selectedPeriod === 'daily') return 'Campañas Diarias';
-                      return 'Campañas Semanales';
-                    })()}
-                    value={(() => {
-                      if (selectedPeriod === 'weekly') return '7';
-                      if (selectedPeriod === 'monthly') return '28';
-                      if (selectedPeriod === 'daily') return '1';
-                      return '7';
-                    })()}
-                    change={(() => {
-                      if (selectedPeriod === 'weekly') return '+2 esta semana';
-                      if (selectedPeriod === 'monthly') return '+4 este mes';
-                      if (selectedPeriod === 'daily') return '+1 hoy';
-                      return '+2 esta semana';
-                    })()}
-                    changeType="increase"
-                    icon="chart"
-                    loading={statsLoading}
-                  />
+                  <Card className="h-full bg-white shadow-sm">
+                    <CardContent className="p-8 h-full">
+                      <div className="flex flex-col justify-center h-full">
+                        <div className="flex items-center mb-3">
+                          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                          {(() => {
+                            if (selectedPeriod === 'weekly') return 'Campañas Semanales';
+                            if (selectedPeriod === 'monthly') return 'Campañas Mensuales';
+                            if (selectedPeriod === 'daily') return 'Campañas Diarias';
+                            return 'Campañas Semanales';
+                          })()}
+                        </h3>
+                        <div className="text-4xl font-bold text-gray-900 mb-2">
+                          {(() => {
+                            if (selectedPeriod === 'weekly') return '7';
+                            if (selectedPeriod === 'monthly') return '28';
+                            if (selectedPeriod === 'daily') return '1';
+                            return '7';
+                          })()}
+                        </div>
+                        <div className="flex items-center text-blue-600 text-sm font-medium">
+                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                          </svg>
+                          {(() => {
+                            if (selectedPeriod === 'weekly') return '+2 esta semana';
+                            if (selectedPeriod === 'monthly') return '+4 este mes';
+                            if (selectedPeriod === 'daily') return '+1 hoy';
+                            return '+2 esta semana';
+                          })()}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
               
