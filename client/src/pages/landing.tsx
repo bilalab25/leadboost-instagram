@@ -611,46 +611,64 @@ export default function Landing() {
       </div>
 
       {/* Final CTA */}
-      <div className="py-24 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800">
-        <div className="max-w-full mx-auto px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
+      <div className="py-32 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-10">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-20 w-48 h-48 bg-white rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="max-w-5xl mx-auto px-8 text-center relative z-10">
+          <h2 className="text-5xl md:text-6xl font-bold text-white mb-8 leading-tight tracking-tight">
             {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-2xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
             {isSpanish 
               ? 'Está en todas partes donde tu audiencia navega — con un clic.'
               : 'Be everywhere your audience scrolls — with one click.'}
           </p>
-          <Button 
-            size="lg" 
-            className="bg-white text-brand-600 hover:bg-gray-100 px-12 py-4 text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl hover-lift"
-          >
-            <Sparkles className="mr-3 h-6 w-6" />
-            {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
-          </Button>
-          <div className="mt-8 bg-white/15 backdrop-blur-md rounded-3xl p-8 max-w-lg mx-auto border border-white/25 shadow-2xl">
-            <div className="space-y-4">
-              <div className="flex items-center justify-center text-white font-semibold">
-                <div className="w-2 h-2 bg-green-400 rounded-full mr-4 shadow-lg"></div>
-                <span>
-                  {isSpanish ? 'Sistema Waterfall GRATIS para siempre' : 'Waterfall System FREE forever'}
-                </span>
-              </div>
-              
-              <div className="flex items-center justify-center text-blue-100">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mr-4 shadow-lg"></div>
-                <span>
-                  {isSpanish ? '14 días gratis para todas las herramientas' : '14 days free for all tools'}
-                </span>
-              </div>
-              
-              <div className="flex items-center justify-center text-blue-100">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-4 shadow-lg"></div>
-                <span>
-                  {isSpanish ? 'Después $99/mes para acceso completo' : 'Then $99/month for full access'}
-                </span>
+          
+          <div className="max-w-2xl mx-auto">
+            <Button 
+              size="lg" 
+              className="bg-white text-brand-600 hover:bg-gray-100 px-16 py-6 text-2xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-500 rounded-3xl hover-lift transform hover:scale-105 mb-10"
+            >
+              <Sparkles className="mr-4 h-7 w-7" />
+              {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
+            </Button>
+            
+            <div className="bg-white/20 backdrop-blur-lg rounded-3xl p-10 border border-white/30 shadow-2xl">
+              <div className="grid grid-cols-1 gap-6">
+                <div className="flex items-center justify-center text-white text-lg">
+                  <div className="w-3 h-3 bg-green-400 rounded-full mr-5 shadow-lg flex-shrink-0"></div>
+                  <span className="font-semibold">
+                    {isSpanish ? 'Sistema Waterfall GRATIS para siempre' : 'Waterfall System FREE forever'}
+                  </span>
+                </div>
+                
+                <div className="w-full h-px bg-white/20"></div>
+                
+                <div className="flex items-center justify-center text-blue-100 text-lg">
+                  <div className="w-3 h-3 bg-blue-400 rounded-full mr-5 shadow-lg flex-shrink-0"></div>
+                  <span>
+                    {isSpanish ? '14 días gratis para todas las herramientas' : '14 days free for all tools'}
+                  </span>
+                </div>
+                
+                <div className="w-full h-px bg-white/20"></div>
+                
+                <div className="flex items-center justify-center text-blue-100 text-lg">
+                  <div className="w-3 h-3 bg-purple-400 rounded-full mr-5 shadow-lg flex-shrink-0"></div>
+                  <span>
+                    {isSpanish ? 'Después $99/mes para acceso completo' : 'Then $99/month for full access'}
+                  </span>
+                </div>
               </div>
             </div>
+            
+            <p className="text-blue-200 mt-8 text-lg font-light">
+              {isSpanish ? 'Sin compromiso • Cancela cuando quieras' : 'No commitment • Cancel anytime'}
+            </p>
           </div>
         </div>
       </div>
