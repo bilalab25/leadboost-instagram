@@ -311,10 +311,13 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
             {/* Unified Inbox */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-blue-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-                  <MessageSquare className="h-6 w-6 text-white" />
+            <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden !bg-gradient-to-br !from-white/70 !via-blue-50/80 !to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+              {/* Floating accent */}
+              <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                  <MessageSquare className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">
                   {isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}
@@ -333,10 +336,13 @@ export default function Landing() {
             </Card>
 
             {/* AI Content Planner */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-purple-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
-                  <Bot className="h-6 w-6 text-white" />
+            <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden !bg-gradient-to-br !from-white/70 !via-purple-50/80 !to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+              {/* Floating accent */}
+              <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                  <Bot className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">
                   {isSpanish ? 'Creador IA' : 'AI Creator'}
@@ -355,10 +361,13 @@ export default function Landing() {
             </Card>
 
             {/* Advanced Analytics */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-green-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mr-4">
-                  <BarChart3 className="h-6 w-6 text-white" />
+            <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden !bg-gradient-to-br !from-white/70 !via-emerald-50/80 !to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+              {/* Floating accent */}
+              <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                  <BarChart3 className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">
                   {isSpanish ? 'Analytics Avanzados' : 'Advanced Analytics'}
@@ -377,10 +386,13 @@ export default function Landing() {
             </Card>
 
             {/* Team Collaboration */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-orange-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mr-4">
-                  <Users className="h-6 w-6 text-white" />
+            <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden !bg-gradient-to-br !from-white/70 !via-orange-50/80 !to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+              {/* Floating accent */}
+              <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                  <Users className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">
                   {isSpanish ? 'Colaboración en Equipo' : 'Team Collaboration'}
@@ -399,10 +411,13 @@ export default function Landing() {
             </Card>
 
             {/* Campaign Management */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-red-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mr-4">
-                  <Target className="h-6 w-6 text-white" />
+            <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden !bg-gradient-to-br !from-white/70 !via-red-50/80 !to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+              {/* Floating accent */}
+              <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-red-400 to-red-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                  <Target className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">
                   {isSpanish ? 'Gestión de Campañas' : 'Campaign Management'}
@@ -421,10 +436,13 @@ export default function Landing() {
             </Card>
 
             {/* Global Reach */}
-            <Card className="p-6 hover:shadow-lg transition-shadow border-l-4 border-l-teal-500 !bg-gradient-to-br !from-blue-100 !to-blue-200 border border-blue-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-teal-500 rounded-lg flex items-center justify-center mr-4">
-                  <Globe className="h-6 w-6 text-white" />
+            <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden !bg-gradient-to-br !from-white/70 !via-teal-50/80 !to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+              {/* Floating accent */}
+              <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                  <Globe className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">
                   {isSpanish ? 'Alcance Global' : 'Global Reach'}
