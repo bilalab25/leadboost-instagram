@@ -604,34 +604,6 @@ export default function Landing() {
               </div>
             </div>
             
-            {/* Enhanced Video Controls Bar */}
-            <div className="bg-gradient-to-r from-brand-900/98 via-brand-800/98 to-brand-900/98 backdrop-blur-xl rounded-b-3xl border-t border-brand-600/30">
-              <div className="flex items-center justify-between px-8 py-6">
-                <div className="flex items-center space-x-6">
-                  <button className="text-white/80 hover:text-brand-300 transition-colors p-2 rounded-lg hover:bg-white/5" data-testid="video-control-play">
-                    <Play className="h-5 w-5" />
-                  </button>
-                  <button className="text-white/80 hover:text-brand-300 transition-colors p-2 rounded-lg hover:bg-white/5">
-                    <Volume2 className="h-5 w-5" />
-                  </button>
-                </div>
-                
-                <div className="flex items-center space-x-6 flex-1 mx-12">
-                  <div className="flex-1 bg-brand-800/50 h-2 rounded-full overflow-hidden">
-                    <div className="bg-gradient-to-r from-brand-400 to-brand-500 h-2 rounded-full w-1/3 shadow-lg"></div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-6">
-                  <button className="text-white/80 hover:text-brand-300 transition-colors p-2 rounded-lg hover:bg-white/5">
-                    <Settings className="h-5 w-5" />
-                  </button>
-                  <button className="text-white/80 hover:text-brand-300 transition-colors p-2 rounded-lg hover:bg-white/5" data-testid="video-control-fullscreen">
-                    <Maximize className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
