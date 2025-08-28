@@ -117,7 +117,8 @@ export const translations = {
       overview: "Here's an overview of your social media activity",
       requiresAttention: "Requires attention",
       thisMonth: "this month",
-      noRecentActivity: "No recent activity"
+      noRecentActivity: "No recent activity",
+      monthlyRevenue: "Monthly Revenue"
     },
     // Sidebar
     sidebar: {
@@ -308,7 +309,8 @@ export const translations = {
       overview: "Aquí tienes un resumen de tu actividad en redes sociales",
       requiresAttention: "Requieren atención",
       thisMonth: "este mes",
-      noRecentActivity: "Sin actividad reciente"
+      noRecentActivity: "Sin actividad reciente",
+      monthlyRevenue: "Ingresos Mensuales"
     },
     // Sidebar
     sidebar: {

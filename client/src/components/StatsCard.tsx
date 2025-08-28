@@ -63,7 +63,7 @@ export default function StatsCard({ title, value, change, changeType = "increase
             <dl>
               <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
               <dd className="flex items-baseline">
-                <div className="text-2xl font-semibold text-gray-900" data-testid={`stat-value-${title.toLowerCase().replace(/\s+/g, "-")}`}>
+                <div className="text-2xl font-semibold text-gray-900" data-testid="stat-value">
                   {value}
                 </div>
                 {change && (
@@ -75,7 +75,7 @@ export default function StatsCard({ title, value, change, changeType = "increase
                     ) : (
                       <TrendingDown className="text-xs mr-1 h-3 w-3" />
                     )}
-                    <span data-testid={`stat-change-${title.toLowerCase().replace(/\s+/g, "-")}`}>{change}</span>
+                    <span data-testid="stat-change">{change}</span>
                   </div>
                 )}
               </dd>

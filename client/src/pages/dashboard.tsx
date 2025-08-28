@@ -169,16 +169,8 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              {/* Stats Overview */}
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-                <StatsCard
-                  title={t.dashboard.totalMessages}
-                  value={"1,847"}
-                  change="+12%"
-                  changeType="increase"
-                  icon="message"
-                  loading={statsLoading}
-                />
+              {/* Simplified Stats - Only 3 key metrics */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">
                 <StatsCard
                   title={t.dashboard.unreadMessages}
                   value={stats?.unreadMessages?.toString() || "0"}
@@ -196,20 +188,20 @@ export default function Dashboard() {
                   loading={statsLoading}
                 />
                 <StatsCard
-                  title={t.dashboard.monthlyEngagement}
-                  value={`${stats?.engagementRate || 24.8}K`}
-                  change={`+18% ${t.dashboard.thisMonth}`}
+                  title={t.dashboard.monthlyRevenue}
+                  value={`$${stats?.revenue?.toLocaleString() || '100,000'}`}
+                  change={`+8% ${t.dashboard.thisMonth}`}
                   changeType="increase"
                   icon="chart"
                   loading={statsLoading}
                 />
               </div>
               
-              {/* Main Dashboard Grid */}
-              <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
+              {/* Simplified Dashboard - Single Column Layout */}
+              <div className="space-y-8">
                 
-                {/* Left Column - Unified Inbox & AI Planner */}
-                <div className="xl:col-span-2 space-y-8">
+                {/* Main Content */}
+                <div className="space-y-8">
                   
                   {/* Unified Inbox */}
                   <Card>
@@ -231,132 +223,31 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                   
-                  {/* AI Monthly Planner */}
+                  {/* Simple AI Content Planner */}
                   <Card>
                     <CardHeader className="border-b border-gray-200">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <CardTitle>{t.aiPlanner.title}</CardTitle>
-                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                            {t.common.aiPowered}
-                          </span>
-                        </div>
-                        <Button size="sm" className="bg-amber-600 hover:bg-amber-700" data-testid="button-regenerate-plan">
-                          {t.dashboard.regeneratePlan}
+                        <CardTitle className="flex items-center">
+                          <Sparkles className="mr-2 h-5 w-5 text-amber-500" />
+                          {t.aiPlanner.title}
+                        </CardTitle>
+                        <Button size="sm" className="bg-brand-600 hover:bg-brand-700" data-testid="button-generate-content">
+                          <Zap className="mr-2 h-4 w-4" />
+                          Generar Contenido
                         </Button>
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <ContentCalendar />
-                    </CardContent>
-                  </Card>
-                  
-                </div>
-                
-                {/* Right Column - Analytics & Recent Activity */}
-                <div className="space-y-8">
-                  
-                  {/* Analytics */}
-                  <Card>
-                    <CardHeader className="border-b border-gray-200">
-                      <CardTitle>{t.analytics.performanceAnalytics}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{t.analytics.totalReach}</p>
-                            <p className="text-xs text-gray-500">{t.analytics.lastDays}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-semibold text-gray-900" data-testid="text-total-reach">125.3K</p>
-                            <p className="text-xs text-green-600">+12.5%</p>
-                          </div>
+                      <div className="text-center py-8">
+                        <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                          <Sparkles className="h-8 w-8 text-amber-600" />
                         </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{t.analytics.engagement}</p>
-                            <p className="text-xs text-gray-500">{t.analytics.averageRate}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-semibold text-gray-900" data-testid="text-engagement">4.8%</p>
-                            <p className="text-xs text-green-600">+2.1%</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{t.analytics.conversions}</p>
-                            <p className="text-xs text-gray-500">{t.analytics.socialToPOS}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-semibold text-gray-900" data-testid="text-conversions">3.2%</p>
-                            <p className="text-xs text-green-600">+0.8%</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Recent Activity */}
-                  <Card>
-                    <CardHeader className="border-b border-gray-200">
-                      <CardTitle>{t.dashboard.recentActivity}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        {activitiesLoading ? (
-                          <div className="space-y-3">
-                            {[...Array(5)].map((_, i) => (
-                              <div key={i} className="flex items-start space-x-3">
-                                <div className="w-2 h-2 bg-gray-300 rounded-full mt-2 animate-pulse"></div>
-                                <div className="flex-1 space-y-1">
-                                  <div className="h-4 bg-gray-300 rounded animate-pulse"></div>
-                                  <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : activities && activities.length > 0 ? (
-                          activities.slice(0, 5).map((activity) => (
-                            <div key={activity.id} className="flex items-start space-x-3" data-testid={`activity-${activity.id}`}>
-                              <div className="flex-shrink-0">
-                                <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm text-gray-900">{activity.description}</p>
-                                <p className="text-xs text-gray-500">{new Date(activity.createdAt).toLocaleString()}</p>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-sm text-gray-500" data-testid="text-no-activity">{t.dashboard.noRecentActivity}</p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Quick Actions */}
-                  <Card>
-                    <CardHeader className="border-b border-gray-200">
-                      <CardTitle>{t.dashboard.quickActions}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="grid grid-cols-1 gap-3">
-                        <Button variant="outline" className="justify-center" data-testid="button-create-post">
-                          <Plus className="mr-2 h-4 w-4" />
-                          {t.actions.createNewPost}
-                        </Button>
-                        
-                        <Button variant="outline" className="justify-center" data-testid="button-generate-content">
-                          <span className="mr-2">🤖</span>
-                          {t.actions.generateContent}
-                        </Button>
-                        
-                        <Button variant="outline" className="justify-center" data-testid="button-schedule-posts">
-                          <span className="mr-2">📅</span>
-                          {t.actions.schedulePosts}
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Contenido Inteligente para tus Marcas</h3>
+                        <p className="text-gray-500 mb-6">Genera automáticamente posts optimizados para todas tus plataformas sociales con un solo clic.</p>
+                        <Button className="bg-gradient-to-r from-brand-500 to-purple-600 text-white border-none hover:from-brand-600 hover:to-purple-700">
+                          <Target className="mr-2 h-4 w-4" />
+                          Waterfall System
+                          <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </CardContent>
