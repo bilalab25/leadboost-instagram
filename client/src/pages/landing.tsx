@@ -353,6 +353,136 @@ export default function Landing() {
         </div>
       </div>
 
+      {/* Demo Video Section */}
+      <div className="py-20 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {isSpanish 
+                ? 'Descubre cómo funciona el Sistema Waterfall en menos de 2 minutos'
+                : 'Discover how the Waterfall System works in less than 2 minutes'}
+            </p>
+          </div>
+          
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-900 max-w-4xl mx-auto">
+            {/* Video Mockup Container */}
+            <div className="relative aspect-video bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900">
+              {/* Play Button Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 cursor-pointer hover:bg-opacity-20 transition-all duration-300" data-testid="video-play-button">
+                <div className="w-20 h-20 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all duration-300">
+                  <div className="w-0 h-0 border-l-[16px] border-l-brand-600 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent ml-1"></div>
+                </div>
+              </div>
+              
+              {/* Video Preview Content */}
+              <div className="absolute inset-0 p-8 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2">
+                    <span className="text-white font-semibold">LeadBoost Demo</span>
+                  </div>
+                  <div className="bg-red-500 rounded-full px-3 py-1">
+                    <span className="text-white text-sm font-medium">● LIVE</span>
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="bg-white bg-opacity-10 rounded-xl p-6 max-w-md mx-auto">
+                    <Target className="h-12 w-12 text-white mx-auto mb-4" />
+                    <h3 className="text-white text-xl font-bold mb-2">
+                      {isSpanish ? 'Sistema Waterfall Demo' : 'Waterfall System Demo'}
+                    </h3>
+                    <p className="text-gray-200 text-sm">
+                      {isSpanish ? 'De una idea a 21+ plataformas' : 'From one idea to 21+ platforms'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex space-x-2">
+                    <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center">
+                      <SiInstagram className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <SiFacebook className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+                      <SiTiktok className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                      <SiYoutube className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                      +17
+                    </div>
+                  </div>
+                  <div className="bg-white bg-opacity-20 rounded-lg px-3 py-1">
+                    <span className="text-white text-sm">2:14</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Video Controls Bar */}
+            <div className="bg-gray-800 p-4">
+              <div className="flex items-center space-x-4">
+                <button className="text-white hover:text-brand-400 transition-colors" data-testid="video-control-play">
+                  <div className="w-0 h-0 border-l-[8px] border-l-current border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent"></div>
+                </button>
+                <div className="flex-1 bg-gray-600 h-1 rounded-full">
+                  <div className="bg-brand-500 h-1 rounded-full w-1/3"></div>
+                </div>
+                <span className="text-white text-sm">0:45 / 2:14</span>
+                <button className="text-white hover:text-brand-400 transition-colors" data-testid="video-control-fullscreen">
+                  <div className="w-4 h-4 border border-current"></div>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Demo Features */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-6 w-6 text-brand-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                {isSpanish ? 'Configuración en 30s' : '30s Setup'}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Target className="h-6 w-6 text-emerald-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                {isSpanish ? 'Campaña en Vivo' : 'Live Campaign'}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {isSpanish ? 'Mira una campaña real desplegándose' : 'Watch a real campaign being deployed'}
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <BarChart3 className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                {isSpanish ? 'Resultados Reales' : 'Real Results'}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {isSpanish ? 'Datos de clientes reales' : 'Real customer data'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Final CTA */}
       <div className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 via-brand-700 via-brand-600 to-brand-500">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
