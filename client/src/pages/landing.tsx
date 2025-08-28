@@ -43,7 +43,7 @@ export default function Landing() {
 
       {/* Waterfall Hero Section - THE CENTERPIECE */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-600/5 to-purple-600/5" />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-600/5 to-brand-500/5" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           
           {/* Main Waterfall Value Proposition */}
@@ -109,11 +109,11 @@ export default function Landing() {
                         <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
                           <SiX className="h-6 w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                        <div className="w-10 h-10 bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
                           +21
                         </div>
                       </div>
-                      <h3 className="text-3xl font-black text-purple-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
+                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? '21+ Plataformas' : '21+ Platforms'}</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Formato perfecto automático' : 'Perfect format automatically'}</p>
                     </div>
@@ -122,7 +122,7 @@ export default function Landing() {
                   <div className="mt-12 text-center">
                     <Button 
                       size="lg" 
-                      className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white px-12 py-4 text-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200"
+                      className="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white px-12 py-4 text-xl font-bold shadow-xl transform hover:scale-105 transition-all duration-200"
                     >
                       <Zap className="mr-3 h-6 w-6" />
                       {isSpanish ? 'Crear Campaña Waterfall' : 'Create Waterfall Campaign'}
@@ -152,8 +152,8 @@ export default function Landing() {
               
               <Card className="text-center p-6 hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
-                  <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Target className="h-8 w-8 text-purple-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Target className="h-8 w-8 text-brand-600" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     {isSpanish ? 'Formato Perfecto' : 'Perfect Format'}
@@ -338,12 +338,12 @@ export default function Landing() {
       </div>
 
       {/* Final CTA */}
-      <div className="py-20 bg-gradient-to-r from-brand-600 to-purple-600">
+      <div className="py-20 bg-gradient-to-r from-brand-600 to-brand-500">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
           </h2>
-          <p className="text-xl text-purple-100 mb-8">
+          <p className="text-xl text-blue-100 mb-8">
             {isSpanish 
               ? 'Únete a miles de empresas que ya están usando LeadBoost para dominar las redes sociales'
               : 'Join thousands of companies already using LeadBoost to dominate social media'}
@@ -355,7 +355,7 @@ export default function Landing() {
             <Sparkles className="mr-3 h-6 w-6" />
             {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
           </Button>
-          <p className="text-purple-100 mt-4">
+          <p className="text-blue-100 mt-4">
             {isSpanish ? '✓ 14 días gratis ✓ Sin compromiso ✓ Soporte 24/7' : '✓ 14 days free ✓ No commitment ✓ 24/7 support'}
           </p>
         </div>
