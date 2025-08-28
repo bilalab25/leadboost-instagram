@@ -350,9 +350,6 @@ export default function Dashboard() {
                           <Button variant="outline" size="sm" className="text-xs" data-testid="button-filter-unread">
                             No Leídos (12)
                           </Button>
-                          <Button variant="outline" size="sm" className="text-xs" data-testid="button-filter-urgent">
-                            Urgentes
-                          </Button>
                           <Button variant="outline" size="sm" className="text-xs" data-testid="button-filter-important">
                             Importantes
                           </Button>
