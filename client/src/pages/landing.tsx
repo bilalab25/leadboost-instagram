@@ -94,10 +94,10 @@ export default function Landing() {
                     
                     {/* ONE IDEA */}
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg waterfall-pulse">
+                      <div className="w-24 h-24 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg waterfall-pulse">
                         <Target className="h-12 w-12 text-white" />
                       </div>
-                      <h3 className="text-3xl font-black text-emerald-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
+                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
                       <p className="text-gray-600 font-medium">"{isSpanish ? 'Lanzar producto nuevo' : 'Launch new product'}"</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Solo describe tu campaña' : 'Just describe your campaign'}</p>
                     </div>
@@ -145,7 +145,7 @@ export default function Landing() {
                   <div className="mt-12 text-center">
                     <Button 
                       size="lg" 
-                      className="bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white px-12 py-4 text-xl font-bold shadow-lg rounded-2xl"
+                      className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white px-12 py-4 text-xl font-bold shadow-lg rounded-2xl"
                     >
                       <Zap className="mr-3 h-6 w-6" />
                       {isSpanish ? 'Crear Campaña Waterfall' : 'Create Waterfall Campaign'}
