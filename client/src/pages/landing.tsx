@@ -308,7 +308,7 @@ export default function Landing() {
               <ul className="text-sm text-gray-500 space-y-2">
                 <li>• {isSpanish ? 'Programación avanzada' : 'Advanced scheduling'}</li>
                 <li>• {isSpanish ? 'A/B testing automático' : 'Automatic A/B testing'}</li>
-                <li>• {isSpanish ? 'Editor visual integrado tipo Canva' : 'Built-in Canva-style visual editor'}</li>
+                <li>• {isSpanish ? 'Editor visual integrado tipo Canva' : 'Built-in Canva visual editor'}</li>
               </ul>
             </Card>
 
