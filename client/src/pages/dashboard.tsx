@@ -154,7 +154,7 @@ export default function Dashboard() {
                       {t.dashboard.welcomeBack}, {user?.firstName || 'Usuario'}!
                     </h1>
                     <p className="text-gray-600 mt-1">
-                      Aquí tienes un resumen de tu ${
+                      Aquí tienes un resumen de tu {
                         selectedPeriod === 'weekly' ? 'semana' :
                         selectedPeriod === 'monthly' ? 'mes' : 'día'
                       }
