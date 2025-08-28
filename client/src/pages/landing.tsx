@@ -21,7 +21,7 @@ export default function Landing() {
               <img 
                 src={leadBoostLogo} 
                 alt="LeadBoost Logo" 
-                className="h-20 w-auto object-contain"
+                className="h-[366px] w-auto object-contain"
                 style={{ backgroundColor: 'transparent' }}
               />
             </div>
@@ -48,47 +48,20 @@ export default function Landing() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           
           {/* Main Waterfall Value Proposition */}
-          <div className="text-center mb-20">
-            <div className="mb-10">
-              <div className="inline-flex items-center bg-gradient-to-r from-brand-50 to-emerald-50 rounded-full px-6 py-3 mb-8 border border-brand-200">
-                <Sparkles className="h-5 w-5 text-brand-600 mr-2" />
-                <span className="text-brand-700 font-semibold text-sm">
-                  {isSpanish ? 'Más de 10,000 empresas confían en nosotros' : 'Trusted by 10,000+ companies'}
-                </span>
-              </div>
-              <h1 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-emerald-600 mb-6 leading-tight">
+          <div className="text-center mb-16">
+            <div className="mb-8">
+              <h2 className="text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight">
                 {isSpanish ? 'Sistema Waterfall' : 'The Waterfall System'}
-              </h1>
-              <div className="text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-emerald-500 to-cyan-500 mb-8">
-                {isSpanish ? 'Una Idea → Todas Partes → Resultados' : 'One Idea → Everywhere → Results'}
+              </h2>
+              <div className="text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-6">
+                {isSpanish ? 'Tu marca → En todos lados' : 'Your brand → Everywhere'}
               </div>
             </div>
             
-            <p className="text-2xl lg:text-3xl text-gray-700 mb-12 max-w-6xl mx-auto leading-relaxed font-medium">
+            <p className="text-xl lg:text-2xl text-gray-700 mb-12 max-w-5xl mx-auto leading-relaxed">
               {isSpanish 
-                ? 'Transforma una sola campaña en contenido perfecto para 21+ plataformas en segundos. Sin configuración manual, sin complicaciones.'
-                : 'Transform one campaign into perfect content for 21+ platforms in seconds. No manual setup, no complications.'}
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white px-10 py-4 text-xl font-bold shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-              >
-                <Zap className="mr-3 h-6 w-6" />
-                {isSpanish ? 'Probar Gratis Ahora' : 'Try Free Now'}
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="border-2 border-brand-600 text-brand-600 hover:bg-brand-50 px-10 py-4 text-xl font-semibold rounded-2xl transition-all duration-300"
-              >
-                {isSpanish ? 'Ver Demo' : 'Watch Demo'}
-              </Button>
-            </div>
-            
-            <p className="text-gray-500 text-sm">
-              {isSpanish ? '✓ 14 días gratis ✓ Sin tarjeta de crédito ✓ Configuración en 60 segundos' : '✓ 14 days free ✓ No credit card ✓ 60-second setup'}
+                ? 'Impulsa tu presencia en 21+ plataformas — campañas completas creadas desde tus datos de negocio, en un clic.'
+                : 'Boost your presence across 21+ platforms — complete campaigns built from your business data, in one click.'}
             </p>
           </div>
         </div>
