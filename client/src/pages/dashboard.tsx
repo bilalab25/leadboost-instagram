@@ -369,7 +369,7 @@ export default function Dashboard() {
                         </CardTitle>
                         <Button size="sm" className="bg-brand-600 hover:bg-brand-700" data-testid="button-generate-content">
                           <Zap className="mr-2 h-4 w-4" />
-                          Generar Contenido
+                          {t.aiPlanner.generateContent}
                         </Button>
                       </div>
                     </CardHeader>
@@ -378,11 +378,11 @@ export default function Dashboard() {
                         <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
                           <Sparkles className="h-8 w-8 text-amber-600" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Contenido Inteligente para tus Marcas</h3>
-                        <p className="text-gray-500 mb-6">Genera automáticamente posts optimizados para todas tus plataformas sociales con un solo clic.</p>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">{t.aiPlanner.smartContentTitle}</h3>
+                        <p className="text-gray-500 mb-6">{t.aiPlanner.smartContentDescription}</p>
                         <Button className="bg-gradient-to-r from-brand-500 to-purple-600 text-white border-none hover:from-brand-600 hover:to-purple-700">
                           <Target className="mr-2 h-4 w-4" />
-                          Waterfall System
+                          {t.aiPlanner.waterfallSystem}
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>

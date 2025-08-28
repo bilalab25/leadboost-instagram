@@ -38,7 +38,11 @@ export const translations = {
       noPlanText: "Generate your first AI-powered content plan to get started.",
       createFirstPlan: "Create First Plan",
       industryTrends: "Industry Trends",
-      aiRecommendations: "AI Recommendations"
+      aiRecommendations: "AI Recommendations",
+      generateContent: "Generate Content",
+      smartContentTitle: "Smart Content for your Brands",
+      smartContentDescription: "Automatically generate optimized posts for all your social platforms with one click.",
+      waterfallSystem: "Waterfall System"
     },
     // Campaign Creator
     campaigns: {
@@ -227,7 +231,11 @@ export const translations = {
       noPlanText: "Genera tu primer plan de contenido impulsado por IA para comenzar.",
       createFirstPlan: "Crear Primer Plan",
       industryTrends: "Tendencias de la Industria",
-      aiRecommendations: "Recomendaciones IA"
+      aiRecommendations: "Recomendaciones IA",
+      generateContent: "Generar Contenido",
+      smartContentTitle: "Contenido Inteligente para tus Marcas",
+      smartContentDescription: "Genera automáticamente posts optimizados para todas tus plataformas sociales con un solo clic.",
+      waterfallSystem: "Sistema Waterfall"
     },
     // Campaign Creator
     campaigns: {
