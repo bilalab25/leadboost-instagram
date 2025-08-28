@@ -299,8 +299,9 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              {/* POS Connection Banner - Only show if POS not connected */}
-              {false && (
+              {/* POS Connection Banner - Temporarily hidden for preview */}
+              {/* 
+              {!user?.posConnected && (
                 <div className="mb-6">
                   <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-brand-50 to-purple-50 border border-brand-100 p-4">
                     <div className="flex items-center justify-between">
@@ -331,6 +332,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
+              */}
               
               {/* Simplified Dashboard - Single Column Layout */}
               <div className="space-y-8">
