@@ -265,10 +265,10 @@ export default function Dashboard() {
                       </div>
                       <div className="text-4xl font-bold text-gray-900 mb-4">
                         {(() => {
-                          if (selectedPeriod === 'weekly') return '72';
+                          if (selectedPeriod === 'weekly') return '7';
                           if (selectedPeriod === 'monthly') return '28';
                           if (selectedPeriod === 'daily') return '1';
-                          return '72';
+                          return '7';
                         })()}
                       </div>
                       <div className="flex items-center text-brand-600 text-base font-medium">
@@ -277,12 +277,22 @@ export default function Dashboard() {
                             <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        {(() => {
-                          if (selectedPeriod === 'weekly') return '+4 esta semana';
-                          if (selectedPeriod === 'monthly') return '+4 este mes';
-                          if (selectedPeriod === 'daily') return '+1 hoy';
-                          return '+4 esta semana';
-                        })()}
+                        <div>
+                          {(() => {
+                            if (selectedPeriod === 'weekly') return '+4 esta semana';
+                            if (selectedPeriod === 'monthly') return '+4 este mes';
+                            if (selectedPeriod === 'daily') return '+1 hoy';
+                            return '+4 esta semana';
+                          })()}
+                        </div>
+                        <div className="text-sm text-brand-500 font-medium mt-1">
+                          {(() => {
+                            if (selectedPeriod === 'weekly') return '× 21 plataformas = 147 posts';
+                            if (selectedPeriod === 'monthly') return '× 21 plataformas = 588 posts';
+                            if (selectedPeriod === 'daily') return '× 21 plataformas = 21 posts';
+                            return '× 21 plataformas = 147 posts';
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </div>
