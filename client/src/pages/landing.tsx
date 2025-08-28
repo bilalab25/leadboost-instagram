@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp } from "lucide-react";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -467,15 +467,44 @@ export default function Landing() {
       </div>
 
       {/* Demo Video Section */}
-      <div className="py-0 bg-gradient-to-br from-brand-300/60 via-brand-400/50 to-brand-300/70">
-        <div className="max-w-full mx-auto">
-          <div className="relative overflow-hidden bg-gradient-to-br from-brand-800 via-brand-700 to-brand-900">
+      <div className="py-16 bg-gradient-to-br from-brand-300/40 via-brand-400/30 to-brand-300/50 relative overflow-hidden">
+        {/* Floating background elements */}
+        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-brand-200/8 to-brand-400/4 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-br from-brand-300/6 to-brand-500/3 rounded-full blur-3xl"></div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-brand-200/40 rounded-full px-8 py-4 mb-8">
+              <Play className="h-6 w-6 text-brand-600" />
+              <span className="text-brand-700 font-semibold text-lg">Live Demo</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-brand-800 mb-4">
+              {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {isSpanish 
+                ? 'Descubre cómo el Sistema Waterfall funciona en tiempo real'
+                : 'Discover how the Waterfall System works in real-time'}
+            </p>
+          </div>
+          
+          <div className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-gray-900 rounded-3xl shadow-2xl border border-brand-600/30">
             {/* Video Mockup Container */}
             <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+              {/* Enhanced background pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="w-full h-full" style={{
+                  backgroundImage: `
+                    linear-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(59, 130, 246, 0.15) 1px, transparent 1px)
+                  `,
+                  backgroundSize: '60px 60px'
+                }} />
+              </div>
               {/* Video Content Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-transparent to-black/50 cursor-pointer group transition-all duration-700 hover:from-black/60 hover:via-black/20 hover:to-black/60" data-testid="video-play-button">
+              <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/5 to-black/30 cursor-pointer group transition-all duration-700 hover:from-black/40 hover:via-black/10 hover:to-black/40" data-testid="video-play-button">
                 {/* Content Container */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-12 py-16 max-w-7xl mx-auto">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-16 py-20">
                   {/* Title Section */}
                   <div className="mb-6">
                     <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 drop-shadow-lg">
@@ -489,52 +518,56 @@ export default function Landing() {
                   </div>
 
                   {/* Demo Features Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 max-w-3xl">
-                    <div className="text-center bg-white/5 backdrop-blur-sm rounded-xl p-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
-                        <Zap className="h-6 w-6 text-white" />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-4xl w-full">
+                    <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
+                      <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                        <Zap className="h-8 w-8 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold text-white mb-1">
+                      <h3 className="text-xl font-bold text-white mb-2">
                         {isSpanish ? 'Configuración en 10 min' : '10 min Setup'}
                       </h3>
-                      <p className="text-white/80 text-xs">
+                      <p className="text-white/70 text-sm leading-relaxed">
                         {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
                       </p>
                     </div>
                     
-                    <div className="text-center bg-white/5 backdrop-blur-sm rounded-xl p-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
-                        <Target className="h-6 w-6 text-white" />
+                    <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
+                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                        <Target className="h-8 w-8 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold text-white mb-1">
+                      <h3 className="text-xl font-bold text-white mb-2">
                         {isSpanish ? 'Campaña en Vivo' : 'Live Campaign'}
                       </h3>
-                      <p className="text-white/80 text-xs">
+                      <p className="text-white/70 text-sm leading-relaxed">
                         {isSpanish ? 'Mira una campaña real desplegándose' : 'Watch a real campaign being deployed'}
                       </p>
                     </div>
                     
-                    <div className="text-center bg-white/5 backdrop-blur-sm rounded-xl p-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
-                        <BarChart3 className="h-6 w-6 text-white" />
+                    <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                        <BarChart3 className="h-8 w-8 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold text-white mb-1">
+                      <h3 className="text-xl font-bold text-white mb-2">
                         {isSpanish ? 'Resultados Reales' : 'Real Results'}
                       </h3>
-                      <p className="text-white/80 text-xs">
+                      <p className="text-white/70 text-sm leading-relaxed">
                         {isSpanish ? 'Datos de clientes reales' : 'Real customer data'}
                       </p>
                     </div>
                   </div>
 
-                  {/* Play Button */}
+                  {/* Enhanced Play Button */}
                   <div className="relative">
-                    <div className="w-20 h-20 bg-white/15 backdrop-blur-xl rounded-full flex items-center justify-center group-hover:bg-white/25 transition-all duration-500 border border-white/20 shadow-xl">
-                      <div className="w-16 h-16 bg-gradient-to-r from-white to-gray-100 rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
-                        <div className="w-0 h-0 border-l-[16px] border-l-gray-800 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent ml-1"></div>
+                    <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 border border-white/20 shadow-2xl">
+                      <div className="w-20 h-20 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                        <div className="w-0 h-0 border-l-[18px] border-l-gray-700 border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent ml-1"></div>
                       </div>
                     </div>
-                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                    <div className="absolute inset-0 bg-white/15 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
+                    
+                    {/* Subtle pulse rings */}
+                    <div className="absolute inset-0 rounded-full border border-white/30 animate-ping"></div>
+                    <div className="absolute inset-0 rounded-full border border-white/20 animate-ping" style={{animationDelay: '300ms'}}></div>
                   </div>
                 </div>
               </div>
@@ -589,19 +622,36 @@ export default function Landing() {
               </div>
             </div>
             
-            {/* Sleek Video Controls Bar */}
-            <div className="bg-gradient-to-r from-brand-900/95 via-brand-800/95 to-brand-900/95 backdrop-blur-md p-6 border-t border-brand-700/50">
-              <div className="flex items-center space-x-6">
-                <button className="text-white hover:text-brand-400 transition-all duration-300 p-2 rounded-lg hover:bg-white/10" data-testid="video-control-play">
-                  <div className="w-0 h-0 border-l-[10px] border-l-current border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent"></div>
-                </button>
-                <div className="flex-1 bg-brand-800/60 h-3 rounded-full overflow-hidden">
-                  <div className="bg-gradient-to-r from-brand-400 to-brand-500 h-3 rounded-full w-1/3 shadow-xl"></div>
+            {/* Enhanced Video Controls Bar */}
+            <div className="bg-gradient-to-r from-brand-900/98 via-brand-800/98 to-brand-900/98 backdrop-blur-xl rounded-b-3xl border-t border-brand-600/30">
+              <div className="flex items-center justify-between px-8 py-6">
+                <div className="flex items-center space-x-6">
+                  <button className="text-white/80 hover:text-brand-300 transition-colors p-2 rounded-lg hover:bg-white/5" data-testid="video-control-play">
+                    <Play className="h-5 w-5" />
+                  </button>
+                  <button className="text-white/80 hover:text-brand-300 transition-colors p-2 rounded-lg hover:bg-white/5">
+                    <Volume2 className="h-5 w-5" />
+                  </button>
                 </div>
-                <span className="text-brand-200 text-sm font-mono">0:45 / 2:14</span>
-                <button className="text-white hover:text-brand-400 transition-all duration-300 p-2 rounded-lg hover:bg-white/10" data-testid="video-control-fullscreen">
-                  <div className="w-5 h-5 border-2 border-current rounded"></div>
-                </button>
+                
+                <div className="flex items-center space-x-6 flex-1 mx-12">
+                  <span className="text-brand-300 text-sm font-mono min-w-fit">0:45</span>
+                  <div className="flex-1 bg-brand-800/50 h-2 rounded-full overflow-hidden">
+                    <div className="bg-gradient-to-r from-brand-400 to-brand-500 h-2 rounded-full w-1/3 shadow-lg relative">
+                      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg"></div>
+                    </div>
+                  </div>
+                  <span className="text-brand-300 text-sm font-mono min-w-fit">2:14</span>
+                </div>
+                
+                <div className="flex items-center space-x-6">
+                  <button className="text-white/80 hover:text-brand-300 transition-colors p-2 rounded-lg hover:bg-white/5">
+                    <Settings className="h-5 w-5" />
+                  </button>
+                  <button className="text-white/80 hover:text-brand-300 transition-colors p-2 rounded-lg hover:bg-white/5" data-testid="video-control-fullscreen">
+                    <Maximize className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
