@@ -621,9 +621,7 @@ export default function Landing() {
                 <div className="flex items-center space-x-6 flex-1 mx-12">
                   <span className="text-brand-300 text-sm font-mono min-w-fit">0:45</span>
                   <div className="flex-1 bg-brand-800/50 h-2 rounded-full overflow-hidden">
-                    <div className="bg-gradient-to-r from-brand-400 to-brand-500 h-2 rounded-full w-1/3 shadow-lg relative">
-                      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg"></div>
-                    </div>
+                    <div className="bg-gradient-to-r from-brand-400 to-brand-500 h-2 rounded-full w-1/3 shadow-lg"></div>
                   </div>
                   <span className="text-brand-300 text-sm font-mono min-w-fit">2:14</span>
                 </div>
