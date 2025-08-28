@@ -57,7 +57,7 @@ export default function Sidebar() {
   const t = translations[language];
 
   const navigation = [
-    { name: t.sidebar.dashboard, href: "/", icon: LayoutDashboard },
+    { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
     { 
       name: isSpanish ? "Sistema Waterfall" : "Waterfall System", 
       href: "/waterfall", 
