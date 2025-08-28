@@ -271,13 +271,8 @@ export default function Dashboard() {
                           return '7';
                         })()}
                       </div>
-                      <div className="flex items-center text-brand-600 text-base font-medium">
-                        <div className="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center mr-2">
-                          <svg className="w-3 h-3 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <div className="text-lg text-brand-600 font-bold mb-1">
+                      <div className="space-y-3">
+                        <div className="text-lg text-brand-600 font-bold">
                           {(() => {
                             if (selectedPeriod === 'weekly') return '× 21 plataformas = 147 posts';
                             if (selectedPeriod === 'monthly') return '× 21 plataformas = 588 posts';
@@ -285,7 +280,12 @@ export default function Dashboard() {
                             return '× 21 plataformas = 147 posts';
                           })()}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="flex items-center text-brand-600 text-sm font-medium">
+                          <div className="w-4 h-4 rounded-full bg-brand-100 flex items-center justify-center mr-2">
+                            <svg className="w-2.5 h-2.5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
                           {(() => {
                             if (selectedPeriod === 'weekly') return '+4 esta semana';
                             if (selectedPeriod === 'monthly') return '+4 este mes';
