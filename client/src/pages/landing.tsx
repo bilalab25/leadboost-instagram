@@ -582,7 +582,7 @@ export default function Landing() {
       </div>
 
       {/* Final CTA */}
-      <div className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 via-brand-700 via-brand-600 to-brand-500">
+      <div className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 via-brand-700 via-brand-600 to-brand-500">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
@@ -606,14 +606,14 @@ export default function Landing() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
+            <div className="flex items-center justify-center mb-6">
               <img 
                 src={leadBoostLogo} 
                 alt="LeadBoost Logo" 
-                className="h-96 w-auto object-contain"
+                className="h-24 w-auto object-contain"
                 style={{ backgroundColor: 'transparent' }}
               />
             </div>
