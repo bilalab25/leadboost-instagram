@@ -138,7 +138,7 @@ export default function Landing() {
                       </div>
                       <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? '21+ Plataformas' : '21+ Platforms'}</p>
-                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Formato perfecto automático' : 'Perfect format automatically'}</p>
+                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Formato perfecto automático, en un clic' : 'Perfect format automatically, on one click'}</p>
                     </div>
                   </div>
                   
