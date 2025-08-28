@@ -21,7 +21,7 @@ export default function Landing() {
               <img 
                 src={leadBoostLogo} 
                 alt="LeadBoost Logo" 
-                className="h-[366px] w-auto object-contain"
+                className="h-20 w-auto object-contain"
                 style={{ backgroundColor: 'transparent' }}
               />
             </div>
@@ -48,20 +48,47 @@ export default function Landing() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           
           {/* Main Waterfall Value Proposition */}
-          <div className="text-center mb-16">
-            <div className="mb-8">
-              <h2 className="text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight">
+          <div className="text-center mb-20">
+            <div className="mb-10">
+              <div className="inline-flex items-center bg-gradient-to-r from-brand-50 to-emerald-50 rounded-full px-6 py-3 mb-8 border border-brand-200">
+                <Sparkles className="h-5 w-5 text-brand-600 mr-2" />
+                <span className="text-brand-700 font-semibold text-sm">
+                  {isSpanish ? 'Más de 10,000 empresas confían en nosotros' : 'Trusted by 10,000+ companies'}
+                </span>
+              </div>
+              <h1 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-emerald-600 mb-6 leading-tight">
                 {isSpanish ? 'Sistema Waterfall' : 'The Waterfall System'}
-              </h2>
-              <div className="text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-6">
-                {isSpanish ? 'Tu marca → En todos lados' : 'Your brand → Everywhere'}
+              </h1>
+              <div className="text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-emerald-500 to-cyan-500 mb-8">
+                {isSpanish ? 'Una Idea → Todas Partes → Resultados' : 'One Idea → Everywhere → Results'}
               </div>
             </div>
             
-            <p className="text-xl lg:text-2xl text-gray-700 mb-12 max-w-5xl mx-auto leading-relaxed">
+            <p className="text-2xl lg:text-3xl text-gray-700 mb-12 max-w-6xl mx-auto leading-relaxed font-medium">
               {isSpanish 
-                ? 'Impulsa tu presencia en 21+ plataformas — campañas completas creadas desde tus datos de negocio, en un clic.'
-                : 'Boost your presence across 21+ platforms — complete campaigns built from your business data, in one click.'}
+                ? 'Transforma una sola campaña en contenido perfecto para 21+ plataformas en segundos. Sin configuración manual, sin complicaciones.'
+                : 'Transform one campaign into perfect content for 21+ platforms in seconds. No manual setup, no complications.'}
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white px-10 py-4 text-xl font-bold shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+              >
+                <Zap className="mr-3 h-6 w-6" />
+                {isSpanish ? 'Probar Gratis Ahora' : 'Try Free Now'}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-2 border-brand-600 text-brand-600 hover:bg-brand-50 px-10 py-4 text-xl font-semibold rounded-2xl transition-all duration-300"
+              >
+                {isSpanish ? 'Ver Demo' : 'Watch Demo'}
+              </Button>
+            </div>
+            
+            <p className="text-gray-500 text-sm">
+              {isSpanish ? '✓ 14 días gratis ✓ Sin tarjeta de crédito ✓ Configuración en 60 segundos' : '✓ 14 days free ✓ No credit card ✓ 60-second setup'}
             </p>
           </div>
         </div>
@@ -73,6 +100,9 @@ export default function Landing() {
             <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto waterfall-container">
               {/* Animated Waterfall Particles */}
               <div className="absolute inset-0 pointer-events-none">
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
                 <div className="waterfall-particle"></div>
                 <div className="waterfall-particle"></div>
                 <div className="waterfall-particle"></div>
@@ -136,68 +166,159 @@ export default function Landing() {
                     </div>
                   </div>
                   
-                  <div className="mt-12 text-center">
+                  <div className="mt-16 text-center">
+                    <div className="mb-6">
+                      <p className="text-gray-600 text-lg font-medium mb-4">
+                        {isSpanish ? '¿Listo para ver la magia?' : 'Ready to see the magic?'}
+                      </p>
+                    </div>
                     <Button 
                       size="lg" 
-                      className="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white px-12 py-4 text-xl font-bold shadow-lg rounded-2xl"
+                      className="bg-gradient-to-r from-brand-600 via-brand-500 to-emerald-500 hover:from-brand-700 hover:via-brand-600 hover:to-emerald-600 text-white px-16 py-5 text-xl font-bold shadow-2xl rounded-3xl transform hover:scale-105 transition-all duration-300"
                     >
-                      <Zap className="mr-3 h-6 w-6" />
-                      {isSpanish ? 'Crear Campaña Waterfall' : 'Create Waterfall Campaign'}
+                      <Zap className="mr-3 h-7 w-7" />
+                      {isSpanish ? 'Crear Mi Primera Campaña' : 'Create My First Campaign'}
                     </Button>
+                    <p className="text-sm text-gray-500 mt-4">
+                      {isSpanish ? 'Sin configuración técnica • Resultados en 30 segundos' : 'No technical setup • Results in 30 seconds'}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
             </div>
             
-            {/* Benefits Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-              <Card className="text-center p-6 hover:shadow-lg transition-shadow bg-white border border-gray-200">
+            {/* Enhanced Benefits Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-emerald-50 border border-emerald-200 group hover:scale-105">
                 <CardContent className="pt-6">
-                  <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Zap className="h-8 w-8 text-emerald-600" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <Zap className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
                     {isSpanish ? 'Lanzamiento Instantáneo' : 'Instant Launch'}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-700 text-lg leading-relaxed">
                     {isSpanish 
-                      ? 'De tu marca a 21+ plataformas en segundos. Sin configuración manual.'
-                      : 'From your brand to 21+ platforms in seconds. No manual setup.'}
+                      ? 'De tu marca a 21+ plataformas en 30 segundos. Sin configuración manual, sin complicaciones.'
+                      : 'From your brand to 21+ platforms in 30 seconds. No manual setup, no complications.'}
                   </p>
+                  <div className="mt-6 text-emerald-600 font-bold text-3xl">
+                    30s
+                  </div>
                 </CardContent>
               </Card>
               
-              <Card className="text-center p-6 hover:shadow-lg transition-shadow bg-white border border-gray-200">
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-purple-50 border border-purple-200 group hover:scale-105">
                 <CardContent className="pt-6">
-                  <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Target className="h-8 w-8 text-purple-600" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <Target className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
                     {isSpanish ? 'Formato Perfecto' : 'Perfect Format'}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-700 text-lg leading-relaxed">
                     {isSpanish 
-                      ? 'Cada plataforma recibe el contenido en su tamaño y formato ideal.'
-                      : 'Each platform gets content in its ideal size and format.'}
+                      ? 'IA optimiza cada contenido para el tamaño, formato y audiencia específica de cada plataforma.'
+                      : 'AI optimizes each content for the specific size, format and audience of each platform.'}
                   </p>
+                  <div className="mt-6 text-purple-600 font-bold text-3xl">
+                    21+
+                  </div>
                 </CardContent>
               </Card>
               
-              <Card className="text-center p-6 hover:shadow-lg transition-shadow bg-white border border-gray-200">
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-orange-50 border border-orange-200 group hover:scale-105">
                 <CardContent className="pt-6">
-                  <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <TrendingUp className="h-8 w-8 text-orange-600" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <TrendingUp className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
                     {isSpanish ? 'Máximo Alcance' : 'Maximum Reach'}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-700 text-lg leading-relaxed">
                     {isSpanish 
-                      ? 'Logra 30x el impacto sin las horas de trabajo.'
-                      : 'Achieve 30x the impact without the hours of work.'}
+                      ? 'Multiplica tu alcance por 30x sin multiplicar el trabajo. Más audiencia, menos esfuerzo.'
+                      : 'Multiply your reach by 30x without multiplying the work. More audience, less effort.'}
                   </p>
+                  <div className="mt-6 text-orange-600 font-bold text-3xl">
+                    30x
+                  </div>
                 </CardContent>
               </Card>
+            </div>
+            
+            {/* Social Proof / Testimonials Section */}
+            <div className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-12 mb-16 border border-gray-200">
+              <div className="text-center mb-12">
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                  {isSpanish ? 'Lo que dicen nuestros clientes' : 'What our customers say'}
+                </h3>
+                <p className="text-gray-600 text-lg">
+                  {isSpanish ? 'Resultados reales de empresas reales' : 'Real results from real companies'}
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mr-4">
+                      <span className="text-white font-bold text-lg">MG</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">María González</h4>
+                      <p className="text-gray-600 text-sm">CMO, TechStart</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 italic mb-4">
+                    "{isSpanish ? 'Redujimos el tiempo de lanzamiento de campañas de 3 días a 30 segundos. Increíble.' : 'We reduced campaign launch time from 3 days to 30 seconds. Incredible.'}"
+                  </p>
+                  <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i}>★</span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
+                      <span className="text-white font-bold text-lg">JS</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">James Smith</h4>
+                      <p className="text-gray-600 text-sm">Founder, GrowthCo</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 italic mb-4">
+                    "{isSpanish ? 'Nuestro ROI en redes sociales aumentó 400% en el primer mes.' : 'Our social media ROI increased 400% in the first month.'}"
+                  </p>
+                  <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i}>★</span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 md:col-span-2 lg:col-span-1">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                      <span className="text-white font-bold text-lg">AL</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Ana López</h4>
+                      <p className="text-gray-600 text-sm">CEO, DigitalBrand</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 italic mb-4">
+                    "{isSpanish ? 'El sistema más inteligente que he usado. Ahora somos líderes en nuestro sector.' : 'The smartest system I have used. We are now leaders in our sector.'}"
+                  </p>
+                  <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i}>★</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -367,76 +488,83 @@ export default function Landing() {
             </p>
           </div>
           
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-900 max-w-4xl mx-auto">
+          <div className="relative rounded-3xl overflow-hidden shadow-3xl bg-black max-w-5xl mx-auto border border-gray-800">
             {/* Video Mockup Container */}
-            <div className="relative aspect-video bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900">
-              {/* Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 cursor-pointer hover:bg-opacity-20 transition-all duration-300" data-testid="video-play-button">
-                <div className="w-20 h-20 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all duration-300">
-                  <div className="w-0 h-0 border-l-[16px] border-l-brand-600 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent ml-1"></div>
+            <div className="relative aspect-video bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+              {/* Sleek Play Button Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-black/20 via-transparent to-black/20 cursor-pointer group" data-testid="video-play-button">
+                <div className="relative">
+                  <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 border border-white/20">
+                    <div className="w-20 h-20 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                      <div className="w-0 h-0 border-l-[20px] border-l-white border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent ml-1"></div>
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-brand-500/30 to-brand-600/30 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                 </div>
               </div>
               
-              {/* Video Preview Content */}
+              {/* Modern Video Preview Content */}
               <div className="absolute inset-0 p-8 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-                    <span className="text-white font-semibold">LeadBoost Demo</span>
+                  <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10">
+                    <span className="text-white font-semibold text-sm">LeadBoost Platform</span>
                   </div>
-                  <div className="bg-red-500 rounded-full px-3 py-1">
-                    <span className="text-white text-sm font-medium">● LIVE</span>
+                  <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-full px-4 py-2 shadow-lg">
+                    <span className="text-white text-sm font-medium">● Demo</span>
                   </div>
                 </div>
                 
                 <div className="text-center">
-                  <div className="bg-white bg-opacity-10 rounded-xl p-6 max-w-md mx-auto">
-                    <Target className="h-12 w-12 text-white mx-auto mb-4" />
-                    <h3 className="text-white text-xl font-bold mb-2">
-                      {isSpanish ? 'Sistema Waterfall Demo' : 'Waterfall System Demo'}
+                  <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-8 max-w-lg mx-auto border border-white/10 shadow-2xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <Target className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-white text-2xl font-bold mb-3">
+                      {isSpanish ? 'Sistema Waterfall' : 'Waterfall System'}
                     </h3>
-                    <p className="text-gray-200 text-sm">
-                      {isSpanish ? 'De una idea a 21+ plataformas' : 'From one idea to 21+ platforms'}
+                    <p className="text-gray-300 text-base">
+                      {isSpanish ? 'De una idea a 21+ plataformas en segundos' : 'From one idea to 21+ platforms in seconds'}
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <div className="flex space-x-2">
-                    <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center">
-                      <SiInstagram className="h-4 w-4 text-white" />
+                  <div className="flex space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <SiInstagram className="h-5 w-5 text-white" />
                     </div>
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <SiFacebook className="h-4 w-4 text-white" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+                      <SiFacebook className="h-5 w-5 text-white" />
                     </div>
-                    <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-                      <SiTiktok className="h-4 w-4 text-white" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-gray-800 to-black rounded-xl flex items-center justify-center shadow-lg">
+                      <SiTiktok className="h-5 w-5 text-white" />
                     </div>
-                    <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                      <SiYoutube className="h-4 w-4 text-white" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center shadow-lg">
+                      <SiYoutube className="h-5 w-5 text-white" />
                     </div>
-                    <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                    <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg">
                       +17
                     </div>
                   </div>
-                  <div className="bg-white bg-opacity-20 rounded-lg px-3 py-1">
-                    <span className="text-white text-sm">2:14</span>
+                  <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10">
+                    <span className="text-white text-sm font-mono">2:14</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Video Controls Bar */}
-            <div className="bg-gray-800 p-4">
-              <div className="flex items-center space-x-4">
-                <button className="text-white hover:text-brand-400 transition-colors" data-testid="video-control-play">
-                  <div className="w-0 h-0 border-l-[8px] border-l-current border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent"></div>
+            {/* Sleek Video Controls Bar */}
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-5 border-t border-gray-700">
+              <div className="flex items-center space-x-6">
+                <button className="text-white hover:text-brand-400 transition-all duration-300 p-2 rounded-lg hover:bg-white/10" data-testid="video-control-play">
+                  <div className="w-0 h-0 border-l-[10px] border-l-current border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent"></div>
                 </button>
-                <div className="flex-1 bg-gray-600 h-1 rounded-full">
-                  <div className="bg-brand-500 h-1 rounded-full w-1/3"></div>
+                <div className="flex-1 bg-gray-700 h-2 rounded-full overflow-hidden">
+                  <div className="bg-gradient-to-r from-brand-500 to-brand-600 h-2 rounded-full w-1/3 shadow-lg"></div>
                 </div>
-                <span className="text-white text-sm">0:45 / 2:14</span>
-                <button className="text-white hover:text-brand-400 transition-colors" data-testid="video-control-fullscreen">
-                  <div className="w-4 h-4 border border-current"></div>
+                <span className="text-gray-300 text-sm font-mono">0:45 / 2:14</span>
+                <button className="text-white hover:text-brand-400 transition-all duration-300 p-2 rounded-lg hover:bg-white/10" data-testid="video-control-fullscreen">
+                  <div className="w-5 h-5 border-2 border-current rounded"></div>
                 </button>
               </div>
             </div>
@@ -483,26 +611,69 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Final CTA */}
-      <div className="py-20 bg-gradient-to-br from-slate-900 via-blue-900 via-brand-700 via-brand-600 to-brand-500">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            {isSpanish 
-              ? 'Únete a miles de empresas que ya están usando LeadBoost para dominar las redes sociales'
-              : 'Join thousands of companies already using LeadBoost to dominate social media'}
-          </p>
-          <Button 
-            size="lg" 
-            className="bg-white text-brand-600 hover:bg-gray-100 px-12 py-4 text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl hover-lift"
-          >
-            <Sparkles className="mr-3 h-6 w-6" />
-            {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
-          </Button>
-          <p className="text-blue-100 mt-4">
-            {isSpanish ? '✓ 14 días gratis ✓ Sin compromiso ✓ Soporte 24/7' : '✓ 14 days free ✓ No commitment ✓ 24/7 support'}
+      {/* Enhanced Final CTA */}
+      <div className="py-24 bg-gradient-to-br from-slate-900 via-slate-800 via-brand-700 to-brand-600 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-emerald-400 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-blue-400 rounded-full blur-2xl"></div>
+        </div>
+        
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="mb-8">
+            <div className="inline-flex items-center bg-white/10 backdrop-blur-md rounded-full px-6 py-3 mb-6 border border-white/20">
+              <span className="text-white font-semibold text-sm">
+                {isSpanish ? '🚀 Oferta por Tiempo Limitado' : '🚀 Limited Time Offer'}
+              </span>
+            </div>
+            <h2 className="text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
+              {isSpanish ? '¿Listo para Dominar las Redes?' : 'Ready to Dominate Social Media?'}
+            </h2>
+            <p className="text-2xl text-blue-100 mb-4 max-w-4xl mx-auto leading-relaxed">
+              {isSpanish 
+                ? 'Únete a más de 10,000 empresas que ya transformaron su marketing con LeadBoost'
+                : 'Join 10,000+ companies that already transformed their marketing with LeadBoost'}
+            </p>
+            <p className="text-lg text-emerald-200 font-medium">
+              {isSpanish ? 'Ahorra hasta 95% del tiempo en gestión de campañas' : 'Save up to 95% of time on campaign management'}
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-10">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-white to-gray-100 text-brand-700 hover:from-gray-100 hover:to-white px-16 py-6 text-2xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-3xl transform hover:scale-105 border-2 border-white/20"
+            >
+              <Sparkles className="mr-4 h-7 w-7" />
+              {isSpanish ? 'Comenzar Gratis Ahora' : 'Start Free Now'}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="border-2 border-white/40 text-white hover:bg-white/10 backdrop-blur-md px-12 py-6 text-xl font-semibold rounded-3xl transition-all duration-300"
+            >
+              {isSpanish ? 'Hablar con Ventas' : 'Talk to Sales'}
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-white/90 mb-8">
+            <div className="flex items-center justify-center">
+              <Shield className="h-6 w-6 text-emerald-400 mr-3" />
+              <span className="font-medium">{isSpanish ? '14 días gratis' : '14 days free'}</span>
+            </div>
+            <div className="flex items-center justify-center">
+              <Zap className="h-6 w-6 text-emerald-400 mr-3" />
+              <span className="font-medium">{isSpanish ? 'Configuración en 60s' : '60s setup'}</span>
+            </div>
+            <div className="flex items-center justify-center">
+              <Users className="h-6 w-6 text-emerald-400 mr-3" />
+              <span className="font-medium">{isSpanish ? 'Soporte 24/7' : '24/7 support'}</span>
+            </div>
+          </div>
+          
+          <p className="text-blue-200 text-lg">
+            {isSpanish ? 'Sin tarjeta de crédito • Cancela cuando quieras • Resultados garantizados' : 'No credit card • Cancel anytime • Guaranteed results'}
           </p>
         </div>
       </div>
