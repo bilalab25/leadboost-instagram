@@ -20,6 +20,7 @@ import {
   UserCheck,
   Link2,
   Sparkles,
+  Zap,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
@@ -60,7 +61,7 @@ export default function Sidebar() {
     { 
       name: isSpanish ? "Sistema Waterfall" : "Waterfall System", 
       href: "/waterfall", 
-      icon: Sparkles, 
+      icon: Zap, 
       special: true 
     },
     { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, badge: "12" },
