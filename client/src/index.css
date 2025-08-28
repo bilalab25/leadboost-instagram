@@ -52,6 +52,7 @@
   --spacing: 0.25rem;
   
   /* Brand colors from design */
+  --brand-25: hsl(218, 63%, 98%);
   --brand-50: hsl(218, 63%, 97%);
   --brand-100: hsl(218, 63%, 94%);
   --brand-200: hsl(218, 63%, 88%);

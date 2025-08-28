@@ -12,7 +12,7 @@ export default function Landing() {
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-100">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
       {/* Header */}
       <header className="relative z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,7 +44,10 @@ export default function Landing() {
 
       {/* Waterfall Hero Section - THE CENTERPIECE */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-brand-50/50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
+        {/* Floating blue orbs */}
+        <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-brand-300/20 to-brand-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-40 left-10 w-64 h-64 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           
           {/* Main Waterfall Value Proposition */}
@@ -154,7 +157,7 @@ export default function Landing() {
             
             {/* Enhanced Benefits Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
-              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-emerald-50 border border-emerald-200 group hover:scale-105">
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-emerald-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
                 <CardContent className="pt-6">
                   <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
                     <Zap className="h-10 w-10 text-white" />
@@ -173,7 +176,7 @@ export default function Landing() {
                 </CardContent>
               </Card>
               
-              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-purple-50 border border-purple-200 group hover:scale-105">
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-purple-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
                 <CardContent className="pt-6">
                   <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
                     <Target className="h-10 w-10 text-white" />
@@ -192,7 +195,7 @@ export default function Landing() {
                 </CardContent>
               </Card>
               
-              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-orange-50 border border-orange-200 group hover:scale-105">
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-orange-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
                 <CardContent className="pt-6">
                   <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
                     <TrendingUp className="h-10 w-10 text-white" />
@@ -224,7 +227,7 @@ export default function Landing() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                <div className="bg-gradient-to-br from-white/95 via-brand-25/50 to-brand-50/30 p-6 rounded-2xl shadow-xl border border-brand-200/40 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
                   <div className="flex items-center mb-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mr-4">
                       <span className="text-white font-bold text-lg">MG</span>
@@ -244,7 +247,7 @@ export default function Landing() {
                   </div>
                 </div>
                 
-                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                <div className="bg-gradient-to-br from-white/95 via-brand-25/50 to-brand-50/30 p-6 rounded-2xl shadow-xl border border-brand-200/40 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
                   <div className="flex items-center mb-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
                       <span className="text-white font-bold text-lg">JS</span>
@@ -292,9 +295,9 @@ export default function Landing() {
       <div className="py-24 bg-gradient-to-br from-brand-200/50 via-brand-300/40 to-brand-200/60 relative">
         {/* Subtle background pattern */}
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-brand-200/20 to-purple-200/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-blue-200/20 to-emerald-200/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-gradient-to-br from-indigo-200/20 to-brand-200/20 rounded-full blur-2xl"></div>
+          <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-brand-300/25 to-brand-500/15 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-brand-400/20 to-brand-600/15 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-gradient-to-br from-brand-200/20 to-brand-400/15 rounded-full blur-2xl"></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
@@ -587,15 +590,15 @@ export default function Landing() {
             </div>
             
             {/* Sleek Video Controls Bar */}
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-5 border-t border-gray-700">
+            <div className="bg-gradient-to-r from-brand-900/95 via-brand-800/95 to-brand-900/95 backdrop-blur-md p-6 border-t border-brand-700/50">
               <div className="flex items-center space-x-6">
                 <button className="text-white hover:text-brand-400 transition-all duration-300 p-2 rounded-lg hover:bg-white/10" data-testid="video-control-play">
                   <div className="w-0 h-0 border-l-[10px] border-l-current border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent"></div>
                 </button>
-                <div className="flex-1 bg-gray-700 h-2 rounded-full overflow-hidden">
-                  <div className="bg-gradient-to-r from-brand-500 to-brand-600 h-2 rounded-full w-1/3 shadow-lg"></div>
+                <div className="flex-1 bg-brand-800/60 h-3 rounded-full overflow-hidden">
+                  <div className="bg-gradient-to-r from-brand-400 to-brand-500 h-3 rounded-full w-1/3 shadow-xl"></div>
                 </div>
-                <span className="text-gray-300 text-sm font-mono">0:45 / 2:14</span>
+                <span className="text-brand-200 text-sm font-mono">0:45 / 2:14</span>
                 <button className="text-white hover:text-brand-400 transition-all duration-300 p-2 rounded-lg hover:bg-white/10" data-testid="video-control-fullscreen">
                   <div className="w-5 h-5 border-2 border-current rounded"></div>
                 </button>
