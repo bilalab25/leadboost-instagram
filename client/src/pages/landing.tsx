@@ -62,10 +62,12 @@ export default function Landing() {
                 ? 'Impulsa tu presencia en 21+ plataformas — campañas completas creadas desde tus datos de negocio, en un clic.'
                 : 'Boost your presence across 21+ platforms — complete campaigns built from your business data, in one click.'}
             </p>
-            
-            {/* Waterfall Demo Video Mockup */}
-            <div className="mb-16">
-              <div className="bg-gray-900 rounded-3xl shadow-2xl border border-gray-700 w-full overflow-hidden">
+          </div>
+        </div>
+        
+        {/* Waterfall Demo Video Mockup - Full Width */}
+        <div className="mb-16 px-4 sm:px-6 lg:px-8">
+          <div className="bg-gray-900 rounded-3xl shadow-2xl border border-gray-700 w-full overflow-hidden max-w-none">
                 <div className="p-0">
                   <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                     {/* Video mockup background */}
@@ -105,10 +107,12 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-
-            {/* The Waterfall Visual Flow */}
-            <div className="mb-16">
-              <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto">
+        </div>
+        
+        {/* The Waterfall Visual Flow */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-16">
+            <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto">
                 <CardContent className="p-8 lg:p-12">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                     
@@ -227,6 +231,7 @@ export default function Landing() {
             </div>
           </div>
         </div>
+      </div>
       </div>
       
       {/* Complete Platform Features */}
