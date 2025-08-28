@@ -611,34 +611,52 @@ export default function Landing() {
       </div>
 
       {/* Final CTA */}
-      <div className="py-24 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800">
-        <div className="max-w-full mx-auto px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
+      <div className="py-32 bg-gradient-to-b from-white via-gray-50/50 to-white">
+        <div className="max-w-4xl mx-auto px-8 text-center">
+          <h2 className="text-5xl font-bold text-gray-900 mb-8 leading-tight">
             {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
             {isSpanish 
               ? 'Está en todas partes donde tu audiencia navega — con un clic.'
               : 'Be everywhere your audience scrolls — with one click.'}
           </p>
-          <Button 
-            size="lg" 
-            className="bg-white text-brand-600 hover:bg-gray-100 px-12 py-4 text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl hover-lift"
-          >
-            <Sparkles className="mr-3 h-6 w-6" />
-            {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
-          </Button>
-          <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-2xl p-6 max-w-md mx-auto border border-white/20">
-            <p className="text-white font-semibold text-lg mb-3">
-              {isSpanish ? '💡 Sistema Waterfall GRATIS para siempre' : '💡 Waterfall System FREE forever'}
-            </p>
-            <p className="text-blue-100 text-sm mb-2">
-              {isSpanish ? '🎯 Prueba de 14 días para todas las demás herramientas' : '🎯 14-day trial for all other tools'}
-            </p>
-            <p className="text-blue-100 text-sm">
-              {isSpanish ? '💰 Después solo $99/mes para acceso completo' : '💰 Then just $99/month for full access'}
-            </p>
+          
+          <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 max-w-lg mx-auto mb-12">
+            <Button 
+              size="lg" 
+              className="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white px-8 py-6 text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl mb-6"
+            >
+              {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
+            </Button>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-center text-gray-700">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                <span className="font-medium">
+                  {isSpanish ? 'Sistema Waterfall GRATIS para siempre' : 'Waterfall System FREE forever'}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-center text-gray-600">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                <span>
+                  {isSpanish ? '14 días gratis para todas las herramientas' : '14 days free for all tools'}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-center text-gray-600">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                <span>
+                  {isSpanish ? 'Después $99/mes para acceso completo' : 'Then $99/month for full access'}
+                </span>
+              </div>
+            </div>
           </div>
+          
+          <p className="text-gray-500 text-sm">
+            {isSpanish ? 'Sin compromiso • Cancela cuando quieras' : 'No commitment • Cancel anytime'}
+          </p>
         </div>
       </div>
 
