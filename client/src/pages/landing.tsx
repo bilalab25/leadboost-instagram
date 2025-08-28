@@ -467,7 +467,7 @@ export default function Landing() {
       </div>
 
       {/* Demo Video Section */}
-      <div className="py-16 bg-gradient-to-br from-brand-300/40 via-brand-400/30 to-brand-300/50 relative overflow-hidden">
+      <div className="pb-0 bg-gradient-to-br from-brand-300/40 via-brand-400/30 to-brand-300/50 relative overflow-hidden">
         {/* Floating background elements */}
         <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-brand-200/8 to-brand-400/4 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-br from-brand-300/6 to-brand-500/3 rounded-full blur-3xl"></div>
@@ -638,7 +638,7 @@ export default function Landing() {
 
       {/* Final CTA */}
       <div className="py-24 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-full mx-auto px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
           </h2>
