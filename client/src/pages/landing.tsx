@@ -53,14 +53,14 @@ export default function Landing() {
                 {isSpanish ? 'Sistema Waterfall' : 'The Waterfall System'}
               </h2>
               <div className="text-3xl lg:text-4xl font-bold text-brand-600 mb-6">
-                {isSpanish ? 'Una idea → Todos lados' : 'One idea → Everywhere'}
+                {isSpanish ? 'Tu marca → Todos lados' : 'Your brand → Everywhere'}
               </div>
             </div>
             
             <p className="text-xl lg:text-2xl text-gray-700 mb-12 max-w-5xl mx-auto leading-relaxed">
               {isSpanish 
-                ? 'Convierte una sola idea en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.'
-                : 'Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.'}
+                ? 'Convierte tu marca en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.'
+                : 'Turn your brand into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.'}
             </p>
             
             {/* The Waterfall Visual Flow */}
@@ -74,7 +74,7 @@ export default function Landing() {
                       <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <Target className="h-12 w-12 text-white" />
                       </div>
-                      <h3 className="text-3xl font-black text-green-600 mb-2">{isSpanish ? 'UNA IDEA' : 'ONE IDEA'}</h3>
+                      <h3 className="text-3xl font-black text-green-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
                       <p className="text-gray-600 font-medium">"{isSpanish ? 'Lanzar producto nuevo' : 'Launch new product'}"</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Solo describe tu campaña' : 'Just describe your campaign'}</p>
                     </div>
@@ -144,8 +144,8 @@ export default function Landing() {
                   </h3>
                   <p className="text-gray-600">
                     {isSpanish 
-                      ? 'De una idea a 21+ plataformas en segundos. Sin configuración manual.'
-                      : 'From one idea to 21+ platforms in seconds. No manual setup.'}
+                      ? 'De tu marca a 21+ plataformas en segundos. Sin configuración manual.'
+                      : 'From your brand to 21+ platforms in seconds. No manual setup.'}
                   </p>
                 </CardContent>
               </Card>
