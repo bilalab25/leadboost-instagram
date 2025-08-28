@@ -477,11 +477,11 @@ export default function Landing() {
                 {/* Content Container */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-12 py-16 max-w-7xl mx-auto">
                   {/* Title Section */}
-                  <div className="mb-8">
-                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+                  <div className="mb-6">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 drop-shadow-lg">
                       {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
                     </h2>
-                    <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto drop-shadow-md">
+                    <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto drop-shadow-md">
                       {isSpanish 
                         ? 'Descubre cómo funciona el Sistema Waterfall en menos de 2 minutos'
                         : 'Discover how the Waterfall System works in less than 2 minutes'}
@@ -489,39 +489,39 @@ export default function Landing() {
                   </div>
 
                   {/* Demo Features Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 max-w-4xl">
-                    <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-                      <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Zap className="h-8 w-8 text-white" />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 max-w-3xl">
+                    <div className="text-center bg-white/5 backdrop-blur-sm rounded-xl p-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
+                        <Zap className="h-6 w-6 text-white" />
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">
+                      <h3 className="text-lg font-semibold text-white mb-1">
                         {isSpanish ? 'Configuración en 30s' : '30s Setup'}
                       </h3>
-                      <p className="text-blue-100 text-sm drop-shadow-sm">
+                      <p className="text-white/80 text-xs">
                         {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
                       </p>
                     </div>
                     
-                    <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Target className="h-8 w-8 text-white" />
+                    <div className="text-center bg-white/5 backdrop-blur-sm rounded-xl p-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
+                        <Target className="h-6 w-6 text-white" />
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">
+                      <h3 className="text-lg font-semibold text-white mb-1">
                         {isSpanish ? 'Campaña en Vivo' : 'Live Campaign'}
                       </h3>
-                      <p className="text-blue-100 text-sm drop-shadow-sm">
+                      <p className="text-white/80 text-xs">
                         {isSpanish ? 'Mira una campaña real desplegándose' : 'Watch a real campaign being deployed'}
                       </p>
                     </div>
                     
-                    <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-                      <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <BarChart3 className="h-8 w-8 text-white" />
+                    <div className="text-center bg-white/5 backdrop-blur-sm rounded-xl p-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
+                        <BarChart3 className="h-6 w-6 text-white" />
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">
+                      <h3 className="text-lg font-semibold text-white mb-1">
                         {isSpanish ? 'Resultados Reales' : 'Real Results'}
                       </h3>
-                      <p className="text-blue-100 text-sm drop-shadow-sm">
+                      <p className="text-white/80 text-xs">
                         {isSpanish ? 'Datos de clientes reales' : 'Real customer data'}
                       </p>
                     </div>
@@ -529,12 +529,12 @@ export default function Landing() {
 
                   {/* Play Button */}
                   <div className="relative">
-                    <div className="w-32 h-32 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-700 border-2 border-white/30 shadow-2xl">
-                      <div className="w-28 h-28 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500">
-                        <div className="w-0 h-0 border-l-[24px] border-l-white border-t-[18px] border-t-transparent border-b-[18px] border-b-transparent ml-2"></div>
+                    <div className="w-20 h-20 bg-white/15 backdrop-blur-xl rounded-full flex items-center justify-center group-hover:bg-white/25 transition-all duration-500 border border-white/20 shadow-xl">
+                      <div className="w-16 h-16 bg-gradient-to-r from-white to-gray-100 rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
+                        <div className="w-0 h-0 border-l-[16px] border-l-gray-800 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent ml-1"></div>
                       </div>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-brand-500/40 to-brand-600/40 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-700"></div>
+                    <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                   </div>
                 </div>
               </div>
