@@ -599,9 +599,7 @@ export default function Landing() {
                       +17
                     </div>
                   </div>
-                  <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10">
-                    <span className="text-white text-sm font-mono">2:14</span>
-                  </div>
+                  <span className="text-white/70 text-sm font-mono">2:14</span>
                 </div>
               </div>
             </div>
