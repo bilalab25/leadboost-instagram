@@ -393,72 +393,72 @@ export default function Landing() {
       </div>
 
       {/* Social Proof / Testimonials Section */}
-      <div className="py-24 bg-gradient-to-br from-gray-50/80 via-gray-25/60 to-white/95">
+      <div className="py-24 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16">
+            <h3 className="text-4xl font-bold text-gray-900 mb-6">
               {isSpanish ? 'Lo que dicen nuestros clientes' : 'What our customers say'}
             </h3>
-            <p className="text-gray-600 text-lg">
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               {isSpanish ? 'Resultados reales de empresas reales' : 'Real results from real companies'}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-gradient-to-br from-white/95 via-brand-25/50 to-brand-50/30 p-6 rounded-2xl shadow-xl border border-brand-200/40 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mr-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+              <div className="flex items-center mb-6">
+                <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
                   <span className="text-white font-bold text-lg">MG</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">María González</h4>
-                  <p className="text-gray-600 text-sm">CMO, TechStart</p>
+                  <h4 className="font-bold text-gray-900 text-lg">María González</h4>
+                  <p className="text-brand-600 text-sm font-medium">CMO, TechStart</p>
                 </div>
               </div>
-              <p className="text-gray-700 italic mb-4">
+              <p className="text-gray-700 italic mb-6 text-lg leading-relaxed">
                 "{isSpanish ? 'Redujimos el tiempo de lanzamiento de campañas de 3 días a 30 segundos. Increíble.' : 'We reduced campaign launch time from 3 days to 30 seconds. Incredible.'}"
               </p>
-              <div className="flex text-yellow-400">
+              <div className="flex text-yellow-500 text-xl">
                 {[...Array(5)].map((_, i) => (
                   <span key={i}>★</span>
                 ))}
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-white/95 via-brand-25/50 to-brand-50/30 p-6 rounded-2xl shadow-xl border border-brand-200/40 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
+            <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+              <div className="flex items-center mb-6">
+                <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
                   <span className="text-white font-bold text-lg">JS</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">James Smith</h4>
-                  <p className="text-gray-600 text-sm">Founder, GrowthCo</p>
+                  <h4 className="font-bold text-gray-900 text-lg">James Smith</h4>
+                  <p className="text-emerald-600 text-sm font-medium">Founder, GrowthCo</p>
                 </div>
               </div>
-              <p className="text-gray-700 italic mb-4">
+              <p className="text-gray-700 italic mb-6 text-lg leading-relaxed">
                 "{isSpanish ? 'Nuestro ROI en redes sociales aumentó 400% en el primer mes.' : 'Our social media ROI increased 400% in the first month.'}"
               </p>
-              <div className="flex text-yellow-400">
+              <div className="flex text-yellow-500 text-xl">
                 {[...Array(5)].map((_, i) => (
                   <span key={i}>★</span>
                 ))}
               </div>
             </div>
             
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 md:col-span-2 lg:col-span-1">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+            <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+              <div className="flex items-center mb-6">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
                   <span className="text-white font-bold text-lg">AL</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">Ana López</h4>
-                  <p className="text-gray-600 text-sm">CEO, DigitalBrand</p>
+                  <h4 className="font-bold text-gray-900 text-lg">Ana López</h4>
+                  <p className="text-purple-600 text-sm font-medium">CEO, DigitalBrand</p>
                 </div>
               </div>
-              <p className="text-gray-700 italic mb-4">
+              <p className="text-gray-700 italic mb-6 text-lg leading-relaxed">
                 "{isSpanish ? 'El sistema más inteligente que he usado. Ahora somos líderes en nuestro sector.' : 'The smartest system I have used. We are now leaders in our sector.'}"
               </p>
-              <div className="flex text-yellow-400">
+              <div className="flex text-yellow-500 text-xl">
                 {[...Array(5)].map((_, i) => (
                   <span key={i}>★</span>
                 ))}
