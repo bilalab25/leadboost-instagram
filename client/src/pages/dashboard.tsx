@@ -190,7 +190,7 @@ export default function Dashboard() {
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    Semanal
+                    Esta semana
                   </button>
                   <button 
                     onClick={() => setSelectedPeriod('monthly')}
@@ -200,7 +200,7 @@ export default function Dashboard() {
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    Mensual
+                    Este mes
                   </button>
                   <button 
                     onClick={() => setSelectedPeriod('daily')}
@@ -210,7 +210,7 @@ export default function Dashboard() {
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    Diario
+                    Hoy
                   </button>
                 </div>
               </div>
