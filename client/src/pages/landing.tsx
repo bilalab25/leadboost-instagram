@@ -63,6 +63,49 @@ export default function Landing() {
                 : 'Boost your presence across 21+ platforms — complete campaigns built from your business data, in one click.'}
             </p>
             
+            {/* Waterfall Demo Video Mockup */}
+            <div className="mb-12">
+              <Card className="bg-gray-900 rounded-3xl shadow-2xl border border-gray-700 max-w-5xl mx-auto overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                    {/* Video mockup background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-600/10 to-cyan-400/10"></div>
+                    
+                    {/* Play button and content */}
+                    <div className="relative z-10 text-center text-white">
+                      <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4 mx-auto hover:bg-white/30 transition-colors cursor-pointer">
+                        <div className="w-0 h-0 border-l-[16px] border-l-white border-y-[12px] border-y-transparent ml-1"></div>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-2">
+                        {isSpanish ? 'Ve el Sistema Waterfall en Acción' : 'See the Waterfall System in Action'}
+                      </h3>
+                      <p className="text-white/80 text-lg">
+                        {isSpanish 
+                          ? 'Mira cómo una campaña se convierte en 21+ publicaciones perfectas'
+                          : 'Watch how one campaign becomes 21+ perfect posts'}
+                      </p>
+                      <div className="mt-4 text-sm text-white/60">
+                        {isSpanish ? '⏱️ 2 minutos • Demo interactiva' : '⏱️ 2 minutes • Interactive demo'}
+                      </div>
+                    </div>
+                    
+                    {/* Floating platform icons as preview */}
+                    <div className="absolute top-4 right-4 flex space-x-2 opacity-50">
+                      <div className="w-6 h-6 bg-pink-500 rounded flex items-center justify-center">
+                        <SiInstagram className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="w-6 h-6 bg-gray-900 rounded flex items-center justify-center">
+                        <SiTiktok className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                        <SiFacebook className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* The Waterfall Visual Flow */}
             <div className="mb-16">
               <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto">
