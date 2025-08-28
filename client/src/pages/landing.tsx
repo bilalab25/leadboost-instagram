@@ -178,7 +178,7 @@ export default function Landing() {
               
               <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-purple-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
                 <CardContent className="pt-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <div className="w-20 h-20 bg-gradient-to-br from-rose-500 to-pink-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
                     <Target className="h-10 w-10 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -189,7 +189,7 @@ export default function Landing() {
                       ? 'Stories, posts, emails, threads — dimensionados al instante.'
                       : 'Stories, posts, emails, threads — sized instantly.'}
                   </p>
-                  <div className="mt-6 text-teal-600 font-bold text-3xl">
+                  <div className="mt-6 text-rose-600 font-bold text-3xl">
                     21+
                   </div>
                 </CardContent>
