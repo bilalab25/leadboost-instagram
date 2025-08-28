@@ -150,9 +150,6 @@ export default function Dashboard() {
               <div className="mb-8">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm text-brand-600 font-medium mb-1">
-                      Estética y Bienestar • Medicina Estética
-                    </div>
                     <h1 className="text-3xl font-bold text-gray-900">
                       {t.dashboard.welcomeBack}, {user?.firstName || 'Usuario'}!
                     </h1>
