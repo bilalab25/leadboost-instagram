@@ -220,7 +220,7 @@ export default function Dashboard() {
                           <div className="flex items-center mb-4">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 mr-3"></div>
                             <h3 className="text-lg font-medium text-gray-600">
-                              Crecimiento de Ventas
+                              Tus Ventas
                             </h3>
                           </div>
                           <div className="text-6xl font-bold text-green-600 mb-3">
