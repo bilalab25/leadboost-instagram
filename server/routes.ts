@@ -36,7 +36,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return Said's user profile
       const mockUser = {
         id: "demo-user",
-        email: "said@renuve.com",
+        email: "said@renuvederm.com",
         firstName: "Said",
         lastName: "Renuve",
         profileImageUrl: null,
@@ -221,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         responseTime: "45 minutes",
         engagementRate: 8.7,
         aiPosts: 203,
-        revenue: 245600
+        revenue: 100000
       };
       res.json(mockStats);
     } catch (error) {
@@ -238,7 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: "social-1",
           platform: "instagram",
-          accountName: "@renuveaesthetics",
+          accountName: "@renuvederm",
           accountId: "12345",
           isConnected: true,
           followers: 28500,
@@ -256,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: "social-3",
           platform: "tiktok",
-          accountName: "@renuvebeauty",
+          accountName: "@renuveskin",
           accountId: "54321",
           isConnected: true,
           followers: 45200,
@@ -283,7 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: "social-6",
           platform: "instagram",
-          accountName: "@renuveskincare",
+          accountName: "@renuveskin",
           accountId: "11223",
           isConnected: true,
           followers: 22100,
