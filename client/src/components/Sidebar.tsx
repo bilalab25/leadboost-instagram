@@ -85,11 +85,13 @@ export default function Sidebar() {
       <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white border-r border-gray-200">
         {/* Logo */}
         <div className="flex items-center justify-center flex-shrink-0 px-6">
-          <img 
-            src={leadBoostLogo} 
-            alt="LeadBoost Logo" 
-            className="max-h-16 max-w-full object-contain"
-          />
+          <Link href="/">
+            <img 
+              src={leadBoostLogo} 
+              alt="LeadBoost Logo" 
+              className="max-h-16 max-w-full object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            />
+          </Link>
         </div>
         
         {/* Brand Switcher */}
