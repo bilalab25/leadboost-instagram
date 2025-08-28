@@ -219,9 +219,9 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 mb-8">
                 {/* Revenue - Takes 3 columns for maximum importance */}
                 <div className="lg:col-span-3">
-                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-50 via-white to-brand-25 border border-brand-100 shadow-sm">
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-50 via-white to-brand-25 border border-brand-100 shadow-sm h-full">
                     <div className="absolute inset-0 bg-gradient-to-br from-brand-600/5 to-transparent"></div>
-                    <div className="relative p-8">
+                    <div className="relative p-8 h-full flex flex-col justify-center">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center mb-4">
