@@ -70,13 +70,25 @@ export default function Landing() {
         {/* The Waterfall Visual Flow */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-16">
-            <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto">
-              <CardContent className="p-8 lg:p-12">
+            <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto waterfall-container">
+              {/* Animated Waterfall Particles */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+              </div>
+              <CardContent className="p-8 lg:p-12 relative z-10">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                     
                     {/* ONE IDEA */}
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                      <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg waterfall-pulse">
                         <Target className="h-12 w-12 text-white" />
                       </div>
                       <h3 className="text-3xl font-black text-emerald-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
