@@ -644,8 +644,8 @@ export default function Landing() {
           </h2>
           <p className="text-xl text-blue-100 mb-8">
             {isSpanish 
-              ? 'LeadBoost es el motor impulsado por IA y respaldado por datos que impulsa el crecimiento a largo plazo de tu marca.'
-              : 'LeadBoost is the AI-powered, data-backed engine driving your brand\'s long-term growth.'}
+              ? 'Está en todas partes donde tu audiencia navega — con un clic.'
+              : 'Be everywhere your audience scrolls — with one click.'}
           </p>
           <Button 
             size="lg" 
