@@ -300,7 +300,7 @@ export default function Dashboard() {
               </div>
               
               {/* POS Connection Banner - Only show if POS not connected */}
-              {!user?.posConnected && (
+              {false && (
                 <div className="mb-6">
                   <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-brand-50 to-purple-50 border border-brand-100 p-4">
                     <div className="flex items-center justify-between">
