@@ -215,36 +215,56 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              {/* Revenue and Campaigns - Revenue Priority */}
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">
-                {/* Revenue - Takes 2 columns for more importance */}
-                <div className="sm:col-span-2">
-                  <StatsCard
-                    title={(() => {
-                      if (selectedPeriod === 'weekly') return 'Ingresos Semanales';
-                      if (selectedPeriod === 'monthly') return 'Ingresos Mensuales';
-                      if (selectedPeriod === 'daily') return 'Ingresos Diarios';
-                      return 'Ingresos Semanales';
-                    })()}
-                    value={`$${(() => {
-                      const baseRevenue = stats?.revenue || 100000;
-                      if (selectedPeriod === 'weekly') return Math.round(baseRevenue / 4.33).toLocaleString();
-                      if (selectedPeriod === 'monthly') return baseRevenue.toLocaleString();
-                      if (selectedPeriod === 'daily') return Math.round(baseRevenue / 30).toLocaleString();
-                      return Math.round(baseRevenue / 4.33).toLocaleString();
-                    })()}`}
-                    change={(() => {
-                      if (selectedPeriod === 'weekly') return '+12% esta semana';
-                      if (selectedPeriod === 'monthly') return '+8% este mes';
-                      if (selectedPeriod === 'daily') return '+5% hoy';
-                      return '+12% esta semana';
-                    })()}
-                    changeType="increase"
-                    icon="dollar"
-                    loading={statsLoading}
-                  />
+              {/* Revenue and Campaigns - Revenue Prominence */}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 mb-8">
+                {/* Revenue - Takes 3 columns for maximum importance */}
+                <div className="lg:col-span-3">
+                  <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-lg">
+                    <CardContent className="p-8">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-3">
+                            <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mr-4">
+                              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                              </svg>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-700">
+                              {(() => {
+                                if (selectedPeriod === 'weekly') return 'Ingresos Semanales';
+                                if (selectedPeriod === 'monthly') return 'Ingresos Mensuales';
+                                if (selectedPeriod === 'daily') return 'Ingresos Diarios';
+                                return 'Ingresos Semanales';
+                              })()}
+                            </h3>
+                          </div>
+                          <div className="text-5xl font-bold text-gray-900 mb-3">
+                            ${(() => {
+                              const baseRevenue = stats?.revenue || 100000;
+                              if (selectedPeriod === 'weekly') return Math.round(baseRevenue / 4.33).toLocaleString();
+                              if (selectedPeriod === 'monthly') return baseRevenue.toLocaleString();
+                              if (selectedPeriod === 'daily') return Math.round(baseRevenue / 30).toLocaleString();
+                              return Math.round(baseRevenue / 4.33).toLocaleString();
+                            })()}
+                          </div>
+                          <div className="flex items-center text-green-600 text-lg font-semibold">
+                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
+                            {(() => {
+                              if (selectedPeriod === 'weekly') return '+12% esta semana';
+                              if (selectedPeriod === 'monthly') return '+8% este mes';
+                              if (selectedPeriod === 'daily') return '+5% hoy';
+                              return '+12% esta semana';
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-                {/* Campaigns - Takes 1 column */}
+                
+                {/* Campaigns - Takes 1 column, much smaller */}
                 <div>
                   <StatsCard
                     title={(() => {
