@@ -53,7 +53,7 @@ export default function Landing() {
                 {isSpanish ? 'Sistema Waterfall' : 'The Waterfall System'}
               </h2>
               <div className="text-3xl lg:text-4xl font-bold text-brand-600 mb-6">
-                {isSpanish ? 'Tu marca → Todos lados' : 'Your brand → Everywhere'}
+                {isSpanish ? 'Tu marca → En todos lados' : 'Your brand → Everywhere'}
               </div>
             </div>
             
@@ -113,7 +113,7 @@ export default function Landing() {
                           +21
                         </div>
                       </div>
-                      <h3 className="text-3xl font-black text-purple-600 mb-2">{isSpanish ? 'TODOS LADOS' : 'EVERYWHERE'}</h3>
+                      <h3 className="text-3xl font-black text-purple-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? '21+ Plataformas' : '21+ Platforms'}</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Formato perfecto automático' : 'Perfect format automatically'}</p>
                     </div>
