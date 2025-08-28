@@ -74,15 +74,15 @@ export default function BrandSwitcher() {
           </Avatar>
           
           <div className="flex flex-col items-start flex-1 min-w-0">
+            {selectedBrand?.industry && (
+              <span className="text-xs text-brand-600 mb-0.5">
+                {selectedBrand.industry}
+              </span>
+            )}
             <div className="flex items-center space-x-2 w-full">
               <span className="text-sm font-medium truncate">
                 {selectedBrand?.name || 'Select Brand'}
               </span>
-              {selectedBrand?.industry && (
-                <Badge variant="secondary" className="text-xs">
-                  {selectedBrand.industry}
-                </Badge>
-              )}
             </div>
             {brands.length > 1 && (
               <span className="text-xs text-muted-foreground">
