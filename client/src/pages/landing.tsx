@@ -440,15 +440,15 @@ export default function Landing() {
       </div>
 
       {/* Demo Video Section */}
-      <div className="py-20 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative rounded-3xl overflow-hidden shadow-3xl bg-black max-w-5xl mx-auto border border-gray-800">
+      <div className="py-0 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50">
+        <div className="max-w-full mx-auto">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-black">
             {/* Video Mockup Container */}
-            <div className="relative aspect-video bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+            <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-900 via-slate-800 to-black">
               {/* Video Content Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60 cursor-pointer group transition-all duration-500 hover:from-black/70 hover:via-black/50 hover:to-black/70" data-testid="video-play-button">
+              <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-transparent to-black/50 cursor-pointer group transition-all duration-700 hover:from-black/60 hover:via-black/20 hover:to-black/60" data-testid="video-play-button">
                 {/* Content Container */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 py-12">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-12 py-16 max-w-7xl mx-auto">
                   {/* Title Section */}
                   <div className="mb-8">
                     <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
@@ -502,12 +502,12 @@ export default function Landing() {
 
                   {/* Play Button */}
                   <div className="relative">
-                    <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 border border-white/20">
-                      <div className="w-20 h-20 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <div className="w-0 h-0 border-l-[20px] border-l-white border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent ml-1"></div>
+                    <div className="w-32 h-32 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-700 border-2 border-white/30 shadow-2xl">
+                      <div className="w-28 h-28 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                        <div className="w-0 h-0 border-l-[24px] border-l-white border-t-[18px] border-t-transparent border-b-[18px] border-b-transparent ml-2"></div>
                       </div>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-brand-500/30 to-brand-600/30 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-500/40 to-brand-600/40 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-700"></div>
                   </div>
                 </div>
               </div>
