@@ -338,7 +338,7 @@ export default function Landing() {
       </div>
 
       {/* Final CTA */}
-      <div className="py-20 bg-gradient-to-r from-blue-700 via-brand-600 to-blue-500">
+      <div className="py-20 bg-gradient-to-r from-brand-700 to-blue-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
