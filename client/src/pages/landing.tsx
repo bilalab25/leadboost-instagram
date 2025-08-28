@@ -393,7 +393,7 @@ export default function Landing() {
       </div>
 
       {/* Social Proof / Testimonials Section */}
-      <div className="py-24 bg-gradient-to-br from-brand-100/60 via-brand-50/70 to-white">
+      <div className="py-24 bg-gradient-to-br from-gray-50/80 via-gray-25/60 to-white/95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">
