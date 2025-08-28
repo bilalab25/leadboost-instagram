@@ -53,9 +53,15 @@
   
   /* Brand colors from design */
   --brand-50: hsl(218, 63%, 97%);
+  --brand-100: hsl(218, 63%, 94%);
+  --brand-200: hsl(218, 63%, 88%);
+  --brand-300: hsl(218, 63%, 80%);
+  --brand-400: hsl(218, 63%, 70%);
   --brand-500: hsl(218, 63%, 60%);
   --brand-600: hsl(218, 63%, 54%);
   --brand-700: hsl(218, 63%, 46%);
+  --brand-800: hsl(218, 63%, 38%);
+  --brand-900: hsl(218, 63%, 30%);
 }
 
 .dark {
