@@ -40,6 +40,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: "Said",
         lastName: "Renuve",
         profileImageUrl: null,
+        posConnected: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
