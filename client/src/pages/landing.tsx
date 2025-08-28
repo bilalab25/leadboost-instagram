@@ -145,7 +145,7 @@ export default function Landing() {
                   <div className="mt-12 text-center">
                     <Button 
                       size="lg" 
-                      className="bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 hover:from-brand-600 hover:via-brand-700 hover:to-brand-900 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-3xl transition-all duration-300 transform hover:scale-105"
+                      className="bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-3xl transition-all duration-300 transform hover:scale-105"
                     >
                       <Zap className="mr-3 h-6 w-6" />
                       {isSpanish ? 'Crear Campaña Waterfall' : 'Create Waterfall Campaign'}
