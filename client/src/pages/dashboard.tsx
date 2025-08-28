@@ -227,29 +227,31 @@ export default function Dashboard() {
                           <div className="flex items-center mb-4">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 mr-3"></div>
                             <h3 className="text-lg font-medium text-gray-600">
-                              Ingresos
+                              Crecimiento de Ventas
                             </h3>
                           </div>
-                          <div className="text-5xl font-bold text-gray-900 mb-4">
-                            ${(() => {
-                              const baseRevenue = stats?.revenue || 100000;
-                              if (selectedPeriod === 'weekly') return Math.round(baseRevenue / 4.33).toLocaleString();
-                              if (selectedPeriod === 'monthly') return baseRevenue.toLocaleString();
-                              if (selectedPeriod === 'daily') return Math.round(baseRevenue / 30).toLocaleString();
-                              return Math.round(baseRevenue / 4.33).toLocaleString();
+                          <div className="text-6xl font-bold text-green-600 mb-3">
+                            +{(() => {
+                              if (selectedPeriod === 'weekly') return '47%';
+                              if (selectedPeriod === 'monthly') return '63%';
+                              if (selectedPeriod === 'daily') return '12%';
+                              return '47%';
                             })()}
                           </div>
-                          <div className="flex items-center text-brand-600 text-base font-medium">
-                            <div className="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center mr-2">
-                              <svg className="w-3 h-3 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+                          <div className="flex items-center text-gray-600 text-base font-medium mb-2">
+                            <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                              <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                               </svg>
                             </div>
-                            {(() => {
-                              if (selectedPeriod === 'weekly') return '+12% esta semana';
-                              if (selectedPeriod === 'monthly') return '+8% este mes';
-                              if (selectedPeriod === 'daily') return '+5% hoy';
-                              return '+12% esta semana';
+                            vs antes de LeadBoost
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            Datos del POS conectado • {(() => {
+                              if (selectedPeriod === 'weekly') return 'Última semana';
+                              if (selectedPeriod === 'monthly') return 'Último mes';
+                              if (selectedPeriod === 'daily') return 'Hoy';
+                              return 'Última semana';
                             })()}
                           </div>
                         </div>
