@@ -11,22 +11,16 @@ export default function Landing() {
   const t = translations[language];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-100 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-brand-200/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-96 h-96 bg-cyan-200/20 rounded-full blur-3xl animate-bounce" style={{animationDelay: '2s', animationDuration: '4s'}}></div>
-        <div className="absolute bottom-20 left-1/3 w-64 h-64 bg-blue-200/25 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-100">
       {/* Header */}
-      <header className="relative z-50 backdrop-blur-sm bg-white/80 border-b border-brand-100/50">
+      <header className="relative z-50 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-1">
             <div className="flex items-center space-x-3">
               <img 
                 src={leadBoostLogo} 
                 alt="LeadBoost Logo" 
-                className="h-[366px] w-auto object-contain transform hover:scale-105 transition-all duration-300 drop-shadow-xl animate-float"
+                className="h-[366px] w-auto object-contain"
                 style={{ backgroundColor: 'transparent' }}
               />
             </div>
@@ -49,19 +43,16 @@ export default function Landing() {
 
       {/* Waterfall Hero Section - THE CENTERPIECE */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-600/5 to-brand-500/5" />
-        {/* Floating animated elements */}
-        <div className="absolute top-10 right-10 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-xl animate-float"></div>
-        <div className="absolute bottom-20 left-10 w-24 h-24 bg-gradient-to-br from-brand-400/30 to-brand-600/30 rounded-full blur-lg animate-float" style={{animationDelay: '1.5s'}}></div>
+        <div className="absolute inset-0 bg-brand-50/50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           
           {/* Main Waterfall Value Proposition */}
           <div className="text-center mb-16">
             <div className="mb-8">
-              <h2 className="text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight animate-gradient-x">
+              <h2 className="text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight">
                 {isSpanish ? 'Sistema Waterfall' : 'The Waterfall System'}
               </h2>
-              <div className="text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-6 animate-sparkle">
+              <div className="text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-6">
                 {isSpanish ? 'Tu marca → En todos lados' : 'Your brand → Everywhere'}
               </div>
             </div>
@@ -74,55 +65,51 @@ export default function Landing() {
             
             {/* The Waterfall Visual Flow */}
             <div className="mb-16">
-              <Card className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl border border-gray-100 max-w-6xl mx-auto transform hover:scale-[1.02] transition-all duration-500 hover:shadow-3xl relative overflow-hidden hover-lift">
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-50/50 to-cyan-50/50 rounded-3xl"></div>
-                <CardContent className="p-8 lg:p-12 relative z-10">
+              <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto">
+                <CardContent className="p-8 lg:p-12">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                     
                     {/* ONE IDEA */}
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-110 transition-all duration-300 hover:shadow-green-500/50 hover:shadow-xl animate-glow">
+                      <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <Target className="h-12 w-12 text-white" />
                       </div>
-                      <h3 className="text-3xl font-black text-green-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
+                      <h3 className="text-3xl font-black text-emerald-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
                       <p className="text-gray-600 font-medium">"{isSpanish ? 'Lanzar producto nuevo' : 'Launch new product'}"</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Solo describe tu campaña' : 'Just describe your campaign'}</p>
                     </div>
                     
-                    {/* ANIMATED ARROW */}
+                    {/* ARROW */}
                     <div className="flex justify-center">
-                      <div className="relative">
-                        <ArrowRight className="h-8 w-8 text-brand-400 hidden lg:block animate-bounce" />
-                        <ArrowDown className="h-8 w-8 text-brand-400 lg:hidden animate-bounce" />
-                        <div className="absolute inset-0 bg-brand-400/20 rounded-full blur-lg animate-ping"></div>
-                      </div>
+                      <ArrowRight className="h-8 w-8 text-brand-400 hidden lg:block" />
+                      <ArrowDown className="h-8 w-8 text-brand-400 lg:hidden" />
                     </div>
                     
                     {/* EVERYWHERE */}
                     <div className="text-center">
-                      <div className="grid grid-cols-4 gap-2 mb-4 max-w-48 mx-auto animate-float">
-                        <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center transform hover:scale-110 transition-all duration-200 hover:shadow-lg hover:shadow-pink-500/50 cursor-pointer hover-lift">
+                      <div className="grid grid-cols-4 gap-2 mb-4 max-w-48 mx-auto">
+                        <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
                           <SiInstagram className="h-6 w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center transform hover:scale-110 transition-all duration-200 hover:shadow-lg hover:shadow-gray-800/50 cursor-pointer hover-lift">
+                        <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
                           <SiTiktok className="h-6 w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center transform hover:scale-110 transition-all duration-200 hover:shadow-lg hover:shadow-blue-600/50 cursor-pointer hover-lift">
+                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                           <SiFacebook className="h-6 w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center transform hover:scale-110 transition-all duration-200 hover:shadow-lg hover:shadow-green-500/50 cursor-pointer hover-lift">
+                        <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
                           <SiWhatsapp className="h-6 w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-blue-700 rounded-lg flex items-center justify-center transform hover:scale-110 transition-all duration-200 hover:shadow-lg hover:shadow-blue-700/50 cursor-pointer hover-lift">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
                           <SiLinkedin className="h-6 w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center transform hover:scale-110 transition-all duration-200 hover:shadow-lg hover:shadow-red-600/50 cursor-pointer hover-lift">
+                        <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
                           <SiYoutube className="h-6 w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center transform hover:scale-110 transition-all duration-200 hover:shadow-lg hover:shadow-gray-800/50 cursor-pointer hover-lift">
+                        <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center">
                           <SiX className="h-6 w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xs transform hover:scale-110 transition-all duration-200 hover:shadow-lg hover:shadow-brand-500/50 cursor-pointer animate-sparkle hover-lift">
+                        <div className="w-10 h-10 bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
                           +21
                         </div>
                       </div>
@@ -135,9 +122,8 @@ export default function Landing() {
                   <div className="mt-12 text-center">
                     <Button 
                       size="lg" 
-                      className="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white px-12 py-4 text-xl font-bold shadow-2xl transform hover:scale-110 transition-all duration-300 hover:shadow-brand-500/50 rounded-2xl relative overflow-hidden group hover-lift animate-glow"
+                      className="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white px-12 py-4 text-xl font-bold shadow-lg rounded-2xl"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-brand-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                       <Zap className="mr-3 h-6 w-6" />
                       {isSpanish ? 'Crear Campaña Waterfall' : 'Create Waterfall Campaign'}
                     </Button>
