@@ -33,12 +33,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes (Demo mode - no authentication required)
   app.get('/api/auth/user', async (req: any, res) => {
     try {
-      // Return mock user for demo
+      // Return Said's user profile
       const mockUser = {
         id: "demo-user",
-        email: "demo@leadboost.com",
-        firstName: "Demo",
-        lastName: "User",
+        email: "said@renuve.com",
+        firstName: "Said",
+        lastName: "Renuve",
         profileImageUrl: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -53,25 +53,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Brand management routes
   app.get('/api/brands', async (req: any, res) => {
     try {
-      // Return mock brands for demo in Spanish
+      // Return Said's Renuve brands
       const mockBrands = [
         {
           id: "brand-1",
-          name: "Mi Empresa Principal",
-          description: "La marca principal de nuestra empresa",
-          industry: "Tecnología",
-          targetAudience: "Profesionales jóvenes",
-          website: "https://miempresa.com",
+          name: "Renuve Aesthetics Bar",
+          description: "Premier beauty clinic offering advanced aesthetic treatments",
+          industry: "Beauty & Wellness",
+          targetAudience: "Beauty-conscious clients seeking aesthetic enhancement",
+          website: "https://renuveaesthetics.com",
           logoUrl: null,
           createdAt: new Date().toISOString()
         },
         {
           id: "brand-2",
-          name: "Secundaria Corp",
-          description: "Marca secundaria para productos especializados",
-          industry: "E-commerce",
-          targetAudience: "Consumidores generales",
-          website: "https://secundaria.com",
+          name: "Renuve Plastic Surgery",
+          description: "Expert plastic surgery practice with cutting-edge procedures",
+          industry: "Medical & Plastic Surgery",
+          targetAudience: "Clients seeking surgical aesthetic solutions",
+          website: "https://renuveplasticsurgery.com",
+          logoUrl: null,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: "brand-3",
+          name: "Renuve Skin Care",
+          description: "Premium skincare products and treatments",
+          industry: "Skincare & Cosmetics",
+          targetAudience: "Individuals focused on premium skincare routines",
+          website: "https://renuveskincare.com",
           logoUrl: null,
           createdAt: new Date().toISOString()
         }
@@ -199,19 +209,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats (Demo mode)
   app.get('/api/dashboard/stats', async (req: any, res) => {
     try {
-      // Return mock dashboard stats with Spanish data
+      // Return Said's Renuve dashboard stats
       const mockStats = {
-        totalMessages: 1847,
-        unreadMessages: 34,
-        totalCampaigns: 23,
-        activeCampaigns: 12,
-        totalSocialAccounts: 8,
-        connectedPlatforms: ["instagram", "facebook", "tiktok", "whatsapp", "email", "linkedin", "youtube", "telegram"],
-        monthlyEngagement: 25840,
-        responseTime: "1.8 horas",
-        engagementRate: 6.4,
-        aiPosts: 156,
-        revenue: 89500
+        totalMessages: 2134,
+        unreadMessages: 42,
+        totalCampaigns: 28,
+        activeCampaigns: 15,
+        totalSocialAccounts: 6,
+        connectedPlatforms: ["instagram", "facebook", "tiktok", "whatsapp", "email", "linkedin"],
+        monthlyEngagement: 38200,
+        responseTime: "45 minutes",
+        engagementRate: 8.7,
+        aiPosts: 203,
+        revenue: 245600
       };
       res.json(mockStats);
     } catch (error) {
@@ -223,42 +233,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Social accounts routes
   app.get('/api/social-accounts', async (req: any, res) => {
     try {
-      // Return mock social accounts for demo in Spanish
+      // Return Said's Renuve social accounts
       const mockAccounts = [
         {
           id: "social-1",
           platform: "instagram",
-          accountName: "@MiEmpresa",
+          accountName: "@renuveaesthetics",
           accountId: "12345",
           isConnected: true,
-          followers: 15420,
+          followers: 28500,
           lastSync: new Date().toISOString()
         },
         {
           id: "social-2", 
           platform: "facebook",
-          accountName: "Mi Empresa Facebook",
+          accountName: "Renuve Aesthetics Bar",
           accountId: "67890",
           isConnected: true,
-          followers: 8930,
+          followers: 12400,
           lastSync: new Date().toISOString()
         },
         {
           id: "social-3",
           platform: "tiktok",
-          accountName: "@miempresa_oficial",
+          accountName: "@renuvebeauty",
           accountId: "54321",
           isConnected: true,
-          followers: 22100,
+          followers: 45200,
           lastSync: new Date().toISOString()
         },
         {
           id: "social-4",
           platform: "whatsapp",
-          accountName: "Mi Empresa WhatsApp",
+          accountName: "Renuve Aesthetics WhatsApp",
           accountId: "business-123",
           isConnected: true,
           followers: 0,
+          lastSync: new Date().toISOString()
+        },
+        {
+          id: "social-5",
+          platform: "instagram",
+          accountName: "@renuveplasticsurgery",
+          accountId: "98765",
+          isConnected: true,
+          followers: 18700,
+          lastSync: new Date().toISOString()
+        },
+        {
+          id: "social-6",
+          platform: "instagram",
+          accountName: "@renuveskincare",
+          accountId: "11223",
+          isConnected: true,
+          followers: 22100,
           lastSync: new Date().toISOString()
         }
       ];
@@ -315,13 +343,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           senderId: "maria_gonzalez",
           senderName: "María González",
           senderAvatar: null,
-          content: "¡Hola! ¡Me encanta su nueva línea de productos! ¿Cuándo estará disponible la versión azul? 💙",
+          content: "¡Hola! ¡Me encanta los resultados de mi último tratamiento facial! ¿Cuándo pueden agendar mi próxima cita? 💆‍♀️",
           priority: "high",
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
           socialAccount: {
             platform: "instagram",
-            accountName: "@MiEmpresa"
+            accountName: "@renuveaesthetics"
           }
         },
         {
@@ -329,13 +357,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           senderId: "carlos_rivera",
           senderName: "Carlos Rivera",
           senderAvatar: null,
-          content: "¿Pueden ayudarme con mi pedido reciente? El rastreo muestra que está atascado en tránsito y lo necesito para el evento de mañana. Pedido #12345",
+          content: "¿Pueden ayudarme con mi cita de cirugía plástica? Necesito confirmar los detalles pre-operatorios para mi procedimiento de la próxima semana. Cita #12345",
           priority: "urgent",
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 32).toISOString(),
           socialAccount: {
             platform: "facebook",
-            accountName: "Mi Empresa Facebook"
+            accountName: "Renuve Aesthetics Bar"
           }
         },
         {
@@ -349,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
           socialAccount: {
             platform: "tiktok", 
-            accountName: "@miempresa_oficial"
+            accountName: "@renuvebeauty"
           }
         },
         {
@@ -357,7 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           senderId: "diego_morales",
           senderName: "Diego Morales", 
           senderAvatar: null,
-          content: "Hola, vi su anuncio en Facebook y estoy interesado en su paquete premium. ¿Podrían enviarme más detalles e información de precios?",
+          content: "Hola, vi su anuncio en Facebook sobre el paquete de rejuvenecimiento facial. ¿Podrían enviarme más detalles e información de precios?",
           priority: "high",
           isRead: false,
           createdAt: new Date(Date.now() - 1000 * 60 * 58).toISOString(),
