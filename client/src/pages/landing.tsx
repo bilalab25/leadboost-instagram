@@ -213,7 +213,7 @@ export default function Landing() {
             </div>
             
             {/* Social Proof / Testimonials Section */}
-            <div className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-12 mb-16 border border-gray-200">
+            <div className="bg-gradient-to-br from-brand-100/60 via-brand-50/70 to-white rounded-3xl p-12 mb-16 border border-brand-200/40">
               <div className="text-center mb-12">
                 <h3 className="text-3xl font-bold text-gray-900 mb-4">
                   {isSpanish ? 'Lo que dicen nuestros clientes' : 'What our customers say'}
@@ -289,7 +289,7 @@ export default function Landing() {
         </div>
       </div>
 
-      <div className="py-24 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 relative">
+      <div className="py-24 bg-gradient-to-br from-brand-200/50 via-brand-300/40 to-brand-200/60 relative">
         {/* Subtle background pattern */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-brand-200/20 to-purple-200/20 rounded-full blur-3xl"></div>
@@ -446,9 +446,9 @@ export default function Landing() {
       </div>
 
       {/* Demo Video Section */}
-      <div className="py-0 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50">
+      <div className="py-0 bg-gradient-to-br from-brand-300/60 via-brand-400/50 to-brand-300/70">
         <div className="max-w-full mx-auto">
-          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+          <div className="relative overflow-hidden bg-gradient-to-br from-brand-800 via-brand-700 to-brand-900">
             {/* Video Mockup Container */}
             <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-900 via-slate-800 to-black">
               {/* Video Content Overlay */}
@@ -588,7 +588,7 @@ export default function Landing() {
       </div>
 
       {/* Final CTA */}
-      <div className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 via-brand-700 via-brand-600 to-brand-500">
+      <div className="py-24 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
