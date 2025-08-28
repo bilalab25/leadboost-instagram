@@ -595,7 +595,7 @@ export default function Landing() {
             {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
           </Button>
           <p className="text-blue-100 mt-4">
-            {isSpanish ? '✓ 14 días gratis ✓ Sin compromiso ✓ Soporte 24/7' : '✓ 14 days free ✓ No commitment ✓ 24/7 support'}
+            {isSpanish ? '✓ 30 días gratis ✓ Sin compromiso ✓ Soporte 24/7' : '✓ 30 days free ✓ No commitment ✓ 24/7 support'}
           </p>
         </div>
       </div>
