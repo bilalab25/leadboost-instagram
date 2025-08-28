@@ -179,12 +179,12 @@ export default function Landing() {
                     <Target className="h-10 w-10 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? 'Formato Perfecto' : 'Perfect Format'}
+                    {isSpanish ? 'Auto-Dimensionado' : 'Auto-Sizing'}
                   </h3>
                   <p className="text-gray-600">
                     {isSpanish 
-                      ? 'Cada plataforma recibe el contenido en su tamaño y formato ideal.'
-                      : 'Each platform gets content in its ideal size and format.'}
+                      ? 'Stories, posts, emails, threads — dimensionados al instante.'
+                      : 'Stories, posts, emails, threads — sized instantly.'}
                   </p>
                   <div className="mt-6 text-purple-600 font-bold text-3xl">
                     21+
