@@ -155,80 +155,6 @@ export default function Landing() {
               </Card>
             </div>
             
-            {/* Social Proof / Testimonials Section */}
-            <div className="bg-gradient-to-br from-brand-100/60 via-brand-50/70 to-white rounded-3xl p-12 mb-16 border border-brand-200/40">
-              <div className="text-center mb-12">
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                  {isSpanish ? 'Lo que dicen nuestros clientes' : 'What our customers say'}
-                </h3>
-                <p className="text-gray-600 text-lg">
-                  {isSpanish ? 'Resultados reales de empresas reales' : 'Real results from real companies'}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="bg-gradient-to-br from-white/95 via-brand-25/50 to-brand-50/30 p-6 rounded-2xl shadow-xl border border-brand-200/40 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mr-4">
-                      <span className="text-white font-bold text-lg">MG</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">María González</h4>
-                      <p className="text-gray-600 text-sm">CMO, TechStart</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 italic mb-4">
-                    "{isSpanish ? 'Redujimos el tiempo de lanzamiento de campañas de 3 días a 30 segundos. Increíble.' : 'We reduced campaign launch time from 3 days to 30 seconds. Incredible.'}"
-                  </p>
-                  <div className="flex text-yellow-400">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i}>★</span>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-white/95 via-brand-25/50 to-brand-50/30 p-6 rounded-2xl shadow-xl border border-brand-200/40 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
-                      <span className="text-white font-bold text-lg">JS</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">James Smith</h4>
-                      <p className="text-gray-600 text-sm">Founder, GrowthCo</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 italic mb-4">
-                    "{isSpanish ? 'Nuestro ROI en redes sociales aumentó 400% en el primer mes.' : 'Our social media ROI increased 400% in the first month.'}"
-                  </p>
-                  <div className="flex text-yellow-400">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i}>★</span>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 md:col-span-2 lg:col-span-1">
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
-                      <span className="text-white font-bold text-lg">AL</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Ana López</h4>
-                      <p className="text-gray-600 text-sm">CEO, DigitalBrand</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 italic mb-4">
-                    "{isSpanish ? 'El sistema más inteligente que he usado. Ahora somos líderes en nuestro sector.' : 'The smartest system I have used. We are now leaders in our sector.'}"
-                  </p>
-                  <div className="flex text-yellow-400">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i}>★</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
             {/* Enhanced Benefits Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
               <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-emerald-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
@@ -462,6 +388,82 @@ export default function Landing() {
                 <li>• {isSpanish ? 'Cultura local IA' : 'Local culture AI'}</li>
               </ul>
             </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Social Proof / Testimonials Section */}
+      <div className="py-24 bg-gradient-to-br from-brand-100/60 via-brand-50/70 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+              {isSpanish ? 'Lo que dicen nuestros clientes' : 'What our customers say'}
+            </h3>
+            <p className="text-gray-600 text-lg">
+              {isSpanish ? 'Resultados reales de empresas reales' : 'Real results from real companies'}
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-gradient-to-br from-white/95 via-brand-25/50 to-brand-50/30 p-6 rounded-2xl shadow-xl border border-brand-200/40 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-white font-bold text-lg">MG</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">María González</h4>
+                  <p className="text-gray-600 text-sm">CMO, TechStart</p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic mb-4">
+                "{isSpanish ? 'Redujimos el tiempo de lanzamiento de campañas de 3 días a 30 segundos. Increíble.' : 'We reduced campaign launch time from 3 days to 30 seconds. Incredible.'}"
+              </p>
+              <div className="flex text-yellow-400">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i}>★</span>
+                ))}
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-white/95 via-brand-25/50 to-brand-50/30 p-6 rounded-2xl shadow-xl border border-brand-200/40 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-white font-bold text-lg">JS</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">James Smith</h4>
+                  <p className="text-gray-600 text-sm">Founder, GrowthCo</p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic mb-4">
+                "{isSpanish ? 'Nuestro ROI en redes sociales aumentó 400% en el primer mes.' : 'Our social media ROI increased 400% in the first month.'}"
+              </p>
+              <div className="flex text-yellow-400">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i}>★</span>
+                ))}
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 md:col-span-2 lg:col-span-1">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-white font-bold text-lg">AL</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Ana López</h4>
+                  <p className="text-gray-600 text-sm">CEO, DigitalBrand</p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic mb-4">
+                "{isSpanish ? 'El sistema más inteligente que he usado. Ahora somos líderes en nuestro sector.' : 'The smartest system I have used. We are now leaders in our sector.'}"
+              </p>
+              <div className="flex text-yellow-400">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i}>★</span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
