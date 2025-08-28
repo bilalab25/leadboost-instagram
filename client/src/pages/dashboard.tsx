@@ -215,21 +215,18 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              {/* Revenue and Campaigns - Revenue Prominence */}
+              {/* Revenue and Campaigns - Sleek Brand Design */}
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 mb-8">
                 {/* Revenue - Takes 3 columns for maximum importance */}
                 <div className="lg:col-span-3">
-                  <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-lg">
-                    <CardContent className="p-8">
-                      <div className="flex items-center justify-between">
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-50 via-white to-brand-25 border border-brand-100 shadow-sm">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-600/5 to-transparent"></div>
+                    <div className="relative p-8">
+                      <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center mb-3">
-                            <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mr-4">
-                              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                              </svg>
-                            </div>
-                            <h3 className="text-xl font-semibold text-gray-700">
+                          <div className="flex items-center mb-4">
+                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 mr-3"></div>
+                            <h3 className="text-lg font-medium text-gray-600">
                               {(() => {
                                 if (selectedPeriod === 'weekly') return 'Ingresos Semanales';
                                 if (selectedPeriod === 'monthly') return 'Ingresos Mensuales';
@@ -238,7 +235,7 @@ export default function Dashboard() {
                               })()}
                             </h3>
                           </div>
-                          <div className="text-5xl font-bold text-gray-900 mb-3">
+                          <div className="text-5xl font-bold text-gray-900 mb-4">
                             ${(() => {
                               const baseRevenue = stats?.revenue || 100000;
                               if (selectedPeriod === 'weekly') return Math.round(baseRevenue / 4.33).toLocaleString();
@@ -247,10 +244,12 @@ export default function Dashboard() {
                               return Math.round(baseRevenue / 4.33).toLocaleString();
                             })()}
                           </div>
-                          <div className="flex items-center text-green-600 text-lg font-semibold">
-                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                            </svg>
+                          <div className="flex items-center text-brand-600 text-base font-medium">
+                            <div className="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center mr-2">
+                              <svg className="w-3 h-3 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
                             {(() => {
                               if (selectedPeriod === 'weekly') return '+12% esta semana';
                               if (selectedPeriod === 'monthly') return '+8% este mes';
@@ -259,24 +258,24 @@ export default function Dashboard() {
                             })()}
                           </div>
                         </div>
+                        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg">
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                          </svg>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Campaigns - Takes 1 column, same height */}
                 <div>
-                  <Card className="h-full bg-white shadow-sm">
-                    <CardContent className="p-8 h-full">
-                      <div className="flex flex-col justify-center h-full">
-                        <div className="flex items-center mb-3">
-                          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                          </div>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 via-white to-gray-25 border border-gray-100 shadow-sm h-full">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-600/3 to-transparent"></div>
+                    <div className="relative p-8 h-full flex flex-col justify-center">
+                      <div className="flex items-center mb-4">
+                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-400 to-brand-500 mr-3"></div>
+                        <h3 className="text-lg font-medium text-gray-600">
                           {(() => {
                             if (selectedPeriod === 'weekly') return 'Campañas Semanales';
                             if (selectedPeriod === 'monthly') return 'Campañas Mensuales';
@@ -284,28 +283,30 @@ export default function Dashboard() {
                             return 'Campañas Semanales';
                           })()}
                         </h3>
-                        <div className="text-4xl font-bold text-gray-900 mb-2">
-                          {(() => {
-                            if (selectedPeriod === 'weekly') return '7';
-                            if (selectedPeriod === 'monthly') return '28';
-                            if (selectedPeriod === 'daily') return '1';
-                            return '7';
-                          })()}
-                        </div>
-                        <div className="flex items-center text-blue-600 text-sm font-medium">
-                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      </div>
+                      <div className="text-4xl font-bold text-gray-900 mb-4">
+                        {(() => {
+                          if (selectedPeriod === 'weekly') return '7';
+                          if (selectedPeriod === 'monthly') return '28';
+                          if (selectedPeriod === 'daily') return '1';
+                          return '7';
+                        })()}
+                      </div>
+                      <div className="flex items-center text-brand-600 text-base font-medium">
+                        <div className="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center mr-2">
+                          <svg className="w-3 h-3 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                           </svg>
-                          {(() => {
-                            if (selectedPeriod === 'weekly') return '+2 esta semana';
-                            if (selectedPeriod === 'monthly') return '+4 este mes';
-                            if (selectedPeriod === 'daily') return '+1 hoy';
-                            return '+2 esta semana';
-                          })()}
                         </div>
+                        {(() => {
+                          if (selectedPeriod === 'weekly') return '+2 esta semana';
+                          if (selectedPeriod === 'monthly') return '+4 este mes';
+                          if (selectedPeriod === 'daily') return '+1 hoy';
+                          return '+2 esta semana';
+                        })()}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </div>
               </div>
               
