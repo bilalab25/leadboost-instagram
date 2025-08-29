@@ -56,7 +56,7 @@ export default function Landing() {
               {isSpanish ? 'Sistema Waterfall' : 'The Waterfall System'}
             </h2>
             <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
-              {isSpanish ? 'Tu marca → En todos lados' : 'Your brand → Everywhere'}
+              {isSpanish ? 'Tu campaña soñada → hecha para ti' : 'Your dream campaign → made for you'}
             </div>
             
             <div className="max-w-4xl mx-auto mt-12">
