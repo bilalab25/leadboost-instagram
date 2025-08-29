@@ -161,7 +161,7 @@ export default function Landing() {
                       <div className="text-6xl font-black text-brand-600 mb-2">+21</div>
                       <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? '21+ plataformas, un clic' : '21+ platforms, one click'}</p>
-                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Distribución inteligente adaptada a cada red social' : 'Smart distribution tailored to each social network'}</p>
+                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Diseñado para ti, dimensionado para cada red social' : 'Designed for you, sized for every social network'}</p>
                     </div>
                   </div>
                   
