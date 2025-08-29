@@ -51,21 +51,24 @@ export default function Landing() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           
           {/* Main Waterfall Value Proposition */}
-          <div className="text-center mb-16">
-            <div className="mb-8">
-              <h2 className="text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight">
+          <div className="text-center mb-20">
+            <div className="mb-12">
+              <h2 className="text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-tight">
                 {isSpanish ? 'Sistema Waterfall' : 'The Waterfall System'}
               </h2>
-              <div className="text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-6">
+              <div className="text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
                 {isSpanish ? 'Tu marca → En todos lados' : 'Your brand → Everywhere'}
               </div>
             </div>
             
-            <p className="text-xl lg:text-2xl text-gray-700 mb-12 max-w-5xl mx-auto leading-relaxed">
-              {isSpanish 
-                ? 'Transforma los datos de tu negocio en campañas completas para 21+ plataformas — todo en un clic.'
-                : 'Transform your business data into complete campaigns across 21+ platforms — all in one click.'}
-            </p>
+            <div className="max-w-4xl mx-auto">
+              <p className="text-2xl lg:text-3xl text-gray-700 font-light leading-relaxed mb-8">
+                {isSpanish 
+                  ? 'Transforma los datos de tu negocio en campañas completas para 21+ plataformas — todo en un clic.'
+                  : 'Transform your business data into complete campaigns across 21+ platforms — all in one click.'}
+              </p>
+              <div className="w-24 h-1 bg-gradient-to-r from-brand-500 to-brand-600 mx-auto rounded-full"></div>
+            </div>
           </div>
         </div>
         
