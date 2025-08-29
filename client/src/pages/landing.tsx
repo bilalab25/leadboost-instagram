@@ -100,6 +100,17 @@ export default function Landing() {
                 <div className="waterfall-particle"></div>
                 <div className="waterfall-particle"></div>
               </div>
+              {/* Rain Drops in Card */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
+                <div className="rain-drop"></div>
+                <div className="rain-drop"></div>
+                <div className="rain-drop"></div>
+                <div className="rain-drop"></div>
+                <div className="rain-drop"></div>
+                <div className="rain-drop"></div>
+                <div className="rain-drop"></div>
+                <div className="rain-drop"></div>
+              </div>
               <CardContent className="p-8 lg:p-12 relative z-10">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                     
@@ -147,6 +158,7 @@ export default function Landing() {
                           +21
                         </div>
                       </div>
+                      <div className="text-6xl font-black text-brand-600 mb-2">+21</div>
                       <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? '21+ plataformas, un clic' : '21+ platforms, one click'}</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Distribución inteligente adaptada a cada red social' : 'Smart distribution tailored to each social network'}</p>
