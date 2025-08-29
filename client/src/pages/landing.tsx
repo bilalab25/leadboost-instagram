@@ -64,7 +64,7 @@ export default function Landing() {
           {/* Main Waterfall Value Proposition */}
           <div className="text-center mb-16">
             <h2 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
-              {isSpanish ? 'Sistema Lead Boost' : 'Lead Boost System'}
+              {isSpanish ? 'El Sistema Lead Boost' : 'The Lead Boost System'}
             </h2>
             <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
               {isSpanish ? 'Tu marca → En todos lados' : 'Your brand → Everywhere'}
