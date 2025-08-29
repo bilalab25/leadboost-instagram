@@ -59,7 +59,7 @@ export default function Sidebar() {
   const navigation = [
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
     { 
-      name: isSpanish ? "Sistema Waterfall" : "Waterfall System", 
+      name: isSpanish ? "Campaigner Waterfall" : "Waterfall Campaigner", 
       href: "/waterfall", 
       icon: Zap, 
       special: true 
