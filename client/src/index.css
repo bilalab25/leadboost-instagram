@@ -254,16 +254,16 @@
 
 /* Rain Drops */
 .rain-drop {
-  position: fixed;
+  position: absolute;
   top: -100px;
-  width: 2px;
-  height: 10px;
-  background: linear-gradient(to bottom, transparent, hsl(var(--brand)), transparent);
+  width: 3px;
+  height: 15px;
+  background: linear-gradient(to bottom, transparent, hsl(var(--brand)), hsl(var(--brand)), transparent);
   border-radius: 0 0 50% 50%;
-  opacity: 0.4;
+  opacity: 0.6;
   animation: rain-fall 2s linear infinite;
   pointer-events: none;
-  z-index: 1;
+  z-index: 10;
 }
 
 .rain-drop:nth-child(1) { left: 5%; animation-delay: 0s; animation-duration: 1.8s; }
