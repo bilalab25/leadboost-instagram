@@ -62,8 +62,8 @@ export default function Landing() {
             <div className="max-w-4xl mx-auto mt-12">
               <p className="text-xl lg:text-2xl text-gray-600 leading-relaxed font-medium">
                 {isSpanish 
-                  ? 'Transforma los datos de tu negocio en campañas poderosas para 21+ plataformas — todo en un clic.'
-                  : 'Transform your business data into powerful campaigns across 21+ platforms — all in one click.'}
+                  ? 'Transformamos los datos de tu negocio en campañas poderosas para 21+ plataformas — todo en un clic.'
+                  : 'We transform your business data into powerful campaigns across 21+ platforms — all in one click.'}
               </p>
             </div>
           </div>
