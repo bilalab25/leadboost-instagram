@@ -63,8 +63,8 @@ export default function Landing() {
             
             <p className="text-xl lg:text-2xl text-gray-700 mb-12 max-w-5xl mx-auto leading-relaxed">
               {isSpanish 
-                ? 'Creador de Campañas Basado en Datos - Un Clic, 21+ Plataformas'
-                : 'Data-Driven Campaign Creator - One Click, 21+ Platforms'}
+                ? 'Transforma los datos de tu negocio en campañas completas para 21+ plataformas — todo en un clic.'
+                : 'Transform your business data into complete campaigns across 21+ platforms — all in one click.'}
             </p>
           </div>
         </div>
