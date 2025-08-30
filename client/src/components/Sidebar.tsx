@@ -60,7 +60,7 @@ export default function Sidebar() {
   const navigation = [
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
     { 
-      name: isSpanish ? "Lead Boost" : "Lead Boost", 
+      name: isSpanish ? "CampAIgner" : "CampAIgner", 
       href: "/waterfall", 
       icon: Zap, 
       special: true 
@@ -90,7 +90,7 @@ export default function Sidebar() {
           <Link href="/">
             <img 
               src={leadBoostLogo} 
-              alt="LeadBoost Logo" 
+              alt="CampAIgner Logo" 
               className="max-h-16 max-w-full object-contain cursor-pointer hover:opacity-80 transition-opacity"
             />
           </Link>

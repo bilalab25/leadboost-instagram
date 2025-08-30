@@ -117,7 +117,7 @@ export default function CampAIgner() {
                   ) : (
                     <>
                       <Zap className="mr-2 h-4 w-4" />
-                      {isSpanish ? 'Generar Campaña Lead Boost' : 'Generate Lead Boost Campaign'}
+                      {isSpanish ? 'Generar Campaña CampAIgner' : 'Generate CampAIgner Campaign'}
                     </>
                   )}
                 </Button>
@@ -135,13 +135,13 @@ export default function CampAIgner() {
             </CardContent>
           </Card>
 
-          {/* Lead Boost Flow Visualization */}
+          {/* CampAIgner Flow Visualization */}
           <div className="mb-8">
             <Card className="bg-gradient-to-br from-brand-50 to-purple-50 border-brand-200">
               <CardContent className="p-8">
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? 'El Proceso Lead Boost' : 'The Lead Boost Process'}
+                    {isSpanish ? 'El Proceso CampAIgner' : 'The CampAIgner Process'}
                   </h2>
                   <p className="text-gray-600">
                     {isSpanish 

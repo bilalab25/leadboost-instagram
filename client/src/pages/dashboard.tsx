@@ -135,7 +135,7 @@ export default function Dashboard() {
               
               <Button className="bg-gradient-to-r from-brand-500 to-purple-600 text-white border-none hover:from-brand-600 hover:to-purple-700" data-testid="button-leadboost-campaign">
                 <Zap className="mr-2 h-4 w-4" />
-                Crear Campaña Lead Boost
+                Crear Campaña CampAIgner
               </Button>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="flex items-center space-x-3">
-                    {/* Removed duplicate Lead Boost button - now in header */}
+                    {/* Removed duplicate CampAIgner button - now in header */}
                   </div>
                 </div>
               </div>
@@ -231,7 +231,7 @@ export default function Dashboard() {
                                 <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                               </svg>
                             </div>
-                            vs antes de LeadBoost
+                            vs antes de CampAIgner
                           </div>
                           <div className="text-sm text-gray-500">
                             Datos del POS conectado • {(() => {
@@ -316,7 +316,7 @@ export default function Dashboard() {
                             💡 Conecta tu POS para métricas de ventas reales
                           </h4>
                           <p className="text-sm text-gray-600">
-                            Ve tu ROI exacto y crecimiento de ingresos vs antes de LeadBoost
+                            Ve tu ROI exacto y crecimiento de ingresos vs antes de CampAIgner
                           </p>
                         </div>
                       </div>

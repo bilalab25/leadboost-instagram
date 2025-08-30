@@ -20,7 +20,7 @@ export default function Landing() {
             <div className="flex items-center space-x-3">
               <img 
                 src={leadBoostLogo} 
-                alt="LeadBoost Logo" 
+                alt="CampAIgner Logo" 
                 className="h-[366px] w-auto object-contain"
                 style={{ backgroundColor: 'transparent' }}
               />
@@ -160,7 +160,7 @@ export default function Landing() {
                       className="bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-3xl transition-all duration-300 transform hover:scale-105"
                     >
                       <Zap className="mr-3 h-6 w-6" />
-                      {isSpanish ? 'Crear Campaña Lead Boost' : 'Create Lead Boost Campaign'}
+                      {isSpanish ? 'Crear Campaña CampAIgner' : 'Create CampAIgner Campaign'}
                     </Button>
                   </div>
                 </CardContent>
@@ -244,8 +244,8 @@ export default function Landing() {
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               {isSpanish 
-                ? 'Más allá del Sistema Lead Boost, LeadBoost te ofrece todas las herramientas que necesitas para dominar las redes sociales'
-                : 'Beyond the Lead Boost System, LeadBoost offers all the tools you need to master social media'}
+                ? 'Más allá del Sistema CampAIgner, CampAIgner te ofrece todas las herramientas que necesitas para dominar las redes sociales'
+                : 'Beyond the CampAIgner System, CampAIgner offers all the tools you need to master social media'}
             </p>
           </div>
 
@@ -321,7 +321,7 @@ export default function Landing() {
               </p>
               <ul className="text-sm text-gray-500 space-y-2">
                 <li>• {isSpanish ? 'ROI por campaña' : 'ROI per campaign'}</li>
-                <li>• {isSpanish ? 'Comparativas antes vs después de LeadBoost' : 'Before vs after LeadBoost comparisons'}</li>
+                <li>• {isSpanish ? 'Comparativas antes vs después de CampAIgner' : 'Before vs after CampAIgner comparisons'}</li>
                 <li>• {isSpanish ? 'Predicciones IA' : 'AI predictions'}</li>
               </ul>
             </Card>
@@ -506,12 +506,12 @@ export default function Landing() {
                   {/* Title Section */}
                   <div className="mb-6">
                     <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 drop-shadow-lg">
-                      {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
+                      {isSpanish ? 'Ve CampAIgner en Acción' : 'See CampAIgner in Action'}
                     </h2>
                     <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto drop-shadow-md">
                       {isSpanish 
-                        ? 'Descubre cómo funciona el Sistema Lead Boost en menos de 2 minutos'
-                        : 'Discover how the Lead Boost System works in less than 2 minutes'}
+                        ? 'Descubre cómo funciona el Sistema CampAIgner en menos de 2 minutos'
+                        : 'Discover how the CampAIgner System works in less than 2 minutes'}
                     </p>
                   </div>
 
@@ -574,7 +574,7 @@ export default function Landing() {
               <div className="absolute inset-0 p-8 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
                   <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10">
-                    <span className="text-white font-semibold text-sm">LeadBoost Platform</span>
+                    <span className="text-white font-semibold text-sm">CampAIgner Platform</span>
                   </div>
                   <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-full px-4 py-2 shadow-lg">
                     <span className="text-white text-sm font-medium">● Demo</span>
@@ -587,7 +587,7 @@ export default function Landing() {
                       <Target className="h-8 w-8 text-white" />
                     </div>
                     <h3 className="text-white text-2xl font-bold mb-3">
-                      {isSpanish ? 'Sistema Lead Boost' : 'Lead Boost System'}
+                      {isSpanish ? 'Sistema CampAIgner' : 'CampAIgner System'}
                     </h3>
                     <p className="text-gray-300 text-base">
                       {isSpanish ? 'De una idea a 21+ plataformas en segundos' : 'From one idea to 21+ platforms in seconds'}
@@ -645,7 +645,7 @@ export default function Landing() {
           <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 max-w-md mx-auto border border-white/20">
             <div className="text-center space-y-3">
               <p className="text-white font-medium text-base">
-                {isSpanish ? 'Sistema Lead Boost GRATIS para siempre' : 'Lead Boost System FREE forever'}
+                {isSpanish ? 'Sistema CampAIgner GRATIS para siempre' : 'CampAIgner System FREE forever'}
               </p>
               <p className="text-blue-100 text-sm">
                 {isSpanish ? '30 días gratis para todas las herramientas' : '30 days free for all tools'}
@@ -665,15 +665,15 @@ export default function Landing() {
             <div className="flex items-center justify-center mb-6">
               <img 
                 src={leadBoostLogo} 
-                alt="LeadBoost Logo" 
+                alt="CampAIgner Logo" 
                 className="h-96 w-auto object-contain"
                 style={{ backgroundColor: 'transparent' }}
               />
             </div>
             <p className="text-gray-400 mb-6">
               {isSpanish 
-                ? 'El Sistema Lead Boost que revoluciona la gestión de redes sociales'
-                : 'The Lead Boost System that revolutionizes social media management'}
+                ? 'El Sistema CampAIgner que revoluciona la gestión de redes sociales'
+                : 'The CampAIgner System that revolutionizes social media management'}
             </p>
             <div className="flex justify-center space-x-6">
               <Button variant="ghost" className="text-gray-400 hover:text-white">
