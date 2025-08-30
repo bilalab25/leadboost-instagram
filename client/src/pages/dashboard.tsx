@@ -387,7 +387,7 @@ export default function Dashboard() {
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">{t.aiPlanner.smartContentTitle}</h3>
                         <p className="text-gray-500 mb-6">{t.aiPlanner.smartContentDescription}</p>
-                        <Button className="bg-gradient-to-r from-brand-500 to-purple-600 text-white border-none hover:from-brand-600 hover:to-purple-700">
+                        <Button className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white border-none hover:from-brand-700 hover:to-cyan-600">
                           <Target className="mr-2 h-4 w-4" />
                           {t.aiPlanner.waterfallSystem}
                           <ArrowRight className="ml-2 h-4 w-4" />
