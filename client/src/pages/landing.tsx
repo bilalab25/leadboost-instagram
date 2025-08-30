@@ -461,7 +461,7 @@ export default function Landing() {
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-16 py-20">
                     <div className="mb-6">
                       <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 drop-shadow-lg">
-                        {isSpanish ? 'Ve CampAIgner en Acción' : 'See CampAIgner in Action'}
+                        {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
                       </h2>
                       <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto drop-shadow-md">
                         {isSpanish ? 'Descubre cómo funciona Meet LeadBoost en menos de 2 minutos' : 'Discover how Meet LeadBoost works in less than 2 minutes'}
@@ -535,7 +535,7 @@ export default function Landing() {
                         <Target className="h-8 w-8 text-white" />
                       </div>
                       <h3 className="text-white text-2xl font-bold mb-3">
-                        {isSpanish ? 'Conoce LeadBoost' : 'Meet LeadBoost'}
+                        {isSpanish ? 'Conoce CampAIgner' : 'CampAIgner'}
                       </h3>
                       <p className="text-gray-300 text-base">
                         {isSpanish ? 'De una idea a 21+ plataformas en segundos' : 'From one idea to 21+ platforms in seconds'}
