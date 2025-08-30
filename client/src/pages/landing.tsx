@@ -166,18 +166,18 @@ export default function Landing() {
                       </p>
                     </div>
                     
-                    <div className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-r from-brand-100 to-cyan-100 p-1">
-                      <div className="bg-white rounded-xl overflow-hidden">
-                        <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative group cursor-pointer hover:from-gray-50 hover:to-gray-150 transition-all duration-300">
-                          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-all duration-300"></div>
+                    <div className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-r from-gray-800 to-black p-1">
+                      <div className="bg-black rounded-xl overflow-hidden">
+                        <div className="aspect-video bg-gradient-to-br from-gray-900 to-black flex items-center justify-center relative group cursor-pointer hover:from-gray-800 hover:to-gray-900 transition-all duration-300">
+                          <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-all duration-300"></div>
                           <div className="text-center relative z-10">
-                            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300 mx-auto">
-                              <Video className="h-10 w-10 text-brand-600" />
+                            <div className="w-20 h-20 bg-gradient-to-br from-brand-600 to-cyan-500 rounded-full flex items-center justify-center mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300 mx-auto">
+                              <Video className="h-10 w-10 text-white" />
                             </div>
-                            <p className="text-gray-700 font-medium">
+                            <p className="text-white font-medium">
                               {isSpanish ? 'Haz clic para ver la demostración' : 'Click to watch demo'}
                             </p>
-                            <div className="mt-2 text-sm text-gray-500">
+                            <div className="mt-2 text-sm text-gray-300">
                               {isSpanish ? '2 minutos • Demostración completa' : '2 minutes • Full demo'}
                             </div>
                           </div>
