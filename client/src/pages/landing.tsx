@@ -11,96 +11,390 @@ export default function Landing() {
   const t = translations[language];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
-      {/* Header */}
-      <header className="relative z-50 bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-1">
-            <div className="flex items-center space-x-3">
-              <img 
-                src={leadBoostLogo} 
-                alt="CampAIgner Logo" 
-                className="h-[366px] w-auto object-contain"
-                style={{ backgroundColor: 'transparent' }}
-              />
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
+        
+        {/* Header */}
+        <header className="relative z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-1">
+              <div className="flex items-center space-x-3">
+                <img 
+                  src={leadBoostLogo} 
+                  alt="CampAIgner Logo" 
+                  className="h-[366px] w-auto object-contain"
+                  style={{ backgroundColor: 'transparent' }}
+                />
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <Button 
+                  variant="ghost" 
+                  onClick={toggleLanguage}
+                  className="text-sm font-medium"
+                >
+                  {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
+                </Button>
+                
+                <Button 
+                  className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-green-700 text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-emerald-400/30"
+                  data-testid="button-pricing-cta"
+                  onClick={() => window.location.href = '/pricing'}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
+                  <div className="absolute inset-0 rounded-full">
+                    <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full animate-ping opacity-75"></div>
+                    <div className="absolute top-3 left-3 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
+                    <div className="absolute bottom-2 right-4 w-0.5 h-0.5 bg-emerald-200 rounded-full animate-ping" style={{animationDelay: '500ms'}}></div>
+                  </div>
+                  <span className="relative z-10 flex items-center">
+                    <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
+                    {isSpanish ? '¡Ver Precios!' : 'See Pricing!'}
+                  </span>
+                </Button>
+                
+                <Button className="bg-brand-600 hover:bg-brand-700 text-white">
+                  {isSpanish ? 'Iniciar Sesión' : 'Sign In'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Hero Section with CampAIgner Tool */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
+          <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-brand-300/20 to-brand-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-40 left-10 w-64 h-64 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
+          
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+            <div className="text-center mb-16">
+              <h2 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
+                {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
+              </h2>
+              <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
+                {isSpanish ? 'Tu marca → EN TODOS LADOS' : 'Your brand → EVERYWHERE'}
+              </div>
+              
+              <div className="max-w-4xl mx-auto mt-12">
+                <p className="text-xl lg:text-2xl text-gray-600 leading-relaxed font-medium">
+                  {isSpanish ? 'LeadBoost transforma los datos de tu negocio en campañas poderosas usando CampAIgner — perfectamente dimensionadas para 21+ plataformas en un clic.' : 'LeadBoost transforms your business data into powerful campaigns using CampAIgner — perfectly sized for 21+ platforms in one click.'}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* CampAIgner Tool Visual Flow */}
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-16">
+              <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto waterfall-container">
+                <CardContent className="p-8 lg:p-12 relative z-10">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                    
+                    {/* ONE IDEA */}
+                    <div className="text-center">
+                      <div className="w-24 h-24 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
+                        <Target className="h-12 w-12 text-white" />
+                      </div>
+                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
+                      <p className="text-gray-600 font-medium">"{isSpanish ? 'Lanzar producto nuevo' : 'Launch new product'}"</p>
+                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Solo describe tu campaña' : 'Just describe your campaign'}</p>
+                    </div>
+                    
+                    {/* ARROW */}
+                    <div className="flex justify-center">
+                      <ArrowRight className="h-8 w-8 text-brand-400 hidden lg:block" />
+                      <ArrowDown className="h-8 w-8 text-brand-400 lg:hidden" />
+                    </div>
+                    
+                    {/* EVERYWHERE */}
+                    <div className="text-center">
+                      <div className="grid grid-cols-4 gap-2 mb-4 max-w-48 mx-auto">
+                        <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
+                          <SiInstagram className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
+                          <SiTiktok className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                          <SiFacebook className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                          <SiWhatsapp className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
+                          <SiLinkedin className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
+                          <SiYoutube className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center">
+                          <SiX className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                          +21
+                        </div>
+                      </div>
+                      <div className="text-6xl font-black text-brand-600 mb-2">+21</div>
+                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
+                      <p className="text-gray-600 font-medium">{isSpanish ? '21+ plataformas, un clic' : '21+ platforms, one click'}</p>
+                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Diseñado para ti, dimensionado para cada red social' : 'Designed for you, sized for every social network'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-12 text-center">
+                    <Button 
+                      size="lg" 
+                      className="bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-3xl transition-all duration-300 transform hover:scale-105"
+                    >
+                      <Zap className="mr-3 h-6 w-6" />
+                      {isSpanish ? 'CampAIgner' : 'CampAIgner'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                onClick={toggleLanguage}
-                className="text-sm font-medium"
-              >
-                {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
-              </Button>
+            {/* Benefits Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-emerald-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
+                <CardContent className="pt-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <Zap className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {isSpanish ? 'Lanzamiento Instantáneo' : 'Instant Launch'}
+                  </h3>
+                  <p className="text-gray-600">
+                    {isSpanish ? 'De tu marca a 21+ plataformas en segundos. Sin configuración manual.' : 'From your brand to 21+ platforms in seconds. No manual setup.'}
+                  </p>
+                  <div className="mt-6 text-emerald-600 font-bold text-3xl">
+                    30s
+                  </div>
+                </CardContent>
+              </Card>
               
-              <Button 
-                className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-green-700 text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-emerald-400/30"
-                data-testid="button-pricing-cta"
-                onClick={() => window.location.href = '/pricing'}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
-                <div className="absolute inset-0 rounded-full">
-                  <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full animate-ping opacity-75"></div>
-                  <div className="absolute top-3 left-3 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
-                  <div className="absolute bottom-2 right-4 w-0.5 h-0.5 bg-emerald-200 rounded-full animate-ping" style={{animationDelay: '500ms'}}></div>
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-purple-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
+                <CardContent className="pt-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-rose-500 to-pink-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <Target className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {isSpanish ? 'Auto-Dimensionado' : 'Auto-Sizing'}
+                  </h3>
+                  <p className="text-gray-600">
+                    {isSpanish ? 'Stories, posts, emails, threads — dimensionados al instante.' : 'Stories, posts, emails, threads — sized instantly.'}
+                  </p>
+                  <div className="mt-6 text-rose-600 font-bold text-3xl">
+                    21+
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-orange-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
+                <CardContent className="pt-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <TrendingUp className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {isSpanish ? 'Máximo Alcance' : 'Maximum Reach'}
+                  </h3>
+                  <p className="text-gray-600">
+                    {isSpanish ? 'Logra 30x el impacto sin las horas de trabajo.' : 'Achieve 30x the impact without the hours of work.'}
+                  </p>
+                  <div className="mt-6 text-orange-600 font-bold text-3xl">
+                    30x
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* Platform Management Section */}
+        <div className="py-24 bg-gradient-to-br from-brand-200/50 via-brand-300/40 to-brand-200/60 relative">
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-brand-300/25 to-brand-500/15 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-brand-400/20 to-brand-600/15 rounded-full blur-3xl"></div>
+            <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-gradient-to-br from-brand-200/20 to-brand-400/15 rounded-full blur-2xl"></div>
+          </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                {isSpanish ? 'Plataforma Completa de Gestión' : 'Complete Management Platform'}
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                {isSpanish ? 'Más allá del generador de campañas, también tienes todas las herramientas que necesitas para dominar las redes sociales' : 'Beyond the campaign generator, you also get all the tools you need to master social media'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              
+              {/* Unified Inbox */}
+              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-blue-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                    <MessageSquare className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}
+                  </h3>
                 </div>
-                <span className="relative z-10 flex items-center">
-                  <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
-                  {isSpanish ? '¡Ver Precios!' : 'See Pricing!'}
-                </span>
-              </Button>
-              
-              <Button className="bg-brand-600 hover:bg-brand-700 text-white">
-                {isSpanish ? 'Iniciar Sesión' : 'Sign In'}
-              </Button>
+                <p className="text-gray-600 mb-4">
+                  {isSpanish ? 'Todos tus mensajes de Instagram, WhatsApp, Email y TikTok en un solo lugar' : 'All your messages from Instagram, WhatsApp, Email and TikTok in one place'}
+                </p>
+                <ul className="text-sm text-gray-500 space-y-2">
+                  <li>• {isSpanish ? 'Respuestas automáticas' : 'Auto-responses'}</li>
+                  <li>• {isSpanish ? 'Análisis de sentimientos' : 'Sentiment analysis'}</li>
+                  <li>• {isSpanish ? 'Respuesta IA inteligente 24/7' : '24/7 AI smart response'}</li>
+                </ul>
+              </Card>
+
+              {/* AI Content Planner */}
+              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-purple-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                    <Bot className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {isSpanish ? 'Creador IA' : 'AI Creator'}
+                  </h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  {isSpanish ? 'Creación completa de contenido mensual respaldado por datos generado por IA' : 'Complete monthly data-backed content creation generated by AI'}
+                </p>
+                <ul className="text-sm text-gray-500 space-y-2">
+                  <li>• {isSpanish ? 'Contenido respaldado por tus datos de negocio' : 'Content backed by your business data'}</li>
+                  <li>• {isSpanish ? 'Generador de contenido viral en tiempo real' : 'Real-time viral content generator'}</li>
+                  <li>• {isSpanish ? 'Textos de alto impacto' : 'High-impact copywriting'}</li>
+                </ul>
+              </Card>
+
+              {/* Advanced Analytics */}
+              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-emerald-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                    <BarChart3 className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {isSpanish ? 'Analíticas Avanzadas' : 'Advanced Analytics'}
+                  </h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  {isSpanish ? 'Métricas detalladas y reportes automáticos de rendimiento en todas las plataformas' : 'Detailed metrics and automated performance reports across all platforms'}
+                </p>
+                <ul className="text-sm text-gray-500 space-y-2">
+                  <li>• {isSpanish ? 'Dashboard con métricas en tiempo real' : 'Real-time metrics dashboard'}</li>
+                  <li>• {isSpanish ? 'Reportes automáticos por email' : 'Automated email reports'}</li>
+                  <li>• {isSpanish ? 'Análisis de competencia' : 'Competitor analysis'}</li>
+                </ul>
+              </Card>
+
+              {/* Team Management */}
+              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-amber-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                    <Users className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {isSpanish ? 'Gestión de Equipos' : 'Team Management'}
+                  </h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  {isSpanish ? 'Gestiona equipos, asigna tareas y controla permisos de manera eficiente' : 'Manage teams, assign tasks and control permissions efficiently'}
+                </p>
+                <ul className="text-sm text-gray-500 space-y-2">
+                  <li>• {isSpanish ? 'Roles y permisos personalizables' : 'Customizable roles and permissions'}</li>
+                  <li>• {isSpanish ? 'Flujos de trabajo colaborativos' : 'Collaborative workflows'}</li>
+                  <li>• {isSpanish ? 'Sistema de aprobaciones' : 'Approval system'}</li>
+                </ul>
+              </Card>
+
+              {/* Campaign Management */}
+              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-indigo-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                    <Target className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {isSpanish ? 'Gestión de Campañas' : 'Campaign Management'}
+                  </h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  {isSpanish ? 'Programa, lanza y monitorea campañas multiplataforma desde un solo dashboard' : 'Schedule, launch and monitor multi-platform campaigns from a single dashboard'}
+                </p>
+                <ul className="text-sm text-gray-500 space-y-2">
+                  <li>• {isSpanish ? 'Calendario de contenido integrado' : 'Integrated content calendar'}</li>
+                  <li>• {isSpanish ? 'Automatización de campañas' : 'Campaign automation'}</li>
+                  <li>• {isSpanish ? 'A/B testing integrado' : 'Built-in A/B testing'}</li>
+                </ul>
+              </Card>
+
+              {/* Global Support */}
+              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-rose-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                    <Globe className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {isSpanish ? 'Soporte Global' : 'Global Support'}
+                  </h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  {isSpanish ? 'Soporte completo en español e inglés con contenido adaptado a cada mercado' : 'Complete support in Spanish and English with content adapted to each market'}
+                </p>
+                <ul className="text-sm text-gray-500 space-y-2">
+                  <li>• {isSpanish ? 'Soporte 24/7 multiidioma' : '24/7 multilingual support'}</li>
+                  <li>• {isSpanish ? 'Localización de contenido' : 'Content localization'}</li>
+                  <li>• {isSpanish ? 'Mercados regionales' : 'Regional markets'}</li>
+                </ul>
+              </Card>
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Hero Section */}
-      <div className="py-16 text-center">
-        <h1 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
-          {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
-        </h1>
-        <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
-          {isSpanish ? 'Tu marca → EN TODOS LADOS' : 'Your brand → EVERYWHERE'}
-        </div>
-        <p className="text-xl lg:text-2xl text-gray-600 leading-relaxed font-medium max-w-4xl mx-auto">
-          {isSpanish ? 'CampAIgner transforma los datos de tu negocio en campañas poderosas — perfectamente dimensionadas para 21+ plataformas en un clic.' : 'CampAIgner transforms your business data into powerful campaigns — perfectly sized for 21+ platforms in one click.'}
-        </p>
+        {/* Footer */}
+        <footer className="bg-gray-900 text-white py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-6">
+                <img 
+                  src={leadBoostLogo} 
+                  alt="CampAIgner Logo" 
+                  className="h-96 w-auto object-contain"
+                  style={{ backgroundColor: 'transparent' }}
+                />
+              </div>
+              <p className="text-gray-400 mb-6">
+                {isSpanish ? 'La herramienta que revoluciona la gestión de redes sociales' : 'The tool that revolutionizes social media management'}
+              </p>
+              <div className="flex justify-center space-x-6">
+                <Button variant="ghost" className="text-gray-400 hover:text-white">
+                  {isSpanish ? 'Política de Privacidad' : 'Privacy Policy'}
+                </Button>
+                <Button variant="ghost" className="text-gray-400 hover:text-white">
+                  {isSpanish ? 'Términos de Servicio' : 'Terms of Service'}
+                </Button>
+                <Button variant="ghost" className="text-gray-400 hover:text-white">
+                  {isSpanish ? 'Contacto' : 'Contact'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-6">
-              <img 
-                src={leadBoostLogo} 
-                alt="CampAIgner Logo" 
-                className="h-96 w-auto object-contain"
-                style={{ backgroundColor: 'transparent' }}
-              />
-            </div>
-            <p className="text-gray-400 mb-6">
-              {isSpanish ? 'La herramienta que revoluciona la gestión de redes sociales' : 'The tool that revolutionizes social media management'}
-            </p>
-            <div className="flex justify-center space-x-6">
-              <Button variant="ghost" className="text-gray-400 hover:text-white">
-                {isSpanish ? 'Política de Privacidad' : 'Privacy Policy'}
-              </Button>
-              <Button variant="ghost" className="text-gray-400 hover:text-white">
-                {isSpanish ? 'Términos de Servicio' : 'Terms of Service'}
-              </Button>
-              <Button variant="ghost" className="text-gray-400 hover:text-white">
-                {isSpanish ? 'Contacto' : 'Contact'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </>
   );
 }
