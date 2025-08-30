@@ -88,6 +88,19 @@ export default function Landing() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-16">
               <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto waterfall-container">
+                {/* Waterfall particles */}
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
+                <div className="waterfall-particle"></div>
                 <CardContent className="p-8 lg:p-12 relative z-10">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                     
