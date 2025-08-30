@@ -507,14 +507,14 @@ export default function Landing() {
                       </div>
                       
                       <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
-                        <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
-                          <BarChart3 className="h-8 w-8 text-white" />
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                          <Bot className="h-8 w-8 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">
-                          {isSpanish ? 'Analytics Avanzados' : 'Advanced Analytics'}
+                          {isSpanish ? 'Planificador Mensual' : 'Monthly Planner'}
                         </h3>
                         <p className="text-white/70 text-sm leading-relaxed">
-                          {isSpanish ? 'Métricas detalladas de rendimiento' : 'Detailed performance metrics'}
+                          {isSpanish ? 'Estrategias de contenido con IA' : 'AI-powered content strategies'}
                         </p>
                       </div>
                     </div>
