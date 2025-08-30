@@ -32,7 +32,6 @@ export default function Pricing() {
               
               <div className="mb-6">
                 <span className="text-4xl font-black text-green-600">FREE</span>
-                <span className="text-gray-500">forever</span>
               </div>
               
               <p className="text-gray-600 mb-6">Perfect for small businesses and solo entrepreneurs</p>
