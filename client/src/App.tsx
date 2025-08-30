@@ -16,7 +16,7 @@ import Customers from "@/pages/customers";
 import Team from "@/pages/team";
 import Integrations from "@/pages/integrations";
 import SpanishPreview from "@/pages/spanish-preview";
-import LeadBoost from "@/pages/waterfall";
+import CampAIgner from "@/pages/waterfall";
 import BrandStudio from "@/pages/brand-studio";
 
 function Router() {
@@ -42,7 +42,7 @@ function Router() {
       <Route path="/customers" component={Customers} />
       <Route path="/team" component={Team} />
       <Route path="/integrations" component={Integrations} />
-      <Route path="/waterfall" component={LeadBoost} />
+      <Route path="/waterfall" component={CampAIgner} />
       <Route path="/brand-studio" component={BrandStudio} />
       <Route path="/spanish-preview" component={SpanishPreview} />
       <Route component={NotFound} />

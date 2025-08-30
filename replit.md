@@ -1,8 +1,8 @@
-# SocialHub - AI-Powered Social Media Management Platform
+# CampAIgner - AI-Powered Social Media Management Platform
 
 ## Overview
 
-SocialHub is a comprehensive social media management platform that unifies customer communications across multiple channels (Instagram, WhatsApp, Email, TikTok) and leverages AI to generate intelligent content strategies. The application provides a centralized dashboard for managing messages, creating content plans, running campaigns, and analyzing performance metrics.
+CampAIgner is a comprehensive social media management platform that unifies customer communications across multiple channels (Instagram, WhatsApp, Email, TikTok) and leverages AI to generate intelligent content strategies. The application provides a centralized dashboard for managing messages, creating content plans, running campaigns, and analyzing performance metrics.
 
 Key features include:
 - Unified inbox for multi-platform message management
@@ -10,6 +10,8 @@ Key features include:
 - Campaign management with multi-platform publishing
 - Analytics and performance tracking
 - Real-time sentiment analysis of customer messages
+- Professional Brand Studio with Canva integration
+- "The CampAIgner System" for automated campaign creation across 21+ platforms
 
 ## User Preferences
 

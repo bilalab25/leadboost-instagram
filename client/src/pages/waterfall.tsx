@@ -15,7 +15,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 
-export default function LeadBoost() {
+export default function CampAIgner() {
   const { language, isSpanish } = useLanguage();
   const [campaignIdea, setCampaignIdea] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -54,7 +54,7 @@ export default function LeadBoost() {
                 </div>
                 <div>
                   <h1 className="text-3xl font-black text-gray-900">
-                    {isSpanish ? 'Sistema Lead Boost' : 'Lead Boost System'}
+                    {isSpanish ? 'Sistema CampAIgner' : 'CampAIgner System'}
                   </h1>
                   <p className="text-brand-600 font-semibold">
                     {isSpanish ? 'Una idea → Todos lados' : 'One idea → Everywhere'}

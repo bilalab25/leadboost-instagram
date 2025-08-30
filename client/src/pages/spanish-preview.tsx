@@ -25,7 +25,7 @@ export default function SpanishPreview() {
               <Sparkles className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">LeadBoost</h1>
+              <h1 className="text-xl font-bold text-gray-900">CampAIgner</h1>
               <p className="text-sm text-gray-500">Gestión de Redes Sociales con IA</p>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function SpanishPreview() {
             </div>
           </div>
 
-          {/* Sistema Lead Boost Hero */}
+          {/* Sistema CampAIgner Hero */}
           <div className="mb-12">
             <Card className="bg-gradient-to-br from-brand-50 to-purple-50 border-brand-200 shadow-lg">
               <CardContent className="p-8">
@@ -126,7 +126,7 @@ export default function SpanishPreview() {
                       <Sparkles className="h-10 w-10 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-black text-gray-900">Sistema Lead Boost</h2>
+                      <h2 className="text-3xl font-black text-gray-900">Sistema CampAIgner</h2>
                       <p className="text-brand-600 font-semibold">Una idea → Todos lados</p>
                     </div>
                   </div>
@@ -136,7 +136,7 @@ export default function SpanishPreview() {
                   </p>
                 </div>
                 
-                {/* Lead Boost Visual Flow */}
+                {/* CampAIgner Visual Flow */}
                 <div className="bg-white rounded-2xl p-6 shadow-inner border border-gray-100 mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                     {/* UNA IDEA */}
@@ -173,7 +173,7 @@ export default function SpanishPreview() {
                 <div className="text-center">
                   <Button size="lg" className="bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg">
                     <Zap className="mr-2 h-5 w-5" />
-                    Crear Campaña Lead Boost
+                    Crear Campaña CampAIgner
                   </Button>
                 </div>
               </CardContent>

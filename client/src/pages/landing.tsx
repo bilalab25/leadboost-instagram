@@ -42,7 +42,7 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Lead Boost Hero Section - THE CENTERPIECE */}
+      {/* CampAIgner Hero Section - THE CENTERPIECE */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
         {/* Floating blue orbs */}
@@ -50,10 +50,10 @@ export default function Landing() {
         <div className="absolute bottom-40 left-10 w-64 h-64 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           
-          {/* Main Lead Boost Value Proposition */}
+          {/* Main CampAIgner Value Proposition */}
           <div className="text-center mb-16">
             <h2 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
-              {isSpanish ? 'El Sistema Lead Boost' : 'The Lead Boost System'}
+              {isSpanish ? 'El Sistema CampAIgner' : 'The CampAIgner System'}
             </h2>
             <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
               {isSpanish ? 'Tu marca → EN TODOS LADOS' : 'Your brand → EVERYWHERE'}
@@ -70,7 +70,7 @@ export default function Landing() {
         </div>
         
         
-        {/* The Lead Boost Visual Flow */}
+        {/* The CampAIgner Visual Flow */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-16">
             <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto waterfall-container">
