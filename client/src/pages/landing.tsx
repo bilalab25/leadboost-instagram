@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize } from "lucide-react";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -287,13 +287,13 @@ export default function Landing() {
                 </ul>
               </Card>
 
-              {/* Advanced Analytics */}
-              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-emerald-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
-                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+              {/* Brand Studio */}
+              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-pink-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
                 <div className="flex items-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
-                    <BarChart3 className="h-8 w-8 text-white" />
+                  <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                    <Palette className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">
                     {isSpanish ? 'Brand Studio' : 'Brand Studio'}
