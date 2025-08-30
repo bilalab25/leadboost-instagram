@@ -39,6 +39,7 @@ export default function Landing() {
               <Button 
                 className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-green-700 text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-emerald-400/30"
                 data-testid="button-pricing-cta"
+                onClick={() => window.location.href = '/pricing'}
               >
                 {/* Animated background gradient */}
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>

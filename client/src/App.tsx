@@ -18,6 +18,7 @@ import Integrations from "@/pages/integrations";
 import SpanishPreview from "@/pages/spanish-preview";
 import CampAIgner from "@/pages/waterfall";
 import BrandStudio from "@/pages/brand-studio";
+import Pricing from "@/pages/pricing";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/integrations" component={Integrations} />
       <Route path="/waterfall" component={CampAIgner} />
       <Route path="/brand-studio" component={BrandStudio} />
+      <Route path="/pricing" component={Pricing} />
       <Route path="/spanish-preview" component={SpanishPreview} />
       <Route component={NotFound} />
     </Switch>
