@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video } from "lucide-react";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -216,8 +216,8 @@ export default function Landing() {
                                 <div className="w-6 h-6 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
                                   <SiInstagram className="h-3 w-3 text-white" />
                                 </div>
-                                <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
-                                  <SiGmail className="h-3 w-3 text-white" />
+                                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                                  <Mail className="h-3 w-3 text-white" />
                                 </div>
                                 <div className="w-6 h-6 bg-gradient-to-br from-gray-800 to-black rounded-lg flex items-center justify-center shadow-lg">
                                   <SiTiktok className="h-3 w-3 text-white" />
