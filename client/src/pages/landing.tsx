@@ -422,7 +422,7 @@ export default function Landing() {
                   </div>
                 </div>
                 <p className="text-gray-700 italic mb-6 text-lg leading-relaxed">
-                  "{isSpanish ? 'Nuestro ROI en redes sociales aumentó 400% en el primer mes.' : 'Our social media ROI increased 400% in the first month.'}"
+                  "{isSpanish ? 'Tus Ventas +47% vs antes de LeadBoost.' : 'Your Sales +47% vs before LeadBoost.'}"
                 </p>
                 <div className="flex text-yellow-500 text-xl">
                   {[...Array(5)].map((_, i) => (
