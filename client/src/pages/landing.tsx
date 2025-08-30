@@ -266,8 +266,8 @@ export default function Landing() {
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               {isSpanish 
-                ? 'Más allá de Meet CampAIgner, CampAIgner te ofrece todas las herramientas que necesitas para dominar las redes sociales'
-                : 'Beyond Meet CampAIgner, CampAIgner offers all the tools you need to master social media'}
+                ? 'Más allá del generador de campañas, también tienes todas las herramientas que necesitas para dominar las redes sociales'
+                : 'Beyond the campaign generator, you also get all the tools you need to master social media'}
             </p>
           </div>
 
