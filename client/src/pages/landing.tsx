@@ -69,7 +69,7 @@ export default function Landing() {
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
             <div className="text-center mb-16">
-              <h2 className="text-6xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.85] tracking-tight">
+              <h2 className="text-4xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.9] tracking-tight">
                 {isSpanish ? 'El Efecto LeadBoost' : 'The LeadBoost Effect'}
               </h2>
               <div className="text-3xl lg:text-4xl font-semibold text-gray-700 mb-8 tracking-wide">
