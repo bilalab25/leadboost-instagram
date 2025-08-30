@@ -667,7 +667,7 @@ export default function Landing() {
           <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 max-w-md mx-auto border border-white/20">
             <div className="text-center space-y-3">
               <p className="text-white font-medium text-base">
-                {isSpanish ? 'Meet CampAIgner GRATIS para siempre' : 'Meet CampAIgner FREE forever'}
+                {isSpanish ? 'Herramienta CampAIgner GRATIS' : 'CampAIgner tool FREE'}
               </p>
               <p className="text-blue-100 text-sm">
                 {isSpanish ? '30 días gratis para todas las herramientas' : '30 days free for all tools'}
@@ -694,8 +694,8 @@ export default function Landing() {
             </div>
             <p className="text-gray-400 mb-6">
               {isSpanish 
-                ? 'Meet CampAIgner que revoluciona la gestión de redes sociales'
-                : 'Meet CampAIgner that revolutionizes social media management'}
+                ? 'La herramienta que revoluciona la gestión de redes sociales'
+                : 'The tool that revolutionizes social media management'}
             </p>
             <div className="flex justify-center space-x-6">
               <Button variant="ghost" className="text-gray-400 hover:text-white">
