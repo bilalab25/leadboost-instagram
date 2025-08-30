@@ -122,7 +122,7 @@ export default function Pricing() {
               </ul>
               
               <Button className="w-full bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white" data-testid="button-professional-plan">
-                Start Free Trial
+                Start 30 Day Free Trial
               </Button>
             </CardContent>
           </Card>
@@ -182,7 +182,7 @@ export default function Pricing() {
               </ul>
               
               <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white" data-testid="button-enterprise-plan">
-                Contact Sales
+                Start 30 Day Free Trial
               </Button>
             </CardContent>
           </Card>
