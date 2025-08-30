@@ -308,6 +308,81 @@ export default function AIPlanner() {
                             </div>
                           </div>
 
+                          {/* POS Integration */}
+                          <div className="space-y-4 bg-gradient-to-r from-emerald-50 to-green-50 p-6 rounded-xl border-2 border-emerald-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="bg-gradient-to-br from-emerald-600 to-green-600 p-2 rounded-lg mr-3">
+                                  <BarChart3 className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                  <div className="text-gray-900 font-bold text-lg">{t.aiPlanner.posIntegration}</div>
+                                  <div className="text-sm text-gray-600">{t.aiPlanner.posSubtitle}</div>
+                                </div>
+                              </div>
+                              <Badge className="bg-red-100 text-red-700">
+                                {t.aiPlanner.posDisconnected}
+                              </Badge>
+                            </div>
+                            
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              {t.aiPlanner.posDataHelp}
+                            </p>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                              <Button 
+                                variant="outline" 
+                                className="border-emerald-200 hover:bg-emerald-50 text-emerald-700"
+                                data-testid="button-connect-square"
+                              >
+                                <div className="w-4 h-4 bg-emerald-600 rounded mr-2"></div>
+                                {t.aiPlanner.connectSquare}
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                className="border-emerald-200 hover:bg-emerald-50 text-emerald-700"
+                                data-testid="button-connect-shopify"
+                              >
+                                <div className="w-4 h-4 bg-green-600 rounded mr-2"></div>
+                                {t.aiPlanner.connectShopify}
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                className="border-emerald-200 hover:bg-emerald-50 text-emerald-700"
+                                data-testid="button-connect-clover"
+                              >
+                                <div className="w-4 h-4 bg-blue-600 rounded mr-2"></div>
+                                {t.aiPlanner.connectClover}
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                className="border-emerald-200 hover:bg-emerald-50 text-emerald-700"
+                                data-testid="button-connect-other"
+                              >
+                                <Target className="w-4 h-4 mr-2" />
+                                {t.aiPlanner.connectOther}
+                              </Button>
+                            </div>
+                            
+                            <div className="bg-white/70 rounded-lg p-4 border border-emerald-100">
+                              <h4 className="text-sm font-bold text-gray-900 mb-2">{t.aiPlanner.aiPosInsights}</h4>
+                              <div className="grid grid-cols-3 gap-4 text-xs">
+                                <div className="text-center">
+                                  <div className="text-emerald-600 font-bold text-lg">$0</div>
+                                  <div className="text-gray-600">{t.aiPlanner.avgOrderValue}</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-emerald-600 font-bold text-lg">0%</div>
+                                  <div className="text-gray-600">{t.aiPlanner.recurrencyRate}</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-emerald-600 font-bold text-lg">--</div>
+                                  <div className="text-gray-600">{t.aiPlanner.peakSalesHours}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
                           {/* Seasonality */}
                           <div className="space-y-2">
                             <Label htmlFor="seasonality">{t.aiPlanner.seasonalFocus}</Label>
@@ -469,18 +544,44 @@ export default function AIPlanner() {
                                   </p>
                                 </div>
                               </div>
-                              <div className="grid grid-cols-1 gap-2 text-xs text-gray-500">
-                                <div className="flex items-center justify-center">
+                              <div className="grid grid-cols-1 gap-3 text-xs">
+                                <div className="flex items-center justify-center text-gray-500">
                                   <ChevronRight className="h-3 w-3 mr-1" />
                                   Content themes based on your industry
                                 </div>
-                                <div className="flex items-center justify-center">
+                                <div className="flex items-center justify-center text-gray-500">
                                   <ChevronRight className="h-3 w-3 mr-1" />
                                   Platform-optimized posting schedule
                                 </div>
-                                <div className="flex items-center justify-center">
+                                <div className="flex items-center justify-center text-gray-500">
                                   <ChevronRight className="h-3 w-3 mr-1" />
                                   Trending hashtags and keywords
+                                </div>
+                                
+                                {/* POS Enhancement Preview */}
+                                <div className="mt-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                                  <div className="flex items-center mb-2">
+                                    <BarChart3 className="h-4 w-4 text-emerald-600 mr-2" />
+                                    <span className="text-emerald-700 font-bold text-sm">With POS Data Integration</span>
+                                  </div>
+                                  <div className="space-y-1 text-emerald-600">
+                                    <div className="flex items-center">
+                                      <ChevronRight className="h-3 w-3 mr-1" />
+                                      Campaigns based on best-selling products
+                                    </div>
+                                    <div className="flex items-center">
+                                      <ChevronRight className="h-3 w-3 mr-1" />
+                                      Peak sales hours for optimal posting
+                                    </div>
+                                    <div className="flex items-center">
+                                      <ChevronRight className="h-3 w-3 mr-1" />
+                                      Customer recurrency patterns analysis
+                                    </div>
+                                    <div className="flex items-center">
+                                      <ChevronRight className="h-3 w-3 mr-1" />
+                                      Profit margin-optimized promotions
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
