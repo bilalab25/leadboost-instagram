@@ -185,7 +185,7 @@ export default function Landing() {
                                   {isSpanish ? 'Ve CampAIgner en Acción' : 'See CampAIgner in Action'}
                                 </h4>
                                 <p className="text-sm md:text-base text-white/90 max-w-xl mx-auto drop-shadow-md">
-                                  {isSpanish ? 'Descubre cómo funciona en menos de 2 minutos' : 'Discover how it works in less than 2 minutes'}
+                                  {isSpanish ? 'Descubre cómo funciona en 30 segundos' : 'Discover how it works in 30 seconds'}
                                 </p>
                               </div>
 
