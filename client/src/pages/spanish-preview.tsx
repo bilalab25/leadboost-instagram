@@ -116,7 +116,7 @@ export default function SpanishPreview() {
             </div>
           </div>
 
-          {/* Sistema CampAIgner Hero */}
+          {/* Conoce CampAIgner Hero */}
           <div className="mb-12">
             <Card className="bg-gradient-to-br from-brand-50 to-purple-50 border-brand-200 shadow-lg">
               <CardContent className="p-8">
@@ -126,7 +126,7 @@ export default function SpanishPreview() {
                       <Sparkles className="h-10 w-10 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-black text-gray-900">Sistema CampAIgner</h2>
+                      <h2 className="text-3xl font-black text-gray-900">Conoce CampAIgner</h2>
                       <p className="text-brand-600 font-semibold">Una idea → Todos lados</p>
                     </div>
                   </div>

@@ -11,7 +11,7 @@ Key features include:
 - Analytics and performance tracking
 - Real-time sentiment analysis of customer messages
 - Professional Brand Studio with Canva integration
-- "The CampAIgner System" for automated campaign creation across 21+ platforms
+- "Meet CampAIgner" for automated campaign creation across 21+ platforms
 
 ## User Preferences
 

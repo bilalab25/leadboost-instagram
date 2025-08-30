@@ -53,7 +53,7 @@ export default function Landing() {
           {/* Main CampAIgner Value Proposition */}
           <div className="text-center mb-16">
             <h2 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
-              {isSpanish ? 'El Sistema CampAIgner' : 'The CampAIgner System'}
+              {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
             </h2>
             <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
               {isSpanish ? 'Tu marca → EN TODOS LADOS' : 'Your brand → EVERYWHERE'}
@@ -244,8 +244,8 @@ export default function Landing() {
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               {isSpanish 
-                ? 'Más allá del Sistema CampAIgner, CampAIgner te ofrece todas las herramientas que necesitas para dominar las redes sociales'
-                : 'Beyond the CampAIgner System, CampAIgner offers all the tools you need to master social media'}
+                ? 'Más allá de Meet CampAIgner, CampAIgner te ofrece todas las herramientas que necesitas para dominar las redes sociales'
+                : 'Beyond Meet CampAIgner, CampAIgner offers all the tools you need to master social media'}
             </p>
           </div>
 
@@ -510,8 +510,8 @@ export default function Landing() {
                     </h2>
                     <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto drop-shadow-md">
                       {isSpanish 
-                        ? 'Descubre cómo funciona el Sistema CampAIgner en menos de 2 minutos'
-                        : 'Discover how the CampAIgner System works in less than 2 minutes'}
+                        ? 'Descubre cómo funciona Meet CampAIgner en menos de 2 minutos'
+                        : 'Discover how Meet CampAIgner works in less than 2 minutes'}
                     </p>
                   </div>
 
@@ -587,7 +587,7 @@ export default function Landing() {
                       <Target className="h-8 w-8 text-white" />
                     </div>
                     <h3 className="text-white text-2xl font-bold mb-3">
-                      {isSpanish ? 'Sistema CampAIgner' : 'CampAIgner System'}
+                      {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
                     </h3>
                     <p className="text-gray-300 text-base">
                       {isSpanish ? 'De una idea a 21+ plataformas en segundos' : 'From one idea to 21+ platforms in seconds'}
@@ -645,7 +645,7 @@ export default function Landing() {
           <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 max-w-md mx-auto border border-white/20">
             <div className="text-center space-y-3">
               <p className="text-white font-medium text-base">
-                {isSpanish ? 'Sistema CampAIgner GRATIS para siempre' : 'CampAIgner System FREE forever'}
+                {isSpanish ? 'Meet CampAIgner GRATIS para siempre' : 'Meet CampAIgner FREE forever'}
               </p>
               <p className="text-blue-100 text-sm">
                 {isSpanish ? '30 días gratis para todas las herramientas' : '30 days free for all tools'}
@@ -672,8 +672,8 @@ export default function Landing() {
             </div>
             <p className="text-gray-400 mb-6">
               {isSpanish 
-                ? 'El Sistema CampAIgner que revoluciona la gestión de redes sociales'
-                : 'The CampAIgner System that revolutionizes social media management'}
+                ? 'Meet CampAIgner que revoluciona la gestión de redes sociales'
+                : 'Meet CampAIgner that revolutionizes social media management'}
             </p>
             <div className="flex justify-center space-x-6">
               <Button variant="ghost" className="text-gray-400 hover:text-white">

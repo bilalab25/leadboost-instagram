@@ -54,7 +54,7 @@ export default function CampAIgner() {
                 </div>
                 <div>
                   <h1 className="text-3xl font-black text-gray-900">
-                    {isSpanish ? 'Sistema CampAIgner' : 'CampAIgner System'}
+                    {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
                   </h1>
                   <p className="text-brand-600 font-semibold">
                     {isSpanish ? 'Una idea → Todos lados' : 'One idea → Everywhere'}

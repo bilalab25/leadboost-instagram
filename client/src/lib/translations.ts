@@ -42,7 +42,7 @@ export const translations = {
       generateContent: "Generate Content",
       smartContentTitle: "Smart Content for your Brands",
       smartContentDescription: "Automatically generate optimized posts for all your social platforms with one click.",
-      waterfallSystem: "CampAIgner System"
+      waterfallSystem: "Meet CampAIgner"
     },
     // Campaign Creator
     campaigns: {
@@ -81,14 +81,14 @@ export const translations = {
     },
     // Landing
     landing: {
-      waterfallTitle: "The CampAIgner System",
+      waterfallTitle: "The Meet CampAIgner",
       waterfallSubtitle: "One idea → 21+ platforms → Perfect formats → Instant launch",
       heroTitle: "Turn ONE idea into campaigns across 21+ platforms",
-      heroSubtitle: "CampAIgner's CampAIgner System takes your single campaign idea and instantly creates optimized content for Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube and 16+ more platforms — all in the correct format and size.",
+      heroSubtitle: "CampAIgner's Meet CampAIgner takes your single campaign idea and instantly creates optimized content for Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube and 16+ more platforms — all in the correct format and size.",
       oneIdea: "ONE IDEA",
       everywhere: "EVERYWHERE",
       instantly: "INSTANTLY",
-      waterfallDemo: "Try the CampAIgner System",
+      waterfallDemo: "Try the Meet CampAIgner",
       getStarted: "Start Your CampAIgner",
       learnMore: "See How It Works",
       platforms21: "21+ Platforms",
@@ -113,7 +113,7 @@ export const translations = {
       viewMessages: "View Messages",
       generateContent: "Generate Content",
       viewAnalytics: "View Analytics",
-      waterfallSystem: "CampAIgner System",
+      waterfallSystem: "Meet CampAIgner",
       oneIdeaEverywhere: "One idea → Everywhere",
       waterfallDescription: "Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.",
       createWaterfallCampaign: "Create CampAIgner Campaign",
@@ -236,7 +236,7 @@ export const translations = {
       generateContent: "Generar Contenido",
       smartContentTitle: "Contenido Inteligente para tus Marcas",
       smartContentDescription: "Genera automáticamente posts optimizados para todas tus plataformas sociales con un solo clic.",
-      waterfallSystem: "Sistema CampAIgner"
+      waterfallSystem: "Conoce CampAIgner"
     },
     // Campaign Creator
     campaigns: {
@@ -275,14 +275,14 @@ export const translations = {
     },
     // Landing
     landing: {
-      waterfallTitle: "El Sistema CampAIgner",
+      waterfallTitle: "El Conoce CampAIgner",
       waterfallSubtitle: "Una idea → 21+ plataformas → Formatos perfectos → Lanzamiento instantáneo",
       heroTitle: "Convierte UNA idea en campañas para 21+ plataformas",
-      heroSubtitle: "El Sistema CampAIgner de CampAIgner toma tu idea de campaña y crea instantáneamente contenido optimizado para Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube y 16+ plataformas más — todo en el formato y tamaño correcto.",
+      heroSubtitle: "El Conoce CampAIgner de CampAIgner toma tu idea de campaña y crea instantáneamente contenido optimizado para Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube y 16+ plataformas más — todo en el formato y tamaño correcto.",
       oneIdea: "UNA IDEA",
       everywhere: "TODOS LADOS",
       instantly: "INSTANTÁNEO",
-      waterfallDemo: "Prueba el Sistema CampAIgner",
+      waterfallDemo: "Prueba el Conoce CampAIgner",
       getStarted: "Inicia tu CampAIgner",
       learnMore: "Ve Cómo Funciona",
       platforms21: "21+ Plataformas",
@@ -310,7 +310,7 @@ export const translations = {
       viewMessages: "Ver Mensajes",
       generateContent: "Generar Contenido",
       viewAnalytics: "Ver Analíticas",
-      waterfallSystem: "Sistema CampAIgner",
+      waterfallSystem: "Conoce CampAIgner",
       oneIdeaEverywhere: "Una idea → Todos lados",
       waterfallDescription: "Convierte una sola idea en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.",
       createWaterfallCampaign: "Crear Campaña CampAIgner",
