@@ -189,6 +189,24 @@ export default function Pricing() {
           </Card>
         </div>
 
+        {/* Agency Contact Section */}
+        <div className="text-center mt-12">
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-2xl p-6 max-w-xl mx-auto border border-purple-200">
+            <h3 className="text-xl font-semibold text-purple-900 mb-2">
+              Need Something Custom?
+            </h3>
+            <p className="text-purple-700 mb-4">
+              Agencies and large organizations - we can create a custom solution for your needs.
+            </p>
+            <a 
+              href="mailto:hello@leadboost.com" 
+              className="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
+            >
+              Email Us for Custom Pricing
+            </a>
+          </div>
+        </div>
+
         {/* Free Trial CTA */}
         <div className="text-center mt-16">
           <div className="bg-white rounded-2xl p-8 max-w-2xl mx-auto shadow-lg border border-gray-100">
