@@ -31,8 +31,8 @@ export default function Pricing() {
               </div>
               
               <div className="mb-6">
-                <span className="text-4xl font-black text-gray-900">$29</span>
-                <span className="text-gray-500">/month</span>
+                <span className="text-4xl font-black text-green-600">FREE</span>
+                <span className="text-gray-500">forever</span>
               </div>
               
               <p className="text-gray-600 mb-6">Perfect for small businesses and solo entrepreneurs</p>
@@ -40,7 +40,7 @@ export default function Pricing() {
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>CampAIgner tool access</span>
+                  <span>Free CampAIgner tool</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
@@ -48,7 +48,7 @@ export default function Pricing() {
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>50 campaigns per month</span>
+                  <span>2 campaigns per month</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
@@ -60,8 +60,8 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white" data-testid="button-starter-plan">
-                Get Started
+              <Button className="w-full bg-green-500 hover:bg-green-600 text-white" data-testid="button-starter-plan">
+                Start Free
               </Button>
             </CardContent>
           </Card>
