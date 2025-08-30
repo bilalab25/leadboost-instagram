@@ -3,9 +3,9 @@ export const translations = {
   en: {
     // AI Planner
     aiPlanner: {
-      title: "AI Monthly Planner",
-      heroTitle: "AI Content Strategy Generator",
-      heroSubtitle: "Get month-long content strategies tailored to your business, complete with platform-specific posts, hashtags, and optimal timing.",
+      title: "Monthly Campaign Generator",
+      heroTitle: "30-Day Multi-Platform Campaign Generator",
+      heroSubtitle: "Generate a complete month of campaigns for all 21+ platforms. Get 30 days of content, perfectly sized for each social network, ready to publish.",
       poweredByAI: "Powered by Advanced AI",
       businessDataInput: "Business Intelligence Input",
       businessDataSubtitle: "Tell our AI about your business for personalized strategies",
@@ -128,7 +128,7 @@ export const translations = {
     sidebar: {
       dashboard: "Dashboard",
       inbox: "Inbox",
-      aiPlanner: "AI Planner",
+      aiPlanner: "Monthly Campaign Generator",
       campaigns: "Campaigns",
       calendar: "Calendar",
       analytics: "Analytics",
@@ -196,9 +196,9 @@ export const translations = {
   es: {
     // AI Planner
     aiPlanner: {
-      title: "Planificador Mensual IA",
-      heroTitle: "Generador de Estrategia de Contenido IA",
-      heroSubtitle: "Obtén estrategias de contenido de un mes completo adaptadas a tu negocio, con publicaciones específicas por plataforma, hashtags y horarios óptimos.",
+      title: "Generador de Campañas Mensual",
+      heroTitle: "Generador de Campañas Multi-Plataforma de 30 Días",
+      heroSubtitle: "Genera un mes completo de campañas para las 21+ plataformas. Obtén 30 días de contenido, perfectamente dimensionado para cada red social, listo para publicar.",
       poweredByAI: "Impulsado por IA Avanzada",
       businessDataInput: "Entrada de Inteligencia de Negocio",
       businessDataSubtitle: "Cuéntale a nuestra IA sobre tu negocio para estrategias personalizadas",
@@ -324,7 +324,7 @@ export const translations = {
     sidebar: {
       dashboard: "Panel Principal",
       inbox: "Bandeja de Entrada",
-      aiPlanner: "Planificador IA",
+      aiPlanner: "Generador de Campañas Mensual",
       campaigns: "Campañas",
       calendar: "Calendario",
       analytics: "Analíticas",
@@ -353,7 +353,7 @@ export const translations = {
     },
     // Tools and Features
     tools: {
-      aiPlanner: "Planificador IA",
+      aiPlanner: "Generador de Campañas Mensual",
       campaignCreator: "Creador de Campañas",
       analytics: "Analíticas",
       smartInbox: "Bandeja Inteligente",
