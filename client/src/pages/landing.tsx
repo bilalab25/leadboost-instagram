@@ -464,20 +464,20 @@ export default function Landing() {
                         {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
                       </h2>
                       <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto drop-shadow-md">
-                        {isSpanish ? 'Descubre cómo funciona Meet LeadBoost en menos de 2 minutos' : 'Discover how Meet LeadBoost works in less than 2 minutes'}
+                        {isSpanish ? 'Descubre cómo funciona LeadBoost en menos de 2 minutos' : 'Discover how LeadBoost works in less than 2 minutes'}
                       </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-4xl w-full">
                       <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
-                        <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
-                          <Zap className="h-8 w-8 text-white" />
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                          <MessageSquare className="h-8 w-8 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">
-                          {isSpanish ? 'Configuración Rápida' : 'Quick Setup'}
+                          {isSpanish ? 'Inbox Unificado' : 'Unified Inbox'}
                         </h3>
                         <p className="text-white/70 text-sm leading-relaxed">
-                          {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
+                          {isSpanish ? 'Gestiona todos los mensajes en un lugar' : 'Manage all messages in one place'}
                         </p>
                       </div>
                       
@@ -494,14 +494,14 @@ export default function Landing() {
                       </div>
                       
                       <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                        <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
                           <BarChart3 className="h-8 w-8 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">
-                          {isSpanish ? 'Resultados Reales' : 'Real Results'}
+                          {isSpanish ? 'Analytics Avanzados' : 'Advanced Analytics'}
                         </h3>
                         <p className="text-white/70 text-sm leading-relaxed">
-                          {isSpanish ? 'Datos de clientes reales' : 'Real customer data'}
+                          {isSpanish ? 'Métricas detalladas de rendimiento' : 'Detailed performance metrics'}
                         </p>
                       </div>
                     </div>
