@@ -133,7 +133,7 @@ export default function Pricing() {
             <CardContent className="pt-6">
               <div className="flex items-center mb-4">
                 <Rocket className="h-8 w-8 text-purple-500 mr-3" />
-                <h3 className="text-2xl font-bold text-gray-900">Agency</h3>
+                <h3 className="text-2xl font-bold text-gray-900">Enterprise</h3>
               </div>
               
               <div className="mb-6">
@@ -141,12 +141,16 @@ export default function Pricing() {
                 <span className="text-gray-500">/month</span>
               </div>
               
-              <p className="text-gray-600 mb-6">Built for agencies and large marketing teams</p>
+              <p className="text-gray-600 mb-6">Built for enterprises and large marketing teams</p>
               
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
                   <span>Everything in Professional</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  <span>100 campaigns per month</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
@@ -178,7 +182,7 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white" data-testid="button-agency-plan">
+              <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white" data-testid="button-enterprise-plan">
                 Contact Sales
               </Button>
             </CardContent>
