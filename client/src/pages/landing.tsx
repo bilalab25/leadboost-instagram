@@ -70,7 +70,7 @@ export default function Landing() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
             <div className="text-center mb-16">
               <h2 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
-                {isSpanish ? 'Conoce LeadBoost' : 'Meet LeadBoost'}
+                {isSpanish ? 'CONOCE LEADBOOST' : 'MEET LEADBOOST'}
               </h2>
               <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
                 {isSpanish ? 'Ser Visto → EN TODOS LADOS.' : 'Get Seen → EVERYWHERE.'}
