@@ -94,6 +94,14 @@ export default function Pricing() {
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
+                  <span>Monthly Planner (AI strategy tool)</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  <span>Unified Inbox (message management)</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
                   <span>15+ social platforms</span>
                 </li>
                 <li className="flex items-center">
@@ -139,6 +147,14 @@ export default function Pricing() {
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
                   <span>Everything in Professional</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  <span>Advanced Monthly Planner</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3" />
+                  <span>Premium Unified Inbox</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
