@@ -220,10 +220,10 @@ export default function Dashboard() {
                           </div>
                           <div className="text-6xl font-bold text-green-600 mb-3">
                             {showDollarAmount ? (() => {
-                              if (selectedPeriod === 'weekly') return '$12,450';
-                              if (selectedPeriod === 'monthly') return '$52,800';
-                              if (selectedPeriod === 'daily') return '$1,890';
-                              return '$12,450';
+                              if (selectedPeriod === 'weekly') return '+$12,450';
+                              if (selectedPeriod === 'monthly') return '+$52,800';
+                              if (selectedPeriod === 'daily') return '+$1,890';
+                              return '+$12,450';
                             })() : `+${(() => {
                               if (selectedPeriod === 'weekly') return '47%';
                               if (selectedPeriod === 'monthly') return '63%';
