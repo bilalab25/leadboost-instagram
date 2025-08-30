@@ -128,7 +128,7 @@ export const translations = {
     sidebar: {
       dashboard: "Dashboard",
       inbox: "Inbox",
-      aiPlanner: "Monthly Campaign Generator",
+      aiPlanner: "30-Day Generator",
       campaigns: "Campaigns",
       calendar: "Calendar",
       analytics: "Analytics",
@@ -324,7 +324,7 @@ export const translations = {
     sidebar: {
       dashboard: "Panel Principal",
       inbox: "Bandeja de Entrada",
-      aiPlanner: "Generador de Campañas Mensual",
+      aiPlanner: "Generador 30 Días",
       campaigns: "Campañas",
       calendar: "Calendario",
       analytics: "Analíticas",
@@ -353,7 +353,7 @@ export const translations = {
     },
     // Tools and Features
     tools: {
-      aiPlanner: "Generador de Campañas Mensual",
+      aiPlanner: "Generador 30 Días",
       campaignCreator: "Creador de Campañas",
       analytics: "Analíticas",
       smartInbox: "Bandeja Inteligente",
