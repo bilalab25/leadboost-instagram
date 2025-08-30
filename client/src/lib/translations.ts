@@ -42,7 +42,7 @@ export const translations = {
       generateContent: "Generate Content",
       smartContentTitle: "Smart Content for your Brands",
       smartContentDescription: "Automatically generate optimized posts for all your social platforms with one click.",
-      waterfallSystem: "Meet LeadBoost"
+      waterfallSystem: "The LeadBoost Effect"
     },
     // Campaign Creator
     campaigns: {
@@ -286,7 +286,7 @@ export const translations = {
       generateContent: "Generar Contenido",
       smartContentTitle: "Contenido Inteligente para tus Marcas",
       smartContentDescription: "Genera automáticamente posts optimizados para todas tus plataformas sociales con un solo clic.",
-      waterfallSystem: "Conoce LeadBoost"
+      waterfallSystem: "El Efecto LeadBoost"
     },
     // Campaign Creator
     campaigns: {
