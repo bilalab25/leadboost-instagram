@@ -162,7 +162,7 @@ export default function Landing() {
                         {isSpanish ? 'Mira CampAIgner en Acción' : 'See CampAIgner in Action'}
                       </h3>
                       <p className="text-gray-600 max-w-2xl mx-auto">
-                        {isSpanish ? 'Observa cómo una sola idea se transforma en campañas optimizadas para 21+ plataformas en segundos' : 'Watch how one idea transforms into optimized campaigns across 21+ platforms in seconds'}
+                        {isSpanish ? 'Observa cómo una sola idea se transforma en campañas optimizadas para 21+ plataformas en segundos' : 'Watch one idea transform into optimized campaigns across 21+ platforms in seconds'}
                       </p>
                     </div>
                     
