@@ -229,7 +229,7 @@ export default function Landing() {
                                   +17
                                 </div>
                               </div>
-                              <span className="text-white/70 text-xs font-mono">2:14</span>
+                              <span className="text-white/70 text-xs font-mono">0:30</span>
                             </div>
                           </div>
                         </div>
