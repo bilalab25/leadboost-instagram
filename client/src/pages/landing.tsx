@@ -365,6 +365,241 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* Social Proof / Testimonials Section */}
+        <div className="py-24 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h3 className="text-4xl font-bold text-gray-900 mb-6">
+                {isSpanish ? 'Lo que dicen nuestros clientes' : 'What our customers say'}
+              </h3>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                {isSpanish ? 'Resultados reales de empresas reales' : 'Real results from real companies'}
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                <div className="flex items-center mb-6">
+                  <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <span className="text-white font-bold text-lg">MG</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-lg">María González</h4>
+                    <p className="text-brand-600 text-sm font-medium">CMO, TechStart</p>
+                  </div>
+                </div>
+                <p className="text-gray-700 italic mb-6 text-lg leading-relaxed">
+                  "{isSpanish ? 'Redujimos el tiempo de lanzamiento de campañas de 3 días a 30 segundos. Increíble.' : 'We reduced campaign launch time from 3 days to 30 seconds. Incredible.'}"
+                </p>
+                <div className="flex text-yellow-500 text-xl">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i}>★</span>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                <div className="flex items-center mb-6">
+                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <span className="text-white font-bold text-lg">JS</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-lg">James Smith</h4>
+                    <p className="text-emerald-600 text-sm font-medium">Founder, GrowthCo</p>
+                  </div>
+                </div>
+                <p className="text-gray-700 italic mb-6 text-lg leading-relaxed">
+                  "{isSpanish ? 'Nuestro ROI en redes sociales aumentó 400% en el primer mes.' : 'Our social media ROI increased 400% in the first month.'}"
+                </p>
+                <div className="flex text-yellow-500 text-xl">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i}>★</span>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                <div className="flex items-center mb-6">
+                  <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <span className="text-white font-bold text-lg">AL</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-lg">Ana López</h4>
+                    <p className="text-purple-600 text-sm font-medium">CEO, DigitalBrand</p>
+                  </div>
+                </div>
+                <p className="text-gray-700 italic mb-6 text-lg leading-relaxed">
+                  "{isSpanish ? 'El sistema más inteligente que he usado. Ahora somos líderes en nuestro sector.' : 'The smartest system I have used. We are now leaders in our sector.'}"
+                </p>
+                <div className="flex text-yellow-500 text-xl">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i}>★</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Demo Video Section */}
+        <div className="pb-0 relative overflow-hidden">
+          <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-brand-200/8 to-brand-400/4 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-br from-brand-300/6 to-brand-500/3 rounded-full blur-3xl"></div>
+          <div className="max-w-full mx-auto relative z-10">
+            <div className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-gray-900">
+              <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+                <div className="absolute inset-0 opacity-10">
+                  <div className="w-full h-full" style={{
+                    backgroundImage: `
+                      linear-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(59, 130, 246, 0.15) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '60px 60px'
+                  }} />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/5 to-black/30 cursor-pointer group transition-all duration-700 hover:from-black/40 hover:via-black/10 hover:to-black/40" data-testid="video-play-button">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-16 py-20">
+                    <div className="mb-6">
+                      <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 drop-shadow-lg">
+                        {isSpanish ? 'Ve CampAIgner en Acción' : 'See CampAIgner in Action'}
+                      </h2>
+                      <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto drop-shadow-md">
+                        {isSpanish ? 'Descubre cómo funciona Meet CampAIgner en menos de 2 minutos' : 'Discover how Meet CampAIgner works in less than 2 minutes'}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-4xl w-full">
+                      <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
+                        <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                          <Zap className="h-8 w-8 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">
+                          {isSpanish ? 'Configuración Rápida' : 'Quick Setup'}
+                        </h3>
+                        <p className="text-white/70 text-sm leading-relaxed">
+                          {isSpanish ? 'Ve qué tan fácil es comenzar' : 'See how easy it is to get started'}
+                        </p>
+                      </div>
+                      
+                      <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
+                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                          <Target className="h-8 w-8 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">
+                          {isSpanish ? 'Campaña en Vivo' : 'Live Campaign'}
+                        </h3>
+                        <p className="text-white/70 text-sm leading-relaxed">
+                          {isSpanish ? 'Mira una campaña real desplegándose' : 'Watch a real campaign being deployed'}
+                        </p>
+                      </div>
+                      
+                      <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
+                          <BarChart3 className="h-8 w-8 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">
+                          {isSpanish ? 'Resultados Reales' : 'Real Results'}
+                        </h3>
+                        <p className="text-white/70 text-sm leading-relaxed">
+                          {isSpanish ? 'Datos de clientes reales' : 'Real customer data'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 border border-white/20 shadow-2xl">
+                        <div className="w-20 h-20 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                          <div className="w-0 h-0 border-l-[18px] border-l-gray-700 border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent ml-1"></div>
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-white/15 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
+                      <div className="absolute inset-0 rounded-full border border-white/30 animate-ping"></div>
+                      <div className="absolute inset-0 rounded-full border border-white/20 animate-ping" style={{animationDelay: '300ms'}}></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="absolute inset-0 p-8 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10">
+                      <span className="text-white font-semibold text-sm">CampAIgner Platform</span>
+                    </div>
+                    <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-full px-4 py-2 shadow-lg">
+                      <span className="text-white text-sm font-medium">● Demo</span>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-8 max-w-lg mx-auto border border-white/10 shadow-2xl">
+                      <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <Target className="h-8 w-8 text-white" />
+                      </div>
+                      <h3 className="text-white text-2xl font-bold mb-3">
+                        {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
+                      </h3>
+                      <p className="text-gray-300 text-base">
+                        {isSpanish ? 'De una idea a 21+ plataformas en segundos' : 'From one idea to 21+ platforms in seconds'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <SiInstagram className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+                        <SiFacebook className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="w-10 h-10 bg-gradient-to-br from-gray-800 to-black rounded-xl flex items-center justify-center shadow-lg">
+                        <SiTiktok className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center shadow-lg">
+                        <SiYoutube className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg">
+                        +17
+                      </div>
+                    </div>
+                    <span className="text-white/70 text-sm font-mono">2:14</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Final CTA */}
+        <div className="py-24 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800">
+          <div className="max-w-4xl mx-auto px-8 text-center">
+            <h2 className="text-4xl font-bold text-white mb-6">
+              {isSpanish ? '¿Listo para Revolucionar tu Marketing?' : 'Ready to Revolutionize your Marketing?'}
+            </h2>
+            <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+              {isSpanish ? 'Está en todas partes donde tu audiencia navega — con un clic.' : 'Be everywhere your audience scrolls — with one click.'}
+            </p>
+            
+            <Button 
+              size="lg" 
+              className="bg-white text-brand-600 hover:bg-gray-100 px-12 py-4 text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl hover-lift mb-8"
+            >
+              <Sparkles className="mr-3 h-6 w-6" />
+              {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
+            </Button>
+            
+            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 max-w-md mx-auto border border-white/20">
+              <div className="text-center space-y-3">
+                <p className="text-white font-medium text-base">
+                  {isSpanish ? 'Herramienta CampAIgner GRATIS' : 'CampAIgner tool FREE'}
+                </p>
+                <p className="text-blue-100 text-sm">
+                  {isSpanish ? '30 días gratis para todas las herramientas' : '30 days free for all tools'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Footer */}
         <footer className="bg-gray-900 text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
