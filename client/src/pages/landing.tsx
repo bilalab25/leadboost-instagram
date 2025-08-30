@@ -382,10 +382,10 @@ export default function Landing() {
                   </h3>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  {isSpanish ? 'Herramientas de diseño profesional con integración de Canva para crear contenido visual impactante' : 'Professional design tools with Canva integration to create impactful visual content'}
+                  {isSpanish ? 'Herramientas de diseño profesional nativas para crear contenido visual impactante sin depender de terceros' : 'Native professional design tools to create impactful visual content without relying on third parties'}
                 </p>
                 <ul className="text-sm text-gray-500 space-y-2">
-                  <li>• {isSpanish ? 'Integración con Canva Pro' : 'Canva Pro integration'}</li>
+                  <li>• {isSpanish ? 'Editor de diseño nativo' : 'Native design editor'}</li>
                   <li>• {isSpanish ? 'Plantillas profesionales' : 'Professional templates'}</li>
                   <li>• {isSpanish ? 'Branding consistente' : 'Consistent branding'}</li>
                 </ul>

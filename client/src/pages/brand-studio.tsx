@@ -16,7 +16,7 @@ import {
   Palette, Type, Image, Sparkles, Upload, Download, 
   Settings, Eye, Edit, Trash2, Plus, Link, Check 
 } from "lucide-react";
-import { SiCanva } from "react-icons/si";
+import { Brush } from "lucide-react";
 
 interface BrandDesign {
   id: string;
@@ -24,8 +24,8 @@ interface BrandDesign {
   colorPalette: any;
   typography: any;
   logoUrl: string | null;
-  isCanvaConnected: boolean;
-  canvaBrandKit: any;
+  isDesignStudioEnabled: boolean;
+  brandKit: any;
 }
 
 const brandStyles = [
@@ -71,18 +71,18 @@ export default function BrandStudio() {
     retry: false,
   });
 
-  // Canva OAuth connection
-  const connectCanvaMutation = useMutation({
+  // Design Studio activation
+  const activateDesignStudioMutation = useMutation({
     mutationFn: async () => {
-      // In real implementation, this would redirect to Canva OAuth
-      const response = await apiRequest("POST", "/api/brand-design/connect-canva");
+      // Activate native LeadBoost Design Studio
+      const response = await apiRequest("POST", "/api/brand-design/activate-studio");
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/brand-design"] });
       toast({
-        title: isSpanish ? "¡Conectado!" : "Connected!",
-        description: isSpanish ? "Canva conectado exitosamente" : "Canva connected successfully",
+        title: isSpanish ? "¡Activado!" : "Activated!",
+        description: isSpanish ? "Design Studio activado exitosamente" : "Design Studio activated successfully",
       });
     },
   });
@@ -149,17 +149,17 @@ export default function BrandStudio() {
             
             <div className="flex items-center space-x-4">
               <Button 
-                onClick={() => connectCanvaMutation.mutate()}
-                disabled={connectCanvaMutation.isPending || brandDesign?.isCanvaConnected}
-                className="bg-gradient-to-r from-purple-500 to-blue-600 text-white"
-                data-testid="button-connect-canva"
+                onClick={() => activateDesignStudioMutation.mutate()}
+                disabled={activateDesignStudioMutation.isPending || brandDesign?.isDesignStudioEnabled}
+                className="bg-gradient-to-r from-brand-500 to-brand-600 text-white"
+                data-testid="button-activate-studio"
               >
-                <SiCanva className="mr-2 h-4 w-4" />
-                {brandDesign?.isCanvaConnected 
-                  ? (isSpanish ? "Canva Conectado" : "Canva Connected")
-                  : (isSpanish ? "Conectar Canva" : "Connect Canva")
+                <Brush className="mr-2 h-4 w-4" />
+                {brandDesign?.isDesignStudioEnabled 
+                  ? (isSpanish ? "Design Studio Activo" : "Design Studio Active")
+                  : (isSpanish ? "Activar Design Studio" : "Activate Design Studio")
                 }
-                {brandDesign?.isCanvaConnected && <Check className="ml-2 h-4 w-4" />}
+                {brandDesign?.isDesignStudioEnabled && <Check className="ml-2 h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -181,8 +181,8 @@ export default function BrandStudio() {
                   <TabsTrigger value="assets" data-testid="tab-assets">
                     {isSpanish ? "Recursos" : "Assets"}
                   </TabsTrigger>
-                  <TabsTrigger value="canva-sync" data-testid="tab-canva-sync">
-                    Canva
+                  <TabsTrigger value="design-studio" data-testid="tab-design-studio">
+                    Design Studio
                   </TabsTrigger>
                 </TabsList>
 
@@ -533,66 +533,110 @@ export default function BrandStudio() {
                 </TabsContent>
 
                 {/* Canva Sync Tab */}
-                <TabsContent value="canva-sync">
+                <TabsContent value="design-studio">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
-                        <SiCanva className="mr-2 h-5 w-5" />
-                        {isSpanish ? "Sincronización con Canva" : "Canva Sync"}
+                        <Brush className="mr-2 h-5 w-5" />
+                        {isSpanish ? "LeadBoost Design Studio" : "LeadBoost Design Studio"}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {brandDesign?.isCanvaConnected ? (
+                      {brandDesign?.isDesignStudioEnabled ? (
                         <div className="space-y-6">
                           <div className="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg">
                             <Check className="h-5 w-5 text-green-500 mr-3" />
                             <span className="text-green-800 font-medium">
-                              {isSpanish ? "Canva conectado exitosamente" : "Canva connected successfully"}
+                              {isSpanish ? "Design Studio activado exitosamente" : "Design Studio activated successfully"}
                             </span>
                           </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-4 border rounded-lg text-center">
-                              <h4 className="font-medium">{isSpanish ? "Brand Kit" : "Brand Kit"}</h4>
-                              <p className="text-sm text-gray-500 mt-1">
-                                {isSpanish ? "Importado automáticamente" : "Auto-imported"}
-                              </p>
-                            </div>
-                            <div className="p-4 border rounded-lg text-center">
-                              <h4 className="font-medium">{isSpanish ? "Plantillas" : "Templates"}</h4>
-                              <p className="text-sm text-gray-500 mt-1">
-                                {isSpanish ? "Sincronizadas" : "Synchronized"}
-                              </p>
-                            </div>
-                            <div className="p-4 border rounded-lg text-center">
-                              <h4 className="font-medium">{isSpanish ? "Recursos" : "Assets"}</h4>
-                              <p className="text-sm text-gray-500 mt-1">
-                                {isSpanish ? "Disponibles" : "Available"}
-                              </p>
-                            </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <Card className="border-brand-200 hover:border-brand-300 transition-colors">
+                              <CardHeader>
+                                <CardTitle className="text-lg flex items-center">
+                                  <Image className="mr-2 h-5 w-5 text-brand-600" />
+                                  {isSpanish ? "Editor Visual" : "Visual Editor"}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-gray-600 mb-4">
+                                  {isSpanish ? "Editor drag-and-drop profesional con IA integrada" : "Professional drag-and-drop editor with integrated AI"}
+                                </p>
+                                <Button className="w-full bg-gradient-to-r from-brand-500 to-brand-600">
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  {isSpanish ? "Abrir Editor" : "Open Editor"}
+                                </Button>
+                              </CardContent>
+                            </Card>
+
+                            <Card className="border-purple-200 hover:border-purple-300 transition-colors">
+                              <CardHeader>
+                                <CardTitle className="text-lg flex items-center">
+                                  <Sparkles className="mr-2 h-5 w-5 text-purple-600" />
+                                  {isSpanish ? "IA Generativa" : "AI Generator"}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-gray-600 mb-4">
+                                  {isSpanish ? "Genera imágenes y videos con IA para tus campañas" : "Generate AI images and videos for your campaigns"}
+                                </p>
+                                <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600">
+                                  <Sparkles className="mr-2 h-4 w-4" />
+                                  {isSpanish ? "Generar IA" : "Generate AI"}
+                                </Button>
+                              </CardContent>
+                            </Card>
+
+                            <Card className="border-cyan-200 hover:border-cyan-300 transition-colors">
+                              <CardHeader>
+                                <CardTitle className="text-lg flex items-center">
+                                  <Type className="mr-2 h-5 w-5 text-cyan-600" />
+                                  {isSpanish ? "Plantillas Pro" : "Pro Templates"}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-gray-600 mb-4">
+                                  {isSpanish ? "Miles de plantillas profesionales para cada plataforma" : "Thousands of professional templates for every platform"}
+                                </p>
+                                <Button className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600">
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  {isSpanish ? "Ver Plantillas" : "View Templates"}
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          </div>
+
+                          <div className="bg-gradient-to-r from-brand-50 to-cyan-50 p-6 rounded-lg border border-brand-200">
+                            <h4 className="font-semibold text-brand-900 mb-2">
+                              {isSpanish ? "🚀 Próximamente: Video IA" : "🚀 Coming Soon: AI Video"}
+                            </h4>
+                            <p className="text-brand-700">
+                              {isSpanish ? "Creación automática de videos profesionales con avatares IA y efectos avanzados" : "Automatic professional video creation with AI avatars and advanced effects"}
+                            </p>
                           </div>
                         </div>
                       ) : (
                         <div className="text-center py-12">
-                          <SiCanva className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                          <Brush className="mx-auto h-16 w-16 text-gray-400 mb-4" />
                           <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            {isSpanish ? "Conecta tu Canva" : "Connect Your Canva"}
+                            {isSpanish ? "Activa Design Studio" : "Activate Design Studio"}
                           </h3>
                           <p className="text-gray-500 mb-6">
                             {isSpanish 
-                              ? "Importa automáticamente tu Brand Kit, plantillas y recursos"
-                              : "Automatically import your Brand Kit, templates and assets"
+                              ? "Activa el estudio de diseño nativo de LeadBoost para crear contenido visual profesional sin depender de herramientas externas." 
+                              : "Activate LeadBoost's native design studio to create professional visual content without relying on external tools."
                             }
                           </p>
                           <Button 
-                            onClick={() => connectCanvaMutation.mutate()}
-                            disabled={connectCanvaMutation.isPending}
-                            className="bg-gradient-to-r from-purple-500 to-blue-600 text-white"
+                            onClick={() => activateDesignStudioMutation.mutate()}
+                            disabled={activateDesignStudioMutation.isPending}
+                            className="bg-gradient-to-r from-brand-500 to-brand-600 text-white"
                           >
-                            <SiCanva className="mr-2 h-4 w-4" />
-                            {connectCanvaMutation.isPending 
-                              ? (isSpanish ? "Conectando..." : "Connecting...")
-                              : (isSpanish ? "Conectar Canva" : "Connect Canva")
+                            <Brush className="mr-2 h-4 w-4" />
+                            {activateDesignStudioMutation.isPending 
+                              ? (isSpanish ? "Activando..." : "Activating...")
+                              : (isSpanish ? "Activar Design Studio" : "Activate Design Studio")
                             }
                           </Button>
                         </div>
