@@ -107,7 +107,7 @@ export default function CampAIgner() {
                   size="lg" 
                   onClick={handleGenerate}
                   disabled={!campaignIdea.trim() || generating}
-                  className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white"
+                  className="bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white"
                 >
                   {generating ? (
                     <>

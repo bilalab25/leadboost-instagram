@@ -133,7 +133,7 @@ export default function Dashboard() {
                 {populateDemoDataMutation.isPending ? t.common.loading : t.common.loadDemoData}
               </Button>
               
-              <Button className="bg-gradient-to-r from-brand-500 to-purple-600 text-white border-none hover:from-brand-600 hover:to-purple-700" data-testid="button-leadboost-campaign">
+              <Button className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white border-none hover:from-brand-700 hover:to-cyan-600" data-testid="button-leadboost-campaign">
                 <Zap className="mr-2 h-4 w-4" />
                 CampAIgner
               </Button>
