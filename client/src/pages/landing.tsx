@@ -581,7 +581,7 @@ export default function Landing() {
                 />
               </div>
               <p className="text-gray-400 mb-6">
-                {isSpanish ? 'La plataforma completa de crecimiento empresarial que transforma la participación del cliente en cada canal' : 'The complete business growth platform that transforms customer engagement across every channel'}
+                {isSpanish ? 'Donde el marketing empieza a funcionar.' : 'Where marketing starts working.'}
               </p>
               <div className="flex justify-center space-x-6">
                 <Button variant="ghost" className="text-gray-400 hover:text-white">
