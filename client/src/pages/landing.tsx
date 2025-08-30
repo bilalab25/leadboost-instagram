@@ -34,6 +34,28 @@ export default function Landing() {
               >
                 {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
               </Button>
+              
+              {/* Gorgeous CTA Pricing Button */}
+              <Button 
+                className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-green-700 text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-emerald-400/30"
+                data-testid="button-pricing-cta"
+              >
+                {/* Animated background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
+                
+                {/* Sparkle effect */}
+                <div className="absolute inset-0 rounded-full">
+                  <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full animate-ping opacity-75"></div>
+                  <div className="absolute top-3 left-3 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
+                  <div className="absolute bottom-2 right-4 w-0.5 h-0.5 bg-emerald-200 rounded-full animate-ping" style={{animationDelay: '500ms'}}></div>
+                </div>
+                
+                <span className="relative z-10 flex items-center">
+                  <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
+                  {isSpanish ? '¡Ver Precios!' : 'See Pricing!'}
+                </span>
+              </Button>
+              
               <Button className="bg-brand-600 hover:bg-brand-700 text-white">
                 {isSpanish ? 'Iniciar Sesión' : 'Sign In'}
               </Button>
