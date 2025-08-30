@@ -178,7 +178,7 @@ export default function AIPlanner() {
           <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
             <div className="flex-1 flex items-center">
               <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-ai-planner-title">{t.aiPlanner.title}</h1>
-              <Badge className="ml-3 bg-amber-100 text-amber-800">
+              <Badge className="ml-3 bg-gradient-to-r from-brand-600 to-cyan-500 text-white">
                 <Bot className="mr-1 h-3 w-3" />
                 {t.common.aiPowered}
               </Badge>
@@ -204,17 +204,30 @@ export default function AIPlanner() {
         {/* AI Planner Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
           {/* Hero Section */}
-          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border-b">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8">
+          <div className="bg-gradient-to-br from-brand-600 via-brand-500 to-cyan-500 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-10 right-10 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+              <div className="absolute bottom-10 left-10 w-48 h-48 bg-white rounded-full blur-2xl"></div>
+            </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-12 relative">
               <div className="text-center">
-                <div className="inline-flex items-center bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                  <Brain className="mr-2 h-4 w-4" />
+                <div className="inline-flex items-center bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-full text-sm font-bold mb-6 shadow-lg">
+                  <Brain className="mr-2 h-5 w-5" />
                   {t.aiPlanner.poweredByAI}
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{t.aiPlanner.heroTitle}</h2>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                <h2 className="text-4xl lg:text-5xl font-black text-white mb-4 leading-tight">{t.aiPlanner.heroTitle}</h2>
+                <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
                   {t.aiPlanner.heroSubtitle}
                 </p>
+                <div className="mt-8">
+                  <Button 
+                    size="lg" 
+                    className="bg-white text-brand-600 hover:bg-white/90 px-8 py-4 text-lg font-bold shadow-xl rounded-2xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <Zap className="mr-2 h-6 w-6" />
+                    Start Planning Now
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -235,15 +248,15 @@ export default function AIPlanner() {
                     
                     {/* Business Data Input */}
                     <div className="lg:col-span-2">
-                      <Card className="border-2 border-amber-100 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50">
+                      <Card className="border-2 border-brand-200 shadow-xl hover:shadow-2xl transition-all duration-300 group">
+                        <CardHeader className="bg-gradient-to-r from-brand-50 to-cyan-50 group-hover:from-brand-100 group-hover:to-cyan-100 transition-all duration-300">
                           <CardTitle className="flex items-center text-lg">
-                            <div className="bg-amber-100 p-2 rounded-lg mr-3">
-                              <Sparkles className="h-5 w-5 text-amber-600" />
+                            <div className="bg-gradient-to-br from-brand-600 to-cyan-500 p-3 rounded-xl mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                              <Sparkles className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                              <div className="text-gray-900 font-semibold">{t.aiPlanner.businessDataInput}</div>
-                              <div className="text-sm text-gray-600 font-normal">{t.aiPlanner.businessDataSubtitle}</div>
+                              <div className="text-gray-900 font-bold text-xl">{t.aiPlanner.businessDataInput}</div>
+                              <div className="text-sm text-gray-600 font-medium">{t.aiPlanner.businessDataSubtitle}</div>
                             </div>
                           </CardTitle>
                         </CardHeader>
@@ -351,15 +364,15 @@ export default function AIPlanner() {
                           </div>
 
                           {/* Generate Button */}
-                          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-lg border border-amber-200">
-                            <div className="flex items-center mb-3">
-                              <Wand2 className="h-5 w-5 text-amber-600 mr-2" />
-                              <span className="text-sm font-medium text-amber-900">{t.aiPlanner.readyToGenerate}</span>
+                          <div className="bg-gradient-to-r from-brand-50 to-cyan-50 p-6 rounded-xl border-2 border-brand-200 hover:border-brand-300 transition-colors duration-300">
+                            <div className="flex items-center mb-4">
+                              <Wand2 className="h-6 w-6 text-brand-600 mr-3" />
+                              <span className="text-lg font-bold text-gray-900">{t.aiPlanner.readyToGenerate}</span>
                             </div>
                             <Button
                               onClick={() => generatePlanMutation.mutate()}
                               disabled={generatePlanMutation.isPending || !businessData.industry}
-                              className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white font-medium py-3 text-lg shadow-md"
+                              className="w-full bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white font-bold py-4 text-xl shadow-xl rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-50"
                               data-testid="button-generate-plan"
                             >
                               {generatePlanMutation.isPending ? (
@@ -376,7 +389,7 @@ export default function AIPlanner() {
                               )}
                             </Button>
                             {!businessData.industry && (
-                              <p className="text-xs text-amber-700 mt-2 text-center">
+                              <p className="text-sm text-brand-700 mt-3 text-center font-medium">
                                 {t.aiPlanner.selectIndustryHint}
                               </p>
                             )}
@@ -387,15 +400,15 @@ export default function AIPlanner() {
 
                     {/* AI Preview */}
                     <div>
-                      <Card className="border-2 border-primary/20 shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
+                      <Card className="border-2 border-brand-200 shadow-xl hover:shadow-2xl transition-all duration-300 group">
+                        <CardHeader className="bg-gradient-to-r from-brand-50 to-cyan-50 group-hover:from-brand-100 group-hover:to-cyan-100 transition-all duration-300">
                           <CardTitle className="flex items-center text-lg">
-                            <div className="bg-primary/10 p-2 rounded-lg mr-3">
-                              <Brain className="h-5 w-5 text-primary" />
+                            <div className="bg-gradient-to-br from-brand-600 to-cyan-500 p-3 rounded-xl mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                              <Brain className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                              <div className="text-gray-900 font-semibold">{t.aiPlanner.aiStrategyPreview}</div>
-                              <div className="text-sm text-gray-600 font-normal">{t.aiPlanner.aiStrategySubtitle}</div>
+                              <div className="text-gray-900 font-bold text-xl">{t.aiPlanner.aiStrategyPreview}</div>
+                              <div className="text-sm text-gray-600 font-medium">{t.aiPlanner.aiStrategySubtitle}</div>
                             </div>
                           </CardTitle>
                         </CardHeader>
