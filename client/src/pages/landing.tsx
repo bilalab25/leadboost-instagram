@@ -72,7 +72,7 @@ export default function Landing() {
               <h2 className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.88] tracking-tight">
                 {isSpanish ? 'El Efecto LeadBoost' : 'The LeadBoost Effect'}
               </h2>
-              <div className="text-3xl lg:text-4xl font-semibold text-gray-700 mb-8 tracking-wide">
+              <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-8 tracking-wide">
                 {isSpanish ? 'Ser Visto → Everywhere. En Un Clic.' : 'Get Seen → Everywhere. In One Click.'}
               </div>
               
