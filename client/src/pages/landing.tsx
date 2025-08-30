@@ -166,19 +166,70 @@ export default function Landing() {
                       </p>
                     </div>
                     
-                    <div className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-r from-gray-800 to-black p-1">
-                      <div className="bg-black rounded-xl overflow-hidden">
-                        <div className="aspect-video bg-gradient-to-br from-gray-900 to-black flex items-center justify-center relative group cursor-pointer hover:from-gray-800 hover:to-gray-900 transition-all duration-300">
-                          <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-all duration-300"></div>
-                          <div className="text-center relative z-10">
-                            <div className="w-20 h-20 bg-gradient-to-br from-brand-600 to-cyan-500 rounded-full flex items-center justify-center mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300 mx-auto">
-                              <Video className="h-10 w-10 text-white" />
+                    <div className="max-w-4xl mx-auto relative z-10">
+                      <div className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-gray-900 rounded-2xl">
+                        <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+                          <div className="absolute inset-0 opacity-10">
+                            <div className="w-full h-full" style={{
+                              backgroundImage: `
+                                linear-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px),
+                                linear-gradient(90deg, rgba(59, 130, 246, 0.15) 1px, transparent 1px)
+                              `,
+                              backgroundSize: '60px 60px'
+                            }} />
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/5 to-black/30 cursor-pointer group transition-all duration-700 hover:from-black/40 hover:via-black/10 hover:to-black/40" data-testid="video-play-button">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 py-12">
+                              <div className="mb-6">
+                                <h4 className="text-xl md:text-2xl font-bold text-white mb-3 drop-shadow-lg">
+                                  {isSpanish ? 'Ve CampAIgner en Acción' : 'See CampAIgner in Action'}
+                                </h4>
+                                <p className="text-sm md:text-base text-white/90 max-w-xl mx-auto drop-shadow-md">
+                                  {isSpanish ? 'Descubre cómo funciona en menos de 2 minutos' : 'Discover how it works in less than 2 minutes'}
+                                </p>
+                              </div>
+
+                              <div className="relative">
+                                <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 border border-white/20 shadow-2xl">
+                                  <div className="w-14 h-14 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                                    <div className="w-0 h-0 border-l-[14px] border-l-gray-700 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent ml-1"></div>
+                                  </div>
+                                </div>
+                                <div className="absolute inset-0 bg-white/15 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
+                                <div className="absolute inset-0 rounded-full border border-white/30 animate-ping"></div>
+                              </div>
                             </div>
-                            <p className="text-white font-medium">
-                              {isSpanish ? 'Haz clic para ver la demostración' : 'Click to watch demo'}
-                            </p>
-                            <div className="mt-2 text-sm text-gray-300">
-                              {isSpanish ? '2 minutos • Demostración completa' : '2 minutes • Full demo'}
+                          </div>
+                          
+                          <div className="absolute inset-0 p-4 flex flex-col justify-between">
+                            <div className="flex items-center justify-between">
+                              <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-xl px-3 py-1 border border-white/10">
+                                <span className="text-white font-semibold text-xs">CampAIgner Platform</span>
+                              </div>
+                              <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-full px-3 py-1 shadow-lg">
+                                <span className="text-white text-xs font-medium">● Demo</span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex space-x-2">
+                                <div className="w-6 h-6 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
+                                  <SiInstagram className="h-3 w-3 text-white" />
+                                </div>
+                                <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
+                                  <SiFacebook className="h-3 w-3 text-white" />
+                                </div>
+                                <div className="w-6 h-6 bg-gradient-to-br from-gray-800 to-black rounded-lg flex items-center justify-center shadow-lg">
+                                  <SiTiktok className="h-3 w-3 text-white" />
+                                </div>
+                                <div className="w-6 h-6 bg-gradient-to-br from-red-600 to-red-700 rounded-lg flex items-center justify-center shadow-lg">
+                                  <SiYoutube className="h-3 w-3 text-white" />
+                                </div>
+                                <div className="w-6 h-6 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-lg">
+                                  +17
+                                </div>
+                              </div>
+                              <span className="text-white/70 text-xs font-mono">2:14</span>
                             </div>
                           </div>
                         </div>
@@ -485,133 +536,6 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Demo Video Section */}
-        <div className="pb-0 relative overflow-hidden">
-          <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-brand-200/8 to-brand-400/4 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-br from-brand-300/6 to-brand-500/3 rounded-full blur-3xl"></div>
-          <div className="max-w-full mx-auto relative z-10">
-            <div className="relative overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-gray-900">
-              <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-                <div className="absolute inset-0 opacity-10">
-                  <div className="w-full h-full" style={{
-                    backgroundImage: `
-                      linear-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(59, 130, 246, 0.15) 1px, transparent 1px)
-                    `,
-                    backgroundSize: '60px 60px'
-                  }} />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/5 to-black/30 cursor-pointer group transition-all duration-700 hover:from-black/40 hover:via-black/10 hover:to-black/40" data-testid="video-play-button">
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-16 py-20">
-                    <div className="mb-6">
-                      <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 drop-shadow-lg">
-                        {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost in Action'}
-                      </h2>
-                      <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto drop-shadow-md">
-                        {isSpanish ? 'Descubre cómo funciona LeadBoost en menos de 2 minutos' : 'Discover how LeadBoost works in less than 2 minutes'}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-4xl w-full">
-                      <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
-                          <MessageSquare className="h-8 w-8 text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          {isSpanish ? 'Inbox Unificado' : 'Unified Inbox'}
-                        </h3>
-                        <p className="text-white/70 text-sm leading-relaxed">
-                          {isSpanish ? 'Gestiona todos los mensajes en un lugar' : 'Manage all messages in one place'}
-                        </p>
-                      </div>
-                      
-                      <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
-                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
-                          <Target className="h-8 w-8 text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          {isSpanish ? 'Campaña en Vivo' : 'Live Campaign'}
-                        </h3>
-                        <p className="text-white/70 text-sm leading-relaxed">
-                          {isSpanish ? 'Mira una campaña real desplegándose' : 'Watch a real campaign being deployed'}
-                        </p>
-                      </div>
-                      
-                      <div className="text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group/card">
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover/card:scale-110 transition-transform duration-300">
-                          <Bot className="h-8 w-8 text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          {isSpanish ? 'Planificador Mensual' : 'Monthly Planner'}
-                        </h3>
-                        <p className="text-white/70 text-sm leading-relaxed">
-                          {isSpanish ? 'Estrategias de contenido con IA' : 'AI-powered content strategies'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="relative">
-                      <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 border border-white/20 shadow-2xl">
-                        <div className="w-20 h-20 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
-                          <div className="w-0 h-0 border-l-[18px] border-l-gray-700 border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent ml-1"></div>
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 bg-white/15 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
-                      <div className="absolute inset-0 rounded-full border border-white/30 animate-ping"></div>
-                      <div className="absolute inset-0 rounded-full border border-white/20 animate-ping" style={{animationDelay: '300ms'}}></div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="absolute inset-0 p-8 flex flex-col justify-between">
-                  <div className="flex items-center justify-between">
-                    <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10">
-                      <span className="text-white font-semibold text-sm">CampAIgner Platform</span>
-                    </div>
-                    <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-full px-4 py-2 shadow-lg">
-                      <span className="text-white text-sm font-medium">● Demo</span>
-                    </div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-8 max-w-lg mx-auto border border-white/10 shadow-2xl">
-                      <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                        <Target className="h-8 w-8 text-white" />
-                      </div>
-                      <h3 className="text-white text-2xl font-bold mb-3">
-                        {isSpanish ? 'Conoce CampAIgner' : 'CampAIgner'}
-                      </h3>
-                      <p className="text-gray-300 text-base">
-                        {isSpanish ? 'De una idea a 21+ plataformas en segundos' : 'From one idea to 21+ platforms in seconds'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <SiInstagram className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
-                        <SiFacebook className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="w-10 h-10 bg-gradient-to-br from-gray-800 to-black rounded-xl flex items-center justify-center shadow-lg">
-                        <SiTiktok className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center shadow-lg">
-                        <SiYoutube className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg">
-                        +17
-                      </div>
-                    </div>
-                    <span className="text-white/70 text-sm font-mono">2:14</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Final CTA */}
         <div className="py-24 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800">
