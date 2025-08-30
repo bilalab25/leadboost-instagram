@@ -160,7 +160,7 @@ export default function Landing() {
                       className="bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-3xl transition-all duration-300 transform hover:scale-105"
                     >
                       <Zap className="mr-3 h-6 w-6" />
-                      {isSpanish ? 'Crear Campaña CampAIgner' : 'Create CampAIgner Campaign'}
+                      {isSpanish ? 'CampAIgner' : 'CampAIgner'}
                     </Button>
                   </div>
                 </CardContent>

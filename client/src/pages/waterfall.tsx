@@ -117,7 +117,7 @@ export default function CampAIgner() {
                   ) : (
                     <>
                       <Zap className="mr-2 h-4 w-4" />
-                      {isSpanish ? 'Generar Campaña CampAIgner' : 'Generate CampAIgner Campaign'}
+                      {isSpanish ? 'CampAIgner' : 'CampAIgner'}
                     </>
                   )}
                 </Button>

@@ -173,7 +173,7 @@ export default function SpanishPreview() {
                 <div className="text-center">
                   <Button size="lg" className="bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg">
                     <Zap className="mr-2 h-5 w-5" />
-                    Crear Campaña CampAIgner
+                    CampAIgner
                   </Button>
                 </div>
               </CardContent>
