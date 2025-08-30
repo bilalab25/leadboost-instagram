@@ -128,7 +128,7 @@ export const translations = {
     sidebar: {
       dashboard: "Dashboard",
       inbox: "Inbox",
-      aiPlanner: "30-Day Campaigner",
+      aiPlanner: "30-Day Lead Boost",
       campaigns: "Campaigns",
       calendar: "Calendar",
       analytics: "Analytics",
@@ -324,7 +324,7 @@ export const translations = {
     sidebar: {
       dashboard: "Panel Principal",
       inbox: "Bandeja de Entrada",
-      aiPlanner: "Campaigner 30 Días",
+      aiPlanner: "Lead Boost 30 Días",
       campaigns: "Campañas",
       calendar: "Calendario",
       analytics: "Analíticas",
@@ -353,7 +353,7 @@ export const translations = {
     },
     // Tools and Features
     tools: {
-      aiPlanner: "Campaigner 30 Días",
+      aiPlanner: "Lead Boost 30 Días",
       campaignCreator: "Creador de Campañas",
       analytics: "Analíticas",
       smartInbox: "Bandeja Inteligente",
