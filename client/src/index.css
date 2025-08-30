@@ -150,11 +150,13 @@
 
 .waterfall-particle {
   position: absolute;
-  width: 4px;
-  height: 15px;
-  border-radius: 2px;
-  opacity: 0.6;
+  width: 6px;
+  height: 20px;
+  border-radius: 3px;
+  opacity: 0.8;
+  z-index: 5;
   animation: waterfall-flow 3s linear infinite;
+  background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
 }
 
 .waterfall-particle:nth-child(1) { 
