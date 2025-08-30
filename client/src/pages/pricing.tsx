@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Zap, Crown, Rocket } from "lucide-react";
+import { useLanguage } from '@/hooks/useLanguage';
+import { translations } from '@/lib/translations';
 
 export default function Pricing() {
+  const { language } = useLanguage();
+  const isSpanish = language === 'es';
+  const t = translations[language as keyof typeof translations];
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-brand-50">
       
@@ -10,10 +16,10 @@ export default function Pricing() {
       <div className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6">
-            Simple, Transparent Pricing
+            {t.pricing.title}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Choose the plan that fits your business. All plans include our revolutionary CampAIgner tool.
+            {t.pricing.subtitle}
           </p>
         </div>
       </div>
@@ -27,40 +33,40 @@ export default function Pricing() {
             <CardContent className="pt-6">
               <div className="flex items-center mb-4">
                 <Zap className="h-8 w-8 text-blue-500 mr-3" />
-                <h3 className="text-2xl font-bold text-gray-900">Starter</h3>
+                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.starter}</h3>
               </div>
               
               <div className="mb-6">
-                <span className="text-4xl font-black text-black">FREE</span>
+                <span className="text-4xl font-black text-black">{t.pricing.free}</span>
               </div>
               
-              <p className="text-gray-600 mb-6">Perfect for small businesses and solo entrepreneurs</p>
+              <p className="text-gray-600 mb-6">{t.pricing.starterDesc}</p>
               
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Free CampAIgner tool</span>
+                  <span>{t.pricing.freeTool}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>5 social platforms</span>
+                  <span>{t.pricing.platforms5}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>2 campaigns per month</span>
+                  <span>{t.pricing.campaigns2}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Basic analytics</span>
+                  <span>{t.pricing.basicAnalytics}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Email support</span>
+                  <span>{t.pricing.emailSupport}</span>
                 </li>
               </ul>
               
               <Button className="w-full bg-green-500 hover:bg-green-600 text-white" data-testid="button-starter-plan">
-                Start Free
+                {t.pricing.startFree}
               </Button>
             </CardContent>
           </Card>
@@ -69,60 +75,60 @@ export default function Pricing() {
           <Card className="relative p-8 border-2 border-brand-500 hover:shadow-2xl transition-all duration-300 scale-105">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
               <span className="bg-gradient-to-r from-brand-500 to-brand-600 text-white px-6 py-2 rounded-full text-sm font-bold">
-                MOST POPULAR
+                {t.pricing.mostPopular}
               </span>
             </div>
             
             <CardContent className="pt-6">
               <div className="flex items-center mb-4">
                 <Crown className="h-8 w-8 text-brand-500 mr-3" />
-                <h3 className="text-2xl font-bold text-gray-900">Professional</h3>
+                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.professional}</h3>
               </div>
               
               <div className="mb-6">
                 <span className="text-4xl font-black text-gray-900">$79</span>
-                <span className="text-gray-500">/month</span>
+                <span className="text-gray-500">{t.pricing.perMonth}</span>
               </div>
               
-              <p className="text-gray-600 mb-6">Ideal for growing businesses and marketing teams</p>
+              <p className="text-gray-600 mb-6">{t.pricing.professionalDesc}</p>
               
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Everything in Starter</span>
+                  <span>{t.pricing.everythingStarter}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Monthly Planner (AI strategy tool)</span>
+                  <span>{t.pricing.monthlyPlanner}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Unified Inbox (message management)</span>
+                  <span>{t.pricing.unifiedInbox}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>15+ social platforms</span>
+                  <span>{t.pricing.platforms15}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>30 campaigns per month</span>
+                  <span>{t.pricing.campaigns30}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Advanced analytics & reports</span>
+                  <span>{t.pricing.advancedAnalytics}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Brand Studio access</span>
+                  <span>{t.pricing.brandStudio}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Priority support</span>
+                  <span>{t.pricing.prioritySupport}</span>
                 </li>
               </ul>
               
               <Button className="w-full bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white" data-testid="button-professional-plan">
-                Start 30 Day Free Trial
+                {t.pricing.startTrial}
               </Button>
             </CardContent>
           </Card>
@@ -132,57 +138,57 @@ export default function Pricing() {
             <CardContent className="pt-6">
               <div className="flex items-center mb-4">
                 <Rocket className="h-8 w-8 text-purple-500 mr-3" />
-                <h3 className="text-2xl font-bold text-gray-900">Enterprise</h3>
+                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.enterprise}</h3>
               </div>
               
               <div className="mb-6">
                 <span className="text-4xl font-black text-gray-900">$149</span>
-                <span className="text-gray-500">/month</span>
+                <span className="text-gray-500">{t.pricing.perMonth}</span>
               </div>
               
-              <p className="text-gray-600 mb-6">Built for enterprises and large marketing teams</p>
+              <p className="text-gray-600 mb-6">{t.pricing.enterpriseDesc}</p>
               
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Everything in Professional</span>
+                  <span>{t.pricing.everythingProfessional}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>100 campaigns per month</span>
+                  <span>{t.pricing.campaigns100}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Advanced Monthly Planner</span>
+                  <span>{t.pricing.advancedPlanner}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Premium Unified Inbox</span>
+                  <span>{t.pricing.premiumInbox}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>21+ social platforms</span>
+                  <span>{t.pricing.platforms21}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>White-label reports</span>
+                  <span>{t.pricing.whiteLabel}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Team collaboration</span>
+                  <span>{t.pricing.teamCollaboration}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Custom integrations</span>
+                  <span>{t.pricing.customIntegrations}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Dedicated account manager</span>
+                  <span>{t.pricing.accountManager}</span>
                 </li>
               </ul>
               
               <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white" data-testid="button-enterprise-plan">
-                Start 30 Day Free Trial
+                {t.pricing.startTrial}
               </Button>
             </CardContent>
           </Card>
@@ -192,17 +198,17 @@ export default function Pricing() {
         <div className="text-center mt-16">
           <div className="bg-white rounded-2xl p-8 max-w-2xl mx-auto shadow-lg border border-gray-100">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Try Any Plan Free for 30 Days
+              {t.pricing.freeTrialTitle}
             </h3>
             <p className="text-gray-600 mb-6">
-              No credit card required. Cancel anytime. Experience the full power of our platform.
+              {t.pricing.freeTrialDesc}
             </p>
             <Button 
               size="lg" 
               className="bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white px-8 py-3"
               data-testid="button-free-trial"
             >
-              Start Your Free Trial
+              {t.pricing.startYourTrial}
             </Button>
           </div>
         </div>
@@ -210,43 +216,43 @@ export default function Pricing() {
         {/* FAQ Section */}
         <div className="mt-24">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Frequently Asked Questions
+            {t.pricing.faqTitle}
           </h2>
           
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What's included in the free trial?
+                {t.pricing.faqQuestion1}
               </h3>
               <p className="text-gray-600">
-                Full access to all features for 30 days. No credit card required, no hidden fees.
+                {t.pricing.faqAnswer1}
               </p>
             </div>
             
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Can I change plans anytime?
+                {t.pricing.faqQuestion3}
               </h3>
               <p className="text-gray-600">
-                Yes! Upgrade or downgrade your plan at any time. Changes take effect immediately.
+                {t.pricing.faqAnswer3}
               </p>
             </div>
             
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What platforms does CampAIgner support?
+                {t.pricing.faqQuestion2}
               </h3>
               <p className="text-gray-600">
-                Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube, Twitter, Pinterest, and 13+ more platforms with perfect formatting for each.
+                {t.pricing.faqAnswer2}
               </p>
             </div>
             
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Is there a setup fee?
+                {t.pricing.faqQuestion4}
               </h3>
               <p className="text-gray-600">
-                No setup fees, no hidden costs. Just simple monthly pricing with everything included.
+                {t.pricing.faqAnswer4}
               </p>
             </div>
           </div>
