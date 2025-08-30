@@ -37,6 +37,7 @@ export default function Dashboard() {
   const { language } = useLanguage();
   const t = translations['es']; // Force Spanish for demo
   const [selectedPeriod, setSelectedPeriod] = useState<'weekly' | 'monthly' | 'daily'>('weekly');
+  const [showDollarAmount, setShowDollarAmount] = useState(false);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -218,12 +219,17 @@ export default function Dashboard() {
                             </h3>
                           </div>
                           <div className="text-6xl font-bold text-green-600 mb-3">
-                            +{(() => {
+                            {showDollarAmount ? (() => {
+                              if (selectedPeriod === 'weekly') return '$12,450';
+                              if (selectedPeriod === 'monthly') return '$52,800';
+                              if (selectedPeriod === 'daily') return '$1,890';
+                              return '$12,450';
+                            })() : `+${(() => {
                               if (selectedPeriod === 'weekly') return '47%';
                               if (selectedPeriod === 'monthly') return '63%';
                               if (selectedPeriod === 'daily') return '12%';
                               return '47%';
-                            })()}
+                            })()}`}
                           </div>
                           <div className="flex items-center text-gray-600 text-base font-medium mb-2">
                             <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mr-2">
@@ -242,11 +248,15 @@ export default function Dashboard() {
                             })()}
                           </div>
                         </div>
-                        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg">
+                        <button 
+                          onClick={() => setShowDollarAmount(!showDollarAmount)}
+                          className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 cursor-pointer"
+                          data-testid="button-toggle-sales-view"
+                        >
                           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                           </svg>
-                        </div>
+                        </button>
                       </div>
                     </div>
                   </div>
