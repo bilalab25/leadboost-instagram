@@ -155,6 +155,37 @@ export default function Landing() {
                     </div>
                   </div>
                   
+                  {/* Demo Video Section */}
+                  <div className="mt-16 mb-12">
+                    <div className="text-center mb-8">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                        {isSpanish ? 'Mira CampAIgner en Acción' : 'See CampAIgner in Action'}
+                      </h3>
+                      <p className="text-gray-600 max-w-2xl mx-auto">
+                        {isSpanish ? 'Observa cómo una sola idea se transforma en campañas optimizadas para 21+ plataformas en segundos' : 'Watch how one idea transforms into optimized campaigns across 21+ platforms in seconds'}
+                      </p>
+                    </div>
+                    
+                    <div className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-r from-brand-100 to-cyan-100 p-1">
+                      <div className="bg-white rounded-xl overflow-hidden">
+                        <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative group cursor-pointer hover:from-gray-50 hover:to-gray-150 transition-all duration-300">
+                          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-all duration-300"></div>
+                          <div className="text-center relative z-10">
+                            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300 mx-auto">
+                              <Video className="h-10 w-10 text-brand-600" />
+                            </div>
+                            <p className="text-gray-700 font-medium">
+                              {isSpanish ? 'Haz clic para ver la demostración' : 'Click to watch demo'}
+                            </p>
+                            <div className="mt-2 text-sm text-gray-500">
+                              {isSpanish ? '2 minutos • Demostración completa' : '2 minutes • Full demo'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="mt-12 text-center">
                     <Button 
                       size="lg" 
