@@ -127,7 +127,7 @@ export default function Sidebar() {
                     className={cn(
                       "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
                       item.special
-                        ? "bg-gradient-to-r from-brand-500 to-purple-600 text-white hover:from-brand-600 hover:to-purple-700 shadow-md"
+                        ? "bg-gradient-to-r from-brand-600 to-cyan-500 text-white hover:from-brand-700 hover:to-cyan-600 shadow-md"
                         : isActive
                         ? "bg-brand-50 text-brand-700"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
