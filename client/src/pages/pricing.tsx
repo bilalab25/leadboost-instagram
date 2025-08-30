@@ -106,7 +106,7 @@ export default function Pricing() {
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>Unlimited campaigns</span>
+                  <span>30 campaigns per month</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
