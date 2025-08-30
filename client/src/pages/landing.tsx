@@ -75,7 +75,7 @@ export default function Landing() {
           {/* Main LeadBoost Value Proposition with CampAIgner Tool */
           <div className="text-center mb-16">
             <h2 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
-              {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
+              {isSpanish ? 'Conoce LeadBoost' : 'Meet LeadBoost'}
             </h2>
             <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
               {isSpanish ? 'Tu marca → EN TODOS LADOS' : 'Your brand → EVERYWHERE'}
