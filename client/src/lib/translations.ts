@@ -129,6 +129,7 @@ export const translations = {
       dashboard: "Dashboard",
       inbox: "Inbox",
       aiPlanner: "30-Day Lead Boost",
+      brandStudio: "Brand Studio",
       campaigns: "Campaigns",
       calendar: "Calendar",
       analytics: "Analytics",
@@ -325,6 +326,7 @@ export const translations = {
       dashboard: "Panel Principal",
       inbox: "Bandeja de Entrada",
       aiPlanner: "Lead Boost 30 Días",
+      brandStudio: "Estudio de Marca",
       campaigns: "Campañas",
       calendar: "Calendario",
       analytics: "Analíticas",
@@ -354,6 +356,7 @@ export const translations = {
     // Tools and Features
     tools: {
       aiPlanner: "Lead Boost 30 Días",
+      brandStudio: "Estudio de Marca",
       campaignCreator: "Creador de Campañas",
       analytics: "Analíticas",
       smartInbox: "Bandeja Inteligente",

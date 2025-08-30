@@ -15,6 +15,8 @@ import {
   salesTransactions,
   products,
   campaignTriggers,
+  brandDesigns,
+  campaignDesigns,
   type User,
   type UpsertUser,
   type InsertBrand,
@@ -47,9 +49,13 @@ import {
   type Product,
   type InsertCampaignTrigger,
   type CampaignTrigger,
+  type InsertBrandDesign,
+  type BrandDesign,
+  type InsertCampaignDesign,
+  type CampaignDesign,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, count, sql } from "drizzle-orm";
+import { eq, desc, and, count, sql, or } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -144,6 +150,15 @@ export interface IStorage {
   getCampaignTriggersByUserId(userId: string): Promise<CampaignTrigger[]>;
   getActiveCampaignTriggers(userId: string): Promise<CampaignTrigger[]>;
   updateCampaignTrigger(id: string, updates: Partial<CampaignTrigger>): Promise<CampaignTrigger | undefined>;
+  
+  // Brand Design operations
+  createBrandDesign(design: InsertBrandDesign): Promise<BrandDesign>;
+  getBrandDesignByUserId(userId: string): Promise<BrandDesign | undefined>;
+  updateBrandDesign(id: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined>;
+  
+  // Campaign Design operations
+  createCampaignDesign(design: InsertCampaignDesign): Promise<CampaignDesign>;
+  getCampaignDesignsByCampaign(campaignId: string): Promise<CampaignDesign[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -698,6 +713,50 @@ export class DatabaseStorage implements IStorage {
       .where(eq(campaignTriggers.id, id))
       .returning();
     return updated;
+  }
+  
+  // Brand Design operations
+  async createBrandDesign(designData: InsertBrandDesign): Promise<BrandDesign> {
+    const [brandDesign] = await db
+      .insert(brandDesigns)
+      .values(designData)
+      .returning();
+    return brandDesign;
+  }
+
+  async getBrandDesignByUserId(userId: string): Promise<BrandDesign | undefined> {
+    const [brandDesign] = await db
+      .select()
+      .from(brandDesigns)
+      .where(and(eq(brandDesigns.userId, userId), eq(brandDesigns.isActive, true)))
+      .orderBy(desc(brandDesigns.createdAt));
+    return brandDesign;
+  }
+
+  async updateBrandDesign(id: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined> {
+    const [updated] = await db
+      .update(brandDesigns)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(brandDesigns.id, id))
+      .returning();
+    return updated;
+  }
+  
+  // Campaign Design operations
+  async createCampaignDesign(designData: InsertCampaignDesign): Promise<CampaignDesign> {
+    const [campaignDesign] = await db
+      .insert(campaignDesigns)
+      .values(designData)
+      .returning();
+    return campaignDesign;
+  }
+
+  async getCampaignDesignsByCampaign(campaignId: string): Promise<CampaignDesign[]> {
+    return db
+      .select()
+      .from(campaignDesigns)
+      .where(eq(campaignDesigns.campaignId, campaignId))
+      .orderBy(desc(campaignDesigns.createdAt));
   }
 }
 

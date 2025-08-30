@@ -2090,6 +2090,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Brand Design routes
+  app.get('/api/brand-design', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const brandDesign = await storage.getBrandDesignByUserId(userId);
+      
+      if (!brandDesign) {
+        // Return default structure if no brand design exists
+        return res.json({
+          isCanvaConnected: false,
+          brandStyle: null,
+          colorPalette: null,
+          typography: null,
+          logoUrl: null,
+        });
+      }
+      
+      res.json(brandDesign);
+    } catch (error) {
+      console.error("Error fetching brand design:", error);
+      res.status(500).json({ message: "Failed to fetch brand design" });
+    }
+  });
+
+  app.post('/api/brand-design', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const designData = { ...req.body, userId };
+      
+      // Check if brand design already exists
+      const existingDesign = await storage.getBrandDesignByUserId(userId);
+      
+      if (existingDesign) {
+        // Update existing design
+        const updated = await storage.updateBrandDesign(existingDesign.id, designData);
+        res.json(updated);
+      } else {
+        // Create new design
+        const newDesign = await storage.createBrandDesign(designData);
+        res.json(newDesign);
+      }
+    } catch (error) {
+      console.error("Error saving brand design:", error);
+      res.status(500).json({ message: "Failed to save brand design" });
+    }
+  });
+
+  app.post('/api/brand-design/connect-canva', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // In a real implementation, this would handle Canva OAuth flow
+      // For now, we'll simulate the connection
+      const existingDesign = await storage.getBrandDesignByUserId(userId);
+      
+      if (existingDesign) {
+        const updated = await storage.updateBrandDesign(existingDesign.id, {
+          isCanvaConnected: true,
+          canvaUserId: "simulated_canva_user",
+          canvaTeamId: "simulated_team",
+          canvaBrandKit: {
+            colors: ["#6366f1", "#8b5cf6", "#ec4899"],
+            fonts: ["Inter", "Poppins"],
+            logos: ["logo_v1.png", "logo_v2.png"]
+          }
+        });
+        res.json(updated);
+      } else {
+        const newDesign = await storage.createBrandDesign({
+          userId,
+          isCanvaConnected: true,
+          canvaUserId: "simulated_canva_user",
+          canvaTeamId: "simulated_team",
+          canvaBrandKit: {
+            colors: ["#6366f1", "#8b5cf6", "#ec4899"],
+            fonts: ["Inter", "Poppins"],
+            logos: ["logo_v1.png", "logo_v2.png"]
+          }
+        });
+        res.json(newDesign);
+      }
+    } catch (error) {
+      console.error("Error connecting Canva:", error);
+      res.status(500).json({ message: "Failed to connect Canva" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
