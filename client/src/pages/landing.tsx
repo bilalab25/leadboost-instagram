@@ -226,7 +226,7 @@ export default function Landing() {
                                   <SiWhatsapp className="h-3 w-3 text-white" />
                                 </div>
                                 <div className="w-6 h-6 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-lg">
-                                  +17
+                                  +21
                                 </div>
                               </div>
                               <span className="text-white/70 text-xs font-mono">0:30</span>
