@@ -204,7 +204,7 @@ export default function Landing() {
                           <div className="absolute inset-0 p-4 flex flex-col justify-between">
                             <div className="flex items-center justify-between">
                               <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-xl px-3 py-1 border border-white/10">
-                                <span className="text-white font-semibold text-xs">CampAIgner Platform</span>
+                                <span className="text-white font-semibold text-xs">CampAIgner Tool</span>
                               </div>
                               <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-full px-3 py-1 shadow-lg">
                                 <span className="text-white text-xs font-medium">● Demo</span>
