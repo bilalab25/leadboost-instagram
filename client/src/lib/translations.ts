@@ -42,7 +42,7 @@ export const translations = {
       generateContent: "Generate Content",
       smartContentTitle: "Smart Content for your Brands",
       smartContentDescription: "Automatically generate optimized posts for all your social platforms with one click.",
-      waterfallSystem: "Waterfall System"
+      waterfallSystem: "Lead Boost System"
     },
     // Campaign Creator
     campaigns: {
@@ -81,15 +81,15 @@ export const translations = {
     },
     // Landing
     landing: {
-      waterfallTitle: "The Waterfall System",
+      waterfallTitle: "The Lead Boost System",
       waterfallSubtitle: "One idea → 21+ platforms → Perfect formats → Instant launch",
       heroTitle: "Turn ONE idea into campaigns across 21+ platforms",
-      heroSubtitle: "LeadBoost's Waterfall System takes your single campaign idea and instantly creates optimized content for Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube and 16+ more platforms — all in the correct format and size.",
+      heroSubtitle: "LeadBoost's Lead Boost System takes your single campaign idea and instantly creates optimized content for Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube and 16+ more platforms — all in the correct format and size.",
       oneIdea: "ONE IDEA",
       everywhere: "EVERYWHERE",
       instantly: "INSTANTLY",
-      waterfallDemo: "Try the Waterfall System",
-      getStarted: "Start Your Waterfall",
+      waterfallDemo: "Try the Lead Boost System",
+      getStarted: "Start Your Lead Boost",
       learnMore: "See How It Works",
       platforms21: "21+ Platforms",
       perfectFormats: "Perfect Formats",
@@ -113,10 +113,10 @@ export const translations = {
       viewMessages: "View Messages",
       generateContent: "Generate Content",
       viewAnalytics: "View Analytics",
-      waterfallSystem: "Waterfall System",
+      waterfallSystem: "Lead Boost System",
       oneIdeaEverywhere: "One idea → Everywhere",
       waterfallDescription: "Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.",
-      createWaterfallCampaign: "Create Waterfall Campaign",
+      createWaterfallCampaign: "Create Lead Boost Campaign",
       regeneratePlan: "Regenerate Plan",
       overview: "Here's an overview of your week",
       requiresAttention: "Requires attention",
@@ -235,7 +235,7 @@ export const translations = {
       generateContent: "Generar Contenido",
       smartContentTitle: "Contenido Inteligente para tus Marcas",
       smartContentDescription: "Genera automáticamente posts optimizados para todas tus plataformas sociales con un solo clic.",
-      waterfallSystem: "Sistema Waterfall"
+      waterfallSystem: "Sistema Lead Boost"
     },
     // Campaign Creator
     campaigns: {
@@ -274,15 +274,15 @@ export const translations = {
     },
     // Landing
     landing: {
-      waterfallTitle: "El Sistema Waterfall",
+      waterfallTitle: "El Sistema Lead Boost",
       waterfallSubtitle: "Una idea → 21+ plataformas → Formatos perfectos → Lanzamiento instantáneo",
       heroTitle: "Convierte UNA idea en campañas para 21+ plataformas",
-      heroSubtitle: "El Sistema Waterfall de LeadBoost toma tu idea de campaña y crea instantáneamente contenido optimizado para Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube y 16+ plataformas más — todo en el formato y tamaño correcto.",
+      heroSubtitle: "El Sistema Lead Boost de LeadBoost toma tu idea de campaña y crea instantáneamente contenido optimizado para Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube y 16+ plataformas más — todo en el formato y tamaño correcto.",
       oneIdea: "UNA IDEA",
       everywhere: "TODOS LADOS",
       instantly: "INSTANTÁNEO",
-      waterfallDemo: "Prueba el Sistema Waterfall",
-      getStarted: "Inicia tu Waterfall",
+      waterfallDemo: "Prueba el Sistema Lead Boost",
+      getStarted: "Inicia tu Lead Boost",
       learnMore: "Ve Cómo Funciona",
       platforms21: "21+ Plataformas",
       perfectFormats: "Formatos Perfectos",
@@ -309,10 +309,10 @@ export const translations = {
       viewMessages: "Ver Mensajes",
       generateContent: "Generar Contenido",
       viewAnalytics: "Ver Analíticas",
-      waterfallSystem: "Sistema Waterfall",
+      waterfallSystem: "Sistema Lead Boost",
       oneIdeaEverywhere: "Una idea → Todos lados",
       waterfallDescription: "Convierte una sola idea en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.",
-      createWaterfallCampaign: "Crear Campaña Waterfall",
+      createWaterfallCampaign: "Crear Campaña Lead Boost",
       regeneratePlan: "Regenerar Plan",
       overview: "Aquí tienes un resumen de tu semana",
       requiresAttention: "Requieren atención",

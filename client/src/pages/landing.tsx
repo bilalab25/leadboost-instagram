@@ -42,7 +42,7 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Waterfall Hero Section - THE CENTERPIECE */}
+      {/* Lead Boost Hero Section - THE CENTERPIECE */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
         {/* Floating blue orbs */}
@@ -50,7 +50,7 @@ export default function Landing() {
         <div className="absolute bottom-40 left-10 w-64 h-64 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           
-          {/* Main Waterfall Value Proposition */}
+          {/* Main Lead Boost Value Proposition */}
           <div className="text-center mb-16">
             <h2 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
               {isSpanish ? 'El Sistema Lead Boost' : 'The Lead Boost System'}
@@ -70,7 +70,7 @@ export default function Landing() {
         </div>
         
         
-        {/* The Waterfall Visual Flow */}
+        {/* The Lead Boost Visual Flow */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-16">
             <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto waterfall-container">
@@ -160,7 +160,7 @@ export default function Landing() {
                       className="bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-3xl transition-all duration-300 transform hover:scale-105"
                     >
                       <Zap className="mr-3 h-6 w-6" />
-                      {isSpanish ? 'Crear Campaña Waterfall' : 'Create Waterfall Campaign'}
+                      {isSpanish ? 'Crear Campaña Lead Boost' : 'Create Lead Boost Campaign'}
                     </Button>
                   </div>
                 </CardContent>
@@ -244,8 +244,8 @@ export default function Landing() {
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               {isSpanish 
-                ? 'Más allá del Sistema Waterfall, LeadBoost te ofrece todas las herramientas que necesitas para dominar las redes sociales'
-                : 'Beyond the Waterfall System, LeadBoost offers all the tools you need to master social media'}
+                ? 'Más allá del Sistema Lead Boost, LeadBoost te ofrece todas las herramientas que necesitas para dominar las redes sociales'
+                : 'Beyond the Lead Boost System, LeadBoost offers all the tools you need to master social media'}
             </p>
           </div>
 
@@ -510,8 +510,8 @@ export default function Landing() {
                     </h2>
                     <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto drop-shadow-md">
                       {isSpanish 
-                        ? 'Descubre cómo funciona el Sistema Waterfall en menos de 2 minutos'
-                        : 'Discover how the Waterfall System works in less than 2 minutes'}
+                        ? 'Descubre cómo funciona el Sistema Lead Boost en menos de 2 minutos'
+                        : 'Discover how the Lead Boost System works in less than 2 minutes'}
                     </p>
                   </div>
 
@@ -587,7 +587,7 @@ export default function Landing() {
                       <Target className="h-8 w-8 text-white" />
                     </div>
                     <h3 className="text-white text-2xl font-bold mb-3">
-                      {isSpanish ? 'Sistema Waterfall' : 'Waterfall System'}
+                      {isSpanish ? 'Sistema Lead Boost' : 'Lead Boost System'}
                     </h3>
                     <p className="text-gray-300 text-base">
                       {isSpanish ? 'De una idea a 21+ plataformas en segundos' : 'From one idea to 21+ platforms in seconds'}
@@ -645,7 +645,7 @@ export default function Landing() {
           <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 max-w-md mx-auto border border-white/20">
             <div className="text-center space-y-3">
               <p className="text-white font-medium text-base">
-                {isSpanish ? 'Sistema Waterfall GRATIS para siempre' : 'Waterfall System FREE forever'}
+                {isSpanish ? 'Sistema Lead Boost GRATIS para siempre' : 'Lead Boost System FREE forever'}
               </p>
               <p className="text-blue-100 text-sm">
                 {isSpanish ? '30 días gratis para todas las herramientas' : '30 days free for all tools'}
@@ -672,8 +672,8 @@ export default function Landing() {
             </div>
             <p className="text-gray-400 mb-6">
               {isSpanish 
-                ? 'El Sistema Waterfall que revoluciona la gestión de redes sociales'
-                : 'The Waterfall System that revolutionizes social media management'}
+                ? 'El Sistema Lead Boost que revoluciona la gestión de redes sociales'
+                : 'The Lead Boost System that revolutionizes social media management'}
             </p>
             <div className="flex justify-center space-x-6">
               <Button variant="ghost" className="text-gray-400 hover:text-white">

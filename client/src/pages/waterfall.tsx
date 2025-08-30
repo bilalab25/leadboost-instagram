@@ -15,7 +15,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 
-export default function Waterfall() {
+export default function LeadBoost() {
   const { language, isSpanish } = useLanguage();
   const [campaignIdea, setCampaignIdea] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -54,7 +54,7 @@ export default function Waterfall() {
                 </div>
                 <div>
                   <h1 className="text-3xl font-black text-gray-900">
-                    {isSpanish ? 'Sistema Waterfall' : 'Waterfall System'}
+                    {isSpanish ? 'Sistema Lead Boost' : 'Lead Boost System'}
                   </h1>
                   <p className="text-brand-600 font-semibold">
                     {isSpanish ? 'Una idea → Todos lados' : 'One idea → Everywhere'}
@@ -117,7 +117,7 @@ export default function Waterfall() {
                   ) : (
                     <>
                       <Zap className="mr-2 h-4 w-4" />
-                      {isSpanish ? 'Generar Campaña Waterfall' : 'Generate Waterfall Campaign'}
+                      {isSpanish ? 'Generar Campaña Lead Boost' : 'Generate Lead Boost Campaign'}
                     </>
                   )}
                 </Button>
@@ -135,13 +135,13 @@ export default function Waterfall() {
             </CardContent>
           </Card>
 
-          {/* Waterfall Flow Visualization */}
+          {/* Lead Boost Flow Visualization */}
           <div className="mb-8">
             <Card className="bg-gradient-to-br from-brand-50 to-purple-50 border-brand-200">
               <CardContent className="p-8">
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? 'El Proceso Waterfall' : 'The Waterfall Process'}
+                    {isSpanish ? 'El Proceso Lead Boost' : 'The Lead Boost Process'}
                   </h2>
                   <p className="text-gray-600">
                     {isSpanish 

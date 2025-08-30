@@ -133,9 +133,9 @@ export default function Dashboard() {
                 {populateDemoDataMutation.isPending ? t.common.loading : t.common.loadDemoData}
               </Button>
               
-              <Button className="bg-gradient-to-r from-brand-500 to-purple-600 text-white border-none hover:from-brand-600 hover:to-purple-700" data-testid="button-waterfall-campaign">
+              <Button className="bg-gradient-to-r from-brand-500 to-purple-600 text-white border-none hover:from-brand-600 hover:to-purple-700" data-testid="button-leadboost-campaign">
                 <Zap className="mr-2 h-4 w-4" />
-                Crear Campaña Waterfall
+                Crear Campaña Lead Boost
               </Button>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="flex items-center space-x-3">
-                    {/* Removed duplicate Waterfall button - now in header */}
+                    {/* Removed duplicate Lead Boost button - now in header */}
                   </div>
                 </div>
               </div>
