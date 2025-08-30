@@ -32,6 +32,9 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role").default("agency_owner"), // agency_owner, agency_member, client_viewer
+  hierarchyLevel: integer("hierarchy_level").default(1), // 1=CEO/Owner, 2=Manager, 3=Supervisor, 4=Employee
+  canApprove: boolean("can_approve").default(false), // Can approve tasks from lower hierarchy
+  reportsTo: varchar("reports_to").references(() => users.id), // Direct manager/supervisor
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -260,6 +263,13 @@ export const teamTasks = pgTable("team_tasks", {
   status: varchar("status").default("pending"), // pending, in_progress, completed, cancelled
   dueDate: timestamp("due_date"),
   requiresProof: boolean("requires_proof").default(true),
+  proofFileUrl: varchar("proof_file_url"), // URL to uploaded proof file
+  proofSubmittedAt: timestamp("proof_submitted_at"),
+  proofSubmittedBy: varchar("proof_submitted_by").references(() => users.id),
+  approvalStatus: varchar("approval_status").default("pending"), // pending, submitted, approved, rejected
+  approvedBy: varchar("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  rejectionReason: text("rejection_reason"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -274,8 +284,32 @@ export const taskCompletions = pgTable("task_completions", {
   completedAt: timestamp("completed_at").defaultNow(),
 });
 
+// Task approval workflow table
+export const taskApprovals = pgTable("task_approvals", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  taskId: uuid("task_id").references(() => teamTasks.id, { onDelete: "cascade" }),
+  approverLevel: integer("approver_level").notNull(), // Hierarchy level required to approve
+  approverId: varchar("approver_id").references(() => users.id),
+  status: varchar("status").default("pending"), // pending, approved, rejected
+  comments: text("comments"),
+  approvedAt: timestamp("approved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Notification system for approvals
+export const approvalNotifications = pgTable("approval_notifications", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  taskId: uuid("task_id").references(() => teamTasks.id, { onDelete: "cascade" }),
+  type: varchar("type").notNull(), // approval_request, task_approved, task_rejected, proof_submitted
+  title: varchar("title").notNull(),
+  message: text("message"),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   brands: many(brands),
   socialAccounts: many(socialAccounts),
   contentPlans: many(contentPlans),
@@ -288,6 +322,16 @@ export const usersRelations = relations(users, ({ many }) => ({
   assignedTasks: many(teamTasks, { relationName: "assignedTasks" }),
   createdTasks: many(teamTasks, { relationName: "createdTasks" }),
   completedTasks: many(taskCompletions),
+  // Hierarchy relations
+  manager: one(users, {
+    fields: [users.reportsTo],
+    references: [users.id],
+    relationName: "manager"
+  }),
+  subordinates: many(users, { relationName: "manager" }),
+  // Approval relations
+  approvals: many(taskApprovals, { relationName: "approver" }),
+  notifications: many(approvalNotifications, { relationName: "user" }),
 }));
 
 export const brandsRelations = relations(brands, ({ one, many }) => ({
@@ -385,6 +429,19 @@ export const teamTasksRelations = relations(teamTasks, ({ one, many }) => ({
     relationName: "assignedTasks",
   }),
   completions: many(taskCompletions),
+  approvals: many(taskApprovals, { relationName: "taskApprovals" }),
+  notifications: many(approvalNotifications, { relationName: "task" }),
+  // Proof submission relation
+  proofSubmitter: one(users, {
+    fields: [teamTasks.proofSubmittedBy],
+    references: [users.id],
+    relationName: "proofSubmissions"
+  }),
+  approver: one(users, {
+    fields: [teamTasks.approvedBy],
+    references: [users.id],
+    relationName: "taskApprovals"
+  }),
 }));
 
 export const taskCompletionsRelations = relations(taskCompletions, ({ one }) => ({
@@ -395,6 +452,32 @@ export const taskCompletionsRelations = relations(taskCompletions, ({ one }) => 
   completedByUser: one(users, {
     fields: [taskCompletions.completedBy],
     references: [users.id],
+  }),
+}));
+
+export const taskApprovalsRelations = relations(taskApprovals, ({ one }) => ({
+  task: one(teamTasks, {
+    fields: [taskApprovals.taskId],
+    references: [teamTasks.id],
+    relationName: "taskApprovals"
+  }),
+  approver: one(users, {
+    fields: [taskApprovals.approverId],
+    references: [users.id],
+    relationName: "approver"
+  }),
+}));
+
+export const approvalNotificationsRelations = relations(approvalNotifications, ({ one }) => ({
+  user: one(users, {
+    fields: [approvalNotifications.userId],
+    references: [users.id],
+    relationName: "user"
+  }),
+  task: one(teamTasks, {
+    fields: [approvalNotifications.taskId],
+    references: [teamTasks.id],
+    relationName: "task"
   }),
 }));
 
@@ -447,11 +530,24 @@ export const insertTeamTaskSchema = createInsertSchema(teamTasks).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  proofSubmittedAt: true,
+  approvedAt: true,
 });
 
 export const insertTaskCompletionSchema = createInsertSchema(taskCompletions).omit({
   id: true,
   completedAt: true,
+});
+
+export const insertTaskApprovalSchema = createInsertSchema(taskApprovals).omit({
+  id: true,
+  createdAt: true,
+  approvedAt: true,
+});
+
+export const insertApprovalNotificationSchema = createInsertSchema(approvalNotifications).omit({
+  id: true,
+  createdAt: true,
 });
 
 // Types
@@ -499,6 +595,10 @@ export type InsertTeamTask = z.infer<typeof insertTeamTaskSchema>;
 export type TeamTask = typeof teamTasks.$inferSelect;
 export type InsertTaskCompletion = z.infer<typeof insertTaskCompletionSchema>;
 export type TaskCompletion = typeof taskCompletions.$inferSelect;
+export type InsertTaskApproval = z.infer<typeof insertTaskApprovalSchema>;
+export type TaskApproval = typeof taskApprovals.$inferSelect;
+export type InsertApprovalNotification = z.infer<typeof insertApprovalNotificationSchema>;
+export type ApprovalNotification = typeof approvalNotifications.$inferSelect;
 
 // POS Integration schemas
 export const insertPosIntegrationSchema = createInsertSchema(posIntegrations).omit({

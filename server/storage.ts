@@ -11,6 +11,8 @@ import {
   invoices,
   teamTasks,
   taskCompletions,
+  taskApprovals,
+  approvalNotifications,
   posIntegrations,
   salesTransactions,
   products,
@@ -41,6 +43,10 @@ import {
   type TeamTask,
   type InsertTaskCompletion,
   type TaskCompletion,
+  type InsertTaskApproval,
+  type TaskApproval,
+  type InsertApprovalNotification,
+  type ApprovalNotification,
   type InsertPosIntegration,
   type PosIntegration,
   type InsertSalesTransaction,
@@ -55,110 +61,127 @@ import {
   type CampaignDesign,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, count, sql, or } from "drizzle-orm";
+import { eq, and, desc, asc, or, sql, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-
+  
   // Brand operations
   createBrand(brand: InsertBrand): Promise<Brand>;
   getBrandsByUserId(userId: string): Promise<Brand[]>;
-  getBrandById(id: string, userId: string): Promise<Brand | undefined>;
   updateBrand(id: string, userId: string, updates: Partial<Brand>): Promise<Brand | undefined>;
   deleteBrand(id: string, userId: string): Promise<boolean>;
 
   // Social account operations
   createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount>;
   getSocialAccountsByUserId(userId: string): Promise<SocialAccount[]>;
-  updateSocialAccountStatus(id: string, isActive: boolean): Promise<void>;
+  updateSocialAccount(id: string, updates: Partial<SocialAccount>): Promise<SocialAccount | undefined>;
+  deleteSocialAccount(id: string, userId: string): Promise<boolean>;
 
   // Message operations
   createMessage(message: InsertMessage): Promise<Message>;
-  getMessagesByUserId(userId: string): Promise<Message[]>;
-  getMessagesBySocialAccount(socialAccountId: string): Promise<Message[]>;
+  getMessagesByUserId(userId: string, unreadOnly?: boolean): Promise<Message[]>;
+  getMessagesByAccountId(accountId: string): Promise<Message[]>;
   updateMessageStatus(id: string, isRead: boolean): Promise<void>;
   assignMessage(id: string, assignedTo: string): Promise<void>;
 
   // Content plan operations
   createContentPlan(plan: InsertContentPlan): Promise<ContentPlan>;
   getContentPlansByUserId(userId: string): Promise<ContentPlan[]>;
-  updateContentPlan(id: string, updates: Partial<ContentPlan>): Promise<ContentPlan>;
+  updateContentPlan(id: string, userId: string, updates: Partial<ContentPlan>): Promise<ContentPlan | undefined>;
+  deleteContentPlan(id: string, userId: string): Promise<boolean>;
 
   // Campaign operations
   createCampaign(campaign: InsertCampaign): Promise<Campaign>;
   getCampaignsByUserId(userId: string): Promise<Campaign[]>;
-  updateCampaignStatus(id: string, status: string): Promise<void>;
+  updateCampaign(id: string, userId: string, updates: Partial<Campaign>): Promise<Campaign | undefined>;
+  deleteCampaign(id: string, userId: string): Promise<boolean>;
 
   // Analytics operations
-  createAnalyticsEntry(analyticsData: InsertAnalytics): Promise<Analytics>;
-  getAnalyticsByUserId(userId: string, platform?: string): Promise<Analytics[]>;
+  createAnalytics(analytics: InsertAnalytics): Promise<Analytics>;
+  getAnalyticsByUserId(userId: string, days?: number): Promise<Analytics[]>;
 
   // Activity log operations
   createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
   getActivityLogsByUserId(userId: string, limit?: number): Promise<ActivityLog[]>;
 
-  // Dashboard stats
-  getDashboardStats(userId: string): Promise<{
-    unreadMessages: number;
-    engagementRate: number;
-    aiPosts: number;
-    revenue: number;
-  }>;
-  
   // Customer operations
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   getCustomersByUserId(userId: string): Promise<Customer[]>;
   updateCustomer(id: string, userId: string, updates: Partial<Customer>): Promise<Customer | undefined>;
   deleteCustomer(id: string, userId: string): Promise<boolean>;
-  updateCustomerTotalInvoiced(customerId: string, amount: number): Promise<void>;
-  
+
   // Invoice operations
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   getInvoicesByUserId(userId: string, customerId?: string): Promise<(Invoice & { customer?: Customer })[]>;
   updateInvoice(id: string, userId: string, updates: Partial<Invoice>): Promise<Invoice | undefined>;
-  
+
   // Team task operations
   createTeamTask(task: InsertTeamTask): Promise<TeamTask>;
   getTasksByUserId(userId: string): Promise<(TeamTask & { assignedByUser: User; assignedToUser: User })[]>;
   getTasksAssignedToUser(userId: string): Promise<(TeamTask & { assignedByUser: User; assignedToUser: User })[]>;
   updateTaskStatus(id: string, status: string): Promise<void>;
-  
+
   // Task completion operations
   createTaskCompletion(completion: InsertTaskCompletion): Promise<TaskCompletion>;
-  
-  // POS Integration operations
+
+  // Team hierarchy operations
+  getUsersByHierarchyLevel(level: number): Promise<User[]>;
+  getUsersWithApprovalRights(minLevel?: number): Promise<User[]>;
+  getSubordinates(managerId: string): Promise<User[]>;
+  updateUserHierarchy(userId: string, updates: { hierarchyLevel?: number; canApprove?: boolean; reportsTo?: string }): Promise<User | undefined>;
+
+  // Task approval workflow operations
+  submitTaskProof(taskId: string, proofFileUrl: string, submittedBy: string): Promise<void>;
+  createTaskApproval(approval: InsertTaskApproval): Promise<TaskApproval>;
+  getTaskApprovalsById(taskId: string): Promise<TaskApproval[]>;
+  approveTask(approvalId: string, approverId: string, comments?: string): Promise<void>;
+  rejectTask(approvalId: string, approverId: string, comments: string): Promise<void>;
+  finalizeTaskApproval(taskId: string, approvedBy: string): Promise<void>;
+  rejectTaskFinal(taskId: string, approvedBy: string, rejectionReason: string): Promise<void>;
+
+  // Notification operations
+  createApprovalNotification(notification: InsertApprovalNotification): Promise<ApprovalNotification>;
+  getNotificationsByUserId(userId: string, unreadOnly?: boolean): Promise<ApprovalNotification[]>;
+  markNotificationAsRead(notificationId: string): Promise<void>;
+  getTasksPendingApproval(approverId: string): Promise<(TeamTask & { assignedByUser: User; assignedToUser: User })[]>;
+
+  // POS operations
   createPosIntegration(integration: InsertPosIntegration): Promise<PosIntegration>;
   getPosIntegrationsByUserId(userId: string): Promise<PosIntegration[]>;
   updatePosIntegration(id: string, updates: Partial<PosIntegration>): Promise<PosIntegration | undefined>;
   deletePosIntegration(id: string, userId: string): Promise<boolean>;
-  
+
   // Sales Transaction operations
   createSalesTransaction(transaction: InsertSalesTransaction): Promise<SalesTransaction>;
   getSalesTransactionsByUserId(userId: string, limit?: number): Promise<SalesTransaction[]>;
   getSalesTransactionsByIntegration(integrationId: string, limit?: number): Promise<SalesTransaction[]>;
-  
+
   // Product operations
   createProduct(product: InsertProduct): Promise<Product>;
   getProductsByUserId(userId: string): Promise<Product[]>;
-  getProductsByIntegration(integrationId: string): Promise<Product[]>;
-  updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined>;
-  
-  // Campaign Trigger operations
+  updateProduct(id: string, userId: string, updates: Partial<Product>): Promise<Product | undefined>;
+  deleteProduct(id: string, userId: string): Promise<boolean>;
+
+  // Campaign trigger operations
   createCampaignTrigger(trigger: InsertCampaignTrigger): Promise<CampaignTrigger>;
   getCampaignTriggersByUserId(userId: string): Promise<CampaignTrigger[]>;
-  getActiveCampaignTriggers(userId: string): Promise<CampaignTrigger[]>;
-  updateCampaignTrigger(id: string, updates: Partial<CampaignTrigger>): Promise<CampaignTrigger | undefined>;
-  
-  // Brand Design operations
+  updateCampaignTrigger(id: string, userId: string, updates: Partial<CampaignTrigger>): Promise<CampaignTrigger | undefined>;
+  deleteCampaignTrigger(id: string, userId: string): Promise<boolean>;
+
+  // Brand design operations
   createBrandDesign(design: InsertBrandDesign): Promise<BrandDesign>;
   getBrandDesignByUserId(userId: string): Promise<BrandDesign | undefined>;
-  updateBrandDesign(id: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined>;
-  
-  // Campaign Design operations
+  updateBrandDesign(id: string, userId: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined>;
+  deleteBrandDesign(id: string, userId: string): Promise<boolean>;
+
+  // Campaign design operations
   createCampaignDesign(design: InsertCampaignDesign): Promise<CampaignDesign>;
-  getCampaignDesignsByCampaign(campaignId: string): Promise<CampaignDesign[]>;
+  getCampaignDesignsByCampaignId(campaignId: string): Promise<CampaignDesign[]>;
+  updateCampaignDesign(id: string, updates: Partial<CampaignDesign>): Promise<CampaignDesign | undefined>;
+  deleteCampaignDesign(id: string, campaignId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -184,281 +207,181 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Brand operations
-  async createBrand(brandData: InsertBrand): Promise<Brand> {
-    const [brand] = await db.insert(brands).values(brandData).returning();
-    return brand;
+  async createBrand(brand: InsertBrand): Promise<Brand> {
+    const [newBrand] = await db.insert(brands).values(brand).returning();
+    return newBrand;
   }
 
   async getBrandsByUserId(userId: string): Promise<Brand[]> {
     return db.select().from(brands).where(eq(brands.userId, userId)).orderBy(desc(brands.createdAt));
   }
 
-  async getBrandById(id: string, userId: string): Promise<Brand | undefined> {
-    const [brand] = await db.select().from(brands).where(and(eq(brands.id, id), eq(brands.userId, userId)));
-    return brand;
-  }
-
   async updateBrand(id: string, userId: string, updates: Partial<Brand>): Promise<Brand | undefined> {
-    const [brand] = await db
+    const [updated] = await db
       .update(brands)
       .set({ ...updates, updatedAt: new Date() })
       .where(and(eq(brands.id, id), eq(brands.userId, userId)))
       .returning();
-    return brand;
+    return updated;
   }
 
   async deleteBrand(id: string, userId: string): Promise<boolean> {
-    const result = await db.delete(brands).where(and(eq(brands.id, id), eq(brands.userId, userId)));
-    return result.rowCount > 0;
+    const result = await db
+      .delete(brands)
+      .where(and(eq(brands.id, id), eq(brands.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Social account operations
   async createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount> {
-    const [socialAccount] = await db
-      .insert(socialAccounts)
-      .values(account)
-      .returning();
-    return socialAccount;
+    const [newAccount] = await db.insert(socialAccounts).values(account).returning();
+    return newAccount;
   }
 
   async getSocialAccountsByUserId(userId: string): Promise<SocialAccount[]> {
-    const results = await db
-      .select()
-      .from(socialAccounts)
-      .where(eq(socialAccounts.userId, userId));
-    
-    // Return demo data if no user accounts found
-    if (results.length === 0) {
-      const demoAccounts = await db
-        .select()
-        .from(socialAccounts)
-        .where(eq(socialAccounts.userId, 'demo-user-id'));
-      return demoAccounts;
-    }
-    
-    return results;
+    return db.select().from(socialAccounts).where(eq(socialAccounts.userId, userId));
   }
 
-  async updateSocialAccountStatus(id: string, isActive: boolean): Promise<void> {
-    await db
+  async updateSocialAccount(id: string, updates: Partial<SocialAccount>): Promise<SocialAccount | undefined> {
+    const [updated] = await db
       .update(socialAccounts)
-      .set({ isActive })
-      .where(eq(socialAccounts.id, id));
+      .set(updates)
+      .where(eq(socialAccounts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteSocialAccount(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(socialAccounts)
+      .where(and(eq(socialAccounts.id, id), eq(socialAccounts.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Message operations
   async createMessage(message: InsertMessage): Promise<Message> {
-    const [newMessage] = await db
-      .insert(messages)
-      .values(message)
-      .returning();
+    const [newMessage] = await db.insert(messages).values(message).returning();
     return newMessage;
   }
 
-  async getMessagesByUserId(userId: string): Promise<Message[]> {
-    const results = await db
-      .select()
-      .from(messages)
-      .leftJoin(socialAccounts, eq(messages.socialAccountId, socialAccounts.id))
-      .where(eq(socialAccounts.userId, userId))
-      .orderBy(desc(messages.createdAt));
+  async getMessagesByUserId(userId: string, unreadOnly: boolean = false): Promise<Message[]> {
+    let query = db.select().from(messages)
+      .innerJoin(socialAccounts, eq(messages.socialAccountId, socialAccounts.id))
+      .where(eq(socialAccounts.userId, userId));
 
-    // Return demo data if no user messages found
-    if (results.length === 0) {
-      const demoResults = await db
-        .select()
-        .from(messages)
-        .leftJoin(socialAccounts, eq(messages.socialAccountId, socialAccounts.id))
-        .where(eq(socialAccounts.userId, 'demo-user-id'))
-        .orderBy(desc(messages.createdAt));
-      return demoResults.map(result => result.messages);
+    if (unreadOnly) {
+      query = query.where(eq(messages.isRead, false));
     }
 
-    return results.map(result => result.messages);
+    const results = await query.orderBy(desc(messages.createdAt));
+    return results.map(row => row.messages);
   }
 
-  async getMessagesBySocialAccount(socialAccountId: string): Promise<Message[]> {
-    return db
-      .select()
-      .from(messages)
-      .where(eq(messages.socialAccountId, socialAccountId))
+  async getMessagesByAccountId(accountId: string): Promise<Message[]> {
+    return db.select().from(messages)
+      .where(eq(messages.socialAccountId, accountId))
       .orderBy(desc(messages.createdAt));
   }
 
   async updateMessageStatus(id: string, isRead: boolean): Promise<void> {
-    await db
-      .update(messages)
+    await db.update(messages)
       .set({ isRead })
       .where(eq(messages.id, id));
   }
 
   async assignMessage(id: string, assignedTo: string): Promise<void> {
-    await db
-      .update(messages)
+    await db.update(messages)
       .set({ assignedTo })
       .where(eq(messages.id, id));
   }
 
   // Content plan operations
   async createContentPlan(plan: InsertContentPlan): Promise<ContentPlan> {
-    const [contentPlan] = await db
-      .insert(contentPlans)
-      .values(plan)
-      .returning();
-    return contentPlan;
+    const [newPlan] = await db.insert(contentPlans).values(plan).returning();
+    return newPlan;
   }
 
   async getContentPlansByUserId(userId: string): Promise<ContentPlan[]> {
-    const results = await db
-      .select()
-      .from(contentPlans)
+    return db.select().from(contentPlans)
       .where(eq(contentPlans.userId, userId))
       .orderBy(desc(contentPlans.createdAt));
-    
-    // Return demo data if no user content plans found
-    if (results.length === 0) {
-      const demoResults = await db
-        .select()
-        .from(contentPlans)
-        .where(eq(contentPlans.userId, 'demo-user-id'))
-        .orderBy(desc(contentPlans.createdAt));
-      return demoResults;
-    }
-    
-    return results;
   }
 
-  async updateContentPlan(id: string, updates: Partial<ContentPlan>): Promise<ContentPlan> {
+  async updateContentPlan(id: string, userId: string, updates: Partial<ContentPlan>): Promise<ContentPlan | undefined> {
     const [updated] = await db
       .update(contentPlans)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(contentPlans.id, id))
+      .where(and(eq(contentPlans.id, id), eq(contentPlans.userId, userId)))
       .returning();
     return updated;
   }
 
+  async deleteContentPlan(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(contentPlans)
+      .where(and(eq(contentPlans.id, id), eq(contentPlans.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
   // Campaign operations
   async createCampaign(campaign: InsertCampaign): Promise<Campaign> {
-    const [newCampaign] = await db
-      .insert(campaigns)
-      .values(campaign)
-      .returning();
+    const [newCampaign] = await db.insert(campaigns).values(campaign).returning();
     return newCampaign;
   }
 
   async getCampaignsByUserId(userId: string): Promise<Campaign[]> {
-    const results = await db
-      .select()
-      .from(campaigns)
+    return db.select().from(campaigns)
       .where(eq(campaigns.userId, userId))
       .orderBy(desc(campaigns.createdAt));
-    
-    // Return demo data if no user campaigns found
-    if (results.length === 0) {
-      const demoResults = await db
-        .select()
-        .from(campaigns)
-        .where(eq(campaigns.userId, 'demo-user-id'))
-        .orderBy(desc(campaigns.createdAt));
-      return demoResults;
-    }
-    
-    return results;
   }
 
-  async updateCampaignStatus(id: string, status: string): Promise<void> {
-    await db
+  async updateCampaign(id: string, userId: string, updates: Partial<Campaign>): Promise<Campaign | undefined> {
+    const [updated] = await db
       .update(campaigns)
-      .set({ status, updatedAt: new Date() })
-      .where(eq(campaigns.id, id));
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)))
+      .returning();
+    return updated;
+  }
+
+  async deleteCampaign(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(campaigns)
+      .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Analytics operations
-  async createAnalyticsEntry(analyticsData: InsertAnalytics): Promise<Analytics> {
-    const [newAnalytics] = await db
-      .insert(analytics)
-      .values(analyticsData)
-      .returning();
+  async createAnalytics(analyticsData: InsertAnalytics): Promise<Analytics> {
+    const [newAnalytics] = await db.insert(analytics).values(analyticsData).returning();
     return newAnalytics;
   }
 
-  async getAnalyticsByUserId(userId: string, platform?: string): Promise<Analytics[]> {
-    let query = db
-      .select()
-      .from(analytics)
-      .where(eq(analytics.userId, userId));
-    
-    if (platform) {
-      query = query.where(eq(analytics.platform, platform));
-    }
-    
-    return query.orderBy(desc(analytics.date));
+  async getAnalyticsByUserId(userId: string, days: number = 30): Promise<Analytics[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    return db.select().from(analytics)
+      .where(and(
+        eq(analytics.userId, userId),
+        gte(analytics.createdAt, startDate)
+      ))
+      .orderBy(desc(analytics.createdAt));
   }
 
   // Activity log operations
   async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
-    const [activityLog] = await db
-      .insert(activityLogs)
-      .values(log)
-      .returning();
-    return activityLog;
+    const [newLog] = await db.insert(activityLogs).values(log).returning();
+    return newLog;
   }
 
-  async getActivityLogsByUserId(userId: string, limit = 20): Promise<ActivityLog[]> {
-    const results = await db
-      .select()
-      .from(activityLogs)
+  async getActivityLogsByUserId(userId: string, limit: number = 50): Promise<ActivityLog[]> {
+    return db.select().from(activityLogs)
       .where(eq(activityLogs.userId, userId))
       .orderBy(desc(activityLogs.createdAt))
       .limit(limit);
-    
-    // Return demo data if no user activity logs found
-    if (results.length === 0) {
-      const demoResults = await db
-        .select()
-        .from(activityLogs)
-        .where(eq(activityLogs.userId, 'demo-user-id'))
-        .orderBy(desc(activityLogs.createdAt))
-        .limit(limit);
-      return demoResults;
-    }
-    
-    return results;
   }
 
-  // Dashboard stats
-  async getDashboardStats(userId: string): Promise<{
-    unreadMessages: number;
-    engagementRate: number;
-    aiPosts: number;
-    revenue: number;
-  }> {
-    try {
-      // Get actual unread message count
-      const unreadMessages = await db
-        .select({ count: count() })
-        .from(messages)
-        .leftJoin(socialAccounts, eq(messages.socialAccountId, socialAccounts.id))
-        .where(and(eq(socialAccounts.userId, userId), eq(messages.isRead, false)))
-        .then(result => result[0]?.count || 0);
-
-      return {
-        unreadMessages: Number(unreadMessages),
-        engagementRate: 4.8,
-        aiPosts: 24,
-        revenue: 12750,
-      };
-    } catch (error) {
-      console.error("Error getting dashboard stats:", error);
-      return {
-        unreadMessages: 0,
-        engagementRate: 4.8,
-        aiPosts: 24,
-        revenue: 12750,
-      };
-    }
-  }
-  
   // Customer operations
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
     const [newCustomer] = await db.insert(customers).values(customer).returning();
@@ -466,7 +389,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCustomersByUserId(userId: string): Promise<Customer[]> {
-    return db.select().from(customers).where(eq(customers.userId, userId));
+    return db.select().from(customers)
+      .where(eq(customers.userId, userId))
+      .orderBy(desc(customers.createdAt));
   }
 
   async updateCustomer(id: string, userId: string, updates: Partial<Customer>): Promise<Customer | undefined> {
@@ -482,16 +407,9 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(customers)
       .where(and(eq(customers.id, id), eq(customers.userId, userId)));
-    return result.rowCount !== null && result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
-  async updateCustomerTotalInvoiced(customerId: string, amount: number): Promise<void> {
-    await db
-      .update(customers)
-      .set({ totalInvoiced: amount })
-      .where(eq(customers.id, customerId));
-  }
-  
   // Invoice operations
   async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
     const [newInvoice] = await db.insert(invoices).values(invoice).returning();
@@ -508,7 +426,7 @@ export class DatabaseStorage implements IStorage {
     .where(eq(invoices.userId, userId));
 
     if (customerId) {
-      query = query.where(eq(invoices.customerId, customerId));
+      query = query.where(and(eq(invoices.userId, userId), eq(invoices.customerId, customerId)));
     }
 
     const results = await query.orderBy(desc(invoices.createdAt));
@@ -584,7 +502,149 @@ export class DatabaseStorage implements IStorage {
     return newCompletion;
   }
 
-  // POS Integration operations
+  // Team hierarchy operations
+  async getUsersByHierarchyLevel(level: number): Promise<User[]> {
+    return db.select().from(users).where(eq(users.hierarchyLevel, level));
+  }
+
+  async getUsersWithApprovalRights(minLevel?: number): Promise<User[]> {
+    let query = db.select().from(users).where(eq(users.canApprove, true));
+    if (minLevel) {
+      query = query.where(lte(users.hierarchyLevel, minLevel));
+    }
+    return query;
+  }
+
+  async getSubordinates(managerId: string): Promise<User[]> {
+    return db.select().from(users).where(eq(users.reportsTo, managerId));
+  }
+
+  async updateUserHierarchy(userId: string, updates: { hierarchyLevel?: number; canApprove?: boolean; reportsTo?: string }): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+
+  // Task approval workflow operations
+  async submitTaskProof(taskId: string, proofFileUrl: string, submittedBy: string): Promise<void> {
+    await db.update(teamTasks)
+      .set({
+        proofFileUrl,
+        proofSubmittedAt: new Date(),
+        proofSubmittedBy: submittedBy,
+        approvalStatus: "submitted",
+        status: "completed", // Mark task as completed pending approval
+        updatedAt: new Date()
+      })
+      .where(eq(teamTasks.id, taskId));
+  }
+
+  async createTaskApproval(approval: InsertTaskApproval): Promise<TaskApproval> {
+    const [newApproval] = await db.insert(taskApprovals).values(approval).returning();
+    return newApproval;
+  }
+
+  async getTaskApprovalsById(taskId: string): Promise<TaskApproval[]> {
+    return db.select().from(taskApprovals)
+      .where(eq(taskApprovals.taskId, taskId))
+      .orderBy(desc(taskApprovals.createdAt));
+  }
+
+  async approveTask(approvalId: string, approverId: string, comments?: string): Promise<void> {
+    await db.update(taskApprovals)
+      .set({
+        status: "approved",
+        approverId,
+        comments,
+        approvedAt: new Date()
+      })
+      .where(eq(taskApprovals.id, approvalId));
+  }
+
+  async rejectTask(approvalId: string, approverId: string, comments: string): Promise<void> {
+    await db.update(taskApprovals)
+      .set({
+        status: "rejected",
+        approverId,
+        comments,
+        approvedAt: new Date()
+      })
+      .where(eq(taskApprovals.id, approvalId));
+  }
+
+  async finalizeTaskApproval(taskId: string, approvedBy: string): Promise<void> {
+    await db.update(teamTasks)
+      .set({
+        approvalStatus: "approved",
+        approvedBy,
+        approvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(teamTasks.id, taskId));
+  }
+
+  async rejectTaskFinal(taskId: string, approvedBy: string, rejectionReason: string): Promise<void> {
+    await db.update(teamTasks)
+      .set({
+        approvalStatus: "rejected",
+        approvedBy,
+        rejectionReason,
+        status: "in_progress", // Send back to in progress
+        updatedAt: new Date()
+      })
+      .where(eq(teamTasks.id, taskId));
+  }
+
+  // Notification operations
+  async createApprovalNotification(notification: InsertApprovalNotification): Promise<ApprovalNotification> {
+    const [newNotification] = await db.insert(approvalNotifications).values(notification).returning();
+    return newNotification;
+  }
+
+  async getNotificationsByUserId(userId: string, unreadOnly: boolean = false): Promise<ApprovalNotification[]> {
+    let query = db.select().from(approvalNotifications)
+      .where(eq(approvalNotifications.userId, userId));
+    
+    if (unreadOnly) {
+      query = query.where(and(eq(approvalNotifications.userId, userId), eq(approvalNotifications.isRead, false)));
+    }
+    
+    return query.orderBy(desc(approvalNotifications.createdAt));
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    await db.update(approvalNotifications)
+      .set({ isRead: true })
+      .where(eq(approvalNotifications.id, notificationId));
+  }
+
+  async getTasksPendingApproval(approverId: string): Promise<(TeamTask & { assignedByUser: User; assignedToUser: User })[]> {
+    const tasks = await db.select({
+      task: teamTasks,
+      assignedByUser: users,
+      assignedToUser: users
+    })
+    .from(teamTasks)
+    .leftJoin(users, eq(teamTasks.assignedBy, users.id))
+    .leftJoin(users, eq(teamTasks.assignedTo, users.id))
+    .where(and(
+      eq(teamTasks.approvalStatus, "submitted"),
+      eq(teamTasks.status, "completed")
+    ))
+    .orderBy(desc(teamTasks.proofSubmittedAt));
+
+    return tasks.map(row => ({
+      ...row.task,
+      assignedByUser: row.assignedByUser!,
+      assignedToUser: row.assignedToUser!,
+    }));
+  }
+
+  // Continue with remaining methods from original file...
+  // POS Integration operations (keeping them from the original)
   async createPosIntegration(integration: InsertPosIntegration): Promise<PosIntegration> {
     const [posIntegration] = await db
       .insert(posIntegrations)
@@ -614,7 +674,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(posIntegrations)
       .where(and(eq(posIntegrations.id, id), eq(posIntegrations.userId, userId)));
-    return result.rowCount !== null && result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Sales Transaction operations
@@ -661,24 +721,23 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(products.createdAt));
   }
 
-  async getProductsByIntegration(integrationId: string): Promise<Product[]> {
-    return db
-      .select()
-      .from(products)
-      .where(eq(products.posIntegrationId, integrationId))
-      .orderBy(desc(products.createdAt));
-  }
-
-  async updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined> {
+  async updateProduct(id: string, userId: string, updates: Partial<Product>): Promise<Product | undefined> {
     const [updated] = await db
       .update(products)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(products.id, id))
+      .where(and(eq(products.id, id), eq(products.userId, userId)))
       .returning();
     return updated;
   }
 
-  // Campaign Trigger operations
+  async deleteProduct(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(products)
+      .where(and(eq(products.id, id), eq(products.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Campaign trigger operations
   async createCampaignTrigger(trigger: InsertCampaignTrigger): Promise<CampaignTrigger> {
     const [campaignTrigger] = await db
       .insert(campaignTriggers)
@@ -695,68 +754,88 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(campaignTriggers.createdAt));
   }
 
-  async getActiveCampaignTriggers(userId: string): Promise<CampaignTrigger[]> {
-    return db
-      .select()
-      .from(campaignTriggers)
-      .where(and(
-        eq(campaignTriggers.userId, userId),
-        eq(campaignTriggers.isActive, true)
-      ))
-      .orderBy(desc(campaignTriggers.createdAt));
-  }
-
-  async updateCampaignTrigger(id: string, updates: Partial<CampaignTrigger>): Promise<CampaignTrigger | undefined> {
+  async updateCampaignTrigger(id: string, userId: string, updates: Partial<CampaignTrigger>): Promise<CampaignTrigger | undefined> {
     const [updated] = await db
       .update(campaignTriggers)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(campaignTriggers.id, id))
+      .where(and(eq(campaignTriggers.id, id), eq(campaignTriggers.userId, userId)))
       .returning();
     return updated;
   }
-  
-  // Brand Design operations
-  async createBrandDesign(designData: InsertBrandDesign): Promise<BrandDesign> {
+
+  async deleteCampaignTrigger(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(campaignTriggers)
+      .where(and(eq(campaignTriggers.id, id), eq(campaignTriggers.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Brand design operations
+  async createBrandDesign(design: InsertBrandDesign): Promise<BrandDesign> {
     const [brandDesign] = await db
       .insert(brandDesigns)
-      .values(designData)
+      .values(design)
       .returning();
     return brandDesign;
   }
 
   async getBrandDesignByUserId(userId: string): Promise<BrandDesign | undefined> {
-    const [brandDesign] = await db
+    const [design] = await db
       .select()
       .from(brandDesigns)
-      .where(and(eq(brandDesigns.userId, userId), eq(brandDesigns.isActive, true)))
-      .orderBy(desc(brandDesigns.createdAt));
-    return brandDesign;
+      .where(eq(brandDesigns.userId, userId))
+      .orderBy(desc(brandDesigns.createdAt))
+      .limit(1);
+    return design;
   }
 
-  async updateBrandDesign(id: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined> {
+  async updateBrandDesign(id: string, userId: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined> {
     const [updated] = await db
       .update(brandDesigns)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(brandDesigns.id, id))
+      .where(and(eq(brandDesigns.id, id), eq(brandDesigns.userId, userId)))
       .returning();
     return updated;
   }
-  
-  // Campaign Design operations
-  async createCampaignDesign(designData: InsertCampaignDesign): Promise<CampaignDesign> {
+
+  async deleteBrandDesign(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(brandDesigns)
+      .where(and(eq(brandDesigns.id, id), eq(brandDesigns.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Campaign design operations
+  async createCampaignDesign(design: InsertCampaignDesign): Promise<CampaignDesign> {
     const [campaignDesign] = await db
       .insert(campaignDesigns)
-      .values(designData)
+      .values(design)
       .returning();
     return campaignDesign;
   }
 
-  async getCampaignDesignsByCampaign(campaignId: string): Promise<CampaignDesign[]> {
+  async getCampaignDesignsByCampaignId(campaignId: string): Promise<CampaignDesign[]> {
     return db
       .select()
       .from(campaignDesigns)
       .where(eq(campaignDesigns.campaignId, campaignId))
       .orderBy(desc(campaignDesigns.createdAt));
+  }
+
+  async updateCampaignDesign(id: string, updates: Partial<CampaignDesign>): Promise<CampaignDesign | undefined> {
+    const [updated] = await db
+      .update(campaignDesigns)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(campaignDesigns.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCampaignDesign(id: string, campaignId: string): Promise<boolean> {
+    const result = await db
+      .delete(campaignDesigns)
+      .where(and(eq(campaignDesigns.id, id), eq(campaignDesigns.campaignId, campaignId)));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

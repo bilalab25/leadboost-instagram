@@ -19,6 +19,7 @@ import SpanishPreview from "@/pages/spanish-preview";
 import CampAIgner from "@/pages/waterfall";
 import BrandStudio from "@/pages/brand-studio";
 import Pricing from "@/pages/pricing";
+import Approvals from "@/pages/approvals";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/campaigns" component={Campaigns} />
       <Route path="/customers" component={Customers} />
       <Route path="/team" component={Team} />
+      <Route path="/approvals" component={Approvals} />
       <Route path="/integrations" component={Integrations} />
       <Route path="/waterfall" component={CampAIgner} />
       <Route path="/brand-studio" component={BrandStudio} />
