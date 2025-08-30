@@ -53,7 +53,7 @@ export default function Landing() {
       <div className="relative overflow-hidden py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4">
-            {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
+            {isSpanish ? 'Conoce LeadBoost' : 'Meet LeadBoost'}
           </h1>
           <p className="text-xl text-gray-600 mb-8">
             {isSpanish 

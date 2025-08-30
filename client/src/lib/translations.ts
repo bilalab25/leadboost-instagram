@@ -1,9 +1,9 @@
 // Translations for Spanish (Mexico) and English
 export const translations = {
   en: {
-    // AI Planner
+    // 30 Day Planner
     aiPlanner: {
-      title: "Monthly Campaign Generator",
+      title: "30 Day Planner",
       heroTitle: "30-Day Multi-Platform Campaign Generator",
       heroSubtitle: "Generate a complete month of campaigns for all 21+ platforms. Get 30 days of content, perfectly sized for each social network, ready to publish.",
       poweredByAI: "Powered by Advanced AI",
@@ -42,7 +42,7 @@ export const translations = {
       generateContent: "Generate Content",
       smartContentTitle: "Smart Content for your Brands",
       smartContentDescription: "Automatically generate optimized posts for all your social platforms with one click.",
-      waterfallSystem: "Meet CampAIgner"
+      waterfallSystem: "Meet LeadBoost"
     },
     // Campaign Creator
     campaigns: {
@@ -128,7 +128,7 @@ export const translations = {
     sidebar: {
       dashboard: "Dashboard",
       inbox: "Inbox",
-      aiPlanner: "Month CampAIgner",
+      aiPlanner: "30 Day Planner",
       brandStudio: "Brand Studio",
       campaigns: "Campaigns",
       calendar: "Calendar",
@@ -195,9 +195,9 @@ export const translations = {
     }
   },
   es: {
-    // AI Planner
+    // 30 Day Planner
     aiPlanner: {
-      title: "Generador de Campañas Mensual",
+      title: "Planificador 30 Días",
       heroTitle: "Generador de Campañas Multi-Plataforma de 30 Días",
       heroSubtitle: "Genera un mes completo de campañas para las 21+ plataformas. Obtén 30 días de contenido, perfectamente dimensionado para cada red social, listo para publicar.",
       poweredByAI: "Impulsado por IA Avanzada",
@@ -236,7 +236,7 @@ export const translations = {
       generateContent: "Generar Contenido",
       smartContentTitle: "Contenido Inteligente para tus Marcas",
       smartContentDescription: "Genera automáticamente posts optimizados para todas tus plataformas sociales con un solo clic.",
-      waterfallSystem: "Conoce CampAIgner"
+      waterfallSystem: "Conoce LeadBoost"
     },
     // Campaign Creator
     campaigns: {
@@ -325,7 +325,7 @@ export const translations = {
     sidebar: {
       dashboard: "Panel Principal",
       inbox: "Bandeja de Entrada",
-      aiPlanner: "CampAIgner Mes",
+      aiPlanner: "Planificador 30 Días",
       brandStudio: "Estudio de Marca",
       campaigns: "Campañas",
       calendar: "Calendario",
@@ -355,7 +355,7 @@ export const translations = {
     },
     // Tools and Features
     tools: {
-      aiPlanner: "CampAIgner Mes",
+      aiPlanner: "Planificador 30 Días",
       brandStudio: "Estudio de Marca",
       campaignCreator: "Creador de Campañas",
       analytics: "Analíticas",
