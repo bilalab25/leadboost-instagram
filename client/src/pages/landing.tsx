@@ -69,15 +69,15 @@ export default function Landing() {
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
             <div className="text-center mb-16">
-              <h2 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
+              <h2 className="text-6xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.85] tracking-tight">
                 {isSpanish ? 'CONOCE LEADBOOST' : 'MEET LEADBOOST'}
               </h2>
-              <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
+              <div className="text-3xl lg:text-4xl font-semibold text-gray-700 mb-8 tracking-wide">
                 {isSpanish ? 'Ser Visto → EN TODOS LADOS.' : 'Get Seen → EVERYWHERE.'}
               </div>
               
-              <div className="max-w-4xl mx-auto mt-12">
-                <p className="text-xl lg:text-2xl text-gray-600 leading-relaxed font-medium">
+              <div className="max-w-4xl mx-auto mt-8">
+                <p className="text-lg lg:text-xl text-gray-600 leading-relaxed font-normal">
                   {isSpanish ? 'Convierte los datos de tu negocio en campañas listas para usar en 21+ plataformas—en solo un clic.' : 'Turn your business data into ready-to-go campaigns for 21+ platforms—in just one click.'}
                 </p>
               </div>
