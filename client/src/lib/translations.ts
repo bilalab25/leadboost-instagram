@@ -84,7 +84,7 @@ export const translations = {
       waterfallTitle: "CampAIgner",
       waterfallSubtitle: "One idea → 21+ platforms → Perfect formats → Instant launch",
       heroTitle: "Turn ONE idea into campaigns across 21+ platforms",
-      heroSubtitle: "Our campaign generator takes your single campaign idea and instantly creates optimized content for Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube and 16+ more platforms — all in the correct format and size.",
+      heroSubtitle: "LeadBoost's CampAIgner takes your single campaign idea and instantly creates optimized content for Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube and 16+ more platforms — all in the correct format and size.",
       oneIdea: "ONE IDEA",
       everywhere: "EVERYWHERE",
       instantly: "INSTANTLY",
@@ -94,7 +94,7 @@ export const translations = {
       platforms21: "21+ Platforms",
       perfectFormats: "Perfect Formats",
       instantLaunch: "Instant Launch",
-      uniqueDifferentiator: "This is what makes CampAIgner unique"
+      uniqueDifferentiator: "This is what makes LeadBoost's CampAIgner unique"
     },
     // Dashboard
     dashboard: {
@@ -113,7 +113,7 @@ export const translations = {
       viewMessages: "View Messages",
       generateContent: "Generate Content",
       viewAnalytics: "View Analytics",
-      waterfallSystem: "Campaign Generator",
+      waterfallSystem: "CampAIgner Tool",
       oneIdeaEverywhere: "One idea → Everywhere",
       waterfallDescription: "Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.",
       createWaterfallCampaign: "Generate Campaign",
