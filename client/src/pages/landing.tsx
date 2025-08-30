@@ -70,7 +70,7 @@ export default function Landing() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
             <div className="text-center mb-16">
               <h2 className="text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-[0.9] tracking-tight">
-                {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
+                {isSpanish ? 'Conoce LeadBoost' : 'Meet LeadBoost'}
               </h2>
               <div className="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500 mb-8">
                 {isSpanish ? 'Tu marca → EN TODOS LADOS' : 'Your brand → EVERYWHERE'}
@@ -464,7 +464,7 @@ export default function Landing() {
                         {isSpanish ? 'Ve CampAIgner en Acción' : 'See CampAIgner in Action'}
                       </h2>
                       <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto drop-shadow-md">
-                        {isSpanish ? 'Descubre cómo funciona Meet CampAIgner en menos de 2 minutos' : 'Discover how Meet CampAIgner works in less than 2 minutes'}
+                        {isSpanish ? 'Descubre cómo funciona Meet LeadBoost en menos de 2 minutos' : 'Discover how Meet LeadBoost works in less than 2 minutes'}
                       </p>
                     </div>
 
@@ -535,7 +535,7 @@ export default function Landing() {
                         <Target className="h-8 w-8 text-white" />
                       </div>
                       <h3 className="text-white text-2xl font-bold mb-3">
-                        {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
+                        {isSpanish ? 'Conoce LeadBoost' : 'Meet LeadBoost'}
                       </h3>
                       <p className="text-gray-300 text-base">
                         {isSpanish ? 'De una idea a 21+ plataformas en segundos' : 'From one idea to 21+ platforms in seconds'}
