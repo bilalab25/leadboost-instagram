@@ -540,7 +540,7 @@ export default function Landing() {
                   {isSpanish ? 'Gestiona todas las conversaciones de clientes desde una plataforma centralizada' : 'Manage all customer conversations from one centralized platform'}
                 </p>
                 <ul className="text-sm text-gray-500 space-y-2">
-                  <li>• {isSpanish ? 'Respuestas inteligentes' : 'Smart responses'}</li>
+                  <li>• {isSpanish ? 'ChatBot con IA' : 'AI ChatBot'}</li>
                   <li>• {isSpanish ? 'Análisis de sentimientos' : 'Sentiment analysis'}</li>
                   <li>• {isSpanish ? 'Gestión multicanal' : 'Multi-channel management'}</li>
                 </ul>
