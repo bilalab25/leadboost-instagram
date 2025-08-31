@@ -159,7 +159,7 @@ export default function Landing() {
                   <div className="mt-16 mb-12">
                     <div className="text-center mb-8">
                       <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                        {isSpanish ? 'Mira CampAIgner en Acción' : 'See CampAIgner in Action'}
+                        {isSpanish ? 'Mira nuestra herramienta CampAIgner en Acción' : 'See our CampAIgner tool in Action'}
                       </h3>
                       <p className="text-gray-600 max-w-2xl mx-auto">
                         {isSpanish ? 'Observa cómo una sola idea se transforma en campañas optimizadas para 21+ plataformas en segundos' : 'Watch one idea transform into optimized campaigns across 21+ platforms in seconds'}
@@ -182,7 +182,7 @@ export default function Landing() {
                             <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 py-12">
                               <div className="mb-6">
                                 <h4 className="text-xl md:text-2xl font-bold text-white mb-3 drop-shadow-lg">
-                                  {isSpanish ? 'Ve CampAIgner en Acción' : 'See CampAIgner in Action'}
+                                  {isSpanish ? 'Ve nuestra herramienta CampAIgner en Acción' : 'See our CampAIgner tool in Action'}
                                 </h4>
                                 <p className="text-sm md:text-base text-white/90 max-w-xl mx-auto drop-shadow-md">
                                   {isSpanish ? 'Descubre cómo funciona en 30 segundos' : 'Discover how it works in 30 seconds'}
