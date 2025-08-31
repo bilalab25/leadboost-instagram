@@ -163,38 +163,56 @@ export default function Landing() {
                   
                   {/* CampAIgner Demo Video Section */}
                   <div className="mt-12 mb-8 text-center">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    <h3 className="text-3xl font-bold text-gray-900 mb-4">
                       {isSpanish ? 'Ver CampAIgner en Acción' : 'See CampAIgner in Action'}
                     </h3>
-                    <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                    <p className="text-gray-600 mb-8 max-w-2xl mx-auto text-lg">
                       {isSpanish 
                         ? 'Observa cómo una idea se transforma en campañas optimizadas en más de 21 plataformas en segundos' 
                         : 'Watch one idea transform into optimized campaigns across 21+ platforms in seconds'}
                     </p>
-                    <div className="relative">
-                      <div className="bg-black rounded-xl h-80 w-[600px] flex items-center justify-center mx-auto relative">
-                        <div className="absolute top-6 right-6 bg-white/20 text-white px-3 py-2 rounded text-sm font-semibold">
-                          DEMO
+                    <div className="relative max-w-4xl mx-auto">
+                      <div className="bg-gray-900 rounded-2xl h-96 w-full flex flex-col items-center justify-center relative">
+                        <div className="absolute top-6 left-6 bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium">
+                          CampAIgner Tool
                         </div>
-                        <div className="w-20 h-20 border-4 border-white rounded-full flex items-center justify-center">
-                          <div className="w-0 h-0 border-l-10 border-l-white border-y-8 border-y-transparent ml-1"></div>
+                        <div className="absolute top-6 right-6 bg-red-500 text-white px-3 py-2 rounded-lg text-sm font-medium">
+                          ● Demo
                         </div>
-                        <div className="absolute bottom-6 left-6 flex space-x-3">
-                          <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center">
+                        
+                        <h4 className="text-white text-2xl font-bold mb-2">
+                          {isSpanish ? 'Ver CampAIgner en Acción' : 'See CampAIgner in Action'}
+                        </h4>
+                        <p className="text-gray-300 mb-6">
+                          {isSpanish ? 'Descubre cómo funciona en 30 segundos' : 'Discover how it works in 30 seconds'}
+                        </p>
+                        
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+                          <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        </div>
+                        
+                        <div className="absolute bottom-6 left-6 flex space-x-2">
+                          <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
                             <SiInstagram className="h-4 w-4 text-white" />
                           </div>
-                          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                             <SiFacebook className="h-4 w-4 text-white" />
                           </div>
-                          <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+                          <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
                             <SiTiktok className="h-4 w-4 text-white" />
                           </div>
-                          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                            <SiYoutube className="h-4 w-4 text-white" />
+                          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <SiWhatsapp className="h-4 w-4 text-white" />
                           </div>
-                          <div className="w-8 h-8 bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                            +17
+                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            +21
                           </div>
+                        </div>
+                        
+                        <div className="absolute bottom-6 right-6 text-gray-400 text-sm font-mono">
+                          0:30
                         </div>
                       </div>
                     </div>
