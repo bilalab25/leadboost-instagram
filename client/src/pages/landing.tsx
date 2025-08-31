@@ -372,28 +372,28 @@ export default function Landing() {
                   <p className="text-gray-600 mb-8 font-medium">
                     {isSpanish ? 'Se Integra Con Las Herramientas Que Ya Usas' : 'Integrates With The Tools You Already Use'}
                   </p>
-                  <div className="flex justify-center items-center space-x-8 lg:space-x-12 opacity-60 flex-wrap gap-6">
-                    <div className="flex items-center space-x-2 text-gray-400 hover:text-gray-600 transition-colors">
+                  <div className="flex justify-center items-center space-x-8 lg:space-x-12 flex-wrap gap-6">
+                    <div className="flex items-center space-x-2 text-black hover:text-gray-800 transition-colors">
                       <SiWix className="h-8 w-8" />
                       <span className="text-lg font-semibold">Wix</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-gray-400 hover:text-blue-600 transition-colors">
+                    <div className="flex items-center space-x-2 text-black hover:text-blue-600 transition-colors">
                       <SiSalesforce className="h-8 w-8" />
                       <span className="text-lg font-semibold">Salesforce</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-gray-400 hover:text-orange-600 transition-colors">
+                    <div className="flex items-center space-x-2 text-black hover:text-orange-600 transition-colors">
                       <SiHubspot className="h-8 w-8" />
                       <span className="text-lg font-semibold">HubSpot</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-gray-400 hover:text-green-600 transition-colors">
+                    <div className="flex items-center space-x-2 text-black hover:text-green-600 transition-colors">
                       <SiShopify className="h-8 w-8" />
                       <span className="text-lg font-semibold">Shopify</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-gray-400 hover:text-purple-600 transition-colors">
+                    <div className="flex items-center space-x-2 text-black hover:text-purple-600 transition-colors">
                       <SiZapier className="h-8 w-8" />
                       <span className="text-lg font-semibold">Zapier</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-gray-400 hover:text-yellow-600 transition-colors">
+                    <div className="flex items-center space-x-2 text-black hover:text-yellow-600 transition-colors">
                       <SiMailchimp className="h-8 w-8" />
                       <span className="text-lg font-semibold">Mailchimp</span>
                     </div>
