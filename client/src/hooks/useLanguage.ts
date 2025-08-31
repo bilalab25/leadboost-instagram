@@ -16,7 +16,7 @@ export const useLanguage = () => {
       return 'es';
     }
     
-    return 'es'; // Default to Spanish for demo
+    return 'en'; // Default to English
   });
 
   useEffect(() => {
