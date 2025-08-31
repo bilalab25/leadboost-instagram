@@ -190,53 +190,99 @@ const detectBusinessType = (description: string): { type: string; confidence: st
   return { type: 'consulting', confidence: '85%', explanation: 'Professional services & consulting' };
 };
 
-// Helper function to create high-quality demo visuals
+// Smart business-specific visual selection system
 const createDemoVisuals = (businessDescription: string, businessType: string | null) => {
-  // High-quality stock photo URLs that look like AI-generated campaign content
-  const visualsByType: Record<string, string[]> = {
-    restaurant: [
-      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1080&h=1080&fit=crop&crop=center'
-    ],
-    fitness: [
-      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1080&h=1080&fit=crop&crop=center'
-    ],
-    beauty: [
-      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=1080&h=1080&fit=crop&crop=center'
-    ],
-    ecommerce: [
-      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1080&h=1080&fit=crop&crop=center'
-    ],
-    realestate: [
-      'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1582063289852-62e3ba2747f8?w=1080&h=1080&fit=crop&crop=center'
-    ],
-    dental: [
-      'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=1080&h=1080&fit=crop&crop=center'
-    ],
-    default: [
-      'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1080&h=1080&fit=crop&crop=center',
-      'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1080&h=1080&fit=crop&crop=center'
-    ]
-  };
-
-  const detectedBusinessType = businessType || 'default';
-  const businessTypeKey = Object.keys(visualsByType).includes(detectedBusinessType) 
-    ? detectedBusinessType 
-    : 'default';
+  const desc = businessDescription.toLowerCase();
+  
+  // Analyze description for specific keywords to pick the most relevant visuals
+  const getSpecificVisuals = () => {
+    // Food & Restaurant specific
+    if (desc.includes('pizza') || desc.includes('italian')) {
+      return ['https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=600&h=200&fit=crop&crop=center'];
+    }
+    if (desc.includes('coffee') || desc.includes('cafe') || desc.includes('espresso')) {
+      return ['https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&h=200&fit=crop&crop=center'];
+    }
+    if (desc.includes('sushi') || desc.includes('japanese')) {
+      return ['https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1553621042-f6e147245754?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=600&h=200&fit=crop&crop=center'];
+    }
     
-  const urls = visualsByType[businessTypeKey];
+    // Fitness specific
+    if (desc.includes('yoga') || desc.includes('meditation')) {
+      return ['https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1506629905853-8f3d2e78abcd?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=200&fit=crop&crop=center'];
+    }
+    if (desc.includes('crossfit') || desc.includes('weights') || desc.includes('strength')) {
+      return ['https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=200&fit=crop&crop=center'];
+    }
+    
+    // Beauty specific
+    if (desc.includes('skincare') || desc.includes('facial')) {
+      return ['https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&h=200&fit=crop&crop=center'];
+    }
+    if (desc.includes('makeup') || desc.includes('cosmetics')) {
+      return ['https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&h=200&fit=crop&crop=center'];
+    }
+    
+    // Fashion & Retail
+    if (desc.includes('clothing') || desc.includes('fashion') || desc.includes('boutique')) {
+      return ['https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&h=200&fit=crop&crop=center'];
+    }
+    
+    // Professional Services
+    if (desc.includes('law') || desc.includes('lawyer') || desc.includes('legal')) {
+      return ['https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=200&fit=crop&crop=center'];
+    }
+    
+    // Tech & Consulting
+    if (desc.includes('tech') || desc.includes('software') || desc.includes('consulting')) {
+      return ['https://images.unsplash.com/photo-1552664730-d307ca884978?w=1080&h=1080&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1200&h=628&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=200&fit=crop&crop=center'];
+    }
+    
+    // Default fallbacks by business type
+    const visualsByType: Record<string, string[]> = {
+      restaurant: ['https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=1080&h=1080&fit=crop&crop=center',
+                   'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&h=628&fit=crop&crop=center',
+                   'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center'],
+      fitness: ['https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1080&h=1080&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&h=628&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&h=200&fit=crop&crop=center'],
+      beauty: ['https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1080&h=1080&fit=crop&crop=center',
+               'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1200&h=628&fit=crop&crop=center',
+               'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&h=200&fit=crop&crop=center'],
+      default: ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1080&h=1080&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=628&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=600&h=200&fit=crop&crop=center']
+    };
+    
+    const detectedBusinessType = businessType || 'default';
+    const businessTypeKey = Object.keys(visualsByType).includes(detectedBusinessType) 
+      ? detectedBusinessType 
+      : 'default';
+      
+    return visualsByType[businessTypeKey];
+  };
+  
+  const urls = getSpecificVisuals();
   
   return urls.map((url, index) => ({
     url,
@@ -406,8 +452,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                               e.currentTarget.style.display = 'none';
                             }}
                           />
-                          <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                            AI-Style Demo • 1080×1080
+                          <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                            Smart Demo • 1080×1080
                           </div>
                         </>
                       ) : (
@@ -486,8 +532,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                           alt="Email header visual"
                           className="w-full max-w-md mx-auto h-24 object-cover rounded-xl"
                         />
-                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                          AI-Style Demo • 600×200
+                        <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                          Smart Demo • 600×200
                         </div>
                       </div>
                     ) : (
@@ -556,8 +602,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                         alt="Facebook ad visual"
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                        AI-Style Demo • 1200×628
+                      <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                        Smart Demo • 1200×628
                       </div>
                     </>
                   ) : (
@@ -670,9 +716,25 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 : '✨ And this is just the beginning! Your complete campaign includes content for +21 platforms.'
               }
             </p>
-            <Button size="lg" className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700" data-testid="button-start-free">
-              {isSpanish ? 'Comenzar Ahora Gratis' : 'Start Free Now'}
-            </Button>
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-6">
+              <h4 className="text-lg font-bold text-gray-900 mb-2">
+                {isSpanish ? '🚀 ¿Quieres VERDADERO contenido IA personalizado?' : '🚀 Want REAL AI-personalized content?'}
+              </h4>
+              <p className="text-gray-600 text-sm mb-4">
+                {isSpanish 
+                  ? 'Actualiza a Enterprise para imágenes generadas con DALL-E específicas para tu negocio, creadas al instante según tu descripción exacta.'
+                  : 'Upgrade to Enterprise for DALL-E generated images specific to your business, created instantly from your exact description.'
+                }
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button variant="outline" size="lg" data-testid="button-start-free">
+                  {isSpanish ? 'Comenzar Gratis' : 'Start Free'}
+                </Button>
+                <Button size="lg" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" data-testid="button-upgrade-enterprise">
+                  {isSpanish ? 'Ver Enterprise' : 'View Enterprise'}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
