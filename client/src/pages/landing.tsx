@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail } from "lucide-react";
-import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiShopify, SiZapier, SiWordpress, SiSquare, SiStripe } from "react-icons/si";
+import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiShopify, SiZapier, SiQuickbooks, SiSquare, SiStripe } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
 import { AIChatbot } from "@/components/AIChatbot";
@@ -381,8 +381,8 @@ export default function Landing() {
                       <span className="text-lg font-semibold">Stripe</span>
                     </div>
                     <div className="flex items-center space-x-2 text-black hover:text-blue-600 transition-colors">
-                      <SiWordpress className="h-8 w-8" />
-                      <span className="text-lg font-semibold">WordPress</span>
+                      <SiQuickbooks className="h-8 w-8" />
+                      <span className="text-lg font-semibold">QuickBooks</span>
                     </div>
                     <div className="flex items-center space-x-2 text-black hover:text-green-600 transition-colors">
                       <SiShopify className="h-8 w-8" />
