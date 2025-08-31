@@ -601,7 +601,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           <p className="text-gray-600 text-sm mb-4">
             {isSpanish 
               ? 'Actualiza a Enterprise para imágenes generadas con DALL-E específicas para tu negocio, creadas al instante según tu descripción exacta.'
-              : 'Upgrade to Enterprise for DALL-E generated images specific to your business, created instantly from your exact description.'
+              : 'Upgrade to Enterprise for DALL-E generated images specific to your business, created instantly from your business POS data.'
             }
           </p>
           <div className="flex gap-3 justify-center">
