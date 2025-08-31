@@ -5,6 +5,11 @@ import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, S
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
 import { AIChatbot } from "@/components/AIChatbot";
+import { CountdownTimer } from "@/components/CountdownTimer";
+import { FAQ } from "@/components/FAQ";
+import { InteractiveDemo } from "@/components/InteractiveDemo";
+import { ReferralProgram } from "@/components/ReferralProgram";
+import { OnboardingProgress } from "@/components/OnboardingProgress";
 import leadBoostLogo from "@assets/logo azul sin fondo_1756140873617.png";
 
 export default function Landing() {
@@ -251,6 +256,217 @@ export default function Landing() {
               </Card>
             </div>
             
+            {/* Social Proof Section */}
+            <div className="py-16 bg-gradient-to-r from-gray-50 to-white rounded-3xl border border-gray-100 mb-16">
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Statistics */}
+                <div className="text-center mb-16">
+                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
+                    {isSpanish ? 'Resultados que Hablan por Sí Solos' : 'Results That Speak for Themselves'}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="text-center">
+                      <div className="text-4xl md:text-5xl font-black text-brand-600 mb-2">10,000+</div>
+                      <p className="text-gray-600 font-medium">{isSpanish ? 'Empresas Activas' : 'Active Businesses'}</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-4xl md:text-5xl font-black text-emerald-600 mb-2">250M+</div>
+                      <p className="text-gray-600 font-medium">{isSpanish ? 'Citas Programadas' : 'Appointments Booked'}</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-4xl md:text-5xl font-black text-purple-600 mb-2">40%</div>
+                      <p className="text-gray-600 font-medium">{isSpanish ? 'Aumento en Conversión' : 'Increase in Conversions'}</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-4xl md:text-5xl font-black text-orange-600 mb-2">24/7</div>
+                      <p className="text-gray-600 font-medium">{isSpanish ? 'IA Trabajando' : 'AI Working'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Testimonials */}
+                <div className="mb-16">
+                  <h4 className="text-xl font-semibold text-center text-gray-900 mb-8">
+                    {isSpanish ? 'Lo Que Dicen Nuestros Clientes' : 'What Our Customers Say'}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <Card className="p-6 shadow-lg border-l-4 border-l-brand-500">
+                      <CardContent className="p-0">
+                        <div className="flex items-start mb-4">
+                          <div className="flex text-yellow-400">
+                            {'★'.repeat(5)}
+                          </div>
+                        </div>
+                        <p className="text-gray-700 mb-4 italic">
+                          {isSpanish 
+                            ? '"En 3 meses aumentamos nuestras citas un 300%. El chatbot trabaja mientras dormimos."'
+                            : '"In 3 months we increased appointments by 300%. The chatbot works while we sleep."'
+                          }
+                        </p>
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                            MC
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">María Carmen López</p>
+                            <p className="text-sm text-gray-600">Bella Estética Spa</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="p-6 shadow-lg border-l-4 border-l-emerald-500">
+                      <CardContent className="p-0">
+                        <div className="flex items-start mb-4">
+                          <div className="flex text-yellow-400">
+                            {'★'.repeat(5)}
+                          </div>
+                        </div>
+                        <p className="text-gray-700 mb-4 italic">
+                          {isSpanish 
+                            ? '"LeadBoost transformó nuestro negocio. Ahora capturamos leads automáticamente desde todas las redes."'
+                            : '"LeadBoost transformed our business. Now we capture leads automatically from all platforms."'
+                          }
+                        </p>
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                            DR
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">Dr. Roberto Hernández</p>
+                            <p className="text-sm text-gray-600">Clínica Dental Premium</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="p-6 shadow-lg border-l-4 border-l-purple-500">
+                      <CardContent className="p-0">
+                        <div className="flex items-start mb-4">
+                          <div className="flex text-yellow-400">
+                            {'★'.repeat(5)}
+                          </div>
+                        </div>
+                        <p className="text-gray-700 mb-4 italic">
+                          {isSpanish 
+                            ? '"La mejor inversión que hemos hecho. ROI del 500% en el primer mes."'
+                            : '"Best investment we\'ve made. 500% ROI in the first month."'
+                          }
+                        </p>
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                            SG
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">Sandra García</p>
+                            <p className="text-sm text-gray-600">Consultora Fitness</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Trusted By Logos */}
+                <div className="text-center">
+                  <p className="text-gray-600 mb-8 font-medium">
+                    {isSpanish ? 'Empresas Que Confían en LeadBoost' : 'Trusted by Leading Businesses'}
+                  </p>
+                  <div className="flex justify-center items-center space-x-8 opacity-60">
+                    <div className="text-2xl font-bold text-gray-400">Beauty Pro</div>
+                    <div className="text-2xl font-bold text-gray-400">Dental Excellence</div>
+                    <div className="text-2xl font-bold text-gray-400">Wellness Center</div>
+                    <div className="text-2xl font-bold text-gray-400">Spa Luxury</div>
+                    <div className="text-2xl font-bold text-gray-400">Med Clinic</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Urgency & Limited Time Offer Section */}
+            <div className="py-16 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 rounded-3xl border-2 border-red-200 mb-16 relative overflow-hidden">
+              {/* Background animation */}
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600/5 via-orange-500/5 to-yellow-500/5 animate-pulse"></div>
+              
+              <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div className="mb-8">
+                  <div className="inline-flex items-center bg-red-600 text-white px-6 py-2 rounded-full font-bold mb-6 animate-bounce">
+                    🔥 {isSpanish ? 'OFERTA POR TIEMPO LIMITADO' : 'LIMITED TIME OFFER'} 🔥
+                  </div>
+                  <h3 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                    {isSpanish 
+                      ? '¡50% de Descuento en tu Primer Mes!' 
+                      : '50% Off Your First Month!'
+                    }
+                  </h3>
+                  <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+                    {isSpanish 
+                      ? 'Únete a más de 10,000 empresas que ya están automatizando sus ventas con IA. Esta oferta expira pronto.'
+                      : 'Join 10,000+ businesses already automating their sales with AI. This offer expires soon.'
+                    }
+                  </p>
+                </div>
+
+                {/* Countdown Timer */}
+                <div className="mb-12 flex justify-center">
+                  <CountdownTimer 
+                    targetDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} // 7 days from now
+                    className="justify-center"
+                  />
+                </div>
+
+                {/* Offer Details */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                  <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-red-100">
+                    <div className="text-3xl font-black text-red-600 mb-2">$49</div>
+                    <div className="text-lg text-gray-500 line-through mb-1">$99/mes</div>
+                    <p className="text-sm text-gray-600">{isSpanish ? 'Primer mes' : 'First month'}</p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-green-100">
+                    <div className="text-3xl font-black text-green-600 mb-2">FREE</div>
+                    <div className="text-lg text-gray-600 mb-1">{isSpanish ? 'Configuración' : 'Setup'}</div>
+                    <p className="text-sm text-gray-600">{isSpanish ? 'Valor $200' : 'Worth $200'}</p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-blue-100">
+                    <div className="text-3xl font-black text-blue-600 mb-2">24/7</div>
+                    <div className="text-lg text-gray-600 mb-1">{isSpanish ? 'Soporte IA' : 'AI Support'}</div>
+                    <p className="text-sm text-gray-600">{isSpanish ? 'Incluido' : 'Included'}</p>
+                  </div>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="space-y-4">
+                  <Button 
+                    size="lg"
+                    className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 hover:from-red-700 hover:via-red-600 hover:to-orange-600 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-2xl transition-all duration-300 transform hover:scale-105 animate-pulse"
+                    onClick={() => window.location.href = '/pricing'}
+                    data-testid="button-claim-offer"
+                  >
+                    <Sparkles className="mr-3 h-6 w-6" />
+                    {isSpanish ? '¡Reclamar Oferta Ahora!' : 'Claim Offer Now!'}
+                  </Button>
+                  <p className="text-sm text-gray-600">
+                    {isSpanish 
+                      ? '✅ Sin compromiso • ✅ Cancela cuando quieras • ✅ Garantía 30 días'
+                      : '✅ No commitment • ✅ Cancel anytime • ✅ 30-day guarantee'
+                    }
+                  </p>
+                </div>
+
+                {/* Urgency Indicators */}
+                <div className="mt-8 flex justify-center items-center space-x-6 text-sm">
+                  <div className="flex items-center text-red-600 font-semibold">
+                    <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></div>
+                    {isSpanish ? '127 personas viendo esto' : '127 people viewing this'}
+                  </div>
+                  <div className="flex items-center text-orange-600 font-semibold">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mr-2 animate-pulse"></div>
+                    {isSpanish ? '23 se registraron hoy' : '23 signed up today'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             {/* Benefits Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
               <Card className="text-center p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-white/90 via-brand-50/60 to-emerald-50/40 border border-brand-200/50 group hover:scale-105 backdrop-blur-sm hover:border-brand-400/60">
@@ -461,6 +677,11 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* Interactive Product Demo */}
+        <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-brand-50">
+          <InteractiveDemo isSpanish={isSpanish} />
+        </div>
+
         {/* Social Proof / Testimonials Section */}
         <div className="py-24 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -537,6 +758,18 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* FAQ Section */}
+        <div className="bg-gradient-to-br from-gray-50 to-white">
+          <FAQ isSpanish={isSpanish} />
+        </div>
+
+        {/* Onboarding Progress */}
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-white">
+          <OnboardingProgress isSpanish={isSpanish} />
+        </div>
+
+        {/* Referral Program */}
+        <ReferralProgram isSpanish={isSpanish} />
 
         {/* Final CTA */}
         <div className="py-24 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800">
