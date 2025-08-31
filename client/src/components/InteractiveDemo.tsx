@@ -228,8 +228,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           </h3>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             {isSpanish 
-              ? 'Descubre cómo nuestro chatbot con IA transforma un simple mensaje en una cita confirmada y pagada'
-              : 'Discover how our AI chatbot transforms a simple message into a confirmed and paid appointment'
+              ? 'Descubre cómo LeadBoost transforma tu marca en campañas que generan ventas automáticamente'
+              : 'Discover how LeadBoost transforms your brand into campaigns that generate sales automatically'
             }
           </p>
           

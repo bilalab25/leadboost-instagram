@@ -154,8 +154,8 @@ export function OnboardingProgress({ isSpanish }: OnboardingProgressProps) {
           </h3>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             {isSpanish 
-              ? 'Nuestro proceso de configuración guiado te lleva paso a paso para que tengas tu chatbot funcionando en minutos'
-              : 'Our guided setup process takes you step by step to have your chatbot running in minutes'
+              ? 'Nuestro proceso de configuración guiado te lleva paso a paso para que tengas toda la plataforma funcionando en minutos'
+              : 'Our guided setup process takes you step by step to have the entire platform running in minutes'
             }
           </p>
           
