@@ -323,8 +323,8 @@ export default function CampAIgner() {
                     </label>
                     <Textarea 
                       placeholder={isSpanish 
-                        ? '💬 Ejemplo: "Quiero promocionar mi nuevo producto de belleza antienvejecimiento para mujeres de 30-50 años. Es un serum facial que reduce arrugas en 14 días. Quiero un tono profesional pero accesible, con testimonios reales." \n\n¡La IA se encarga del resto!'
-                        : '💬 Example: "I want to promote my new anti-aging beauty product for women 30-50. It\'s a facial serum that reduces wrinkles in 14 days. I want a professional but approachable tone with real testimonials." \n\nAI handles the rest!'
+                        ? '💬 Ejemplo: "Quiero aumentar mis ventas pero no sé por dónde empezar. Mi negocio necesita más clientes y visibilidad." \n\n¡La IA se encarga del resto - selecciona plataformas, crea contenido, elige formatos!'
+                        : '💬 Example: "I want to boost my sales but I don\'t know where to start. My business needs more customers and visibility." \n\nAI handles the rest - selects platforms, creates content, chooses formats!'
                       }
                       value={campaignIdea}
                       onChange={(e) => setCampaignIdea(e.target.value)}
@@ -385,13 +385,21 @@ export default function CampAIgner() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 mb-6">
+                    <div className="flex items-center mb-2">
+                      <Bot className="h-4 w-4 text-blue-600 mr-2" />
+                      <span className="text-sm font-medium text-blue-900">{isSpanish ? 'IA te ayuda con el diseño' : 'AI helps you with the design'}</span>
+                    </div>
+                    <p className="text-xs text-blue-700">{isSpanish ? 'Solo necesita tu idea, ¡la IA se encarga del resto!' : 'All it needs is your idea, AI handles the rest!'}</p>
+                  </div>
+                  
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="text-sm font-medium text-gray-700 mb-2 block">
-                        {isSpanish ? 'Título de la campaña' : 'Campaign title'}
+                        {isSpanish ? 'Tu idea simple' : 'Your simple idea'}
                       </label>
                       <Input 
-                        placeholder={isSpanish ? 'Ej: Lanzamiento del nuevo producto' : 'e.g. New product launch'} 
+                        placeholder={isSpanish ? 'Ej: Quiero avisar que ahora abro los domingos' : 'e.g. I want to tell clients I open on Sundays now'} 
                         value={campaignTitle}
                         onChange={(e) => setCampaignTitle(e.target.value)}
                         className="w-full"
