@@ -161,11 +161,24 @@ export default function Landing() {
                     </div>
                   </div>
                   
-                  {/* Video */}
-                  <div className="mt-12 mb-8 flex justify-center">
-                    <div className="bg-black rounded-lg h-48 w-80 flex items-center justify-center">
-                      <div className="w-16 h-16 border-4 border-white rounded-full flex items-center justify-center">
-                        <div className="w-0 h-0 border-l-8 border-l-white border-y-6 border-y-transparent ml-1"></div>
+                  {/* CampAIgner Demo Video Section */}
+                  <div className="mt-12 mb-8 text-center">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                      {isSpanish ? 'Ver CampAIgner en Acción' : 'See CampAIgner in Action'}
+                    </h3>
+                    <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                      {isSpanish 
+                        ? 'Observa cómo una idea se transforma en campañas optimizadas en más de 21 plataformas en segundos' 
+                        : 'Watch one idea transform into optimized campaigns across 21+ platforms in seconds'}
+                    </p>
+                    <div className="relative">
+                      <div className="bg-black rounded-lg h-48 w-80 flex items-center justify-center mx-auto relative">
+                        <div className="absolute top-4 right-4 bg-white/20 text-white px-2 py-1 rounded text-xs font-semibold">
+                          DEMO
+                        </div>
+                        <div className="w-16 h-16 border-4 border-white rounded-full flex items-center justify-center">
+                          <div className="w-0 h-0 border-l-8 border-l-white border-y-6 border-y-transparent ml-1"></div>
+                        </div>
                       </div>
                     </div>
                   </div>
