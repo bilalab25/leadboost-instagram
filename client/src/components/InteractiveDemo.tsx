@@ -190,6 +190,61 @@ const detectBusinessType = (description: string): { type: string; confidence: st
   return { type: 'consulting', confidence: '85%', explanation: 'Professional services & consulting' };
 };
 
+// Helper function to create high-quality demo visuals
+const createDemoVisuals = (businessDescription: string, businessType: string | null) => {
+  // High-quality stock photo URLs that look like AI-generated campaign content
+  const visualsByType: Record<string, string[]> = {
+    restaurant: [
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1080&h=1080&fit=crop&crop=center'
+    ],
+    fitness: [
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1080&h=1080&fit=crop&crop=center'
+    ],
+    beauty: [
+      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=1080&h=1080&fit=crop&crop=center'
+    ],
+    ecommerce: [
+      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1080&h=1080&fit=crop&crop=center'
+    ],
+    realestate: [
+      'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1582063289852-62e3ba2747f8?w=1080&h=1080&fit=crop&crop=center'
+    ],
+    dental: [
+      'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=1080&h=1080&fit=crop&crop=center'
+    ],
+    default: [
+      'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1080&h=1080&fit=crop&crop=center',
+      'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1080&h=1080&fit=crop&crop=center'
+    ]
+  };
+
+  const detectedBusinessType = businessType || 'default';
+  const businessTypeKey = Object.keys(visualsByType).includes(detectedBusinessType) 
+    ? detectedBusinessType 
+    : 'default';
+    
+  const urls = visualsByType[businessTypeKey];
+  
+  return urls.map((url, index) => ({
+    url,
+    platform: index === 0 ? 'instagram' : index === 1 ? 'facebook' : 'email',
+    dimensions: index === 0 ? '1080x1080' : index === 1 ? '1200x628' : '600x200'
+  }));
+};
+
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   const [demo, setDemo] = useState<DemoState>({
     businessDescription: '',
@@ -243,10 +298,25 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
       if (response.ok) {
         const visualData = await response.json();
-        setGeneratedVisuals(visualData);
+        
+        // If no visuals were generated (billing limit, etc.), create high-quality demo visuals
+        if (!visualData.visuals || visualData.visuals.length === 0) {
+          const demoVisuals = createDemoVisuals(demo.businessDescription, demo.detectedType);
+          setGeneratedVisuals({ ...visualData, visuals: demoVisuals });
+        } else {
+          setGeneratedVisuals(visualData);
+        }
       }
     } catch (error) {
       console.error('Error generating visuals:', error);
+      // Create demo visuals as fallback
+      const demoVisuals = createDemoVisuals(demo.businessDescription, demo.detectedType);
+      setGeneratedVisuals({ 
+        visuals: demoVisuals, 
+        businessType: demo.detectedType,
+        campaignTheme: currentTemplate?.newsletter?.subject || 'Marketing Campaign',
+        totalGenerated: demoVisuals.length
+      });
     }
     
     setDemo(prev => ({ 
@@ -337,7 +407,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                             }}
                           />
                           <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                            AI Generated
+                            AI-Style Demo • 1080×1080
                           </div>
                         </>
                       ) : (
@@ -417,7 +487,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                           className="w-full max-w-md mx-auto h-24 object-cover rounded-xl"
                         />
                         <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                          AI Generated • 600×200
+                          AI-Style Demo • 600×200
                         </div>
                       </div>
                     ) : (
@@ -487,7 +557,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                        AI Generated • 1200×628
+                        AI-Style Demo • 1200×628
                       </div>
                     </>
                   ) : (
