@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail } from "lucide-react";
-import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiSalesforce, SiHubspot, SiShopify, SiZapier, SiMailchimp } from "react-icons/si";
+import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiSalesforce, SiShopify, SiZapier, SiWordpress, SiSquare } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
 import { AIChatbot } from "@/components/AIChatbot";
@@ -381,9 +381,9 @@ export default function Landing() {
                       <SiSalesforce className="h-8 w-8" />
                       <span className="text-lg font-semibold">Salesforce</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-black hover:text-orange-600 transition-colors">
-                      <SiHubspot className="h-8 w-8" />
-                      <span className="text-lg font-semibold">HubSpot</span>
+                    <div className="flex items-center space-x-2 text-black hover:text-blue-600 transition-colors">
+                      <SiWordpress className="h-8 w-8" />
+                      <span className="text-lg font-semibold">WordPress</span>
                     </div>
                     <div className="flex items-center space-x-2 text-black hover:text-green-600 transition-colors">
                       <SiShopify className="h-8 w-8" />
@@ -393,9 +393,9 @@ export default function Landing() {
                       <SiZapier className="h-8 w-8" />
                       <span className="text-lg font-semibold">Zapier</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-black hover:text-yellow-600 transition-colors">
-                      <SiMailchimp className="h-8 w-8" />
-                      <span className="text-lg font-semibold">Mailchimp</span>
+                    <div className="flex items-center space-x-2 text-black hover:text-gray-700 transition-colors">
+                      <SiSquare className="h-8 w-8" />
+                      <span className="text-lg font-semibold">Square</span>
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 mt-4">
