@@ -512,6 +512,28 @@ export default function Landing() {
                 </ul>
               </Card>
 
+              {/* #3 Unified Inbox */}
+              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-blue-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
+                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
+                    <MessageSquare className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {isSpanish ? 'Unified Inbox' : 'Unified Inbox'}
+                  </h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  {isSpanish ? 'Gestiona todas las conversaciones de clientes desde una plataforma centralizada' : 'Manage all customer conversations from one centralized platform'}
+                </p>
+                <ul className="text-sm text-gray-500 space-y-2">
+                  <li>• {isSpanish ? 'ChatBot con IA' : 'AI ChatBot'}</li>
+                  <li>• {isSpanish ? 'Análisis de sentimientos' : 'Sentiment analysis'}</li>
+                  <li>• {isSpanish ? 'Gestión multicanal' : 'Multi-channel management'}</li>
+                </ul>
+              </Card>
+
               {/* Analytics Dashboard */}
               <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-amber-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
                 <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -578,27 +600,6 @@ export default function Landing() {
                 </ul>
               </Card>
 
-              {/* #3 Unified Inbox - Lower prominence */}
-              <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-blue-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
-                <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
-                
-                <div className="flex items-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
-                    <MessageSquare className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    {isSpanish ? 'Unified Inbox' : 'Unified Inbox'}
-                  </h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  {isSpanish ? 'Gestiona todas las conversaciones de clientes desde una plataforma centralizada' : 'Manage all customer conversations from one centralized platform'}
-                </p>
-                <ul className="text-sm text-gray-500 space-y-2">
-                  <li>• {isSpanish ? 'ChatBot con IA' : 'AI ChatBot'}</li>
-                  <li>• {isSpanish ? 'Análisis de sentimientos' : 'Sentiment analysis'}</li>
-                  <li>• {isSpanish ? 'Gestión multicanal' : 'Multi-channel management'}</li>
-                </ul>
-              </Card>
             </div>
           </div>
         </div>
