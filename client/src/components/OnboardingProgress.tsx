@@ -150,7 +150,7 @@ export function OnboardingProgress({ isSpanish }: OnboardingProgressProps) {
             </span>
           </div>
           <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            {isSpanish ? 'Configuración en Solo 19 Minutos' : 'Setup in Just 19 Minutes'}
+            {isSpanish ? 'Configuración en Solo 4 Minutos' : 'Setup in Just 4 Minutes'}
           </h3>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             {isSpanish 
