@@ -203,6 +203,100 @@ export default function Landing() {
                   </div>
                 </div>
 
+                {/* Customer Testimonials with Trustpilot */}
+                <div className="text-center mb-16">
+                  <h4 className="text-xl font-bold text-gray-900 mb-8">
+                    {isSpanish ? 'Lo Que Dicen Nuestros Clientes' : 'What Our Customers Say'}
+                  </h4>
+                  
+                  {/* Trustpilot Rating */}
+                  <div className="flex justify-center items-center mb-8">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex space-x-1">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className="w-5 h-5 text-green-500 fill-current" viewBox="0 0 20 20">
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                          </svg>
+                        ))}
+                      </div>
+                      <span className="text-lg font-bold text-gray-900">4.8/5</span>
+                      <span className="text-gray-600">on</span>
+                      <svg className="h-6 w-20" viewBox="0 0 126 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M24.8 10.1h-4.7v14.2h-3.4V10.1H12V7.2h12.8v2.9zm7.8 0h-3v14.2h-3.4V10.1h-3V7.2H32v2.9zm15.1 14.2h-3.4V16.6c0-1.5-.6-2.3-1.8-2.3s-1.8.8-1.8 2.3v7.7h-3.4V10.1h3.4v1.4c.7-1 1.7-1.6 3.1-1.6 2.4 0 4 1.5 4 4.3v10.1zm15.9 0h-3.4v-1.5c-.7 1.1-1.8 1.7-3.2 1.7-2.5 0-4.2-1.6-4.2-4.4 0-2.8 1.7-4.4 4.2-4.4 1.4 0 2.5.6 3.2 1.7v-1.5h3.4v8.9zm-6.1-4.5c0 1.2.8 2.1 2 2.1s2-.9 2-2.1-.8-2.1-2-2.1-2 .9-2 2.1zm17.4 4.5h-3.4V16.6c0-1.5-.6-2.3-1.8-2.3s-1.8.8-1.8 2.3v7.7h-3.4V7.2h3.4v4.3c.7-1 1.7-1.6 3.1-1.6 2.4 0 4 1.5 4 4.3v10.1zM89 24.5h-3.4v-1.5c-.7 1.1-1.8 1.7-3.2 1.7-2.5 0-4.2-1.6-4.2-4.4 0-2.8 1.7-4.4 4.2-4.4 1.4 0 2.5.6 3.2 1.7V7.2H89v17.3zm-6.1-4.5c0 1.2.8 2.1 2 2.1s2-.9 2-2.1-.8-2.1-2-2.1-2 .9-2 2.1zm17.4 4.5h-3.4V16.6c0-1.5-.6-2.3-1.8-2.3s-1.8.8-1.8 2.3v7.7h-3.4V10.1h3.4v1.4c.7-1 1.7-1.6 3.1-1.6 2.4 0 4 1.5 4 4.3v10.1zm12.4 0h-3.4V22c-.5 1.6-1.8 2.7-3.7 2.7-2.9 0-5.1-2.3-5.1-5.4s2.2-5.4 5.1-5.4c1.9 0 3.2 1.1 3.7 2.7V7.2h3.4v17.3zm-6.6-4.5c0 1.8 1.2 3.1 2.8 3.1s2.8-1.3 2.8-3.1-1.2-3.1-2.8-3.1-2.8 1.3-2.8 3.1z" fill="#00B67A"/>
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Testimonials Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                      <div className="flex mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className="w-4 h-4 text-green-500 fill-current" viewBox="0 0 20 20">
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                          </svg>
+                        ))}
+                      </div>
+                      <p className="text-gray-700 text-sm mb-4">
+                        {isSpanish 
+                          ? '"CampAIgner revolucionó nuestro marketing. En 30 segundos tenemos campañas para todas las redes sociales. Increíble."'
+                          : '"CampAIgner revolutionized our marketing. In 30 seconds we have campaigns for all social networks. Amazing."'
+                        }
+                      </p>
+                      <div className="text-sm">
+                        <p className="font-bold text-gray-900">Maria S.</p>
+                        <p className="text-gray-500">{isSpanish ? 'Directora de Marketing' : 'Marketing Director'}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                      <div className="flex mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className="w-4 h-4 text-green-500 fill-current" viewBox="0 0 20 20">
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                          </svg>
+                        ))}
+                      </div>
+                      <p className="text-gray-700 text-sm mb-4">
+                        {isSpanish 
+                          ? '"Brand Studio me permite crear diseños profesionales sin ser diseñador. La plataforma es intuitiva y potente."'
+                          : '"Brand Studio lets me create professional designs without being a designer. The platform is intuitive and powerful."'
+                        }
+                      </p>
+                      <div className="text-sm">
+                        <p className="font-bold text-gray-900">Carlos R.</p>
+                        <p className="text-gray-500">{isSpanish ? 'Emprendedor' : 'Entrepreneur'}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                      <div className="flex mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className="w-4 h-4 text-green-500 fill-current" viewBox="0 0 20 20">
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                          </svg>
+                        ))}
+                      </div>
+                      <p className="text-gray-700 text-sm mb-4">
+                        {isSpanish 
+                          ? '"Desde que uso LeadBoost, nuestras ventas aumentaron 40%. El ROI es impresionante y el equipo está fascinado."'
+                          : '"Since using LeadBoost, our sales increased 40%. The ROI is impressive and the team is thrilled."'
+                        }
+                      </p>
+                      <div className="text-sm">
+                        <p className="font-bold text-gray-900">Ana L.</p>
+                        <p className="text-gray-500">{isSpanish ? 'CEO' : 'CEO'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Trustpilot Link */}
+                  <div className="mt-6">
+                    <a href="https://trustpilot.com" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 font-medium text-sm">
+                      {isSpanish ? 'Ver más reseñas en Trustpilot →' : 'See more reviews on Trustpilot →'}
+                    </a>
+                  </div>
+                </div>
 
                 {/* Technology Partners */}
                 <div className="text-center">
