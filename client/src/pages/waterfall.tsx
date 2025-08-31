@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Sparkles, Target, ArrowRight, Zap, Upload, Settings, 
-  Calendar, Eye, Download, Share2, BarChart3, DollarSign, Users, Bot, Plus
+  Calendar, Eye, Download, Share2, BarChart3, DollarSign, Users, Bot, Plus, MessageSquare, TrendingUp
 } from "lucide-react";
 import { 
   SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, 
