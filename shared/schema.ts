@@ -697,3 +697,199 @@ export type InsertBrandDesign = z.infer<typeof insertBrandDesignSchema>;
 export type BrandDesign = typeof brandDesigns.$inferSelect;
 export type InsertCampaignDesign = z.infer<typeof insertCampaignDesignSchema>;
 export type CampaignDesign = typeof campaignDesigns.$inferSelect;
+
+// AI Chatbot Configuration
+export const chatbotConfigs = pgTable("chatbot_configs", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  
+  // Chatbot Settings
+  name: varchar("name").default("LeadBoost Assistant"),
+  welcomeMessage: text("welcome_message").default("Hi! I'm here to help you. How can I assist you today?"),
+  businessHours: jsonb("business_hours"), // {monday: {start: "09:00", end: "17:00"}, ...}
+  timezone: varchar("timezone").default("America/New_York"),
+  language: varchar("language").default("en"), // en, es, etc.
+  
+  // Lead Qualification
+  qualificationQuestions: jsonb("qualification_questions"), // [{question: "", type: "text|select|email|phone", required: true}]
+  leadScoreRules: jsonb("lead_score_rules"), // rules for scoring leads
+  
+  // AI Personality
+  tone: varchar("tone").default("professional"), // professional, friendly, casual, formal
+  industry: varchar("industry"), // for context-aware responses
+  specialInstructions: text("special_instructions"), // custom AI instructions
+  
+  // Features
+  canScheduleAppointments: boolean("can_schedule_appointments").default(true),
+  canQualifyLeads: boolean("can_qualify_leads").default(true),
+  canHandoffToHuman: boolean("can_handoff_to_human").default(true),
+  autoResponseEnabled: boolean("auto_response_enabled").default(true),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Calendar Integrations
+export const calendarIntegrations = pgTable("calendar_integrations", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  
+  // Integration Details
+  provider: varchar("provider").notNull(), // calendly, google, outlook, acuity, square, setmore
+  providerUserId: varchar("provider_user_id"),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  calendarId: varchar("calendar_id"),
+  
+  // Settings
+  defaultServiceDuration: integer("default_service_duration").default(30), // minutes
+  bufferTime: integer("buffer_time").default(15), // minutes between appointments
+  advanceBookingDays: integer("advance_booking_days").default(30), // how far ahead can book
+  
+  // Business Hours
+  businessHours: jsonb("business_hours"), // {monday: {start: "09:00", end: "17:00", enabled: true}}
+  timezone: varchar("timezone").default("America/New_York"),
+  
+  isActive: boolean("is_active").default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Services/Appointment Types
+export const appointmentServices = pgTable("appointment_services", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  calendarIntegrationId: uuid("calendar_integration_id").references(() => calendarIntegrations.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
+  
+  // Service Details
+  name: varchar("name").notNull(), // "Consultation", "Hair Cut", "Massage"
+  description: text("description"),
+  duration: integer("duration").notNull(), // minutes
+  price: integer("price"), // in cents
+  bufferTimeBefore: integer("buffer_time_before").default(0),
+  bufferTimeAfter: integer("buffer_time_after").default(15),
+  
+  // Availability
+  isActive: boolean("is_active").default(true),
+  maxAdvanceBookingDays: integer("max_advance_booking_days").default(30),
+  
+  // Questions for this service
+  intakeQuestions: jsonb("intake_questions"), // [{question: "", type: "text", required: true}]
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Scheduled Appointments
+export const appointments = pgTable("appointments", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  calendarIntegrationId: uuid("calendar_integration_id").references(() => calendarIntegrations.id, { onDelete: "cascade" }),
+  serviceId: uuid("service_id").references(() => appointmentServices.id, { onDelete: "cascade" }),
+  messageId: uuid("message_id").references(() => messages.id), // original conversation
+  
+  // Appointment Details
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  timezone: varchar("timezone").notNull(),
+  
+  // Customer Details
+  customerName: varchar("customer_name").notNull(),
+  customerEmail: varchar("customer_email"),
+  customerPhone: varchar("customer_phone"),
+  customerNotes: text("customer_notes"),
+  
+  // Status
+  status: varchar("status").default("scheduled"), // scheduled, confirmed, cancelled, completed, no_show
+  confirmationSentAt: timestamp("confirmation_sent_at"),
+  reminderSentAt: timestamp("reminder_sent_at"),
+  
+  // External IDs
+  providerEventId: varchar("provider_event_id"), // ID from calendar provider
+  
+  // Intake Data
+  intakeResponses: jsonb("intake_responses"), // responses to service questions
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Chatbot Conversations for Analytics
+export const chatbotConversations = pgTable("chatbot_conversations", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  chatbotConfigId: uuid("chatbot_config_id").references(() => chatbotConfigs.id, { onDelete: "cascade" }),
+  messageId: uuid("message_id").references(() => messages.id), // linked to original message
+  
+  // Conversation Data
+  customerIdentifier: varchar("customer_identifier"), // phone, email, or platform ID
+  platform: varchar("platform").notNull(), // whatsapp, instagram, etc.
+  
+  // Lead Data
+  leadScore: integer("lead_score").default(0),
+  qualificationData: jsonb("qualification_data"), // answers to qualification questions
+  interestedServices: jsonb("interested_services"), // array of service names
+  
+  // Conversation Status
+  status: varchar("status").default("active"), // active, qualified, scheduled, converted, closed
+  handedOffToHuman: boolean("handed_off_to_human").default(false),
+  handoffReason: varchar("handoff_reason"),
+  
+  // Outcomes
+  appointmentScheduled: boolean("appointment_scheduled").default(false),
+  appointmentId: uuid("appointment_id").references(() => appointments.id),
+  
+  conversationStartedAt: timestamp("conversation_started_at").defaultNow(),
+  lastActivityAt: timestamp("last_activity_at").defaultNow(),
+  closedAt: timestamp("closed_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Chatbot schemas
+export const insertChatbotConfigSchema = createInsertSchema(chatbotConfigs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCalendarIntegrationSchema = createInsertSchema(calendarIntegrations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastSyncAt: true,
+});
+
+export const insertAppointmentServiceSchema = createInsertSchema(appointmentServices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAppointmentSchema = createInsertSchema(appointments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertChatbotConversationSchema = createInsertSchema(chatbotConversations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  conversationStartedAt: true,
+  lastActivityAt: true,
+});
+
+export type InsertChatbotConfig = z.infer<typeof insertChatbotConfigSchema>;
+export type ChatbotConfig = typeof chatbotConfigs.$inferSelect;
+export type InsertCalendarIntegration = z.infer<typeof insertCalendarIntegrationSchema>;
+export type CalendarIntegration = typeof calendarIntegrations.$inferSelect;
+export type InsertAppointmentService = z.infer<typeof insertAppointmentServiceSchema>;
+export type AppointmentService = typeof appointmentServices.$inferSelect;
+export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
+export type Appointment = typeof appointments.$inferSelect;
+export type InsertChatbotConversation = z.infer<typeof insertChatbotConversationSchema>;
+export type ChatbotConversation = typeof chatbotConversations.$inferSelect;
