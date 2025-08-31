@@ -34,7 +34,7 @@ export const users = pgTable("users", {
   role: varchar("role").default("agency_owner"), // agency_owner, agency_member, client_viewer
   hierarchyLevel: integer("hierarchy_level").default(1), // 1=CEO/Owner, 2=Manager, 3=Supervisor, 4=Employee
   canApprove: boolean("can_approve").default(false), // Can approve tasks from lower hierarchy
-  reportsTo: varchar("reports_to").references(() => users.id), // Direct manager/supervisor
+  reportsTo: varchar("reports_to"), // Direct manager/supervisor - will add reference in relations
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -110,6 +110,10 @@ export const campaigns = pgTable("campaigns", {
   description: text("description"),
   platforms: text("platforms").array(), // which platforms to post to
   content: jsonb("content"), // post content, images, etc
+  platformContent: jsonb("platform_content"), // platform-specific content variations
+  adFormats: jsonb("ad_formats"), // selected ad formats per platform
+  targetAudience: jsonb("target_audience"), // audience targeting per platform
+  budget: jsonb("budget"), // budget allocation per platform/format
   scheduledFor: timestamp("scheduled_for"),
   status: varchar("status").default("draft"), // draft, scheduled, published, failed
   aiGenerated: boolean("ai_generated").default(false),
