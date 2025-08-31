@@ -128,26 +128,6 @@ export default function Landing() {
                     
                     {/* EVERYWHERE */}
                     <div className="text-center">
-                      {/* CampAIgner Video */}
-                      <div className="relative mb-6">
-                        <div className="bg-black rounded-2xl aspect-video w-64 mx-auto flex items-center justify-center relative overflow-hidden shadow-xl">
-                          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/30 to-black/60"></div>
-                          <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm z-10 hover:scale-105 transition-transform cursor-pointer">
-                            <svg className="w-7 h-7 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M8 5v14l11-7z"/>
-                            </svg>
-                          </div>
-                          <div className="absolute top-4 left-4 bg-brand-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                            {isSpanish ? 'CampAIgner' : 'CampAIgner'}
-                          </div>
-                          <div className="absolute bottom-4 right-4 bg-black/80 text-white px-2 py-1 rounded text-xs font-mono">
-                            2:43
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2 font-medium">
-                          {isSpanish ? 'Ver cómo funciona la herramienta' : 'See how the tool works'}
-                        </p>
-                      </div>
                       <div className="grid grid-cols-4 gap-2 mb-4 max-w-48 mx-auto">
                         <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
                           <SiInstagram className="h-6 w-6 text-white" />
@@ -181,8 +161,30 @@ export default function Landing() {
                     </div>
                   </div>
                   
+                  {/* CampAIgner Video */}
+                  <div className="mt-12 text-center mb-8">
+                    <div className="relative">
+                      <div className="bg-black rounded-2xl aspect-video w-96 mx-auto flex items-center justify-center relative overflow-hidden shadow-2xl">
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/30 to-black/60"></div>
+                        <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm z-10 hover:scale-105 transition-transform cursor-pointer">
+                          <svg className="w-9 h-9 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        </div>
+                        <div className="absolute top-6 left-6 bg-brand-600 text-white px-4 py-2 rounded-full text-base font-medium">
+                          CampAIgner
+                        </div>
+                        <div className="absolute bottom-6 right-6 bg-black/80 text-white px-3 py-1 rounded text-sm font-mono">
+                          2:43
+                        </div>
+                      </div>
+                      <p className="text-base text-gray-600 mt-4 font-medium">
+                        {isSpanish ? 'Ver cómo funciona la herramienta' : 'See how the tool works'}
+                      </p>
+                    </div>
+                  </div>
                   
-                  <div className="mt-12 text-center">
+                  <div className="mt-8 text-center">
                     <Button 
                       size="lg" 
                       className="bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-3xl transition-all duration-300 transform hover:scale-105"
