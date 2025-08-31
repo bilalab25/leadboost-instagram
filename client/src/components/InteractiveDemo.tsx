@@ -311,13 +311,23 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 {isSpanish ? '🏢 Describe tu Negocio' : '🏢 Describe Your Business'}
               </label>
-              <Input
-                placeholder={isSpanish ? 'ej: "Boutique fitness studio specializing in yoga and meditation classes for busy professionals in Manhattan" o "Local bakery famous for artisan sourdough bread and custom wedding cakes, looking to increase weekend foot traffic"' : 'e.g., "Boutique fitness studio specializing in yoga and meditation classes for busy professionals in Manhattan" or "Local bakery famous for artisan sourdough bread and custom wedding cakes, looking to increase weekend foot traffic"'}
+              <textarea
+                placeholder={isSpanish ? 'Describe tu negocio aquí...' : 'Describe your business here...'}
                 value={demo.businessDescription}
                 onChange={(e) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
-                className="text-lg h-12"
+                className="w-full p-4 text-lg border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                rows={3}
                 data-testid="input-business-description"
               />
+              <div className="mt-3 space-y-2">
+                <p className="text-sm font-medium text-gray-700">
+                  {isSpanish ? 'Ejemplos:' : 'Examples:'}
+                </p>
+                <div className="bg-gray-50 p-3 rounded-lg space-y-2 text-sm text-gray-600">
+                  <p>• "Boutique fitness studio specializing in yoga and meditation classes for busy professionals in Manhattan"</p>
+                  <p>• "Local bakery famous for artisan sourdough bread and custom wedding cakes, looking to increase weekend foot traffic"</p>
+                </div>
+              </div>
               <p className="text-sm text-gray-500 mt-2">
                 {isSpanish 
                   ? 'La IA detectará tu industria y generará una campaña perfecta automáticamente'
