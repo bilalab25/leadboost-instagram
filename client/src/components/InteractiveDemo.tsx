@@ -401,7 +401,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
       <div className="text-center mb-8">
         <h3 className="text-3xl font-bold text-gray-900 mb-4">
-          {isSpanish ? '🚀 Prueba CampAIgner Gratis' : '🚀 Try CampAIgner Free'}
+          {isSpanish ? '✨ Ve LeadBoost en Acción' : '✨ See LeadBoost In Action'}
         </h3>
         <p className="text-gray-600">
           {isSpanish 
