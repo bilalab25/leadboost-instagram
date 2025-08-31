@@ -128,11 +128,25 @@ export default function Landing() {
                     
                     {/* EVERYWHERE */}
                     <div className="text-center">
-                      {/* Black Video Box */}
-                      <div className="bg-black rounded-lg w-48 h-28 mx-auto mb-4 flex items-center justify-center">
-                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                        </svg>
+                      {/* CampAIgner Video */}
+                      <div className="relative mb-6">
+                        <div className="bg-black rounded-2xl aspect-video w-64 mx-auto flex items-center justify-center relative overflow-hidden shadow-xl">
+                          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/30 to-black/60"></div>
+                          <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm z-10 hover:scale-105 transition-transform cursor-pointer">
+                            <svg className="w-7 h-7 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z"/>
+                            </svg>
+                          </div>
+                          <div className="absolute top-4 left-4 bg-brand-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                            {isSpanish ? 'CampAIgner' : 'CampAIgner'}
+                          </div>
+                          <div className="absolute bottom-4 right-4 bg-black/80 text-white px-2 py-1 rounded text-xs font-mono">
+                            2:43
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-2 font-medium">
+                          {isSpanish ? 'Ver cómo funciona la herramienta' : 'See how the tool works'}
+                        </p>
                       </div>
                       <div className="grid grid-cols-4 gap-2 mb-4 max-w-48 mx-auto">
                         <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
