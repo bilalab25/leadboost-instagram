@@ -182,7 +182,7 @@ export default function Landing() {
                             <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 py-12">
                               <div className="mb-6">
                                 <h4 className="text-xl md:text-2xl font-bold text-white mb-3 drop-shadow-lg">
-                                  {isSpanish ? 'Ve nuestra herramienta CampAIgner en Acción' : 'See our CampAIgner tool in Action'}
+                                  {isSpanish ? 'Ve CampAIgner en Acción' : 'See CampAIgner in Action'}
                                 </h4>
                                 <p className="text-sm md:text-base text-white/90 max-w-xl mx-auto drop-shadow-md">
                                   {isSpanish ? 'Descubre cómo funciona en 30 segundos' : 'Discover how it works in 30 seconds'}
