@@ -17,10 +17,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   const steps = {
     campaigner: {
-      title: isSpanish ? '🎯 CampAIgner - Una Idea → Todas las Plataformas' : '🎯 CampAIgner - One Idea → All Platforms',
+      title: isSpanish ? '🎯 CampAIgner - Tus Datos → Campañas que Convierten' : '🎯 CampAIgner - Your Data → Converting Campaigns',
       description: isSpanish 
-        ? 'Describe tu campaña y CampAIgner genera contenido optimizado para 21+ plataformas en segundos.'
-        : 'Describe your campaign and CampAIgner generates optimized content for 21+ platforms in seconds.',
+        ? 'IA analiza los datos de tu negocio y crea automáticamente campañas optimizadas para 21+ plataformas que realmente convierten.'
+        : 'AI analyzes your business data and automatically creates optimized campaigns for 21+ platforms that actually convert.',
       content: (
         <div className="p-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -28,18 +28,23 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             <div className="bg-gradient-to-br from-indigo-50 to-brand-50 p-6 rounded-2xl border border-indigo-200">
               <h4 className="font-bold text-gray-900 mb-4 flex items-center">
                 <Target className="h-5 w-5 mr-2 text-indigo-600" />
-                {isSpanish ? 'Tu Idea' : 'Your Idea'}
+                {isSpanish ? 'Datos de Tu Negocio' : 'Your Business Data'}
               </h4>
               <div className="bg-white p-4 rounded-xl shadow-sm border">
-                <p className="text-sm text-gray-700 font-medium mb-2">
-                  {isSpanish ? 'Campaña:' : 'Campaign:'}
-                </p>
-                <p className="text-sm text-gray-600 italic">
-                  {isSpanish 
-                    ? '"Lanzar nueva línea de productos de belleza natural"'
-                    : '"Launch new natural beauty product line"'
-                  }
-                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center text-xs text-gray-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    {isSpanish ? 'Productos: Línea de belleza natural' : 'Products: Natural beauty line'}
+                  </div>
+                  <div className="flex items-center text-xs text-gray-600">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                    {isSpanish ? 'Audiencia: Mujeres 25-45' : 'Audience: Women 25-45'}
+                  </div>
+                  <div className="flex items-center text-xs text-gray-600">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                    {isSpanish ? 'Objetivo: Aumentar ventas' : 'Goal: Increase sales'}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -47,7 +52,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-6 rounded-2xl border border-emerald-200">
               <h4 className="font-bold text-gray-900 mb-4 flex items-center">
                 <Zap className="h-5 w-5 mr-2 text-emerald-600" />
-                {isSpanish ? 'Resultado Instantáneo' : 'Instant Result'}
+                {isSpanish ? 'IA Crea Campañas que Convierten' : 'AI Creates Converting Campaigns'}
               </h4>
               <div className="grid grid-cols-4 gap-2 mb-4">
                 <div className="w-12 h-12 bg-pink-500 rounded-lg flex items-center justify-center">
@@ -76,7 +81,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 </div>
               </div>
               <Badge className="bg-emerald-100 text-emerald-800 text-xs">
-                {isSpanish ? '21 formatos generados en 30 segundos' : '21 formats generated in 30 seconds'}
+                {isSpanish ? 'IA selecciona plataformas + crea contenido optimizado' : 'AI selects platforms + creates optimized content'}
               </Badge>
             </div>
           </div>
