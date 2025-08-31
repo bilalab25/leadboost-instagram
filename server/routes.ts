@@ -1325,6 +1325,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Campaign visual generation with platform-specific sizing
+  app.post('/api/ai/generate-campaign-visuals', async (req, res) => {
+    try {
+      const { businessDescription, businessType, campaignTheme, posts } = req.body;
+      
+      const visuals = [];
+      
+      // Generate visuals for each post with appropriate descriptions
+      for (const post of posts) {
+        const visualPrompt = `Create a professional social media visual for a ${businessType} business.
+        Business: ${businessDescription}
+        Campaign theme: ${campaignTheme}
+        Post content: ${post.caption}
+        
+        Make it modern, eye-catching, and suitable for ${businessType} industry.
+        Include the business's branding elements like colors and style.
+        Make it professional yet engaging for social media.`;
+        
+        try {
+          const result = await generateVisualContent(visualPrompt);
+          visuals.push({
+            postIndex: posts.indexOf(post),
+            url: result.url,
+            caption: post.caption,
+            platforms: {
+              instagram_post: { width: 1080, height: 1080, url: result.url },
+              instagram_story: { width: 1080, height: 1920, url: result.url },
+              facebook: { width: 1200, height: 628, url: result.url },
+              twitter: { width: 1600, height: 900, url: result.url },
+              linkedin: { width: 1200, height: 628, url: result.url },
+              tiktok: { width: 1080, height: 1920, url: result.url },
+              email_banner: { width: 600, height: 200, url: result.url }
+            }
+          });
+        } catch (error) {
+          console.error("Error generating visual for post:", error);
+          // Continue with next post even if one fails
+        }
+      }
+      
+      res.json({ 
+        visuals,
+        businessType,
+        campaignTheme,
+        totalGenerated: visuals.length
+      });
+    } catch (error) {
+      console.error("Error generating campaign visuals:", error);
+      res.status(500).json({ message: "Failed to generate campaign visuals" });
+    }
+  });
+
   // Object Storage routes for file uploads
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     const objectStorageService = new ObjectStorageService();

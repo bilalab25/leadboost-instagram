@@ -199,6 +199,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     showResults: false
   });
 
+  const [generatedVisuals, setGeneratedVisuals] = useState<any>(null);
+
   const handleAnalyzeBusiness = async () => {
     if (!demo.businessDescription.trim()) return;
     
@@ -224,8 +226,28 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     
     setDemo(prev => ({ ...prev, isGenerating: true }));
     
-    // Simulate AI campaign generation
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Generate real AI visuals for the campaign
+    try {
+      const response = await fetch('/api/ai/generate-campaign-visuals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessDescription: demo.businessDescription,
+          businessType: demo.detectedType,
+          campaignTheme: currentTemplate?.newsletter?.subject || 'Marketing Campaign',
+          posts: currentTemplate?.posts?.slice(0, 3) || [] // Generate for first 3 posts only
+        })
+      });
+
+      if (response.ok) {
+        const visualData = await response.json();
+        setGeneratedVisuals(visualData);
+      }
+    } catch (error) {
+      console.error('Error generating visuals:', error);
+    }
     
     setDemo(prev => ({ 
       ...prev, 
@@ -301,18 +323,37 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               {currentTemplate.posts.map((post, index) => (
                 <Card key={index} className="aspect-square relative overflow-hidden group bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg" data-testid={`instagram-post-${index}`}>
                   <CardContent className="p-0 h-full flex flex-col">
-                    {/* Post Visual Area - looks like a real Instagram post */}
+                    {/* Post Visual Area - Real AI generated image or fallback */}
                     <div className="flex-1 bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 flex items-center justify-center relative overflow-hidden">
-                      <div className="text-7xl opacity-20 absolute">{post.image}</div>
-                      {/* Simulated post design elements */}
-                      <div className="absolute inset-3 border-2 border-white/60 rounded-2xl"></div>
-                      <div className="absolute top-5 left-5 w-3 h-3 bg-white/80 rounded-full"></div>
-                      <div className="absolute top-5 right-5 w-8 h-1 bg-white/60 rounded-full"></div>
-                      <div className="absolute bottom-5 left-5 right-5">
-                        <div className="h-2 bg-white/70 rounded-full mb-2"></div>
-                        <div className="h-1.5 bg-white/50 rounded-full w-3/4"></div>
-                      </div>
-                      <div className="text-5xl z-10">{post.image}</div>
+                      {generatedVisuals && generatedVisuals.visuals && generatedVisuals.visuals[index] ? (
+                        <>
+                          <img 
+                            src={generatedVisuals.visuals[index].url} 
+                            alt={`Campaign visual ${index + 1}`}
+                            className="w-full h-full object-cover rounded-t-lg"
+                            onError={(e) => {
+                              // Fallback if image fails to load
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                          <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                            AI Generated
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-7xl opacity-20 absolute">{post.image}</div>
+                          {/* Simulated post design elements */}
+                          <div className="absolute inset-3 border-2 border-white/60 rounded-2xl"></div>
+                          <div className="absolute top-5 left-5 w-3 h-3 bg-white/80 rounded-full"></div>
+                          <div className="absolute top-5 right-5 w-8 h-1 bg-white/60 rounded-full"></div>
+                          <div className="absolute bottom-5 left-5 right-5">
+                            <div className="h-2 bg-white/70 rounded-full mb-2"></div>
+                            <div className="h-1.5 bg-white/50 rounded-full w-3/4"></div>
+                          </div>
+                          <div className="text-5xl z-10">{post.image}</div>
+                        </>
+                      )}
                     </div>
                     
                     {/* Instagram UI Elements */}
@@ -368,9 +409,22 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 <div className="p-6 bg-white">
                   {/* Header Image/Logo Area */}
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl mx-auto flex items-center justify-center text-3xl text-white mb-3">
-                      {currentTemplate.posts[5].image}
-                    </div>
+                    {generatedVisuals && generatedVisuals.visuals && generatedVisuals.visuals[2] ? (
+                      <div className="relative mb-3">
+                        <img 
+                          src={generatedVisuals.visuals[2].url} 
+                          alt="Email header visual"
+                          className="w-full max-w-md mx-auto h-24 object-cover rounded-xl"
+                        />
+                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                          AI Generated • 600×200
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl mx-auto flex items-center justify-center text-3xl text-white mb-3">
+                        {currentTemplate.posts[5]?.image || '🎯'}
+                      </div>
+                    )}
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Business</h2>
                   </div>
 
@@ -423,18 +477,33 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   </div>
                 </div>
 
-                {/* Facebook Ad Visual */}
+                {/* Facebook Ad Visual - Real AI generated or fallback */}
                 <div className="relative bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 aspect-video flex items-center justify-center overflow-hidden">
-                  <div className="text-8xl opacity-20 absolute">{currentTemplate.posts[0].image}</div>
-                  {/* Professional ad overlay elements */}
-                  <div className="absolute inset-4 border-2 border-white/60 rounded-2xl"></div>
-                  <div className="absolute top-6 left-6 w-4 h-4 bg-white/80 rounded-full"></div>
-                  <div className="absolute top-6 right-6 w-12 h-2 bg-white/60 rounded-full"></div>
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <div className="h-3 bg-white/70 rounded-full mb-2"></div>
-                    <div className="h-2 bg-white/50 rounded-full w-2/3"></div>
-                  </div>
-                  <div className="text-6xl z-10">{currentTemplate.posts[0].image}</div>
+                  {generatedVisuals && generatedVisuals.visuals && generatedVisuals.visuals[0] ? (
+                    <>
+                      <img 
+                        src={generatedVisuals.visuals[0].url} 
+                        alt="Facebook ad visual"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                        AI Generated • 1200×628
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-8xl opacity-20 absolute">{currentTemplate.posts[0].image}</div>
+                      {/* Professional ad overlay elements */}
+                      <div className="absolute inset-4 border-2 border-white/60 rounded-2xl"></div>
+                      <div className="absolute top-6 left-6 w-4 h-4 bg-white/80 rounded-full"></div>
+                      <div className="absolute top-6 right-6 w-12 h-2 bg-white/60 rounded-full"></div>
+                      <div className="absolute bottom-6 left-6 right-6">
+                        <div className="h-3 bg-white/70 rounded-full mb-2"></div>
+                        <div className="h-2 bg-white/50 rounded-full w-2/3"></div>
+                      </div>
+                      <div className="text-6xl z-10">{currentTemplate.posts[0].image}</div>
+                    </>
+                  )}
                   
                   {/* "Ad" label */}
                   <div className="absolute top-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded">
@@ -472,6 +541,57 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </CardContent>
             </Card>
           </div>
+
+          {/* Platform-Specific Formats Section */}
+          {generatedVisuals && generatedVisuals.visuals && generatedVisuals.visuals.length > 0 && (
+            <div className="mt-8">
+              <h4 className="text-xl font-bold text-center mb-6">
+                {isSpanish ? 'Formatos Específicos por Plataforma' : 'Platform-Specific Formats'}
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="bg-pink-50 p-3 rounded-lg border-2 border-pink-200">
+                    <div className="text-sm font-semibold text-pink-600 mb-2">Instagram Story</div>
+                    <div className="bg-pink-100 rounded h-20 w-12 mx-auto flex items-center justify-center">
+                      <span className="text-xs text-pink-600">1080×1920</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-200">
+                    <div className="text-sm font-semibold text-blue-600 mb-2">Facebook Ad</div>
+                    <div className="bg-blue-100 rounded h-12 w-20 mx-auto flex items-center justify-center">
+                      <span className="text-xs text-blue-600">1200×628</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="bg-purple-50 p-3 rounded-lg border-2 border-purple-200">
+                    <div className="text-sm font-semibold text-purple-600 mb-2">Twitter/X</div>
+                    <div className="bg-purple-100 rounded h-10 w-18 mx-auto flex items-center justify-center">
+                      <span className="text-xs text-purple-600">1600×900</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="bg-green-50 p-3 rounded-lg border-2 border-green-200">
+                    <div className="text-sm font-semibold text-green-600 mb-2">Email Banner</div>
+                    <div className="bg-green-100 rounded h-8 w-24 mx-auto flex items-center justify-center">
+                      <span className="text-xs text-green-600">600×200</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center mt-4">
+                <p className="text-sm text-gray-500">
+                  {isSpanish 
+                    ? 'Cada visual se adapta automáticamente al formato óptimo de cada plataforma'
+                    : 'Each visual automatically adapts to the optimal format for each platform'
+                  }
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="text-center pt-6 border-t">
             <p className="text-gray-600 mb-4">
