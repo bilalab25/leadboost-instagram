@@ -78,13 +78,18 @@ export default function Landing() {
               <h2 className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.88] tracking-tight">
                 {isSpanish ? 'El Efecto LeadBoost' : 'The LeadBoost Effect'}
               </h2>
-              <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-8 tracking-wide">
-                {isSpanish ? 'Ser Visto → Everywhere. En Un Clic.' : 'Get Seen → Everywhere. In One Click.'}
+              <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-4 tracking-wide">
+                {isSpanish ? '🤖 IA Hace Todo por Ti → Everywhere. En Un Clic.' : '🤖 AI Does Everything For You → Everywhere. In One Click.'}
+              </div>
+              
+              <div className="inline-flex items-center bg-gradient-to-r from-purple-100 to-brand-100 text-purple-800 px-6 py-3 rounded-full text-lg font-bold mb-8 shadow-lg border border-purple-200">
+                <Bot className="mr-2 h-6 w-6" />
+                {isSpanish ? '100% Generación Automática por IA' : '100% AI Auto-Generation'}
               </div>
               
               <div className="max-w-4xl mx-auto mt-8">
                 <p className="text-lg lg:text-xl text-gray-600 leading-relaxed font-normal">
-                  {isSpanish ? 'Convierte los datos de tu negocio en campañas listas para usar en 21+ plataformas—en solo un clic.' : 'Turn your business data into ready-to-go campaigns for 21+ platforms—in just one click.'}
+                  {isSpanish ? 'Solo describe tu idea de campaña. La IA selecciona plataformas, crea contenido, elige formatos y configura presupuestos automáticamente en 21+ plataformas.' : 'Just describe your campaign idea. AI selects platforms, creates content, chooses formats, and sets budgets automatically across 21+ platforms.'}
                 </p>
               </div>
             </div>
@@ -115,9 +120,9 @@ export default function Landing() {
                       <div className="w-24 h-24 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
                         <Target className="h-12 w-12 text-white" />
                       </div>
-                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
-                      <p className="text-gray-600 font-medium">"{isSpanish ? 'Lanzar producto nuevo' : 'Launch new product'}"</p>
-                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Solo describe tu campaña' : 'Just describe your campaign'}</p>
+                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? '🗣️ TU IDEA' : '🗣️ YOUR IDEA'}</h3>
+                      <p className="text-gray-600 font-medium">"{isSpanish ? 'Quiero promocionar mi nuevo serum antienvejecimiento' : 'I want to promote my new anti-aging serum'}"</p>
+                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'IA entiende tu negocio' : 'AI understands your business'}</p>
                     </div>
                     
                     {/* ARROW */}
@@ -155,21 +160,21 @@ export default function Landing() {
                         </div>
                       </div>
                       <div className="text-6xl font-black text-brand-600 mb-2">+21</div>
-                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
-                      <p className="text-gray-600 font-medium">{isSpanish ? '21+ plataformas, un clic' : '21+ platforms, one click'}</p>
-                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Diseñado para ti, dimensionado para cada red social' : 'Designed for you, sized for every social network'}</p>
+                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? '🚀 IA CREA TODO' : '🚀 AI CREATES ALL'}</h3>
+                      <p className="text-gray-600 font-medium">{isSpanish ? 'Contenido IA + 21+ plataformas automático' : 'AI Content + 21+ platforms automatic'}</p>
+                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'IA diseña, dimensiona y optimiza todo por ti' : 'AI designs, sizes and optimizes everything for you'}</p>
                     </div>
                   </div>
                   
                   {/* CampAIgner Demo Video Section */}
                   <div className="mt-12 mb-8 text-center">
                     <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                      {isSpanish ? 'Ver CampAIgner en Acción' : 'See CampAIgner in Action'}
+                      {isSpanish ? '🤖 Ver IA Generando Contenido en Vivo' : '🤖 Watch AI Generate Content Live'}
                     </h3>
                     <p className="text-gray-600 mb-8 max-w-2xl mx-auto text-lg">
                       {isSpanish 
-                        ? 'Observa cómo una idea se transforma en campañas optimizadas en más de 21 plataformas en segundos' 
-                        : 'Watch one idea transform into optimized campaigns across 21+ platforms in seconds'}
+                        ? 'Observa cómo la IA transforma una simple descripción en campañas completas optimizadas para más de 21 plataformas en segundos' 
+                        : 'Watch AI transform a simple description into complete campaigns optimized for 21+ platforms in seconds'}
                     </p>
                     <div className="relative max-w-4xl mx-auto">
                       <div className="bg-gray-900 rounded-2xl h-96 w-full flex flex-col items-center justify-center relative">
@@ -181,10 +186,10 @@ export default function Landing() {
                         </div>
                         
                         <h4 className="text-white text-2xl font-bold mb-2">
-                          {isSpanish ? 'Ver CampAIgner en Acción' : 'See CampAIgner in Action'}
+                          {isSpanish ? '🧠 IA Generando Contenido' : '🧠 AI Generating Content'}
                         </h4>
                         <p className="text-gray-300 mb-6">
-                          {isSpanish ? 'Descubre cómo funciona en 30 segundos' : 'Discover how it works in 30 seconds'}
+                          {isSpanish ? 'Ve la magia de la IA creando campañas en 30 segundos' : 'See the magic of AI creating campaigns in 30 seconds'}
                         </p>
                         
                         <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
@@ -224,7 +229,7 @@ export default function Landing() {
                       className="bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-3xl transition-all duration-300 transform hover:scale-105"
                     >
                       <Zap className="mr-3 h-6 w-6" />
-                      {isSpanish ? 'Lanza tu Primera Campaña' : 'Launch Your First Campaign'}
+                      {isSpanish ? '🤖 Deja que la IA Cree Tu Campaña' : '🤖 Let AI Create Your Campaign'}
                     </Button>
                   </div>
                 </CardContent>
@@ -398,10 +403,10 @@ export default function Landing() {
                     <Zap className="h-10 w-10 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? 'Lanzamiento Instantáneo' : 'Instant Launch'}
+                    {isSpanish ? '🤖 IA Instantánea' : '🤖 Instant AI'}
                   </h3>
                   <p className="text-gray-600">
-                    {isSpanish ? 'De tu marca a 21+ plataformas en segundos. Sin configuración manual.' : 'From your brand to 21+ platforms in seconds. No manual setup.'}
+                    {isSpanish ? 'IA crea contenido y campañas para 21+ plataformas en segundos. Cero trabajo manual.' : 'AI creates content and campaigns for 21+ platforms in seconds. Zero manual work.'}
                   </p>
                   <div className="mt-6 text-emerald-600 font-bold text-3xl">
                     30s
@@ -415,10 +420,10 @@ export default function Landing() {
                     <Target className="h-10 w-10 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? 'Auto-Dimensionado' : 'Auto-Sizing'}
+                    {isSpanish ? '🎯 IA Optimizada' : '🎯 AI Optimized'}
                   </h3>
                   <p className="text-gray-600">
-                    {isSpanish ? 'Stories, posts, emails, threads — dimensionados al instante.' : 'Stories, posts, emails, threads — sized instantly.'}
+                    {isSpanish ? 'IA crea contenido optimizado: Stories, posts, emails, threads — todo personalizado.' : 'AI creates optimized content: Stories, posts, emails, threads — all personalized.'}
                   </p>
                   <div className="mt-6 text-rose-600 font-bold text-3xl">
                     21+
