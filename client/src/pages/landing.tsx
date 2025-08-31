@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail } from "lucide-react";
-import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail } from "react-icons/si";
+import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiSalesforce, SiHubspot, SiShopify, SiZapier, SiMailchimp } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
 import { AIChatbot } from "@/components/AIChatbot";
@@ -372,13 +372,31 @@ export default function Landing() {
                   <p className="text-gray-600 mb-8 font-medium">
                     {isSpanish ? 'Se Integra Con Las Herramientas Que Ya Usas' : 'Integrates With The Tools You Already Use'}
                   </p>
-                  <div className="flex justify-center items-center space-x-8 lg:space-x-12 opacity-60 flex-wrap gap-4">
-                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Wix</div>
-                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Salesforce</div>
-                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">HubSpot</div>
-                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Shopify</div>
-                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Zapier</div>
-                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Mailchimp</div>
+                  <div className="flex justify-center items-center space-x-8 lg:space-x-12 opacity-60 flex-wrap gap-6">
+                    <div className="flex items-center space-x-2 text-gray-400 hover:text-gray-600 transition-colors">
+                      <SiWix className="h-8 w-8" />
+                      <span className="text-lg font-semibold">Wix</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-gray-400 hover:text-blue-600 transition-colors">
+                      <SiSalesforce className="h-8 w-8" />
+                      <span className="text-lg font-semibold">Salesforce</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-gray-400 hover:text-orange-600 transition-colors">
+                      <SiHubspot className="h-8 w-8" />
+                      <span className="text-lg font-semibold">HubSpot</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-gray-400 hover:text-green-600 transition-colors">
+                      <SiShopify className="h-8 w-8" />
+                      <span className="text-lg font-semibold">Shopify</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-gray-400 hover:text-purple-600 transition-colors">
+                      <SiZapier className="h-8 w-8" />
+                      <span className="text-lg font-semibold">Zapier</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-gray-400 hover:text-yellow-600 transition-colors">
+                      <SiMailchimp className="h-8 w-8" />
+                      <span className="text-lg font-semibold">Mailchimp</span>
+                    </div>
                   </div>
                   <p className="text-sm text-gray-500 mt-4">
                     {isSpanish ? '+ 50+ integraciones más disponibles' : '+ 50+ more integrations available'}
