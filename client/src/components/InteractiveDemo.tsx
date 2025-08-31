@@ -486,6 +486,35 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         ))}
       </div>
 
+      {/* Post Everywhere CTA */}
+      <div className="text-center mt-8">
+        <div className="bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 p-1 rounded-2xl shadow-2xl max-w-md mx-auto">
+          <Button 
+            size="lg" 
+            className="w-full bg-white hover:bg-gray-50 text-gray-900 font-black text-lg py-6 rounded-xl shadow-xl transition-all duration-300 hover:scale-105"
+            data-testid="button-post-everywhere"
+          >
+            <div className="flex items-center justify-center gap-3">
+              <div className="flex -space-x-2">
+                <Instagram className="w-6 h-6 text-pink-500" />
+                <Facebook className="w-6 h-6 text-blue-600" />
+                <Linkedin className="w-6 h-6 text-blue-700" />
+                <Twitter className="w-6 h-6 text-sky-500" />
+                <Mail className="w-6 h-6 text-gray-600" />
+              </div>
+              <span>{isSpanish ? 'Publicar en Todas Partes' : 'Post Everywhere'}</span>
+              <ArrowRight className="w-5 h-5 ml-1" />
+            </div>
+          </Button>
+        </div>
+        <p className="text-sm text-gray-500 mt-3 max-w-lg mx-auto">
+          {isSpanish 
+            ? '🚀 Un clic para publicar tu campaña en todas las plataformas simultáneamente'
+            : '🚀 One click to publish your campaign across all platforms simultaneously'
+          }
+        </p>
+      </div>
+
       <div className="text-center mt-12 pt-8 border-t">
         <p className="text-gray-600 mb-6 text-lg">
           {isSpanish 
