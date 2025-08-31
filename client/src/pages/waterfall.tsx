@@ -5,16 +5,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Sparkles, Target, ArrowRight, Zap, Upload, Settings, 
-  Calendar, Eye, Download, Share2, BarChart3, DollarSign, Users
+  Calendar, Eye, Download, Share2, BarChart3, DollarSign, Users, Bot, Plus
 } from "lucide-react";
 import { 
   SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, 
   SiLinkedin, SiYoutube, SiX, SiTelegram, SiPinterest, SiSnapchat
 } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/Sidebar";
 import { platformAdFormats, type AdFormat } from "@/constants/adFormats";
 
@@ -25,13 +30,120 @@ interface SelectedPlatform {
   adType: 'organic' | 'paid' | 'both';
 }
 
+interface BusinessData {
+  industry: string;
+  topProducts: string[];
+  seasonality: string;
+}
+
+interface ContentPlan {
+  id: string;
+  title: string;
+  description: string;
+  month: number;
+  year: number;
+  posts: Array<{
+    id: string;
+    title: string;
+    description: string;
+    platform: string;
+    scheduledDate: string;
+    status: 'draft' | 'scheduled' | 'published';
+  }>;
+  createdAt: string;
+}
+
+const industries = [
+  "Retail & E-commerce",
+  "Food & Beverage", 
+  "Beauty & Cosmetics",
+  "Fashion & Apparel",
+  "Health & Fitness",
+  "Technology",
+  "Professional Services",
+  "Real Estate",
+  "Travel & Tourism", 
+  "Education",
+  "Other"
+];
+
+const seasons = [
+  "Q1 - New Year & Spring",
+  "Q2 - Spring & Summer", 
+  "Q3 - Summer & Back to School",
+  "Q4 - Fall & Holiday Season"
+];
+
 export default function CampAIgner() {
   const { language, isSpanish } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Campaign Creator State
   const [campaignTitle, setCampaignTitle] = useState("");
   const [campaignIdea, setCampaignIdea] = useState("");
   const [generating, setGenerating] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<SelectedPlatform[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  
+  // 30-Day Planner State  
+  const [businessData, setBusinessData] = useState<BusinessData>({
+    industry: "",
+    topProducts: [],
+    seasonality: "",
+  });
+  const [newProduct, setNewProduct] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  // Queries and Mutations
+  const { data: contentPlans, isLoading: plansLoading } = useQuery<ContentPlan[]>({
+    queryKey: ["/api/content-plans"],
+    retry: false,
+  });
+
+  const generatePlanMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/content-plans/generate", {
+        month: selectedMonth,
+        year: selectedYear,
+        businessData,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/content-plans"] });
+      toast({
+        title: "Success",
+        description: "AI content plan generated successfully!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Helper functions for planner
+  const addProduct = () => {
+    if (newProduct.trim() && !businessData.topProducts.includes(newProduct.trim())) {
+      setBusinessData(prev => ({
+        ...prev,
+        topProducts: [...prev.topProducts, newProduct.trim()]
+      }));
+      setNewProduct("");
+    }
+  };
+
+  const removeProduct = (product: string) => {
+    setBusinessData(prev => ({
+      ...prev,
+      topProducts: prev.topProducts.filter(p => p !== product)
+    }));
+  };
 
   const handleGenerate = () => {
     if (!campaignTitle.trim() || !campaignIdea.trim() || selectedPlatforms.length === 0) {
@@ -133,7 +245,21 @@ export default function CampAIgner() {
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           
-          {/* Campaign Input */}
+          {/* Tabbed Interface */}
+          <Tabs defaultValue="campaigns" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="campaigns" className="flex items-center">
+                <Zap className="mr-2 h-4 w-4" />
+                {isSpanish ? 'Creador de Campañas' : 'Campaign Creator'}
+              </TabsTrigger>
+              <TabsTrigger value="planner" className="flex items-center">
+                <Calendar className="mr-2 h-4 w-4" />
+                {isSpanish ? 'Planificador 30 Días' : '30-Day Planner'}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="campaigns" className="space-y-8">
+              {/* Campaign Input */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -536,6 +662,190 @@ export default function CampAIgner() {
               <span className="text-sm text-gray-500">{isSpanish ? 'Métricas y rendimiento' : 'Metrics & performance'}</span>
             </Button>
           </div>
+            </TabsContent>
+
+            <TabsContent value="planner" className="space-y-8">
+              {/* 30-Day Planner Content */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* Business Data Input */}
+                <div className="lg:col-span-2">
+                  <Card className="border-2 border-brand-200 shadow-xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Bot className="mr-2 h-5 w-5 text-brand-600" />
+                        {isSpanish ? 'Datos de tu Negocio' : 'Your Business Data'}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 mb-2 block">
+                          {isSpanish ? 'Industria' : 'Industry'}
+                        </label>
+                        <Select value={businessData.industry} onValueChange={(value) => setBusinessData(prev => ({ ...prev, industry: value }))}>
+                          <SelectTrigger>
+                            <SelectValue placeholder={isSpanish ? "Selecciona tu industria" : "Select your industry"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {industries.map((industry) => (
+                              <SelectItem key={industry} value={industry}>
+                                {industry}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 mb-2 block">
+                          {isSpanish ? 'Productos/Servicios Principales' : 'Top Products/Services'}
+                        </label>
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder={isSpanish ? "Ej: Facial antienvejecimiento" : "e.g. Anti-aging facial"}
+                            value={newProduct}
+                            onChange={(e) => setNewProduct(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && addProduct()}
+                            className="flex-1"
+                          />
+                          <Button onClick={addProduct} size="sm">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {businessData.topProducts.map((product) => (
+                            <Badge 
+                              key={product} 
+                              variant="secondary" 
+                              className="cursor-pointer hover:bg-red-100"
+                              onClick={() => removeProduct(product)}
+                            >
+                              {product} ×
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 mb-2 block">
+                          {isSpanish ? 'Estacionalidad' : 'Seasonality'}
+                        </label>
+                        <Select value={businessData.seasonality} onValueChange={(value) => setBusinessData(prev => ({ ...prev, seasonality: value }))}>
+                          <SelectTrigger>
+                            <SelectValue placeholder={isSpanish ? "¿Cuándo es tu temporada alta?" : "When is your peak season?"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {seasons.map((season) => (
+                              <SelectItem key={season} value={season}>
+                                {season}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Generate Plan */}
+                <div>
+                  <Card className="border-2 border-green-200 bg-green-50">
+                    <CardHeader>
+                      <CardTitle className="text-green-800">
+                        {isSpanish ? 'Generar Plan' : 'Generate Plan'}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 mb-2 block">
+                          {isSpanish ? 'Mes' : 'Month'}
+                        </label>
+                        <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 12 }, (_, i) => (
+                              <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                {new Date(2024, i).toLocaleString('default', { month: 'long' })}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 mb-2 block">
+                          {isSpanish ? 'Año' : 'Year'}
+                        </label>
+                        <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[2024, 2025, 2026].map((year) => (
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <Button 
+                        onClick={() => generatePlanMutation.mutate()}
+                        disabled={generatePlanMutation.isPending || !businessData.industry}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        {generatePlanMutation.isPending 
+                          ? (isSpanish ? 'Generando...' : 'Generating...') 
+                          : (isSpanish ? 'Generar Plan IA' : 'Generate AI Plan')
+                        }
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Existing Plans */}
+              {contentPlans && contentPlans.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Calendar className="mr-2 h-5 w-5 text-brand-600" />
+                      {isSpanish ? 'Planes Existentes' : 'Existing Plans'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {contentPlans.map((plan) => (
+                        <Card key={plan.id} className="border border-gray-200">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg">{plan.title}</CardTitle>
+                            <p className="text-sm text-gray-600">
+                              {new Date(2024, plan.month - 1).toLocaleString('default', { month: 'long' })} {plan.year}
+                            </p>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">
+                                {plan.posts.length} {isSpanish ? 'posts' : 'posts'}
+                              </span>
+                              <Button size="sm" variant="outline">
+                                {isSpanish ? 'Ver Detalles' : 'View Details'}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </div>
