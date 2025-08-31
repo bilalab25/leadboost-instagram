@@ -378,9 +378,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              {/* Visual */}
+              {/* Visual with Text Overlay */}
               <div className={`relative mb-4 bg-gray-100 rounded-lg overflow-hidden ${
-                post.aspectRatio === 'story' ? 'aspect-[9/16] max-h-32' :
+                post.aspectRatio === 'story' ? 'aspect-[9/16] max-h-40' :
                 post.aspectRatio === 'banner' ? 'aspect-[3/1]' :
                 post.aspectRatio === 'landscape' ? 'aspect-[16/9]' :
                 'aspect-square'
@@ -390,16 +390,60 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   alt={`${post.platform} visual`}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                
+                {/* Dark overlay for text readability */}
+                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+                
+                {/* Text overlay based on platform */}
+                <div className="absolute inset-0 p-4 flex flex-col justify-center items-center text-center">
+                  {post.platform.includes('Story') ? (
+                    // Story format - vertical text
+                    <div className="text-white space-y-2">
+                      <h3 className="text-lg font-bold leading-tight drop-shadow-lg">
+                        {generatedCampaign.split(' ').slice(0, 3).join(' ')}
+                      </h3>
+                      <p className="text-sm font-medium drop-shadow-lg">
+                        {generatedCampaign.split(' ').slice(3).join(' ')}
+                      </p>
+                    </div>
+                  ) : post.platform.includes('Email') ? (
+                    // Email banner format
+                    <div className="text-white w-full">
+                      <h3 className="text-sm font-bold mb-1 drop-shadow-lg">
+                        {generatedCampaign}
+                      </h3>
+                    </div>
+                  ) : (
+                    // Standard post format
+                    <div className="text-white space-y-1">
+                      <h3 className="text-base font-bold leading-tight drop-shadow-lg">
+                        {generatedCampaign.split(' ').slice(0, 4).join(' ')}
+                      </h3>
+                      <p className="text-xs font-medium drop-shadow-lg opacity-90">
+                        {generatedCampaign.split(' ').slice(4).join(' ')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Platform identifier */}
+                <div className="absolute top-2 right-2 bg-white bg-opacity-90 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">
+                  {post.dimensions}
+                </div>
+                
+                {/* Smart Demo badge */}
+                <div className="absolute bottom-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">
                   Smart Demo
                 </div>
               </div>
               
-              {/* Caption */}
-              <div className="text-sm text-gray-700 leading-relaxed">
-                {post.caption.length > 100 ? (
+              {/* Caption preview */}
+              <div className="text-xs text-gray-600 leading-relaxed bg-gray-50 p-2 rounded">
+                <strong className="text-gray-800">{post.platform} Caption:</strong>
+                <br />
+                {post.caption.length > 80 ? (
                   <>
-                    {post.caption.substring(0, 100)}...
+                    {post.caption.substring(0, 80)}...
                     <button className="text-blue-600 ml-1 font-medium">
                       {isSpanish ? 'ver más' : 'see more'}
                     </button>
