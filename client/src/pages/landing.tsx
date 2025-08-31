@@ -168,8 +168,8 @@ export default function Landing() {
                     </h3>
                     <p className="text-gray-600 mb-8 max-w-2xl mx-auto text-lg">
                       {isSpanish 
-                        ? 'Observa cómo la IA transforma una simple descripción en campañas completas optimizadas para más de 21 plataformas en segundos' 
-                        : 'Watch AI transform a simple description into complete campaigns optimized for 21+ platforms in seconds'}
+                        ? 'Observa cómo la IA diseña campañas completas para tu negocio, optimizadas para más de 21 plataformas en segundos' 
+                        : 'Watch AI design complete campaigns for your business, optimized for 21+ platforms in seconds'}
                     </p>
                     <div className="relative max-w-4xl mx-auto">
                       <div className="bg-gray-900 rounded-2xl h-96 w-full flex flex-col items-center justify-center relative">
