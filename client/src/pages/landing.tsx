@@ -128,6 +128,26 @@ export default function Landing() {
                     
                     {/* EVERYWHERE */}
                     <div className="text-center">
+                      {/* Black Video Box */}
+                      <div className="bg-black rounded-xl p-4 mb-4 max-w-64 mx-auto">
+                        <div className="bg-gray-900 rounded-lg p-3 mb-3 flex items-center justify-center">
+                          <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        </div>
+                        <p className="text-white text-sm font-medium mb-2">
+                          {isSpanish ? 'Ver CampAIgner en Acción' : 'See CampAIgner in Action'}
+                        </p>
+                        <div className="flex justify-center items-center text-gray-400 text-xs">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                          </svg>
+                          2:30
+                        </div>
+                      </div>
+                      
                       <div className="grid grid-cols-4 gap-2 mb-4 max-w-48 mx-auto">
                         <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
                           <SiInstagram className="h-6 w-6 text-white" />
