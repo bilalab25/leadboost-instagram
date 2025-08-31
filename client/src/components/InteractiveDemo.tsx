@@ -405,8 +405,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         </h3>
         <p className="text-gray-600">
           {isSpanish 
-            ? 'Ve cómo la IA crea una campaña completa para tu negocio en segundos'
-            : 'See how AI creates a complete campaign for your business in seconds'
+            ? 'Ve cómo la IA de LeadBoost crea una campaña completa para tu negocio en segundos'
+            : 'See how LeadBoost\'s AI creates a complete campaign for your business in seconds'
           }
         </p>
       </div>
