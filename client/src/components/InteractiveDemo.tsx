@@ -398,36 +398,45 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-      <div className="text-center mb-8">
-        <h3 className="text-3xl font-bold text-gray-900 mb-4">
-          {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost In Action'}
-        </h3>
-        <p className="text-gray-600">
-          {isSpanish 
-            ? 'Ve cómo la IA de LeadBoost crea una campaña completa para tu negocio en segundos'
-            : 'See how LeadBoost\'s AI creates a complete campaign for your business in seconds'
-          }
-        </p>
-      </div>
-
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {isSpanish ? 'Cuéntanos sobre tu negocio' : 'Tell us about your business'}
-          </label>
-          <textarea 
-            value={demo.businessDescription}
-            onChange={(e) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
-            placeholder={isSpanish 
-              ? 'Por ejemplo: "Tengo un restaurante italiano en el centro que sirve pasta casera y pizza al horno de leña"'
-              : 'Example: "I run a food truck that serves gourmet burgers and craft beer in downtown Austin"'
+    <div className="w-full max-w-3xl mx-auto bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl border border-gray-200 p-10 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full opacity-50 -translate-y-16 translate-x-16"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100 to-purple-100 rounded-full opacity-40 translate-y-12 -translate-x-12"></div>
+      
+      <div className="relative z-10">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full text-sm font-semibold mb-6 shadow-lg">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            {isSpanish ? 'Demo Interactivo' : 'Interactive Demo'}
+          </div>
+          <h3 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
+            {isSpanish ? 'Ve LeadBoost en Acción' : 'See LeadBoost In Action'}
+          </h3>
+          <p className="text-xl text-gray-600 leading-relaxed">
+            {isSpanish 
+              ? 'Ve cómo la IA de LeadBoost crea una campaña completa para tu negocio en segundos'
+              : 'See how LeadBoost\'s AI creates a complete campaign for your business in seconds'
             }
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-            rows={3}
-            data-testid="textarea-business-description"
-          />
+          </p>
         </div>
+
+        <div className="space-y-8">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg">
+            <label className="block text-lg font-semibold text-gray-800 mb-4">
+              {isSpanish ? 'Cuéntanos sobre tu negocio' : 'Tell us about your business'}
+            </label>
+            <textarea 
+              value={demo.businessDescription}
+              onChange={(e) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
+              placeholder={isSpanish 
+                ? 'Por ejemplo: "Tengo un restaurante italiano en el centro que sirve pasta casera y pizza al horno de leña"'
+                : 'Example: "I run a food truck that serves gourmet burgers and craft beer in downtown Austin"'
+              }
+              className="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none text-lg transition-all duration-200"
+              rows={4}
+              data-testid="textarea-business-description"
+            />
+          </div>
 
         {demo.detectedType && (
           <div className="bg-green-50 border border-green-200 rounded-xl p-4">
@@ -469,26 +478,27 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           </div>
         )}
 
-        <Button 
-          onClick={handleGenerateCampaign}
-          disabled={!demo.businessDescription.trim() || demo.isAnalyzing}
-          size="lg"
-          className="w-full bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 disabled:opacity-50"
-          data-testid="button-generate-campaign"
-        >
-          <Sparkles className="mr-2 h-5 w-5" />
-          {demo.isAnalyzing 
-            ? (isSpanish ? 'Analizando...' : 'Analyzing...')
-            : (isSpanish ? 'Generar Mi Campaña' : 'Generate My Campaign')
-          }
-        </Button>
+          <Button 
+            onClick={handleGenerateCampaign}
+            disabled={!demo.businessDescription.trim() || demo.isAnalyzing}
+            size="lg"
+            className="w-full bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 disabled:opacity-50 text-xl py-4 shadow-lg"
+            data-testid="button-generate-campaign"
+          >
+            <Sparkles className="mr-2 h-6 w-6" />
+            {demo.isAnalyzing 
+              ? (isSpanish ? 'Analizando...' : 'Analyzing...')
+              : (isSpanish ? 'Generar Mi Campaña' : 'Generate My Campaign')
+            }
+          </Button>
 
-        <p className="text-xs text-gray-500 text-center">
-          {isSpanish 
-            ? 'No se requiere registro • Resultados instantáneos • 100% gratis'
-            : 'No signup required • Instant results • 100% free'
-          }
-        </p>
+          <p className="text-sm text-gray-500 text-center">
+            {isSpanish 
+              ? 'No se requiere registro • Resultados instantáneos • 100% gratis'
+              : 'No signup required • Instant results • 100% free'
+            }
+          </p>
+        </div>
       </div>
     </div>
   );
