@@ -128,6 +128,14 @@ export default function Landing() {
                     
                     {/* EVERYWHERE */}
                     <div className="text-center">
+                      {/* Black Video Box */}
+                      <div className="bg-black rounded-lg h-28 w-44 mx-auto mb-6 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center opacity-80">
+                          <svg className="w-4 h-4 text-black ml-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
                       <div className="grid grid-cols-4 gap-2 mb-4 max-w-48 mx-auto">
                         <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
                           <SiInstagram className="h-6 w-6 text-white" />
