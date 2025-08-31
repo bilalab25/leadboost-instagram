@@ -7,8 +7,9 @@ import { Sparkles, Mail, Instagram, Facebook, MessageSquare, Heart, Share, Bookm
 import { useLanguage } from '@/hooks/useLanguage';
 
 interface DemoState {
-  businessType: string;
-  productService: string;
+  businessDescription: string;
+  detectedType: string;
+  isAnalyzing: boolean;
   isGenerating: boolean;
   showResults: boolean;
 }
@@ -146,20 +147,84 @@ interface InteractiveDemoProps {
   isSpanish: boolean;
 }
 
+// Simple AI business type detection based on keywords
+const detectBusinessType = (description: string): { type: string; confidence: string; explanation: string } => {
+  const desc = description.toLowerCase();
+  
+  // Restaurant keywords
+  if (desc.includes('restaurant') || desc.includes('food') || desc.includes('pizza') || desc.includes('burger') || desc.includes('cafe') || desc.includes('kitchen') || desc.includes('chef') || desc.includes('dining') || desc.includes('menu') || desc.includes('cooking')) {
+    return { type: 'restaurant', confidence: '95%', explanation: 'Food service & hospitality industry' };
+  }
+  
+  // Fitness keywords  
+  if (desc.includes('fitness') || desc.includes('gym') || desc.includes('workout') || desc.includes('trainer') || desc.includes('yoga') || desc.includes('exercise') || desc.includes('muscle') || desc.includes('weight') || desc.includes('cardio')) {
+    return { type: 'fitness', confidence: '94%', explanation: 'Fitness & wellness industry' };
+  }
+  
+  // Beauty keywords
+  if (desc.includes('beauty') || desc.includes('spa') || desc.includes('makeup') || desc.includes('skincare') || desc.includes('salon') || desc.includes('nails') || desc.includes('hair') || desc.includes('cosmetics') || desc.includes('facial')) {
+    return { type: 'beauty', confidence: '93%', explanation: 'Beauty & personal care industry' };
+  }
+  
+  // E-commerce keywords
+  if (desc.includes('sell') || desc.includes('shop') || desc.includes('store') || desc.includes('product') || desc.includes('ecommerce') || desc.includes('online') || desc.includes('inventory') || desc.includes('shipping') || desc.includes('orders')) {
+    return { type: 'ecommerce', confidence: '92%', explanation: 'E-commerce & retail industry' };
+  }
+  
+  // Real Estate keywords
+  if (desc.includes('real estate') || desc.includes('homes') || desc.includes('property') || desc.includes('house') || desc.includes('realtor') || desc.includes('agent') || desc.includes('listing') || desc.includes('mortgage') || desc.includes('buyer')) {
+    return { type: 'realestate', confidence: '96%', explanation: 'Real estate & property industry' };
+  }
+  
+  // Dental keywords
+  if (desc.includes('dental') || desc.includes('teeth') || desc.includes('dentist') || desc.includes('medical') || desc.includes('doctor') || desc.includes('clinic') || desc.includes('health') || desc.includes('patient') || desc.includes('treatment')) {
+    return { type: 'dental', confidence: '97%', explanation: 'Healthcare & medical services' };
+  }
+  
+  // Consulting keywords
+  if (desc.includes('consult') || desc.includes('advice') || desc.includes('business') || desc.includes('strategy') || desc.includes('coach') || desc.includes('expert') || desc.includes('service') || desc.includes('help') || desc.includes('professional')) {
+    return { type: 'consulting', confidence: '89%', explanation: 'Professional services & consulting' };
+  }
+  
+  // Default to consulting for any business
+  return { type: 'consulting', confidence: '85%', explanation: 'Professional services & consulting' };
+};
+
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   const [demo, setDemo] = useState<DemoState>({
-    businessType: '',
-    productService: '',
+    businessDescription: '',
+    detectedType: '',
+    isAnalyzing: false,
     isGenerating: false,
     showResults: false
   });
 
+  const handleAnalyzeBusiness = async () => {
+    if (!demo.businessDescription.trim()) return;
+    
+    setDemo(prev => ({ ...prev, isAnalyzing: true }));
+    
+    // Simulate AI analysis
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const detection = detectBusinessType(demo.businessDescription);
+    
+    setDemo(prev => ({ 
+      ...prev, 
+      isAnalyzing: false,
+      detectedType: detection.type
+    }));
+  };
+
   const handleGenerateCampaign = async () => {
-    if (!demo.businessType) return;
+    if (!demo.detectedType) {
+      await handleAnalyzeBusiness();
+      await new Promise(resolve => setTimeout(resolve, 500)); // Brief pause
+    }
     
     setDemo(prev => ({ ...prev, isGenerating: true }));
     
-    // Simulate AI thinking process
+    // Simulate AI campaign generation
     await new Promise(resolve => setTimeout(resolve, 3000));
     
     setDemo(prev => ({ 
@@ -171,14 +236,15 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   const resetDemo = () => {
     setDemo({
-      businessType: '',
-      productService: '',
+      businessDescription: '',
+      detectedType: '',
+      isAnalyzing: false,
       isGenerating: false,
       showResults: false
     });
   };
 
-  const currentTemplate = businessTemplates[demo.businessType as keyof typeof businessTemplates];
+  const currentTemplate = businessTemplates[demo.detectedType as keyof typeof businessTemplates];
 
   if (demo.isGenerating) {
     return (
@@ -296,7 +362,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 <div className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center mb-3">
                     <div className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">
-                      {demo.businessType[0]?.toUpperCase()}
+                      {demo.detectedType[0]?.toUpperCase()}
                     </div>
                     <div>
                       <div className="font-semibold text-sm">Your Business</div>
@@ -348,36 +414,73 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {isSpanish ? 'Tipo de negocio' : 'Business type'}
+            {isSpanish ? 'Cuéntanos sobre tu negocio' : 'Tell us about your business'}
           </label>
-          <Select 
-            value={demo.businessType} 
-            onValueChange={(value) => setDemo(prev => ({ ...prev, businessType: value }))}
-          >
-            <SelectTrigger data-testid="select-business-type">
-              <SelectValue placeholder={isSpanish ? "Selecciona tu tipo de negocio" : "Select your business type"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="restaurant" data-testid="option-restaurant">🍕 {isSpanish ? 'Restaurante' : 'Restaurant'}</SelectItem>
-              <SelectItem value="fitness" data-testid="option-fitness">💪 {isSpanish ? 'Fitness/Gym' : 'Fitness/Gym'}</SelectItem>
-              <SelectItem value="beauty" data-testid="option-beauty">✨ {isSpanish ? 'Belleza/Spa' : 'Beauty/Spa'}</SelectItem>
-              <SelectItem value="ecommerce" data-testid="option-ecommerce">📦 {isSpanish ? 'E-commerce' : 'E-commerce'}</SelectItem>
-              <SelectItem value="consulting" data-testid="option-consulting">💼 {isSpanish ? 'Consultoría' : 'Consulting'}</SelectItem>
-              <SelectItem value="realestate" data-testid="option-realestate">🏠 {isSpanish ? 'Bienes Raíces' : 'Real Estate'}</SelectItem>
-              <SelectItem value="dental" data-testid="option-dental">🦷 {isSpanish ? 'Dental/Médico' : 'Dental/Medical'}</SelectItem>
-            </SelectContent>
-          </Select>
+          <textarea 
+            value={demo.businessDescription}
+            onChange={(e) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
+            placeholder={isSpanish 
+              ? 'Por ejemplo: "Tengo un restaurante italiano en el centro que sirve pasta casera y pizza al horno de leña"'
+              : 'Example: "I run a food truck that serves gourmet burgers and craft beer in downtown Austin"'
+            }
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+            rows={3}
+            data-testid="textarea-business-description"
+          />
         </div>
+
+        {demo.detectedType && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-green-700">
+                {isSpanish ? 'IA Detectada' : 'AI Detected'}
+              </span>
+            </div>
+            <p className="text-green-800 font-semibold">
+              {(() => {
+                const detection = detectBusinessType(demo.businessDescription);
+                const typeNames = {
+                  restaurant: isSpanish ? 'Restaurante/Comida' : 'Restaurant/Food Service',
+                  fitness: isSpanish ? 'Fitness/Gimnasio' : 'Fitness/Gym',
+                  beauty: isSpanish ? 'Belleza/Spa' : 'Beauty/Spa',
+                  ecommerce: isSpanish ? 'E-commerce/Tienda' : 'E-commerce/Retail',
+                  consulting: isSpanish ? 'Consultoría/Servicios' : 'Consulting/Services',
+                  realestate: isSpanish ? 'Bienes Raíces' : 'Real Estate',
+                  dental: isSpanish ? 'Salud/Médico' : 'Healthcare/Medical'
+                };
+                return typeNames[demo.detectedType as keyof typeof typeNames] || detection.explanation;
+              })()}
+            </p>
+            <p className="text-sm text-green-600 mt-1">
+              {isSpanish ? 'Confianza: ' : 'Confidence: '}{detectBusinessType(demo.businessDescription).confidence}
+            </p>
+          </div>
+        )}
+
+        {demo.isAnalyzing && (
+          <div className="text-center py-4">
+            <div className="inline-flex items-center gap-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+              <span className="text-gray-600">
+                {isSpanish ? 'Analizando tu negocio con IA...' : 'Analyzing your business with AI...'}
+              </span>
+            </div>
+          </div>
+        )}
 
         <Button 
           onClick={handleGenerateCampaign}
-          disabled={!demo.businessType}
+          disabled={!demo.businessDescription.trim() || demo.isAnalyzing}
           size="lg"
           className="w-full bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 disabled:opacity-50"
           data-testid="button-generate-campaign"
         >
           <Sparkles className="mr-2 h-5 w-5" />
-          {isSpanish ? 'Generar Mi Campaña' : 'Generate My Campaign'}
+          {demo.isAnalyzing 
+            ? (isSpanish ? 'Analizando...' : 'Analyzing...')
+            : (isSpanish ? 'Generar Mi Campaña' : 'Generate My Campaign')
+          }
         </Button>
 
         <p className="text-xs text-gray-500 text-center">
