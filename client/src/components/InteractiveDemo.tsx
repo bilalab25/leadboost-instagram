@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight } from 'lucide-react';
 
 interface DemoState {
-  campaignIdea: string;
-  businessType: string;
+  businessDescription: string;
   isGenerating: boolean;
   showResults: boolean;
 }
@@ -25,8 +24,11 @@ interface InteractiveDemoProps {
   isSpanish: boolean;
 }
 
-// Generate platform-specific posts from a single campaign idea
-const generatePlatformPosts = (campaignIdea: string, businessType: string): PlatformPost[] => {
+// Generate platform-specific posts from business description
+const generatePlatformPosts = (businessDescription: string): PlatformPost[] => {
+  // Auto-detect business type and generate a campaign idea
+  const businessType = detectBusinessType(businessDescription);
+  const campaignIdea = generateCampaignIdea(businessDescription, businessType);
   const platforms = [
     {
       platform: 'Instagram Post',
@@ -186,26 +188,89 @@ const getSmartVisual = (campaignIdea: string, businessType: string, aspectRatio:
   return visualsByType[businessKey][aspectRatio] || visualsByType.default[aspectRatio];
 };
 
+// Detect business type from description
+const detectBusinessType = (description: string): string => {
+  const desc = description.toLowerCase();
+  
+  if (desc.includes('restaurant') || desc.includes('food') || desc.includes('cafe') || desc.includes('pizza') || desc.includes('dining')) {
+    return 'restaurant';
+  }
+  if (desc.includes('gym') || desc.includes('fitness') || desc.includes('workout') || desc.includes('yoga') || desc.includes('training')) {
+    return 'fitness';
+  }
+  if (desc.includes('beauty') || desc.includes('spa') || desc.includes('salon') || desc.includes('skincare') || desc.includes('cosmetic')) {
+    return 'beauty';
+  }
+  if (desc.includes('retail') || desc.includes('store') || desc.includes('shop') || desc.includes('boutique') || desc.includes('clothing')) {
+    return 'retail';
+  }
+  
+  return 'default';
+};
+
+// Generate a campaign idea based on business description
+const generateCampaignIdea = (description: string, businessType: string): string => {
+  const campaignIdeas: Record<string, string[]> = {
+    restaurant: [
+      '25% off Weekend Special',
+      'Happy Hour Buy One Get One Free',
+      'New Menu Launch - Try 3 Dishes for $30',
+      'Family Dinner Deal - Kids Eat Free'
+    ],
+    fitness: [
+      'New Year Fitness Challenge - 50% Off First Month',
+      'Summer Body Bootcamp - Join Today',
+      'Free Personal Training Session This Week',
+      'Unlimited Classes for 30 Days - Special Price'
+    ],
+    beauty: [
+      'Glow Up Package - 30% Off All Treatments',
+      'Mother\'s Day Spa Special - Book Now',
+      'New Product Launch - Free Consultation',
+      'Bridal Package - Complete Wedding Look'
+    ],
+    retail: [
+      'Spring Sale - Up to 50% Off Everything',
+      'Buy 2 Get 1 Free Weekend Only',
+      'New Collection Launch - Early Access',
+      'Customer Appreciation - 20% Off + Free Shipping'
+    ],
+    default: [
+      'Limited Time Offer - 30% Off All Services',
+      'New Client Special - Book Your Consultation',
+      'Weekend Flash Sale - Save Big Today',
+      'Exclusive Deal - Premium Package Discount'
+    ]
+  };
+  
+  const ideas = campaignIdeas[businessType] || campaignIdeas.default;
+  return ideas[Math.floor(Math.random() * ideas.length)];
+};
+
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   const [demo, setDemo] = useState<DemoState>({
-    campaignIdea: '',
-    businessType: '',
+    businessDescription: '',
     isGenerating: false,
     showResults: false
   });
 
   const [platformPosts, setPlatformPosts] = useState<PlatformPost[]>([]);
+  const [generatedCampaign, setGeneratedCampaign] = useState<string>('');
 
   const handleGenerateCampaign = async () => {
-    if (!demo.campaignIdea.trim() || !demo.businessType) return;
+    if (!demo.businessDescription.trim()) return;
     
     setDemo(prev => ({ ...prev, isGenerating: true }));
     
     // Simulate campaign generation
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    const posts = generatePlatformPosts(demo.campaignIdea, demo.businessType);
+    const posts = generatePlatformPosts(demo.businessDescription);
+    const businessType = detectBusinessType(demo.businessDescription);
+    const campaignIdea = generateCampaignIdea(demo.businessDescription, businessType);
+    
     setPlatformPosts(posts);
+    setGeneratedCampaign(campaignIdea);
     
     setDemo(prev => ({ 
       ...prev, 
@@ -216,12 +281,12 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   const resetDemo = () => {
     setDemo({
-      campaignIdea: '',
-      businessType: '',
+      businessDescription: '',
       isGenerating: false,
       showResults: false
     });
     setPlatformPosts([]);
+    setGeneratedCampaign('');
   };
 
   if (!demo.showResults) {
@@ -234,8 +299,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           </h3>
           <p className="text-gray-600 text-lg">
             {isSpanish 
-              ? 'Ingresa una idea de campaña y mira cómo se multiplica automáticamente en 8 plataformas diferentes'
-              : 'Enter one campaign idea and watch it automatically multiply across 8 different platforms'
+              ? 'Describe tu negocio y mira cómo la IA crea una campaña optimizada para 8 plataformas'
+              : 'Describe your business and watch AI create a campaign optimized for 8 platforms'
             }
           </p>
         </div>
@@ -244,50 +309,38 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           <CardContent className="p-8 space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                {isSpanish ? '💡 Idea de Campaña' : '💡 Campaign Idea'}
+                {isSpanish ? '🏢 Describe tu Negocio' : '🏢 Describe Your Business'}
               </label>
               <Input
-                placeholder={isSpanish ? 'ej: "50% de descuento en el Día del Trabajo"' : 'e.g., "50% off Labor Day Sale"'}
-                value={demo.campaignIdea}
-                onChange={(e) => setDemo(prev => ({ ...prev, campaignIdea: e.target.value }))}
+                placeholder={isSpanish ? 'ej: "Restaurante italiano familiar en el centro de la ciudad"' : 'e.g., "Family Italian restaurant in downtown area"'}
+                value={demo.businessDescription}
+                onChange={(e) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
                 className="text-lg h-12"
-                data-testid="input-campaign-idea"
+                data-testid="input-business-description"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                {isSpanish ? '🏢 Tipo de Negocio' : '🏢 Business Type'}
-              </label>
-              <Select value={demo.businessType} onValueChange={(value) => setDemo(prev => ({ ...prev, businessType: value }))}>
-                <SelectTrigger className="h-12 text-lg" data-testid="select-business-type">
-                  <SelectValue placeholder={isSpanish ? "Selecciona tu industria" : "Select your industry"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="restaurant">🍽️ {isSpanish ? 'Restaurante/Comida' : 'Restaurant/Food'}</SelectItem>
-                  <SelectItem value="fitness">💪 {isSpanish ? 'Fitness/Gimnasio' : 'Fitness/Gym'}</SelectItem>
-                  <SelectItem value="beauty">✨ {isSpanish ? 'Belleza/Spa' : 'Beauty/Spa'}</SelectItem>
-                  <SelectItem value="retail">🛍️ {isSpanish ? 'Retail/E-commerce' : 'Retail/E-commerce'}</SelectItem>
-                  <SelectItem value="services">🏢 {isSpanish ? 'Servicios Profesionales' : 'Professional Services'}</SelectItem>
-                </SelectContent>
-              </Select>
+              <p className="text-sm text-gray-500 mt-2">
+                {isSpanish 
+                  ? 'La IA detectará tu industria y generará una campaña perfecta automáticamente'
+                  : 'AI will detect your industry and generate a perfect campaign automatically'
+                }
+              </p>
             </div>
 
             <Button 
               onClick={handleGenerateCampaign}
-              disabled={demo.isGenerating || !demo.campaignIdea.trim() || !demo.businessType}
+              disabled={demo.isGenerating || !demo.businessDescription.trim()}
               className="w-full h-14 text-lg bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700"
               data-testid="button-generate-campaign"
             >
               {demo.isGenerating ? (
                 <>
                   <Sparkles className="w-5 h-5 mr-2 animate-spin" />
-                  {isSpanish ? 'Generando campaña...' : 'Generating campaign...'}
+                  {isSpanish ? 'IA creando tu campaña...' : 'AI creating your campaign...'}
                 </>
               ) : (
                 <>
                   <ArrowRight className="w-5 h-5 mr-2" />
-                  {isSpanish ? 'Generar Campaña Multiplataforma' : 'Generate Multi-Platform Campaign'}
+                  {isSpanish ? 'Crear Campaña con IA' : 'Create AI Campaign'}
                 </>
               )}
             </Button>
@@ -304,7 +357,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           {isSpanish ? '🎉 Tu Campaña Multiplataforma' : '🎉 Your Multi-Platform Campaign'}
         </h3>
         <p className="text-gray-600 text-lg mb-4">
-          <strong>"{demo.campaignIdea}"</strong> {isSpanish ? 'optimizada para 8 plataformas' : 'optimized for 8 platforms'}
+          <strong>"{generatedCampaign}"</strong> {isSpanish ? 'optimizada para 8 plataformas' : 'optimized for 8 platforms'}
         </p>
         <Button variant="outline" onClick={resetDemo} data-testid="button-try-another">
           {isSpanish ? 'Probar Otra Campaña' : 'Try Another Campaign'}
