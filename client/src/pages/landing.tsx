@@ -161,61 +161,9 @@ export default function Landing() {
                     </div>
                   </div>
                   
-                  {/* CampAIgner Demo Video Section */}
-                  <div className="mt-12 mb-8 text-center">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                      {isSpanish ? '🤖 Ver IA Generando Contenido en Vivo' : '🤖 Watch AI Generate Content Live'}
-                    </h3>
-                    <p className="text-gray-600 mb-8 max-w-2xl mx-auto text-lg">
-                      {isSpanish 
-                        ? 'Observa cómo la IA diseña campañas completas para tu negocio, optimizadas para más de 21 plataformas en segundos' 
-                        : 'Watch AI design complete campaigns for your business, optimized for 21+ platforms in seconds'}
-                    </p>
-                    <div className="relative max-w-4xl mx-auto">
-                      <div className="bg-gray-900 rounded-2xl h-96 w-full flex flex-col items-center justify-center relative">
-                        <div className="absolute top-6 left-6 bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium">
-                          CampAIgner Tool
-                        </div>
-                        <div className="absolute top-6 right-6 bg-red-500 text-white px-3 py-2 rounded-lg text-sm font-medium">
-                          ● Demo
-                        </div>
-                        
-                        <h4 className="text-white text-2xl font-bold mb-2">
-                          {isSpanish ? '🧠 IA Generando Contenido' : '🧠 AI Generating Content'}
-                        </h4>
-                        <p className="text-gray-300 mb-6">
-                          {isSpanish ? 'Ve la magia de la IA creando campañas en 30 segundos' : 'See the magic of AI creating campaigns in 30 seconds'}
-                        </p>
-                        
-                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
-                          <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                          </svg>
-                        </div>
-                        
-                        <div className="absolute bottom-6 left-6 flex space-x-2">
-                          <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
-                            <SiInstagram className="h-4 w-4 text-white" />
-                          </div>
-                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                            <SiFacebook className="h-4 w-4 text-white" />
-                          </div>
-                          <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                            <SiTiktok className="h-4 w-4 text-white" />
-                          </div>
-                          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                            <SiWhatsapp className="h-4 w-4 text-white" />
-                          </div>
-                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                            +21
-                          </div>
-                        </div>
-                        
-                        <div className="absolute bottom-6 right-6 text-gray-400 text-sm font-mono">
-                          0:30
-                        </div>
-                      </div>
-                    </div>
+                  {/* Interactive Demo Section */}
+                  <div className="mt-12 mb-8">
+                    <InteractiveDemo isSpanish={isSpanish} />
                   </div>
                   
                   <div className="mt-12 text-center">
