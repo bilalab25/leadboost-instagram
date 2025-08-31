@@ -375,7 +375,6 @@ export default function Landing() {
                   <div className="flex justify-center items-center space-x-8 lg:space-x-12 flex-wrap gap-6">
                     <div className="flex items-center space-x-2 text-black hover:text-gray-800 transition-colors">
                       <SiWix className="h-8 w-8" />
-                      <span className="text-lg font-semibold">Wix</span>
                     </div>
                     <div className="flex items-center space-x-2 text-black hover:text-blue-600 transition-colors">
                       <SiStripe className="h-8 w-8" />
