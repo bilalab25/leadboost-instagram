@@ -78,18 +78,13 @@ export default function Landing() {
               <h2 className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.88] tracking-tight">
                 {isSpanish ? 'El Efecto LeadBoost' : 'The LeadBoost Effect'}
               </h2>
-              <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-4 tracking-wide">
-                {isSpanish ? '🤖 IA Hace Todo por Ti → Everywhere. En Un Clic.' : '🤖 AI Does Everything For You → Everywhere. In One Click.'}
-              </div>
-              
-              <div className="inline-flex items-center bg-gradient-to-r from-purple-100 to-brand-100 text-purple-800 px-6 py-3 rounded-full text-lg font-bold mb-8 shadow-lg border border-purple-200">
-                <Bot className="mr-2 h-6 w-6" />
-                {isSpanish ? '100% Generación Automática por IA' : '100% AI Auto-Generation'}
+              <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-8 tracking-wide">
+                {isSpanish ? 'Ser Visto → Everywhere. En Un Clic.' : 'Get Seen → Everywhere. In One Click.'}
               </div>
               
               <div className="max-w-4xl mx-auto mt-8">
                 <p className="text-lg lg:text-xl text-gray-600 leading-relaxed font-normal">
-                  {isSpanish ? 'Solo describe tu idea de campaña. La IA selecciona plataformas, crea contenido, elige formatos y configura presupuestos automáticamente en 21+ plataformas.' : 'Just describe your campaign idea. AI selects platforms, creates content, chooses formats, and sets budgets automatically across 21+ platforms.'}
+                  {isSpanish ? 'Convierte los datos de tu negocio en campañas listas para usar en 21+ plataformas—en solo un clic.' : 'Turn your business data into ready-to-go campaigns for 21+ platforms—in just one click.'}
                 </p>
               </div>
             </div>
@@ -120,9 +115,9 @@ export default function Landing() {
                       <div className="w-24 h-24 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
                         <Target className="h-12 w-12 text-white" />
                       </div>
-                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? '🗣️ TU IDEA' : '🗣️ YOUR IDEA'}</h3>
-                      <p className="text-gray-600 font-medium">"{isSpanish ? 'Quiero promocionar mi nuevo serum antienvejecimiento' : 'I want to promote my new anti-aging serum'}"</p>
-                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'IA entiende tu negocio' : 'AI understands your business'}</p>
+                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
+                      <p className="text-gray-600 font-medium">"{isSpanish ? 'Lanzar producto nuevo' : 'Launch new product'}"</p>
+                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Solo describe tu campaña' : 'Just describe your campaign'}</p>
                     </div>
                     
                     {/* ARROW */}
@@ -160,9 +155,9 @@ export default function Landing() {
                         </div>
                       </div>
                       <div className="text-6xl font-black text-brand-600 mb-2">+21</div>
-                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? '🚀 IA CREA TODO' : '🚀 AI CREATES ALL'}</h3>
-                      <p className="text-gray-600 font-medium">{isSpanish ? 'Contenido IA + 21+ plataformas automático' : 'AI Content + 21+ platforms automatic'}</p>
-                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'IA diseña, dimensiona y optimiza todo por ti' : 'AI designs, sizes and optimizes everything for you'}</p>
+                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
+                      <p className="text-gray-600 font-medium">{isSpanish ? '21+ plataformas, un clic' : '21+ platforms, one click'}</p>
+                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Diseñado para ti, dimensionado para cada red social' : 'Designed for you, sized for every social network'}</p>
                     </div>
                   </div>
                   
@@ -318,8 +313,8 @@ export default function Landing() {
                       </div>
                       <p className="text-gray-700 text-sm mb-4">
                         {isSpanish 
-                          ? '"Brand Studio me permite crear diseños profesionales sin ser diseñador. La plataforma es intuitiva y potente."'
-                          : '"Brand Studio lets me create professional designs without being a designer. The platform is intuitive and powerful."'
+                          ? '"Brand Studio me ayudó a definir mi identidad de marca. Ahora la IA genera campañas que se ven exactamente como mi negocio."'
+                          : '"Brand Studio helped me define my brand identity. Now AI generates campaigns that look exactly like my business."'
                         }
                       </p>
                       <div className="text-sm">
@@ -508,12 +503,12 @@ export default function Landing() {
                   </h3>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  {isSpanish ? 'Herramientas de diseño profesional nativas para crear contenido visual impactante sin depender de terceros' : 'Native professional design tools to create impactful visual content without relying on third parties'}
+                  {isSpanish ? 'Define tu identidad de marca para que la IA entienda tu estilo y cree campañas que reflejen tu branding automáticamente' : 'Define your brand identity so AI understands your style and creates campaigns that reflect your branding automatically'}
                 </p>
                 <ul className="text-sm text-gray-500 space-y-2">
-                  <li>• {isSpanish ? 'Editor de diseño nativo' : 'Native design editor'}</li>
-                  <li>• {isSpanish ? 'Plantillas profesionales' : 'Professional templates'}</li>
-                  <li>• {isSpanish ? 'Branding consistente' : 'Consistent branding'}</li>
+                  <li>• {isSpanish ? 'Configuración de identidad visual' : 'Visual identity setup'}</li>
+                  <li>• {isSpanish ? 'Paleta de colores y tipografías' : 'Color palette and typography'}</li>
+                  <li>• {isSpanish ? 'IA aprende tu estilo de marca' : 'AI learns your brand style'}</li>
                 </ul>
               </Card>
 
