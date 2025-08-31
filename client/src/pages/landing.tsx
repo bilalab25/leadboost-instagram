@@ -76,15 +76,15 @@ export default function Landing() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
             <div className="text-center mb-16">
               <h2 className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.88] tracking-tight">
-                {isSpanish ? 'El Efecto LeadBoost' : 'The LeadBoost Effect'}
+                {isSpanish ? 'CampAIgner + Planificador IA' : 'CampAIgner + AI Planner'}
               </h2>
               <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-8 tracking-wide">
-                {isSpanish ? 'Ser Visto → Everywhere. En Un Clic.' : 'Get Seen → Everywhere. In One Click.'}
+                {isSpanish ? 'Campañas Que Reservan Citas Mientras Duermes' : 'Campaigns That Book Appointments While You Sleep'}
               </div>
               
               <div className="max-w-4xl mx-auto mt-8">
                 <p className="text-lg lg:text-xl text-gray-600 leading-relaxed font-normal">
-                  {isSpanish ? 'Convierte los datos de tu negocio en campañas listas para usar en 21+ plataformas—en solo un clic.' : 'Turn your business data into ready-to-go campaigns for 21+ platforms—in just one click.'}
+                  {isSpanish ? 'Dos herramientas poderosas: CampAIgner crea el contenido perfecto, el Planificador IA programa todo automáticamente. Resultado: más clientes sin trabajo extra.' : 'Two powerful tools: CampAIgner creates perfect content, AI Planner schedules everything automatically. Result: more customers without extra work.'}
                 </p>
               </div>
             </div>
@@ -108,56 +108,58 @@ export default function Landing() {
                 <div className="waterfall-particle" style={{zIndex: 5}}></div>
                 <div className="waterfall-particle" style={{zIndex: 5}}></div>
                 <CardContent className="p-8 lg:p-12 relative z-10">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     
-                    {/* ONE IDEA */}
-                    <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
-                        <Target className="h-12 w-12 text-white" />
+                    {/* CampAIgner Tool */}
+                    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-8 rounded-3xl border border-purple-200">
+                      <div className="text-center">
+                        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+                          <Zap className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-black text-purple-600 mb-2">CampAIgner</h3>
+                        <p className="text-gray-700 font-medium mb-4">{isSpanish ? 'Convierte tu idea en 21+ campañas perfectas' : 'Turn your idea into 21+ perfect campaigns'}</p>
+                        <div className="grid grid-cols-4 gap-1 mb-4 max-w-32 mx-auto">
+                          <div className="w-6 h-6 bg-pink-500 rounded-md flex items-center justify-center">
+                            <SiInstagram className="h-3 w-3 text-white" />
+                          </div>
+                          <div className="w-6 h-6 bg-gray-900 rounded-md flex items-center justify-center">
+                            <SiTiktok className="h-3 w-3 text-white" />
+                          </div>
+                          <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
+                            <SiFacebook className="h-3 w-3 text-white" />
+                          </div>
+                          <div className="w-6 h-6 bg-green-600 rounded-md flex items-center justify-center text-white font-bold text-[8px]">
+                            +18
+                          </div>
+                        </div>
+                        <p className="text-sm text-purple-600 font-semibold">{isSpanish ? 'Un clic = Todo listo' : 'One click = Everything ready'}</p>
                       </div>
-                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
-                      <p className="text-gray-600 font-medium">"{isSpanish ? 'Lanzar producto nuevo' : 'Launch new product'}"</p>
-                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Solo describe tu campaña' : 'Just describe your campaign'}</p>
                     </div>
                     
-                    {/* ARROW */}
-                    <div className="flex justify-center">
-                      <ArrowRight className="h-8 w-8 text-brand-400 hidden lg:block" />
-                      <ArrowDown className="h-8 w-8 text-brand-400 lg:hidden" />
-                    </div>
-                    
-                    {/* EVERYWHERE */}
-                    <div className="text-center">
-                      <div className="grid grid-cols-4 gap-2 mb-4 max-w-48 mx-auto">
-                        <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
-                          <SiInstagram className="h-6 w-6 text-white" />
+                    {/* AI Planner Tool */}
+                    <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-8 rounded-3xl border border-emerald-200">
+                      <div className="text-center">
+                        <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+                          <Bot className="h-10 w-10 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
-                          <SiTiktok className="h-6 w-6 text-white" />
+                        <h3 className="text-2xl font-black text-emerald-600 mb-2">{isSpanish ? 'Planificador IA' : 'AI Planner'}</h3>
+                        <p className="text-gray-700 font-medium mb-4">{isSpanish ? 'Programa y optimiza todo automáticamente' : 'Schedules and optimizes everything automatically'}</p>
+                        <div className="flex items-center justify-center space-x-2 mb-4">
+                          <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                          <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" style={{animationDelay: '200ms'}}></div>
+                          <div className="w-3 h-3 bg-emerald-600 rounded-full animate-pulse" style={{animationDelay: '400ms'}}></div>
                         </div>
-                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                          <SiFacebook className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                          <SiWhatsapp className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
-                          <SiLinkedin className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-                          <SiYoutube className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center">
-                          <SiX className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="w-10 h-10 bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                          +21
-                        </div>
+                        <p className="text-sm text-emerald-600 font-semibold">{isSpanish ? '24/7 trabajando por ti' : '24/7 working for you'}</p>
                       </div>
-                      <div className="text-6xl font-black text-brand-600 mb-2">+21</div>
-                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
-                      <p className="text-gray-600 font-medium">{isSpanish ? '21+ plataformas, un clic' : '21+ platforms, one click'}</p>
-                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Diseñado para ti, dimensionado para cada red social' : 'Designed for you, sized for every social network'}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Result */}
+                  <div className="mt-12 text-center">
+                    <ArrowDown className="h-8 w-8 text-brand-400 mx-auto mb-6" />
+                    <div className="bg-gradient-to-r from-brand-500 to-brand-600 text-white p-6 rounded-3xl max-w-2xl mx-auto shadow-2xl">
+                      <h4 className="text-2xl font-bold mb-2">{isSpanish ? 'RESULTADO' : 'RESULT'}</h4>
+                      <p className="text-lg font-semibold">{isSpanish ? 'Más clientes reservando citas mientras duermes' : 'More customers booking appointments while you sleep'}</p>
                     </div>
                   </div>
                   
