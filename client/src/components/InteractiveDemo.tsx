@@ -378,8 +378,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              {/* Visual with Text Overlay */}
-              <div className={`relative mb-4 bg-gray-100 rounded-lg overflow-hidden ${
+              {/* High-Impact Visual with Advanced Design */}
+              <div className={`relative mb-4 rounded-2xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-300 ${
                 post.aspectRatio === 'story' ? 'aspect-[9/16] max-h-40' :
                 post.aspectRatio === 'banner' ? 'aspect-[3/1]' :
                 post.aspectRatio === 'landscape' ? 'aspect-[16/9]' :
@@ -391,66 +391,95 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   className="w-full h-full object-cover"
                 />
                 
-                {/* Dark overlay for text readability */}
-                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+                {/* Premium gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/60"></div>
                 
-                {/* Text overlay based on platform */}
+                {/* Animated glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-pink-500/20 animate-pulse"></div>
+                
+                {/* High-Impact Text Design */}
                 <div className="absolute inset-0 p-4 flex flex-col justify-center items-center text-center">
                   {post.platform.includes('Story') ? (
-                    // Story format - vertical text
-                    <div className="text-white space-y-2">
-                      <h3 className="text-lg font-bold leading-tight drop-shadow-lg">
-                        {generatedCampaign.split(' ').slice(0, 3).join(' ')}
-                      </h3>
-                      <p className="text-sm font-medium drop-shadow-lg">
-                        {generatedCampaign.split(' ').slice(3).join(' ')}
-                      </p>
+                    // Story format - bold vertical design
+                    <div className="space-y-3">
+                      <div className="bg-white/20 backdrop-blur-md rounded-2xl p-4 border border-white/30">
+                        <h3 className="text-xl font-black text-white leading-tight drop-shadow-2xl tracking-tight">
+                          {generatedCampaign.split(' ').slice(0, 3).join(' ')}
+                        </h3>
+                        <div className="w-12 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 mx-auto mt-2 rounded-full"></div>
+                        <p className="text-sm font-bold text-white/90 drop-shadow-xl mt-2">
+                          {generatedCampaign.split(' ').slice(3).join(' ')}
+                        </p>
+                      </div>
                     </div>
                   ) : post.platform.includes('Email') ? (
-                    // Email banner format
-                    <div className="text-white w-full">
-                      <h3 className="text-sm font-bold mb-1 drop-shadow-lg">
-                        {generatedCampaign}
-                      </h3>
+                    // Email banner - sleek horizontal design
+                    <div className="w-full">
+                      <div className="bg-gradient-to-r from-blue-600/90 to-purple-600/90 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                        <h3 className="text-lg font-black text-white drop-shadow-2xl">
+                          {generatedCampaign}
+                        </h3>
+                      </div>
                     </div>
                   ) : (
-                    // Standard post format
-                    <div className="text-white space-y-1">
-                      <h3 className="text-base font-bold leading-tight drop-shadow-lg">
-                        {generatedCampaign.split(' ').slice(0, 4).join(' ')}
-                      </h3>
-                      <p className="text-xs font-medium drop-shadow-lg opacity-90">
-                        {generatedCampaign.split(' ').slice(4).join(' ')}
-                      </p>
+                    // Standard posts - premium card design
+                    <div className="space-y-2 max-w-full">
+                      <div className="bg-white/15 backdrop-blur-lg rounded-2xl p-4 border border-white/30 shadow-2xl">
+                        <h3 className="text-lg font-black text-white leading-tight drop-shadow-2xl mb-2">
+                          {generatedCampaign.split(' ').slice(0, 4).join(' ')}
+                        </h3>
+                        <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto mb-2 rounded-full"></div>
+                        <p className="text-sm font-bold text-white/95 drop-shadow-xl">
+                          {generatedCampaign.split(' ').slice(4).join(' ')}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
                 
-                {/* Platform identifier */}
-                <div className="absolute top-2 right-2 bg-white bg-opacity-90 text-gray-800 text-xs px-2 py-1 rounded-full font-medium">
+                {/* Premium platform badge */}
+                <div className="absolute top-3 right-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg border border-white/20">
                   {post.dimensions}
                 </div>
                 
-                {/* Smart Demo badge */}
-                <div className="absolute bottom-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                  Smart Demo
+                {/* AI-powered badge */}
+                <div className="absolute bottom-3 left-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  AI-Powered
+                </div>
+                
+                {/* Subtle corner decoration */}
+                <div className="absolute top-0 left-0 w-8 h-8">
+                  <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-white/40 rounded-tl-lg"></div>
+                </div>
+                <div className="absolute bottom-0 right-0 w-8 h-8">
+                  <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-white/40 rounded-br-lg"></div>
                 </div>
               </div>
               
-              {/* Caption preview */}
-              <div className="text-xs text-gray-600 leading-relaxed bg-gray-50 p-2 rounded">
-                <strong className="text-gray-800">{post.platform} Caption:</strong>
-                <br />
-                {post.caption.length > 80 ? (
-                  <>
-                    {post.caption.substring(0, 80)}...
-                    <button className="text-blue-600 ml-1 font-medium">
-                      {isSpanish ? 'ver más' : 'see more'}
-                    </button>
-                  </>
-                ) : (
-                  post.caption
-                )}
+              {/* Premium caption preview */}
+              <div className="relative bg-gradient-to-r from-gray-50 to-blue-50/50 p-4 rounded-xl border border-gray-200 shadow-sm">
+                <div className="absolute top-2 right-2">
+                  {post.icon}
+                </div>
+                <div className="text-xs text-gray-700 leading-relaxed">
+                  <span className="inline-flex items-center gap-1 font-bold text-gray-800 mb-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    {post.platform} Caption
+                  </span>
+                  <div className="text-gray-600">
+                    {post.caption.length > 85 ? (
+                      <>
+                        {post.caption.substring(0, 85)}...
+                        <button className="text-blue-600 ml-1 font-semibold hover:text-blue-800 transition-colors">
+                          {isSpanish ? 'expandir' : 'expand'}
+                        </button>
+                      </>
+                    ) : (
+                      post.caption
+                    )}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
