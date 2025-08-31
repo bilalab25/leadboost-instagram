@@ -216,7 +216,7 @@ export const translations = {
     },
     // Pricing
     pricing: {
-      title: "Pricing Plans",
+      title: "Transparent Pricing",
       subtitle: "Choose the plan that fits your business. All plans include our revolutionary CampAIgner tool.",
       starter: "Starter",
       professional: "Professional",
@@ -415,7 +415,7 @@ export const translations = {
     },
     // Pricing
     pricing: {
-      title: "Planes de Precios",
+      title: "Precios Transparentes",
       subtitle: "Elige el plan que se adapte a tu negocio. Todos los planes incluyen nuestra revolucionaria herramienta CampAIgner.",
       starter: "Inicial",
       professional: "Profesional",
