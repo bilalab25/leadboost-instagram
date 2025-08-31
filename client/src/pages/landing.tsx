@@ -335,7 +335,7 @@ export default function Landing() {
                 <ul className="text-sm text-gray-500 space-y-2">
                   <li>• {isSpanish ? 'Respuestas automáticas' : 'Auto-responses'}</li>
                   <li>• {isSpanish ? 'Análisis de sentimientos' : 'Sentiment analysis'}</li>
-                  <li>• {isSpanish ? 'Respuesta IA inteligente 24/7' : '24/7 AI smart response'}</li>
+                  <li>• {isSpanish ? 'Gestión automática 24/7' : '24/7 automated management'}</li>
                 </ul>
               </Card>
 
@@ -530,12 +530,6 @@ export default function Landing() {
           </div>
         </footer>
 
-        {/* AI Chatbot */}
-        <AIChatbot 
-          brandId="brand-1"
-          customerIdentifier="demo-visitor"
-          platform="website"
-        />
       </div>
     </>
   );
