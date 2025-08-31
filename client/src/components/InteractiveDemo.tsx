@@ -9,35 +9,13 @@ interface InteractiveDemoProps {
   isSpanish: boolean;
 }
 
-type DemoStep = 'start' | 'chatbot' | 'scheduling' | 'analytics' | 'results';
+type DemoStep = 'chatbot' | 'scheduling' | 'analytics' | 'results';
 
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
-  const [currentStep, setCurrentStep] = useState<DemoStep>('start');
+  const [currentStep, setCurrentStep] = useState<DemoStep>('chatbot');
   const [isPlaying, setIsPlaying] = useState(false);
 
   const steps = {
-    start: {
-      title: isSpanish ? '🚀 Tu Cliente Llega' : '🚀 Your Customer Arrives',
-      description: isSpanish 
-        ? 'Un cliente potencial ve tu Instagram y quiere saber sobre tus servicios de Botox.'
-        : 'A potential customer sees your Instagram and wants to know about your Botox services.',
-      content: (
-        <div className="text-center p-8">
-          <div className="w-20 h-20 bg-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-            <SiInstagram className="h-10 w-10 text-white" />
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-lg max-w-sm mx-auto">
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full mr-2"></div>
-              <span className="font-semibold">@cliente_interesado</span>
-            </div>
-            <p className="text-gray-700 text-sm">
-              {isSpanish ? '"¿Cuánto cuesta el tratamiento de Botox? ¿Tienen disponibilidad esta semana?"' : '"How much does Botox treatment cost? Do you have availability this week?"'}
-            </p>
-          </div>
-        </div>
-      )
-    },
     chatbot: {
       title: isSpanish ? '🤖 IA Responde Inmediatamente' : '🤖 AI Responds Instantly',
       description: isSpanish 
@@ -189,7 +167,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   };
 
   const nextStep = () => {
-    const stepOrder: DemoStep[] = ['start', 'chatbot', 'scheduling', 'analytics', 'results'];
+    const stepOrder: DemoStep[] = ['chatbot', 'scheduling', 'analytics', 'results'];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex < stepOrder.length - 1) {
       setCurrentStep(stepOrder[currentIndex + 1]);
@@ -198,9 +176,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   const playDemo = () => {
     setIsPlaying(true);
-    setCurrentStep('start');
+    setCurrentStep('chatbot');
     
-    const stepOrder: DemoStep[] = ['start', 'chatbot', 'scheduling', 'analytics', 'results'];
+    const stepOrder: DemoStep[] = ['chatbot', 'scheduling', 'analytics', 'results'];
     let currentIndex = 0;
     
     const interval = setInterval(() => {
@@ -215,7 +193,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   };
 
   const resetDemo = () => {
-    setCurrentStep('start');
+    setCurrentStep('chatbot');
     setIsPlaying(false);
   };
 
