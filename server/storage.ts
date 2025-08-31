@@ -171,6 +171,13 @@ export interface IStorage {
   updateCampaignTrigger(id: string, userId: string, updates: Partial<CampaignTrigger>): Promise<CampaignTrigger | undefined>;
   deleteCampaignTrigger(id: string, userId: string): Promise<boolean>;
 
+  // Chatbot operations
+  getChatbotConfigs(brandId: string): Promise<any[]>;
+  createChatbotConfig(config: any): Promise<any>;
+  getCalendarIntegrations(brandId: string): Promise<any[]>;
+  createCalendarIntegration(integration: any): Promise<any>;
+  getAppointments(brandId: string): Promise<any[]>;
+
   // Brand design operations
   createBrandDesign(design: InsertBrandDesign): Promise<BrandDesign>;
   getBrandDesignByUserId(userId: string): Promise<BrandDesign | undefined>;
@@ -836,6 +843,94 @@ export class DatabaseStorage implements IStorage {
       .delete(campaignDesigns)
       .where(and(eq(campaignDesigns.id, id), eq(campaignDesigns.campaignId, campaignId)));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Chatbot operations
+  async getChatbotConfigs(brandId: string): Promise<any[]> {
+    // Return mock config for now
+    return [
+      {
+        id: "config-1",
+        brandId,
+        language: "es",
+        greeting: "¡Hola! Soy el asistente virtual de Renuve. ¿En qué puedo ayudarte hoy?",
+        businessHours: {
+          monday: { start: "09:00", end: "18:00" },
+          tuesday: { start: "09:00", end: "18:00" },
+          wednesday: { start: "09:00", end: "18:00" },
+          thursday: { start: "09:00", end: "18:00" },
+          friday: { start: "09:00", end: "18:00" },
+          saturday: { start: "10:00", end: "16:00" },
+          sunday: { start: "closed", end: "closed" }
+        },
+        services: [
+          { id: "botox", name: "Botox", duration: 30, price: 300 },
+          { id: "facial", name: "Tratamiento Facial", duration: 60, price: 150 },
+          { id: "dermal-fillers", name: "Rellenos Dérmicos", duration: 45, price: 400 }
+        ]
+      }
+    ];
+  }
+
+  async createChatbotConfig(config: any): Promise<any> {
+    // Mock implementation
+    return {
+      id: `config-${Date.now()}`,
+      ...config,
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  async getCalendarIntegrations(brandId: string): Promise<any[]> {
+    // Return mock calendar integration
+    return [
+      {
+        id: "cal-1",
+        brandId,
+        provider: "google",
+        calendarId: "primary",
+        isActive: true,
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }
+
+  async createCalendarIntegration(integration: any): Promise<any> {
+    // Mock implementation
+    return {
+      id: `cal-${Date.now()}`,
+      ...integration,
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  async getAppointments(brandId: string): Promise<any[]> {
+    // Return mock appointments
+    const now = new Date();
+    return [
+      {
+        id: "apt-1",
+        brandId,
+        customerName: "María González",
+        customerPhone: "+1234567890",
+        service: "Botox",
+        date: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        time: "10:00",
+        status: "confirmed",
+        notes: "Primera cita, consulta inicial incluida"
+      },
+      {
+        id: "apt-2", 
+        brandId,
+        customerName: "Carmen López",
+        customerPhone: "+1234567891",
+        service: "Tratamiento Facial",
+        date: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        time: "14:30",
+        status: "pending",
+        notes: "Cliente habitual, piel sensible"
+      }
+    ];
   }
 }
 

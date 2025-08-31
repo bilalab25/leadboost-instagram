@@ -4,6 +4,7 @@ import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRigh
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
+import { AIChatbot } from "@/components/AIChatbot";
 import leadBoostLogo from "@assets/logo azul sin fondo_1756140873617.png";
 
 export default function Landing() {
@@ -597,6 +598,13 @@ export default function Landing() {
             </div>
           </div>
         </footer>
+
+        {/* AI Chatbot */}
+        <AIChatbot 
+          brandId="brand-1"
+          customerIdentifier="demo-visitor"
+          platform="website"
+        />
       </div>
     </>
   );

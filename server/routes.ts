@@ -995,6 +995,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Chatbot routes
+  app.post('/api/chatbot/message', async (req: any, res) => {
+    try {
+      const { message, brandId, customerIdentifier, platform } = req.body;
+      
+      if (!message || !brandId || !customerIdentifier || !platform) {
+        return res.status(400).json({ 
+          message: "Missing required fields: message, brandId, customerIdentifier, platform" 
+        });
+      }
+
+      // Import chatbot service
+      const { chatbotService } = await import('./chatbotService');
+      
+      // Generate AI response
+      const response = await chatbotService.generateResponse(
+        message,
+        brandId,
+        customerIdentifier,
+        platform
+      );
+
+      res.json(response);
+    } catch (error) {
+      console.error("Chatbot error:", error);
+      res.status(500).json({ 
+        message: "I'm having technical difficulties. Let me connect you with a human representative.",
+        action: 'handoff_to_human'
+      });
+    }
+  });
+
+  app.post('/api/chatbot/schedule', async (req: any, res) => {
+    try {
+      const { schedulingData, brandId, customerIdentifier } = req.body;
+      
+      if (!schedulingData || !brandId || !customerIdentifier) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const { chatbotService } = await import('./chatbotService');
+      
+      const result = await chatbotService.processSchedulingRequest(
+        schedulingData,
+        brandId,
+        customerIdentifier
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error("Scheduling error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "I had trouble scheduling your appointment. Please contact us directly."
+      });
+    }
+  });
+
+  app.get('/api/chatbot/available-times', async (req: any, res) => {
+    try {
+      const { brandId, serviceId, date } = req.query;
+      
+      if (!brandId || !serviceId || !date) {
+        return res.status(400).json({ message: "Missing required parameters" });
+      }
+
+      const { chatbotService } = await import('./chatbotService');
+      
+      const availableTimes = await chatbotService.getAvailableTimeSlots(
+        brandId as string,
+        serviceId as string,
+        date as string
+      );
+
+      res.json({ availableTimes });
+    } catch (error) {
+      console.error("Error fetching available times:", error);
+      res.status(500).json({ message: "Failed to fetch available times" });
+    }
+  });
+
+  // Chatbot configuration routes
+  app.get('/api/chatbot/config/:brandId', async (req: any, res) => {
+    try {
+      const { brandId } = req.params;
+      const configs = await storage.getChatbotConfigs(brandId);
+      res.json(configs);
+    } catch (error) {
+      console.error("Error fetching chatbot config:", error);
+      res.status(500).json({ message: "Failed to fetch chatbot configuration" });
+    }
+  });
+
+  app.post('/api/chatbot/config', async (req: any, res) => {
+    try {
+      const configData = req.body;
+      const config = await storage.createChatbotConfig(configData);
+      res.json(config);
+    } catch (error) {
+      console.error("Error creating chatbot config:", error);
+      res.status(500).json({ message: "Failed to create chatbot configuration" });
+    }
+  });
+
+  // Calendar integration routes
+  app.get('/api/calendar/integrations/:brandId', async (req: any, res) => {
+    try {
+      const { brandId } = req.params;
+      const integrations = await storage.getCalendarIntegrations(brandId);
+      res.json(integrations);
+    } catch (error) {
+      console.error("Error fetching calendar integrations:", error);
+      res.status(500).json({ message: "Failed to fetch calendar integrations" });
+    }
+  });
+
+  app.post('/api/calendar/integrations', async (req: any, res) => {
+    try {
+      const integrationData = req.body;
+      const integration = await storage.createCalendarIntegration(integrationData);
+      res.json(integration);
+    } catch (error) {
+      console.error("Error creating calendar integration:", error);
+      res.status(500).json({ message: "Failed to create calendar integration" });
+    }
+  });
+
+  app.get('/api/appointments/:brandId', async (req: any, res) => {
+    try {
+      const { brandId } = req.params;
+      const appointments = await storage.getAppointments(brandId);
+      res.json(appointments);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      res.status(500).json({ message: "Failed to fetch appointments" });
+    }
+  });
+
   // Analytics routes
   app.get('/api/analytics', isAuthenticated, async (req: any, res) => {
     try {
