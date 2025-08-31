@@ -79,12 +79,12 @@ export default function Landing() {
                 {isSpanish ? 'CampAIgner + Planificador IA' : 'CampAIgner + AI Planner'}
               </h2>
               <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-8 tracking-wide">
-                {isSpanish ? 'Campañas Que Reservan Citas Mientras Duermes' : 'Campaigns That Book Appointments While You Sleep'}
+                {isSpanish ? 'Campañas Que Generan Ventas Mientras Duermes' : 'Campaigns That Generate Sales While You Sleep'}
               </div>
               
               <div className="max-w-4xl mx-auto mt-8">
                 <p className="text-lg lg:text-xl text-gray-600 leading-relaxed font-normal">
-                  {isSpanish ? 'Dos herramientas poderosas: CampAIgner crea el contenido perfecto, el Planificador IA programa todo automáticamente. Resultado: más clientes sin trabajo extra.' : 'Two powerful tools: CampAIgner creates perfect content, AI Planner schedules everything automatically. Result: more customers without extra work.'}
+                  {isSpanish ? 'Dos herramientas poderosas: CampAIgner crea el contenido perfecto, el Planificador IA programa todo automáticamente. Resultado: más ventas sin trabajo extra.' : 'Two powerful tools: CampAIgner creates perfect content, AI Planner schedules everything automatically. Result: more sales without extra work.'}
                 </p>
               </div>
             </div>
@@ -159,7 +159,7 @@ export default function Landing() {
                     <ArrowDown className="h-8 w-8 text-brand-400 mx-auto mb-6" />
                     <div className="bg-gradient-to-r from-brand-500 to-brand-600 text-white p-6 rounded-3xl max-w-2xl mx-auto shadow-2xl">
                       <h4 className="text-2xl font-bold mb-2">{isSpanish ? 'RESULTADO' : 'RESULT'}</h4>
-                      <p className="text-lg font-semibold">{isSpanish ? 'Más clientes reservando citas mientras duermes' : 'More customers booking appointments while you sleep'}</p>
+                      <p className="text-lg font-semibold">{isSpanish ? 'Más ventas llegando automáticamente' : 'More sales coming automatically'}</p>
                     </div>
                   </div>
                   
