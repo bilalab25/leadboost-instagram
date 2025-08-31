@@ -293,7 +293,7 @@ export default function CampAIgner() {
                         <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
                           <Globe className="h-6 w-6 text-white" />
                         </div>
-                        <div className="font-semibold">{isSpanish ? 'Elegir Plataformas' : 'Choose Platforms'}</div>
+                        <div className="font-semibold">{isSpanish ? '+21 Plataformas' : '+21 Platforms'}</div>
                       </div>
                       <div className="text-center">
                         <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
