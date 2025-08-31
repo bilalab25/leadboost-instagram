@@ -366,7 +366,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <Sparkles className="w-12 h-12 mx-auto mb-4 text-brand-600" />
-          <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
+          <h3 className="text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
             {isSpanish ? '🚀 Demo de CampAIgner' : '🚀 CampAIgner Demo'}
           </h3>
           <p className="text-sm text-gray-600 leading-relaxed">
