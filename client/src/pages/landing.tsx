@@ -76,7 +76,7 @@ export default function Landing() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
             <div className="text-center mb-16">
               <h2 className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.88] tracking-tight">
-                {isSpanish ? 'CampAIgner + Planificador IA' : 'CampAIgner + AI Planner'}
+                {isSpanish ? 'CampAIgner' : 'CampAIgner'}
               </h2>
               <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-8 tracking-wide">
                 {isSpanish ? 'Campañas Que Generan Ventas Mientras Duermes' : 'Campaigns That Generate Sales While You Sleep'}
@@ -84,7 +84,7 @@ export default function Landing() {
               
               <div className="max-w-4xl mx-auto mt-8">
                 <p className="text-lg lg:text-xl text-gray-600 leading-relaxed font-normal">
-                  {isSpanish ? 'Dos herramientas poderosas: CampAIgner crea el contenido perfecto, el Planificador IA programa todo automáticamente. Resultado: más ventas sin trabajo extra.' : 'Two powerful tools: CampAIgner creates perfect content, AI Planner schedules everything automatically. Result: more sales without extra work.'}
+                  {isSpanish ? 'Una herramienta completa: crea contenido perfecto y programa campañas automáticamente. Elige una campaña individual o un plan completo mensual. Resultado: más ventas sin trabajo extra.' : 'One complete tool: creates perfect content and schedules campaigns automatically. Choose a single campaign or a full monthly plan. Result: more sales without extra work.'}
                 </p>
               </div>
             </div>
@@ -108,48 +108,63 @@ export default function Landing() {
                 <div className="waterfall-particle" style={{zIndex: 5}}></div>
                 <div className="waterfall-particle" style={{zIndex: 5}}></div>
                 <CardContent className="p-8 lg:p-12 relative z-10">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                  <div className="max-w-4xl mx-auto">
                     
-                    {/* CampAIgner Tool */}
-                    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-8 rounded-3xl border border-purple-200">
-                      <div className="text-center">
-                        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-                          <Zap className="h-10 w-10 text-white" />
+                    {/* Unified CampAIgner Tool */}
+                    <div className="bg-gradient-to-br from-brand-50 to-brand-100 p-8 lg:p-12 rounded-3xl border border-brand-200 shadow-2xl">
+                      <div className="text-center mb-8">
+                        <div className="w-24 h-24 bg-gradient-to-br from-brand-500 to-brand-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+                          <Zap className="h-12 w-12 text-white" />
                         </div>
-                        <h3 className="text-2xl font-black text-purple-600 mb-2">CampAIgner</h3>
-                        <p className="text-gray-700 font-medium mb-4">{isSpanish ? 'Convierte tu idea en 21+ campañas perfectas' : 'Turn your idea into 21+ perfect campaigns'}</p>
-                        <div className="grid grid-cols-4 gap-1 mb-4 max-w-32 mx-auto">
-                          <div className="w-6 h-6 bg-pink-500 rounded-md flex items-center justify-center">
-                            <SiInstagram className="h-3 w-3 text-white" />
-                          </div>
-                          <div className="w-6 h-6 bg-gray-900 rounded-md flex items-center justify-center">
-                            <SiTiktok className="h-3 w-3 text-white" />
-                          </div>
-                          <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
-                            <SiFacebook className="h-3 w-3 text-white" />
-                          </div>
-                          <div className="w-6 h-6 bg-green-600 rounded-md flex items-center justify-center text-white font-bold text-[8px]">
-                            +18
-                          </div>
-                        </div>
-                        <p className="text-sm text-purple-600 font-semibold">{isSpanish ? 'Un clic = Todo listo' : 'One click = Everything ready'}</p>
+                        <h3 className="text-3xl font-black text-brand-600 mb-2">CampAIgner</h3>
+                        <p className="text-gray-700 font-medium text-lg">{isSpanish ? 'Tu solución completa de marketing automatizado' : 'Your complete automated marketing solution'}</p>
                       </div>
-                    </div>
-                    
-                    {/* AI Planner Tool */}
-                    <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-8 rounded-3xl border border-emerald-200">
-                      <div className="text-center">
-                        <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-                          <Bot className="h-10 w-10 text-white" />
+                      
+                      {/* Two Usage Options */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        {/* Single Campaign */}
+                        <div className="bg-white p-6 rounded-2xl border border-brand-200 hover:shadow-lg transition-shadow">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                              <Target className="h-8 w-8 text-white" />
+                            </div>
+                            <h4 className="text-xl font-bold text-gray-900 mb-2">{isSpanish ? 'Campaña Única' : 'Single Campaign'}</h4>
+                            <p className="text-gray-600 mb-4">{isSpanish ? 'Crea y lanza una campaña ahora mismo' : 'Create and launch one campaign right now'}</p>
+                            <div className="grid grid-cols-4 gap-1 mb-4 max-w-32 mx-auto">
+                              <div className="w-6 h-6 bg-pink-500 rounded-md flex items-center justify-center">
+                                <SiInstagram className="h-3 w-3 text-white" />
+                              </div>
+                              <div className="w-6 h-6 bg-gray-900 rounded-md flex items-center justify-center">
+                                <SiTiktok className="h-3 w-3 text-white" />
+                              </div>
+                              <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
+                                <SiFacebook className="h-3 w-3 text-white" />
+                              </div>
+                              <div className="w-6 h-6 bg-green-600 rounded-md flex items-center justify-center text-white font-bold text-[8px]">
+                                +18
+                              </div>
+                            </div>
+                            <p className="text-sm text-purple-600 font-semibold">{isSpanish ? 'Listo en minutos' : 'Ready in minutes'}</p>
+                          </div>
                         </div>
-                        <h3 className="text-2xl font-black text-emerald-600 mb-2">{isSpanish ? 'Planificador IA' : 'AI Planner'}</h3>
-                        <p className="text-gray-700 font-medium mb-4">{isSpanish ? 'Programa y optimiza todo automáticamente' : 'Schedules and optimizes everything automatically'}</p>
-                        <div className="flex items-center justify-center space-x-2 mb-4">
-                          <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
-                          <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" style={{animationDelay: '200ms'}}></div>
-                          <div className="w-3 h-3 bg-emerald-600 rounded-full animate-pulse" style={{animationDelay: '400ms'}}></div>
+                        
+                        {/* Monthly Plan */}
+                        <div className="bg-white p-6 rounded-2xl border border-brand-200 hover:shadow-lg transition-shadow">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                              <Bot className="h-8 w-8 text-white" />
+                            </div>
+                            <h4 className="text-xl font-bold text-gray-900 mb-2">{isSpanish ? 'Plan Mensual' : 'Monthly Plan'}</h4>
+                            <p className="text-gray-600 mb-4">{isSpanish ? 'Planifica y programa todo el mes automáticamente' : 'Plan and schedule the entire month automatically'}</p>
+                            <div className="flex items-center justify-center space-x-2 mb-4">
+                              <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" style={{animationDelay: '200ms'}}></div>
+                              <div className="w-3 h-3 bg-emerald-600 rounded-full animate-pulse" style={{animationDelay: '400ms'}}></div>
+                            </div>
+                            <p className="text-sm text-emerald-600 font-semibold">{isSpanish ? 'Automatizado 24/7' : 'Automated 24/7'}</p>
+                          </div>
                         </div>
-                        <p className="text-sm text-emerald-600 font-semibold">{isSpanish ? '24/7 trabajando por ti' : '24/7 working for you'}</p>
                       </div>
                     </div>
                   </div>
