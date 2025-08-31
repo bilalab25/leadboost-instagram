@@ -67,6 +67,78 @@ const businessTemplates = {
       preview: 'See the exact products and routine that gave Emma glowing skin...',
       content: 'Achieve radiant skin with our 5-minute daily routine. Using 100% natural botanicals, our products help you glow from within and boost your natural confidence.'
     }
+  },
+  ecommerce: {
+    posts: [
+      { image: '📦', caption: 'New arrivals alert! 🚨 Fresh inventory just dropped. Shop the latest trends before they sell out! #NewArrivals #ShopNow', likes: 3245, comments: 127 },
+      { image: '⭐', caption: 'Customer love! 💕 "Best purchase I\'ve made this year!" - Sarah M. See what everyone\'s raving about. #CustomerReview #FiveStars', likes: 4567, comments: 203 },
+      { image: '🛒', caption: 'Flash Sale Alert! ⚡ 48 hours only - Save 30% on bestsellers. Use code FLASH30 at checkout! #FlashSale #SaveBig', likes: 6789, comments: 456 },
+      { image: '📸', caption: 'Behind the scenes at our warehouse! 📦 Your orders are packed with care and shipped with love. #BehindTheScenes #CustomerCare', likes: 2134, comments: 89 },
+      { image: '🎁', caption: 'Gift guide season! 🎄 Find the perfect present for everyone on your list. Free gift wrapping included! #GiftGuide #FreeWrapping', likes: 3876, comments: 234 },
+      { image: '🚚', caption: 'Free shipping milestone! 📈 Thanks to your support, we now offer free shipping on all orders over $50! #FreeShipping #Milestone', likes: 2945, comments: 167 },
+      { image: '💎', caption: 'Product spotlight! ✨ This week\'s featured item has a 98% satisfaction rate. See why customers love it! #ProductSpotlight #BestSeller', likes: 4123, comments: 298 },
+      { image: '🔄', caption: 'Restock notification! 📢 Popular items are back in stock. Don\'t wait - these sell fast! #Restocked #PopularItems', likes: 3456, comments: 178 },
+      { image: '🏆', caption: 'Award winning! 🥇 Proud to announce we\'ve won "Best Online Store 2024"! Thank you for your support! #Award #BestStore2024', likes: 5234, comments: 421 }
+    ],
+    newsletter: {
+      subject: 'Flash Sale: 30% Off Bestsellers - 48 Hours Only!',
+      preview: 'Don\'t miss out on this limited-time offer on our most popular items...',
+      content: 'Get ready for incredible savings! Our 48-hour flash sale features 30% off all bestselling items. From customer favorites to new arrivals, everything you love is now more affordable.'
+    }
+  },
+  consulting: {
+    posts: [
+      { image: '💼', caption: 'Business transformation success! 📈 Client achieved 200% revenue growth in 6 months. Ready for your breakthrough? #BusinessGrowth #ClientSuccess', likes: 2156, comments: 78 },
+      { image: '📊', caption: 'Market insight Monday! 📈 3 trends every business owner should watch in 2024. Swipe for details! #MarketInsights #BusinessTrends', likes: 3421, comments: 156 },
+      { image: '🎯', caption: 'Strategy session spotlight! 💡 How we helped a startup scale from $10K to $100K monthly revenue. #StrategySession #StartupGrowth', likes: 4567, comments: 234 },
+      { image: '📚', caption: 'Knowledge drop! 🧠 The #1 mistake businesses make when scaling (and how to avoid it). Save this post! #BusinessTips #ScalingSecrets', likes: 5234, comments: 298 },
+      { image: '🤝', caption: 'Partnership announcement! 🎉 Excited to collaborate with industry leaders to bring you better solutions. #Partnership #Innovation', likes: 2789, comments: 123 },
+      { image: '📞', caption: 'Free consultation Friday! ☎️ Book your complimentary strategy call this week. Limited spots available! #FreeConsultation #StrategyCall', likes: 3876, comments: 189 },
+      { image: '🏅', caption: 'Achievement unlocked! 🏆 Helped our 500th client reach their revenue goals. Celebrating this milestone! #Milestone #ClientSuccess', likes: 4123, comments: 267 },
+      { image: '📖', caption: 'Case study reveal! 📋 How we doubled a client\'s profit margins without increasing prices. Link in bio for full story! #CaseStudy #ProfitOptimization', likes: 3654, comments: 178 },
+      { image: '🚀', caption: 'Launch week! 🎊 New service offering: Digital transformation consulting. Ready to modernize your business? #NewService #DigitalTransformation', likes: 2945, comments: 134 }
+    ],
+    newsletter: {
+      subject: 'Case Study: How We Doubled Client Profit Margins (No Price Increase)',
+      preview: 'See the exact strategies we used to boost profitability without raising prices...',
+      content: 'Discover the proven framework that helped our client double their profit margins in just 90 days. This detailed case study reveals the exact strategies and implementation steps.'
+    }
+  },
+  realestate: {
+    posts: [
+      { image: '🏠', caption: 'Just listed! ✨ Stunning 3BR/2BA home in prime location. Modern upgrades, move-in ready. Schedule your tour today! #JustListed #DreamHome', likes: 4567, comments: 234 },
+      { image: '🔑', caption: 'SOLD in 3 days! 🎉 Another happy family found their dream home. Ready to sell yours fast? Let\'s chat! #SoldFast #RealEstateExpert', likes: 3245, comments: 167 },
+      { image: '📈', caption: 'Market update! 📊 Local home values up 8% this quarter. Great time to sell! Get your free home valuation today. #MarketUpdate #HomeValues', likes: 2789, comments: 134 },
+      { image: '🏘️', caption: 'Neighborhood spotlight! 🌟 Why families love living in Oakwood Heights. Schools, parks, and community - it has it all! #NeighborhoodSpotlight #FamilyFriendly', likes: 3456, comments: 189 },
+      { image: '💰', caption: 'First-time buyer success! 🏡 Helped Sarah and Mike get into their first home with $5K down. Your dream is possible too! #FirstTimeBuyer #DreamsPossible', likes: 4123, comments: 298 },
+      { image: '📸', caption: 'Before & After staging magic! ✨ See how professional staging helped this home sell for 15% above asking! #Staging #AboveAsking', likes: 3876, comments: 223 },
+      { image: '🎯', caption: 'Buyer tip Tuesday! 💡 The #1 thing to check during home inspections that most buyers miss. Save this post! #BuyerTips #HomeInspection', likes: 2654, comments: 156 },
+      { image: '📅', caption: 'Open house this weekend! 🏠 Saturday 1-3PM, Sunday 11-1PM. Beautiful home, must see to believe! #OpenHouse #WeekendViewing', likes: 3234, comments: 178 },
+      { image: '🏆', caption: 'Top agent recognition! 🥇 Proud to be ranked #1 in sales volume this quarter. Thank you for trusting me with your biggest investment! #TopAgent #ThankYou', likes: 2945, comments: 201 }
+    ],
+    newsletter: {
+      subject: 'Market Alert: Home Values Up 8% - Perfect Time to Sell!',
+      preview: 'Get your free home valuation and see what your property is worth in today\'s market...',
+      content: 'The local real estate market is heating up! With home values rising 8% this quarter, it\'s an excellent time for homeowners to consider selling. Our proven marketing strategy gets homes sold fast and for top dollar.'
+    }
+  },
+  dental: {
+    posts: [
+      { image: '😁', caption: 'Smile transformation Tuesday! ✨ See Emily\'s amazing results after just 6 months of treatment. Your perfect smile awaits! #SmileTransformation #PerfectSmile', likes: 3456, comments: 189 },
+      { image: '🦷', caption: 'Dental tip of the day! 💡 Flossing prevents 40% more cavities than brushing alone. Make it part of your daily routine! #DentalTips #OralHealth', likes: 2234, comments: 123 },
+      { image: '👨‍⚕️', caption: 'Meet Dr. Johnson! 👋 20+ years of experience creating beautiful, healthy smiles. Book your consultation today! #MeetTheDoctor #ExperiencedCare', likes: 2789, comments: 145 },
+      { image: '🎉', caption: 'Patient appreciation! 💕 "Dr. Johnson made my dental anxiety disappear. Best experience ever!" - Sarah M. #PatientAppreciation #AnxietyFree', likes: 4123, comments: 267 },
+      { image: '🦷', caption: 'Teeth whitening special! ⭐ Professional whitening treatment - 50% off this month only. Get that Hollywood smile! #TeethWhitening #SpecialOffer', likes: 3876, comments: 234 },
+      { image: '👨‍👩‍👧‍👦', caption: 'Family dental care! 👪 We make dental visits fun for kids and comfortable for parents. Same-day family appointments available! #FamilyDental #KidsFriendly', likes: 2945, comments: 178 },
+      { image: '🔬', caption: 'Technology spotlight! 💻 Our new digital X-ray system reduces radiation by 90% while providing clearer images. #TechnologyAdvanced #SaferXrays', likes: 2456, comments: 134 },
+      { image: '📅', caption: 'Appointment reminder! ⏰ Don\'t forget your 6-month checkup! Regular cleanings prevent major dental issues. Book online 24/7! #AppointmentReminder #PreventiveCare', likes: 3234, comments: 156 },
+      { image: '🏆', caption: 'Award winning practice! 🥇 Voted "Best Dental Practice 2024" by our community. Thank you for your trust and support! #AwardWinning #CommunityChoice', likes: 2678, comments: 201 }
+    ],
+    newsletter: {
+      subject: 'Teeth Whitening Special: 50% Off Professional Treatment',
+      preview: 'Get a Hollywood-worthy smile with our professional whitening treatment...',
+      content: 'Transform your smile this month with our professional teeth whitening treatment at 50% off regular price. Our advanced whitening system delivers dramatic results in just one visit, giving you the confidence to smile brighter.'
+    }
   }
 };
 
@@ -289,6 +361,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               <SelectItem value="restaurant" data-testid="option-restaurant">🍕 {isSpanish ? 'Restaurante' : 'Restaurant'}</SelectItem>
               <SelectItem value="fitness" data-testid="option-fitness">💪 {isSpanish ? 'Fitness/Gym' : 'Fitness/Gym'}</SelectItem>
               <SelectItem value="beauty" data-testid="option-beauty">✨ {isSpanish ? 'Belleza/Spa' : 'Beauty/Spa'}</SelectItem>
+              <SelectItem value="ecommerce" data-testid="option-ecommerce">📦 {isSpanish ? 'E-commerce' : 'E-commerce'}</SelectItem>
+              <SelectItem value="consulting" data-testid="option-consulting">💼 {isSpanish ? 'Consultoría' : 'Consulting'}</SelectItem>
+              <SelectItem value="realestate" data-testid="option-realestate">🏠 {isSpanish ? 'Bienes Raíces' : 'Real Estate'}</SelectItem>
+              <SelectItem value="dental" data-testid="option-dental">🦷 {isSpanish ? 'Dental/Médico' : 'Dental/Medical'}</SelectItem>
             </SelectContent>
           </Select>
         </div>
