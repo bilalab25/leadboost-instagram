@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Sparkles, Target, ArrowRight, Zap, Upload, Settings, 
-  Calendar, Eye, Download, Share2, BarChart3, DollarSign, Users, Bot, Plus, MessageSquare, TrendingUp
+  Calendar, Eye, Download, Share2, BarChart3, DollarSign, Users, Bot, Plus, MessageSquare, TrendingUp, Globe, Flame
 } from "lucide-react";
 import { 
   SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, 
@@ -291,13 +291,13 @@ export default function CampAIgner() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                       <div className="text-center">
                         <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Target className="h-6 w-6 text-white" />
+                          <Globe className="h-6 w-6 text-white" />
                         </div>
                         <div className="font-semibold">{isSpanish ? 'Elegir Plataformas' : 'Choose Platforms'}</div>
                       </div>
                       <div className="text-center">
                         <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <MessageSquare className="h-6 w-6 text-white" />
+                          <Flame className="h-6 w-6 text-white" />
                         </div>
                         <div className="font-semibold">{isSpanish ? 'Campaña Viral' : 'Viral Campaign'}</div>
                       </div>
