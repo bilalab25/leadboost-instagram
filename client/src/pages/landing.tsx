@@ -468,8 +468,6 @@ export default function Landing() {
           <OnboardingProgress isSpanish={isSpanish} />
         </div>
 
-        {/* Referral Program */}
-        <ReferralProgram isSpanish={isSpanish} />
 
         {/* Final CTA */}
         <div className="py-24 bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800">
