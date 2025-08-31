@@ -367,18 +367,22 @@ export default function Landing() {
                   </div>
                 </div>
 
-                {/* Trusted By Logos */}
+                {/* Technology Partners */}
                 <div className="text-center">
                   <p className="text-gray-600 mb-8 font-medium">
-                    {isSpanish ? 'Empresas Que Confían en LeadBoost' : 'Trusted by Leading Businesses'}
+                    {isSpanish ? 'Se Integra Con Las Herramientas Que Ya Usas' : 'Integrates With The Tools You Already Use'}
                   </p>
-                  <div className="flex justify-center items-center space-x-8 opacity-60">
-                    <div className="text-2xl font-bold text-gray-400">Beauty Pro</div>
-                    <div className="text-2xl font-bold text-gray-400">Dental Excellence</div>
-                    <div className="text-2xl font-bold text-gray-400">Wellness Center</div>
-                    <div className="text-2xl font-bold text-gray-400">Spa Luxury</div>
-                    <div className="text-2xl font-bold text-gray-400">Med Clinic</div>
+                  <div className="flex justify-center items-center space-x-8 lg:space-x-12 opacity-60 flex-wrap gap-4">
+                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Wix</div>
+                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Salesforce</div>
+                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">HubSpot</div>
+                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Shopify</div>
+                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Zapier</div>
+                    <div className="text-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">Mailchimp</div>
                   </div>
+                  <p className="text-sm text-gray-500 mt-4">
+                    {isSpanish ? '+ 50+ integraciones más disponibles' : '+ 50+ more integrations available'}
+                  </p>
                 </div>
               </div>
             </div>
