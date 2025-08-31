@@ -552,13 +552,6 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Interactive Product Demo */}
-        <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-brand-50">
-          <InteractiveDemo isSpanish={isSpanish} />
-        </div>
-
-
-
         {/* Onboarding Progress */}
         <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-white">
           <OnboardingProgress isSpanish={isSpanish} />
