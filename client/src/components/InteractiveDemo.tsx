@@ -371,8 +371,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           </h3>
           <p className="text-xl font-medium text-gray-700 leading-tight">
             {isSpanish 
-              ? 'Una descripción → Campañas para 8+ plataformas'
-              : 'One description → Campaigns for 8+ platforms'
+              ? 'Una descripción → Campañas para 21+ plataformas'
+              : 'One description → Campaigns for 21+ platforms'
             }
           </p>
         </div>
