@@ -161,30 +161,16 @@ export default function Landing() {
                     </div>
                   </div>
                   
-                  {/* CampAIgner Video */}
-                  <div className="mt-12 text-center mb-8">
-                    <div className="relative">
-                      <div className="bg-black rounded-2xl aspect-video w-96 mx-auto flex items-center justify-center relative overflow-hidden shadow-2xl">
-                        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/30 to-black/60"></div>
-                        <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm z-10 hover:scale-105 transition-transform cursor-pointer">
-                          <svg className="w-9 h-9 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                          </svg>
-                        </div>
-                        <div className="absolute top-6 left-6 bg-brand-600 text-white px-4 py-2 rounded-full text-base font-medium">
-                          CampAIgner
-                        </div>
-                        <div className="absolute bottom-6 right-6 bg-black/80 text-white px-3 py-1 rounded text-sm font-mono">
-                          2:43
-                        </div>
+                  {/* Video */}
+                  <div className="mt-12 mb-8 flex justify-center">
+                    <div className="bg-black rounded-lg h-48 w-80 flex items-center justify-center">
+                      <div className="w-16 h-16 border-4 border-white rounded-full flex items-center justify-center">
+                        <div className="w-0 h-0 border-l-8 border-l-white border-y-6 border-y-transparent ml-1"></div>
                       </div>
-                      <p className="text-base text-gray-600 mt-4 font-medium">
-                        {isSpanish ? 'Ver cómo funciona la herramienta' : 'See how the tool works'}
-                      </p>
                     </div>
                   </div>
                   
-                  <div className="mt-8 text-center">
+                  <div className="mt-12 text-center">
                     <Button 
                       size="lg" 
                       className="bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white px-12 py-4 text-xl font-bold shadow-2xl rounded-3xl transition-all duration-300 transform hover:scale-105"
