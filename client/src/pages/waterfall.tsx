@@ -288,6 +288,26 @@ export default function CampAIgner() {
                         : 'AI analyzes your POS data and business behavior to suggest strategies that maximize sales and revenue. Selects platforms, creates content, and sets up campaigns based on what actually works for your business.'
                       }
                     </p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Target className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="font-semibold">{isSpanish ? 'Elegir Plataformas' : 'Choose Platforms'}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <MessageSquare className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="font-semibold">{isSpanish ? 'Campaña Viral' : 'Viral Campaign'}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <TrendingUp className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="font-semibold">{isSpanish ? 'Más Ventas' : 'More Sales'}</div>
+                      </div>
+                    </div>
                   </div>
 
                   <div>
