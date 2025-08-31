@@ -312,7 +312,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 {isSpanish ? '🏢 Describe tu Negocio' : '🏢 Describe Your Business'}
               </label>
               <Input
-                placeholder={isSpanish ? 'ej: "Restaurante italiano familiar en el centro de la ciudad que sirve pasta casera y pizzas al horno de leña desde hace 15 años"' : 'e.g., "Family Italian restaurant in downtown area serving homemade pasta and wood-fired pizzas for 15 years"'}
+                placeholder={isSpanish ? 'ej: "Boutique fitness studio specializing in yoga and meditation classes for busy professionals in Manhattan" o "Local bakery famous for artisan sourdough bread and custom wedding cakes"' : 'e.g., "Boutique fitness studio specializing in yoga and meditation classes for busy professionals in Manhattan" or "Local bakery famous for artisan sourdough bread and custom wedding cakes"'}
                 value={demo.businessDescription}
                 onChange={(e) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
                 className="text-lg h-12"
