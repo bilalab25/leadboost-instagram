@@ -272,7 +272,7 @@ export default function CampAIgner() {
                         {isSpanish ? '🚀 IA Hace Todo por Ti' : '🚀 AI Does Everything For You'}
                       </div>
                       <div className="text-sm text-brand-600 font-semibold">
-                        {isSpanish ? 'Describe tu idea → IA crea campaña completa' : 'Describe your idea → AI creates complete campaign'}
+                        {isSpanish ? 'Tus datos de negocio → IA crea campaña completa' : 'Your business data → AI creates complete campaign'}
                       </div>
                     </div>
                   </CardTitle>
