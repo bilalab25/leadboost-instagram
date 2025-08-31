@@ -93,7 +93,7 @@ const generatePlatformPosts = (businessDescription: string): PlatformPost[] => {
     caption: generatePlatformCaption(campaignIdea, businessType, platform.tone),
     dimensions: platform.dimensions,
     aspectRatio: platform.aspectRatio,
-    imageUrl: getSmartVisual(campaignIdea, businessType, platform.aspectRatio),
+    imageUrl: getSmartVisual(businessDescription, businessType, platform.aspectRatio),
     icon: platform.icon
   }));
 };
@@ -155,8 +155,51 @@ const generatePlatformCaption = (campaignIdea: string, businessType: string, ton
   return captions[tone]?.[businessKey] || `${campaignIdea} - Limited time offer!`;
 };
 
-// Smart visual selection based on campaign and business type
-const getSmartVisual = (campaignIdea: string, businessType: string, aspectRatio: string): string => {
+// Smart visual selection based on specific business description
+const getSmartVisual = (businessDescription: string, businessType: string, aspectRatio: string): string => {
+  const desc = businessDescription.toLowerCase();
+  
+  // More specific visual selection based on actual description
+  const getSpecificVisual = () => {
+    // Italian restaurant specific
+    if (desc.includes('italian') && desc.includes('pasta')) {
+      return {
+        square: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=1080&h=1080&fit=crop&crop=center',
+        landscape: 'https://images.unsplash.com/photo-1563379091339-03246963d4d6?w=1200&h=628&fit=crop&crop=center',
+        story: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1563379091339-03246963d4d6?w=600&h=200&fit=crop&crop=center'
+      };
+    }
+    
+    // Bakery specific
+    if (desc.includes('bakery') && desc.includes('bread')) {
+      return {
+        square: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1080&h=1080&fit=crop&crop=center',
+        landscape: 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=1200&h=628&fit=crop&crop=center',
+        story: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=600&h=200&fit=crop&crop=center'
+      };
+    }
+    
+    // Yoga/meditation specific
+    if (desc.includes('yoga') && desc.includes('meditation')) {
+      return {
+        square: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1080&h=1080&fit=crop&crop=center',
+        landscape: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=628&fit=crop&crop=center',
+        story: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=200&fit=crop&crop=center'
+      };
+    }
+    
+    return null;
+  };
+  
+  const specificVisuals = getSpecificVisual();
+  if (specificVisuals) {
+    return specificVisuals[aspectRatio as keyof typeof specificVisuals];
+  }
+  
+  // Fallback to business type visuals
   const visualsByType: Record<string, Record<string, string>> = {
     restaurant: {
       square: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=1080&h=1080&fit=crop&crop=center',
@@ -208,43 +251,72 @@ const detectBusinessType = (description: string): string => {
   return 'default';
 };
 
-// Generate a campaign idea based on business description
+// Generate a smart campaign idea based on business description
 const generateCampaignIdea = (description: string, businessType: string): string => {
-  const campaignIdeas: Record<string, string[]> = {
-    restaurant: [
-      '25% off Weekend Special',
-      'Happy Hour Buy One Get One Free',
-      'New Menu Launch - Try 3 Dishes for $30',
-      'Family Dinner Deal - Kids Eat Free'
-    ],
-    fitness: [
-      'New Year Fitness Challenge - 50% Off First Month',
-      'Summer Body Bootcamp - Join Today',
-      'Free Personal Training Session This Week',
-      'Unlimited Classes for 30 Days - Special Price'
-    ],
-    beauty: [
-      'Glow Up Package - 30% Off All Treatments',
-      'Mother\'s Day Spa Special - Book Now',
-      'New Product Launch - Free Consultation',
-      'Bridal Package - Complete Wedding Look'
-    ],
-    retail: [
-      'Spring Sale - Up to 50% Off Everything',
-      'Buy 2 Get 1 Free Weekend Only',
-      'New Collection Launch - Early Access',
-      'Customer Appreciation - 20% Off + Free Shipping'
-    ],
-    default: [
-      'Limited Time Offer - 30% Off All Services',
-      'New Client Special - Book Your Consultation',
-      'Weekend Flash Sale - Save Big Today',
-      'Exclusive Deal - Premium Package Discount'
-    ]
-  };
+  const desc = description.toLowerCase();
   
-  const ideas = campaignIdeas[businessType] || campaignIdeas.default;
-  return ideas[Math.floor(Math.random() * ideas.length)];
+  // Analyze business description for specific details
+  if (businessType === 'restaurant') {
+    if (desc.includes('italian') || desc.includes('pasta') || desc.includes('pizza')) {
+      if (desc.includes('family') || desc.includes('downtown')) {
+        return 'Authentic Italian Family Night - 20% Off for Groups of 4+';
+      }
+      return 'Wood-Fired Pizza Weekend Special - Buy 2 Get 1 Free';
+    }
+    if (desc.includes('bakery') || desc.includes('bread') || desc.includes('cake')) {
+      if (desc.includes('weekend') || desc.includes('foot traffic')) {
+        return 'Saturday Morning Fresh Bread + Coffee Combo Deal';
+      }
+      return 'Wedding Cake Consultation - Free Tasting Session';
+    }
+    if (desc.includes('coffee') || desc.includes('cafe')) {
+      return 'Morning Commuter Special - Buy 5 Coffees, Get 2 Free';
+    }
+    return 'New Customer Special - 25% Off Your First Visit';
+  }
+  
+  if (businessType === 'fitness') {
+    if (desc.includes('yoga') || desc.includes('meditation')) {
+      if (desc.includes('professional') || desc.includes('busy')) {
+        return 'Lunch Break Yoga for Professionals - Free First Class';
+      }
+      return 'Mind-Body Transformation Package - 30% Off First Month';
+    }
+    if (desc.includes('crossfit') || desc.includes('strength')) {
+      return 'Summer Strength Challenge - Join Today, Pay Later';
+    }
+    return 'New Year, New You - 50% Off Personal Training';
+  }
+  
+  if (businessType === 'beauty') {
+    if (desc.includes('spa') || desc.includes('facial') || desc.includes('treatment')) {
+      return 'Stress Relief Spa Day - Book 2 Treatments, Save 30%';
+    }
+    if (desc.includes('salon') || desc.includes('hair')) {
+      return 'New Look Makeover Package - Cut + Color + Style';
+    }
+    return 'Glow Up Special - Complimentary Consultation + 20% Off';
+  }
+  
+  if (businessType === 'retail') {
+    if (desc.includes('boutique') || desc.includes('clothing')) {
+      return 'New Season Collection - Early Access + Free Styling';
+    }
+    if (desc.includes('store') || desc.includes('shop')) {
+      return 'Customer Appreciation Week - 25% Off Everything';
+    }
+    return 'Weekend Flash Sale - Up to 40% Off Selected Items';
+  }
+  
+  // Default based on common business goals
+  if (desc.includes('new') || desc.includes('opening')) {
+    return 'Grand Opening Special - 30% Off All Services';
+  }
+  if (desc.includes('consultation') || desc.includes('service')) {
+    return 'Free Consultation + 20% Off First Service';
+  }
+  
+  return 'Limited Time Offer - New Customer Special 25% Off';
 };
 
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
