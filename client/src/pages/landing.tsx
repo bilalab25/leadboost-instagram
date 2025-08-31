@@ -370,7 +370,7 @@ export default function Landing() {
                 {/* Technology Partners */}
                 <div className="text-center">
                   <p className="text-gray-600 mb-8 font-medium">
-                    {isSpanish ? 'Se Integra Con Las Herramientas Que Ya Usas' : 'Integrates With The Tools You Already Use'}
+                    {isSpanish ? 'Se Puede Integrar Con Las Herramientas Que Ya Usas' : 'Can Integrate With The Tools You Already Use'}
                   </p>
                   <div className="flex justify-center items-center space-x-8 lg:space-x-12 flex-wrap gap-6">
                     <div className="flex items-center space-x-2 text-black hover:text-gray-800 transition-colors">
