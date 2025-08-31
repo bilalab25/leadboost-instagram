@@ -369,7 +369,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
             {isSpanish ? '🚀 Demo de CampAIgner' : '🚀 CampAIgner Demo'}
           </h3>
-          <p className="text-base text-gray-600 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed">
             {isSpanish 
               ? 'Describe tu negocio y mira cómo la IA de LeadBoost crea una campaña optimizada para 21+ plataformas'
               : 'Describe your business and watch LeadBoost\'s AI create a campaign optimized for 21+ platforms'
