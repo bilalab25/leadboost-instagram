@@ -462,6 +462,11 @@ export default function Landing() {
 
 
 
+        {/* FAQ Section */}
+        <div className="bg-gradient-to-br from-gray-50 to-white">
+          <FAQ isSpanish={isSpanish} />
+        </div>
+
         {/* Onboarding Progress */}
         <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-white">
           <OnboardingProgress isSpanish={isSpanish} />

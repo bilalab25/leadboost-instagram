@@ -15,70 +15,78 @@ export function FAQ({ isSpanish }: FAQProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const faqData: FAQItem[] = isSpanish ? [
+    // #1 CampAIgner Questions
     {
-      question: '¿Cómo funciona el chatbot con IA para programar citas?',
-      answer: 'Nuestro chatbot con IA entiende las consultas de los clientes, verifica la disponibilidad en tiempo real y programa citas automáticamente. Funciona 24/7 en español e inglés, capturando leads mientras duermes. El chatbot está entrenado específicamente para negocios de servicios como salones de belleza, consultorios médicos y spas.'
+      question: '¿Qué es CampAIgner y cómo funciona?',
+      answer: 'CampAIgner es nuestro generador de campañas con IA que transforma tu marca en contenido listo para usar en 21+ plataformas con un solo clic. Solo describes tu campaña y la IA genera automáticamente posts, stories, emails y contenido dimensionado específicamente para cada red social.'
     },
     {
-      question: '¿LeadBoost realmente aumenta las conversiones?',
-      answer: 'Sí, nuestros clientes ven un aumento promedio del 40% en conversiones. Al automatizar las respuestas inmediatas, programar citas al instante y mantener conversaciones personalizadas, capturamos más leads que los métodos tradicionales. Además, el chatbot califica automáticamente a los prospectos.'
+      question: '¿CampAIgner realmente crea contenido para 21+ plataformas?',
+      answer: 'Sí, CampAIgner genera contenido optimizado para Instagram, Facebook, TikTok, LinkedIn, YouTube, Twitter/X, email marketing, WhatsApp Business, y 13+ plataformas adicionales. Cada pieza de contenido está dimensionada y adaptada a los requisitos específicos de cada plataforma.'
     },
     {
-      question: '¿Qué plataformas están incluidas en los 21+ canales?',
-      answer: 'Incluimos Instagram, Facebook, WhatsApp, TikTok, LinkedIn, YouTube, Twitter/X, email marketing, SMS, Google Ads, y muchas más. También integramos con sistemas de citas como Calendly, Acuity, y calendarios de Google para programación automática.'
+      question: '¿Cuánto tiempo toma generar una campaña completa?',
+      answer: 'Con CampAIgner, una campaña completa se genera en menos de 30 segundos. Solo necesitas describir tu objetivo de campaña y la IA produce todo el contenido necesario, incluyendo copy, hashtags, y variaciones para diferentes plataformas.'
     },
+    // #2 Brand Studio Questions
+    {
+      question: '¿Qué incluye Brand Studio?',
+      answer: 'Brand Studio es nuestro conjunto de herramientas de diseño profesional nativas que te permite crear contenido visual impactante sin depender de terceros. Incluye editor de diseño nativo, plantillas profesionales y branding consistente automático.'
+    },
+    {
+      question: '¿Necesito experiencia en diseño para usar Brand Studio?',
+      answer: 'No, Brand Studio está diseñado para cualquier persona. Las plantillas profesionales y el branding automático hacen que crear contenido visual sea tan fácil como arrastrar y soltar. La IA se encarga de mantener la consistencia de tu marca en todos los diseños.'
+    },
+    // General Platform Questions
     {
       question: '¿Es difícil configurar LeadBoost?',
-      answer: 'Para nada. La configuración toma menos de 30 minutos. Nuestro equipo se encarga de la configuración inicial sin costo adicional (valor $200). Solo necesitas conectar tus cuentas sociales y listo - el chatbot empieza a trabajar inmediatamente.'
-    },
-    {
-      question: '¿Puedo cancelar en cualquier momento?',
-      answer: 'Absolutamente. No hay contratos ni penalizaciones por cancelación. Puedes cancelar en cualquier momento desde tu panel de control. También ofrecemos una garantía de 30 días - si no estás completamente satisfecho, te devolvemos tu dinero.'
-    },
-    {
-      question: '¿Cómo maneja el chatbot consultas complejas?',
-      answer: 'El chatbot está entrenado para manejar el 80% de las consultas comunes automáticamente. Para casos complejos, transfiere seamlessly al personal humano con todo el contexto de la conversación. También aprende de cada interacción para mejorar continuamente.'
+      answer: 'Para nada. La configuración toma solo 4 minutos. Nuestro proceso de configuración guiado te lleva paso a paso para que tengas toda la plataforma funcionando en minutos. Solo necesitas conectar tus cuentas y estás listo.'
     },
     {
       question: '¿Qué tipo de reportes y analíticas incluye?',
-      answer: 'Obtienes dashboards detallados con métricas de conversión, leads generados, citas programadas, ROI por plataforma, horarios de mayor actividad, y análisis de sentimiento de clientes. Todo en tiempo real para optimizar tu estrategia.'
+      answer: 'Obtienes dashboards detallados con métricas de conversión por campaña, ROI por plataforma, engagement rates, alcance total, y análisis de rendimiento en tiempo real. Todo diseñado para optimizar tus campañas continuamente.'
     },
+    // #3 Communication Features (Lower priority)
     {
-      question: '¿Es seguro para los datos de mis clientes?',
-      answer: 'Sí, cumplimos con GDPR y SOC 2. Todos los datos están encriptados end-to-end, almacenados en servidores seguros, y nunca compartimos información personal. Tus clientes y su privacidad están completamente protegidos.'
+      question: '¿Cómo funciona la gestión de mensajes unificada?',
+      answer: 'El Unified Inbox centraliza todos los mensajes de tus plataformas sociales en un solo lugar. Incluye respuestas inteligentes automáticas, análisis de sentimientos, y gestión multicanal para mantener conversaciones organizadas y eficientes.'
     }
   ] : [
+    // #1 CampAIgner Questions
     {
-      question: 'How does the AI chatbot schedule appointments?',
-      answer: 'Our AI chatbot understands customer inquiries, checks real-time availability, and books appointments automatically. It works 24/7 in both Spanish and English, capturing leads while you sleep. The chatbot is specifically trained for service businesses like beauty salons, medical practices, and spas.'
+      question: 'What is CampAIgner and how does it work?',
+      answer: 'CampAIgner is our AI campaign generator that transforms your brand into ready-to-go content for 21+ platforms in just one click. Simply describe your campaign and the AI automatically generates posts, stories, emails, and content sized specifically for each social network.'
     },
     {
-      question: 'Does LeadBoost really increase conversions?',
-      answer: 'Yes, our clients see an average 40% increase in conversions. By automating instant responses, booking appointments immediately, and maintaining personalized conversations, we capture more leads than traditional methods. Plus, the chatbot automatically qualifies prospects.'
+      question: 'Does CampAIgner really create content for 21+ platforms?',
+      answer: 'Yes, CampAIgner generates optimized content for Instagram, Facebook, TikTok, LinkedIn, YouTube, Twitter/X, email marketing, WhatsApp Business, and 13+ additional platforms. Each piece of content is sized and adapted to the specific requirements of each platform.'
     },
     {
-      question: 'What platforms are included in the 21+ channels?',
-      answer: 'We include Instagram, Facebook, WhatsApp, TikTok, LinkedIn, YouTube, Twitter/X, email marketing, SMS, Google Ads, and many more. We also integrate with appointment systems like Calendly, Acuity, and Google Calendar for automatic scheduling.'
+      question: 'How long does it take to generate a complete campaign?',
+      answer: 'With CampAIgner, a complete campaign is generated in under 30 seconds. You just need to describe your campaign goal and the AI produces all necessary content, including copy, hashtags, and variations for different platforms.'
     },
+    // #2 Brand Studio Questions
+    {
+      question: 'What does Brand Studio include?',
+      answer: 'Brand Studio is our suite of native professional design tools that lets you create impactful visual content without relying on third parties. It includes a native design editor, professional templates, and automatic consistent branding.'
+    },
+    {
+      question: 'Do I need design experience to use Brand Studio?',
+      answer: 'No, Brand Studio is designed for anyone. The professional templates and automatic branding make creating visual content as easy as drag and drop. The AI handles maintaining your brand consistency across all designs.'
+    },
+    // General Platform Questions
     {
       question: 'Is LeadBoost difficult to set up?',
-      answer: 'Not at all. Setup takes less than 30 minutes. Our team handles the initial configuration at no extra cost (worth $200). You just need to connect your social accounts and you\'re done - the chatbot starts working immediately.'
-    },
-    {
-      question: 'Can I cancel anytime?',
-      answer: 'Absolutely. There are no contracts or cancellation fees. You can cancel anytime from your dashboard. We also offer a 30-day guarantee - if you\'re not completely satisfied, we\'ll refund your money.'
-    },
-    {
-      question: 'How does the chatbot handle complex inquiries?',
-      answer: 'The chatbot is trained to handle 80% of common inquiries automatically. For complex cases, it seamlessly transfers to human staff with full conversation context. It also learns from each interaction to continuously improve.'
+      answer: 'Not at all. Setup takes just 4 minutes. Our guided setup process takes you step by step to have the entire platform running in minutes. You just need to connect your accounts and you\'re ready to go.'
     },
     {
       question: 'What kind of reports and analytics are included?',
-      answer: 'You get detailed dashboards with conversion metrics, leads generated, appointments booked, ROI by platform, peak activity times, and customer sentiment analysis. Everything in real-time to optimize your strategy.'
+      answer: 'You get detailed dashboards with campaign conversion metrics, ROI by platform, engagement rates, total reach, and real-time performance analysis. Everything designed to continuously optimize your campaigns.'
     },
+    // #3 Communication Features (Lower priority)
     {
-      question: 'Is it secure for my customer data?',
-      answer: 'Yes, we comply with GDPR and SOC 2. All data is end-to-end encrypted, stored on secure servers, and we never share personal information. Your customers and their privacy are completely protected.'
+      question: 'How does the unified message management work?',
+      answer: 'The Unified Inbox centralizes all messages from your social platforms in one place. It includes smart automatic responses, sentiment analysis, and multi-channel management to keep conversations organized and efficient.'
     }
   ];
 
