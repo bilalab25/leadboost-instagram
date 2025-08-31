@@ -2,41 +2,180 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Play, MessageCircle, Calendar, BarChart3, Bot, Sparkles, ArrowRight, CheckCircle, Clock, Users, TrendingUp } from 'lucide-react';
-import { SiInstagram, SiFacebook, SiWhatsapp, SiTiktok } from 'react-icons/si';
+import { Play, MessageCircle, Calendar, BarChart3, Bot, Sparkles, ArrowRight, CheckCircle, Clock, Users, TrendingUp, Target, Palette, Zap } from 'lucide-react';
+import { SiInstagram, SiFacebook, SiWhatsapp, SiTiktok, SiLinkedin, SiYoutube, SiX, SiPinterest } from 'react-icons/si';
 
 interface InteractiveDemoProps {
   isSpanish: boolean;
 }
 
-type DemoStep = 'chatbot' | 'scheduling' | 'analytics' | 'results';
+type DemoStep = 'campaigner' | 'brandstudio' | 'chatdeck' | 'results';
 
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
-  const [currentStep, setCurrentStep] = useState<DemoStep>('chatbot');
+  const [currentStep, setCurrentStep] = useState<DemoStep>('campaigner');
   const [isPlaying, setIsPlaying] = useState(false);
 
   const steps = {
-    chatbot: {
-      title: isSpanish ? '🤖 IA Responde Inmediatamente' : '🤖 AI Responds Instantly',
+    campaigner: {
+      title: isSpanish ? '🎯 CampAIgner - Una Idea → Todas las Plataformas' : '🎯 CampAIgner - One Idea → All Platforms',
       description: isSpanish 
-        ? 'Nuestro chatbot con IA responde en segundos con información personalizada.'
-        : 'Our AI chatbot responds in seconds with personalized information.',
+        ? 'Describe tu campaña y CampAIgner genera contenido optimizado para 21+ plataformas en segundos.'
+        : 'Describe your campaign and CampAIgner generates optimized content for 21+ platforms in seconds.',
       content: (
         <div className="p-8">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-200">
-            <div className="flex items-start space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                <Bot className="h-5 w-5 text-white" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Input Side */}
+            <div className="bg-gradient-to-br from-indigo-50 to-brand-50 p-6 rounded-2xl border border-indigo-200">
+              <h4 className="font-bold text-gray-900 mb-4 flex items-center">
+                <Target className="h-5 w-5 mr-2 text-indigo-600" />
+                {isSpanish ? 'Tu Idea' : 'Your Idea'}
+              </h4>
+              <div className="bg-white p-4 rounded-xl shadow-sm border">
+                <p className="text-sm text-gray-700 font-medium mb-2">
+                  {isSpanish ? 'Campaña:' : 'Campaign:'}
+                </p>
+                <p className="text-sm text-gray-600 italic">
+                  {isSpanish 
+                    ? '"Lanzar nueva línea de productos de belleza natural"'
+                    : '"Launch new natural beauty product line"'
+                  }
+                </p>
               </div>
-              <div className="flex-1">
-                <div className="bg-white p-4 rounded-xl shadow-sm">
-                  <p className="text-sm text-gray-800">
+            </div>
+
+            {/* Output Side */}
+            <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-6 rounded-2xl border border-emerald-200">
+              <h4 className="font-bold text-gray-900 mb-4 flex items-center">
+                <Zap className="h-5 w-5 mr-2 text-emerald-600" />
+                {isSpanish ? 'Resultado Instantáneo' : 'Instant Result'}
+              </h4>
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                <div className="w-12 h-12 bg-pink-500 rounded-lg flex items-center justify-center">
+                  <SiInstagram className="h-6 w-6 text-white" />
+                </div>
+                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <SiFacebook className="h-6 w-6 text-white" />
+                </div>
+                <div className="w-12 h-12 bg-gray-900 rounded-lg flex items-center justify-center">
+                  <SiTiktok className="h-6 w-6 text-white" />
+                </div>
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <SiLinkedin className="h-6 w-6 text-white" />
+                </div>
+                <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                  <SiYoutube className="h-6 w-6 text-white" />
+                </div>
+                <div className="w-12 h-12 bg-blue-400 rounded-lg flex items-center justify-center">
+                  <SiX className="h-6 w-6 text-white" />
+                </div>
+                <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
+                  <SiPinterest className="h-6 w-6 text-white" />
+                </div>
+                <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                  +14
+                </div>
+              </div>
+              <Badge className="bg-emerald-100 text-emerald-800 text-xs">
+                {isSpanish ? '21 formatos generados en 30 segundos' : '21 formats generated in 30 seconds'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    brandstudio: {
+      title: isSpanish ? '🎨 Brand Studio - Diseños Profesionales' : '🎨 Brand Studio - Professional Designs',
+      description: isSpanish 
+        ? 'Crea visuales impactantes con IA usando plantillas profesionales y tu marca personal.'
+        : 'Create stunning visuals with AI using professional templates and your personal branding.',
+      content: (
+        <div className="p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Templates Side */}
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-200">
+              <h4 className="font-bold text-gray-900 mb-4 flex items-center">
+                <Palette className="h-5 w-5 mr-2 text-purple-600" />
+                {isSpanish ? 'Plantillas Pro' : 'Pro Templates'}
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gradient-to-br from-pink-400 to-rose-500 h-20 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                  Story
+                </div>
+                <div className="bg-gradient-to-br from-blue-400 to-indigo-500 h-20 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                  Post
+                </div>
+                <div className="bg-gradient-to-br from-emerald-400 to-green-500 h-20 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                  Reel
+                </div>
+                <div className="bg-gradient-to-br from-orange-400 to-red-500 h-20 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                  Ad
+                </div>
+              </div>
+            </div>
+
+            {/* AI Generated Design */}
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-2xl border border-amber-200">
+              <h4 className="font-bold text-gray-900 mb-4 flex items-center">
+                <Sparkles className="h-5 w-5 mr-2 text-amber-600" />
+                {isSpanish ? 'Diseño IA' : 'AI Design'}
+              </h4>
+              <div className="bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 h-32 rounded-xl flex items-center justify-center text-white">
+                <div className="text-center">
+                  <div className="text-lg font-bold mb-1">Beauty Natural</div>
+                  <div className="text-xs opacity-90">{isSpanish ? 'Nueva Línea 2024' : 'New Line 2024'}</div>
+                </div>
+              </div>
+              <Badge className="bg-amber-100 text-amber-800 text-xs mt-3">
+                {isSpanish ? 'Generado en 15 segundos' : 'Generated in 15 seconds'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    chatdeck: {
+      title: isSpanish ? '💬 Chat Deck - IA que Convierte' : '💬 Chat Deck - AI that Converts',
+      description: isSpanish 
+        ? 'Chatbot inteligente que responde 24/7 y programa citas automáticamente.'
+        : 'Smart chatbot that responds 24/7 and schedules appointments automatically.',
+      content: (
+        <div className="p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Customer Message */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-200">
+              <h4 className="font-bold text-gray-900 mb-4 flex items-center">
+                <MessageCircle className="h-5 w-5 mr-2 text-blue-600" />
+                {isSpanish ? 'Cliente' : 'Customer'}
+              </h4>
+              <div className="bg-white p-4 rounded-xl shadow-sm border">
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mr-2"></div>
+                  <span className="font-semibold text-sm">@maria_cliente</span>
+                </div>
+                <p className="text-sm text-gray-700">
+                  {isSpanish 
+                    ? "¿Cuánto cuesta el tratamiento y cuándo tienen disponibilidad?"
+                    : "How much does the treatment cost and when do you have availability?"
+                  }
+                </p>
+              </div>
+            </div>
+
+            {/* AI Response & Booking */}
+            <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-6 rounded-2xl border border-emerald-200">
+              <h4 className="font-bold text-gray-900 mb-4 flex items-center">
+                <Bot className="h-5 w-5 mr-2 text-emerald-600" />
+                {isSpanish ? 'IA Responde + Agenda' : 'AI Responds + Books'}
+              </h4>
+              <div className="space-y-3">
+                <div className="bg-white p-3 rounded-xl shadow-sm text-sm">
+                  <p className="text-gray-700 mb-2">
                     {isSpanish 
-                      ? '¡Hola! 😊 El tratamiento de Botox cuesta $300 y dura 30 minutos. Tengo disponibilidad el jueves a las 2:00 PM y viernes a las 10:00 AM. ¿Te gustaría reservar una de estas citas?'
-                      : 'Hi! 😊 Botox treatment costs $300 and takes 30 minutes. I have availability Thursday at 2:00 PM and Friday at 10:00 AM. Would you like to book one of these appointments?'
+                      ? "¡Hola María! 😊 El tratamiento cuesta $300. Tengo estas opciones:"
+                      : "Hi María! 😊 Treatment costs $300. I have these options:"
                     }
                   </p>
-                  <div className="flex space-x-2 mt-3">
+                  <div className="flex space-x-2">
                     <Badge variant="secondary" className="text-xs">
                       {isSpanish ? 'Jueves 2PM' : 'Thu 2PM'}
                     </Badge>
@@ -45,103 +184,20 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     </Badge>
                   </div>
                 </div>
-                <div className="flex items-center mt-2 text-xs text-gray-500">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {isSpanish ? 'Respondido en 1.2 segundos' : 'Responded in 1.2 seconds'}
+                <div className="bg-emerald-100 p-3 rounded-xl">
+                  <div className="flex items-center text-sm font-bold text-emerald-800">
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    {isSpanish ? '¡Cita Confirmada!' : 'Appointment Confirmed!'}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    scheduling: {
-      title: isSpanish ? '📅 Cita Programada Automáticamente' : '📅 Appointment Scheduled Automatically',
-      description: isSpanish 
-        ? 'El cliente elige un horario y la cita se programa instantáneamente en tu calendario.'
-        : 'Customer picks a time and the appointment is instantly scheduled in your calendar.',
-      content: (
-        <div className="p-8">
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200">
-            <div className="text-center">
-              <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h4 className="font-bold text-gray-900 mb-3">
-                {isSpanish ? '¡Cita Confirmada!' : 'Appointment Confirmed!'}
-              </h4>
-              <div className="bg-white p-4 rounded-xl shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-gray-900">María García</span>
-                  <Badge className="bg-green-100 text-green-800">
-                    {isSpanish ? 'Confirmada' : 'Confirmed'}
-                  </Badge>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <p>📅 {isSpanish ? 'Jueves, 15 Feb 2024' : 'Thursday, Feb 15, 2024'}</p>
-                  <p>🕐 {isSpanish ? '2:00 PM - 2:30 PM' : '2:00 PM - 2:30 PM'}</p>
-                  <p>💉 {isSpanish ? 'Tratamiento Botox ($300)' : 'Botox Treatment ($300)'}</p>
-                  <p>📱 +1 (555) 123-4567</p>
-                </div>
-              </div>
-              <div className="mt-4 flex items-center justify-center text-xs text-gray-500">
-                <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
-                  {isSpanish ? 'Sincronizado con Google Calendar' : 'Synced to Google Calendar'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    analytics: {
-      title: isSpanish ? '📊 Análisis en Tiempo Real' : '📊 Real-time Analytics',
-      description: isSpanish 
-        ? 'Ve todas las métricas importantes en tu dashboard personalizado.'
-        : 'See all important metrics in your personalized dashboard.',
-      content: (
-        <div className="p-8">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl">
-              <div className="flex items-center justify-between">
-                <MessageCircle className="h-8 w-8 text-blue-600" />
-                <span className="text-2xl font-bold text-blue-900">247</span>
-              </div>
-              <p className="text-sm text-blue-700 mt-1">
-                {isSpanish ? 'Conversaciones Hoy' : 'Conversations Today'}
-              </p>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
-              <div className="flex items-center justify-between">
-                <Calendar className="h-8 w-8 text-green-600" />
-                <span className="text-2xl font-bold text-green-900">18</span>
-              </div>
-              <p className="text-sm text-green-700 mt-1">
-                {isSpanish ? 'Citas Programadas' : 'Appointments Booked'}
-              </p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
-              <div className="flex items-center justify-between">
-                <TrendingUp className="h-8 w-8 text-purple-600" />
-                <span className="text-2xl font-bold text-purple-900">73%</span>
-              </div>
-              <p className="text-sm text-purple-700 mt-1">
-                {isSpanish ? 'Tasa Conversión' : 'Conversion Rate'}
-              </p>
-            </div>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl">
-              <div className="flex items-center justify-between">
-                <Users className="h-8 w-8 text-orange-600" />
-                <span className="text-2xl font-bold text-orange-900">$5,400</span>
-              </div>
-              <p className="text-sm text-orange-700 mt-1">
-                {isSpanish ? 'Ingresos Hoy' : "Today's Revenue"}
-              </p>
             </div>
           </div>
         </div>
       )
     },
     results: {
-      title: isSpanish ? '🎉 Resultados Increíbles' : '🎉 Amazing Results',
+      title: isSpanish ? '📈 Resultados Automáticos' : '📈 Automated Results',
       description: isSpanish 
         ? 'Todo esto sucede automáticamente, 24/7, mientras tú te enfocas en brindar el mejor servicio.'
         : 'All this happens automatically, 24/7, while you focus on providing the best service.',
@@ -150,7 +206,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-6 rounded-2xl">
               <div className="text-3xl font-black text-emerald-600 mb-2">+300%</div>
-              <p className="text-sm text-gray-700">{isSpanish ? 'Más Citas' : 'More Appointments'}</p>
+              <p className="text-sm text-gray-700">{isSpanish ? 'Más Campañas' : 'More Campaigns'}</p>
             </div>
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl">
               <div className="text-3xl font-black text-blue-600 mb-2">24/7</div>
@@ -158,7 +214,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl">
               <div className="text-3xl font-black text-purple-600 mb-2">0</div>
-              <p className="text-sm text-gray-700">{isSpanish ? 'Leads Perdidos' : 'Lost Leads'}</p>
+              <p className="text-sm text-gray-700">{isSpanish ? 'Esfuerzo Manual' : 'Manual Effort'}</p>
             </div>
           </div>
         </div>
@@ -167,7 +223,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   };
 
   const nextStep = () => {
-    const stepOrder: DemoStep[] = ['chatbot', 'scheduling', 'analytics', 'results'];
+    const stepOrder: DemoStep[] = ['campaigner', 'brandstudio', 'chatdeck', 'results'];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex < stepOrder.length - 1) {
       setCurrentStep(stepOrder[currentIndex + 1]);
@@ -176,9 +232,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   const playDemo = () => {
     setIsPlaying(true);
-    setCurrentStep('chatbot');
+    setCurrentStep('campaigner');
     
-    const stepOrder: DemoStep[] = ['chatbot', 'scheduling', 'analytics', 'results'];
+    const stepOrder: DemoStep[] = ['campaigner', 'brandstudio', 'chatdeck', 'results'];
     let currentIndex = 0;
     
     const interval = setInterval(() => {
@@ -193,7 +249,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   };
 
   const resetDemo = () => {
-    setCurrentStep('chatbot');
+    setCurrentStep('campaigner');
     setIsPlaying(false);
   };
 
@@ -206,8 +262,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           </h3>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             {isSpanish 
-              ? 'Descubre cómo LeadBoost transforma tu marca en campañas que generan ventas automáticamente'
-              : 'Discover how LeadBoost transforms your brand into campaigns that generate sales automatically'
+              ? 'Descubre cómo las tres herramientas principales trabajan juntas para revolucionar tu marketing'
+              : 'Discover how the three core tools work together to revolutionize your marketing'
             }
           </p>
           
