@@ -284,8 +284,8 @@ export default function CampAIgner() {
                     </h3>
                     <p className="text-gray-600 mb-4">
                       {isSpanish 
-                        ? 'Solo dinos qué quieres promocionar. La IA seleccionará las mejores plataformas, creará el contenido, elegirá formatos y configurará todo automáticamente.'
-                        : 'Just tell us what you want to promote. AI will select the best platforms, create content, choose formats, and set everything up automatically.'
+                        ? 'IA analiza tus datos de POS y comportamiento del negocio para sugerir estrategias que maximizan ventas y ingresos. Selecciona plataformas, crea contenido y configura campañas basándose en lo que realmente funciona para tu negocio.'
+                        : 'AI analyzes your POS data and business behavior to suggest strategies that maximize sales and revenue. Selects platforms, creates content, and sets up campaigns based on what actually works for your business.'
                       }
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
