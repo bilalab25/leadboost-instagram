@@ -164,30 +164,30 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
     // Italian restaurant specific
     if (desc.includes('italian') && desc.includes('pasta')) {
       return {
-        square: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=1080&h=1080&fit=crop&crop=center',
-        landscape: 'https://images.unsplash.com/photo-1563379091339-03246963d4d6?w=1200&h=628&fit=crop&crop=center',
-        story: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1563379091339-03246963d4d6?w=600&h=200&fit=crop&crop=center'
+        square: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=1080&h=1080&fit=crop&crop=center',
+        landscape: 'https://images.unsplash.com/photo-1555126634-323283e090fa?w=1200&h=628&fit=crop&crop=center',
+        story: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1555126634-323283e090fa?w=600&h=200&fit=crop&crop=center'
       };
     }
     
     // Bakery specific
     if (desc.includes('bakery') && desc.includes('bread')) {
       return {
-        square: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1080&h=1080&fit=crop&crop=center',
-        landscape: 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=1200&h=628&fit=crop&crop=center',
-        story: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=600&h=200&fit=crop&crop=center'
+        square: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=1080&h=1080&fit=crop&crop=center',
+        landscape: 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=1200&h=628&fit=crop&crop=center',
+        story: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=600&h=200&fit=crop&crop=center'
       };
     }
     
     // Yoga/meditation specific
     if (desc.includes('yoga') && desc.includes('meditation')) {
       return {
-        square: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1080&h=1080&fit=crop&crop=center',
-        landscape: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=628&fit=crop&crop=center',
-        story: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=200&fit=crop&crop=center'
+        square: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1080&h=1080&fit=crop&crop=center',
+        landscape: 'https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=1200&h=628&fit=crop&crop=center',
+        story: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=600&h=200&fit=crop&crop=center'
       };
     }
     
@@ -202,28 +202,28 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   // Fallback to business type visuals
   const visualsByType: Record<string, Record<string, string>> = {
     restaurant: {
-      square: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=1080&h=1080&fit=crop&crop=center',
-      landscape: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&h=628&fit=crop&crop=center',
-      story: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=1080&h=1920&fit=crop&crop=center',
-      banner: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=200&fit=crop&crop=center'
+      square: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1080&h=1080&fit=crop&crop=center',
+      landscape: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=628&fit=crop&crop=center',
+      story: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1080&h=1920&fit=crop&crop=center',
+      banner: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=200&fit=crop&crop=center'
     },
     fitness: {
-      square: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1080&h=1080&fit=crop&crop=center',
-      landscape: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&h=628&fit=crop&crop=center',
-      story: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1080&h=1920&fit=crop&crop=center',
-      banner: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&h=200&fit=crop&crop=center'
+      square: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=1080&h=1080&fit=crop&crop=center',
+      landscape: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1200&h=628&fit=crop&crop=center',
+      story: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=1080&h=1920&fit=crop&crop=center',
+      banner: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&h=200&fit=crop&crop=center'
     },
     beauty: {
-      square: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1080&h=1080&fit=crop&crop=center',
-      landscape: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1200&h=628&fit=crop&crop=center',
-      story: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1080&h=1920&fit=crop&crop=center',
-      banner: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&h=200&fit=crop&crop=center'
+      square: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=1080&h=1080&fit=crop&crop=center',
+      landscape: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&h=628&fit=crop&crop=center',
+      story: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=1080&h=1920&fit=crop&crop=center',
+      banner: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600&h=200&fit=crop&crop=center'
     },
     default: {
-      square: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1080&h=1080&fit=crop&crop=center',
-      landscape: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=628&fit=crop&crop=center',
-      story: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1080&h=1920&fit=crop&crop=center',
-      banner: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=600&h=200&fit=crop&crop=center'
+      square: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1080&h=1080&fit=crop&crop=center',
+      landscape: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1200&h=628&fit=crop&crop=center',
+      story: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1080&h=1920&fit=crop&crop=center',
+      banner: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600&h=200&fit=crop&crop=center'
     }
   };
 
