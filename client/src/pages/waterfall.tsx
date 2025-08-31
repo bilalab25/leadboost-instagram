@@ -259,64 +259,165 @@ export default function CampAIgner() {
             </TabsList>
 
             <TabsContent value="campaigns" className="space-y-8">
-              {/* Campaign Input */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Target className="mr-2 h-5 w-5" />
-                {isSpanish ? 'Describe tu idea de campaña' : 'Describe your campaign idea'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    {isSpanish ? 'Título de la campaña' : 'Campaign title'}
-                  </label>
-                  <Input 
-                    placeholder={isSpanish ? 'Ej: Lanzamiento del nuevo producto' : 'e.g. New product launch'} 
-                    value={campaignTitle}
-                    onChange={(e) => setCampaignTitle(e.target.value)}
-                    className="w-full"
-                    data-testid="input-campaign-title"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    {isSpanish ? 'Tipo de contenido' : 'Content type'}
-                  </label>
-                  <div className="flex gap-2">
-                    <Badge variant="outline" className="cursor-pointer hover:bg-blue-50">
-                      {isSpanish ? 'Promocional' : 'Promotional'}
-                    </Badge>
-                    <Badge variant="outline" className="cursor-pointer hover:bg-green-50">
-                      {isSpanish ? 'Educativo' : 'Educational'}
-                    </Badge>
-                    <Badge variant="outline" className="cursor-pointer hover:bg-purple-50">
-                      {isSpanish ? 'Entretenimiento' : 'Entertainment'}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
               
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  {isSpanish ? 'Descripción detallada' : 'Detailed description'}
-                </label>
-                <Textarea 
-                  placeholder={isSpanish 
-                    ? 'Describe tu campaña, público objetivo, mensaje clave, tono de voz, objetivos específicos...'
-                    : 'Describe your campaign, target audience, key message, tone of voice, specific goals...'
-                  }
-                  value={campaignIdea}
-                  onChange={(e) => setCampaignIdea(e.target.value)}
-                  className="min-h-[120px]"
-                  data-testid="textarea-campaign-description"
-                />
+              {/* AI-Powered Quick Campaign Generator */}
+              <Card className="mb-8 border-2 border-brand-200 bg-gradient-to-r from-brand-50 to-purple-50 shadow-xl">
+                <CardHeader className="bg-gradient-to-r from-brand-100 to-purple-100">
+                  <CardTitle className="flex items-center justify-center text-center">
+                    <div className="bg-gradient-to-br from-brand-600 to-purple-600 p-3 rounded-xl mr-4 shadow-lg">
+                      <Bot className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-black text-gray-900">
+                        {isSpanish ? '🚀 IA Hace Todo por Ti' : '🚀 AI Does Everything For You'}
+                      </div>
+                      <div className="text-sm text-brand-600 font-semibold">
+                        {isSpanish ? 'Describe tu idea → IA crea campaña completa' : 'Describe your idea → AI creates complete campaign'}
+                      </div>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="text-center bg-white/70 rounded-xl p-6 border border-brand-200">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      {isSpanish ? '⚡ Generación Automática Completa' : '⚡ Complete Auto-Generation'}
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      {isSpanish 
+                        ? 'Solo dinos qué quieres promocionar. La IA seleccionará las mejores plataformas, creará el contenido, elegirá formatos y configurará todo automáticamente.'
+                        : 'Just tell us what you want to promote. AI will select the best platforms, create content, choose formats, and set everything up automatically.'
+                      }
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Target className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="font-semibold">{isSpanish ? 'Plataformas IA' : 'AI Platforms'}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Sparkles className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="font-semibold">{isSpanish ? 'Contenido IA' : 'AI Content'}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Settings className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="font-semibold">{isSpanish ? 'Formatos IA' : 'AI Formats'}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <DollarSign className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="font-semibold">{isSpanish ? 'Presupuesto IA' : 'AI Budget'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-lg font-bold text-gray-900 mb-3 block flex items-center">
+                      <Bot className="mr-2 h-5 w-5 text-brand-600" />
+                      {isSpanish ? 'Cuéntale a la IA sobre tu campaña:' : 'Tell AI about your campaign:'}
+                    </label>
+                    <Textarea 
+                      placeholder={isSpanish 
+                        ? '💬 Ejemplo: "Quiero promocionar mi nuevo producto de belleza antienvejecimiento para mujeres de 30-50 años. Es un serum facial que reduce arrugas en 14 días. Quiero un tono profesional pero accesible, con testimonios reales." \n\n¡La IA se encarga del resto!'
+                        : '💬 Example: "I want to promote my new anti-aging beauty product for women 30-50. It\'s a facial serum that reduces wrinkles in 14 days. I want a professional but approachable tone with real testimonials." \n\nAI handles the rest!'
+                      }
+                      value={campaignIdea}
+                      onChange={(e) => setCampaignIdea(e.target.value)}
+                      className="min-h-[150px] text-lg border-2 border-brand-200 focus:border-brand-400"
+                      data-testid="textarea-ai-campaign-input"
+                    />
+                  </div>
+
+                  <div className="flex justify-center">
+                    <Button 
+                      size="lg"
+                      disabled={generating || !campaignIdea.trim()}
+                      onClick={() => {
+                        setGenerating(true);
+                        // Simulate AI generation
+                        setTimeout(() => {
+                          setGenerating(false);
+                          toast({
+                            title: "¡Campaña Generada!",
+                            description: "La IA ha creado tu campaña completa automáticamente",
+                          });
+                        }, 3000);
+                      }}
+                      className="bg-gradient-to-r from-brand-600 via-purple-600 to-cyan-600 hover:from-brand-700 hover:via-purple-700 hover:to-cyan-700 text-white font-bold py-4 px-12 text-xl rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 min-w-[300px]"
+                      data-testid="button-generate-ai-campaign"
+                    >
+                      {generating ? (
+                        <>
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                          {isSpanish ? 'IA Generando Campaña...' : 'AI Generating Campaign...'}
+                        </>
+                      ) : (
+                        <>
+                          <Bot className="mr-3 h-6 w-6" />
+                          {isSpanish ? '🚀 ¡IA, Crea Mi Campaña!' : '🚀 AI, Create My Campaign!'}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* OR Divider */}
+              <div className="flex items-center justify-center my-8">
+                <div className="flex-1 border-t border-gray-300"></div>
+                <div className="px-4 text-gray-500 font-medium bg-gray-50 rounded-full px-6 py-2">
+                  {isSpanish ? 'O personaliza manualmente' : 'OR customize manually'}
+                </div>
+                <div className="flex-1 border-t border-gray-300"></div>
               </div>
-            </CardContent>
-          </Card>
+
+              {/* Manual Campaign Input - Now Secondary */}
+              <Card className="mb-8 border border-gray-300">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-gray-600">
+                    <Settings className="mr-2 h-5 w-5" />
+                    {isSpanish ? 'Configuración Manual (Opcional)' : 'Manual Setup (Optional)'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        {isSpanish ? 'Título de la campaña' : 'Campaign title'}
+                      </label>
+                      <Input 
+                        placeholder={isSpanish ? 'Ej: Lanzamiento del nuevo producto' : 'e.g. New product launch'} 
+                        value={campaignTitle}
+                        onChange={(e) => setCampaignTitle(e.target.value)}
+                        className="w-full"
+                        data-testid="input-campaign-title"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        {isSpanish ? 'Tipo de contenido' : 'Content type'}
+                      </label>
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="cursor-pointer hover:bg-blue-50">
+                          {isSpanish ? 'Promocional' : 'Promotional'}
+                        </Badge>
+                        <Badge variant="outline" className="cursor-pointer hover:bg-green-50">
+                          {isSpanish ? 'Educativo' : 'Educational'}
+                        </Badge>
+                        <Badge variant="outline" className="cursor-pointer hover:bg-purple-50">
+                          {isSpanish ? 'Entretenimiento' : 'Entertainment'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
           {/* Platform Selection */}
           <Card className="mb-8">
