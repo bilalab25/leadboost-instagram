@@ -398,10 +398,10 @@ export default function Landing() {
                     <Zap className="h-10 w-10 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? '🤖 IA Instantánea' : '🤖 Instant AI'}
+                    {isSpanish ? 'Lanzamiento Instantáneo' : 'Instant Launch'}
                   </h3>
                   <p className="text-gray-600">
-                    {isSpanish ? 'IA crea contenido y campañas para 21+ plataformas en segundos. Cero trabajo manual.' : 'AI creates content and campaigns for 21+ platforms in seconds. Zero manual work.'}
+                    {isSpanish ? 'De tu marca a 21+ plataformas en segundos. Sin configuración manual.' : 'From your brand to 21+ platforms in seconds. No manual setup.'}
                   </p>
                   <div className="mt-6 text-emerald-600 font-bold text-3xl">
                     30s
@@ -415,10 +415,10 @@ export default function Landing() {
                     <Target className="h-10 w-10 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {isSpanish ? '🎯 IA Optimizada' : '🎯 AI Optimized'}
+                    {isSpanish ? 'Auto-Dimensionado' : 'Auto-Sizing'}
                   </h3>
                   <p className="text-gray-600">
-                    {isSpanish ? 'IA crea contenido optimizado: Stories, posts, emails, threads — todo personalizado.' : 'AI creates optimized content: Stories, posts, emails, threads — all personalized.'}
+                    {isSpanish ? 'Stories, posts, emails, threads — dimensionados al instante.' : 'Stories, posts, emails, threads — sized instantly.'}
                   </p>
                   <div className="mt-6 text-rose-600 font-bold text-3xl">
                     21+
