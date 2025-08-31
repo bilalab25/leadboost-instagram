@@ -22,6 +22,7 @@ import {
   Sparkles,
   Zap,
   Palette,
+  Activity,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
@@ -70,6 +71,7 @@ export default function Sidebar() {
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
     { name: t.sidebar.calendar, href: "/calendar", icon: Calendar },
     { name: t.sidebar.analytics, href: "/analytics", icon: BarChart3 },
+    { name: "Salud del Cliente", href: "/customer-health", icon: Activity },
     { name: t.sidebar.campaigns, href: "/campaigns", icon: Megaphone },
     { name: t.sidebar.customers, href: "/customers", icon: UserCheck },
     { name: t.sidebar.team, href: "/team", icon: Users },
