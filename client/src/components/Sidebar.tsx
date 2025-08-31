@@ -67,7 +67,6 @@ export default function Sidebar() {
       special: true 
     },
     { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, badge: "12" },
-    { name: t.sidebar.aiPlanner, href: "/ai-planner", icon: Bot },
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
     { name: t.sidebar.calendar, href: "/calendar", icon: Calendar },
     { name: t.sidebar.analytics, href: "/analytics", icon: BarChart3 },

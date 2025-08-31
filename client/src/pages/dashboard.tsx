@@ -138,7 +138,7 @@ export default function Dashboard() {
               <Button 
                 className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white border-none hover:from-brand-700 hover:to-cyan-600" 
                 data-testid="button-leadboost-campaign"
-                onClick={() => window.location.href = '/campaigner'}
+                onClick={() => window.location.href = '/waterfall'}
               >
                 <Zap className="mr-2 h-4 w-4" />
                 CampAIgner
