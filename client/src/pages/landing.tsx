@@ -129,14 +129,10 @@ export default function Landing() {
                     {/* EVERYWHERE */}
                     <div className="text-center">
                       {/* Black Video Box */}
-                      <div className="bg-black rounded-xl h-32 w-52 mx-auto mb-6 flex items-center justify-center relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-gray-800/20 to-black/40 rounded-xl"></div>
-                        <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg z-10">
-                          <svg className="w-5 h-5 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                          </svg>
-                        </div>
-                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">2:14</div>
+                      <div className="bg-black rounded-lg w-48 h-28 mx-auto mb-4 flex items-center justify-center">
+                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                        </svg>
                       </div>
                       <div className="grid grid-cols-4 gap-2 mb-4 max-w-48 mx-auto">
                         <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center">
