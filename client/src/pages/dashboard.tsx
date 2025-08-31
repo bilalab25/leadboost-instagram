@@ -135,7 +135,11 @@ export default function Dashboard() {
                 {populateDemoDataMutation.isPending ? t.common.loading : t.common.loadDemoData}
               </Button>
               
-              <Button className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white border-none hover:from-brand-700 hover:to-cyan-600" data-testid="button-leadboost-campaign">
+              <Button 
+                className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white border-none hover:from-brand-700 hover:to-cyan-600" 
+                data-testid="button-leadboost-campaign"
+                onClick={() => window.location.href = '/campaigner'}
+              >
                 <Zap className="mr-2 h-4 w-4" />
                 CampAIgner
               </Button>
@@ -378,35 +382,6 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                   
-                  {/* Simple AI Content Planner */}
-                  <Card>
-                    <CardHeader className="border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center">
-                          <Sparkles className="mr-2 h-5 w-5 text-amber-500" />
-                          {t.aiPlanner.title}
-                        </CardTitle>
-                        <Button size="sm" className="bg-brand-600 hover:bg-brand-700" data-testid="button-generate-content">
-                          <Zap className="mr-2 h-4 w-4" />
-                          {t.aiPlanner.generateContent}
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="text-center py-8">
-                        <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                          <Sparkles className="h-8 w-8 text-amber-600" />
-                        </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">{t.aiPlanner.smartContentTitle}</h3>
-                        <p className="text-gray-500 mb-6">{t.aiPlanner.smartContentDescription}</p>
-                        <Button className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white border-none hover:from-brand-700 hover:to-cyan-600">
-                          <Target className="mr-2 h-4 w-4" />
-                          {t.aiPlanner.waterfallSystem}
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
                   
                 </div>
               </div>
