@@ -297,20 +297,42 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 {isSpanish ? 'Feed de Instagram (9 publicaciones)' : 'Instagram Feed (9 posts)'}
               </h4>
             </div>
-            <div className="grid grid-cols-3 gap-2" data-testid="instagram-feed">
+            <div className="grid grid-cols-3 gap-3" data-testid="instagram-feed">
               {currentTemplate.posts.map((post, index) => (
-                <Card key={index} className="aspect-square" data-testid={`instagram-post-${index}`}>
-                  <CardContent className="p-4 h-full flex flex-col justify-between">
-                    <div className="text-4xl text-center mb-2">{post.image}</div>
-                    <div className="text-xs text-gray-600 line-clamp-3 mb-2">{post.caption}</div>
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div className="flex items-center space-x-2">
-                        <Heart className="h-3 w-3" />
-                        <span>{post.likes.toLocaleString()}</span>
+                <Card key={index} className="aspect-square relative overflow-hidden group bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg" data-testid={`instagram-post-${index}`}>
+                  <CardContent className="p-0 h-full flex flex-col">
+                    {/* Post Visual Area - looks like a real Instagram post */}
+                    <div className="flex-1 bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 flex items-center justify-center relative overflow-hidden">
+                      <div className="text-7xl opacity-20 absolute">{post.image}</div>
+                      {/* Simulated post design elements */}
+                      <div className="absolute inset-3 border-2 border-white/60 rounded-2xl"></div>
+                      <div className="absolute top-5 left-5 w-3 h-3 bg-white/80 rounded-full"></div>
+                      <div className="absolute top-5 right-5 w-8 h-1 bg-white/60 rounded-full"></div>
+                      <div className="absolute bottom-5 left-5 right-5">
+                        <div className="h-2 bg-white/70 rounded-full mb-2"></div>
+                        <div className="h-1.5 bg-white/50 rounded-full w-3/4"></div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <MessageSquare className="h-3 w-3" />
-                        <span>{post.comments}</span>
+                      <div className="text-5xl z-10">{post.image}</div>
+                    </div>
+                    
+                    {/* Instagram UI Elements */}
+                    <div className="p-3 bg-white">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-3">
+                          <Heart className="h-4 w-4 text-red-500 fill-current" />
+                          <MessageSquare className="h-4 w-4 text-gray-700" />
+                          <Share className="h-4 w-4 text-gray-700" />
+                        </div>
+                        <Bookmark className="h-4 w-4 text-gray-700" />
+                      </div>
+                      <div className="text-xs font-semibold text-gray-900 mb-1">
+                        {post.likes.toLocaleString()} likes
+                      </div>
+                      <div className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                        <span className="font-semibold text-gray-900">yourbusiness</span> {post.caption.slice(0, 80)}...
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {post.comments} comments • Ready to publish
                       </div>
                     </div>
                   </CardContent>
@@ -327,22 +349,48 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 {isSpanish ? 'Newsletter por Email' : 'Email Newsletter'}
               </h4>
             </div>
-            <Card data-testid="email-newsletter">
-              <CardContent className="p-6">
-                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                  <div className="text-sm text-gray-500 mb-2">
-                    {isSpanish ? 'Asunto:' : 'Subject:'} {currentTemplate.newsletter.subject}
+            <Card data-testid="email-newsletter" className="border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
+              <CardContent className="p-0">
+                {/* Email Header */}
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-lg">
+                  <div className="text-xs text-blue-100 mb-1">
+                    {isSpanish ? 'DE:' : 'FROM:'} Your Business &lt;noreply@yourbusiness.com&gt;
                   </div>
-                  <div className="text-xs text-gray-400 mb-4">
+                  <div className="text-sm font-semibold mb-1">
+                    {isSpanish ? 'ASUNTO:' : 'SUBJECT:'} {currentTemplate.newsletter.subject}
+                  </div>
+                  <div className="text-xs text-blue-100">
                     {currentTemplate.newsletter.preview}
                   </div>
-                  <div className="bg-white p-4 rounded border">
-                    <div className="text-2xl mb-2">{currentTemplate.posts[5].image}</div>
-                    <h5 className="font-bold text-lg mb-2">{currentTemplate.newsletter.subject}</h5>
-                    <p className="text-gray-700 mb-4">{currentTemplate.newsletter.content}</p>
-                    <Button className="bg-brand-600 hover:bg-brand-700" data-testid="button-view-offer">
-                      {isSpanish ? 'Ver Oferta' : 'View Offer'}
-                    </Button>
+                </div>
+                
+                {/* Email Body */}
+                <div className="p-6 bg-white">
+                  {/* Header Image/Logo Area */}
+                  <div className="text-center mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl mx-auto flex items-center justify-center text-3xl text-white mb-3">
+                      {currentTemplate.posts[5].image}
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Business</h2>
+                  </div>
+
+                  {/* Main Content */}
+                  <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">{currentTemplate.newsletter.subject}</h3>
+                    <p className="text-gray-700 leading-relaxed mb-4">{currentTemplate.newsletter.content}</p>
+                    
+                    {/* Call to Action */}
+                    <div className="text-center">
+                      <Button className="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300" data-testid="button-view-offer">
+                        {isSpanish ? 'Ver Oferta Especial' : 'View Special Offer'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="text-center text-xs text-gray-500 border-t border-gray-200 pt-4">
+                    <p className="mb-2">Ready to publish • Professional email design</p>
+                    <p>{isSpanish ? 'Diseñado automáticamente por LeadBoost IA' : 'Automatically designed by LeadBoost AI'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -357,25 +405,69 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 {isSpanish ? 'Anuncio de Facebook' : 'Facebook Ad'}
               </h4>
             </div>
-            <Card data-testid="facebook-ad">
-              <CardContent className="p-6">
-                <div className="border border-gray-200 rounded-lg p-4">
+            <Card data-testid="facebook-ad" className="border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
+              <CardContent className="p-0">
+                {/* Facebook Ad Header */}
+                <div className="p-4 bg-white border-b border-gray-200">
                   <div className="flex items-center mb-3">
-                    <div className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">
                       {demo.detectedType[0]?.toUpperCase()}
                     </div>
-                    <div>
-                      <div className="font-semibold text-sm">Your Business</div>
-                      <div className="text-xs text-gray-500">Sponsored</div>
+                    <div className="flex-1">
+                      <div className="flex items-center">
+                        <div className="font-semibold text-sm">Your Business</div>
+                        <div className="ml-2 px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-600">Sponsored</div>
+                      </div>
+                      <div className="text-xs text-gray-500">Promoted • 2 hours ago</div>
                     </div>
                   </div>
-                  <div className="text-4xl text-center py-8 bg-gray-100 rounded mb-3">
-                    {currentTemplate.posts[0].image}
+                </div>
+
+                {/* Facebook Ad Visual */}
+                <div className="relative bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 aspect-video flex items-center justify-center overflow-hidden">
+                  <div className="text-8xl opacity-20 absolute">{currentTemplate.posts[0].image}</div>
+                  {/* Professional ad overlay elements */}
+                  <div className="absolute inset-4 border-2 border-white/60 rounded-2xl"></div>
+                  <div className="absolute top-6 left-6 w-4 h-4 bg-white/80 rounded-full"></div>
+                  <div className="absolute top-6 right-6 w-12 h-2 bg-white/60 rounded-full"></div>
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <div className="h-3 bg-white/70 rounded-full mb-2"></div>
+                    <div className="h-2 bg-white/50 rounded-full w-2/3"></div>
                   </div>
-                  <p className="text-sm mb-3">{currentTemplate.posts[0].caption}</p>
-                  <Button className="w-full bg-brand-600 hover:bg-brand-700" data-testid="button-learn-more">
+                  <div className="text-6xl z-10">{currentTemplate.posts[0].image}</div>
+                  
+                  {/* "Ad" label */}
+                  <div className="absolute top-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                    Ad
+                  </div>
+                </div>
+
+                {/* Facebook Ad Content */}
+                <div className="p-4 bg-white">
+                  <p className="text-gray-800 text-sm mb-4 leading-relaxed">{currentTemplate.posts[0].caption}</p>
+                  
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300" data-testid="button-learn-more">
                     {isSpanish ? 'Más Información' : 'Learn More'}
                   </Button>
+                  
+                  {/* Facebook engagement simulation */}
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      <div className="flex items-center space-x-1">
+                        <Heart className="h-3 w-3 text-red-500 fill-current" />
+                        <span>847</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <MessageSquare className="h-3 w-3 text-blue-500" />
+                        <span>23</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Share className="h-3 w-3 text-gray-500" />
+                        <span>12</span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-blue-600 font-medium">Ready to launch</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
