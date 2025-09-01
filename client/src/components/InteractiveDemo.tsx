@@ -486,13 +486,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   if (!demo.showResults) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <Sparkles className="w-12 h-12 mx-auto mb-4 text-brand-600" />
-        </div>
-
         <Card className="border-2 border-purple-100">
           <CardContent className="p-8 space-y-6">
             <div className="text-center mb-6">
+              <Sparkles className="w-12 h-12 mx-auto mb-4 text-brand-600" />
               <h3 className="text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
                 {isSpanish ? '🚀 ¡Pruébalo GRATIS Ahora!' : '🚀 Try It FREE Now!'}
               </h3>
