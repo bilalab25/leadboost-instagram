@@ -1349,7 +1349,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     <div className="max-w-7xl mx-auto">
       <div className="text-center mb-8">
         <h3 className="text-3xl font-bold mb-4">
-          {isSpanish ? '🎉 Tu Campaña Multiplataforma' : '🎉 Your Multi-Platform Campaign'}
+          {isSpanish ? '🎉 Tu Campaña Multiplataforma - Vista Previa' : '🎉 Your Multi-Platform Campaign - Preview'}
         </h3>
         <p className="text-gray-600 text-lg mb-4">
           <strong>"{generatedCampaign}"</strong> {isSpanish ? 'optimizada para 8 plataformas' : 'optimized for 8 platforms'}
