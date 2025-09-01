@@ -79,7 +79,7 @@ export default function Landing() {
                 {isSpanish ? 'El Efecto LeadBoost' : 'The LeadBoost Effect'}
               </h2>
               <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-8 tracking-wide">
-                {isSpanish ? 'Ser Visto → Everywhere. En Un Clic.' : 'Get Seen → Everywhere. In One Click.'}
+                {isSpanish ? 'Ser Visto → En Todos Lados. En Un Clic.' : 'Get Seen → Everywhere. In One Click.'}
               </div>
               
               <div className="max-w-4xl mx-auto mt-8">
