@@ -1513,8 +1513,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               <Instagram className="w-6 h-6 text-pink-500 ml-auto" />
             </div>
 
-            {/* Classic Instagram Grid Layout - Enhanced */}
-            <div className="grid grid-cols-3 gap-2 p-1">
+            {/* Authentic Instagram Grid Layout */}
+            <div className="grid grid-cols-3 gap-0.5">
               {Array.from({ length: 9 }, (_, index) => {
                 const businessType = detectBusinessType(demo.businessDescription);
                 
@@ -1529,67 +1529,49 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   imageUrl = getIndustryVariedImage(demo.businessDescription, businessType, index);
                 }
                 
-                const overlayText = getPostOverlayText(demo.businessDescription, businessType, index, generatedCampaign, isSpanish);
                 const likes = Math.floor(Math.random() * 2000) + 150;
                 const comments = Math.floor(Math.random() * 50) + 5;
                 
                 return (
-                  <div key={index} className="aspect-square relative group cursor-pointer overflow-hidden rounded-lg border border-gray-100 shadow-sm">
+                  <div key={index} className="aspect-square relative group cursor-pointer">
                     <img 
                       src={imageUrl}
                       alt={`Post ${index + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover"
                     />
                     
-                    {/* Hover overlay with engagement stats */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <div className="flex items-center gap-6 text-white">
+                    {/* Instagram-style hover overlay */}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                      <div className="flex items-center gap-8 text-white">
                         <div className="flex items-center gap-2">
-                          <Heart className="w-6 h-6 fill-white" />
-                          <span className="font-bold text-lg">{likes.toLocaleString()}</span>
+                          <Heart className="w-7 h-7 fill-white" />
+                          <span className="font-semibold text-xl">{likes.toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-2xl">💬</span>
-                          <span className="font-bold text-lg">{comments}</span>
+                          <svg className="w-7 h-7 fill-white" viewBox="0 0 24 24">
+                            <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" />
+                          </svg>
+                          <span className="font-semibold text-xl">{comments}</span>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Content overlay (always visible on some posts) */}
-                    {overlayText && index % 3 === 0 && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
-                        <div className="bg-white/15 backdrop-blur-sm rounded-md p-2 border border-white/20">
-                          <p className="text-white text-xs font-bold drop-shadow-lg leading-tight text-center">
-                            {overlayText}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Multiple photo indicator */}
+                    {/* Multiple photo indicator (Instagram carousel) */}
                     {index % 4 === 1 && (
-                      <div className="absolute top-3 right-3">
-                        <div className="w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                          <span className="text-white text-xs font-bold">📷</span>
-                        </div>
+                      <div className="absolute top-2 right-2">
+                        <svg className="w-5 h-5 text-white drop-shadow" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                          <path d="M21 1H7c-1.1 0-2 .9-2 2v2h2V3h14v14h-2v2h2c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2z"/>
+                        </svg>
                       </div>
                     )}
                     
                     {/* Video indicator */}
                     {index % 5 === 2 && (
-                      <div className="absolute top-3 right-3">
-                        <div className="w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                          <Play className="w-3 h-3 text-white fill-white" />
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Trending/Popular indicator */}
-                    {likes > 1000 && (
-                      <div className="absolute top-3 left-3">
-                        <div className="bg-brand-500/90 backdrop-blur-sm rounded-full px-2 py-1 border border-white/30">
-                          <span className="text-white text-xs font-bold">🔥</span>
-                        </div>
+                      <div className="absolute top-2 right-2">
+                        <svg className="w-5 h-5 text-white drop-shadow" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
                       </div>
                     )}
                   </div>
