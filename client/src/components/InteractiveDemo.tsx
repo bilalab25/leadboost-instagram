@@ -487,22 +487,20 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">⚡</div>
+          <Sparkles className="w-12 h-12 mx-auto mb-4 text-brand-600" />
           <h3 className="text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
-            {isSpanish ? '¡Pruébalo GRATIS Ahora!' : 'Try It FREE Now!'}
+            {isSpanish ? '⚡ ¡Pruébalo GRATIS Ahora!' : '⚡ Try It FREE Now!'}
           </h3>
+          <p className="text-sm text-gray-600 leading-relaxed font-bold">
+            {isSpanish 
+              ? 'Demo Rápido - Ve cómo funciona con cualquier idea de negocio'
+              : 'Quick Demo - See how it works with any business idea'
+            }
+          </p>
         </div>
 
         <Card className="border-2 border-purple-100">
           <CardContent className="p-8 space-y-6">
-            <div className="text-center mb-6">
-              <p className="text-sm text-gray-600 leading-relaxed font-bold">
-                {isSpanish 
-                  ? 'Demo Rápido - Ve cómo funciona con cualquier idea de negocio'
-                  : 'Quick Demo - See how it works with any business idea'
-                }
-              </p>
-            </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 {isSpanish ? '🏢 Describe tu Negocio' : '🏢 Describe Your Business'}
