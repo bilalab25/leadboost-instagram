@@ -493,8 +493,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           </h3>
           <p className="text-sm text-gray-600 leading-relaxed">
             {isSpanish 
-              ? 'Describe tu negocio y mira cómo la IA de LeadBoost crea una campaña optimizada para 21+ plataformas'
-              : 'Describe your business and watch LeadBoost\'s AI create a campaign optimized for 21+ platforms'
+              ? 'Demo Rápido - Ve cómo funciona con cualquier idea de negocio'
+              : 'Quick Demo - See how it works with any business idea'
             }
           </p>
         </div>
