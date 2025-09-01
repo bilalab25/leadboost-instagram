@@ -876,10 +876,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     <div className="max-w-7xl mx-auto">
       <div className="text-center mb-8">
         <h3 className="text-3xl font-bold mb-4">
-          {isSpanish ? '🎉 Tu Plan de 30 Días - CampAIgner' : '🎉 Your 30-Day Plan - CampAIgner'}
+          {isSpanish ? '🎉 Tu Campaña Multiplataforma' : '🎉 Your Multi-Platform Campaign'}
         </h3>
         <p className="text-gray-600 text-lg mb-4">
-          <strong>"{generatedCampaign}"</strong> {isSpanish ? '- Vista previa de tu planificador mensual automático' : '- Preview of your automatic monthly planner'}
+          <strong>"{generatedCampaign}"</strong> {isSpanish ? 'optimizada para 8 plataformas' : 'optimized for 8 platforms'}
         </p>
         <Button variant="outline" onClick={resetDemo} data-testid="button-try-another">
           {isSpanish ? 'Probar Otra Campaña' : 'Try Another Campaign'}
