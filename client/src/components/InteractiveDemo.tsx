@@ -232,8 +232,14 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
     return `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
+  // COFFEE SHOPS & CAFES
+  if (desc.includes('coffee shop') || desc.includes('coffee') || desc.includes('cafe') || desc.includes('coffeehouse') || desc.includes('espresso') || desc.includes('barista')) {
+    // Cozy coffee shop with barista, espresso machine, and coffee atmosphere
+    return `https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
   // FOOD & RESTAURANTS
-  if (desc.includes('restaurant') || desc.includes('bistro') || desc.includes('cafe')) {
+  if (desc.includes('restaurant') || desc.includes('bistro') || desc.includes('dining')) {
     if (desc.includes('italian') || desc.includes('pasta')) {
       return `https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
@@ -356,7 +362,7 @@ const detectBusinessType = (description: string): string => {
   const desc = description.toLowerCase();
   
   // FOOD & RESTAURANTS
-  if (desc.includes('restaurant') || desc.includes('food') || desc.includes('cafe') || desc.includes('pizza') || desc.includes('dining') || desc.includes('bakery') || desc.includes('pastry') || desc.includes('panadería') || desc.includes('pastelería')) {
+  if (desc.includes('restaurant') || desc.includes('food') || desc.includes('cafe') || desc.includes('coffee shop') || desc.includes('coffee') || desc.includes('pizza') || desc.includes('dining') || desc.includes('bakery') || desc.includes('pastry') || desc.includes('panadería') || desc.includes('pastelería')) {
     return 'restaurant';
   }
   
