@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
 import { socialMediaService } from "./services/socialMedia";
+import { imageProcessor } from "./services/imageProcessor";
 import {
   insertMessageSchema,
   insertBrandSchema,
@@ -1322,6 +1323,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating visual:", error);
       res.status(500).json({ message: "Failed to generate visual content" });
+    }
+  });
+
+  // Image processing endpoint for pixel-perfect platform assets
+  app.post('/api/process-campaign-images', async (req, res) => {
+    try {
+      const { sourceImageUrl, campaignText, brandStyle = 'professional', platforms } = req.body;
+      
+      if (!sourceImageUrl || !campaignText) {
+        return res.status(400).json({ error: 'sourceImageUrl and campaignText are required' });
+      }
+
+      // For demo purposes, return optimized image URLs with proper aspect ratios
+      const processedImages: Record<string, string> = {};
+      const platformsToProcess = platforms || [
+        'Instagram Post', 'Instagram Story', 'LinkedIn Post', 'Facebook Post',
+        'Twitter/X Post', 'TikTok Cover', 'Email Banner'
+      ];
+      
+      // Generate properly sized image URLs using Unsplash with exact dimensions
+      for (const platform of platformsToProcess) {
+        const dimensions = imageProcessor.PLATFORM_DIMENSIONS?.[platform];
+        if (dimensions) {
+          // Use the source image with exact dimensions and smart cropping
+          const optimizedUrl = `${sourceImageUrl}&w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart`;
+          processedImages[platform] = optimizedUrl;
+        }
+      }
+      
+      res.json({ processedImages });
+      
+    } catch (error) {
+      console.error('Error processing campaign images:', error);
+      res.status(500).json({ error: 'Failed to process images' });
     }
   });
 

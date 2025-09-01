@@ -93,7 +93,7 @@ const generatePlatformPosts = (businessDescription: string, brandStyle: string =
     caption: generatePlatformCaption(campaignIdea, businessType, platform.tone, businessDescription, brandStyle),
     dimensions: platform.dimensions,
     aspectRatio: platform.aspectRatio,
-    imageUrl: getSmartVisual(businessDescription, businessType, platform.aspectRatio),
+    imageUrl: getSmartVisual(businessDescription, businessType, platform.aspectRatio, platform.platform),
     icon: platform.icon,
     brandStyle: brandStyle
   }));
@@ -181,108 +181,87 @@ const generatePlatformCaption = (campaignIdea: string, businessType: string, ton
   return captions[tone]?.[businessKey] || `${campaignIdea} - Limited time offer!`;
 };
 
-// Highly intelligent visual selection based on business essence
-const getSmartVisual = (businessDescription: string, businessType: string, aspectRatio: string): string => {
+// Platform dimensions for pixel-perfect assets
+const PLATFORM_DIMENSIONS: Record<string, { width: number; height: number }> = {
+  'Instagram Post': { width: 1080, height: 1080 },
+  'Instagram Story': { width: 1080, height: 1920 },
+  'LinkedIn Post': { width: 1200, height: 628 },
+  'Threads Post': { width: 1080, height: 1080 },
+  'Email Banner': { width: 600, height: 200 },
+  'Twitter/X Post': { width: 1600, height: 900 },
+  'Facebook Post': { width: 1200, height: 628 },
+  'TikTok Cover': { width: 1080, height: 1920 }
+};
+
+// Generate pixel-perfect images with exact platform dimensions
+const getSmartVisual = (businessDescription: string, businessType: string, aspectRatio: string, platform: string): string => {
   const desc = businessDescription.toLowerCase();
   
-  // Ultra-specific visual matching to business essence
+  // Get exact dimensions for the platform
+  const dimensions = PLATFORM_DIMENSIONS[platform] || { width: 1200, height: 628 };
+  
+  // Ultra-specific visual matching to business essence with exact dimensions
   const getSpecificVisual = () => {
     // Art History Teacher - Classical art and museum pieces
     if (desc.includes('art history') && desc.includes('teacher')) {
-      return {
-        square: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=1080&h=1080&fit=crop&crop=center', // Classic art museum
-        landscape: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&h=628&fit=crop&crop=center', // Art gallery
-        story: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=200&fit=crop&crop=center'
-      };
+      const baseUrl = 'https://images.unsplash.com/photo-1541961017774-22349e4a1262'; // Classic art museum
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     
     // Math/Science Teacher - Mathematical concepts and learning
     if ((desc.includes('math') || desc.includes('calculus') || desc.includes('algebra')) && desc.includes('teacher')) {
-      return {
-        square: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1080&h=1080&fit=crop&crop=center', // Math equations
-        landscape: 'https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=1200&h=628&fit=crop&crop=center', // Classroom
-        story: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=600&h=200&fit=crop&crop=center'
-      };
+      const baseUrl = 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb'; // Math equations
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     
     // Wedding Photographer - Beautiful wedding moments
     if (desc.includes('photographer') && desc.includes('wedding')) {
-      return {
-        square: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1080&h=1080&fit=crop&crop=center', // Wedding couple
-        landscape: 'https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?w=1200&h=628&fit=crop&crop=center', // Wedding ceremony
-        story: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?w=600&h=200&fit=crop&crop=center'
-      };
+      const baseUrl = 'https://images.unsplash.com/photo-1519741497674-611481863552'; // Wedding couple
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     
     // Therapist/Counselor - Peaceful, healing environments
     if (desc.includes('therapist') || desc.includes('counseling') || desc.includes('therapy')) {
-      return {
-        square: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=1080&h=1080&fit=crop&crop=center', // Peaceful therapy room
-        landscape: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=628&fit=crop&crop=center', // Calm nature
-        story: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop&crop=center'
-      };
+      const baseUrl = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2'; // Peaceful therapy room
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     
     // Lawyer/Attorney - Professional legal setting
     if (desc.includes('lawyer') || desc.includes('attorney') || desc.includes('legal')) {
-      return {
-        square: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb?w=1080&h=1080&fit=crop&crop=center', // Legal books
-        landscape: 'https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?w=1200&h=628&fit=crop&crop=center', // Law office
-        story: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?w=600&h=200&fit=crop&crop=center'
-      };
+      const baseUrl = 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb'; // Legal books
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     
     // Graphic Designer - Creative design tools and work
     if (desc.includes('designer') || desc.includes('graphic design')) {
-      return {
-        square: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1080&h=1080&fit=crop&crop=center', // Design workspace
-        landscape: 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=1200&h=628&fit=crop&crop=center', // Creative tools
-        story: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=600&h=200&fit=crop&crop=center'
-      };
+      const baseUrl = 'https://images.unsplash.com/photo-1561070791-2526d30994b5'; // Design workspace
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     
     // Italian Restaurant - Authentic Italian cuisine
     if (desc.includes('italian') && (desc.includes('pasta') || desc.includes('restaurant'))) {
-      return {
-        square: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=1080&h=1080&fit=crop&crop=center',
-        landscape: 'https://images.unsplash.com/photo-1555126634-323283e090fa?w=1200&h=628&fit=crop&crop=center',
-        story: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1555126634-323283e090fa?w=600&h=200&fit=crop&crop=center'
-      };
+      const baseUrl = 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3'; // Italian pasta
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     
     // Artisan Bakery - Fresh bread and baked goods
     if (desc.includes('bakery') && desc.includes('bread')) {
-      return {
-        square: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=1080&h=1080&fit=crop&crop=center',
-        landscape: 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=1200&h=628&fit=crop&crop=center',
-        story: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=600&h=200&fit=crop&crop=center'
-      };
+      const baseUrl = 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35'; // Fresh bread
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     
     // Yoga/Meditation - Peaceful, zen-like environments
     if (desc.includes('yoga') || desc.includes('meditation')) {
-      return {
-        square: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1080&h=1080&fit=crop&crop=center',
-        landscape: 'https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=1200&h=628&fit=crop&crop=center',
-        story: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1080&h=1920&fit=crop&crop=center',
-        banner: 'https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=600&h=200&fit=crop&crop=center'
-      };
+      const baseUrl = 'https://images.unsplash.com/photo-1518611012118-696072aa579a'; // Yoga meditation
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     
     return null;
   };
   
-  const specificVisuals = getSpecificVisual();
-  if (specificVisuals) {
-    return specificVisuals[aspectRatio as keyof typeof specificVisuals];
+  const specificVisual = getSpecificVisual();
+  if (specificVisual) {
+    return specificVisual;
   }
   
   // Fallback to business type visuals
@@ -313,8 +292,24 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
     }
   };
 
-  const businessKey = ['restaurant', 'fitness', 'beauty'].includes(businessType) ? businessType : 'default';
-  return visualsByType[businessKey][aspectRatio] || visualsByType.default[aspectRatio];
+  // Fallback with exact dimensions for any business type
+  const getGenericVisual = () => {
+    const genericImageIds: Record<string, string> = {
+      restaurant: 'photo-1414235077428-338989a2e8c0',
+      fitness: 'photo-1571019613454-1cb2f99b2d8b',
+      beauty: 'photo-1596462502278-27bfdc403348',
+      retail: 'photo-1441986300917-64674bd600d8',
+      professional: 'photo-1497032628192-86f99bcd76bc',
+      default: 'photo-1560472354-b33ff0c44a43'
+    };
+    
+    const businessKey = ['restaurant', 'fitness', 'beauty', 'retail', 'professional'].includes(businessType) ? businessType : 'default';
+    const imageId = genericImageIds[businessKey];
+    
+    return `https://images.unsplash.com/${imageId}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  };
+  
+  return getGenericVisual();
 };
 
 // Detect business type from description
