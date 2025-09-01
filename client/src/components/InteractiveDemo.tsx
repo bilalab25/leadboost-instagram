@@ -945,11 +945,6 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                             {selectedPost.dimensions}
                           </div>
                           
-                          {/* AI-powered badge */}
-                          <div className="absolute bottom-16 left-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg flex items-center gap-1">
-                            <Sparkles className="w-3 h-3" />
-                            AI-Powered
-                          </div>
                         </div>
                       </div>
                     )}
