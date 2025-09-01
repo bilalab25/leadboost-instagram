@@ -486,7 +486,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   if (!demo.showResults) {
     return (
       <div className="max-w-2xl mx-auto">
-        <Card className="border-2 border-purple-100">
+        <Card className="border-2 border-brand-200">
           <CardContent className="p-8 space-y-6">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">🚀</div>
@@ -599,7 +599,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             <Button 
               onClick={handleGenerateCampaign}
               disabled={demo.isGenerating || !demo.businessDescription.trim()}
-              className="w-full h-14 text-lg bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700"
+              className="w-full h-14 text-lg bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800"
               data-testid="button-generate-campaign"
             >
               {demo.isGenerating ? (
@@ -705,7 +705,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 </div>
                 
                 {/* Premium platform badge */}
-                <div className="absolute top-3 right-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg border border-white/20">
+                <div className="absolute top-3 right-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg border border-white/20">
                   {post.dimensions}
                 </div>
                 
@@ -755,7 +755,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
       {/* Post Everywhere CTA */}
       <div className="text-center mt-8">
-        <div className="bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 p-1 rounded-2xl shadow-2xl max-w-md mx-auto">
+        <div className="bg-gradient-to-r from-brand-500 via-brand-600 to-brand-700 p-1 rounded-2xl shadow-2xl max-w-md mx-auto">
           <Button 
             size="lg" 
             className="w-full bg-white hover:bg-gray-50 text-gray-900 font-black text-lg py-6 rounded-xl shadow-xl transition-all duration-300 hover:scale-105"
@@ -789,7 +789,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             : '✨ One campaign idea → 8 ready-to-publish posts across different platforms'
           }
         </p>
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-6">
+        <div className="bg-gradient-to-r from-brand-50 to-brand-100 rounded-xl p-6 mb-6">
           <h4 className="text-lg font-bold text-gray-900 mb-2">
             {isSpanish ? '🚀 ¿Quieres VERDADERO contenido IA personalizado?' : '🚀 Want REAL AI-personalized content?'}
           </h4>
@@ -803,7 +803,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             <Button variant="outline" size="lg" data-testid="button-start-free">
               {isSpanish ? 'Comenzar Gratis' : 'Start Free'}
             </Button>
-            <Button size="lg" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" data-testid="button-upgrade-enterprise">
+            <Button size="lg" className="bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800" data-testid="button-upgrade-enterprise">
               {isSpanish ? 'Ver Enterprise' : 'View Enterprise'}
             </Button>
           </div>
@@ -824,7 +824,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           <div className="relative max-w-4xl mx-auto bg-gradient-to-br from-gray-900 to-black rounded-2xl overflow-hidden shadow-2xl">
             <div className="aspect-video relative bg-gray-900 flex items-center justify-center">
               {/* Video Thumbnail */}
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-600/20 to-purple-600/20"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-600/20 to-brand-700/20"></div>
               <div className="relative z-10 text-center text-white">
                 <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 hover:bg-white/30 transition-all duration-300 cursor-pointer group">
                   <Play className="w-8 h-8 text-white ml-1 group-hover:scale-110 transition-transform" />
@@ -940,7 +940,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                           </div>
                           
                           {/* Premium platform badge */}
-                          <div className="absolute top-12 right-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg border border-white/20">
+                          <div className="absolute top-12 right-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg border border-white/20">
                             {selectedPost.dimensions}
                           </div>
                           
