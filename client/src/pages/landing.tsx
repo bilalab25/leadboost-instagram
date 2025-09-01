@@ -232,8 +232,8 @@ export default function Landing() {
                       </div>
                       <p className="text-gray-700 text-sm mb-4">
                         {isSpanish 
-                          ? '"CampAIgner revolucionó nuestro marketing. En 30 segundos tenemos campañas para todas las redes sociales. Increíble."'
-                          : '"CampAIgner revolutionized our marketing. In 30 seconds we have campaigns for all social networks. Amazing."'
+                          ? '"Lead Boost revolucionó nuestro marketing. En 30 segundos tenemos campañas para todas las redes sociales. Increíble."'
+                          : '"Lead Boost revolutionized our marketing. In 30 seconds we have campaigns for all social networks. Amazing."'
                         }
                       </p>
                       <div className="text-sm">
@@ -252,8 +252,8 @@ export default function Landing() {
                       </div>
                       <p className="text-gray-700 text-sm mb-4">
                         {isSpanish 
-                          ? '"Brand Studio me ayudó a definir mi identidad de marca. Ahora la IA genera campañas que se ven exactamente como mi negocio."'
-                          : '"Brand Studio helped me define my brand identity. Now AI generates campaigns that look exactly like my business."'
+                          ? '"Lead Boost me ayudó a definir mi identidad de marca. Ahora la IA genera campañas que se ven exactamente como mi negocio."'
+                          : '"Lead Boost helped me define my brand identity. Now AI generates campaigns that look exactly like my business."'
                         }
                       </p>
                       <div className="text-sm">
