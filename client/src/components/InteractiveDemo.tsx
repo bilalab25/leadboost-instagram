@@ -485,7 +485,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   if (!demo.showResults) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 relative overflow-hidden">
           {/* Subtle background elements like the main site */}
           <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
