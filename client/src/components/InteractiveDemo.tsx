@@ -653,6 +653,77 @@ const getPostOverlayText = (businessDescription: string, businessType: string, p
   return defaultTexts[postIndex] || defaultTexts[0];
 };
 
+// Generate TikTok-specific overlay text
+const getTikTokOverlayText = (businessDescription: string, businessType: string, postIndex: number, generatedCampaign: string, isSpanish: boolean): string | null => {
+  const desc = businessDescription.toLowerCase();
+  
+  // Show text on posts 0, 2, 4 (3 out of 6 posts - less text for TikTok)
+  const showTextOnPost = [0, 2, 4].includes(postIndex);
+  if (!showTextOnPost) return null;
+  
+  if (desc.includes('coffee shop') || desc.includes('coffee') || desc.includes('cafe')) {
+    const tikTokTexts = [
+      isSpanish ? '#CaféFresco #Barista' : '#FreshCoffee #Barista',
+      isSpanish ? '#LaVidaDelCafé #CafeLocal' : '#CoffeeLife #LocalCafe',
+      isSpanish ? '#CafeArtesanal #Espresso' : '#ArtisanCoffee #Espresso'
+    ];
+    return tikTokTexts[Math.floor(postIndex / 2)] || tikTokTexts[0];
+  }
+  
+  if (desc.includes('bakery') || desc.includes('pastry') || desc.includes('pastelería')) {
+    const tikTokTexts = [
+      isSpanish ? '#PanFresco #Panadería' : '#FreshBread #Bakery',
+      isSpanish ? '#PastelesUnicos #Dulces' : '#UniqueCakes #Sweets',
+      isSpanish ? '#HechoConAmor #Artesanal' : '#MadeWithLove #Artisan'
+    ];
+    return tikTokTexts[Math.floor(postIndex / 2)] || tikTokTexts[0];
+  }
+  
+  if (desc.includes('jewelry') || desc.includes('joyería')) {
+    const tikTokTexts = [
+      isSpanish ? '#JoyasUnicas #Diamantes' : '#UniqueJewelry #Diamonds',
+      isSpanish ? '#LujoAccesible #Elegancia' : '#AffordableLuxury #Elegance',
+      isSpanish ? '#DiseñoPersonalizado #Exclusivo' : '#CustomDesign #Exclusive'
+    ];
+    return tikTokTexts[Math.floor(postIndex / 2)] || tikTokTexts[0];
+  }
+  
+  if (desc.includes('beauty') || desc.includes('salon') || desc.includes('botox')) {
+    const tikTokTexts = [
+      isSpanish ? '#BellezaNatural #Transformación' : '#NaturalBeauty #Transformation',
+      isSpanish ? '#CuidadoProfesional #Spa' : '#ProfessionalCare #Spa',
+      isSpanish ? '#ResultadosReales #Belleza' : '#RealResults #Beauty'
+    ];
+    return tikTokTexts[Math.floor(postIndex / 2)] || tikTokTexts[0];
+  }
+  
+  if (desc.includes('gym') || desc.includes('fitness')) {
+    const tikTokTexts = [
+      isSpanish ? '#FitnessMotivation #Gym' : '#FitnessMotivation #Gym',
+      isSpanish ? '#TransformaciónFísica #Fitness' : '#Transformation #Fitness',
+      isSpanish ? '#EntrenamientoPersonal #Salud' : '#PersonalTraining #Health'
+    ];
+    return tikTokTexts[Math.floor(postIndex / 2)] || tikTokTexts[0];
+  }
+  
+  if (desc.includes('restaurant') || desc.includes('food')) {
+    const tikTokTexts = [
+      isSpanish ? '#ComidaDeliciosa #RestauranteLocal' : '#DeliciousFood #LocalRestaurant',
+      isSpanish ? '#ChefEspecial #SaboresUnicos' : '#ChefSpecial #UniqueFlavors',
+      isSpanish ? '#ExperienciaGastronomica #Foodie' : '#DiningExperience #Foodie'
+    ];
+    return tikTokTexts[Math.floor(postIndex / 2)] || tikTokTexts[0];
+  }
+  
+  // Default TikTok hashtags
+  const defaultTexts = [
+    isSpanish ? '#NegocioLocal #Calidad' : '#LocalBusiness #Quality',
+    isSpanish ? '#ServicioProfesional #Excelencia' : '#ProfessionalService #Excellence',
+    isSpanish ? '#ExperienciaUnica #Premium' : '#UniqueExperience #Premium'
+  ];
+  return defaultTexts[Math.floor(postIndex / 2)] || defaultTexts[0];
+};
+
 // Detect business type from description
 const detectBusinessType = (description: string): string => {
   const desc = description.toLowerCase();
@@ -1251,22 +1322,24 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         ))}
       </div>
 
-      {/* Instagram Feed Preview */}
+      {/* 30-Day Feed Previews */}
       <div className="mt-16 mb-12">
         <div className="text-center mb-8">
           <h4 className="text-2xl font-bold text-gray-900 mb-4">
-            {isSpanish ? '📱 Planificador de 30 Días - Instagram' : '📱 30-Day Planner - Instagram'}
+            {isSpanish ? '📱 Planificador de 30 Días - Vista Previa' : '📱 30-Day Planner - Preview'}
           </h4>
           <p className="text-gray-600 max-w-2xl mx-auto">
             {isSpanish 
-              ? 'CampAIgner genera automáticamente 30 días de contenido específico para tu industria. Aquí una muestra de 6 posts:'
-              : 'CampAIgner automatically generates 30 days of industry-specific content. Here\'s a sample of 6 posts:'
+              ? 'CampAIgner genera automáticamente 30 días de contenido específico para tu industria. Aquí una muestra:'
+              : 'CampAIgner automatically generates 30 days of industry-specific content. Here\'s a sample:'
             }
           </p>
         </div>
 
-        {/* Instagram Feed Grid */}
-        <div className="max-w-3xl mx-auto">
+        {/* Platform Feed Previews */}
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
+          
+          {/* Instagram Feed Grid */}
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-200">
             {/* Instagram Header */}
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
@@ -1336,47 +1409,119 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             </div>
           </div>
 
-          {/* Multi-Platform Preview */}
-          <div className="mt-8 relative">
-            <div className="bg-gradient-to-r from-brand-50 via-white to-brand-50 rounded-2xl p-6 border border-brand-200">
-              <h5 className="text-lg font-bold text-center mb-4 text-gray-900">
-                {isSpanish ? '🌟 Planificación Completa para Todas las Plataformas' : '🌟 Complete Planning for All Platforms'}
-              </h5>
-              
-              {/* Platform previews with gradient transparency */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { name: 'TikTok', icon: '🎵', color: 'from-black to-gray-800' },
-                  { name: 'Pinterest', icon: '📌', color: 'from-red-500 to-red-600' },
-                  { name: 'YouTube', icon: '▶️', color: 'from-red-600 to-red-700' },
-                  { name: 'Twitter/X', icon: '🐦', color: 'from-sky-400 to-sky-500' }
-                ].map((platform, index) => (
-                  <div key={platform.name} className="relative group">
-                    <div className={`bg-gradient-to-br ${platform.color} rounded-xl p-4 text-white text-center transition-all duration-300 group-hover:scale-105`}>
-                      <div className="text-2xl mb-2">{platform.icon}</div>
-                      <p className="text-sm font-bold">{platform.name}</p>
-                      <p className="text-xs opacity-80 mt-1">
-                        {isSpanish ? '30 días' : '30 days'}
-                      </p>
+          {/* TikTok Feed Grid */}
+          <div className="bg-black rounded-2xl shadow-xl p-6 border border-gray-800">
+            {/* TikTok Header */}
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-700">
+              <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">
+                  {demo.businessDescription.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <h5 className="font-bold text-white">
+                  @{demo.businessDescription.toLowerCase().replace(/\s+/g, '').substring(0, 12)}
+                </h5>
+                <p className="text-sm text-gray-400">{isSpanish ? '30 días planificados' : '30 days planned'}</p>
+              </div>
+              <div className="w-6 h-6 text-red-500 ml-auto font-bold text-lg">🎵</div>
+            </div>
+
+            {/* 6-Video Grid (Vertical format) */}
+            <div className="grid grid-cols-3 gap-1">
+              {Array.from({ length: 6 }, (_, index) => {
+                const businessType = detectBusinessType(demo.businessDescription);
+                
+                // Use uploaded photos if available, otherwise use generated images
+                let imageUrl: string;
+                if (demo.uploadedImages.length > 0) {
+                  // Cycle through uploaded images
+                  const uploadedImage = demo.uploadedImages[index % demo.uploadedImages.length];
+                  imageUrl = URL.createObjectURL(uploadedImage);
+                } else {
+                  // Use generated industry-specific images
+                  imageUrl = getIndustryVariedImage(demo.businessDescription, businessType, index);
+                }
+                
+                const tikTokText = getTikTokOverlayText(demo.businessDescription, businessType, index, generatedCampaign, isSpanish);
+                
+                return (
+                  <div key={index} className="aspect-[9/16] relative group cursor-pointer bg-gray-900 rounded-lg overflow-hidden">
+                    <img 
+                      src={imageUrl}
+                      alt={`TikTok ${index + 1}`}
+                      className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                    />
+                    
+                    {/* TikTok UI Elements */}
+                    <div className="absolute top-2 right-2">
+                      <div className="w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">▶️</span>
+                      </div>
                     </div>
                     
-                    {/* Gradient overlay to show "coming soon" effect */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-white/30 to-transparent rounded-xl flex items-end justify-center pb-2">
-                      <span className="text-xs font-bold text-gray-700 bg-white/80 px-2 py-1 rounded-full">
-                        {isSpanish ? 'Disponible' : 'Available'}
-                      </span>
+                    {/* Bottom overlay with text */}
+                    {tikTokText && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        <p className="text-white text-xs font-bold leading-tight">
+                          {tikTokText}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* View count */}
+                    <div className="absolute bottom-2 right-2">
+                      <div className="bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
+                        <span className="text-white text-xs">{Math.floor(Math.random() * 100)}K</span>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-              
-              <p className="text-center text-sm text-gray-600 mt-4">
-                {isSpanish 
-                  ? '✨ CampAIgner: Tu planificador inteligente de 30 días para todas las plataformas'
-                  : '✨ CampAIgner: Your intelligent 30-day planner for all platforms'
-                }
-              </p>
+                );
+              })}
             </div>
+          </div>
+        </div>
+
+        {/* Multi-Platform Preview */}
+        <div className="mt-8 relative max-w-4xl mx-auto">
+          <div className="bg-gradient-to-r from-brand-50 via-white to-brand-50 rounded-2xl p-6 border border-brand-200">
+            <h5 className="text-lg font-bold text-center mb-4 text-gray-900">
+              {isSpanish ? '🌟 Planificación Completa para Todas las Plataformas' : '🌟 Complete Planning for All Platforms'}
+            </h5>
+            
+            {/* Platform previews with gradient transparency */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { name: 'Pinterest', icon: '📌', color: 'from-red-500 to-red-600' },
+                { name: 'YouTube', icon: '▶️', color: 'from-red-600 to-red-700' },
+                { name: 'Twitter/X', icon: '🐦', color: 'from-sky-400 to-sky-500' },
+                { name: 'LinkedIn', icon: '💼', color: 'from-blue-600 to-blue-700' }
+              ].map((platform, index) => (
+                <div key={platform.name} className="relative group">
+                  <div className={`bg-gradient-to-br ${platform.color} rounded-xl p-4 text-white text-center transition-all duration-300 group-hover:scale-105`}>
+                    <div className="text-2xl mb-2">{platform.icon}</div>
+                    <p className="text-sm font-bold">{platform.name}</p>
+                    <p className="text-xs opacity-80 mt-1">
+                      {isSpanish ? '30 días' : '30 days'}
+                    </p>
+                  </div>
+                  
+                  {/* Gradient overlay to show "coming soon" effect */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-white/30 to-transparent rounded-xl flex items-end justify-center pb-2">
+                    <span className="text-xs font-bold text-gray-700 bg-white/80 px-2 py-1 rounded-full">
+                      {isSpanish ? 'Disponible' : 'Available'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <p className="text-center text-sm text-gray-600 mt-4">
+              {isSpanish 
+                ? '✨ CampAIgner: Tu planificador inteligente de 30 días para todas las plataformas'
+                : '✨ CampAIgner: Your intelligent 30-day planner for all platforms'
+              }
+            </p>
           </div>
         </div>
       </div>
