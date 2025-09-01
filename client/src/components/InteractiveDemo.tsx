@@ -1556,6 +1556,21 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                       </div>
                     </div>
                     
+                    {/* Text overlay on half the posts */}
+                    {index % 2 === 0 && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
+                        <div className="bg-white/20 backdrop-blur-sm rounded-md px-3 py-2 border border-white/30">
+                          <p className="text-white text-sm font-bold drop-shadow-lg text-center leading-tight">
+                            {index === 0 ? (isSpanish ? "Nueva Colección" : "New Collection") :
+                             index === 2 ? (isSpanish ? "Detrás Escenas" : "Behind Scenes") :
+                             index === 4 ? (isSpanish ? "Cliente Feliz" : "Happy Client") :
+                             index === 6 ? (isSpanish ? "Oferta Especial" : "Special Offer") :
+                             isSpanish ? "Proceso Único" : "Unique Process"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Multiple photo indicator (Instagram carousel) */}
                     {index % 4 === 1 && (
                       <div className="absolute top-2 right-2">
@@ -1651,14 +1666,19 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                       </div>
                     </div>
                     
-                    {/* Bottom overlay with text */}
-                    {tikTokText && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                        <p className="text-white text-xs font-bold leading-tight">
-                          {tikTokText}
+                    {/* TikTok Title Overlay */}
+                    <div className="absolute bottom-8 left-2 right-2">
+                      <div className="bg-black/40 backdrop-blur-sm rounded-lg px-3 py-2">
+                        <p className="text-white text-sm font-bold drop-shadow-lg text-center leading-tight">
+                          {index === 0 ? (isSpanish ? "Producto Nuevo" : "New Product") :
+                           index === 1 ? (isSpanish ? "Tutorial Rápido" : "Quick Tutorial") :
+                           index === 2 ? (isSpanish ? "Cliente Satisfecho" : "Happy Customer") :
+                           index === 3 ? (isSpanish ? "Oferta Limitada" : "Limited Offer") :
+                           index === 4 ? (isSpanish ? "Detrás Cámaras" : "Behind Scenes") :
+                           isSpanish ? "Consejos Pro" : "Pro Tips"}
                         </p>
                       </div>
-                    )}
+                    </div>
                     
                     {/* View count */}
                     <div className="absolute bottom-2 right-2">
