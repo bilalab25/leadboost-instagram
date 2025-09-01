@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2, X, Target, Heart } from 'lucide-react';
+import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2, X, Target, Heart, Video } from 'lucide-react';
+import { SiTiktok } from 'react-icons/si';
 
 interface DemoState {
   businessDescription: string;
@@ -1579,7 +1580,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 </h5>
                 <p className="text-sm text-gray-400">{isSpanish ? '30 días planificados' : '30 days planned'}</p>
               </div>
-              <div className="w-6 h-6 text-red-500 ml-auto font-bold text-lg">🎵</div>
+              <SiTiktok className="w-6 h-6 text-red-500 ml-auto" />
             </div>
 
             {/* 6-Video Grid (Vertical format) */}
