@@ -486,11 +486,82 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
   const desc = businessDescription.toLowerCase();
   const dimensions = { width: 400, height: 400 }; // Square format for Instagram
   
-  // SPECIFIC BUSINESS MATCHING - Match exact descriptions
+  // PRIORITY 1: EXACT FULL PHRASE MATCHING - Match complete business types first
   
-  // Sourdough & Artisan Bakery
-  if (desc.includes('sourdough') || (desc.includes('bakery') && desc.includes('artisan'))) {
-    const sourdoughImages = [
+  // Botox Clinic / Medical Aesthetics (FULL PHRASE MATCH)
+  if (desc.includes('botox clinic') || desc.includes('aesthetic clinic') || desc.includes('cosmetic clinic') || desc.includes('med spa') || desc.includes('medical spa')) {
+    console.log('🎯 EXACT BOTOX CLINIC PHRASE MATCH!', desc);
+    const botoxClinicImages = [
+      `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Clean medical spa interior
+      `https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional skincare consultation
+      `https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Skincare products and serums
+      `https://images.unsplash.com/photo-1560066984-138dadb4c035?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional beauty salon
+      `https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Medical aesthetic treatment
+      `https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Professional facial treatment
+    ];
+    return botoxClinicImages[postIndex % botoxClinicImages.length];
+  }
+  
+  // Wedding Photography (FULL PHRASE MATCH)
+  if (desc.includes('wedding photographer') || desc.includes('wedding photography')) {
+    console.log('🎯 EXACT WEDDING PHOTOGRAPHY PHRASE MATCH!', desc);
+    const weddingPhotographyImages = [
+      `https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding couple
+      `https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding rings
+      `https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding dress
+      `https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding venue
+      `https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional camera
+      `https://images.unsplash.com/photo-1487530811176-3780de880c2d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Wedding bouquet
+    ];
+    return weddingPhotographyImages[postIndex % weddingPhotographyImages.length];
+  }
+  
+  // Coffee Shop (FULL PHRASE MATCH)
+  if (desc.includes('coffee shop') || desc.includes('coffee cafe')) {
+    console.log('🎯 EXACT COFFEE SHOP PHRASE MATCH!', desc);
+    const coffeeShopImages = [
+      `https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Coffee shop interior
+      `https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Coffee cup with latte art
+      `https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Espresso machine
+      `https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Barista at work
+      `https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Coffee beans
+      `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Coffee and pastries
+    ];
+    return coffeeShopImages[postIndex % coffeeShopImages.length];
+  }
+  
+  // Italian Restaurant (FULL PHRASE MATCH)
+  if (desc.includes('italian restaurant') || desc.includes('italian pizzeria') || desc.includes('italian cuisine')) {
+    console.log('🎯 EXACT ITALIAN RESTAURANT PHRASE MATCH!', desc);
+    const italianRestaurantImages = [
+      `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Authentic pizza
+      `https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Fresh pasta
+      `https://images.unsplash.com/photo-1498579397066-22750a3cb424?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Italian ingredients
+      `https://images.unsplash.com/photo-1551326844-4df70f78d0e9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Traditional Italian restaurant
+      `https://images.unsplash.com/photo-1551218808-94e220e084d2?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wine and food pairing
+      `https://images.unsplash.com/photo-1563379091339-03246963d51a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Chef making pasta
+    ];
+    return italianRestaurantImages[postIndex % italianRestaurantImages.length];
+  }
+  
+  // Personal Trainer (FULL PHRASE MATCH)
+  if (desc.includes('personal trainer') || desc.includes('fitness trainer') || desc.includes('fitness coach')) {
+    console.log('🎯 EXACT PERSONAL TRAINER PHRASE MATCH!', desc);
+    const personalTrainerImages = [
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Training session
+      `https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Personal training
+      `https://images.unsplash.com/photo-1583500178690-f7fd39fae5b5?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Weight training
+      `https://images.unsplash.com/photo-1549476464-37392f717541?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Fitness transformation
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Gym atmosphere
+      `https://images.unsplash.com/photo-1506629905607-84d5bbfc4ed8?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Group training
+    ];
+    return personalTrainerImages[postIndex % personalTrainerImages.length];
+  }
+  
+  // Artisan Bakery (FULL PHRASE MATCH)
+  if (desc.includes('artisan bakery') || desc.includes('sourdough bakery') || desc.includes('local bakery')) {
+    console.log('🎯 EXACT ARTISAN BAKERY PHRASE MATCH!', desc);
+    const artisanBakeryImages = [
       `https://images.unsplash.com/photo-1509440159596-0249088772ff?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Sourdough loaves
       `https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Fresh sourdough cut
       `https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Artisan baker
@@ -498,12 +569,14 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
       `https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Bakery storefront
       `https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Fresh bread display
     ];
-    return sourdoughImages[postIndex % sourdoughImages.length];
+    return artisanBakeryImages[postIndex % artisanBakeryImages.length];
   }
   
-  // Dermatology & Medical Aesthetics (Botox/Filler/Clinic)
-  if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('dermatology') || desc.includes('aesthetic clinic') || desc.includes('med spa') || desc.includes('cosmetic') || desc.includes('injection')) {
-    console.log('🎯 BOTOX CLINIC MATCH FOUND!', desc); // Debug log
+  // PRIORITY 2: INDIVIDUAL KEYWORD MATCHING (fallback only if no phrase match)
+  
+  // Individual Botox/Aesthetic keywords (only if no exact phrase match above)
+  if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('dermatology') || desc.includes('cosmetic') || desc.includes('injection')) {
+    console.log('🔸 INDIVIDUAL BOTOX KEYWORD MATCH (fallback):', desc);
     const medAestheticsImages = [
       `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Clean medical spa interior
       `https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional skincare consultation
