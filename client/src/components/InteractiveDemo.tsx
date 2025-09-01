@@ -922,13 +922,33 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                             <div className="text-white text-sm drop-shadow-lg">now</div>
                           </div>
                           
-                          {/* Caption overlay - positioned at bottom */}
-                          <div className="absolute bottom-6 left-4 right-4">
-                            <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3">
-                              <p className="text-white text-sm font-medium leading-relaxed drop-shadow-lg">
-                                {selectedPost.caption}
-                              </p>
+                          {/* Dynamic brand style overlay - same as main cards */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+                          
+                          {/* Campaign text overlay - exactly like main cards */}
+                          <div className="absolute inset-0 p-4 flex flex-col justify-center items-center text-center">
+                            <div className="space-y-3">
+                              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                                <h3 className="text-xl font-black text-white leading-tight drop-shadow-2xl tracking-tight">
+                                  {generatedCampaign.split(' ').slice(0, 3).join(' ')}
+                                </h3>
+                                <div className="w-12 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 mx-auto mt-2 rounded-full"></div>
+                                <p className="text-sm font-bold text-white/90 drop-shadow-xl mt-2">
+                                  {generatedCampaign.split(' ').slice(3).join(' ')}
+                                </p>
+                              </div>
                             </div>
+                          </div>
+                          
+                          {/* Premium platform badge */}
+                          <div className="absolute top-12 right-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg border border-white/20">
+                            {selectedPost.dimensions}
+                          </div>
+                          
+                          {/* AI-powered badge */}
+                          <div className="absolute bottom-16 left-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" />
+                            AI-Powered
                           </div>
                         </div>
                       </div>
