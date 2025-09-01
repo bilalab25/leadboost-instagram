@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2, X } from 'lucide-react';
+import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2, X, Target } from 'lucide-react';
 
 interface DemoState {
   businessDescription: string;
@@ -486,17 +486,24 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   if (!demo.showResults) {
     return (
       <div className="max-w-2xl mx-auto">
-        <Card className="border-2 border-brand-200">
-          <CardContent className="p-8 space-y-6">
-            <div className="text-center mb-6">
-              <div className="text-6xl mb-4 bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent">🚀</div>
-              <h3 className="text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent drop-shadow-lg hover:scale-105 transition-transform duration-300 cursor-default">
+        <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 relative overflow-hidden">
+          {/* Subtle background elements like the main site */}
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-brand-300/20 to-brand-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
+          
+          <CardContent className="p-8 lg:p-12 space-y-8 relative z-10">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                <Target className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-3xl lg:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight tracking-tight">
                 {isSpanish ? '¡Haz Tu Propio Demo!' : 'Do Your Own Demo!'}
               </h3>
-              <p className="text-sm text-gray-600 leading-relaxed font-bold">
+              <p className="text-lg text-gray-600 leading-relaxed font-medium max-w-md mx-auto">
                 {isSpanish 
-                  ? 'Demo Rápido - Ve cómo funciona con cualquier idea de negocio'
-                  : 'Quick Demo - See how it works with any business idea'
+                  ? 'Ve cómo funciona con cualquier idea de negocio'
+                  : 'See how it works with any business idea'
                 }
               </p>
             </div>
@@ -599,24 +606,28 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             <Button 
               onClick={handleGenerateCampaign}
               disabled={demo.isGenerating || !demo.businessDescription.trim()}
-              className="w-full h-14 text-lg bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800"
+              className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-green-700 text-white font-bold px-8 py-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-emerald-400/30 w-full h-14 text-lg"
               data-testid="button-generate-campaign"
             >
-              {demo.isGenerating ? (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2 animate-spin" />
-                  <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
+              <div className="absolute inset-0 rounded-full">
+                <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full animate-ping opacity-75"></div>
+                <div className="absolute top-3 left-3 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
+                <div className="absolute bottom-2 right-4 w-0.5 h-0.5 bg-emerald-200 rounded-full animate-ping" style={{animationDelay: '500ms'}}></div>
+              </div>
+              <span className="relative z-10 flex items-center justify-center">
+                {demo.isGenerating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                     {isSpanish ? 'IA creando tu campaña...' : 'AI creating your campaign...'}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <ArrowRight className="w-5 h-5 mr-2" />
-                  <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                    {isSpanish ? 'Crear Campaña con IA' : 'Create AI Campaign'}
-                  </span>
-                </>
-              )}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
+                    {isSpanish ? 'Generar Campaña con IA' : 'Generate AI Campaign'}
+                  </>
+                )}
+              </span>
             </Button>
           </CardContent>
         </Card>
