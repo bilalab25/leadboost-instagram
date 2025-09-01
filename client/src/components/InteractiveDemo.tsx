@@ -241,9 +241,10 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
     return `https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
-  if (desc.includes('bakery') || desc.includes('bread') || desc.includes('pastry')) {
-    // Artisan bakery with fresh bread
-    return `https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  // PANADERÍA Y REPOSTERÍA - Bakery & Pastry
+  if (desc.includes('bakery') || desc.includes('bread') || desc.includes('pastry') || desc.includes('panadería') || desc.includes('pastelería') || desc.includes('repostería') || desc.includes('pasteles') || desc.includes('postres') || desc.includes('cakes') || desc.includes('cupcakes')) {
+    // Artisan bakery with beautiful pastries and cakes
+    return `https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FITNESS & WELLNESS
@@ -287,9 +288,45 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
     return `https://images.unsplash.com/photo-1589391886645-d51941baf7fb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
+  // JOYERÍA - Jewelry Store
+  if (desc.includes('jewelry') || desc.includes('jewellery') || desc.includes('joyería') || desc.includes('joyas') || desc.includes('anillos') || desc.includes('rings') || desc.includes('collares') || desc.includes('necklaces') || desc.includes('diamantes') || desc.includes('diamonds')) {
+    // Elegant jewelry display with diamonds and luxury pieces
+    return `https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
   // RETAIL & SHOPPING
   if (desc.includes('boutique') || desc.includes('clothing') || desc.includes('fashion')) {
     return `https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // FLORISTERÍA - Flower Shop
+  if (desc.includes('flowers') || desc.includes('florist') || desc.includes('floristería') || desc.includes('flores') || desc.includes('arreglos') || desc.includes('bouquet') || desc.includes('wedding flowers')) {
+    // Beautiful flower arrangements and bouquets
+    return `https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // BARBERÍA - Barber Shop
+  if (desc.includes('barber') || desc.includes('barbershop') || desc.includes('barbería') || desc.includes('peluquería') || desc.includes('hair salon') || desc.includes('cortes')) {
+    // Modern barber shop interior
+    return `https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // LIBRERÍA - Bookstore
+  if (desc.includes('bookstore') || desc.includes('library') || desc.includes('librería') || desc.includes('libros') || desc.includes('books')) {
+    // Cozy bookstore with shelves full of books
+    return `https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // AUTOMÓVILES - Car Dealership/Garage
+  if (desc.includes('car') || desc.includes('auto') || desc.includes('automotive') || desc.includes('coche') || desc.includes('automóvil') || desc.includes('garage') || desc.includes('mechanic')) {
+    // Professional automotive service or showroom
+    return `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // MASCOTAS - Pet Store/Veterinary
+  if (desc.includes('pet') || desc.includes('vet') || desc.includes('veterinary') || desc.includes('mascotas') || desc.includes('perros') || desc.includes('gatos') || desc.includes('dogs') || desc.includes('cats')) {
+    // Friendly veterinary clinic or pet store
+    return `https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FINANCIAL SERVICES
@@ -318,16 +355,43 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
 const detectBusinessType = (description: string): string => {
   const desc = description.toLowerCase();
   
-  if (desc.includes('restaurant') || desc.includes('food') || desc.includes('cafe') || desc.includes('pizza') || desc.includes('dining')) {
+  // FOOD & RESTAURANTS
+  if (desc.includes('restaurant') || desc.includes('food') || desc.includes('cafe') || desc.includes('pizza') || desc.includes('dining') || desc.includes('bakery') || desc.includes('pastry') || desc.includes('panadería') || desc.includes('pastelería')) {
     return 'restaurant';
   }
+  
+  // FITNESS & WELLNESS
   if (desc.includes('gym') || desc.includes('fitness') || desc.includes('workout') || desc.includes('yoga') || desc.includes('training')) {
     return 'fitness';
   }
+  
+  // BEAUTY & MEDICAL AESTHETICS
   if (desc.includes('beauty') || desc.includes('spa') || desc.includes('salon') || desc.includes('skincare') || desc.includes('cosmetic') || desc.includes('botox') || desc.includes('aesthetic') || desc.includes('dermal') || desc.includes('med spa') || (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face') || desc.includes('botox') || desc.includes('aesthetic')))) {
     return 'beauty';
   }
-  if (desc.includes('retail') || desc.includes('store') || desc.includes('shop') || desc.includes('boutique') || desc.includes('clothing')) {
+  
+  // JEWELRY
+  if (desc.includes('jewelry') || desc.includes('jewellery') || desc.includes('joyería') || desc.includes('joyas') || desc.includes('anillos') || desc.includes('rings') || desc.includes('diamonds')) {
+    return 'jewelry';
+  }
+  
+  // AUTOMOTIVE
+  if (desc.includes('car') || desc.includes('auto') || desc.includes('automotive') || desc.includes('coche') || desc.includes('garage') || desc.includes('mechanic')) {
+    return 'automotive';
+  }
+  
+  // PETS
+  if (desc.includes('pet') || desc.includes('vet') || desc.includes('veterinary') || desc.includes('mascotas') || desc.includes('perros') || desc.includes('dogs')) {
+    return 'pets';
+  }
+  
+  // EDUCATION
+  if (desc.includes('teacher') || desc.includes('education') || desc.includes('tutor') || desc.includes('school') || desc.includes('professor')) {
+    return 'education';
+  }
+  
+  // RETAIL & SHOPPING
+  if (desc.includes('retail') || desc.includes('store') || desc.includes('shop') || desc.includes('boutique') || desc.includes('clothing') || desc.includes('flowers') || desc.includes('florist') || desc.includes('bookstore') || desc.includes('books')) {
     return 'retail';
   }
   
