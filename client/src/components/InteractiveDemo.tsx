@@ -495,7 +495,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           <CardContent className="p-8 lg:p-12 space-y-8 relative z-10">
             <div className="text-center mb-8">
               <div className="text-6xl mb-6 bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent">🚀</div>
-              <h3 className="text-3xl lg:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight tracking-tight">
+              <h3 className="text-4xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight tracking-tight">
                 {isSpanish ? '¡Haz Tu Propio Demo!' : 'Do Your Own Demo!'}
               </h3>
               <p className="text-lg text-gray-600 leading-relaxed font-medium max-w-md mx-auto">
