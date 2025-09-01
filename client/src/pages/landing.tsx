@@ -464,7 +464,7 @@ export default function Landing() {
                 </p>
                 <ul className="text-sm text-gray-500 space-y-2">
                   <li>• {isSpanish ? 'ChatBot con IA' : 'AI ChatBot'}</li>
-                  <li>• {isSpanish ? 'Análisis de sentimientos' : 'Sentiment analysis'}</li>
+                  <li>• {isSpanish ? 'Responde a todos los leads desde un solo panel de chat' : 'Answer all leads from all social media channels in one chat deck'}</li>
                   <li>• {isSpanish ? 'Gestión multicanal' : 'Multi-channel management'}</li>
                 </ul>
               </Card>
