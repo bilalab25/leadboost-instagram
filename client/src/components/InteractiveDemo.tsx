@@ -817,7 +817,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     switch (platform) {
       case 'Instagram Post':
       case 'Instagram Story':
-        return 'from-brand-600 to-brand-700'; // Instagram gradient
+        return 'from-pink-500 via-purple-500 to-orange-400'; // Instagram gradient
       case 'LinkedIn Post':
         return 'from-blue-600 to-blue-700'; // LinkedIn blue
       case 'Twitter/X Post':
