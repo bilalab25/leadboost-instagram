@@ -117,7 +117,7 @@ export default function Landing() {
                       </div>
                       <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? 'Extraemos datos de tu negocio en tiempo real' : 'We pull real-time data from your business'}</p>
-                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'IA analiza lo que ya tienes' : 'AI analyzes what you already have'}</p>
+                      <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'IA analiza tu industria, rendimiento y ventas' : 'AI analyzes what your industry, performance and sales'}</p>
                     </div>
                     
                     {/* ARROW */}
