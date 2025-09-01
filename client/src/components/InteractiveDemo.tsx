@@ -204,11 +204,12 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   const getBusinessContextualImage = (): string => {
   // MEDICAL AESTHETICS & BEAUTY - Botox & Cosmetic Treatments
   if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('aesthetic') || desc.includes('cosmetic')) {
+    console.log('✅ BOTOX DETECTED! Using medical aesthetics image for:', desc);
     // Professional woman with smooth, youthful skin - premium medical aesthetics
     return `https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
-  if (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face'))) {
+  if (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face') || desc.includes('botox') || desc.includes('aesthetic') || desc.includes('cosmetic'))) {
     // Elegant medical spa clinic interior - clean, modern, professional
     return `https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
