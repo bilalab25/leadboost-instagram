@@ -1513,9 +1513,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               <Instagram className="w-6 h-6 text-pink-500 ml-auto" />
             </div>
 
-            {/* Modern Instagram Feed Layout */}
-            <div className="space-y-6">
-              {Array.from({ length: 4 }, (_, index) => {
+            {/* Classic Instagram Grid Layout - Enhanced */}
+            <div className="grid grid-cols-3 gap-2 p-1">
+              {Array.from({ length: 9 }, (_, index) => {
                 const businessType = detectBusinessType(demo.businessDescription);
                 
                 // Use uploaded photos if available, otherwise use generated images
@@ -1530,86 +1530,91 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 }
                 
                 const overlayText = getPostOverlayText(demo.businessDescription, businessType, index, generatedCampaign, isSpanish);
+                const likes = Math.floor(Math.random() * 2000) + 150;
+                const comments = Math.floor(Math.random() * 50) + 5;
                 
                 return (
-                  <div key={index} className="bg-white border border-gray-200 rounded-lg">
-                    {/* Post Header */}
-                    <div className="flex items-center gap-3 p-3">
-                      <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">
-                          {demo.businessDescription.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <h6 className="font-semibold text-sm text-gray-900">
-                          {demo.businessDescription.toLowerCase().replace(/\s+/g, '').substring(0, 15)}
-                        </h6>
-                        <p className="text-xs text-gray-500">{Math.floor(Math.random() * 24) + 1}h</p>
-                      </div>
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <span className="text-lg">•••</span>
-                      </button>
-                    </div>
+                  <div key={index} className="aspect-square relative group cursor-pointer overflow-hidden rounded-lg border border-gray-100 shadow-sm">
+                    <img 
+                      src={imageUrl}
+                      alt={`Post ${index + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                     
-                    {/* Post Image */}
-                    <div className="relative aspect-square">
-                      <img 
-                        src={imageUrl}
-                        alt={`Post ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      
-                      {/* Post overlay text */}
-                      {overlayText && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
-                          <div className="absolute bottom-4 left-4 right-4">
-                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 border border-white/30">
-                              <p className="text-white text-sm font-bold drop-shadow-lg leading-tight">
-                                {overlayText}
-                              </p>
-                            </div>
-                          </div>
+                    {/* Hover overlay with engagement stats */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <div className="flex items-center gap-6 text-white">
+                        <div className="flex items-center gap-2">
+                          <Heart className="w-6 h-6 fill-white" />
+                          <span className="font-bold text-lg">{likes.toLocaleString()}</span>
                         </div>
-                      )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">💬</span>
+                          <span className="font-bold text-lg">{comments}</span>
+                        </div>
+                      </div>
                     </div>
                     
-                    {/* Post Actions */}
-                    <div className="p-3">
-                      <div className="flex items-center gap-4 mb-2">
-                        <Heart className="w-6 h-6 text-gray-700 hover:text-red-500 cursor-pointer" />
-                        <span className="text-lg">💬</span>
-                        <span className="text-lg">📤</span>
-                        <span className="text-lg ml-auto">🔖</span>
+                    {/* Content overlay (always visible on some posts) */}
+                    {overlayText && index % 3 === 0 && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
+                        <div className="bg-white/15 backdrop-blur-sm rounded-md p-2 border border-white/20">
+                          <p className="text-white text-xs font-bold drop-shadow-lg leading-tight text-center">
+                            {overlayText}
+                          </p>
+                        </div>
                       </div>
-                      
-                      <div className="mb-2">
-                        <p className="font-semibold text-sm text-gray-900">
-                          {Math.floor(Math.random() * 1000) + 200} likes
-                        </p>
+                    )}
+                    
+                    {/* Multiple photo indicator */}
+                    {index % 4 === 1 && (
+                      <div className="absolute top-3 right-3">
+                        <div className="w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                          <span className="text-white text-xs font-bold">📷</span>
+                        </div>
                       </div>
-                      
-                      <div className="text-sm text-gray-900">
-                        <span className="font-semibold">
-                          {demo.businessDescription.toLowerCase().replace(/\s+/g, '').substring(0, 15)}
-                        </span>
-                        <span className="ml-1">
-                          {index === 0 && isSpanish ? "¡Nueva colección disponible! 🔥" : 
-                           index === 0 ? "New collection now available! 🔥" :
-                           index === 1 && isSpanish ? "Detrás de escenas de nuestro proceso ✨" :
-                           index === 1 ? "Behind the scenes of our process ✨" :
-                           index === 2 && isSpanish ? "Cliente feliz = nuestro éxito 💯" :
-                           index === 2 ? "Happy customer = our success 💯" :
-                           isSpanish ? "¡No te pierdas esta oferta especial!" : "Don't miss this special offer!"}
-                        </span>
+                    )}
+                    
+                    {/* Video indicator */}
+                    {index % 5 === 2 && (
+                      <div className="absolute top-3 right-3">
+                        <div className="w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                          <Play className="w-3 h-3 text-white fill-white" />
+                        </div>
                       </div>
-                      
-                      <p className="text-xs text-gray-500 mt-1">
-                        {isSpanish ? "Ver todos los comentarios" : "View all comments"}
-                      </p>
-                    </div>
+                    )}
+                    
+                    {/* Trending/Popular indicator */}
+                    {likes > 1000 && (
+                      <div className="absolute top-3 left-3">
+                        <div className="bg-brand-500/90 backdrop-blur-sm rounded-full px-2 py-1 border border-white/30">
+                          <span className="text-white text-xs font-bold">🔥</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
+            </div>
+            
+            {/* Grid Stats Summary */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-4">
+                  <span className="text-gray-600">
+                    <strong className="text-gray-900">{9}</strong> {isSpanish ? 'publicaciones' : 'posts'}
+                  </span>
+                  <span className="text-gray-600">
+                    <strong className="text-gray-900">{(Math.random() * 50 + 10).toFixed(1)}K</strong> {isSpanish ? 'seguidores' : 'followers'}
+                  </span>
+                  <span className="text-gray-600">
+                    <strong className="text-gray-900">{Math.floor(Math.random() * 500) + 100}</strong> {isSpanish ? 'siguiendo' : 'following'}
+                  </span>
+                </div>
+                <div className="text-brand-600 text-xs font-medium">
+                  {isSpanish ? '📈 Crecimiento: +15%' : '📈 Growth: +15%'}
+                </div>
+              </div>
             </div>
           </div>
 
