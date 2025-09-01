@@ -1513,9 +1513,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               <Instagram className="w-6 h-6 text-pink-500 ml-auto" />
             </div>
 
-            {/* 6-Post Grid */}
-            <div className="grid grid-cols-3 gap-1">
-              {Array.from({ length: 6 }, (_, index) => {
+            {/* Modern Instagram Feed Layout */}
+            <div className="space-y-6">
+              {Array.from({ length: 4 }, (_, index) => {
                 const businessType = detectBusinessType(demo.businessDescription);
                 
                 // Use uploaded photos if available, otherwise use generated images
@@ -1532,32 +1532,80 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 const overlayText = getPostOverlayText(demo.businessDescription, businessType, index, generatedCampaign, isSpanish);
                 
                 return (
-                  <div key={index} className="aspect-square relative group cursor-pointer">
-                    <img 
-                      src={imageUrl}
-                      alt={`Post ${index + 1}`}
-                      className="w-full h-full object-cover rounded-lg group-hover:opacity-90 transition-opacity"
-                    />
+                  <div key={index} className="bg-white border border-gray-200 rounded-lg">
+                    {/* Post Header */}
+                    <div className="flex items-center gap-3 p-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">
+                          {demo.businessDescription.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <h6 className="font-semibold text-sm text-gray-900">
+                          {demo.businessDescription.toLowerCase().replace(/\s+/g, '').substring(0, 15)}
+                        </h6>
+                        <p className="text-xs text-gray-500">{Math.floor(Math.random() * 24) + 1}h</p>
+                      </div>
+                      <button className="text-gray-400 hover:text-gray-600">
+                        <span className="text-lg">•••</span>
+                      </button>
+                    </div>
                     
-                    {/* Overlay text on most posts */}
-                    {overlayText && (
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent rounded-lg">
-                        <div className="absolute inset-0 p-3 flex items-center justify-center text-center">
-                          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 border border-white/30">
-                            <p className="text-white text-xs font-bold drop-shadow-lg leading-tight">
-                              {overlayText}
-                            </p>
+                    {/* Post Image */}
+                    <div className="relative aspect-square">
+                      <img 
+                        src={imageUrl}
+                        alt={`Post ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      
+                      {/* Post overlay text */}
+                      {overlayText && (
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+                          <div className="absolute bottom-4 left-4 right-4">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 border border-white/30">
+                              <p className="text-white text-sm font-bold drop-shadow-lg leading-tight">
+                                {overlayText}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                     
-                    {/* Engagement indicators */}
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="bg-black/50 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-                        <Heart className="w-3 h-3 text-white" />
-                        <span className="text-white text-xs">{Math.floor(Math.random() * 500) + 100}</span>
+                    {/* Post Actions */}
+                    <div className="p-3">
+                      <div className="flex items-center gap-4 mb-2">
+                        <Heart className="w-6 h-6 text-gray-700 hover:text-red-500 cursor-pointer" />
+                        <span className="text-lg">💬</span>
+                        <span className="text-lg">📤</span>
+                        <span className="text-lg ml-auto">🔖</span>
                       </div>
+                      
+                      <div className="mb-2">
+                        <p className="font-semibold text-sm text-gray-900">
+                          {Math.floor(Math.random() * 1000) + 200} likes
+                        </p>
+                      </div>
+                      
+                      <div className="text-sm text-gray-900">
+                        <span className="font-semibold">
+                          {demo.businessDescription.toLowerCase().replace(/\s+/g, '').substring(0, 15)}
+                        </span>
+                        <span className="ml-1">
+                          {index === 0 && isSpanish ? "¡Nueva colección disponible! 🔥" : 
+                           index === 0 ? "New collection now available! 🔥" :
+                           index === 1 && isSpanish ? "Detrás de escenas de nuestro proceso ✨" :
+                           index === 1 ? "Behind the scenes of our process ✨" :
+                           index === 2 && isSpanish ? "Cliente feliz = nuestro éxito 💯" :
+                           index === 2 ? "Happy customer = our success 💯" :
+                           isSpanish ? "¡No te pierdas esta oferta especial!" : "Don't miss this special offer!"}
+                        </span>
+                      </div>
+                      
+                      <p className="text-xs text-gray-500 mt-1">
+                        {isSpanish ? "Ver todos los comentarios" : "View all comments"}
+                      </p>
                     </div>
                   </div>
                 );
