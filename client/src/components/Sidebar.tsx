@@ -88,11 +88,9 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="flex items-center justify-center flex-shrink-0 px-6">
           <Link href="/">
-            <img 
-              src={leadBoostLogo} 
-              alt="CampAIgner Logo" 
-              className="max-h-48 max-w-full object-contain cursor-pointer hover:opacity-80 transition-opacity"
-            />
+            <div className="text-3xl font-light text-blue-500 cursor-pointer hover:opacity-80 transition-opacity tracking-tight">
+              leadboost.<span className="font-normal">&gt;&gt;&gt;</span>
+            </div>
           </Link>
         </div>
         
