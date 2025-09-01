@@ -491,7 +491,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             <div className="text-center mb-6">
               <div className="text-6xl mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">🚀</div>
               <h3 className="text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
-                {isSpanish ? '¡Demo en Vivo!' : 'Live Demo!'}
+                {isSpanish ? '¡Haz Tu Propio Demo!' : 'Do Your Own Demo!'}
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed font-bold">
                 {isSpanish 
