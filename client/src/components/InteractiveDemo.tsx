@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2, X } from 'lucide-react';
 
 interface DemoState {
   businessDescription: string;
@@ -442,6 +443,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   const [platformPosts, setPlatformPosts] = useState<PlatformPost[]>([]);
   const [generatedCampaign, setGeneratedCampaign] = useState<string>('');
   const [selectedBrandStyle, setSelectedBrandStyle] = useState<string>('professional');
+  const [selectedPost, setSelectedPost] = useState<PlatformPost | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleGenerateCampaign = async () => {
     if (!demo.businessDescription.trim()) return;
@@ -473,6 +476,11 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     });
     setPlatformPosts([]);
     setGeneratedCampaign('');
+  };
+
+  const handleCardClick = (post: PlatformPost) => {
+    setSelectedPost(post);
+    setIsModalOpen(true);
   };
 
   if (!demo.showResults) {
@@ -629,7 +637,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {platformPosts.map((post, index) => (
-          <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-white/80 backdrop-blur-sm" data-testid={`platform-card-${index}`}>
+          <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-white/80 backdrop-blur-sm cursor-pointer" data-testid={`platform-card-${index}`} onClick={() => handleCardClick(post)}>
             <CardHeader className={`pb-3 relative ${getPlatformHeaderStyle(post.platform)}`}>
               <div className={`absolute inset-0 bg-gradient-to-r opacity-90 ${getPlatformGradient(post.platform)}`}></div>
               <CardTitle className="relative text-sm flex items-center gap-2 text-white font-semibold">
@@ -876,6 +884,134 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           </div>
         </div>
       </div>
+
+      {/* Platform Preview Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedPost?.icon}
+              {selectedPost?.platform} Preview
+              <span className="text-sm text-gray-500 font-normal ml-auto">
+                {selectedPost?.dimensions}
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+            {selectedPost && (
+              <div className="space-y-6">
+                {/* Platform Mockup */}
+                <div className="flex justify-center">
+                  <div className="relative">
+                    {/* Instagram Story Mockup */}
+                    {selectedPost.platform === 'Instagram Story' && (
+                      <div className="w-[280px] h-[497px] bg-black rounded-[24px] p-1 shadow-2xl">
+                        <div className="w-full h-full rounded-[20px] overflow-hidden relative">
+                          <img 
+                            src={selectedPost.imageUrl} 
+                            alt={selectedPost.platform}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Instagram Story UI overlay */}
+                          <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full border-2 border-white"></div>
+                              <span className="text-white text-sm font-semibold drop-shadow-lg">Your Business</span>
+                            </div>
+                            <div className="text-white text-sm drop-shadow-lg">now</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Instagram Post Mockup */}
+                    {selectedPost.platform === 'Instagram Post' && (
+                      <div className="w-[320px] bg-white border border-gray-200 rounded-lg shadow-xl">
+                        <div className="p-3 flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                          <div>
+                            <p className="text-sm font-semibold">yourbusiness</p>
+                            <p className="text-xs text-gray-500">Sponsored</p>
+                          </div>
+                        </div>
+                        <img 
+                          src={selectedPost.imageUrl} 
+                          alt={selectedPost.platform}
+                          className="w-full aspect-square object-cover"
+                        />
+                        <div className="p-3">
+                          <p className="text-sm">{selectedPost.caption}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* LinkedIn Post Mockup */}
+                    {selectedPost.platform === 'LinkedIn Post' && (
+                      <div className="w-[500px] bg-white border border-gray-200 rounded-lg shadow-xl">
+                        <div className="p-4 flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold">YB</span>
+                          </div>
+                          <div>
+                            <p className="font-semibold">Your Business</p>
+                            <p className="text-sm text-gray-500">Sponsored</p>
+                          </div>
+                        </div>
+                        <div className="px-4 pb-3">
+                          <p className="text-sm mb-3">{selectedPost.caption}</p>
+                        </div>
+                        <img 
+                          src={selectedPost.imageUrl} 
+                          alt={selectedPost.platform}
+                          className="w-full aspect-[1200/628] object-cover"
+                        />
+                      </div>
+                    )}
+
+                    {/* Email Banner Mockup */}
+                    {selectedPost.platform === 'Email Banner' && (
+                      <div className="w-[600px] bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+                        <div className="bg-gray-100 p-2 text-center text-xs text-gray-600 border-b">
+                          📧 Your Business Newsletter
+                        </div>
+                        <img 
+                          src={selectedPost.imageUrl} 
+                          alt={selectedPost.platform}
+                          className="w-full h-[200px] object-cover"
+                        />
+                        <div className="p-4">
+                          <p className="text-sm text-gray-700">{selectedPost.caption}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Default mockup for other platforms */}
+                    {!['Instagram Story', 'Instagram Post', 'LinkedIn Post', 'Email Banner'].includes(selectedPost.platform) && (
+                      <div className="max-w-md bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+                        <img 
+                          src={selectedPost.imageUrl} 
+                          alt={selectedPost.platform}
+                          className="w-full aspect-square object-cover"
+                        />
+                        <div className="p-4">
+                          <p className="text-sm text-gray-700">{selectedPost.caption}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Caption */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2">Caption:</h4>
+                  <p className="text-gray-700">{selectedPost.caption}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
