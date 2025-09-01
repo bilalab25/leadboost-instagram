@@ -86,11 +86,13 @@ export default function Sidebar() {
     <div className="hidden md:flex md:w-64 md:flex-col">
       <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white border-r border-gray-200">
         {/* Logo */}
-        <div className="flex items-center justify-center flex-shrink-0 px-6">
+        <div className="flex items-center justify-center flex-shrink-0 px-6 py-4">
           <Link href="/">
-            <div className="text-3xl font-light text-blue-500 cursor-pointer hover:opacity-80 transition-opacity tracking-tight">
-              leadboost.<span className="font-normal">&gt;&gt;&gt;</span>
-            </div>
+            <img 
+              src={leadBoostLogo} 
+              alt="CampAIgner Logo" 
+              className="h-8 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            />
           </Link>
         </div>
         
