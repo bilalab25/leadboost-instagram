@@ -921,6 +921,15 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                             </div>
                             <div className="text-white text-sm drop-shadow-lg">now</div>
                           </div>
+                          
+                          {/* Caption overlay - positioned at bottom */}
+                          <div className="absolute bottom-6 left-4 right-4">
+                            <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3">
+                              <p className="text-white text-sm font-medium leading-relaxed drop-shadow-lg">
+                                {selectedPost.caption}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
