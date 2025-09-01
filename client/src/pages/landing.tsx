@@ -115,7 +115,7 @@ export default function Landing() {
                       <div className="w-24 h-24 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
                         <Target className="h-12 w-12 text-white" />
                       </div>
-                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'TUS DATOS' : 'YOUR DATA'}</h3>
+                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? 'Tu negocio + productos + audiencia' : 'Your business + products + audience'}</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'IA analiza lo que ya tienes' : 'AI analyzes what you already have'}</p>
                     </div>
