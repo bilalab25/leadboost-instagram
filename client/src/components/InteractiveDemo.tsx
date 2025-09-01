@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2, X, Target } from 'lucide-react';
+import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2, X, Target, Heart } from 'lucide-react';
 
 interface DemoState {
   businessDescription: string;
@@ -876,10 +876,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     <div className="max-w-7xl mx-auto">
       <div className="text-center mb-8">
         <h3 className="text-3xl font-bold mb-4">
-          {isSpanish ? '🎉 Tu Campaña Multiplataforma' : '🎉 Your Multi-Platform Campaign'}
+          {isSpanish ? '🎉 Tu Plan de 30 Días - CampAIgner' : '🎉 Your 30-Day Plan - CampAIgner'}
         </h3>
         <p className="text-gray-600 text-lg mb-4">
-          <strong>"{generatedCampaign}"</strong> {isSpanish ? 'optimizada para 8 plataformas' : 'optimized for 8 platforms'}
+          <strong>"{generatedCampaign}"</strong> {isSpanish ? '- Vista previa de tu planificador mensual automático' : '- Preview of your automatic monthly planner'}
         </p>
         <Button variant="outline" onClick={resetDemo} data-testid="button-try-another">
           {isSpanish ? 'Probar Otra Campaña' : 'Try Another Campaign'}
@@ -1009,12 +1009,12 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
       <div className="mt-16 mb-12">
         <div className="text-center mb-8">
           <h4 className="text-2xl font-bold text-gray-900 mb-4">
-            {isSpanish ? '📱 Tu Feed de Instagram' : '📱 Your Instagram Feed'}
+            {isSpanish ? '📱 Planificador de 30 Días - Instagram' : '📱 30-Day Planner - Instagram'}
           </h4>
           <p className="text-gray-600 max-w-2xl mx-auto">
             {isSpanish 
-              ? 'Así se vería tu feed con 6 posts generados por IA para tu industria específica'
-              : 'Here\'s how your feed would look with 6 AI-generated posts for your specific industry'
+              ? 'CampAIgner genera automáticamente 30 días de contenido específico para tu industria. Aquí una muestra de 6 posts:'
+              : 'CampAIgner automatically generates 30 days of industry-specific content. Here\'s a sample of 6 posts:'
             }
           </p>
         </div>
@@ -1033,7 +1033,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 <h5 className="font-bold text-gray-900">
                   {demo.businessDescription.toLowerCase().replace(/\s+/g, '').substring(0, 15)}
                 </h5>
-                <p className="text-sm text-gray-500">6 posts</p>
+                <p className="text-sm text-gray-500">{isSpanish ? '30 días planificados' : '30 days planned'}</p>
               </div>
               <Instagram className="w-6 h-6 text-pink-500 ml-auto" />
             </div>
@@ -1079,7 +1079,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           <div className="mt-8 relative">
             <div className="bg-gradient-to-r from-brand-50 via-white to-brand-50 rounded-2xl p-6 border border-brand-200">
               <h5 className="text-lg font-bold text-center mb-4 text-gray-900">
-                {isSpanish ? '🌟 Y esto para todas las plataformas...' : '🌟 And this for all platforms...'}
+                {isSpanish ? '🌟 Planificación Completa para Todas las Plataformas' : '🌟 Complete Planning for All Platforms'}
               </h5>
               
               {/* Platform previews with gradient transparency */}
@@ -1095,7 +1095,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                       <div className="text-2xl mb-2">{platform.icon}</div>
                       <p className="text-sm font-bold">{platform.name}</p>
                       <p className="text-xs opacity-80 mt-1">
-                        {isSpanish ? '6 posts' : '6 posts'}
+                        {isSpanish ? '30 días' : '30 days'}
                       </p>
                     </div>
                     
@@ -1111,8 +1111,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               
               <p className="text-center text-sm text-gray-600 mt-4">
                 {isSpanish 
-                  ? '✨ Un solo clic genera contenido optimizado para cada plataforma'
-                  : '✨ One click generates optimized content for every platform'
+                  ? '✨ CampAIgner: Tu planificador inteligente de 30 días para todas las plataformas'
+                  : '✨ CampAIgner: Your intelligent 30-day planner for all platforms'
                 }
               </p>
             </div>
