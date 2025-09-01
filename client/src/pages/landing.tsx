@@ -10,7 +10,7 @@ import { FAQ } from "@/components/FAQ";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { ReferralProgram } from "@/components/ReferralProgram";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
-import leadBoostLogo from "@assets/logo azul sin fondo_1756140873617.png";
+import leadBoostLogo from "@assets/NEW LOGO LEADBOOST_1756702318646.png";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();

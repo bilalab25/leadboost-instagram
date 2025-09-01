@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
-import leadBoostLogo from "@assets/logo azul sin fondo_1756142427945.png";
+import leadBoostLogo from "@assets/NEW LOGO LEADBOOST_1756702318646.png";
 import { translations } from "@/lib/translations";
 
 interface SocialAccount {
