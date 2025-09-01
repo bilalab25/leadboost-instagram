@@ -416,7 +416,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     switch (platform) {
       case 'Instagram Post':
       case 'Instagram Story':
-        return 'from-purple-600 to-pink-500'; // Instagram gradient
+        return 'from-brand-600 to-brand-700'; // Instagram gradient
       case 'LinkedIn Post':
         return 'from-blue-600 to-blue-700'; // LinkedIn blue
       case 'Twitter/X Post':
@@ -489,8 +489,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         <Card className="border-2 border-brand-200">
           <CardContent className="p-8 space-y-6">
             <div className="text-center mb-6">
-              <div className="text-6xl mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">🚀</div>
-              <h3 className="text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
+              <div className="text-6xl mb-4 bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent">🚀</div>
+              <h3 className="text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent">
                 {isSpanish ? '¡Haz Tu Propio Demo!' : 'Do Your Own Demo!'}
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed font-bold">
@@ -539,7 +539,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     name: isSpanish ? 'Creativo' : 'Creative',
                     desc: isSpanish ? 'Artístico y vibrante' : 'Artistic & vibrant',
                     icon: '🎨',
-                    gradient: 'from-purple-500 to-pink-600'
+                    gradient: 'from-brand-500 to-brand-600'
                   },
                   {
                     id: 'playful',
@@ -682,7 +682,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   ) : post.platform.includes('Email') ? (
                     // Email banner - sleek horizontal design
                     <div className="w-full">
-                      <div className="bg-gradient-to-r from-blue-600/70 to-purple-600/70 backdrop-blur-sm rounded-lg p-2 border border-white/20">
+                      <div className="bg-gradient-to-r from-brand-600/70 to-brand-700/70 backdrop-blur-sm rounded-lg p-2 border border-white/20">
                         <h3 className="text-lg font-black text-white drop-shadow-2xl">
                           {generatedCampaign}
                         </h3>
@@ -725,7 +725,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </div>
               
               {/* Premium caption preview */}
-              <div className="relative bg-gradient-to-r from-gray-50 to-blue-50/50 p-4 rounded-xl border border-gray-200 shadow-sm">
+              <div className="relative bg-gradient-to-r from-gray-50 to-brand-50/50 p-4 rounded-xl border border-gray-200 shadow-sm">
                 <div className="absolute top-2 right-2">
                   {post.icon}
                 </div>
@@ -915,7 +915,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                           {/* Instagram Story UI overlay */}
                           <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
                             <div className="flex items-center space-x-2">
-                              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full border-2 border-white"></div>
+                              <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full border-2 border-white"></div>
                               <span className="text-white text-sm font-semibold drop-shadow-lg">Your Business</span>
                             </div>
                             <div className="text-white text-sm drop-shadow-lg">now</div>
@@ -952,7 +952,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     {selectedPost.platform === 'Instagram Post' && (
                       <div className="w-[320px] bg-white border border-gray-200 rounded-lg shadow-xl">
                         <div className="p-3 flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                          <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full"></div>
                           <div>
                             <p className="text-sm font-semibold">yourbusiness</p>
                             <p className="text-xs text-gray-500">Sponsored</p>
