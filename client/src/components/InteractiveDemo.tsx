@@ -486,42 +486,19 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   if (!demo.showResults) {
     return (
       <div className="max-w-2xl mx-auto">
-        <Card className="border-2 border-brand-200 bg-gradient-to-br from-white via-brand-25 to-brand-50 shadow-2xl relative overflow-hidden">
-          {/* Animated background elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-brand-400/20 to-brand-600/10 rounded-full blur-2xl animate-pulse"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-brand-300/15 to-brand-500/5 rounded-full blur-xl animate-pulse delay-1000"></div>
-          
-          <CardContent className="p-8 space-y-6 relative z-10">
+        <Card className="border-2 border-brand-200">
+          <CardContent className="p-8 space-y-6">
             <div className="text-center mb-6">
-              <div className="relative inline-block">
-                <div className="text-7xl mb-4 bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent animate-bounce">🚀</div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-ping"></div>
-                <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-pulse"></div>
-              </div>
-              <h3 className="text-4xl lg:text-6xl font-black mb-4 bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 bg-clip-text text-transparent drop-shadow-lg">
+              <div className="text-6xl mb-4 bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent">🚀</div>
+              <h3 className="text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent">
                 {isSpanish ? '¡Haz Tu Propio Demo!' : 'Do Your Own Demo!'}
               </h3>
-              <div className="bg-gradient-to-r from-brand-100 to-brand-200 rounded-full px-6 py-3 mx-auto inline-block border-2 border-brand-300/30 shadow-lg">
-                <p className="text-lg font-bold text-brand-800 flex items-center gap-2">
-                  ⚡ {isSpanish 
-                    ? 'Demo Rápido - Ve cómo funciona con cualquier idea de negocio'
-                    : 'Quick Demo - See how it works with any business idea'
-                  } ⚡
-                </p>
-              </div>
-              
-              {/* Power indicators */}
-              <div className="flex justify-center gap-4 mt-6">
-                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                  ✨ {isSpanish ? 'IA Avanzada' : 'Advanced AI'}
-                </div>
-                <div className="bg-gradient-to-r from-brand-500 to-brand-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse delay-300">
-                  🎯 {isSpanish ? '21+ Plataformas' : '21+ Platforms'}
-                </div>
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse delay-500">
-                  ⚡ {isSpanish ? '30 Segundos' : '30 Seconds'}
-                </div>
-              </div>
+              <p className="text-sm text-gray-600 leading-relaxed font-bold">
+                {isSpanish 
+                  ? 'Demo Rápido - Ve cómo funciona con cualquier idea de negocio'
+                  : 'Quick Demo - See how it works with any business idea'
+                }
+              </p>
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -619,33 +596,28 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </p>
             </div>
 
-            <div className="relative">
-              {/* Glowing effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl blur-lg opacity-75 animate-pulse"></div>
-              <Button 
-                onClick={handleGenerateCampaign}
-                disabled={demo.isGenerating || !demo.businessDescription.trim()}
-                className="relative w-full h-16 text-xl font-black bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 hover:from-brand-700 hover:via-brand-800 hover:to-brand-900 shadow-2xl border-2 border-brand-500/50 transform transition-all duration-300 hover:scale-105"
-                data-testid="button-generate-campaign"
-              >
-                {demo.isGenerating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                    <span className="animate-pulse">
-                      {isSpanish ? '🔥 Generando Campañas Mágicas...' : '🔥 Generating Magic Campaigns...'}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-3 h-6 w-6 animate-spin" />
-                    <span className="bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent">
-                      {isSpanish ? '🚀 CREAR CAMPAÑA IA AHORA' : '🚀 CREATE AI CAMPAIGN NOW'}
-                    </span>
-                    <div className="absolute top-1 right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-                  </>
-                )}
-              </Button>
-            </div>
+            <Button 
+              onClick={handleGenerateCampaign}
+              disabled={demo.isGenerating || !demo.businessDescription.trim()}
+              className="w-full h-14 text-lg bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800"
+              data-testid="button-generate-campaign"
+            >
+              {demo.isGenerating ? (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2 animate-spin" />
+                  <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                    {isSpanish ? 'IA creando tu campaña...' : 'AI creating your campaign...'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <ArrowRight className="w-5 h-5 mr-2" />
+                  <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                    {isSpanish ? 'Crear Campaña con IA' : 'Create AI Campaign'}
+                  </span>
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
       </div>
