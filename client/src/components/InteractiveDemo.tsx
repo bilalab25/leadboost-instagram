@@ -26,7 +26,8 @@ interface InteractiveDemoProps {
 }
 
 // Generate platform-specific posts from business description
-const generatePlatformPosts = (businessDescription: string, brandStyle: string = 'professional'): PlatformPost[] => {
+const generatePlatformPosts = (businessDescription: string, brandStyles: string = 'professional'): PlatformPost[] => {
+  const styleArray = brandStyles.split(',').filter(s => s.trim());
   // Auto-detect business type and generate a campaign idea
   const businessType = detectBusinessType(businessDescription);
   const campaignIdea = generateCampaignIdea(businessDescription, businessType);
@@ -91,12 +92,12 @@ const generatePlatformPosts = (businessDescription: string, brandStyle: string =
 
   return platforms.map(platform => ({
     platform: platform.platform,
-    caption: generatePlatformCaption(campaignIdea, businessType, platform.tone, businessDescription, brandStyle),
+    caption: generatePlatformCaption(campaignIdea, businessType, platform.tone, businessDescription, styleArray.join(',')),
     dimensions: platform.dimensions,
     aspectRatio: platform.aspectRatio,
     imageUrl: getSmartVisual(businessDescription, businessType, platform.aspectRatio, platform.platform),
     icon: platform.icon,
-    brandStyle: brandStyle
+    brandStyle: styleArray.join(',')
   }));
 };
 
@@ -442,7 +443,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   const [platformPosts, setPlatformPosts] = useState<PlatformPost[]>([]);
   const [generatedCampaign, setGeneratedCampaign] = useState<string>('');
-  const [selectedBrandStyle, setSelectedBrandStyle] = useState<string>('professional');
+  const [selectedBrandStyles, setSelectedBrandStyles] = useState<string[]>(['professional']);
   const [selectedPost, setSelectedPost] = useState<PlatformPost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -454,7 +455,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     // Simulate campaign generation
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    const posts = generatePlatformPosts(demo.businessDescription, selectedBrandStyle);
+    const posts = generatePlatformPosts(demo.businessDescription, selectedBrandStyles.join(','));
     const businessType = detectBusinessType(demo.businessDescription);
     const campaignIdea = generateCampaignIdea(demo.businessDescription, businessType);
     
@@ -564,9 +565,15 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   <button
                     key={style.id}
                     type="button"
-                    onClick={() => setSelectedBrandStyle(style.id)}
+                    onClick={() => {
+                      setSelectedBrandStyles(prev => 
+                        prev.includes(style.id)
+                          ? prev.filter(s => s !== style.id)
+                          : [...prev, style.id]
+                      );
+                    }}
                     className={`relative p-4 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
-                      selectedBrandStyle === style.id
+                      selectedBrandStyles.includes(style.id)
                         ? 'border-brand-500 bg-brand-50 shadow-lg'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
@@ -583,7 +590,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                         {style.desc}
                       </p>
                     </div>
-                    {selectedBrandStyle === style.id && (
+                    {selectedBrandStyles.includes(style.id) && (
                       <div className="absolute top-2 right-2 w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center">
                         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -595,8 +602,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </div>
               <p className="text-sm text-gray-500 mt-2">
                 {isSpanish 
-                  ? 'Tu estilo de marca influirá en los colores, tipografías y tono de tu campaña'
-                  : 'Your brand style will influence the colors, fonts, and tone of your campaign'
+                  ? 'Puedes elegir uno o más estilos. Estos influirán en los colores, tipografías y tono de tu campaña'
+                  : 'You can choose one or more styles. These will influence the colors, fonts, and tone of your campaign'
                 }
               </p>
             </div>
