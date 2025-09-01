@@ -90,7 +90,7 @@ const generatePlatformPosts = (businessDescription: string): PlatformPost[] => {
 
   return platforms.map(platform => ({
     platform: platform.platform,
-    caption: generatePlatformCaption(campaignIdea, businessType, platform.tone),
+    caption: generatePlatformCaption(campaignIdea, businessType, platform.tone, businessDescription),
     dimensions: platform.dimensions,
     aspectRatio: platform.aspectRatio,
     imageUrl: getSmartVisual(businessDescription, businessType, platform.aspectRatio),
@@ -99,7 +99,32 @@ const generatePlatformPosts = (businessDescription: string): PlatformPost[] => {
 };
 
 // Generate platform-optimized captions
-const generatePlatformCaption = (campaignIdea: string, businessType: string, tone: string): string => {
+const generatePlatformCaption = (campaignIdea: string, businessType: string, tone: string, businessDescription: string = ''): string => {
+  const desc = businessDescription.toLowerCase();
+  
+  // Art History Teacher - Educational and cultural
+  if (desc.includes('art history') && desc.includes('teacher')) {
+    if (tone === 'professional') return `Transform your understanding of art history with ${campaignIdea}. From Renaissance masters to contemporary movements, explore the stories that shaped our visual culture. Join art enthusiasts who value deep, scholarly insight.`;
+    if (tone === 'casual-engaging') return `🎨 ${campaignIdea} From Monet's water lilies to Picasso's revolutionary cubism - art history has never been this engaging! Who else loves discovering the stories behind masterpieces? #ArtHistory #Monet #Picasso`;
+    if (tone === 'friendly-detailed') return `Hello art lovers! 🏛️ I'm excited to offer ${campaignIdea} to fellow enthusiasts of visual culture! Whether you're fascinated by the mysteries of ancient Egyptian art or the bold innovations of modern expressionism, let's explore art history together. Each lesson brings masterpieces to life with context, meaning, and cultural significance!`;
+    return `${campaignIdea} - Discover the secrets of the masters! 🎨 Art history comes alive ✨`;
+  }
+  
+  // Therapist/Counselor - Healing and supportive  
+  if (desc.includes('therapist') || desc.includes('counseling') || desc.includes('therapy')) {
+    if (tone === 'professional') return `Experience compassionate, evidence-based therapy with ${campaignIdea}. In a safe, confidential environment, we work together toward healing, growth, and emotional wellness. Join individuals who prioritize their mental health journey.`;
+    if (tone === 'friendly-detailed') return `Dear friends seeking wellness 💚 I'm honored to offer ${campaignIdea} to support your journey toward emotional health and personal growth. Therapy is a brave step, and you don't have to walk this path alone. Together, we'll work at your pace in a judgment-free space where healing begins.`;
+    if (tone === 'conversational') return `Taking care of your mental health is one of the bravest things you can do. ${campaignIdea} offers a safe space to process, heal, and grow. Anyone else believe therapy should be accessible and stigma-free? 💚`;
+    return `${campaignIdea} - Your mental health matters. Start your healing journey 🌱`;
+  }
+  
+  // Wedding Photographer - Romantic and memorable
+  if (desc.includes('photographer') && desc.includes('wedding')) {
+    if (tone === 'professional') return `Preserve your most precious moments with ${campaignIdea}. Specializing in timeless wedding photography that captures the authentic emotions, intimate details, and pure joy of your celebration. Trusted by couples who value artistry and excellence.`;
+    if (tone === 'friendly-detailed') return `Beautiful couples! 💕 I'm thrilled to announce ${campaignIdea} for engagements and weddings! Your love story deserves to be told through stunning imagery that captures every laugh, every tear, and every magical moment. From getting-ready shots to your first dance, let's create heirloom images you'll treasure forever!`;
+    if (tone === 'casual-engaging') return `💕 ${campaignIdea} Because your love story deserves to be captured beautifully! From the nervous excitement of getting ready to that perfect kiss at the altar - every moment is precious ✨ Tag your person! #WeddingPhotography #LoveStory`;
+    return `${campaignIdea} - Capture your forever moments 💕 Timeless wedding photography ✨`;
+  }
   const captions: Record<string, Record<string, string>> = {
     'casual-engaging': {
       'restaurant': `🍽️ ${campaignIdea} Don't miss out on amazing flavors! Tag a friend who loves good food 👯‍♀️ #FoodieLife #GreatDeals`,
@@ -155,14 +180,74 @@ const generatePlatformCaption = (campaignIdea: string, businessType: string, ton
   return captions[tone]?.[businessKey] || `${campaignIdea} - Limited time offer!`;
 };
 
-// Smart visual selection based on specific business description
+// Highly intelligent visual selection based on business essence
 const getSmartVisual = (businessDescription: string, businessType: string, aspectRatio: string): string => {
   const desc = businessDescription.toLowerCase();
   
-  // More specific visual selection based on actual description
+  // Ultra-specific visual matching to business essence
   const getSpecificVisual = () => {
-    // Italian restaurant specific
-    if (desc.includes('italian') && desc.includes('pasta')) {
+    // Art History Teacher - Classical art and museum pieces
+    if (desc.includes('art history') && desc.includes('teacher')) {
+      return {
+        square: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=1080&h=1080&fit=crop&crop=center', // Classic art museum
+        landscape: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&h=628&fit=crop&crop=center', // Art gallery
+        story: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=200&fit=crop&crop=center'
+      };
+    }
+    
+    // Math/Science Teacher - Mathematical concepts and learning
+    if ((desc.includes('math') || desc.includes('calculus') || desc.includes('algebra')) && desc.includes('teacher')) {
+      return {
+        square: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1080&h=1080&fit=crop&crop=center', // Math equations
+        landscape: 'https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=1200&h=628&fit=crop&crop=center', // Classroom
+        story: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=600&h=200&fit=crop&crop=center'
+      };
+    }
+    
+    // Wedding Photographer - Beautiful wedding moments
+    if (desc.includes('photographer') && desc.includes('wedding')) {
+      return {
+        square: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1080&h=1080&fit=crop&crop=center', // Wedding couple
+        landscape: 'https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?w=1200&h=628&fit=crop&crop=center', // Wedding ceremony
+        story: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?w=600&h=200&fit=crop&crop=center'
+      };
+    }
+    
+    // Therapist/Counselor - Peaceful, healing environments
+    if (desc.includes('therapist') || desc.includes('counseling') || desc.includes('therapy')) {
+      return {
+        square: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=1080&h=1080&fit=crop&crop=center', // Peaceful therapy room
+        landscape: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=628&fit=crop&crop=center', // Calm nature
+        story: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop&crop=center'
+      };
+    }
+    
+    // Lawyer/Attorney - Professional legal setting
+    if (desc.includes('lawyer') || desc.includes('attorney') || desc.includes('legal')) {
+      return {
+        square: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb?w=1080&h=1080&fit=crop&crop=center', // Legal books
+        landscape: 'https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?w=1200&h=628&fit=crop&crop=center', // Law office
+        story: 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?w=600&h=200&fit=crop&crop=center'
+      };
+    }
+    
+    // Graphic Designer - Creative design tools and work
+    if (desc.includes('designer') || desc.includes('graphic design')) {
+      return {
+        square: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1080&h=1080&fit=crop&crop=center', // Design workspace
+        landscape: 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=1200&h=628&fit=crop&crop=center', // Creative tools
+        story: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1080&h=1920&fit=crop&crop=center',
+        banner: 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=600&h=200&fit=crop&crop=center'
+      };
+    }
+    
+    // Italian Restaurant - Authentic Italian cuisine
+    if (desc.includes('italian') && (desc.includes('pasta') || desc.includes('restaurant'))) {
       return {
         square: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=1080&h=1080&fit=crop&crop=center',
         landscape: 'https://images.unsplash.com/photo-1555126634-323283e090fa?w=1200&h=628&fit=crop&crop=center',
@@ -171,7 +256,7 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
       };
     }
     
-    // Bakery specific
+    // Artisan Bakery - Fresh bread and baked goods
     if (desc.includes('bakery') && desc.includes('bread')) {
       return {
         square: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=1080&h=1080&fit=crop&crop=center',
@@ -181,8 +266,8 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
       };
     }
     
-    // Yoga/meditation specific
-    if (desc.includes('yoga') && desc.includes('meditation')) {
+    // Yoga/Meditation - Peaceful, zen-like environments
+    if (desc.includes('yoga') || desc.includes('meditation')) {
       return {
         square: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1080&h=1080&fit=crop&crop=center',
         landscape: 'https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=1200&h=628&fit=crop&crop=center',
@@ -251,72 +336,89 @@ const detectBusinessType = (description: string): string => {
   return 'default';
 };
 
-// Generate a smart campaign idea based on business description
+// Intelligent campaign generation based on specific business description
 const generateCampaignIdea = (description: string, businessType: string): string => {
   const desc = description.toLowerCase();
   
-  // Analyze business description for specific details
-  if (businessType === 'restaurant') {
-    if (desc.includes('italian') || desc.includes('pasta') || desc.includes('pizza')) {
-      if (desc.includes('family') || desc.includes('downtown')) {
-        return 'Authentic Italian Family Night - 20% Off for Groups of 4+';
-      }
-      return 'Wood-Fired Pizza Weekend Special - Buy 2 Get 1 Free';
+  // Education sector
+  if (desc.includes('teacher') || desc.includes('education') || desc.includes('tutor')) {
+    if (desc.includes('art history') || desc.includes('art')) {
+      return 'Master Art History: Private Lessons with Museum-Quality Resources';
     }
-    if (desc.includes('bakery') || desc.includes('bread') || desc.includes('cake')) {
-      if (desc.includes('weekend') || desc.includes('foot traffic')) {
-        return 'Saturday Morning Fresh Bread + Coffee Combo Deal';
-      }
-      return 'Wedding Cake Consultation - Free Tasting Session';
+    if (desc.includes('math') || desc.includes('calculus') || desc.includes('algebra')) {
+      return 'Unlock Math Success: Personalized Tutoring That Gets Results';
     }
-    if (desc.includes('coffee') || desc.includes('cafe')) {
-      return 'Morning Commuter Special - Buy 5 Coffees, Get 2 Free';
+    if (desc.includes('language') || desc.includes('spanish') || desc.includes('french')) {
+      return 'Speak Like a Native: Immersive Language Learning Experience';
     }
-    return 'New Customer Special - 25% Off Your First Visit';
+    return 'Transform Your Learning: Expert Tutoring Tailored to You';
   }
   
-  if (businessType === 'fitness') {
-    if (desc.includes('yoga') || desc.includes('meditation')) {
-      if (desc.includes('professional') || desc.includes('busy')) {
-        return 'Lunch Break Yoga for Professionals - Free First Class';
-      }
-      return 'Mind-Body Transformation Package - 30% Off First Month';
+  // Creative professionals
+  if (desc.includes('photographer') || desc.includes('photography')) {
+    if (desc.includes('wedding')) {
+      return 'Capture Forever: Timeless Wedding Photography Collection';
     }
-    if (desc.includes('crossfit') || desc.includes('strength')) {
-      return 'Summer Strength Challenge - Join Today, Pay Later';
+    if (desc.includes('portrait') || desc.includes('headshot')) {
+      return 'Professional Portraits That Make You Stand Out';
     }
-    return 'New Year, New You - 50% Off Personal Training';
+    return 'Preserve Your Precious Moments: Professional Photography';
   }
   
-  if (businessType === 'beauty') {
-    if (desc.includes('spa') || desc.includes('facial') || desc.includes('treatment')) {
-      return 'Stress Relief Spa Day - Book 2 Treatments, Save 30%';
-    }
-    if (desc.includes('salon') || desc.includes('hair')) {
-      return 'New Look Makeover Package - Cut + Color + Style';
-    }
-    return 'Glow Up Special - Complimentary Consultation + 20% Off';
+  if (desc.includes('designer') || desc.includes('graphic design')) {
+    return 'Bring Your Vision to Life: Custom Design Solutions';
   }
   
-  if (businessType === 'retail') {
-    if (desc.includes('boutique') || desc.includes('clothing')) {
-      return 'New Season Collection - Early Access + Free Styling';
-    }
-    if (desc.includes('store') || desc.includes('shop')) {
-      return 'Customer Appreciation Week - 25% Off Everything';
-    }
-    return 'Weekend Flash Sale - Up to 40% Off Selected Items';
+  // Health & wellness
+  if (desc.includes('therapist') || desc.includes('counseling') || desc.includes('therapy')) {
+    return 'Find Your Path to Wellness: Compassionate Therapy Sessions';
   }
   
-  // Default based on common business goals
-  if (desc.includes('new') || desc.includes('opening')) {
-    return 'Grand Opening Special - 30% Off All Services';
-  }
-  if (desc.includes('consultation') || desc.includes('service')) {
-    return 'Free Consultation + 20% Off First Service';
+  if (desc.includes('massage') || desc.includes('spa')) {
+    return 'Relax & Rejuvenate: Therapeutic Massage Experience';
   }
   
-  return 'Limited Time Offer - New Customer Special 25% Off';
+  // Professional services
+  if (desc.includes('lawyer') || desc.includes('attorney') || desc.includes('legal')) {
+    if (desc.includes('family') || desc.includes('divorce')) {
+      return 'Protect Your Family: Experienced Legal Representation';
+    }
+    return 'Expert Legal Counsel When You Need It Most';
+  }
+  
+  if (desc.includes('accountant') || desc.includes('tax') || desc.includes('bookkeeping')) {
+    return 'Maximize Your Returns: Professional Tax & Accounting Services';
+  }
+  
+  // Restaurant specifics
+  if (desc.includes('italian') && (desc.includes('pasta') || desc.includes('restaurant'))) {
+    return 'Authentic Italian Family Recipes - Experience True Italy';
+  }
+  
+  if (desc.includes('bakery') && desc.includes('bread')) {
+    return 'Fresh Daily: Artisan Breads & Pastries Made with Love';
+  }
+  
+  if (desc.includes('coffee') || desc.includes('cafe')) {
+    return 'Your Daily Escape: Premium Coffee & Cozy Atmosphere';
+  }
+  
+  // Fitness specifics
+  if (desc.includes('yoga') || desc.includes('meditation')) {
+    return 'Find Your Inner Peace: Transformative Yoga Journey';
+  }
+  
+  if (desc.includes('personal trainer') || desc.includes('fitness')) {
+    return 'Achieve Your Best Self: Personalized Fitness Transformation';
+  }
+  
+  // Generic business goals
+  if (desc.includes('consulting') || desc.includes('consultant')) {
+    return 'Unlock Your Business Potential: Expert Strategy Consulting';
+  }
+  
+  // Default
+  return 'Discover Excellence: Premium Services Tailored for You';
 };
 
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
