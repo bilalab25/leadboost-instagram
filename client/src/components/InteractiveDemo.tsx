@@ -1288,7 +1288,18 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             <div className="grid grid-cols-3 gap-1">
               {Array.from({ length: 6 }, (_, index) => {
                 const businessType = detectBusinessType(demo.businessDescription);
-                const imageUrl = getIndustryVariedImage(demo.businessDescription, businessType, index);
+                
+                // Use uploaded photos if available, otherwise use generated images
+                let imageUrl: string;
+                if (demo.uploadedImages.length > 0) {
+                  // Cycle through uploaded images
+                  const uploadedImage = demo.uploadedImages[index % demo.uploadedImages.length];
+                  imageUrl = URL.createObjectURL(uploadedImage);
+                } else {
+                  // Use generated industry-specific images
+                  imageUrl = getIndustryVariedImage(demo.businessDescription, businessType, index);
+                }
+                
                 const overlayText = getPostOverlayText(demo.businessDescription, businessType, index, generatedCampaign, isSpanish);
                 
                 return (
