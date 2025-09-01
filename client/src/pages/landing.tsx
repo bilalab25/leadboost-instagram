@@ -441,7 +441,7 @@ export default function Landing() {
                   {isSpanish ? 'Define tu identidad de marca para que la IA entienda tu estilo y cree campañas que reflejen tu branding automáticamente' : 'Define your brand identity so AI understands your style and creates campaigns that reflect your branding automatically'}
                 </p>
                 <ul className="text-sm text-gray-500 space-y-2">
-                  <li>• {isSpanish ? 'Configuración de identidad visual' : 'Visual identity setup'}</li>
+                  <li>• {isSpanish ? 'Edita y personaliza diseños en nuestro Brand Studio' : 'Edit and customize designs in our Brand Studio'}</li>
                   <li>• {isSpanish ? 'Paleta de colores y tipografías' : 'Color palette and typography'}</li>
                   <li>• {isSpanish ? 'IA aprende tu estilo de marca' : 'AI learns your brand style'}</li>
                 </ul>
