@@ -481,10 +481,90 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   return getBusinessContextualImage();
 };
 
-// Generate varied images for Instagram feed posts - same industry, different angles/products
+// Generate highly specific images for Instagram feed posts based on exact business description
 const getIndustryVariedImage = (businessDescription: string, businessType: string, postIndex: number): string => {
   const desc = businessDescription.toLowerCase();
   const dimensions = { width: 400, height: 400 }; // Square format for Instagram
+  
+  // SPECIFIC BUSINESS MATCHING - Match exact descriptions
+  
+  // Sourdough & Artisan Bakery
+  if (desc.includes('sourdough') || (desc.includes('bakery') && desc.includes('artisan'))) {
+    const sourdoughImages = [
+      `https://images.unsplash.com/photo-1509440159596-0249088772ff?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Sourdough loaves
+      `https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Fresh sourdough cut
+      `https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Artisan baker
+      `https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding cake display
+      `https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Bakery storefront
+      `https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Fresh bread display
+    ];
+    return sourdoughImages[postIndex % sourdoughImages.length];
+  }
+  
+  // Dermatology & Medical Aesthetics (Botox/Filler)
+  if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('dermatology') || (desc.includes('med') && desc.includes('spa'))) {
+    const medAestheticsImages = [
+      `https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Clean medical spa
+      `https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Medical professional
+      `https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Skincare consultation
+      `https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Before/after results
+      `https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Medical equipment
+      `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Medical clinic interior
+    ];
+    return medAestheticsImages[postIndex % medAestheticsImages.length];
+  }
+  
+  // Photography (Wedding/Portrait specialists)
+  if (desc.includes('photographer') || desc.includes('photography')) {
+    if (desc.includes('wedding')) {
+      const weddingPhotographyImages = [
+        `https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding couple
+        `https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding rings
+        `https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding dress
+        `https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding venue
+        `https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional camera
+        `https://images.unsplash.com/photo-1487530811176-3780de880c2d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Wedding bouquet
+      ];
+      return weddingPhotographyImages[postIndex % weddingPhotographyImages.length];
+    }
+    const photographyImages = [
+      `https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional camera
+      `https://images.unsplash.com/photo-1554048612-b6a482b224fc?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Portrait session
+      `https://images.unsplash.com/photo-1521791136064-7986c2920216?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional headshot
+      `https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Photography studio
+      `https://images.unsplash.com/photo-1503751071777-d2918b21bbd9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Camera equipment
+      `https://images.unsplash.com/photo-1552168324-d612d77725e3?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Professional photographer
+    ];
+    return photographyImages[postIndex % photographyImages.length];
+  }
+  
+  // Italian Restaurant specific
+  if (desc.includes('italian') && (desc.includes('restaurant') || desc.includes('pasta') || desc.includes('pizza'))) {
+    const italianRestaurantImages = [
+      `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Authentic pizza
+      `https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Fresh pasta
+      `https://images.unsplash.com/photo-1498579397066-22750a3cb424?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Italian ingredients
+      `https://images.unsplash.com/photo-1551326844-4df70f78d0e9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Traditional Italian restaurant
+      `https://images.unsplash.com/photo-1551218808-94e220e084d2?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wine and food pairing
+      `https://images.unsplash.com/photo-1563379091339-03246963d51a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Chef making pasta
+    ];
+    return italianRestaurantImages[postIndex % italianRestaurantImages.length];
+  }
+  
+  // Personal Trainer / Fitness Coach
+  if (desc.includes('personal trainer') || desc.includes('fitness coach') || desc.includes('trainer')) {
+    const personalTrainerImages = [
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Training session
+      `https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Personal training
+      `https://images.unsplash.com/photo-1583500178690-f7fd39fae5b5?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Weight training
+      `https://images.unsplash.com/photo-1549476464-37392f717541?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Fitness transformation
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Gym atmosphere
+      `https://images.unsplash.com/photo-1506629905607-84d5bbfc4ed8?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Group training
+    ];
+    return personalTrainerImages[postIndex % personalTrainerImages.length];
+  }
+  
+  // BROADER CATEGORY MATCHING (fallback)
   
   // Coffee Shop - 6 different coffee-related images
   if (desc.includes('coffee shop') || desc.includes('coffee') || desc.includes('cafe')) {
@@ -499,7 +579,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
     return coffeeImages[postIndex % coffeeImages.length];
   }
   
-  // Bakery/Pastry - 6 different pastry/cake images
+  // General Bakery/Pastry
   if (desc.includes('bakery') || desc.includes('pastry') || desc.includes('pastelería') || desc.includes('pasteles')) {
     const bakeryImages = [
       `https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Beautiful pastries
@@ -512,7 +592,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
     return bakeryImages[postIndex % bakeryImages.length];
   }
   
-  // Jewelry Store - 6 different jewelry images
+  // Jewelry Store
   if (desc.includes('jewelry') || desc.includes('joyería') || desc.includes('joyas')) {
     const jewelryImages = [
       `https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Jewelry display
@@ -525,8 +605,8 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
     return jewelryImages[postIndex % jewelryImages.length];
   }
   
-  // Beauty Salon/Botox Clinic - 6 different beauty images
-  if (desc.includes('beauty') || desc.includes('salon') || desc.includes('botox') || desc.includes('aesthetic')) {
+  // General Beauty/Salon
+  if (desc.includes('beauty') || desc.includes('salon') || desc.includes('aesthetic')) {
     const beautyImages = [
       `https://images.unsplash.com/photo-1560066984-138dadb4c035?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Beauty salon
       `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Medical clinic
@@ -538,7 +618,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
     return beautyImages[postIndex % beautyImages.length];
   }
   
-  // Gym/Fitness - 6 different fitness images
+  // General Gym/Fitness
   if (desc.includes('gym') || desc.includes('fitness') || desc.includes('workout')) {
     const fitnessImages = [
       `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Gym equipment
@@ -551,7 +631,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
     return fitnessImages[postIndex % fitnessImages.length];
   }
   
-  // Restaurant - 6 different food images
+  // General Restaurant
   if (desc.includes('restaurant') || desc.includes('food') || desc.includes('dining')) {
     const restaurantImages = [
       `https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Restaurant interior
