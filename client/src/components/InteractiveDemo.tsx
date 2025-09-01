@@ -489,7 +489,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         <Card className="border-2 border-purple-100">
           <CardContent className="p-8 space-y-6">
             <div className="text-center mb-6">
-              <div className="text-6xl mb-4">🚀</div>
+              <div className="text-6xl mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">🚀</div>
               <h3 className="text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
                 {isSpanish ? '¡Pruébalo GRATIS Ahora!' : 'Try It FREE Now!'}
               </h3>
