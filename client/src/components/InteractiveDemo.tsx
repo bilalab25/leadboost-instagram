@@ -208,8 +208,8 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   const getBusinessContextualImage = (): string => {
   // MEDICAL AESTHETICS & BEAUTY - Botox & Cosmetic Treatments
   if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('aesthetic') || desc.includes('cosmetic') || (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face') || desc.includes('med spa')))) {
-    // Modern medical spa/aesthetic clinic - clean, professional medical environment
-    return `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    // Luxury beauty spa/aesthetic clinic - clean, relaxing environment with beauty treatments focus
+    return `https://images.unsplash.com/photo-1562887284-5c6e2e3bb1e4?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // BEAUTY SALONS
