@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight } from 'lucide-react';
+import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2 } from 'lucide-react';
 
 interface DemoState {
   businessDescription: string;
@@ -610,6 +610,80 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             </Button>
             <Button size="lg" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" data-testid="button-upgrade-enterprise">
               {isSpanish ? 'Ver Enterprise' : 'View Enterprise'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Enterprise Demo Video Section */}
+        <div className="mt-12 text-center">
+          <h4 className="text-xl font-bold text-gray-900 mb-4">
+            {isSpanish ? '🎥 Ve CampAIgner Enterprise en Acción' : '🎥 See CampAIgner Enterprise in Action'}
+          </h4>
+          <p className="text-gray-600 text-sm mb-6 max-w-2xl mx-auto">
+            {isSpanish 
+              ? 'Mira cómo un cliente real usa datos de su POS para crear campañas personalizadas con imágenes generadas por DALL-E'
+              : 'Watch how a real customer uses their POS data to create personalized campaigns with DALL-E generated images'
+            }
+          </p>
+          
+          <div className="relative max-w-4xl mx-auto bg-gradient-to-br from-gray-900 to-black rounded-2xl overflow-hidden shadow-2xl">
+            <div className="aspect-video relative bg-gray-900 flex items-center justify-center">
+              {/* Video Thumbnail */}
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-600/20 to-purple-600/20"></div>
+              <div className="relative z-10 text-center text-white">
+                <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 hover:bg-white/30 transition-all duration-300 cursor-pointer group">
+                  <Play className="w-8 h-8 text-white ml-1 group-hover:scale-110 transition-transform" />
+                </div>
+                <h5 className="text-xl font-bold mb-2">
+                  {isSpanish ? 'Demo Enterprise: Restaurant Tony\'s' : 'Enterprise Demo: Tony\'s Restaurant'}
+                </h5>
+                <p className="text-white/80 text-sm">
+                  {isSpanish ? '3:24 min • Ver cómo genera 21 campañas desde datos POS' : '3:24 min • Watch how it generates 21 campaigns from POS data'}
+                </p>
+              </div>
+              
+              {/* Premium badge */}
+              <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                {isSpanish ? 'ENTERPRISE' : 'ENTERPRISE'}
+              </div>
+            </div>
+            
+            {/* Video Description */}
+            <div className="bg-white p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">T</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">Tony Martinez</p>
+                    <p className="text-sm text-gray-500">
+                      {isSpanish ? 'Propietario, Tony\'s Italian Kitchen' : 'Owner, Tony\'s Italian Kitchen'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <Volume2 className="w-4 h-4" />
+                  <span>{isSpanish ? '15K visualizaciones' : '15K views'}</span>
+                </div>
+              </div>
+              <p className="text-gray-700 text-sm mt-4 leading-relaxed">
+                {isSpanish 
+                  ? '"Con Enterprise, mis datos de ventas se convierten automáticamente en campañas personalizadas. Las imágenes generadas por IA son exactamente como mis platos reales. En 30 segundos tengo contenido para todo el mes."'
+                  : '"With Enterprise, my sales data automatically becomes personalized campaigns. The AI-generated images look exactly like my real dishes. In 30 seconds I have content for the entire month."'
+                }
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-6">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="text-brand-600 border-brand-300 hover:bg-brand-50"
+            >
+              {isSpanish ? 'Ver Más Casos de Éxito →' : 'View More Success Stories →'}
             </Button>
           </div>
         </div>
