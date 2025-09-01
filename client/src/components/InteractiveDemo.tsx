@@ -500,8 +500,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </h3>
               <p className="text-lg text-gray-600 leading-relaxed font-medium max-w-md mx-auto">
                 {isSpanish 
-                  ? 'Demo Rápido: ¿Quieres ver cómo funciona?'
-                  : 'Quick Demo: Want to see how it works?'
+                  ? 'Demo Rápido: Hagamos tu campaña en segundos'
+                  : 'Quick Demo: Lets make your campaign in seconds'
                 }
               </p>
             </div>
