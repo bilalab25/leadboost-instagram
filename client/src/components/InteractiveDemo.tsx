@@ -200,122 +200,96 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   // Get exact dimensions for the platform
   const dimensions = PLATFORM_DIMENSIONS[platform] || { width: 1200, height: 628 };
   
-  // Ultra-specific visual matching to business essence with exact dimensions
-  const getSpecificVisual = () => {
-    // Medical Aesthetics - Botox, dermal fillers, beauty treatments
-    if (desc.includes('botox') || desc.includes('dermal') || desc.includes('aesthetic') || desc.includes('cosmetic surgery') || desc.includes('med spa')) {
-      const baseUrl = 'https://images.unsplash.com/photo-1570303345338-e1f0eddf4946'; // Medical spa/aesthetics
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    // Art History Teacher - Classical art and museum pieces
-    if (desc.includes('art history') && desc.includes('teacher')) {
-      const baseUrl = 'https://images.unsplash.com/photo-1541961017774-22349e4a1262'; // Classic art museum
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    // Math/Science Teacher - Mathematical concepts and learning
-    if ((desc.includes('math') || desc.includes('calculus') || desc.includes('algebra')) && desc.includes('teacher')) {
-      const baseUrl = 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb'; // Math equations
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    // Wedding Photographer - Beautiful wedding moments
-    if (desc.includes('photographer') && desc.includes('wedding')) {
-      const baseUrl = 'https://images.unsplash.com/photo-1519741497674-611481863552'; // Wedding couple
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    // Therapist/Counselor - Peaceful, healing environments
-    if (desc.includes('therapist') || desc.includes('counseling') || desc.includes('therapy')) {
-      const baseUrl = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2'; // Peaceful therapy room
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    // Lawyer/Attorney - Professional legal setting
-    if (desc.includes('lawyer') || desc.includes('attorney') || desc.includes('legal')) {
-      const baseUrl = 'https://images.unsplash.com/photo-1589391886645-d51941baf7fb'; // Legal books
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    // Graphic Designer - Creative design tools and work
-    if (desc.includes('designer') || desc.includes('graphic design')) {
-      const baseUrl = 'https://images.unsplash.com/photo-1561070791-2526d30994b5'; // Design workspace
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    // Italian Restaurant - Authentic Italian cuisine
-    if (desc.includes('italian') && (desc.includes('pasta') || desc.includes('restaurant'))) {
-      const baseUrl = 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3'; // Italian pasta
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    // Artisan Bakery - Fresh bread and baked goods
-    if (desc.includes('bakery') && desc.includes('bread')) {
-      const baseUrl = 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35'; // Fresh bread
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    // Yoga/Meditation - Peaceful, zen-like environments
-    if (desc.includes('yoga') || desc.includes('meditation')) {
-      const baseUrl = 'https://images.unsplash.com/photo-1518611012118-696072aa579a'; // Yoga meditation
-      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-    }
-    
-    return null;
-  };
-  
-  const specificVisual = getSpecificVisual();
-  if (specificVisual) {
-    return specificVisual;
+  // Comprehensive business-specific visual database with contextually relevant imagery
+  const getBusinessContextualImage = (): string => {
+  // MEDICAL AESTHETICS & BEAUTY - Botox & Cosmetic Treatments
+  if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('aesthetic') || desc.includes('cosmetic')) {
+    // Professional woman with smooth, youthful skin - premium medical aesthetics
+    return `https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
-  // Fallback to business type visuals
-  const visualsByType: Record<string, Record<string, string>> = {
-    restaurant: {
-      square: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1080&h=1080&fit=crop&crop=center',
-      landscape: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=628&fit=crop&crop=center',
-      story: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1080&h=1920&fit=crop&crop=center',
-      banner: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=200&fit=crop&crop=center'
-    },
-    fitness: {
-      square: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=1080&h=1080&fit=crop&crop=center',
-      landscape: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1200&h=628&fit=crop&crop=center',
-      story: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=1080&h=1920&fit=crop&crop=center',
-      banner: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&h=200&fit=crop&crop=center'
-    },
-    beauty: {
-      square: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=1080&h=1080&fit=crop&crop=center',
-      landscape: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&h=628&fit=crop&crop=center',
-      story: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=1080&h=1920&fit=crop&crop=center',
-      banner: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600&h=200&fit=crop&crop=center'
-    },
-    default: {
-      square: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1080&h=1080&fit=crop&crop=center',
-      landscape: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1200&h=628&fit=crop&crop=center',
-      story: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1080&h=1920&fit=crop&crop=center',
-      banner: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600&h=200&fit=crop&crop=center'
-    }
-  };
-
-  // Fallback with exact dimensions for any business type
-  const getGenericVisual = () => {
-    const genericImageIds: Record<string, string> = {
-      restaurant: 'photo-1414235077428-338989a2e8c0',
-      fitness: 'photo-1571019613454-1cb2f99b2d8b',
-      beauty: 'photo-1570303345338-e1f0eddf4946', // Medical spa/aesthetic treatments
-      retail: 'photo-1441986300917-64674bd600d8',
-      professional: 'photo-1497032628192-86f99bcd76bc',
-      default: 'photo-1560472354-b33ff0c44a43'
-    };
-    
-    const businessKey = ['restaurant', 'fitness', 'beauty', 'retail', 'professional'].includes(businessType) ? businessType : 'default';
-    const imageId = genericImageIds[businessKey];
-    
-    return `https://images.unsplash.com/${imageId}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-  };
+  if (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face'))) {
+    // Elegant medical spa clinic interior - clean, modern, professional
+    return `https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
   
-  return getGenericVisual();
+  // SPA & WELLNESS - Facial Treatments & Skincare
+  if (desc.includes('spa') || desc.includes('facial') || desc.includes('skincare')) {
+    // Luxury spa treatment with smooth skin focus
+    return `https://images.unsplash.com/photo-1562887284-5c6e2e3bb1e4?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // DENTAL
+  if (desc.includes('dental') || desc.includes('dentist') || desc.includes('teeth') || desc.includes('orthodontic')) {
+    // Modern dental office
+    return `https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // FOOD & RESTAURANTS
+  if (desc.includes('restaurant') || desc.includes('bistro') || desc.includes('cafe')) {
+    if (desc.includes('italian') || desc.includes('pasta')) {
+      return `https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    }
+    // Elegant restaurant interior
+    return `https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  if (desc.includes('bakery') || desc.includes('bread') || desc.includes('pastry')) {
+    // Artisan bakery with fresh bread
+    return `https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // FITNESS & WELLNESS
+  if (desc.includes('gym') || desc.includes('fitness') || desc.includes('personal training')) {
+    // Modern gym equipment
+    return `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  if (desc.includes('yoga') || desc.includes('meditation') || desc.includes('mindfulness')) {
+    // Peaceful yoga studio
+    return `https://images.unsplash.com/photo-1518611012118-696072aa579a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // EDUCATION
+  if (desc.includes('teacher') || desc.includes('tutor') || desc.includes('education')) {
+    if (desc.includes('art') || desc.includes('art history')) {
+      return `https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    }
+    if (desc.includes('math') || desc.includes('science')) {
+      return `https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    }
+    // General education/classroom
+    return `https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // CREATIVE SERVICES
+  if (desc.includes('photographer') || desc.includes('photography')) {
+    if (desc.includes('wedding')) {
+      return `https://images.unsplash.com/photo-1519741497674-611481863552?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    }
+    // Professional photography studio
+    return `https://images.unsplash.com/photo-1542038784456-1ea8e732b2b9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  if (desc.includes('designer') || desc.includes('graphic design') || desc.includes('creative')) {
+    return `https://images.unsplash.com/photo-1561070791-2526d30994b5?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // LEGAL SERVICES
+  if (desc.includes('lawyer') || desc.includes('attorney') || desc.includes('legal') || desc.includes('law firm')) {
+    return `https://images.unsplash.com/photo-1589391886645-d51941baf7fb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // RETAIL & SHOPPING
+  if (desc.includes('boutique') || desc.includes('clothing') || desc.includes('fashion')) {
+    return `https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // DEFAULT PROFESSIONAL
+  return `https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+};
+
+  return getBusinessContextualImage();
 };
 
 // Detect business type from description
@@ -653,12 +627,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 />
                 
                 {/* Dynamic brand style overlay */}
-                <div className={`absolute inset-0 ${
-                  brandStyle === 'luxury' ? 'bg-gradient-to-t from-black/30 via-transparent to-black/10' :
-                  brandStyle === 'creative' ? 'bg-gradient-to-br from-purple-500/15 via-transparent to-pink-500/15' :
-                  brandStyle === 'playful' ? 'bg-gradient-to-r from-yellow-500/10 via-transparent to-orange-500/10' :
-                  'bg-gradient-to-t from-blue-500/10 via-transparent to-transparent'
-                }`}></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
                 
                 {/* High-Impact Text Design */}
                 <div className="absolute inset-0 p-4 flex flex-col justify-center items-center text-center">
