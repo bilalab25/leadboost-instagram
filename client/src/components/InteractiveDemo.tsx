@@ -204,7 +204,6 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   const getBusinessContextualImage = (): string => {
   // MEDICAL AESTHETICS & BEAUTY - Botox & Cosmetic Treatments
   if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('aesthetic') || desc.includes('cosmetic')) {
-    console.log('✅ BOTOX DETECTED! Using medical aesthetics image for:', desc);
     // Professional woman with smooth, youthful skin - premium medical aesthetics
     return `https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
@@ -407,6 +406,33 @@ const generateCampaignIdea = (description: string, businessType: string): string
 };
 
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
+  // Platform-specific branded styling functions
+  const getPlatformHeaderStyle = (platform: string): string => {
+    return 'py-4 px-4';
+  };
+
+  const getPlatformGradient = (platform: string): string => {
+    switch (platform) {
+      case 'Instagram Post':
+      case 'Instagram Story':
+        return 'from-purple-600 to-pink-500'; // Instagram gradient
+      case 'LinkedIn Post':
+        return 'from-blue-600 to-blue-700'; // LinkedIn blue
+      case 'Twitter/X Post':
+        return 'from-gray-800 to-black'; // X (Twitter) black
+      case 'Facebook Post':
+        return 'from-blue-500 to-blue-600'; // Facebook blue
+      case 'Threads Post':
+        return 'from-gray-700 to-gray-900'; // Threads dark
+      case 'TikTok Cover':
+        return 'from-red-500 to-pink-500'; // TikTok gradient
+      case 'Email Banner':
+        return 'from-green-500 to-green-600'; // Email green
+      default:
+        return 'from-gray-600 to-gray-700'; // Default gradient
+    }
+  };
+
   const [demo, setDemo] = useState<DemoState>({
     businessDescription: '',
     isGenerating: false,
@@ -603,12 +629,13 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {platformPosts.map((post, index) => (
-          <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow" data-testid={`platform-card-${index}`}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                {post.icon}
-                {post.platform}
-                <span className="ml-auto text-xs text-gray-500 font-normal">
+          <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-white/80 backdrop-blur-sm" data-testid={`platform-card-${index}`}>
+            <CardHeader className={`pb-3 relative ${getPlatformHeaderStyle(post.platform)}`}>
+              <div className={`absolute inset-0 bg-gradient-to-r opacity-90 ${getPlatformGradient(post.platform)}`}></div>
+              <CardTitle className="relative text-sm flex items-center gap-2 text-white font-semibold">
+                <span className="text-lg drop-shadow-sm">{post.icon}</span>
+                <span className="font-bold tracking-wide">{post.platform}</span>
+                <span className="ml-auto text-xs bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm font-medium">
                   {post.dimensions}
                 </span>
               </CardTitle>
