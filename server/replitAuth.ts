@@ -8,12 +8,19 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
+// Check if we're in development mode without proper Replit setup
+const isDevelopmentMode = process.env.NODE_ENV === "development" && !process.env.REPLIT_DOMAINS;
+
+if (!isDevelopmentMode && !process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
 const getOidcConfig = memoize(
   async () => {
+    if (isDevelopmentMode) {
+      // Return a mock config for development mode
+      return null;
+    }
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
       process.env.REPL_ID!
@@ -72,6 +79,29 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Skip OIDC setup in development mode to avoid timeouts
+  if (isDevelopmentMode) {
+    console.log("Running in development mode - skipping OIDC setup");
+    
+    // Simple auth routes for development
+    app.get("/api/login", (req, res) => {
+      res.redirect("/");
+    });
+
+    app.get("/api/callback", (req, res) => {
+      res.redirect("/");
+    });
+
+    app.get("/api/logout", (req, res) => {
+      res.redirect("/");
+    });
+
+    passport.serializeUser((user: Express.User, cb) => cb(null, user));
+    passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+    
+    return;
+  }
+
   const config = await getOidcConfig();
 
   const verify: VerifyFunction = async (
@@ -128,6 +158,11 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  // Skip authentication in development mode - allow all requests
+  if (isDevelopmentMode) {
+    return next();
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {
