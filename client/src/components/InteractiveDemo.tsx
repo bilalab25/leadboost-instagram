@@ -202,6 +202,12 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // Ultra-specific visual matching to business essence with exact dimensions
   const getSpecificVisual = () => {
+    // Medical Aesthetics - Botox, dermal fillers, beauty treatments
+    if (desc.includes('botox') || desc.includes('dermal') || desc.includes('aesthetic') || desc.includes('cosmetic surgery') || desc.includes('med spa')) {
+      const baseUrl = 'https://images.unsplash.com/photo-1570303345338-e1f0eddf4946'; // Medical spa/aesthetics
+      return `${baseUrl}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    }
+    
     // Art History Teacher - Classical art and museum pieces
     if (desc.includes('art history') && desc.includes('teacher')) {
       const baseUrl = 'https://images.unsplash.com/photo-1541961017774-22349e4a1262'; // Classic art museum
@@ -297,7 +303,7 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
     const genericImageIds: Record<string, string> = {
       restaurant: 'photo-1414235077428-338989a2e8c0',
       fitness: 'photo-1571019613454-1cb2f99b2d8b',
-      beauty: 'photo-1596462502278-27bfdc403348',
+      beauty: 'photo-1570303345338-e1f0eddf4946', // Medical spa/aesthetic treatments
       retail: 'photo-1441986300917-64674bd600d8',
       professional: 'photo-1497032628192-86f99bcd76bc',
       default: 'photo-1560472354-b33ff0c44a43'
@@ -322,7 +328,7 @@ const detectBusinessType = (description: string): string => {
   if (desc.includes('gym') || desc.includes('fitness') || desc.includes('workout') || desc.includes('yoga') || desc.includes('training')) {
     return 'fitness';
   }
-  if (desc.includes('beauty') || desc.includes('spa') || desc.includes('salon') || desc.includes('skincare') || desc.includes('cosmetic')) {
+  if (desc.includes('beauty') || desc.includes('spa') || desc.includes('salon') || desc.includes('skincare') || desc.includes('cosmetic') || desc.includes('botox') || desc.includes('aesthetic') || desc.includes('dermal') || desc.includes('med spa')) {
     return 'beauty';
   }
   if (desc.includes('retail') || desc.includes('store') || desc.includes('shop') || desc.includes('boutique') || desc.includes('clothing')) {
@@ -348,6 +354,14 @@ const generateCampaignIdea = (description: string, businessType: string): string
       return 'Speak Like a Native: Immersive Language Learning Experience';
     }
     return 'Transform Your Learning: Expert Tutoring Tailored to You';
+  }
+  
+  // Medical & Aesthetic Services
+  if (desc.includes('botox') || desc.includes('aesthetic') || desc.includes('med spa') || desc.includes('cosmetic')) {
+    if (desc.includes('botox') || desc.includes('dermal')) {
+      return 'Transform Your Look: Professional Botox & Dermal Filler Treatments';
+    }
+    return 'Reveal Your Best Self: Advanced Medical Aesthetic Treatments';
   }
   
   // Creative professionals
@@ -640,9 +654,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 
                 {/* Dynamic brand style overlay */}
                 <div className={`absolute inset-0 ${
-                  post.brandStyle === 'luxury' ? 'bg-gradient-to-t from-black/30 via-transparent to-black/10' :
-                  post.brandStyle === 'creative' ? 'bg-gradient-to-br from-purple-500/15 via-transparent to-pink-500/15' :
-                  post.brandStyle === 'playful' ? 'bg-gradient-to-r from-yellow-500/10 via-transparent to-orange-500/10' :
+                  brandStyle === 'luxury' ? 'bg-gradient-to-t from-black/30 via-transparent to-black/10' :
+                  brandStyle === 'creative' ? 'bg-gradient-to-br from-purple-500/15 via-transparent to-pink-500/15' :
+                  brandStyle === 'playful' ? 'bg-gradient-to-r from-yellow-500/10 via-transparent to-orange-500/10' :
                   'bg-gradient-to-t from-blue-500/10 via-transparent to-transparent'
                 }`}></div>
                 
