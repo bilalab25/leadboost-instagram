@@ -25,7 +25,7 @@ interface InteractiveDemoProps {
 }
 
 // Generate platform-specific posts from business description
-const generatePlatformPosts = (businessDescription: string): PlatformPost[] => {
+const generatePlatformPosts = (businessDescription: string, brandStyle: string = 'professional'): PlatformPost[] => {
   // Auto-detect business type and generate a campaign idea
   const businessType = detectBusinessType(businessDescription);
   const campaignIdea = generateCampaignIdea(businessDescription, businessType);
@@ -90,16 +90,17 @@ const generatePlatformPosts = (businessDescription: string): PlatformPost[] => {
 
   return platforms.map(platform => ({
     platform: platform.platform,
-    caption: generatePlatformCaption(campaignIdea, businessType, platform.tone, businessDescription),
+    caption: generatePlatformCaption(campaignIdea, businessType, platform.tone, businessDescription, brandStyle),
     dimensions: platform.dimensions,
     aspectRatio: platform.aspectRatio,
     imageUrl: getSmartVisual(businessDescription, businessType, platform.aspectRatio),
-    icon: platform.icon
+    icon: platform.icon,
+    brandStyle: brandStyle
   }));
 };
 
 // Generate platform-optimized captions
-const generatePlatformCaption = (campaignIdea: string, businessType: string, tone: string, businessDescription: string = ''): string => {
+const generatePlatformCaption = (campaignIdea: string, businessType: string, tone: string, businessDescription: string = '', brandStyle: string = 'professional'): string => {
   const desc = businessDescription.toLowerCase();
   
   // Art History Teacher - Educational and cultural
@@ -430,6 +431,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   const [platformPosts, setPlatformPosts] = useState<PlatformPost[]>([]);
   const [generatedCampaign, setGeneratedCampaign] = useState<string>('');
+  const [selectedBrandStyle, setSelectedBrandStyle] = useState<string>('professional');
 
   const handleGenerateCampaign = async () => {
     if (!demo.businessDescription.trim()) return;
@@ -439,7 +441,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
     // Simulate campaign generation
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    const posts = generatePlatformPosts(demo.businessDescription);
+    const posts = generatePlatformPosts(demo.businessDescription, selectedBrandStyle);
     const businessType = detectBusinessType(demo.businessDescription);
     const campaignIdea = generateCampaignIdea(demo.businessDescription, businessType);
     
@@ -497,6 +499,82 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 {isSpanish 
                   ? 'La IA detectará tu industria y generará una campaña perfecta automáticamente'
                   : 'AI will detect your industry and generate a perfect campaign automatically'
+                }
+              </p>
+            </div>
+
+            {/* Brand Style Selector */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                {isSpanish ? '🎨 Elige tu Estilo de Marca' : '🎨 Choose Your Brand Style'}
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  {
+                    id: 'professional',
+                    name: isSpanish ? 'Profesional' : 'Professional',
+                    desc: isSpanish ? 'Elegante y confiable' : 'Elegant & trustworthy',
+                    icon: '💼',
+                    gradient: 'from-blue-500 to-indigo-600'
+                  },
+                  {
+                    id: 'creative',
+                    name: isSpanish ? 'Creativo' : 'Creative',
+                    desc: isSpanish ? 'Artístico y vibrante' : 'Artistic & vibrant',
+                    icon: '🎨',
+                    gradient: 'from-purple-500 to-pink-600'
+                  },
+                  {
+                    id: 'playful',
+                    name: isSpanish ? 'Divertido' : 'Playful',
+                    desc: isSpanish ? 'Alegre y accesible' : 'Fun & approachable',
+                    icon: '🌈',
+                    gradient: 'from-yellow-500 to-orange-600'
+                  },
+                  {
+                    id: 'luxury',
+                    name: isSpanish ? 'Lujo' : 'Luxury',
+                    desc: isSpanish ? 'Exclusivo y premium' : 'Exclusive & premium',
+                    icon: '✨',
+                    gradient: 'from-gray-700 to-black'
+                  }
+                ].map((style) => (
+                  <button
+                    key={style.id}
+                    type="button"
+                    onClick={() => setSelectedBrandStyle(style.id)}
+                    className={`relative p-4 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
+                      selectedBrandStyle === style.id
+                        ? 'border-brand-500 bg-brand-50 shadow-lg'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                    data-testid={`brand-style-${style.id}`}
+                  >
+                    <div className="text-center">
+                      <div className={`w-12 h-12 mx-auto mb-2 rounded-lg bg-gradient-to-r ${style.gradient} flex items-center justify-center text-2xl`}>
+                        {style.icon}
+                      </div>
+                      <h3 className="font-semibold text-sm text-gray-900 mb-1">
+                        {style.name}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {style.desc}
+                      </p>
+                    </div>
+                    {selectedBrandStyle === style.id && (
+                      <div className="absolute top-2 right-2 w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                {isSpanish 
+                  ? 'Tu estilo de marca influirá en los colores, tipografías y tono de tu campaña'
+                  : 'Your brand style will influence the colors, fonts, and tone of your campaign'
                 }
               </p>
             </div>
@@ -565,8 +643,13 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   className="w-full h-full object-cover"
                 />
                 
-                {/* Subtle gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+                {/* Dynamic brand style overlay */}
+                <div className={`absolute inset-0 ${
+                  post.brandStyle === 'luxury' ? 'bg-gradient-to-t from-black/30 via-transparent to-black/10' :
+                  post.brandStyle === 'creative' ? 'bg-gradient-to-br from-purple-500/15 via-transparent to-pink-500/15' :
+                  post.brandStyle === 'playful' ? 'bg-gradient-to-r from-yellow-500/10 via-transparent to-orange-500/10' :
+                  'bg-gradient-to-t from-blue-500/10 via-transparent to-transparent'
+                }`}></div>
                 
                 {/* High-Impact Text Design */}
                 <div className="absolute inset-0 p-4 flex flex-col justify-center items-center text-center">
