@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/useLanguage";
 import Sidebar from "@/components/Sidebar";
 import MessageList from "@/components/MessageList";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Input } from "@/components/ui/input";
 export default function Inbox() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const { isSpanish } = useLanguage();
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -45,14 +47,14 @@ export default function Inbox() {
         <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
           <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
             <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-inbox-title">Unified Inbox</h1>
+              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-inbox-title">{isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}</h1>
             </div>
             
             <div className="ml-4 flex items-center md:ml-6 space-x-4">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input 
-                  placeholder="Search messages..." 
+                  placeholder={isSpanish ? "Buscar mensajes..." : "Search messages..."} 
                   className="pl-10 w-64" 
                   data-testid="input-search-messages"
                 />
@@ -79,25 +81,25 @@ export default function Inbox() {
                 <Card>
                   <CardContent className="p-4 text-center">
                     <div className="text-2xl font-bold text-gray-900" data-testid="stat-total-messages">24</div>
-                    <div className="text-sm text-gray-500">Total Messages</div>
+                    <div className="text-sm text-gray-500">{isSpanish ? 'Mensajes Totales' : 'Total Messages'}</div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 text-center">
                     <div className="text-2xl font-bold text-red-600" data-testid="stat-unread-messages">12</div>
-                    <div className="text-sm text-gray-500">Unread</div>
+                    <div className="text-sm text-gray-500">{isSpanish ? 'Sin Leer' : 'Unread'}</div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 text-center">
                     <div className="text-2xl font-bold text-yellow-600" data-testid="stat-urgent-messages">3</div>
-                    <div className="text-sm text-gray-500">Urgent</div>
+                    <div className="text-sm text-gray-500">{isSpanish ? 'Urgente' : 'Urgent'}</div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 text-center">
                     <div className="text-2xl font-bold text-green-600" data-testid="stat-avg-response">2.5h</div>
-                    <div className="text-sm text-gray-500">Avg Response</div>
+                    <div className="text-sm text-gray-500">{isSpanish ? 'Respuesta Promedio' : 'Avg Response'}</div>
                   </CardContent>
                 </Card>
               </div>
@@ -106,13 +108,13 @@ export default function Inbox() {
               <Card>
                 <CardHeader className="border-b border-gray-200">
                   <div className="flex items-center justify-between">
-                    <CardTitle>All Messages</CardTitle>
+                    <CardTitle>{isSpanish ? 'Todos los Mensajes' : 'All Messages'}</CardTitle>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" data-testid="button-mark-all-read">
-                        Mark All Read
+                        {isSpanish ? 'Marcar Todo Leído' : 'Mark All Read'}
                       </Button>
                       <Button variant="outline" size="sm" data-testid="button-export">
-                        Export
+                        {isSpanish ? 'Exportar' : 'Export'}
                       </Button>
                     </div>
                   </div>
