@@ -886,7 +886,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
         {platformPosts.map((post, index) => (
           <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-white/80 backdrop-blur-sm cursor-pointer" data-testid={`platform-card-${index}`} onClick={() => handleCardClick(post)}>
             <CardHeader className={`pb-3 relative ${getPlatformHeaderStyle(post.platform)}`}>
@@ -1003,6 +1003,121 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Instagram Feed Preview */}
+      <div className="mt-16 mb-12">
+        <div className="text-center mb-8">
+          <h4 className="text-2xl font-bold text-gray-900 mb-4">
+            {isSpanish ? '📱 Tu Feed de Instagram' : '📱 Your Instagram Feed'}
+          </h4>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            {isSpanish 
+              ? 'Así se vería tu feed con 6 posts generados por IA para tu industria específica'
+              : 'Here\'s how your feed would look with 6 AI-generated posts for your specific industry'
+            }
+          </p>
+        </div>
+
+        {/* Instagram Feed Grid */}
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-200">
+            {/* Instagram Header */}
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+              <div className="w-10 h-10 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">
+                  {demo.businessDescription.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <h5 className="font-bold text-gray-900">
+                  {demo.businessDescription.toLowerCase().replace(/\s+/g, '').substring(0, 15)}
+                </h5>
+                <p className="text-sm text-gray-500">6 posts</p>
+              </div>
+              <Instagram className="w-6 h-6 text-pink-500 ml-auto" />
+            </div>
+
+            {/* 6-Post Grid */}
+            <div className="grid grid-cols-3 gap-1">
+              {Array.from({ length: 6 }, (_, index) => (
+                <div key={index} className="aspect-square relative group cursor-pointer">
+                  <img 
+                    src={getSmartVisual(demo.businessDescription, detectBusinessType(demo.businessDescription), 'square', 'Instagram Post')}
+                    alt={`Post ${index + 1}`}
+                    className="w-full h-full object-cover rounded-lg group-hover:opacity-90 transition-opacity"
+                  />
+                  
+                  {/* Overlay text on some posts */}
+                  {(index === 1 || index === 3 || index === 5) && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-lg">
+                      <div className="absolute inset-0 p-3 flex items-center justify-center text-center">
+                        <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 border border-white/30">
+                          <p className="text-white text-xs font-bold drop-shadow-lg leading-tight">
+                            {index === 1 && (generatedCampaign.split(' ').slice(0, 3).join(' '))}
+                            {index === 3 && (isSpanish ? 'Oferta Especial' : 'Special Offer')}
+                            {index === 5 && (isSpanish ? 'Nuevo Producto' : 'New Product')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Engagement indicators */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="bg-black/50 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+                      <Heart className="w-3 h-3 text-white" />
+                      <span className="text-white text-xs">{Math.floor(Math.random() * 500) + 100}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Multi-Platform Preview */}
+          <div className="mt-8 relative">
+            <div className="bg-gradient-to-r from-brand-50 via-white to-brand-50 rounded-2xl p-6 border border-brand-200">
+              <h5 className="text-lg font-bold text-center mb-4 text-gray-900">
+                {isSpanish ? '🌟 Y esto para todas las plataformas...' : '🌟 And this for all platforms...'}
+              </h5>
+              
+              {/* Platform previews with gradient transparency */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { name: 'TikTok', icon: '🎵', color: 'from-black to-gray-800' },
+                  { name: 'Pinterest', icon: '📌', color: 'from-red-500 to-red-600' },
+                  { name: 'YouTube', icon: '▶️', color: 'from-red-600 to-red-700' },
+                  { name: 'Twitter/X', icon: '🐦', color: 'from-sky-400 to-sky-500' }
+                ].map((platform, index) => (
+                  <div key={platform.name} className="relative group">
+                    <div className={`bg-gradient-to-br ${platform.color} rounded-xl p-4 text-white text-center transition-all duration-300 group-hover:scale-105`}>
+                      <div className="text-2xl mb-2">{platform.icon}</div>
+                      <p className="text-sm font-bold">{platform.name}</p>
+                      <p className="text-xs opacity-80 mt-1">
+                        {isSpanish ? '6 posts' : '6 posts'}
+                      </p>
+                    </div>
+                    
+                    {/* Gradient overlay to show "coming soon" effect */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-white/30 to-transparent rounded-xl flex items-end justify-center pb-2">
+                      <span className="text-xs font-bold text-gray-700 bg-white/80 px-2 py-1 rounded-full">
+                        {isSpanish ? 'Disponible' : 'Available'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <p className="text-center text-sm text-gray-600 mt-4">
+                {isSpanish 
+                  ? '✨ Un solo clic genera contenido optimizado para cada plataforma'
+                  : '✨ One click generates optimized content for every platform'
+                }
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Post Everywhere CTA */}
