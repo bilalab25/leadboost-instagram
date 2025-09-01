@@ -1513,7 +1513,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               <Instagram className="w-6 h-6 text-pink-500 ml-auto" />
             </div>
 
-            {/* Authentic Instagram Grid Layout */}
+            {/* Modern Instagram Grid Layout */}
             <div className="grid grid-cols-3 gap-0.5">
               {Array.from({ length: 9 }, (_, index) => {
                 const businessType = detectBusinessType(demo.businessDescription);
@@ -1533,7 +1533,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 const comments = Math.floor(Math.random() * 50) + 5;
                 
                 return (
-                  <div key={index} className="aspect-square relative group cursor-pointer">
+                  <div key={index} className="aspect-[4/5] relative group cursor-pointer">
                     <img 
                       src={imageUrl}
                       alt={`Post ${index + 1}`}
