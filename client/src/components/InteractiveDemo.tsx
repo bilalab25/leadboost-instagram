@@ -205,14 +205,9 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   // Comprehensive business-specific visual database with contextually relevant imagery
   const getBusinessContextualImage = (): string => {
   // MEDICAL AESTHETICS & BEAUTY - Botox & Cosmetic Treatments
-  if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('aesthetic') || desc.includes('cosmetic')) {
-    // Professional woman with smooth, youthful skin - premium medical aesthetics
-    return `https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
-  }
-  
-  if (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face') || desc.includes('botox') || desc.includes('aesthetic') || desc.includes('cosmetic'))) {
-    // Elegant medical spa clinic interior - clean, modern, professional
-    return `https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('aesthetic') || desc.includes('cosmetic') || (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face') || desc.includes('med spa')))) {
+    // Modern medical spa/aesthetic clinic - clean, professional medical environment
+    return `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // SPA & WELLNESS - Facial Treatments & Skincare
@@ -221,10 +216,20 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
     return `https://images.unsplash.com/photo-1562887284-5c6e2e3bb1e4?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
-  // DENTAL
+  // MEDICAL & HEALTHCARE
   if (desc.includes('dental') || desc.includes('dentist') || desc.includes('teeth') || desc.includes('orthodontic')) {
     // Modern dental office
     return `https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  if (desc.includes('doctor') || desc.includes('medical') || desc.includes('hospital') || desc.includes('health') || desc.includes('clinic') || desc.includes('physician')) {
+    // Professional medical office
+    return `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  if (desc.includes('therapy') || desc.includes('therapist') || desc.includes('counseling') || desc.includes('psychology')) {
+    // Calming therapy office
+    return `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FOOD & RESTAURANTS
@@ -287,6 +292,21 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
     return `https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
+  // FINANCIAL SERVICES
+  if (desc.includes('finance') || desc.includes('financial') || desc.includes('bank') || desc.includes('investment') || desc.includes('accounting')) {
+    return `https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // REAL ESTATE
+  if (desc.includes('real estate') || desc.includes('realtor') || desc.includes('property') || desc.includes('homes')) {
+    return `https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
+  // TECHNOLOGY & SOFTWARE
+  if (desc.includes('software') || desc.includes('tech') || desc.includes('app') || desc.includes('digital') || desc.includes('web')) {
+    return `https://images.unsplash.com/photo-1551434678-e076c223a692?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+  }
+  
   // DEFAULT PROFESSIONAL
   return `https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
 };
@@ -304,7 +324,7 @@ const detectBusinessType = (description: string): string => {
   if (desc.includes('gym') || desc.includes('fitness') || desc.includes('workout') || desc.includes('yoga') || desc.includes('training')) {
     return 'fitness';
   }
-  if (desc.includes('beauty') || desc.includes('spa') || desc.includes('salon') || desc.includes('skincare') || desc.includes('cosmetic') || desc.includes('botox') || desc.includes('aesthetic') || desc.includes('dermal') || desc.includes('med spa')) {
+  if (desc.includes('beauty') || desc.includes('spa') || desc.includes('salon') || desc.includes('skincare') || desc.includes('cosmetic') || desc.includes('botox') || desc.includes('aesthetic') || desc.includes('dermal') || desc.includes('med spa') || (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face') || desc.includes('botox') || desc.includes('aesthetic')))) {
     return 'beauty';
   }
   if (desc.includes('retail') || desc.includes('store') || desc.includes('shop') || desc.includes('boutique') || desc.includes('clothing')) {
