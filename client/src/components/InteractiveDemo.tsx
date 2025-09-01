@@ -480,6 +480,178 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   return getBusinessContextualImage();
 };
 
+// Generate varied images for Instagram feed posts - same industry, different angles/products
+const getIndustryVariedImage = (businessDescription: string, businessType: string, postIndex: number): string => {
+  const desc = businessDescription.toLowerCase();
+  const dimensions = { width: 400, height: 400 }; // Square format for Instagram
+  
+  // Coffee Shop - 6 different coffee-related images
+  if (desc.includes('coffee shop') || desc.includes('coffee') || desc.includes('cafe')) {
+    const coffeeImages = [
+      `https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Coffee shop interior
+      `https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Coffee cup with latte art
+      `https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Espresso machine
+      `https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Barista at work
+      `https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Coffee beans
+      `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Coffee and pastries
+    ];
+    return coffeeImages[postIndex % coffeeImages.length];
+  }
+  
+  // Bakery/Pastry - 6 different pastry/cake images
+  if (desc.includes('bakery') || desc.includes('pastry') || desc.includes('pastelería') || desc.includes('pasteles')) {
+    const bakeryImages = [
+      `https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Beautiful pastries
+      `https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Fresh bread
+      `https://images.unsplash.com/photo-1587668178277-295251f900ce?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Cupcakes
+      `https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding cake
+      `https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Croissants
+      `https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Bakery display
+    ];
+    return bakeryImages[postIndex % bakeryImages.length];
+  }
+  
+  // Jewelry Store - 6 different jewelry images
+  if (desc.includes('jewelry') || desc.includes('joyería') || desc.includes('joyas')) {
+    const jewelryImages = [
+      `https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Jewelry display
+      `https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Diamond rings
+      `https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Gold necklaces
+      `https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Luxury watch
+      `https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Earrings
+      `https://images.unsplash.com/photo-1596944924616-7b38e7cfac36?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Bracelets
+    ];
+    return jewelryImages[postIndex % jewelryImages.length];
+  }
+  
+  // Beauty Salon/Botox Clinic - 6 different beauty images
+  if (desc.includes('beauty') || desc.includes('salon') || desc.includes('botox') || desc.includes('aesthetic')) {
+    const beautyImages = [
+      `https://images.unsplash.com/photo-1560066984-138dadb4c035?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Beauty salon
+      `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Medical clinic
+      `https://images.unsplash.com/photo-1562887284-5c6e2e3bb1e4?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Spa treatment
+      `https://images.unsplash.com/photo-1604654894610-df63bc536371?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Nail care
+      `https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Skincare products
+      `https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Beauty treatment
+    ];
+    return beautyImages[postIndex % beautyImages.length];
+  }
+  
+  // Gym/Fitness - 6 different fitness images
+  if (desc.includes('gym') || desc.includes('fitness') || desc.includes('workout')) {
+    const fitnessImages = [
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Gym equipment
+      `https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Person working out
+      `https://images.unsplash.com/photo-1583500178690-f7fd39fae5b5?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Dumbbells
+      `https://images.unsplash.com/photo-1518611012118-696072aa579a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Yoga class
+      `https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Treadmill
+      `https://images.unsplash.com/photo-1506629905607-84d5bbfc4ed8?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Group fitness
+    ];
+    return fitnessImages[postIndex % fitnessImages.length];
+  }
+  
+  // Restaurant - 6 different food images
+  if (desc.includes('restaurant') || desc.includes('food') || desc.includes('dining')) {
+    const restaurantImages = [
+      `https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Restaurant interior
+      `https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Gourmet dish
+      `https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Italian pasta
+      `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Pizza
+      `https://images.unsplash.com/photo-1547573854-74d2a71d0826?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Chef cooking
+      `https://images.unsplash.com/photo-1551218808-94e220e084d2?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Wine and dining
+    ];
+    return restaurantImages[postIndex % restaurantImages.length];
+  }
+  
+  // Default: Use the main image function with slight variation
+  return getSmartVisual(businessDescription, businessType, 'square', 'Instagram Post');
+};
+
+// Generate relevant overlay text for each post
+const getPostOverlayText = (businessDescription: string, businessType: string, postIndex: number, generatedCampaign: string, isSpanish: boolean): string | null => {
+  const desc = businessDescription.toLowerCase();
+  
+  // Show text on posts 0, 1, 3, 4, 5 (5 out of 6 posts)
+  const showTextOnPost = [0, 1, 3, 4, 5].includes(postIndex);
+  if (!showTextOnPost) return null;
+  
+  if (desc.includes('coffee shop') || desc.includes('coffee') || desc.includes('cafe')) {
+    const coffeeTexts = [
+      generatedCampaign.split(' ').slice(0, 3).join(' '),
+      isSpanish ? 'Café Fresco Diario' : 'Fresh Daily Coffee',
+      isSpanish ? 'Oferta Especial' : 'Special Offer',
+      isSpanish ? 'Arte en Latte' : 'Latte Art',
+      isSpanish ? 'Granos Premium' : 'Premium Beans'
+    ];
+    return coffeeTexts[postIndex] || coffeeTexts[0];
+  }
+  
+  if (desc.includes('bakery') || desc.includes('pastry') || desc.includes('pastelería')) {
+    const bakeryTexts = [
+      generatedCampaign.split(' ').slice(0, 3).join(' '),
+      isSpanish ? 'Recién Horneado' : 'Freshly Baked',
+      isSpanish ? 'Pasteles Únicos' : 'Unique Cakes',
+      isSpanish ? 'Dulces Artesanales' : 'Artisan Sweets',
+      isSpanish ? 'Orden Personalizada' : 'Custom Orders'
+    ];
+    return bakeryTexts[postIndex] || bakeryTexts[0];
+  }
+  
+  if (desc.includes('jewelry') || desc.includes('joyería')) {
+    const jewelryTexts = [
+      generatedCampaign.split(' ').slice(0, 3).join(' '),
+      isSpanish ? 'Diamantes Únicos' : 'Unique Diamonds',
+      isSpanish ? 'Joyería Exclusiva' : 'Exclusive Jewelry',
+      isSpanish ? 'Diseño Personalizado' : 'Custom Design',
+      isSpanish ? 'Lujo Auténtico' : 'Authentic Luxury'
+    ];
+    return jewelryTexts[postIndex] || jewelryTexts[0];
+  }
+  
+  if (desc.includes('beauty') || desc.includes('salon') || desc.includes('botox')) {
+    const beautyTexts = [
+      generatedCampaign.split(' ').slice(0, 3).join(' '),
+      isSpanish ? 'Belleza Natural' : 'Natural Beauty',
+      isSpanish ? 'Tratamiento Premium' : 'Premium Treatment',
+      isSpanish ? 'Resultados Visibles' : 'Visible Results',
+      isSpanish ? 'Cuidado Profesional' : 'Professional Care'
+    ];
+    return beautyTexts[postIndex] || beautyTexts[0];
+  }
+  
+  if (desc.includes('gym') || desc.includes('fitness')) {
+    const fitnessTexts = [
+      generatedCampaign.split(' ').slice(0, 3).join(' '),
+      isSpanish ? 'Entrena Fuerte' : 'Train Hard',
+      isSpanish ? 'Nuevo Miembro' : 'New Member',
+      isSpanish ? 'Rutina Personalizada' : 'Custom Routine',
+      isSpanish ? 'Resultados Reales' : 'Real Results'
+    ];
+    return fitnessTexts[postIndex] || fitnessTexts[0];
+  }
+  
+  if (desc.includes('restaurant') || desc.includes('food')) {
+    const restaurantTexts = [
+      generatedCampaign.split(' ').slice(0, 3).join(' '),
+      isSpanish ? 'Plato del Día' : 'Dish of the Day',
+      isSpanish ? 'Sabores Únicos' : 'Unique Flavors',
+      isSpanish ? 'Chef Especial' : 'Chef Special',
+      isSpanish ? 'Mesa Reservada' : 'Table Reserved'
+    ];
+    return restaurantTexts[postIndex] || restaurantTexts[0];
+  }
+  
+  // Default business text overlays
+  const defaultTexts = [
+    generatedCampaign.split(' ').slice(0, 3).join(' '),
+    isSpanish ? 'Oferta Especial' : 'Special Offer',
+    isSpanish ? 'Nuevo Producto' : 'New Product',
+    isSpanish ? 'Calidad Premium' : 'Premium Quality',
+    isSpanish ? 'Servicio Profesional' : 'Professional Service'
+  ];
+  return defaultTexts[postIndex] || defaultTexts[0];
+};
+
 // Detect business type from description
 const detectBusinessType = (description: string): string => {
   const desc = description.toLowerCase();
@@ -1040,38 +1212,42 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
             {/* 6-Post Grid */}
             <div className="grid grid-cols-3 gap-1">
-              {Array.from({ length: 6 }, (_, index) => (
-                <div key={index} className="aspect-square relative group cursor-pointer">
-                  <img 
-                    src={getSmartVisual(demo.businessDescription, detectBusinessType(demo.businessDescription), 'square', 'Instagram Post')}
-                    alt={`Post ${index + 1}`}
-                    className="w-full h-full object-cover rounded-lg group-hover:opacity-90 transition-opacity"
-                  />
-                  
-                  {/* Overlay text on some posts */}
-                  {(index === 1 || index === 3 || index === 5) && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-lg">
-                      <div className="absolute inset-0 p-3 flex items-center justify-center text-center">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 border border-white/30">
-                          <p className="text-white text-xs font-bold drop-shadow-lg leading-tight">
-                            {index === 1 && (generatedCampaign.split(' ').slice(0, 3).join(' '))}
-                            {index === 3 && (isSpanish ? 'Oferta Especial' : 'Special Offer')}
-                            {index === 5 && (isSpanish ? 'Nuevo Producto' : 'New Product')}
-                          </p>
+              {Array.from({ length: 6 }, (_, index) => {
+                const businessType = detectBusinessType(demo.businessDescription);
+                const imageUrl = getIndustryVariedImage(demo.businessDescription, businessType, index);
+                const overlayText = getPostOverlayText(demo.businessDescription, businessType, index, generatedCampaign, isSpanish);
+                
+                return (
+                  <div key={index} className="aspect-square relative group cursor-pointer">
+                    <img 
+                      src={imageUrl}
+                      alt={`Post ${index + 1}`}
+                      className="w-full h-full object-cover rounded-lg group-hover:opacity-90 transition-opacity"
+                    />
+                    
+                    {/* Overlay text on most posts */}
+                    {overlayText && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent rounded-lg">
+                        <div className="absolute inset-0 p-3 flex items-center justify-center text-center">
+                          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 border border-white/30">
+                            <p className="text-white text-xs font-bold drop-shadow-lg leading-tight">
+                              {overlayText}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  {/* Engagement indicators */}
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="bg-black/50 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-                      <Heart className="w-3 h-3 text-white" />
-                      <span className="text-white text-xs">{Math.floor(Math.random() * 500) + 100}</span>
+                    )}
+                    
+                    {/* Engagement indicators */}
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-black/50 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+                        <Heart className="w-3 h-3 text-white" />
+                        <span className="text-white text-xs">{Math.floor(Math.random() * 500) + 100}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
