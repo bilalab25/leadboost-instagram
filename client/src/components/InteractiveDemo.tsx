@@ -565,18 +565,15 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   className="w-full h-full object-cover"
                 />
                 
-                {/* Premium gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/60"></div>
-                
-                {/* Animated glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-pink-500/20 animate-pulse"></div>
+                {/* Subtle gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
                 
                 {/* High-Impact Text Design */}
                 <div className="absolute inset-0 p-4 flex flex-col justify-center items-center text-center">
                   {post.platform.includes('Story') ? (
                     // Story format - bold vertical design
                     <div className="space-y-3">
-                      <div className="bg-white/20 backdrop-blur-md rounded-2xl p-4 border border-white/30">
+                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
                         <h3 className="text-xl font-black text-white leading-tight drop-shadow-2xl tracking-tight">
                           {generatedCampaign.split(' ').slice(0, 3).join(' ')}
                         </h3>
@@ -589,7 +586,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   ) : post.platform.includes('Email') ? (
                     // Email banner - sleek horizontal design
                     <div className="w-full">
-                      <div className="bg-gradient-to-r from-blue-600/90 to-purple-600/90 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                      <div className="bg-gradient-to-r from-blue-600/70 to-purple-600/70 backdrop-blur-sm rounded-lg p-2 border border-white/20">
                         <h3 className="text-lg font-black text-white drop-shadow-2xl">
                           {generatedCampaign}
                         </h3>
@@ -598,7 +595,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   ) : (
                     // Standard posts - premium card design
                     <div className="space-y-2 max-w-full">
-                      <div className="bg-white/15 backdrop-blur-lg rounded-2xl p-4 border border-white/30 shadow-2xl">
+                      <div className="bg-white/8 backdrop-blur-sm rounded-xl p-3 border border-white/20 shadow-lg">
                         <h3 className="text-lg font-black text-white leading-tight drop-shadow-2xl mb-2">
                           {generatedCampaign.split(' ').slice(0, 4).join(' ')}
                         </h3>
