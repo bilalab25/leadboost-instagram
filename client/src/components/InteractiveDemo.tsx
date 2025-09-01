@@ -514,8 +514,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               />
               <p className="text-sm text-gray-500 mt-2">
                 {isSpanish 
-                  ? 'La IA detectará tu industria y generará una campaña perfecta automáticamente'
-                  : 'AI will detect your industry and generate a perfect campaign automatically'
+                  ? 'La IA detectará tu industria y generará una campaña de demostración automáticamente'
+                  : 'AI will detect your industry and generate a demo campaign automatically'
                 }
               </p>
             </div>
