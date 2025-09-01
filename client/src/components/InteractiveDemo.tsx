@@ -601,32 +601,36 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </p>
             </div>
 
-            <Button 
-              onClick={handleGenerateCampaign}
-              disabled={demo.isGenerating || !demo.businessDescription.trim()}
-              className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-green-700 text-white font-bold px-8 py-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-emerald-400/30 w-full h-14 text-lg"
-              data-testid="button-generate-campaign"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
-              <div className="absolute inset-0 rounded-full">
-                <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full animate-ping opacity-75"></div>
-                <div className="absolute top-3 left-3 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
-                <div className="absolute bottom-2 right-4 w-0.5 h-0.5 bg-emerald-200 rounded-full animate-ping" style={{animationDelay: '500ms'}}></div>
-              </div>
-              <span className="relative z-10 flex items-center justify-center">
-                {demo.isGenerating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    {isSpanish ? 'IA creando tu campaña...' : 'AI creating your campaign...'}
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
-                    {isSpanish ? 'Generar Campaña con IA' : 'Generate AI Campaign'}
-                  </>
-                )}
-              </span>
-            </Button>
+            <div className="relative">
+              {/* Glowing effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full blur-lg opacity-60 animate-pulse"></div>
+              <Button 
+                onClick={handleGenerateCampaign}
+                disabled={demo.isGenerating || !demo.businessDescription.trim()}
+                className="relative overflow-hidden bg-gradient-to-r from-brand-500 via-brand-600 to-brand-700 hover:from-brand-600 hover:via-brand-700 hover:to-brand-800 text-white font-bold px-8 py-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-brand-400/30 w-full h-14 text-lg"
+                data-testid="button-generate-campaign"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-400 via-brand-500 to-brand-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
+                <div className="absolute inset-0 rounded-full">
+                  <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full animate-ping opacity-75"></div>
+                  <div className="absolute top-3 left-3 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
+                  <div className="absolute bottom-2 right-4 w-0.5 h-0.5 bg-brand-200 rounded-full animate-ping" style={{animationDelay: '500ms'}}></div>
+                </div>
+                <span className="relative z-10 flex items-center justify-center">
+                  {demo.isGenerating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      {isSpanish ? 'IA creando tu campaña...' : 'AI creating your campaign...'}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5 animate-spin" />
+                      {isSpanish ? 'Generar Campaña con IA' : 'Generate AI Campaign'}
+                    </>
+                  )}
+                </span>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
