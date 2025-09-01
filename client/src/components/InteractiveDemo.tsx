@@ -1010,8 +1010,93 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                       </div>
                     )}
 
-                    {/* Default mockup for other platforms */}
-                    {!['Instagram Story', 'Instagram Post', 'LinkedIn Post', 'Email Banner'].includes(selectedPost.platform) && (
+                    {/* TikTok Cover Mockup */}
+                    {selectedPost.platform === 'TikTok Cover' && (
+                      <div className="w-[280px] h-[497px] bg-black rounded-[12px] overflow-hidden shadow-2xl">
+                        <div className="w-full h-full relative">
+                          <img 
+                            src={selectedPost.imageUrl} 
+                            alt={selectedPost.platform}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* TikTok UI overlay */}
+                          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">YB</span>
+                              </div>
+                              <span className="text-white text-sm font-semibold drop-shadow-lg">@yourbusiness</span>
+                            </div>
+                            <div className="text-white text-sm drop-shadow-lg">•••</div>
+                          </div>
+                          
+                          {/* Campaign text overlay - same style as Stories */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+                          <div className="absolute inset-0 p-4 flex flex-col justify-center items-center text-center">
+                            <div className="space-y-3">
+                              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                                <h3 className="text-xl font-black text-white leading-tight drop-shadow-2xl tracking-tight">
+                                  {generatedCampaign.split(' ').slice(0, 3).join(' ')}
+                                </h3>
+                                <div className="w-12 h-1 bg-gradient-to-r from-red-400 to-pink-500 mx-auto mt-2 rounded-full"></div>
+                                <p className="text-sm font-bold text-white/90 drop-shadow-xl mt-2">
+                                  {generatedCampaign.split(' ').slice(3).join(' ')}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Twitter/X Post Mockup */}
+                    {selectedPost.platform === 'Twitter/X Post' && (
+                      <div className="w-[500px] bg-white border border-gray-200 rounded-xl shadow-xl">
+                        <div className="p-4 flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold">YB</span>
+                          </div>
+                          <div>
+                            <p className="font-semibold">Your Business</p>
+                            <p className="text-sm text-gray-500">@yourbusiness • Promoted</p>
+                          </div>
+                        </div>
+                        <div className="px-4 pb-3">
+                          <p className="text-sm mb-3">{selectedPost.caption}</p>
+                        </div>
+                        <img 
+                          src={selectedPost.imageUrl} 
+                          alt={selectedPost.platform}
+                          className="w-full aspect-[16/9] object-cover"
+                        />
+                      </div>
+                    )}
+
+                    {/* Facebook Post Mockup */}
+                    {selectedPost.platform === 'Facebook Post' && (
+                      <div className="w-[500px] bg-white border border-gray-200 rounded-lg shadow-xl">
+                        <div className="p-4 flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold">YB</span>
+                          </div>
+                          <div>
+                            <p className="font-semibold">Your Business</p>
+                            <p className="text-sm text-gray-500">Sponsored</p>
+                          </div>
+                        </div>
+                        <div className="px-4 pb-3">
+                          <p className="text-sm mb-3">{selectedPost.caption}</p>
+                        </div>
+                        <img 
+                          src={selectedPost.imageUrl} 
+                          alt={selectedPost.platform}
+                          className="w-full aspect-[1200/628] object-cover"
+                        />
+                      </div>
+                    )}
+
+                    {/* Default mockup for remaining platforms */}
+                    {!['Instagram Story', 'Instagram Post', 'LinkedIn Post', 'Email Banner', 'TikTok Cover', 'Twitter/X Post', 'Facebook Post'].includes(selectedPost.platform) && (
                       <div className="max-w-md bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
                         <img 
                           src={selectedPost.imageUrl} 
