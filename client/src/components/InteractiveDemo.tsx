@@ -1364,9 +1364,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 
                 // Use uploaded photos if available, otherwise use generated images
                 let imageUrl: string;
-                if (demo.uploadedImages.length > 0) {
-                  // Cycle through uploaded images
-                  const uploadedImage = demo.uploadedImages[index % demo.uploadedImages.length];
+                if (demo.uploadedImages.length > 0 && index < demo.uploadedImages.length) {
+                  // Use each uploaded image only once
+                  const uploadedImage = demo.uploadedImages[index];
                   imageUrl = URL.createObjectURL(uploadedImage);
                 } else {
                   // Use generated industry-specific images
@@ -1434,9 +1434,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 
                 // Use uploaded photos if available, otherwise use generated images
                 let imageUrl: string;
-                if (demo.uploadedImages.length > 0) {
-                  // Cycle through uploaded images
-                  const uploadedImage = demo.uploadedImages[index % demo.uploadedImages.length];
+                if (demo.uploadedImages.length > 0 && index < demo.uploadedImages.length) {
+                  // Use each uploaded image only once
+                  const uploadedImage = demo.uploadedImages[index];
                   imageUrl = URL.createObjectURL(uploadedImage);
                 } else {
                   // Use generated industry-specific images
