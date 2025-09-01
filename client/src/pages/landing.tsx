@@ -598,7 +598,7 @@ export default function Landing() {
                 />
               </div>
               <p className="text-gray-400 mb-6">
-                {isSpanish ? 'Donde el marketing empieza a funcionar.' : 'Where marketing starts working.'}
+                {isSpanish ? 'LeadBoost, donde el marketing empieza a funcionar.' : 'LeadBoost, where marketing starts working.'}
               </p>
               <div className="flex justify-center space-x-6">
                 <Button variant="ghost" className="text-gray-400 hover:text-white">
