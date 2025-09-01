@@ -92,7 +92,7 @@ export default function Sidebar() {
               src={leadBoostLogo} 
               alt="CampAIgner Logo" 
               className="h-12 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-              style={{width: '768px'}}
+              style={{width: '3072px'}}
             />
           </Link>
         </div>
