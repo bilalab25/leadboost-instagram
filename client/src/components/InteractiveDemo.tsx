@@ -501,15 +501,16 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
     return sourdoughImages[postIndex % sourdoughImages.length];
   }
   
-  // Dermatology & Medical Aesthetics (Botox/Filler)
-  if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('dermatology') || (desc.includes('med') && desc.includes('spa'))) {
+  // Dermatology & Medical Aesthetics (Botox/Filler/Clinic)
+  if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('dermatology') || desc.includes('aesthetic clinic') || desc.includes('med spa') || desc.includes('cosmetic') || desc.includes('injection')) {
+    console.log('🎯 BOTOX CLINIC MATCH FOUND!', desc); // Debug log
     const medAestheticsImages = [
-      `https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Clean medical spa
-      `https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Medical professional
-      `https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Skincare consultation
-      `https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Before/after results
-      `https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Medical equipment
-      `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Medical clinic interior
+      `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Clean medical spa interior
+      `https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional skincare consultation
+      `https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Skincare products and serums
+      `https://images.unsplash.com/photo-1560066984-138dadb4c035?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional beauty salon
+      `https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Medical aesthetic treatment
+      `https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`  // Professional facial treatment
     ];
     return medAestheticsImages[postIndex % medAestheticsImages.length];
   }
@@ -645,6 +646,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
   }
   
   // Default: Use the main image function with slight variation
+  console.log('⚠️ NO SPECIFIC MATCH FOUND, using fallback for:', desc);
   return getSmartVisual(businessDescription, businessType, 'square', 'Instagram Post');
 };
 
