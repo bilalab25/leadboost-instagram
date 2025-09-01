@@ -150,11 +150,7 @@ export default function Landing() {
                         <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center">
                           <SiX className="h-6 w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                          +21
-                        </div>
                       </div>
-                      <div className="text-6xl font-black text-brand-600 mb-2">+21</div>
                       <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? '21+ plataformas, un clic' : '21+ platforms, one click'}</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Diseñado para ti, dimensionado para cada red social' : 'Designed for you, sized for every social network'}</p>
