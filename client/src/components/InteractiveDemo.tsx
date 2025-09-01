@@ -1571,6 +1571,26 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                       </div>
                     )}
 
+                    {/* Embedded text overlay (inside post content) */}
+                    {index % 3 === 1 && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-white/95 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-gray-200 max-w-[80%]">
+                          <p className="text-gray-900 text-lg font-bold text-center leading-tight">
+                            {index === 1 ? (isSpanish ? "🔥 ¡NUEVO!" : "🔥 NEW!") :
+                             index === 4 ? (isSpanish ? "✨ GRATIS" : "✨ FREE") :
+                             index === 7 ? (isSpanish ? "💯 GARANTÍA" : "💯 GUARANTEE") :
+                             isSpanish ? "🎯 ESPECIAL" : "🎯 SPECIAL"}
+                          </p>
+                          <p className="text-gray-700 text-sm mt-1 text-center">
+                            {index === 1 ? (isSpanish ? "Disponible ya" : "Available now") :
+                             index === 4 ? (isSpanish ? "Solo hoy" : "Today only") :
+                             index === 7 ? (isSpanish ? "100% seguro" : "100% secure") :
+                             isSpanish ? "No te pierdas" : "Don't miss out"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Multiple photo indicator (Instagram carousel) */}
                     {index % 4 === 1 && (
                       <div className="absolute top-2 right-2">
@@ -1679,6 +1699,26 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                         </p>
                       </div>
                     </div>
+
+                    {/* Embedded TikTok text overlay (inside video content) */}
+                    {index % 2 === 1 && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl px-4 py-3 shadow-xl border-2 border-white/30 max-w-[85%] transform rotate-[-2deg]">
+                          <p className="text-white text-base font-black text-center leading-tight">
+                            {index === 1 ? (isSpanish ? "🚀 VIRAL" : "🚀 VIRAL") :
+                             index === 3 ? (isSpanish ? "💥 BOOM" : "💥 BOOM") :
+                             index === 5 ? (isSpanish ? "🔥 FIRE" : "🔥 FIRE") :
+                             isSpanish ? "✨ WOW" : "✨ WOW"}
+                          </p>
+                          <p className="text-white/90 text-xs mt-1 text-center font-bold">
+                            {index === 1 ? (isSpanish ? "No te lo pierdas" : "Don't miss this") :
+                             index === 3 ? (isSpanish ? "Increíble resultado" : "Amazing result") :
+                             index === 5 ? (isSpanish ? "Súper trending" : "Super trending") :
+                             isSpanish ? "Mira esto" : "Check this out"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     
                     {/* View count */}
                     <div className="absolute bottom-2 right-2">
