@@ -73,6 +73,21 @@ export default function Landing() {
                     
                     <DropdownMenuItem 
                       className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => window.location.href = '/ai-planner'}
+                    >
+                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <Calendar className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Planificador 30 Días' : '30 Day Planner'}</div>
+                        <div className="text-sm text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Creación de contenido IA y estrategia para todo el mes automáticamente' : 'AI content creation and strategy for the entire month automatically'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem 
+                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
                       onClick={() => window.location.href = '/brand-studio'}
                     >
                       <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
@@ -112,21 +127,6 @@ export default function Landing() {
                         <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Panel Analítico' : 'Analytics Dashboard'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
                           {isSpanish ? 'Métricas avanzadas y reportes de rendimiento en tiempo real' : 'Advanced metrics and real-time performance reports'}
-                        </div>
-                      </div>
-                    </DropdownMenuItem>
-                    
-                    <DropdownMenuItem 
-                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
-                      onClick={() => window.location.href = '/ai-planner'}
-                    >
-                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                        <Calendar className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Planificador Mensual' : 'Monthly Planner'}</div>
-                        <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Creación de contenido IA y estrategia para todo el mes automáticamente' : 'AI content creation and strategy for the entire month automatically'}
                         </div>
                       </div>
                     </DropdownMenuItem>
