@@ -513,25 +513,25 @@ export default function Landing() {
                 </ul>
               </Card>
 
-              {/* Global Support */}
+              {/* Global Team Management */}
               <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-rose-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
                 <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
                 <div className="flex items-center mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl flex items-center justify-center mr-4 shadow-xl group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
-                    <Globe className="h-8 w-8 text-white" />
+                    <Users className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">
-                    {isSpanish ? 'Global Support' : 'Global Support'}
+                    {isSpanish ? 'Global Team Management' : 'Global Team Management'}
                   </h3>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  {isSpanish ? 'Soporte completo en español e inglés con contenido adaptado a cada mercado' : 'Complete support in Spanish and English with content adapted to each market'}
+                  {isSpanish ? 'Coordina equipos globales con asignación de tareas, seguimiento de progreso y colaboración en tiempo real' : 'Coordinate global teams with task assignment, progress tracking, and real-time collaboration'}
                 </p>
                 <ul className="text-sm text-gray-500 space-y-2">
-                  <li>• {isSpanish ? 'Soporte 24/7 multiidioma' : '24/7 multilingual support'}</li>
-                  <li>• {isSpanish ? 'Localización de contenido' : 'Content localization'}</li>
-                  <li>• {isSpanish ? 'Mercados regionales' : 'Regional markets'}</li>
+                  <li>• {isSpanish ? 'Asignación y seguimiento de tareas' : 'Task assignment and tracking'}</li>
+                  <li>• {isSpanish ? 'Colaboración en tiempo real' : 'Real-time collaboration'}</li>
+                  <li>• {isSpanish ? 'Gestión de equipos distribuidos' : 'Distributed team management'}</li>
                 </ul>
               </Card>
 
