@@ -123,7 +123,7 @@ export default function Landing() {
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Equipos' : 'Teams'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Administra permisos, roles, colaboradores y asigna tareas a tu agencia' : 'Manage permissions, roles, collaborators and assign tasks to your agency'}
+                          {isSpanish ? 'Administra permisos, roles, colaboradores y asigna tareas a tu negocio' : 'Manage permissions, roles, collaborators and assign tasks to your business'}
                         </div>
                       </div>
                     </DropdownMenuItem>
