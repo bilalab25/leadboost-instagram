@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, platformOptionsSpanish } from "@/lib/translations";
 import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -233,8 +234,10 @@ export default function Campaigns() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50">
+      <TopHeader />
+      <div className="flex h-screen overflow-hidden bg-gray-50">
+        <Sidebar />
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
@@ -765,6 +768,7 @@ export default function Campaigns() {
             </div>
           </div>
         </main>
+      </div>
       </div>
     </div>
   );

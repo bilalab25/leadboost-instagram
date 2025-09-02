@@ -5,6 +5,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import StatsCard from "@/components/StatsCard";
 import MessageList from "@/components/MessageList";
 import ContentCalendar from "@/components/ContentCalendar";
@@ -107,8 +108,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50">
+      <TopHeader />
+      <div className="flex h-screen overflow-hidden bg-gray-50">
+        <Sidebar />
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
@@ -388,6 +391,7 @@ export default function Dashboard() {
             </div>
           </div>
         </main>
+      </div>
       </div>
     </div>
   );

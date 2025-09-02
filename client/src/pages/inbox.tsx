@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import MessageList from "@/components/MessageList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,8 +39,10 @@ export default function Inbox() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50">
+      <TopHeader />
+      <div className="flex h-screen overflow-hidden bg-gray-50">
+        <Sidebar />
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
@@ -127,6 +130,7 @@ export default function Inbox() {
             </div>
           </div>
         </main>
+      </div>
       </div>
     </div>
   );
