@@ -106,12 +106,12 @@ export default function Landing() {
                       onClick={() => window.location.href = '/customers'}
                     >
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                        <Users className="h-5 w-5 text-white" />
+                        <MessageSquare className="h-5 w-5 text-white" />
                       </div>
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'CRM Inteligente' : 'Smart CRM'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Perfiles automáticos de clientes con historial de compras, archivos digitales adjuntos e inbox unificado' : 'Automatic customer profiles with purchase history, digital file attachments and unified inbox'}
+                          {isSpanish ? 'Inbox unificado con perfiles automáticos de clientes, historial de compras y archivos digitales adjuntos' : 'Unified inbox with automatic customer profiles, purchase history and digital file attachments'}
                         </div>
                       </div>
                     </DropdownMenuItem>
