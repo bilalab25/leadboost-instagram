@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar as CalendarIcon, Plus, Eye, Edit, Trash2, Clock, Instagram, CheckCircle } from "lucide-react";
@@ -143,23 +144,7 @@ export default function ContentCalendar() {
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        {/* Header */}
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
-          <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
-            <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-calendar-title">
-                Content Calendar
-              </h1>
-            </div>
-            
-            <div className="ml-4 flex items-center md:ml-6">
-              <Button className="bg-brand-600 hover:bg-brand-700" data-testid="button-add-content">
-                <Plus className="mr-2 h-4 w-4" />
-                Schedule Content
-              </Button>
-            </div>
-          </div>
-        </div>
+        <TopHeader pageName="Content Calendar" />
 
         {/* Calendar Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">

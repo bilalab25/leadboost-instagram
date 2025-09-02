@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import { CustomerHealthScore } from "@/components/CustomerHealthScore";
 import { GoalTracking } from "@/components/GoalTracking";
 import { Button } from "@/components/ui/button";
@@ -116,37 +117,7 @@ export default function Analytics() {
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        {/* Top Header */}
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
-          <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
-            <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-analytics-title">Analytics</h1>
-            </div>
-            
-            <div className="ml-4 flex items-center md:ml-6 space-x-4">
-              <Select defaultValue="30d">
-                <SelectTrigger className="w-40" data-testid="select-time-range">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeRanges.map((range) => (
-                    <SelectItem key={range.value} value={range.value}>
-                      {range.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Button variant="outline" size="icon" data-testid="button-export">
-                <Download className="h-4 w-4" />
-              </Button>
-              
-              <Button variant="ghost" size="icon" data-testid="button-notifications">
-                <Bell className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
+        <TopHeader pageName="Analytics" />
 
         {/* Analytics Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">

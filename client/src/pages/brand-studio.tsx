@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -121,8 +122,11 @@ export default function BrandStudio() {
     return (
       <div className="flex h-screen overflow-hidden bg-gray-50">
         <Sidebar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+        <div className="flex flex-col w-0 flex-1 overflow-hidden">
+          <TopHeader pageName={isSpanish ? "Estudio de Marca" : "Brand Studio"} />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+          </div>
         </div>
       </div>
     );
@@ -133,37 +137,7 @@ export default function BrandStudio() {
       <Sidebar />
       
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        {/* Header */}
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
-          <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
-            <div className="flex-1 flex items-center">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mr-3">
-                  <Palette className="h-5 w-5 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {isSpanish ? "Estudio de Marca" : "Brand Studio"}
-                </h1>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button 
-                onClick={() => activateDesignStudioMutation.mutate()}
-                disabled={activateDesignStudioMutation.isPending || brandDesign?.isDesignStudioEnabled}
-                className="bg-gradient-to-r from-brand-500 to-brand-600 text-white"
-                data-testid="button-activate-studio"
-              >
-                <Brush className="mr-2 h-4 w-4" />
-                {brandDesign?.isDesignStudioEnabled 
-                  ? (isSpanish ? "Design Studio Activo" : "Design Studio Active")
-                  : (isSpanish ? "Activar Design Studio" : "Activate Design Studio")
-                }
-                {brandDesign?.isDesignStudioEnabled && <Check className="ml-2 h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <TopHeader pageName={isSpanish ? "Estudio de Marca" : "Brand Studio"} />
 
         {/* Main Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">

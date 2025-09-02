@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -183,7 +185,14 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="p-6 space-y-6" data-testid="page-team">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      <Sidebar />
+      
+      <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <TopHeader pageName="Team Management" />
+        
+        <main className="flex-1 relative overflow-y-auto focus:outline-none">
+          <div className="p-6 space-y-6" data-testid="page-team">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -477,6 +486,9 @@ export default function TeamPage() {
           </form>
         </DialogContent>
       </Dialog>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

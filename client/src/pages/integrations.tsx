@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
+import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -235,7 +237,14 @@ export default function Integrations() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6" data-testid="integrations-page">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      <Sidebar />
+      
+      <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <TopHeader pageName="POS Integrations" />
+        
+        <main className="flex-1 relative overflow-y-auto focus:outline-none">
+          <div className="container mx-auto py-6 space-y-6" data-testid="integrations-page">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight" data-testid="page-title">POS Integrations</h1>
@@ -546,6 +555,9 @@ export default function Integrations() {
             )}
           </CardContent>
         </Card>
+      </div>
+          </div>
+        </main>
       </div>
     </div>
   );
