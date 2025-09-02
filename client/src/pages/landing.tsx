@@ -64,9 +64,9 @@ export default function Landing() {
                         <Target className="h-5 w-5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900 mb-1">CampAIgner</div>
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Generador de Campañas' : 'Campaign Generator'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Generador IA que crea campañas para 21+ plataformas en un clic' : 'AI generator that creates campaigns for 21+ platforms in one click'}
+                          {isSpanish ? 'CampAIgner - Generador IA que crea campañas para 21+ plataformas en un clic' : 'CampAIgner - AI generator that creates campaigns for 21+ platforms in one click'}
                         </div>
                       </div>
                     </DropdownMenuItem>
