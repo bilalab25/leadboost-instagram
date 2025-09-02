@@ -43,9 +43,9 @@ export default function Landing() {
                 </Button>
                 
                 <Button 
-                  variant="outline"
-                  className="text-brand-600 border-brand-300 hover:bg-brand-50 font-semibold"
-                  data-testid="button-tools-landing"
+                  variant="ghost"
+                  className="text-gray-700 hover:text-brand-600 hover:bg-brand-50/80 font-semibold px-4 py-2 transition-all duration-200 group"
+                  data-testid="button-features-landing"
                   onClick={() => {
                     // Scroll to tools section
                     const toolsSection = document.getElementById('tools-section');
@@ -54,8 +54,8 @@ export default function Landing() {
                     }
                   }}
                 >
-                  <Settings className="mr-2 h-4 w-4" />
-                  {isSpanish ? 'Herramientas' : 'Tools'}
+                  <Sparkles className="mr-2 h-4 w-4 group-hover:text-brand-500 transition-colors duration-200" />
+                  {isSpanish ? '¿Qué Incluye?' : "What's Inside?"}
                 </Button>
                 
                 <Button 
