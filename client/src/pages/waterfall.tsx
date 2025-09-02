@@ -21,6 +21,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import { platformAdFormats, type AdFormat } from "@/constants/adFormats";
 
 interface SelectedPlatform {
@@ -217,30 +218,12 @@ export default function CampAIgner() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      
-      <div className="flex-1">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-purple-600 rounded-2xl flex items-center justify-center mr-4 shadow-lg">
-                  <Sparkles className="h-7 w-7 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-black text-gray-900">
-                    {isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'}
-                  </h1>
-                  <p className="text-brand-600 font-semibold">
-                    {isSpanish ? 'Una idea → Todos lados' : 'One idea → Everywhere'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <TopHeader pageName={isSpanish ? 'Conoce CampAIgner' : 'Meet CampAIgner'} />
+      <div className="flex bg-gray-50">
+        <Sidebar />
+        
+        <div className="flex-1">
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1075,6 +1058,7 @@ export default function CampAIgner() {
             </TabsContent>
           </Tabs>
         </main>
+        </div>
       </div>
     </div>
   );
