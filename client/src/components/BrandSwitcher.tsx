@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, Building2, Plus } from "lucide-react";
+import { ChevronDown, Building2, Plus, Globe } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface Brand {
   id: string;
@@ -24,6 +25,7 @@ interface Brand {
 
 export default function BrandSwitcher() {
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+  const { toggleLanguage, isSpanish } = useLanguage();
 
   const { data: brands = [], isLoading } = useQuery<Brand[]>({
     queryKey: ['/api/brands'],
@@ -64,7 +66,7 @@ export default function BrandSwitcher() {
           data-testid="button-brand-switcher"
         >
           <Avatar className="h-6 w-6 mr-2">
-            <AvatarImage src={selectedBrand?.logo} alt={selectedBrand?.name} />
+            <AvatarImage src={selectedBrand?.logo || undefined} alt={selectedBrand?.name} />
             <AvatarFallback 
               style={{ backgroundColor: selectedBrand?.primaryColor || '#3f82d1' }}
               className="text-white text-xs"
@@ -107,7 +109,7 @@ export default function BrandSwitcher() {
             data-testid={`menu-item-brand-${brand.id}`}
           >
             <Avatar className="h-8 w-8">
-              <AvatarImage src={brand.logo} alt={brand.name} />
+              <AvatarImage src={brand.logo || undefined} alt={brand.name} />
               <AvatarFallback 
                 style={{ backgroundColor: brand.primaryColor || '#0066cc' }}
                 className="text-white text-sm"
@@ -143,6 +145,17 @@ export default function BrandSwitcher() {
         <DropdownMenuItem className="flex items-center space-x-2" data-testid="menu-item-add-brand">
           <Plus className="h-4 w-4" />
           <span>Add New Brand</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Language</DropdownMenuLabel>
+        <DropdownMenuItem 
+          onClick={toggleLanguage}
+          className="flex items-center space-x-2" 
+          data-testid="menu-item-language-toggle"
+        >
+          <Globe className="h-4 w-4" />
+          <span>{isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

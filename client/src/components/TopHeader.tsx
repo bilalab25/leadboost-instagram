@@ -68,17 +68,6 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
         {/* Brand Switcher */}
         <BrandSwitcher />
         
-        {/* Language Switcher */}
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={toggleLanguage}
-          className="font-medium text-sm"
-          data-testid="button-language-toggle-top"
-        >
-          {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
-        </Button>
-        
         {/* Notifications */}
         <Button variant="ghost" size="icon" data-testid="button-notifications-header">
           <Bell className="h-5 w-5" />
