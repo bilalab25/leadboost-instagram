@@ -171,11 +171,11 @@ export default function AIPlanner() {
   return (
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={t.sidebar.aiPlanner} />
-      <div className="flex h-screen overflow-hidden bg-gray-50">
+      <div className="flex bg-gray-50">
         <Sidebar />
       
         {/* Main Content */}
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <div className="flex flex-col w-0 flex-1">
 
         {/* AI Planner Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
