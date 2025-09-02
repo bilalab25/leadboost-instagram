@@ -163,7 +163,7 @@ export default function Pricing() {
                 <div className="text-sm text-gray-500 font-medium mt-2">{isSpanish ? 'Soluciones empresariales' : 'Enterprise solutions'}</div>
               </div>
               
-              <p className="text-gray-600 mb-6">{t.pricing.agencyDesc}</p>
+              <p className="text-gray-600 mb-6">{t.pricing.businessDesc}</p>
               
               <div className="bg-gray-50 p-6 rounded-lg mb-8 border border-gray-200">
                 <h4 className="font-semibold text-gray-900 mb-4 text-base">{isSpanish ? 'Precios Escalonados' : 'Pricing Tiers'}</h4>
@@ -202,7 +202,7 @@ export default function Pricing() {
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.agencyReporting}</span>
+                  <span>{t.pricing.businessReporting}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
