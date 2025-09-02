@@ -40,37 +40,27 @@ export default function Inbox() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <TopHeader />
+      <TopHeader pageName={isSpanish ? 'Bandeja de Entrada' : 'Inbox'} />
       <div className="flex h-screen overflow-hidden bg-gray-50">
         <Sidebar />
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        {/* Top Header */}
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
-          <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
-            <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-inbox-title">{isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}</h1>
+        {/* Search and Filter Tools */}
+        <div className="px-6 py-4 bg-white border-b border-gray-200">
+          <div className="flex justify-end items-center space-x-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input 
+                placeholder={isSpanish ? "Buscar mensajes..." : "Search messages..."} 
+                className="pl-10 w-64" 
+                data-testid="input-search-messages"
+              />
             </div>
             
-            <div className="ml-4 flex items-center md:ml-6 space-x-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input 
-                  placeholder={isSpanish ? "Buscar mensajes..." : "Search messages..."} 
-                  className="pl-10 w-64" 
-                  data-testid="input-search-messages"
-                />
-              </div>
-              
-              <Button variant="outline" size="icon" data-testid="button-filter">
-                <Filter className="h-4 w-4" />
-              </Button>
-              
-              <Button variant="ghost" size="icon" data-testid="button-notifications">
-                <Bell className="h-5 w-5" />
-              </Button>
-            </div>
+            <Button variant="outline" size="icon" data-testid="button-filter">
+              <Filter className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 

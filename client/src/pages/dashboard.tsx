@@ -109,44 +109,34 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <TopHeader />
+      <TopHeader pageName={t.sidebar.dashboard} />
       <div className="flex h-screen overflow-hidden bg-gray-50">
         <Sidebar />
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        {/* Top Header */}
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
-          <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
-            <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-dashboard-title">{t.sidebar.dashboard}</h1>
-            </div>
+        {/* Action Buttons */}
+        <div className="px-6 py-4 bg-white border-b border-gray-200">
+          <div className="flex justify-end items-center space-x-4">
+            <Button 
+              variant="outline" 
+              onClick={() => populateDemoDataMutation.mutate()}
+              disabled={populateDemoDataMutation.isPending}
+              data-testid="button-populate-demo"
+              className="border-green-200 text-green-700 hover:bg-green-50"
+            >
+              <Database className="mr-2 h-4 w-4" />
+              {populateDemoDataMutation.isPending ? t.common.loading : t.common.loadDemoData}
+            </Button>
             
-            <div className="ml-4 flex items-center md:ml-6 space-x-4">
-              <Button variant="ghost" size="icon" data-testid="button-notifications">
-                <Bell className="h-5 w-5" />
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => populateDemoDataMutation.mutate()}
-                disabled={populateDemoDataMutation.isPending}
-                data-testid="button-populate-demo"
-                className="border-green-200 text-green-700 hover:bg-green-50"
-              >
-                <Database className="mr-2 h-4 w-4" />
-                {populateDemoDataMutation.isPending ? t.common.loading : t.common.loadDemoData}
-              </Button>
-              
-              <Button 
-                className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white border-none hover:from-brand-700 hover:to-cyan-600" 
-                data-testid="button-leadboost-campaign"
-                onClick={() => window.location.href = '/waterfall'}
-              >
-                <Zap className="mr-2 h-4 w-4" />
-                CampAIgner
-              </Button>
-            </div>
+            <Button 
+              className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white border-none hover:from-brand-700 hover:to-cyan-600" 
+              data-testid="button-leadboost-campaign"
+              onClick={() => window.location.href = '/waterfall'}
+            >
+              <Zap className="mr-2 h-4 w-4" />
+              CampAIgner
+            </Button>
           </div>
         </div>
 

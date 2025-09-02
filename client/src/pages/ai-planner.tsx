@@ -170,39 +170,12 @@ export default function AIPlanner() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <TopHeader />
+      <TopHeader pageName={t.sidebar.aiPlanner} />
       <div className="flex h-screen overflow-hidden bg-gray-50">
         <Sidebar />
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        {/* Top Header */}
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
-          <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
-            <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-ai-planner-title">{t.aiPlanner.title}</h1>
-              <Badge className="ml-3 bg-gradient-to-r from-brand-600 to-cyan-500 text-white">
-                <Bot className="mr-1 h-3 w-3" />
-                {t.common.aiPowered}
-              </Badge>
-            </div>
-            
-            <div className="ml-4 flex items-center md:ml-6 space-x-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={toggleLanguage}
-                className="font-medium"
-                data-testid="button-language-toggle"
-              >
-                {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
-              </Button>
-              <Button variant="ghost" size="icon" data-testid="button-notifications">
-                <Bell className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
 
         {/* AI Planner Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">

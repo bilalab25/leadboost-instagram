@@ -235,30 +235,16 @@ export default function Campaigns() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <TopHeader />
+      <TopHeader pageName={t.sidebar.campaigns} />
       <div className="flex h-screen overflow-hidden bg-gray-50">
         <Sidebar />
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        {/* Top Header */}
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
-          <div className="flex-1 px-4 flex justify-between sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
-            <div className="flex-1 flex items-center">
-              <h1 className="ml-3 text-2xl font-bold text-gray-900" data-testid="text-campaigns-title">{t.campaigns.title}</h1>
-            </div>
-            
-            <div className="ml-4 flex items-center md:ml-6 space-x-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={toggleLanguage}
-                className="font-medium"
-                data-testid="button-language-toggle-campaigns"
-              >
-                {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
-              </Button>
-              <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
+        {/* Campaign Actions */}
+        <div className="px-6 py-4 bg-white border-b border-gray-200">
+          <div className="flex justify-end items-center space-x-4">
+            <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200 text-amber-700 hover:from-amber-100 hover:to-yellow-100 font-medium shadow-sm" data-testid="button-ai-generate">
                     <Brain className="mr-2 h-4 w-4" />

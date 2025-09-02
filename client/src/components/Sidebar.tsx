@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
-import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756771199959.png";
 import { translations } from "@/lib/translations";
 
 interface SocialAccount {
@@ -83,16 +82,6 @@ export default function Sidebar() {
   return (
     <div className="hidden md:flex md:w-64 md:flex-col">
       <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white border-r border-gray-200">
-        {/* Logo */}
-        <div className="flex items-center justify-start flex-shrink-0 px-6 py-2">
-          <Link href="/">
-            <img 
-              src={leadBoostLogo} 
-              alt="Lead Boost Logo" 
-              className="h-20 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
-            />
-          </Link>
-        </div>
         
         
         {/* Navigation */}
