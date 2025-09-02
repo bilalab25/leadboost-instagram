@@ -237,11 +237,12 @@ export default function Integrations() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen bg-gray-50">
+      <TopHeader pageName="POS Integrations" />
+      <div className="flex h-screen overflow-hidden bg-gray-50">
+        <Sidebar />
       
-      <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        <TopHeader pageName="POS Integrations" />
+        <div className="flex flex-col w-0 flex-1 overflow-hidden">
         
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
           <div className="container mx-auto py-6 space-y-6" data-testid="integrations-page">
@@ -558,6 +559,7 @@ export default function Integrations() {
       </div>
           </div>
         </main>
+        </div>
       </div>
     </div>
   );
