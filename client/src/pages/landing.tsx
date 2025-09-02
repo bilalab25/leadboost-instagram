@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass } from "lucide-react";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Package } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiShopify, SiZapier, SiQuickbooks, SiSquare, SiStripe } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -50,7 +50,7 @@ export default function Landing() {
                       className="text-gray-700 hover:text-brand-600 hover:bg-brand-50/80 font-semibold px-4 py-2 transition-all duration-200 group"
                       data-testid="button-features-dropdown"
                     >
-                      <Compass className="mr-2 h-4 w-4 group-hover:text-brand-500 transition-colors duration-200" />
+                      <Package className="mr-2 h-4 w-4 group-hover:text-brand-500 transition-colors duration-200" />
                       {isSpanish ? '¿Qué Incluye?' : "What's Inside?"}
                       <ChevronDown className="ml-1 h-4 w-4 group-hover:text-brand-500 transition-colors duration-200" />
                     </Button>
