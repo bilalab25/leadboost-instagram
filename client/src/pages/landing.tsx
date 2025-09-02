@@ -29,7 +29,7 @@ export default function Landing() {
                 <img 
                   src={leadBoostLogo} 
                   alt="Lead Boost Logo" 
-                  className="h-24 w-auto object-contain"
+                  className="h-32 w-auto object-contain"
                   style={{ backgroundColor: 'transparent' }}
                 />
               </div>
@@ -168,7 +168,7 @@ export default function Landing() {
         </header>
 
         {/* Hero Section with CampAIgner Tool */}
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden mt-16">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
           <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-brand-300/20 to-brand-500/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-40 left-10 w-64 h-64 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
