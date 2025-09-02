@@ -133,9 +133,9 @@ export default function Landing() {
                         <Globe className="h-5 w-5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Equipos' : 'Teams'}</div>
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Soporte Global' : 'Global Support'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Colaboración de equipos y asignación de tareas en tiempo real' : 'Team collaboration and real-time task assignment'}
+                          {isSpanish ? 'Asistencia 24/7 y soporte técnico en múltiples idiomas' : '24/7 assistance and technical support in multiple languages'}
                         </div>
                       </div>
                     </DropdownMenuItem>
