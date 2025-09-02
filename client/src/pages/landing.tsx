@@ -103,21 +103,6 @@ export default function Landing() {
                     
                     <DropdownMenuItem 
                       className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
-                      onClick={() => window.location.href = '/dashboard'}
-                    >
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                        <MessageSquare className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}</div>
-                        <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Gestiona todos los mensajes de redes sociales en un solo lugar con chatbot IA incluido' : 'Manage all social media messages in one place with AI chatbot included'}
-                        </div>
-                      </div>
-                    </DropdownMenuItem>
-                    
-                    <DropdownMenuItem 
-                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
                       onClick={() => window.location.href = '/customers'}
                     >
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
@@ -126,7 +111,7 @@ export default function Landing() {
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'CRM Inteligente' : 'Smart CRM'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Perfiles automáticos de clientes con historial de compras y archivos digitales adjuntos' : 'Automatic customer profiles with purchase history and digital file attachments'}
+                          {isSpanish ? 'Perfiles automáticos de clientes con historial de compras, archivos digitales adjuntos e inbox unificado' : 'Automatic customer profiles with purchase history, digital file attachments and unified inbox'}
                         </div>
                       </div>
                     </DropdownMenuItem>
