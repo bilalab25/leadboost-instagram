@@ -75,7 +75,7 @@ export default function Landing() {
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 mb-1">Brand Studio</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Diseño profesional con integración Canva y templates personalizados' : 'Professional design with Canva integration and custom templates'}
+                          {isSpanish ? 'Diseño profesional con herramientas IA y plantillas para todas las plataformas' : 'Professional design with AI-powered tools and templates for all platforms'}
                         </div>
                       </div>
                     </DropdownMenuItem>
