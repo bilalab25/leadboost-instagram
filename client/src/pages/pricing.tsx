@@ -10,15 +10,15 @@ export default function Pricing() {
   const t = translations[language as keyof typeof translations];
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-brand-50">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100">
       
       {/* Header */}
-      <div className="pt-20 pb-16">
+      <div className="pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-5xl font-bold text-gray-900 mb-6 tracking-tight">
             {t.pricing.title}
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-12">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-16 leading-relaxed">
             {t.pricing.subtitle}
           </p>
         </div>
@@ -29,7 +29,7 @@ export default function Pricing() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Starter Plan */}
-          <Card className="p-8 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+          <Card className="relative p-8 bg-white border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl">
             <CardContent className="pt-6">
               <div className="flex items-center mb-4">
                 <Zap className="h-8 w-8 text-blue-500 mr-3" />
@@ -65,17 +65,17 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full" variant="outline" data-testid="button-starter-plan">
+              <Button className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl" data-testid="button-starter-plan">
                 {t.pricing.startFree}
               </Button>
             </CardContent>
           </Card>
 
           {/* Professional Plan - Most Popular */}
-          <Card className="relative p-8 border-2 border-brand-500 hover:shadow-md transition-shadow duration-200 bg-white">
+          <Card className="relative p-8 bg-white border-2 border-brand-600 hover:shadow-xl transition-all duration-300 rounded-2xl scale-105">
             {/* Most Popular Badge */}
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-brand-500 text-white px-3 py-1 rounded text-sm font-medium">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <span className="bg-gradient-to-r from-brand-600 to-brand-700 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
                 {t.pricing.mostPopular}
               </span>
             </div>
@@ -87,8 +87,10 @@ export default function Pricing() {
               </div>
               
               <div className="mb-6">
-                <span className="text-3xl font-bold text-gray-900">$79</span>
-                <span className="text-gray-500 ml-1">{t.pricing.perMonth}</span>
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-bold text-gray-900">$79</span>
+                  <span className="text-gray-500 ml-2">{t.pricing.perMonth}</span>
+                </div>
               </div>
               
               <p className="text-gray-600 mb-6">{t.pricing.professionalDesc}</p>
@@ -128,14 +130,14 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full bg-brand-600 hover:bg-brand-700 text-white" data-testid="button-professional-plan">
+              <Button className="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white font-semibold py-3 rounded-xl shadow-lg" data-testid="button-professional-plan">
                 {t.pricing.startFreeTrial}
               </Button>
             </CardContent>
           </Card>
 
           {/* Agency Plan */}
-          <Card className="p-8 border border-gray-200 hover:shadow-md transition-shadow duration-200 bg-white">
+          <Card className="relative p-8 bg-white border border-gray-200 hover:shadow-lg transition-all duration-300 rounded-2xl">
             <CardContent className="pt-6">
               <div className="flex items-center mb-4">
                 <Building2 className="h-8 w-8 text-indigo-500 mr-3" />
@@ -148,8 +150,8 @@ export default function Pricing() {
               
               <p className="text-gray-600 mb-6">{t.pricing.agencyDesc}</p>
               
-              <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Pricing Tiers</h4>
+              <div className="bg-brand-50 p-6 rounded-xl mb-6 border border-brand-100">
+                <h4 className="font-semibold text-gray-900 mb-4">Pricing Tiers</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between items-center">
                     <span>5 Brands</span>
@@ -201,7 +203,7 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full" variant="outline" data-testid="button-agency-plan">
+              <Button className="w-full border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-semibold py-3 rounded-xl transition-all duration-200" data-testid="button-agency-plan">
                 {t.pricing.startTrial}
               </Button>
             </CardContent>
@@ -209,17 +211,17 @@ export default function Pricing() {
         </div>
 
         {/* Free Trial CTA */}
-        <div className="text-center mt-16">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl mx-auto shadow-lg border border-gray-100">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+        <div className="text-center mt-20">
+          <div className="bg-white rounded-2xl p-10 max-w-3xl mx-auto shadow-xl border border-brand-100">
+            <h3 className="text-3xl font-bold text-gray-900 mb-6">
               {t.pricing.freeTrialTitle}
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
               {t.pricing.freeTrialDesc}
             </p>
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white px-8 py-3"
+              className="bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white px-10 py-4 rounded-xl font-semibold shadow-lg"
               data-testid="button-free-trial"
             >
               {t.pricing.startYourTrial}
@@ -228,44 +230,44 @@ export default function Pricing() {
         </div>
 
         {/* FAQ Section */}
-        <div className="mt-24">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+        <div className="mt-32">
+          <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
             {t.pricing.faqTitle}
           </h2>
           
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 {t.pricing.faqQuestion1}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 leading-relaxed">
                 {t.pricing.faqAnswer1}
               </p>
             </div>
             
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 {t.pricing.faqQuestion3}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 leading-relaxed">
                 {t.pricing.faqAnswer3}
               </p>
             </div>
             
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 {t.pricing.faqQuestion2}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 leading-relaxed">
                 {t.pricing.faqAnswer2}
               </p>
             </div>
             
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 {t.pricing.faqQuestion4}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 leading-relaxed">
                 {t.pricing.faqAnswer4}
               </p>
             </div>
