@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiShopify, SiZapier, SiQuickbooks, SiSquare, SiStripe } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -42,21 +43,92 @@ export default function Landing() {
                   {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
                 </Button>
                 
-                <Button 
-                  variant="ghost"
-                  className="text-gray-700 hover:text-brand-600 hover:bg-brand-50/80 font-semibold px-4 py-2 transition-all duration-200 group"
-                  data-testid="button-features-landing"
-                  onClick={() => {
-                    // Scroll to tools section
-                    const toolsSection = document.getElementById('tools-section');
-                    if (toolsSection) {
-                      toolsSection.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                >
-                  <Sparkles className="mr-2 h-4 w-4 group-hover:text-brand-500 transition-colors duration-200" />
-                  {isSpanish ? '¿Qué Incluye?' : "What's Inside?"}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost"
+                      className="text-gray-700 hover:text-brand-600 hover:bg-brand-50/80 font-semibold px-4 py-2 transition-all duration-200 group"
+                      data-testid="button-features-dropdown"
+                    >
+                      <Sparkles className="mr-2 h-4 w-4 group-hover:text-brand-500 transition-colors duration-200" />
+                      {isSpanish ? '¿Qué Incluye?' : "What's Inside?"}
+                      <ChevronDown className="ml-1 h-4 w-4 group-hover:text-brand-500 transition-colors duration-200" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
+                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <Target className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">CampAIgner</div>
+                        <div className="text-sm text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Generador IA que crea campañas para 21+ plataformas en un clic' : 'AI generator that creates campaigns for 21+ platforms in one click'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                      <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <Palette className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">Brand Studio</div>
+                        <div className="text-sm text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Diseño profesional con integración Canva y templates personalizados' : 'Professional design with Canva integration and custom templates'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <MessageSquare className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}</div>
+                        <div className="text-sm text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Gestiona todos los mensajes de redes sociales en un solo lugar' : 'Manage all social media messages in one place'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <BarChart3 className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Panel Analítico' : 'Analytics Dashboard'}</div>
+                        <div className="text-sm text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Métricas avanzadas y reportes de rendimiento en tiempo real' : 'Advanced metrics and real-time performance reports'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <Calendar className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Planificador Mensual' : 'Monthly Planner'}</div>
+                        <div className="text-sm text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Estrategias de contenido IA para todo el mes automáticamente' : 'AI content strategies for the entire month automatically'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                      <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <Users className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Gestión Global de Equipo' : 'Global Team Management'}</div>
+                        <div className="text-sm text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Colaboración de equipos y asignación de tareas en tiempo real' : 'Team collaboration and real-time task assignment'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 
                 <Button 
                   className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-green-700 text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-emerald-400/30"
