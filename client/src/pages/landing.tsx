@@ -111,7 +111,7 @@ export default function Landing() {
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Planificador Mensual' : 'Monthly Planner'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Estrategias de contenido IA para todo el mes automáticamente' : 'AI content strategies for the entire month automatically'}
+                          {isSpanish ? 'Creación de contenido IA y estrategia para todo el mes automáticamente' : 'AI content creation and strategy for the entire month automatically'}
                         </div>
                       </div>
                     </DropdownMenuItem>
