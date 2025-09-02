@@ -59,7 +59,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
             {/* Right side - Controls */}
             <div className="flex items-center gap-4">
               {/* Primary CTA - CampAIgner (Marketing Focus) */}
-              <Link href="/campaigns">
+              <Link href="/waterfall">
                 <Button 
                   size="default"
                   className="bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600 hover:from-blue-700 hover:via-blue-800 hover:to-cyan-700 text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0"
