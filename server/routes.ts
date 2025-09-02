@@ -1435,6 +1435,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Midjourney video generation
+  app.post('/api/generate-video', async (req, res) => {
+    try {
+      const { prompt, style, duration, aspectRatio } = req.body;
+
+      // Validate required fields
+      if (!prompt) {
+        return res.status(400).json({ message: "Video prompt is required" });
+      }
+
+      // Simulate Midjourney video generation process
+      console.log(`Generating video with Midjourney: ${prompt}, style: ${style}, duration: ${duration}s`);
+      
+      // In a real implementation, this would call Midjourney's API
+      // For now, we'll simulate the process and return a mock video URL
+      
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock video URL (in production this would be the actual Midjourney video URL)
+      const videoUrl = `https://example.com/midjourney-videos/video-${Date.now()}.mp4`;
+      
+      res.json({
+        videoUrl,
+        prompt,
+        style,
+        duration,
+        aspectRatio,
+        status: "completed",
+        generatedAt: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error("Error generating video:", error);
+      res.status(500).json({ message: "Failed to generate video with Midjourney" });
+    }
+  });
+
   // Image processing endpoint for pixel-perfect platform assets
   app.post('/api/process-campaign-images', async (req, res) => {
     try {

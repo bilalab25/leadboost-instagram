@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Sparkles, Target, ArrowRight, Zap, Upload, Settings, 
-  Calendar, Eye, Download, Share2, BarChart3, DollarSign, Users, Bot, Plus, MessageSquare, TrendingUp, Globe, Flame
+  Calendar, Eye, Download, Share2, BarChart3, DollarSign, Users, Bot, Plus, MessageSquare, TrendingUp, Globe, Flame, Video, Play, Film
 } from "lucide-react";
 import { 
   SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, 
@@ -87,6 +87,13 @@ export default function CampAIgner() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<SelectedPlatform[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   
+  // Video Generation State
+  const [videoPrompt, setVideoPrompt] = useState('');
+  const [videoStyle, setVideoStyle] = useState('cinematic');
+  const [videoDuration, setVideoDuration] = useState('5');
+  const [generatingVideo, setGeneratingVideo] = useState(false);
+  const [generatedVideoUrl, setGeneratedVideoUrl] = useState('');
+  
   // 30-Day Planner State  
   const [businessData, setBusinessData] = useState<BusinessData>({
     industry: "",
@@ -128,6 +135,35 @@ export default function CampAIgner() {
     },
   });
 
+  // Video Generation Mutation
+  const generateVideoMutation = useMutation({
+    mutationFn: async ({ prompt, style, duration }: { prompt: string; style: string; duration: string }) => {
+      const response = await apiRequest("POST", "/api/generate-video", {
+        prompt,
+        style,
+        duration: parseInt(duration),
+        aspectRatio: "16:9"
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setGeneratedVideoUrl(data.videoUrl);
+      setGeneratingVideo(false);
+      toast({
+        title: isSpanish ? "¡Video Generado!" : "Video Generated!",
+        description: isSpanish ? "Tu video está listo para usar en campañas" : "Your video is ready for campaign use",
+      });
+    },
+    onError: (error: Error) => {
+      setGeneratingVideo(false);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Helper functions for planner
   const addProduct = () => {
     if (newProduct.trim() && !businessData.topProducts.includes(newProduct.trim())) {
@@ -155,6 +191,24 @@ export default function CampAIgner() {
     setTimeout(() => {
       setGenerating(false);
     }, 3000);
+  };
+
+  const handleGenerateVideo = () => {
+    if (!videoPrompt.trim()) {
+      toast({
+        title: "Error",
+        description: isSpanish ? "Por favor ingresa una descripción del video" : "Please enter a video description",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setGeneratingVideo(true);
+    generateVideoMutation.mutate({
+      prompt: videoPrompt,
+      style: videoStyle,
+      duration: videoDuration
+    });
   };
 
   const platformIconMap: Record<string, any> = {
@@ -591,6 +645,166 @@ export default function CampAIgner() {
                   })}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Midjourney Video Generation */}
+          <Card className="mb-8 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
+            <CardHeader className="bg-gradient-to-r from-purple-100 to-indigo-100">
+              <CardTitle className="flex items-center text-lg">
+                <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-3 rounded-xl mr-4 shadow-lg">
+                  <Video className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-gray-900 font-bold text-xl">
+                    {isSpanish ? 'Generador de Videos AI' : 'AI Video Generator'}
+                  </div>
+                  <div className="text-sm text-purple-600 font-medium">
+                    {isSpanish ? 'Powered by Midjourney' : 'Powered by Midjourney'}
+                  </div>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-white p-6 rounded-xl border border-purple-200">
+                <div className="space-y-4">
+                  {/* Video Prompt */}
+                  <div className="space-y-2">
+                    <Label htmlFor="video-prompt" className="text-sm font-semibold text-gray-700">
+                      {isSpanish ? 'Descripción del Video' : 'Video Description'}
+                    </Label>
+                    <textarea
+                      id="video-prompt"
+                      value={videoPrompt}
+                      onChange={(e) => setVideoPrompt(e.target.value)}
+                      placeholder={isSpanish 
+                        ? "Describe el video que quieres crear, ej: 'Un video promocional de productos de belleza con ambiente elegante y colores suaves'"
+                        : "Describe the video you want to create, e.g. 'A promotional video of beauty products with elegant atmosphere and soft colors'"}
+                      className="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      data-testid="textarea-video-prompt"
+                    />
+                  </div>
+
+                  {/* Video Style and Duration */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-gray-700">
+                        {isSpanish ? 'Estilo Visual' : 'Visual Style'}
+                      </Label>
+                      <Select value={videoStyle} onValueChange={setVideoStyle}>
+                        <SelectTrigger data-testid="select-video-style">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cinematic">{isSpanish ? 'Cinematográfico' : 'Cinematic'}</SelectItem>
+                          <SelectItem value="commercial">{isSpanish ? 'Comercial' : 'Commercial'}</SelectItem>
+                          <SelectItem value="animated">{isSpanish ? 'Animado' : 'Animated'}</SelectItem>
+                          <SelectItem value="minimalist">{isSpanish ? 'Minimalista' : 'Minimalist'}</SelectItem>
+                          <SelectItem value="vibrant">{isSpanish ? 'Vibrante' : 'Vibrant'}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-gray-700">
+                        {isSpanish ? 'Duración (segundos)' : 'Duration (seconds)'}
+                      </Label>
+                      <Select value={videoDuration} onValueChange={setVideoDuration}>
+                        <SelectTrigger data-testid="select-video-duration">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3">3s</SelectItem>
+                          <SelectItem value="5">5s</SelectItem>
+                          <SelectItem value="10">10s</SelectItem>
+                          <SelectItem value="15">15s</SelectItem>
+                          <SelectItem value="30">30s</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Generate Video Button */}
+                  <div className="flex items-center justify-between pt-4">
+                    <div className="text-sm text-gray-600">
+                      {isSpanish 
+                        ? 'Crea videos profesionales para tus campañas en segundos'
+                        : 'Create professional videos for your campaigns in seconds'}
+                    </div>
+                    <Button
+                      onClick={handleGenerateVideo}
+                      disabled={!videoPrompt.trim() || generatingVideo}
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-2 disabled:opacity-50"
+                      data-testid="button-generate-video"
+                    >
+                      {generatingVideo ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          {isSpanish ? 'Generando...' : 'Generating...'}
+                        </>
+                      ) : (
+                        <>
+                          <Film className="mr-2 h-4 w-4" />
+                          {isSpanish ? 'Generar Video' : 'Generate Video'}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Generated Video Preview */}
+                  {generatedVideoUrl && (
+                    <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center mb-3">
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                          <Play className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-green-800">
+                            {isSpanish ? '¡Video Generado!' : 'Video Generated!'}
+                          </h4>
+                          <p className="text-sm text-green-600">
+                            {isSpanish ? 'Tu video está listo para usar' : 'Your video is ready to use'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-green-300">
+                        <video 
+                          src={generatedVideoUrl} 
+                          controls 
+                          className="w-full max-w-md mx-auto rounded-lg"
+                          data-testid="video-preview"
+                        />
+                        <div className="mt-3 flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => window.open(generatedVideoUrl, '_blank')}
+                            data-testid="button-download-video"
+                          >
+                            <Download className="mr-2 h-4 w-4" />
+                            {isSpanish ? 'Descargar' : 'Download'}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              navigator.clipboard.writeText(generatedVideoUrl);
+                              toast({
+                                title: isSpanish ? "Enlace copiado" : "Link copied",
+                                description: isSpanish ? "URL del video copiada al portapapeles" : "Video URL copied to clipboard"
+                              });
+                            }}
+                            data-testid="button-copy-video-link"
+                          >
+                            <Share2 className="mr-2 h-4 w-4" />
+                            {isSpanish ? 'Copiar Link' : 'Copy Link'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
