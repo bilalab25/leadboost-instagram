@@ -43,6 +43,22 @@ export default function Landing() {
                 </Button>
                 
                 <Button 
+                  variant="outline"
+                  className="text-brand-600 border-brand-300 hover:bg-brand-50 font-semibold"
+                  data-testid="button-tools-landing"
+                  onClick={() => {
+                    // Scroll to tools section
+                    const toolsSection = document.getElementById('tools-section');
+                    if (toolsSection) {
+                      toolsSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  {isSpanish ? 'Herramientas' : 'Tools'}
+                </Button>
+                
+                <Button 
                   className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-green-700 text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-emerald-400/30"
                   data-testid="button-pricing-cta"
                   onClick={() => window.location.href = '/pricing'}
@@ -382,7 +398,7 @@ export default function Landing() {
         </div>
 
         {/* Platform Management Section */}
-        <div className="py-24 bg-gradient-to-br from-brand-200/50 via-brand-300/40 to-brand-200/60 relative">
+        <div id="tools-section" className="py-24 bg-gradient-to-br from-brand-200/50 via-brand-300/40 to-brand-200/60 relative">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-brand-300/25 to-brand-500/15 rounded-full blur-3xl"></div>
             <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-brand-400/20 to-brand-600/15 rounded-full blur-3xl"></div>
