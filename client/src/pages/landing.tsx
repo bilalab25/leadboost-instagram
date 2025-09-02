@@ -11,7 +11,7 @@ import { FAQ } from "@/components/FAQ";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { ReferralProgram } from "@/components/ReferralProgram";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
-import leadBoostLogo from "@assets/NEW LOGO LEADBOOST_1756702318646.png";
+import leadBoostLogo from "@assets/Lead Boost_1756776611991.png";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
