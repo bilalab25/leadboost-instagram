@@ -17,19 +17,19 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
   return (
     <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 shadow-sm">
       {/* Left side - Logo and Page Name */}
-      <div className="flex items-center gap-12">
+      <div className="flex items-center gap-16">
         {/* Logo */}
         <Link href="/">
           <img 
             src={leadBoostLogo} 
             alt="Lead Boost Logo" 
-            className="h-12 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-14 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
           />
         </Link>
         
         {/* Page Name */}
         {pageName && (
-          <div className="text-xl font-semibold text-gray-900 ml-6">
+          <div className="text-xl font-semibold text-gray-900 ml-8">
             {pageName}
           </div>
         )}
