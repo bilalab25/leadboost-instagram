@@ -28,12 +28,9 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
           </Link>
         </div>
         
-        {/* Blue Line at Exact Sidebar Edge */}
-        <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-cyan-500 rounded-full flex-shrink-0"></div>
-        
         {/* Page Name */}
         {pageName && (
-          <div className="flex items-center ml-3 flex-1">
+          <div className="flex items-center ml-8 flex-1">
             <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
               {pageName}
             </h1>
