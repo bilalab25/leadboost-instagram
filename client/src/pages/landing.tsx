@@ -133,7 +133,7 @@ export default function Landing() {
                         <Globe className="h-5 w-5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Gestión Global de Equipo' : 'Global Team Management'}</div>
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Equipos' : 'Teams'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
                           {isSpanish ? 'Colaboración de equipos y asignación de tareas en tiempo real' : 'Team collaboration and real-time task assignment'}
                         </div>
@@ -613,7 +613,7 @@ export default function Landing() {
                 </ul>
               </Card>
 
-              {/* Global Team Management */}
+              {/* Teams */}
               <Card className="p-8 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden bg-gradient-to-br from-white/70 via-rose-50/80 to-brand-100/60 backdrop-blur-xl border border-white/30 hover:border-brand-300/50 hover:scale-105">
                 <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
@@ -622,7 +622,7 @@ export default function Landing() {
                     <Users className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">
-                    {isSpanish ? 'Global Team Management' : 'Global Team Management'}
+                    {isSpanish ? 'Equipos' : 'Teams'}
                   </h3>
                 </div>
                 <p className="text-gray-600 mb-4">
