@@ -75,23 +75,9 @@ export default function BrandSwitcher() {
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex flex-col items-start flex-1 min-w-0">
-            {selectedBrand?.industry && (
-              <span className="text-xs text-brand-600 mb-0.5">
-                {selectedBrand.industry}
-              </span>
-            )}
-            <div className="flex items-center space-x-2 w-full">
-              <span className="text-sm font-medium truncate">
-                {selectedBrand?.name || 'Select Brand'}
-              </span>
-            </div>
-            {brands.length > 1 && (
-              <span className="text-xs text-muted-foreground">
-                {brands.length} brands
-              </span>
-            )}
-          </div>
+          <span className="text-sm font-medium truncate flex-1">
+            {selectedBrand?.name || 'Select Brand'}
+          </span>
           
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
@@ -118,24 +104,12 @@ export default function BrandSwitcher() {
               </AvatarFallback>
             </Avatar>
             
-            <div className="flex flex-col items-start flex-1">
-              <div className="flex items-center space-x-2 w-full">
-                <span className="font-medium">{brand.name}</span>
-                {brand.id === selectedBrand?.id && (
-                  <Badge variant="default" className="text-xs">
-                    Active
-                  </Badge>
-                )}
-                {!brand.isActive && (
-                  <Badge variant="outline" className="text-xs">
-                    Inactive
-                  </Badge>
-                )}
-              </div>
-              {brand.industry && (
-                <span className="text-xs text-brand-600">
-                  {brand.industry}
-                </span>
+            <div className="flex items-center justify-between flex-1">
+              <span className="font-medium">{brand.name}</span>
+              {brand.id === selectedBrand?.id && (
+                <Badge variant="default" className="text-xs">
+                  Active
+                </Badge>
               )}
             </div>
           </DropdownMenuItem>
