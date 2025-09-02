@@ -56,7 +56,10 @@ export default function Landing() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
-                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                    <DropdownMenuItem 
+                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => window.location.href = '/waterfall'}
+                    >
                       <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                         <Target className="h-5 w-5 text-white" />
                       </div>
@@ -68,7 +71,10 @@ export default function Landing() {
                       </div>
                     </DropdownMenuItem>
                     
-                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                    <DropdownMenuItem 
+                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => window.location.href = '/brand-studio'}
+                    >
                       <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                         <Palette className="h-5 w-5 text-white" />
                       </div>
@@ -80,7 +86,10 @@ export default function Landing() {
                       </div>
                     </DropdownMenuItem>
                     
-                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                    <DropdownMenuItem 
+                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => window.location.href = '/dashboard'}
+                    >
                       <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                         <MessageSquare className="h-5 w-5 text-white" />
                       </div>
@@ -92,7 +101,10 @@ export default function Landing() {
                       </div>
                     </DropdownMenuItem>
                     
-                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                    <DropdownMenuItem 
+                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => window.location.href = '/analytics'}
+                    >
                       <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                         <BarChart3 className="h-5 w-5 text-white" />
                       </div>
@@ -104,7 +116,10 @@ export default function Landing() {
                       </div>
                     </DropdownMenuItem>
                     
-                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                    <DropdownMenuItem 
+                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => window.location.href = '/ai-planner'}
+                    >
                       <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                         <Calendar className="h-5 w-5 text-white" />
                       </div>
@@ -116,7 +131,10 @@ export default function Landing() {
                       </div>
                     </DropdownMenuItem>
                     
-                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                    <DropdownMenuItem 
+                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => window.location.href = '/teams'}
+                    >
                       <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                         <Users className="h-5 w-5 text-white" />
                       </div>
@@ -128,7 +146,10 @@ export default function Landing() {
                       </div>
                     </DropdownMenuItem>
                     
-                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                    <DropdownMenuItem 
+                      className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => window.location.href = '/dashboard'}
+                    >
                       <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                         <Globe className="h-5 w-5 text-white" />
                       </div>
