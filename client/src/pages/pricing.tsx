@@ -128,7 +128,7 @@ export default function Pricing() {
               </ul>
               
               <Button className="w-full bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 text-white" data-testid="button-professional-plan">
-                {t.pricing.startTrial}
+                {t.pricing.startFreeTrial}
               </Button>
             </CardContent>
           </Card>
