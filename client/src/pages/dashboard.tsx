@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import StatsCard from "@/components/StatsCard";
@@ -12,7 +13,7 @@ import ContentCalendar from "@/components/ContentCalendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Plus, Database, Sparkles, Zap, Target, ArrowRight, TrendingUp, Users, Activity, BarChart3, AlertTriangle, CheckCircle2, Lightbulb } from "lucide-react";
+import { Bell, Plus, Database, Sparkles, Zap, Target, ArrowRight, TrendingUp, Users, Activity, BarChart3, AlertTriangle, CheckCircle2, Lightbulb, HelpCircle, X, Send } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -36,7 +37,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
-  const { language } = useLanguage();
+  const { language, toggleLanguage, isSpanish } = useLanguage();
   const t = translations['es']; // Force Spanish for demo
   const [selectedPeriod, setSelectedPeriod] = useState<'weekly' | 'monthly' | 'daily'>('weekly');
   const [showDollarAmount, setShowDollarAmount] = useState(false);
@@ -357,8 +358,166 @@ export default function Dashboard() {
             </div>
           </div>
         </main>
+        
+        {/* Help AI Chatbot */}
+        <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
       </div>
       </div>
+    </div>
+  );
+}
+
+// Help AI Chatbot Component
+function HelpChatbot({ isSpanish, toggleLanguage }: { isSpanish: boolean; toggleLanguage: () => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Array<{id: string, text: string, isBot: boolean, timestamp: Date}>>([{
+    id: '1',
+    text: isSpanish 
+      ? '¡Hola! Soy tu asistente de LeadBoost. ¿En qué puedo ayudarte con la plataforma?' 
+      : 'Hi! I\'m your LeadBoost assistant. How can I help you with the platform?',
+    isBot: true,
+    timestamp: new Date()
+  }]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const chatMutation = useMutation({
+    mutationFn: async ({ message }: { message: string }) => {
+      const response = await fetch('/api/help-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, language: isSpanish ? 'spanish' : 'english' })
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    },
+    onSuccess: (response: any) => {
+      const botMessage = {
+        id: Date.now().toString(),
+        text: response.message || (isSpanish ? 'Lo siento, no pude procesar tu mensaje.' : 'Sorry, I couldn\'t process your message.'),
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botMessage]);
+      setIsLoading(false);
+    },
+    onError: () => {
+      const errorMessage = {
+        id: Date.now().toString(),
+        text: isSpanish 
+          ? 'Lo siento, hay un problema técnico. Puedes revisar nuestras FAQ o contactar soporte.' 
+          : 'Sorry, there\'s a technical issue. You can check our FAQ or contact support.',
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setIsLoading(false);
+    }
+  });
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+    const userMessage = {
+      id: Date.now().toString(),
+      text: inputMessage,
+      isBot: false,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+    chatMutation.mutate({ message: inputMessage });
+    setInputMessage('');
+  };
+
+  if (!isOpen) {
+    return (
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={() => setIsOpen(true)}
+          size="sm"
+          className="rounded-full w-11 h-11 bg-gray-600 hover:bg-gray-700 shadow-md opacity-75 hover:opacity-100 transition-all duration-200"
+          data-testid="button-open-help-chatbot"
+        >
+          <HelpCircle className="h-4 w-4 text-white" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 w-96 max-h-[500px] bg-white rounded-lg shadow-xl border">
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between pb-3 bg-brand-600 text-white rounded-t-lg">
+          <div>
+            <CardTitle className="text-lg">{isSpanish ? 'Asistente LeadBoost' : 'LeadBoost Assistant'}</CardTitle>
+            <div className="flex items-center gap-1 text-sm opacity-90">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              {isSpanish ? 'En línea' : 'Online'}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleLanguage}
+              className="text-white hover:bg-brand-700 text-xs px-2"
+            >
+              {isSpanish ? '🇺🇸 EN' : '🇪🇸 ES'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="text-white hover:bg-brand-700">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col p-0 max-h-80">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((message) => (
+              <div key={message.id} className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}>
+                <div className={`max-w-xs px-3 py-2 rounded-lg ${
+                  message.isBot ? 'bg-gray-100 text-gray-800' : 'bg-brand-600 text-white'
+                }`}>
+                  <p className="text-sm">{message.text}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 px-3 py-2 rounded-lg">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="border-t p-4">
+            <div className="flex gap-2">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder={isSpanish ? 'Escribe tu pregunta...' : 'Type your question...'}
+                className="flex-1"
+                disabled={isLoading}
+              />
+              <Button onClick={handleSendMessage} size="sm" disabled={!inputMessage.trim() || isLoading}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Powered by LeadBoost AI</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
