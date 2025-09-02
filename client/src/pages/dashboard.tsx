@@ -434,7 +434,7 @@ function HelpChatbot({ isSpanish, toggleLanguage }: { isSpanish: boolean; toggle
       <div className="fixed bottom-4 right-4 z-50">
         <button
           onClick={() => setIsOpen(true)}
-          className="group flex items-center justify-center w-6 h-6 rounded-full opacity-30 hover:opacity-90 transition-all duration-500 ease-out hover:scale-110"
+          className="group flex items-center justify-center w-8 h-8 rounded-full opacity-40 hover:opacity-80 transition-all duration-500 ease-out hover:scale-110"
           data-testid="button-open-help-chatbot"
         >
           <div className="text-lg font-light text-gray-500 group-hover:text-brand-500 transition-colors duration-300">?</div>

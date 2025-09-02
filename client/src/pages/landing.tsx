@@ -859,10 +859,10 @@ function HelpChatbot({ isSpanish }: { isSpanish: boolean }) {
       <div className="fixed bottom-4 right-4 z-50">
         <button
           onClick={() => setIsOpen(true)}
-          className="group flex items-center justify-center w-8 h-8 rounded-full opacity-70 hover:opacity-100 transition-all duration-300 ease-out hover:scale-105"
+          className="group flex items-center justify-center w-8 h-8 rounded-full opacity-40 hover:opacity-80 transition-all duration-500 ease-out hover:scale-110"
           data-testid="button-open-help-chatbot"
         >
-          <div className="text-xl font-light text-gray-600 group-hover:text-brand-600 transition-colors duration-300">?</div>
+          <div className="text-lg font-light text-gray-500 group-hover:text-brand-500 transition-colors duration-300">?</div>
         </button>
       </div>
     );
