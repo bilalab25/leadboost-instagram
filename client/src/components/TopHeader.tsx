@@ -16,10 +16,9 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
 
   return (
     <header className="bg-gradient-to-r from-white via-gray-50 to-white border-b border-gray-200 shadow-lg">
-      <div className="flex items-center justify-between px-8 py-4">
-        {/* Left side - Logo and Page Name */}
-        <div className="flex items-center gap-8">
-          {/* Logo */}
+      <div className="flex items-center justify-between py-4">
+        {/* Left side - Logo (fixed width to match sidebar) */}
+        <div className="w-64 px-8 flex items-center flex-shrink-0">
           <Link href="/" className="flex-shrink-0">
             <img 
               src={leadBoostLogo} 
@@ -27,17 +26,17 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
               className="h-12 w-auto object-contain cursor-pointer hover:scale-105 transition-all duration-200 drop-shadow-sm"
             />
           </Link>
-          
-          {/* Page Name with Breadcrumb Style */}
-          {pageName && (
-            <div className="absolute left-64 flex items-center gap-3 md:static md:left-auto md:ml-4">
-              <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-cyan-500 rounded-full"></div>
-              <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
-                {pageName}
-              </h1>
-            </div>
-          )}
         </div>
+        
+        {/* Page Name with Blue Line Aligned to Sidebar Edge */}
+        {pageName && (
+          <div className="flex items-center gap-3 flex-1 px-8">
+            <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-cyan-500 rounded-full"></div>
+            <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
+              {pageName}
+            </h1>
+          </div>
+        )}
 
         {/* Right side - Controls */}
         <div className="flex items-center gap-4">
