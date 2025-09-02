@@ -111,7 +111,7 @@ export default function Landing() {
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Chat Deck' : 'Chat Deck'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Inbox unificado multi-plataforma con perfiles automáticos de clientes, historial de compras y archivos digitales adjuntos' : 'Multi-platform unified inbox with automatic customer profiles, purchase history and digital file attachments'}
+                          {isSpanish ? 'Inbox unificado multi-plataforma con perfiles automáticos de clientes, historial de compras y archivos digitales adjuntos' : 'Multi-platform unified inbox with automated customer profiles, purchase history and digital file attachments'}
                         </div>
                       </div>
                     </DropdownMenuItem>
