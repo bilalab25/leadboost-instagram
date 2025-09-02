@@ -185,9 +185,11 @@ export default function Landing() {
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="border-gray-300 hover:bg-gray-50">
-                      <HelpCircle className="mr-2 h-4 w-4" />
-                      {isSpanish ? 'Ayuda' : 'Help'}
+                    <Button 
+                      variant="ghost" 
+                      className="text-gray-400 hover:text-gray-500 hover:bg-transparent border-none bg-transparent px-2 py-1 opacity-30 hover:opacity-60 transition-all duration-300"
+                    >
+                      <HelpCircle className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-64 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
