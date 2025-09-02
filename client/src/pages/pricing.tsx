@@ -35,18 +35,18 @@ export default function Pricing() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
           
           {/* Starter Plan */}
-          <Card className="relative bg-white rounded-3xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-8 lg:p-10">
+          <Card className="relative bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+            <CardContent className="p-8">
               <div className="flex items-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mr-4 shadow-lg">
-                  <Zap className="h-8 w-8 text-white" />
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                  <Zap className="h-6 w-6 text-gray-600" />
                 </div>
-                <h3 className="text-3xl font-black text-gray-900">{t.pricing.starter}</h3>
+                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.starter}</h3>
               </div>
               
               <div className="mb-8">
-                <span className="text-6xl font-black text-emerald-600">{t.pricing.free}</span>
-                <div className="text-lg text-gray-600 font-medium mt-2">{isSpanish ? 'Para empezar' : 'To get started'}</div>
+                <span className="text-5xl font-bold text-gray-900">{t.pricing.free}</span>
+                <div className="text-sm text-gray-500 font-medium mt-2">{isSpanish ? 'Perfecto para comenzar' : 'Perfect to get started'}</div>
               </div>
               
               <p className="text-gray-600 mb-6">{t.pricing.starterDesc}</p>
@@ -74,35 +74,35 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-black py-4 rounded-2xl text-lg shadow-lg hover:shadow-xl transition-all duration-200" data-testid="button-starter-plan">
+              <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 rounded-lg" data-testid="button-starter-plan">
                 {t.pricing.startFree}
               </Button>
             </CardContent>
           </Card>
 
           {/* Professional Plan - Most Popular */}
-          <Card className="relative bg-gradient-to-br from-white to-brand-25 rounded-3xl shadow-2xl border-2 border-brand-600 hover:shadow-3xl transition-all duration-300 transform scale-105 hover:scale-110">
+          <Card className="relative bg-white rounded-lg shadow-md border-2 border-brand-600 hover:shadow-lg transition-shadow duration-200">
             {/* Most Popular Badge */}
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-              <div className="bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 text-white px-8 py-3 rounded-2xl text-base font-black shadow-2xl">
-                ⭐ {t.pricing.mostPopular}
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <div className="bg-brand-600 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-lg">
+                {t.pricing.mostPopular}
               </div>
             </div>
             
-            <CardContent className="p-8 lg:p-10">
+            <CardContent className="p-8">
               <div className="flex items-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl flex items-center justify-center mr-4 shadow-2xl">
-                  <Crown className="h-8 w-8 text-white" />
+                <div className="w-12 h-12 bg-brand-600 rounded-lg flex items-center justify-center mr-4">
+                  <Crown className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-3xl font-black text-gray-900">{t.pricing.professional}</h3>
+                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.professional}</h3>
               </div>
               
               <div className="mb-8">
                 <div className="flex items-baseline mb-2">
-                  <span className="text-6xl font-black text-brand-600">$79</span>
-                  <span className="text-xl text-gray-600 ml-2">{t.pricing.perMonth}</span>
+                  <span className="text-5xl font-bold text-gray-900">$79</span>
+                  <span className="text-lg text-gray-600 ml-2">{t.pricing.perMonth}</span>
                 </div>
-                <div className="text-lg text-brand-600 font-bold">{isSpanish ? 'Más Popular - Mejor Valor' : 'Most Popular - Best Value'}</div>
+                <div className="text-sm text-gray-500 font-medium">{isSpanish ? 'Recomendado para la mayoría' : 'Recommended for most businesses'}</div>
               </div>
               
               <p className="text-gray-600 mb-6">{t.pricing.professionalDesc}</p>
@@ -142,47 +142,47 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 hover:from-brand-700 hover:via-brand-800 hover:to-brand-900 text-white font-black py-4 rounded-2xl text-lg shadow-2xl hover:shadow-3xl transition-all duration-200 transform hover:scale-105" data-testid="button-professional-plan">
-                ⚡ {t.pricing.startFreeTrial}
+              <Button className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-lg" data-testid="button-professional-plan">
+                {t.pricing.startFreeTrial}
               </Button>
             </CardContent>
           </Card>
 
           {/* Agency Plan */}
-          <Card className="relative bg-gradient-to-br from-white to-indigo-25 rounded-3xl shadow-lg border border-indigo-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-8 lg:p-10">
+          <Card className="relative bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+            <CardContent className="p-8">
               <div className="flex items-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mr-4 shadow-lg">
-                  <Building2 className="h-8 w-8 text-white" />
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                  <Building2 className="h-6 w-6 text-gray-600" />
                 </div>
-                <h3 className="text-3xl font-black text-gray-900">{t.pricing.agency}</h3>
+                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.agency}</h3>
               </div>
               
               <div className="mb-8">
-                <span className="text-3xl font-black text-indigo-600">{t.pricing.agencyTiered}</span>
-                <div className="text-lg text-gray-600 font-medium mt-2">{isSpanish ? 'Escala tu agencia' : 'Scale your agency'}</div>
+                <span className="text-3xl font-bold text-gray-900">{t.pricing.agencyTiered}</span>
+                <div className="text-sm text-gray-500 font-medium mt-2">{isSpanish ? 'Soluciones empresariales' : 'Enterprise solutions'}</div>
               </div>
               
               <p className="text-gray-600 mb-6">{t.pricing.agencyDesc}</p>
               
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-2xl mb-8 border border-indigo-100">
-                <h4 className="font-black text-gray-900 mb-6 text-lg">{isSpanish ? 'Precios Escalonados' : 'Scaling Tiers'}</h4>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm">
-                    <span className="font-semibold text-gray-700">5 Brands</span>
-                    <span className="font-black text-indigo-600 text-lg">$199/mo</span>
+              <div className="bg-gray-50 p-6 rounded-lg mb-8 border border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-4 text-base">{isSpanish ? 'Precios Escalonados' : 'Pricing Tiers'}</h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
+                    <span className="font-medium text-gray-700">5 Brands</span>
+                    <span className="font-semibold text-gray-900">$199/mo</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm">
-                    <span className="font-semibold text-gray-700">10 Brands</span>
-                    <span className="font-black text-indigo-600 text-lg">$349/mo</span>
+                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
+                    <span className="font-medium text-gray-700">10 Brands</span>
+                    <span className="font-semibold text-gray-900">$349/mo</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm">
-                    <span className="font-semibold text-gray-700">20 Brands</span>
-                    <span className="font-black text-indigo-600 text-lg">$599/mo</span>
+                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
+                    <span className="font-medium text-gray-700">20 Brands</span>
+                    <span className="font-semibold text-gray-900">$599/mo</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white">
-                    <span className="font-bold">50+ Brands</span>
-                    <span className="font-black text-xl">$999/mo</span>
+                  <div className="flex justify-between items-center p-3 bg-gray-900 rounded-lg text-white">
+                    <span className="font-medium">50+ Brands</span>
+                    <span className="font-semibold">$999/mo</span>
                   </div>
                 </div>
               </div>
@@ -218,7 +218,7 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black py-4 rounded-2xl text-lg shadow-lg hover:shadow-xl transition-all duration-200" data-testid="button-agency-plan">
+              <Button className="w-full border border-gray-300 text-gray-900 hover:bg-gray-50 font-semibold py-3 rounded-lg" data-testid="button-agency-plan">
                 {t.pricing.startTrial}
               </Button>
             </CardContent>
@@ -262,10 +262,10 @@ export default function Pricing() {
             </p>
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 hover:from-brand-700 hover:via-brand-800 hover:to-brand-900 text-white px-12 py-5 rounded-2xl font-black text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+              className="bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-lg font-semibold text-lg"
               data-testid="button-free-trial"
             >
-              ⚡ {t.pricing.startYourTrial}
+              {t.pricing.startYourTrial}
             </Button>
           </div>
         </div>
