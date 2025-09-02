@@ -16,7 +16,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
 
   return (
     <header className="bg-gradient-to-r from-white via-gray-50 to-white border-b border-gray-200 shadow-lg">
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-2">
         {/* Left side - Logo (exact width to match sidebar) */}
         <div className="w-64 pl-8 pr-4 flex items-center flex-shrink-0">
           <Link href="/" className="flex-shrink-0">
