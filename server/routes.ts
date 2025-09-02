@@ -20,6 +20,7 @@ import {
   insertSalesTransactionSchema,
   insertProductSchema,
   insertCampaignTriggerSchema,
+  insertSubscriptionPlanSchema,
 } from "@shared/schema";
 import { posIntegrationService } from "./services/posIntegrations";
 import {
@@ -49,6 +50,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Subscription plan routes
+  app.get('/api/subscription-plans', async (req: any, res) => {
+    try {
+      // Return available subscription plan tiers for agency plans
+      const agencyTiers = [
+        {
+          id: "agency-5",
+          planType: "agency",
+          planTier: "agency-5",
+          brandLimit: 5,
+          monthlyPrice: 19900, // $199 in cents
+          displayPrice: "$199",
+          description: "Perfect for small agencies managing 5 brands"
+        },
+        {
+          id: "agency-10",
+          planType: "agency",
+          planTier: "agency-10",
+          brandLimit: 10,
+          monthlyPrice: 34900, // $349 in cents
+          displayPrice: "$349",
+          description: "Ideal for growing agencies with 10 brands"
+        },
+        {
+          id: "agency-20",
+          planType: "agency",
+          planTier: "agency-20",
+          brandLimit: 20,
+          monthlyPrice: 59900, // $599 in cents
+          displayPrice: "$599",
+          description: "Great for established agencies managing 20 brands"
+        },
+        {
+          id: "agency-50",
+          planType: "agency",
+          planTier: "agency-50+",
+          brandLimit: 50,
+          monthlyPrice: 99900, // $999 in cents
+          displayPrice: "$999",
+          description: "Perfect for large agencies with 50+ brands"
+        }
+      ];
+      
+      res.json(agencyTiers);
+    } catch (error) {
+      console.error("Error fetching subscription plans:", error);
+      res.status(500).json({ message: "Failed to fetch subscription plans" });
     }
   });
 

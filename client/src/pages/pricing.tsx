@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Zap, Crown, Rocket } from "lucide-react";
+import { Check, Zap, Crown, Building2 } from "lucide-react";
 import { useLanguage } from '@/hooks/useLanguage';
 import { translations } from '@/lib/translations';
 
@@ -137,16 +137,38 @@ export default function Pricing() {
           <Card className="relative p-8 border border-gray-200 hover:shadow-xl transition-all duration-300">
             <CardContent className="pt-6">
               <div className="flex items-center mb-4">
-                <Rocket className="h-8 w-8 text-purple-500 mr-3" />
-                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.enterprise}</h3>
+                <Building2 className="h-8 w-8 text-indigo-500 mr-3" />
+                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.agency}</h3>
               </div>
               
               <div className="mb-6">
-                <span className="text-4xl font-black text-gray-900">$149</span>
-                <span className="text-gray-500">{t.pricing.perMonth}</span>
+                <span className="text-2xl font-bold text-gray-900">{t.pricing.agencyTiered}</span>
               </div>
               
-              <p className="text-gray-600 mb-6">{t.pricing.enterpriseDesc}</p>
+              <p className="text-gray-600 mb-6">{t.pricing.agencyDesc}</p>
+              
+              {/* Tiered Pricing */}
+              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-lg mb-6">
+                <h4 className="font-semibold text-gray-900 mb-3">Pricing Tiers:</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>5 Brands</span>
+                    <span className="font-semibold text-indigo-600">$199/mo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>10 Brands</span>
+                    <span className="font-semibold text-indigo-600">$349/mo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>20 Brands</span>
+                    <span className="font-semibold text-indigo-600">$599/mo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>50+ Brands</span>
+                    <span className="font-semibold text-indigo-600">$999/mo</span>
+                  </div>
+                </div>
+              </div>
               
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
@@ -155,39 +177,31 @@ export default function Pricing() {
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.campaigns100}</span>
+                  <span>{t.pricing.unlimitedTeamMembers}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.advancedPlanner}</span>
+                  <span>{t.pricing.whitelabelDashboard}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.premiumInbox}</span>
+                  <span>{t.pricing.agencyReporting}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.platforms21}</span>
+                  <span>{t.pricing.clientAccessPortals}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.whiteLabel}</span>
+                  <span>{t.pricing.customBranding}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.teamCollaboration}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.customIntegrations}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.accountManager}</span>
+                  <span>{t.pricing.dedicatedSupport}</span>
                 </li>
               </ul>
               
-              <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white" data-testid="button-enterprise-plan">
+              <Button className="w-full bg-indigo-500 hover:bg-indigo-600 text-white" data-testid="button-agency-plan">
                 {t.pricing.startTrial}
               </Button>
             </CardContent>

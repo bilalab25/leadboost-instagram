@@ -39,6 +39,22 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Subscription plans for tiered pricing
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  planType: varchar("plan_type").notNull(), // starter, professional, enterprise, agency
+  planTier: varchar("plan_tier"), // For agency: agency-5, agency-10, agency-20, agency-50+
+  brandLimit: integer("brand_limit"), // Number of brands allowed
+  monthlyPrice: integer("monthly_price").notNull(), // Price in cents
+  isActive: boolean("is_active").default(true),
+  billingCycle: varchar("billing_cycle").default("monthly"), // monthly, yearly
+  trialEndsAt: timestamp("trial_ends_at"),
+  lastBilledAt: timestamp("last_billed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Brands/Clients table for multi-tenant agency management
 export const brands = pgTable("brands", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -314,6 +330,10 @@ export const approvalNotifications = pgTable("approval_notifications", {
 
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
+  subscriptionPlan: one(subscriptionPlans, {
+    fields: [users.id],
+    references: [subscriptionPlans.userId],
+  }),
   brands: many(brands),
   socialAccounts: many(socialAccounts),
   contentPlans: many(contentPlans),
@@ -336,6 +356,13 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   // Approval relations
   approvals: many(taskApprovals, { relationName: "approver" }),
   notifications: many(approvalNotifications, { relationName: "user" }),
+}));
+
+export const subscriptionPlansRelations = relations(subscriptionPlans, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptionPlans.userId],
+    references: [users.id],
+  }),
 }));
 
 export const brandsRelations = relations(brands, ({ one, many }) => ({
@@ -559,6 +586,14 @@ export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
 // Brand types
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+export type SelectSubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+
 export const insertBrandSchema = createInsertSchema(brands).omit({
   id: true,
   createdAt: true,
