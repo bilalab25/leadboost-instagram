@@ -115,30 +115,6 @@ export default function Dashboard() {
       
       {/* Main Content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        {/* Action Buttons */}
-        <div className="px-6 py-4 bg-white border-b border-gray-200">
-          <div className="flex justify-end items-center space-x-4">
-            <Button 
-              variant="outline" 
-              onClick={() => populateDemoDataMutation.mutate()}
-              disabled={populateDemoDataMutation.isPending}
-              data-testid="button-populate-demo"
-              className="border-green-200 text-green-700 hover:bg-green-50"
-            >
-              <Database className="mr-2 h-4 w-4" />
-              {populateDemoDataMutation.isPending ? t.common.loading : t.common.loadDemoData}
-            </Button>
-            
-            <Button 
-              className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white border-none hover:from-brand-700 hover:to-cyan-600" 
-              data-testid="button-leadboost-campaign"
-              onClick={() => window.location.href = '/waterfall'}
-            >
-              <Zap className="mr-2 h-4 w-4" />
-              CampAIgner
-            </Button>
-          </div>
-        </div>
 
         {/* Dashboard Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
