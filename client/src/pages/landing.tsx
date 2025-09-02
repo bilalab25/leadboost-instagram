@@ -103,7 +103,7 @@ export default function Landing() {
                     
                     <DropdownMenuItem 
                       className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
-                      onClick={() => window.location.href = '/customers'}
+                      onClick={() => window.location.href = '/inbox'}
                     >
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                         <MessageSquare className="h-5 w-5 text-white" />
