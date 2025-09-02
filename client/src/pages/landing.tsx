@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Package } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useMutation } from "@tanstack/react-query";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Package, HelpCircle, X, Send } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiShopify, SiZapier, SiQuickbooks, SiSquare, SiStripe } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -179,6 +182,56 @@ export default function Landing() {
                     {isSpanish ? '¡Ver Precios!' : 'See Pricing!'}
                   </span>
                 </Button>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="border-gray-300 hover:bg-gray-50">
+                      <HelpCircle className="mr-2 h-4 w-4" />
+                      {isSpanish ? 'Ayuda' : 'Help'}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
+                    <DropdownMenuItem 
+                      className="flex items-start p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => {
+                        const faqSection = document.querySelector('.faq-section') as HTMLElement;
+                        if (faqSection) {
+                          faqSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      }}
+                    >
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <MessageSquare className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Preguntas Frecuentes' : 'FAQ'}</div>
+                        <div className="text-xs text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Ver respuestas a las preguntas más comunes' : 'View answers to the most common questions'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem 
+                      className="flex items-start p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
+                      onClick={() => {
+                        const chatbot = document.querySelector('.ai-chatbot-trigger') as HTMLButtonElement;
+                        if (chatbot) {
+                          chatbot.click();
+                        }
+                      }}
+                    >
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <Bot className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Asistente IA' : 'AI Assistant'}</div>
+                        <div className="text-xs text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Habla con nuestro chatbot para resolver dudas sobre la plataforma' : 'Chat with our AI assistant to resolve platform questions'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 
                 <Button className="bg-brand-600 hover:bg-brand-700 text-white">
                   {isSpanish ? 'Iniciar Sesión' : 'Sign In'}
@@ -698,7 +751,7 @@ export default function Landing() {
         </div>
 
         {/* FAQ Section */}
-        <div className="bg-gradient-to-br from-gray-50 to-white">
+        <div className="bg-gradient-to-br from-gray-50 to-white faq-section">
           <FAQ isSpanish={isSpanish} />
         </div>
 
@@ -732,7 +785,154 @@ export default function Landing() {
           </div>
         </footer>
 
+        {/* Help AI Chatbot */}
+        <HelpChatbot isSpanish={isSpanish} />
       </div>
     </>
+  );
+}
+
+// Help AI Chatbot Component
+function HelpChatbot({ isSpanish }: { isSpanish: boolean }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Array<{id: string, text: string, isBot: boolean, timestamp: Date}>>([{
+    id: '1',
+    text: isSpanish 
+      ? '¡Hola! Soy tu asistente de LeadBoost. ¿En qué puedo ayudarte con la plataforma?' 
+      : 'Hi! I\'m your LeadBoost assistant. How can I help you with the platform?',
+    isBot: true,
+    timestamp: new Date()
+  }]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const chatMutation = useMutation({
+    mutationFn: async ({ message }: { message: string }) => {
+      const response = await fetch('/api/help-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, language: isSpanish ? 'spanish' : 'english' })
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    },
+    onSuccess: (response: any) => {
+      const botMessage = {
+        id: Date.now().toString(),
+        text: response.message || (isSpanish ? 'Lo siento, no pude procesar tu mensaje.' : 'Sorry, I couldn\'t process your message.'),
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botMessage]);
+      setIsLoading(false);
+    },
+    onError: () => {
+      const errorMessage = {
+        id: Date.now().toString(),
+        text: isSpanish 
+          ? 'Lo siento, hay un problema técnico. Puedes revisar nuestras FAQ o contactar soporte.' 
+          : 'Sorry, there\'s a technical issue. You can check our FAQ or contact support.',
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setIsLoading(false);
+    }
+  });
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+    const userMessage = {
+      id: Date.now().toString(),
+      text: inputMessage,
+      isBot: false,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+    chatMutation.mutate({ message: inputMessage });
+    setInputMessage('');
+  };
+
+  if (!isOpen) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          onClick={() => setIsOpen(true)}
+          size="lg"
+          className="rounded-full w-14 h-14 bg-brand-600 hover:bg-brand-700 shadow-lg ai-chatbot-trigger"
+          data-testid="button-open-help-chatbot"
+        >
+          <Bot className="h-6 w-6" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 w-96 max-h-[500px] bg-white rounded-lg shadow-xl border">
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between pb-3 bg-brand-600 text-white rounded-t-lg">
+          <div>
+            <CardTitle className="text-lg">{isSpanish ? 'Asistente LeadBoost' : 'LeadBoost Assistant'}</CardTitle>
+            <div className="flex items-center gap-1 text-sm opacity-90">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              {isSpanish ? 'En línea' : 'Online'}
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="text-white hover:bg-brand-700">
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col p-0 max-h-80">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((message) => (
+              <div key={message.id} className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}>
+                <div className={`max-w-xs px-3 py-2 rounded-lg ${
+                  message.isBot ? 'bg-gray-100 text-gray-800' : 'bg-brand-600 text-white'
+                }`}>
+                  <p className="text-sm">{message.text}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 px-3 py-2 rounded-lg">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="border-t p-4">
+            <div className="flex gap-2">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder={isSpanish ? 'Escribe tu pregunta...' : 'Type your question...'}
+                className="flex-1"
+                disabled={isLoading}
+              />
+              <Button onClick={handleSendMessage} size="sm" disabled={!inputMessage.trim() || isLoading}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Powered by LeadBoost AI</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

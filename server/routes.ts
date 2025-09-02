@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import OpenAI from "openai";
 import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
 import { socialMediaService } from "./services/socialMedia";
 import { imageProcessor } from "./services/imageProcessor";
@@ -27,6 +28,10 @@ import {
   ObjectStorageService,
   ObjectNotFoundError,
 } from "./objectStorage";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -1148,6 +1153,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating chatbot config:", error);
       res.status(500).json({ message: "Failed to create chatbot configuration" });
+    }
+  });
+
+  // Help Chat route
+  app.post('/api/help-chat', async (req: any, res) => {
+    try {
+      const { message, language } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      // Create system prompt for help assistant
+      const systemPrompt = `You are a helpful assistant for LeadBoost, a comprehensive marketing campaign management platform. 
+      
+      LeadBoost features include:
+      - CampAIgner: AI campaign generator that creates content for 21+ platforms in one click
+      - 30 Day Planner: AI content creation and strategy for the entire month automatically  
+      - Brand Studio: Edit and customize AI-proposed campaigns with professional design tools
+      - Chat Deck: Multi-platform unified inbox with automated customer profiles, purchase history and digital file attachments
+      - Analytics Dashboard: Advanced metrics and real-time performance reports
+      - Teams: Team collaboration and management
+      - Global Support: 24/7 multilingual support
+      
+      Answer questions about platform features, pricing, usage, and provide helpful guidance.
+      Keep responses concise and friendly. If you can't answer something specific, direct users to FAQ or support.
+      
+      Respond in ${language === 'spanish' ? 'Spanish' : 'English'}.`;
+
+      // Generate response using OpenAI
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message }
+        ],
+        max_tokens: 300,
+        temperature: 0.7
+      });
+
+      const botMessage = completion.choices[0]?.message?.content || 
+        (language === 'spanish' ? 
+          'Lo siento, no pude procesar tu mensaje. Por favor revisa nuestras FAQ o contacta soporte.' :
+          'Sorry, I couldn\'t process your message. Please check our FAQ or contact support.');
+
+      res.json({ message: botMessage });
+    } catch (error) {
+      console.error("Help chat error:", error);
+      res.status(500).json({ 
+        message: language === 'spanish' ? 
+          'Lo siento, hay un problema técnico. Puedes revisar nuestras FAQ o contactar soporte.' :
+          'Sorry, there\'s a technical issue. You can check our FAQ or contact support.'
+      });
     }
   });
 
