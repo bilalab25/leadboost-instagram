@@ -10,7 +10,7 @@ export default function Pricing() {
   const t = translations[language as keyof typeof translations];
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-cyan-100">
       
       {/* Header */}
       <div className="pt-24 pb-20">
@@ -65,17 +65,17 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl" data-testid="button-starter-plan">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl" data-testid="button-starter-plan">
                 {t.pricing.startFree}
               </Button>
             </CardContent>
           </Card>
 
           {/* Professional Plan - Most Popular */}
-          <Card className="relative p-8 bg-white border-2 border-brand-600 hover:shadow-xl transition-all duration-300 rounded-2xl scale-105">
+          <Card className="relative p-8 bg-white border-2 border-blue-600 hover:shadow-xl transition-all duration-300 rounded-2xl scale-105">
             {/* Most Popular Badge */}
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <span className="bg-gradient-to-r from-brand-600 to-brand-700 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
+              <span className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
                 {t.pricing.mostPopular}
               </span>
             </div>
@@ -130,7 +130,7 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white font-semibold py-3 rounded-xl shadow-lg" data-testid="button-professional-plan">
+              <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-xl shadow-lg" data-testid="button-professional-plan">
                 {t.pricing.startFreeTrial}
               </Button>
             </CardContent>
@@ -150,7 +150,7 @@ export default function Pricing() {
               
               <p className="text-gray-600 mb-6">{t.pricing.agencyDesc}</p>
               
-              <div className="bg-brand-50 p-6 rounded-xl mb-6 border border-brand-100">
+              <div className="bg-blue-50 p-6 rounded-xl mb-6 border border-blue-100">
                 <h4 className="font-semibold text-gray-900 mb-4">Pricing Tiers</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between items-center">
@@ -203,7 +203,7 @@ export default function Pricing() {
                 </li>
               </ul>
               
-              <Button className="w-full border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-semibold py-3 rounded-xl transition-all duration-200" data-testid="button-agency-plan">
+              <Button className="w-full border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold py-3 rounded-xl transition-all duration-200" data-testid="button-agency-plan">
                 {t.pricing.startTrial}
               </Button>
             </CardContent>
@@ -212,7 +212,7 @@ export default function Pricing() {
 
         {/* Free Trial CTA */}
         <div className="text-center mt-20">
-          <div className="bg-white rounded-2xl p-10 max-w-3xl mx-auto shadow-xl border border-brand-100">
+          <div className="bg-white rounded-2xl p-10 max-w-3xl mx-auto shadow-xl border border-blue-100">
             <h3 className="text-3xl font-bold text-gray-900 mb-6">
               {t.pricing.freeTrialTitle}
             </h3>
@@ -221,7 +221,7 @@ export default function Pricing() {
             </p>
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white px-10 py-4 rounded-xl font-semibold shadow-lg"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-4 rounded-xl font-semibold shadow-lg"
               data-testid="button-free-trial"
             >
               {t.pricing.startYourTrial}
