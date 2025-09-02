@@ -880,9 +880,19 @@ function HelpChatbot({ isSpanish }: { isSpanish: boolean }) {
               {isSpanish ? 'En línea' : 'Online'}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="text-white hover:bg-brand-700">
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleLanguage}
+              className="text-white hover:bg-brand-700 text-xs px-2"
+            >
+              {isSpanish ? '🇺🇸 EN' : '🇪🇸 ES'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="text-white hover:bg-brand-700">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0 max-h-80">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
