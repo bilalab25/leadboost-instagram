@@ -135,7 +135,7 @@ export default function Landing() {
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Soporte Global' : 'Global Support'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Asistencia 24/7 y soporte técnico en múltiples idiomas' : '24/7 assistance and technical support in multiple languages'}
+                          {isSpanish ? 'Asistencia 24/7 y soporte técnico en español e inglés' : '24/7 assistance and technical support in Spanish and English'}
                         </div>
                       </div>
                     </DropdownMenuItem>
