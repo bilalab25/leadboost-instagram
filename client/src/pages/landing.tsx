@@ -121,6 +121,18 @@ export default function Landing() {
                         <Users className="h-5 w-5 text-white" />
                       </div>
                       <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Equipos' : 'Teams'}</div>
+                        <div className="text-sm text-gray-600 leading-relaxed">
+                          {isSpanish ? 'Administra permisos, roles y colaboradores de tu agencia' : 'Manage permissions, roles and collaborators for your agency'}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem className="flex items-start p-4 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group">
+                      <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                        <Globe className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
                         <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Gestión Global de Equipo' : 'Global Team Management'}</div>
                         <div className="text-sm text-gray-600 leading-relaxed">
                           {isSpanish ? 'Colaboración de equipos y asignación de tareas en tiempo real' : 'Team collaboration and real-time task assignment'}
