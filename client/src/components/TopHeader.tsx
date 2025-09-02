@@ -30,7 +30,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
           
           {/* Page Name with Breadcrumb Style */}
           {pageName && (
-            <div className="flex items-center gap-3 ml-4">
+            <div className="absolute left-64 flex items-center gap-3 md:static md:left-auto md:ml-4">
               <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-cyan-500 rounded-full"></div>
               <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
                 {pageName}
