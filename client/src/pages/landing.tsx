@@ -856,14 +856,14 @@ function HelpChatbot({ isSpanish }: { isSpanish: boolean }) {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-8 right-8 z-50">
+      <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={() => setIsOpen(true)}
           size="sm"
-          className="rounded-full w-8 h-8 bg-gray-400 hover:bg-gray-500 shadow-sm opacity-50 hover:opacity-80 transition-all duration-300 border-0"
+          className="rounded-full w-11 h-11 bg-gray-600 hover:bg-gray-700 shadow-md opacity-75 hover:opacity-100 transition-all duration-200"
           data-testid="button-open-help-chatbot"
         >
-          <HelpCircle className="h-3 w-3" />
+          <HelpCircle className="h-4 w-4 text-white" />
         </Button>
       </div>
     );
