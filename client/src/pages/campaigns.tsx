@@ -283,7 +283,8 @@ export default function Campaigns() {
                         <p className="text-xs text-gray-600 mb-3">{t.campaigns.platformsHint}</p>
                         <div className="grid grid-cols-2 gap-2">
                           {(isSpanish ? platformOptionsSpanish : platformOptions).map((platform) => {
-                            const Icon = platform.icon;
+                            const originalPlatform = platformOptions.find(p => p.value === platform.value);
+                            const Icon = originalPlatform?.icon;
                             return (
                               <div key={platform.value} className="flex items-center space-x-2">
                                 <Checkbox
@@ -296,7 +297,7 @@ export default function Campaigns() {
                                   htmlFor={`ai-${platform.value}`} 
                                   className="flex items-center cursor-pointer"
                                 >
-                                  <Icon className={cn("mr-2 h-4 w-4", platform.color)} />
+                                  {Icon && <Icon className={cn("mr-2 h-4 w-4", platform.color)} />}
                                   {platform.label}
                                 </Label>
                               </div>
@@ -754,7 +755,6 @@ export default function Campaigns() {
             </div>
           </div>
         </main>
-      </div>
       </div>
     </div>
   );
