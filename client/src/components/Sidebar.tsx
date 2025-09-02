@@ -57,6 +57,12 @@ export default function Sidebar() {
 
   const navigation = [
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
+    { 
+      name: "CampAIgner", 
+      href: "/waterfall", 
+      icon: Zap, 
+      special: true 
+    },
     { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, badge: "12" },
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
     { name: t.sidebar.calendar, href: "/calendar", icon: Calendar },
