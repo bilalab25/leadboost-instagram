@@ -23,7 +23,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
           <img 
             src={leadBoostLogo} 
             alt="Lead Boost Logo" 
-            className="h-14 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-16 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
           />
         </Link>
         
