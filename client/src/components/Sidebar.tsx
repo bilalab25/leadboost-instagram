@@ -91,7 +91,7 @@ export default function Sidebar() {
             <img 
               src={leadBoostLogo} 
               alt="Lead Boost Logo" 
-              className="h-12 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+              className="h-20 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
             />
           </Link>
         </div>
