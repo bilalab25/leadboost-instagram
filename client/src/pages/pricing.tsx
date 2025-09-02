@@ -155,11 +155,11 @@ export default function Pricing() {
                 <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
                   <Building2 className="h-6 w-6 text-gray-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.agency}</h3>
+                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.business}</h3>
               </div>
               
               <div className="mb-8">
-                <span className="text-3xl font-bold text-gray-900">{t.pricing.agencyTiered}</span>
+                <span className="text-3xl font-bold text-gray-900">{t.pricing.businessTiered}</span>
                 <div className="text-sm text-gray-500 font-medium mt-2">{isSpanish ? 'Soluciones empresariales' : 'Enterprise solutions'}</div>
               </div>
               
