@@ -17,7 +17,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
   return (
     <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 shadow-sm">
       {/* Left side - Logo and Page Name */}
-      <div className="flex items-center gap-10">
+      <div className="flex items-center gap-12">
         {/* Logo */}
         <Link href="/">
           <img 
@@ -29,7 +29,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
         
         {/* Page Name */}
         {pageName && (
-          <div className="text-xl font-semibold text-gray-900 ml-4">
+          <div className="text-xl font-semibold text-gray-900 ml-6">
             {pageName}
           </div>
         )}
