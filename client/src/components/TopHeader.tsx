@@ -15,64 +15,80 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
   const t = translations[language];
 
   return (
-    <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 shadow-sm">
-      {/* Left side - Logo and Page Name */}
-      <div className="flex items-center gap-16">
-        {/* Logo */}
-        <Link href="/">
-          <img 
-            src={leadBoostLogo} 
-            alt="Lead Boost Logo" 
-            className="h-16 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
-          />
-        </Link>
-        
-        {/* Page Name */}
-        {pageName && (
-          <div className="text-xl font-semibold text-gray-900 ml-8">
-            {pageName}
-          </div>
-        )}
-      </div>
+    <header className="bg-gradient-to-r from-white via-gray-50 to-white border-b border-gray-200 shadow-lg">
+      <div className="flex items-center justify-between px-8 py-4">
+        {/* Left side - Logo and Page Name */}
+        <div className="flex items-center gap-8">
+          {/* Logo */}
+          <Link href="/" className="flex-shrink-0">
+            <img 
+              src={leadBoostLogo} 
+              alt="Lead Boost Logo" 
+              className="h-12 w-auto object-contain cursor-pointer hover:scale-105 transition-all duration-200 drop-shadow-sm"
+            />
+          </Link>
+          
+          {/* Page Name with Breadcrumb Style */}
+          {pageName && (
+            <div className="flex items-center gap-3 ml-4">
+              <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-cyan-500 rounded-full"></div>
+              <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
+                {pageName}
+              </h1>
+            </div>
+          )}
+        </div>
 
-      {/* Right side - Controls */}
-      <div className="flex items-center gap-3">
-        {/* CampAIgner Button */}
-        <Link href="/campaigns">
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 shadow-md font-medium"
-            data-testid="button-campaigner-header"
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            CampAIgner
-          </Button>
-        </Link>
-        
-        {/* Load Demo Data Button */}
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => {
-            // Add demo data loading logic here
-            window.location.reload();
-          }}
-          className="font-medium text-sm"
-          data-testid="button-load-demo-data-header"
-        >
-          <Database className="h-4 w-4 mr-2" />
-          {t.common.loadDemoData}
-        </Button>
-        
-        {/* Brand Switcher */}
-        <BrandSwitcher />
-        
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" data-testid="button-notifications-header">
-          <Bell className="h-5 w-5" />
-        </Button>
+        {/* Right side - Controls */}
+        <div className="flex items-center gap-4">
+          {/* Primary CTA - CampAIgner (Marketing Focus) */}
+          <Link href="/campaigns">
+            <Button 
+              size="default"
+              className="bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600 hover:from-blue-700 hover:via-blue-800 hover:to-cyan-700 text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+              data-testid="button-campaigner-header"
+            >
+              <Zap className="h-5 w-5 mr-2" />
+              <span className="hidden sm:inline">Create with</span> CampAIgner
+            </Button>
+          </Link>
+          
+          {/* Secondary Actions */}
+          <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+            {/* Load Demo Data Button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                // Add demo data loading logic here
+                window.location.reload();
+              }}
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 font-medium transition-colors duration-150"
+              data-testid="button-load-demo-data-header"
+            >
+              <Database className="h-4 w-4 mr-2" />
+              <span className="hidden md:inline">{t.common.loadDemoData}</span>
+            </Button>
+            
+            {/* Brand Switcher */}
+            <BrandSwitcher />
+            
+            {/* Notifications with Badge */}
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="hover:bg-gray-100 transition-colors duration-150" 
+                data-testid="button-notifications-header"
+              >
+                <Bell className="h-5 w-5 text-gray-600" />
+                {/* Notification Badge */}
+                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse"></span>
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </header>
   );
 }
