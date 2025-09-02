@@ -42,7 +42,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
           <Button 
             variant="default" 
             size="sm" 
-            className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white hover:from-brand-700 hover:to-cyan-600 shadow-md font-medium"
+            className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 shadow-md font-medium"
             data-testid="button-campaigner-header"
           >
             <Zap className="h-4 w-4 mr-2" />
