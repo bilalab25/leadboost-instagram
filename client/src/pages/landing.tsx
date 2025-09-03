@@ -212,13 +212,13 @@ export default function Landing() {
           {/* Sophisticated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-gray-50/50 to-white/60" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-20 pb-20 lg:pt-24 lg:pb-24">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-12 pb-12 lg:pt-16 lg:pb-16">
             <div className="max-w-4xl">
-              <div className="mb-10">
+              <div className="mb-6">
                 <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.9] tracking-[-0.02em] drop-shadow-2xl relative z-10">
                   {isSpanish ? 'Haz Crecer Tu Negocio' : 'Grow Your Business'}
                 </h1>
-                <div className="flex items-center gap-3 mt-4">
+                <div className="flex items-center gap-3 mt-3">
                   <span className="text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent">—</span>
                   <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.02em]">
                     {isSpanish ? 'En Piloto Automático.' : 'On Autopilot.'}
@@ -226,7 +226,7 @@ export default function Landing() {
                 </div>
               </div>
               
-              <div className="space-y-3 mb-8 max-w-2xl">
+              <div className="space-y-2 mb-6 max-w-2xl">
                 <p className="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 leading-tight">
                   {isSpanish ? 'Plataforma completa para hacer crecer tu negocio —' : 'Complete platform to grow your business —'}
                   <br />
