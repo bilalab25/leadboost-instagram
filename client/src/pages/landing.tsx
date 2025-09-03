@@ -25,37 +25,40 @@ export default function Landing() {
       <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
         
         {/* Header */}
-        <header className="relative z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-1">
-              <div className="flex items-center space-x-3">
-                <img 
-                  src={leadBoostLogo} 
-                  alt="Lead Boost Logo" 
-                  className="h-64 w-auto object-contain"
-                  style={{ backgroundColor: 'transparent' }}
-                />
+        <header className="absolute top-0 left-0 right-0 z-50 backdrop-blur-md bg-black/10">
+          <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
+            <div className="flex justify-between items-center py-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20">
+                  <Zap className="h-7 w-7 text-white" />
+                </div>
+                <div className="hidden sm:block">
+                  <h1 className="text-2xl font-light text-white tracking-wide">
+                    LeadBoost
+                  </h1>
+                  <p className="text-sm text-white/60 -mt-1 font-light tracking-wider uppercase">{isSpanish ? 'Plataforma de Marketing' : 'Marketing Platform'}</p>
+                </div>
               </div>
               
               <div className="flex items-center space-x-4">
                 <Button 
                   variant="ghost" 
                   onClick={toggleLanguage}
-                  className="text-sm font-medium"
+                  className="text-sm font-light text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-2"
                 >
-                  {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
+                  {isSpanish ? '🇺🇸 EN' : '🇪🇸 ES'}
                 </Button>
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost"
-                      className="text-gray-700 hover:text-brand-600 hover:bg-brand-50/80 font-semibold px-4 py-2 transition-all duration-200 group"
+                      className="text-white/80 hover:text-white hover:bg-white/10 font-light px-6 py-3 transition-all duration-300 group backdrop-blur-xl border border-white/20 rounded-xl"
                       data-testid="button-features-dropdown"
                     >
-                      <Package className="mr-2 h-4 w-4 group-hover:text-brand-500 transition-colors duration-200" />
-                      {isSpanish ? '¿Qué Incluye?' : "What's Inside?"}
-                      <ChevronDown className="ml-1 h-4 w-4 group-hover:text-brand-500 transition-colors duration-200" />
+                      <Package className="mr-2 h-4 w-4 group-hover:text-white transition-colors duration-300" />
+                      {isSpanish ? 'PRODUCTOS' : 'PRODUCTS'}
+                      <ChevronDown className="ml-1 h-4 w-4 group-hover:text-white transition-colors duration-300" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
@@ -167,76 +170,19 @@ export default function Landing() {
                 </DropdownMenu>
                 
                 <Button 
-                  className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-green-700 text-white font-bold px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-emerald-400/30"
-                  data-testid="button-pricing-cta"
+                  className="bg-white/10 backdrop-blur-xl border border-white/30 text-white font-light px-8 py-3 rounded-xl hover:bg-white/20 hover:border-white/40 transition-all duration-300"
+                  data-testid="button-login"
                   onClick={() => window.location.href = '/pricing'}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
-                  <div className="absolute inset-0 rounded-full">
-                    <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full animate-ping opacity-75"></div>
-                    <div className="absolute top-3 left-3 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
-                    <div className="absolute bottom-2 right-4 w-0.5 h-0.5 bg-emerald-200 rounded-full animate-ping" style={{animationDelay: '500ms'}}></div>
-                  </div>
-                  <span className="relative z-10 flex items-center">
-                    <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
-                    {isSpanish ? '¡Ver Precios!' : 'See Pricing!'}
-                  </span>
+                  {isSpanish ? 'INICIAR SESIÓN' : 'LOG IN'}
                 </Button>
                 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      className="text-gray-600 hover:text-gray-700 hover:bg-transparent border-none bg-transparent px-2 py-1 opacity-60 hover:opacity-90 transition-all duration-300"
-                    >
-                      <HelpCircle className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
-                    <DropdownMenuItem 
-                      className="flex items-start p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
-                      onClick={() => {
-                        const faqSection = document.querySelector('.faq-section') as HTMLElement;
-                        if (faqSection) {
-                          faqSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                      }}
-                    >
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                        <MessageSquare className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Preguntas Frecuentes' : 'FAQ'}</div>
-                        <div className="text-xs text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Ver respuestas a las preguntas más comunes' : 'View answers to the most common questions'}
-                        </div>
-                      </div>
-                    </DropdownMenuItem>
-                    
-                    <DropdownMenuItem 
-                      className="flex items-start p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer group"
-                      onClick={() => {
-                        const chatbot = document.querySelector('.ai-chatbot-trigger') as HTMLButtonElement;
-                        if (chatbot) {
-                          chatbot.click();
-                        }
-                      }}
-                    >
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                        <Bot className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-gray-900 mb-1">{isSpanish ? 'Asistente IA' : 'AI Assistant'}</div>
-                        <div className="text-xs text-gray-600 leading-relaxed">
-                          {isSpanish ? 'Habla con nuestro chatbot para resolver dudas sobre la plataforma' : 'Chat with our AI assistant to resolve platform questions'}
-                        </div>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <Button className="bg-brand-600 hover:bg-brand-700 text-white">
-                  {isSpanish ? 'Iniciar Sesión' : 'Sign In'}
+                <Button 
+                  className="bg-white text-black hover:bg-gray-50 font-medium px-8 py-3 rounded-xl transition-all duration-300 hover:shadow-2xl"
+                  data-testid="button-get-started"
+                  onClick={() => window.location.href = '/campaigner'}
+                >
+                  {isSpanish ? 'EMPEZAR' : 'GET STARTED'}
                 </Button>
               </div>
             </div>
@@ -244,35 +190,35 @@ export default function Landing() {
         </header>
 
         {/* Hero Section with Floating Campaign Background */}
-        <div className="relative overflow-hidden mt-32 min-h-screen">
+        <div className="relative overflow-hidden mt-0 min-h-screen bg-black">
           {/* Floating Campaign Background - Squarespace Style */}
           <div className="absolute inset-0 overflow-hidden">
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
-          {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-black/40" />
+          {/* Sophisticated gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/70" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-            <div className="max-w-3xl">
-              <h1 className="text-6xl lg:text-8xl font-black text-white mb-8 leading-[0.9] tracking-tight">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-24 lg:py-32">
+            <div className="max-w-4xl">
+              <h1 className="text-7xl lg:text-9xl font-light text-white mb-12 leading-[0.85] tracking-[-0.02em] font-serif">
                 {isSpanish ? 'Crea tu campaña' : 'Create your campaign'}
               </h1>
               
-              <div className="space-y-4 mb-8 text-white">
-                <p className="text-xl lg:text-2xl font-medium opacity-90">
-                  {isSpanish ? 'Plantillas de campañas fáciles de editar, sin necesidad de programar' : 'Easy-to-edit campaign templates, no coding needed'}
+              <div className="space-y-6 mb-12 max-w-2xl">
+                <p className="text-2xl lg:text-3xl font-light text-white/90 leading-relaxed tracking-wide">
+                  {isSpanish ? 'Plantillas de campañas sofisticadas, sin necesidad de programar' : 'Sophisticated campaign templates, no coding needed'}
                 </p>
-                <p className="text-lg lg:text-xl opacity-80">
+                <p className="text-xl lg:text-2xl font-light text-white/80 leading-relaxed">
                   {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
                 </p>
-                <p className="text-base lg:text-lg opacity-70">
+                <p className="text-lg lg:text-xl font-light text-white/70 leading-relaxed">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
               
               <Button 
-                className="bg-white text-black hover:bg-gray-100 text-lg font-semibold px-8 py-4 h-auto"
+                className="bg-white text-black hover:bg-gray-50 text-lg font-medium px-12 py-6 h-auto rounded-none border-0 transition-all duration-300 hover:shadow-2xl"
                 onClick={() => window.location.href = '/campaigner'}
               >
                 {isSpanish ? 'VER PLANTILLAS' : 'SEE TEMPLATES'}
@@ -863,28 +809,32 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             {[...column, ...column].map((campaign, cardIndex) => (
               <div
                 key={`${columnIndex}-${cardIndex}`}
-                className="rounded-xl shadow-2xl border border-white/10 overflow-hidden opacity-80 hover:opacity-100 transition-all duration-500 transform hover:scale-105"
+                className="rounded-2xl shadow-2xl border border-white/5 overflow-hidden opacity-70 hover:opacity-95 transition-all duration-700 transform hover:scale-105 backdrop-blur-sm"
                 style={{
-                  width: `${campaign.width * 0.8}px`,
-                  height: `${campaign.height * 0.8}px`,
+                  width: `${campaign.width * 0.75}px`,
+                  height: `${campaign.height * 0.75}px`,
                 }}
               >
                 <div className={`w-full h-full ${campaign.bgColor} relative flex items-center justify-center`}>
+                  {/* Premium glass effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/20"></div>
+                  
                   {/* Platform Icon */}
-                  <div className="absolute top-2 right-2 w-6 h-6 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                  <div className="absolute top-3 right-3 w-7 h-7 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/20">
                     {campaign.icon}
                   </div>
                   
                   {/* Content */}
-                  <div className="text-center text-white p-4">
-                    <h4 className="font-bold text-sm leading-tight opacity-90">
+                  <div className="text-center text-white p-6 relative z-10">
+                    <h4 className="font-light text-base leading-tight opacity-95 tracking-wide">
                       {campaign.title}
                     </h4>
-                    <div className="mt-2 w-8 h-0.5 bg-white/40 mx-auto"></div>
+                    <div className="mt-3 w-12 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent mx-auto"></div>
                   </div>
                   
-                  {/* Decorative gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                  {/* Sophisticated overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/5"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
                 </div>
               </div>
             ))}
