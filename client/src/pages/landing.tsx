@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Package, HelpCircle, X, Send } from "lucide-react";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Rocket, HelpCircle, X, Send } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiShopify, SiZapier, SiQuickbooks, SiSquare, SiStripe } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -66,7 +66,7 @@ export default function Landing() {
                       className="text-brand-800 hover:text-brand-700 hover:bg-white/10 font-medium px-6 py-3 transition-all duration-300 group backdrop-blur-xl border border-brand-400/30 rounded-xl"
                       data-testid="button-features-dropdown"
                     >
-                      <Package className="mr-2 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
+                      <Rocket className="mr-2 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
                       {isSpanish ? 'QUÉ HAY ADENTRO' : "WHAT'S INSIDE"}
                       <ChevronDown className="ml-1 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
                     </Button>
