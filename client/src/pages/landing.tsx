@@ -233,7 +233,10 @@ export default function Landing() {
                   {isSpanish ? 'marketing, ventas y gestión de clientes' : 'marketing, sales, and customer management'}
                 </p>
                 <p className="text-xs lg:text-sm xl:text-base font-medium text-gray-600 leading-tight">
-                  {isSpanish ? 'Todo automatizado: genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'Everything automated: generate campaigns, manage clients, unify messages — all in one place'}
+                  <span className="bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent font-bold animate-pulse">
+                    {isSpanish ? 'Todo automatizado:' : 'Everything automated:'}
+                  </span>{' '}
+                  {isSpanish ? 'genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'generate campaigns, manage clients, unify messages — all in one place'}
                 </p>
               </div>
               
