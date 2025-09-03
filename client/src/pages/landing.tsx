@@ -841,6 +841,51 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           </div>
         </div>
       ))}
+
+      {/* How It Works Steps - Floating in Background */}
+      <div className="absolute top-1/3 right-8 lg:right-16 space-y-8 opacity-80 z-10">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '2s', animationDuration: '25s' }}>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">1</span>
+            </div>
+            <h3 className="text-white font-semibold text-lg">
+              {isSpanish ? 'Dinos tu negocio' : 'Tell us your business type'}
+            </h3>
+          </div>
+          <p className="text-white/90 text-sm leading-relaxed">
+            {isSpanish ? 'Dentista, Agente Inmobiliario, Coach Fitness, etc.' : 'Dentist, Realtor, Fitness coach, etc.'}
+          </p>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '3s', animationDuration: '25s' }}>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">2</span>
+            </div>
+            <h3 className="text-white font-semibold text-lg">
+              {isSpanish ? 'IA construye tu campaña' : 'AI builds your campaign'}
+            </h3>
+          </div>
+          <p className="text-white/90 text-sm leading-relaxed">
+            {isSpanish ? 'Anuncios, posts, formularios — hecho en segundos.' : 'Ads, posts, forms — done in seconds.'}
+          </p>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '4s', animationDuration: '25s' }}>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">3</span>
+            </div>
+            <h3 className="text-white font-semibold text-lg">
+              {isSpanish ? 'Empezar a recibir clientes' : 'Start getting leads'}
+            </h3>
+          </div>
+          <p className="text-white/90 text-sm leading-relaxed">
+            {isSpanish ? 'Nuevos clientes te contactan directamente.' : 'New clients reach out directly.'}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
