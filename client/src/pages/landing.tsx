@@ -920,7 +920,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       <div className="absolute top-36 right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-base">1</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-base">
@@ -941,7 +941,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       <div className="absolute top-[19.5rem] right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-base">2</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-base">
@@ -962,7 +962,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       <div className="absolute top-[29rem] right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-base">3</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-base">
