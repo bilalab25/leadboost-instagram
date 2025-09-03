@@ -1260,9 +1260,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     desc: isSpanish ? 'Elegante y confiable' : 'Elegant & trustworthy',
                     icon: (
                       <div className="relative">
-                        <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
-                          <div className="w-4 h-3 bg-white/90 rounded-sm"></div>
-                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-200 rounded-full animate-pulse opacity-60"></div>
+                        <div className="w-7 h-7 bg-white/20 rounded-xl border border-white/30 flex items-center justify-center shadow-xl">
+                          <div className="w-2 h-2 bg-white rounded-sm shadow-inner"></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-blue-100 rounded-full animate-pulse"></div>
+                          <div className="absolute bottom-1 left-1 w-0.5 h-0.5 bg-blue-200 rounded-full opacity-60"></div>
                         </div>
                       </div>
                     ),
@@ -1274,9 +1275,13 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     desc: isSpanish ? 'Artístico y vibrante' : 'Artistic & vibrant',
                     icon: (
                       <div className="relative">
-                        <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
-                          <div className="w-3 h-3 rounded-full bg-gradient-to-br from-white via-purple-200 to-pink-200"></div>
-                          <div className="absolute top-0 right-0 w-1.5 h-1.5 bg-purple-300 rounded-full animate-ping"></div>
+                        <div className="w-7 h-7 bg-white/15 rounded-full border-2 border-white/25 flex items-center justify-center shadow-xl">
+                          <div className="grid grid-cols-2 gap-0.5">
+                            <div className="w-1 h-1 bg-purple-200 rounded-full animate-pulse"></div>
+                            <div className="w-1 h-1 bg-pink-200 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                            <div className="w-1 h-1 bg-yellow-200 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                            <div className="w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                          </div>
                         </div>
                       </div>
                     ),
@@ -1288,11 +1293,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     desc: isSpanish ? 'Alegre y accesible' : 'Fun & approachable',
                     icon: (
                       <div className="relative">
-                        <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 rotate-12 transform transition-transform hover:rotate-0">
-                          <div className="flex space-x-0.5">
-                            <div className="w-1 h-1 bg-yellow-200 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-                            <div className="w-1 h-1 bg-orange-200 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-1 h-1 bg-pink-200 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-7 h-7 bg-white/20 rounded-2xl border border-white/30 flex items-center justify-center shadow-xl transform hover:scale-110 transition-transform">
+                          <div className="relative">
+                            <div className="w-2 h-2 bg-gradient-to-r from-yellow-100 to-orange-200 rounded-full animate-spin"></div>
+                            <div className="absolute -top-1 -right-1 w-1 h-1 bg-pink-300 rounded-full animate-bounce"></div>
                           </div>
                         </div>
                       </div>
@@ -1305,10 +1309,11 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     desc: isSpanish ? 'Exclusivo y premium' : 'Exclusive & premium',
                     icon: (
                       <div className="relative">
-                        <div className="w-8 h-8 bg-gradient-to-br from-white/20 via-amber-200/30 to-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-amber-200/30 shadow-inner">
-                          <div className="w-2 h-2 bg-gradient-to-br from-amber-100 to-yellow-200 rounded-full shadow-lg"></div>
-                          <div className="absolute -top-0.5 -right-0.5 w-1 h-1 bg-amber-300 rounded-full animate-pulse"></div>
-                          <div className="absolute -bottom-0.5 -left-0.5 w-0.5 h-0.5 bg-amber-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                        <div className="w-7 h-7 bg-gradient-to-br from-amber-100/20 to-yellow-100/10 rounded-lg border border-amber-200/40 flex items-center justify-center shadow-2xl">
+                          <div className="w-1.5 h-1.5 bg-gradient-to-br from-amber-200 to-yellow-300 rounded-full shadow-lg"></div>
+                          <div className="absolute top-0.5 right-0.5 w-0.5 h-0.5 bg-amber-300 rounded-full animate-ping opacity-80"></div>
+                          <div className="absolute bottom-0.5 left-0.5 w-0.5 h-0.5 bg-yellow-400 rounded-full animate-ping opacity-60" style={{animationDelay: '0.8s'}}></div>
+                          <div className="absolute top-1.5 left-0.5 w-0.5 h-0.5 bg-amber-400 rounded-full animate-pulse opacity-40" style={{animationDelay: '1.2s'}}></div>
                         </div>
                       </div>
                     ),
