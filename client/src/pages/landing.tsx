@@ -192,8 +192,8 @@ export default function Landing() {
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
-          {/* Sophisticated gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-800/70 via-brand-700/60 to-brand-900/80" />
+          {/* Light overlay for text contrast while keeping posts visible */}
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-800/30 via-brand-700/20 to-brand-900/40" />
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
