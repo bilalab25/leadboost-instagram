@@ -369,7 +369,7 @@ export default function Landing() {
             </div>
             
             {/* Social Proof Section - Enhanced */}
-            <div className="py-20 bg-gradient-to-br from-white via-brand-25 to-slate-50 rounded-3xl border border-slate-200/50 shadow-lg mb-16">
+            <div className="py-20 bg-gradient-to-br from-white via-brand-25 to-slate-50 rounded-3xl border border-slate-200/50 shadow-lg mb-16 mt-24">
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Statistics */}
                 <div className="text-center mb-20">
