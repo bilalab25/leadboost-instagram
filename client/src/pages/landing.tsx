@@ -228,7 +228,7 @@ export default function Landing() {
               
               <div className="space-y-2 mb-6 max-w-2xl">
                 <p className="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 leading-tight">
-                  {isSpanish ? 'Plataforma completa para hacer crecer tu negocio —' : 'Complete platform to grow your business —'}
+                  {isSpanish ? 'Plataforma completa impulsada por IA —' : 'Complete AI-powered platform —'}
                   <br />
                   {isSpanish ? 'marketing, ventas y atención al cliente' : 'marketing, sales, and customer service'}
                 </p>
