@@ -212,7 +212,7 @@ export default function Landing() {
           {/* Sophisticated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-gray-50/50 to-white/60" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-16 pb-12 lg:pt-20 lg:pb-16">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-20 pb-12 lg:pt-24 lg:pb-16">
             <div className="max-w-4xl">
               <div className="mb-6">
                 <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.7] tracking-[-0.02em] drop-shadow-2xl relative z-10">
