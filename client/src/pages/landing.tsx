@@ -197,18 +197,18 @@ export default function Landing() {
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
+              <h1 className="text-7xl lg:text-9xl font-bold text-brand-800 mb-12 leading-[0.85] tracking-[-0.02em]">
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
               <div className="space-y-6 mb-12 max-w-2xl">
-                <p className="text-2xl lg:text-3xl font-light text-brand-700 leading-relaxed tracking-wide">
+                <p className="text-2xl lg:text-3xl font-light text-brand-800 leading-relaxed tracking-wide">
                   {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
                 </p>
-                <p className="text-xl lg:text-2xl font-light text-brand-600 leading-relaxed">
+                <p className="text-xl lg:text-2xl font-light text-brand-800 leading-relaxed">
                   {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
                 </p>
-                <p className="text-lg lg:text-xl font-light text-brand-500 leading-relaxed">
+                <p className="text-lg lg:text-xl font-light text-brand-800 leading-relaxed">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
