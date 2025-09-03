@@ -928,7 +928,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
                 <>
                   AI Generates & Posts
                   <br />
-                  <span className="text-sm italic">data-backed campaigns</span>
+                  <span className="text-sm italic text-gray-600">data-backed campaigns</span>
                 </>
               )}
             </h3>
@@ -954,7 +954,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               {isSpanish ? 'Alcanza 30x Más Clientes' : (
                 <>
                   Reach 30x More Clients
-                  <span className="text-sm italic">—without 30x the effort</span>
+                  <span className="text-sm italic text-gray-600">—without 30x the effort</span>
                 </>
               )}
             </h3>
@@ -981,7 +981,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
                 <>
                   Convert with AI Chat
                   <br />
-                  <span className="text-sm italic">in our multiplatform inbox</span>
+                  <span className="text-sm italic text-gray-600">in our multiplatform inbox</span>
                 </>
               )}
             </h3>
