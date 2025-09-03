@@ -904,14 +904,18 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       ))}
 
       {/* How It Works Steps - Ghost Appear */}
-      {/* "As Easy As" Header */}
+      {/* Connected "As Easy As" Section */}
       <div className="absolute top-16 right-8 lg:right-16 z-20">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-right animate-ghost-appear" style={{ animationDelay: '0.1s' }}>
-          {isSpanish ? 'Así de Fácil' : 'As Easy As'}
-        </h2>
+        {/* Header with Visual Connection */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent animate-ghost-appear mb-3" style={{ animationDelay: '0.1s' }}>
+            {isSpanish ? 'Así de Fácil' : 'As Easy As'}
+          </h2>
+          <div className="w-16 h-0.5 bg-gradient-to-r from-brand-500 to-brand-700 mx-auto animate-ghost-appear" style={{ animationDelay: '0.2s' }}></div>
+        </div>
       </div>
       {/* Step 1 */}
-      <div className="absolute top-32 right-8 lg:right-16 z-20">
+      <div className="absolute top-44 right-8 lg:right-16 z-20">
         <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
@@ -928,7 +932,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 2 */}
-      <div className="absolute top-72 right-8 lg:right-16 z-20">
+      <div className="absolute top-80 right-8 lg:right-16 z-20">
         <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
@@ -945,7 +949,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 3 */}
-      <div className="absolute top-[28rem] right-8 lg:right-16 z-20">
+      <div className="absolute top-[30rem] right-8 lg:right-16 z-20">
         <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
