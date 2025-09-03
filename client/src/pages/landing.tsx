@@ -249,7 +249,12 @@ export default function Landing() {
             <div className="max-w-5xl">
               <div className="mb-8">
                 <h1 className="text-5xl lg:text-7xl xl:text-8xl font-bold text-slate-900 leading-[0.9] tracking-[-0.02em] relative z-10">
-                  {isSpanish ? 'Haz Crecer Tu\u00A0Negocio' : 'Grow Your \nBusiness'}
+                  {isSpanish ? 'Haz Crecer Tu\u00A0Negocio' : (
+                    <>
+                      Grow Your <br />
+                      Business
+                    </>
+                  )}
                 </h1>
                 <h2 className="text-3xl lg:text-4xl xl:text-5xl font-medium text-slate-600 tracking-[-0.01em] mt-3">
                   {isSpanish ? 'En Piloto Automático.' : 'On Autopilot.'}
