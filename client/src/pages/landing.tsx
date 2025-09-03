@@ -840,7 +840,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* How It Works Steps - Cascade from Top */}
       {/* Step 1 */}
-      <div className="absolute top-32 right-8 lg:right-16 z-20">
+      <div className="absolute top-48 right-8 lg:right-16 z-20">
         <div className="group bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/30 p-7 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-cascade-fall" style={{ animationDelay: '1s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-400 to-brand-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -857,7 +857,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 2 */}
-      <div className="absolute top-80 right-8 lg:right-16 z-20">
+      <div className="absolute top-96 right-8 lg:right-16 z-20">
         <div className="group bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/30 p-7 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
@@ -874,7 +874,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 3 */}
-      <div className="absolute top-[36rem] right-8 lg:right-16 z-20">
+      <div className="absolute top-[44rem] right-8 lg:right-16 z-20">
         <div className="group bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/30 p-7 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-cascade-fall" style={{ animationDelay: '4s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-600 to-brand-800 rounded-full flex items-center justify-center flex-shrink-0">
