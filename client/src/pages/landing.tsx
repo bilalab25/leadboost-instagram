@@ -243,31 +243,40 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* Hero Section with Visual Campaign Showcase */}
-        <div className="relative overflow-hidden mt-32">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
-          <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-brand-300/20 to-brand-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-40 left-10 w-64 h-64 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
+        {/* Hero Section with Floating Campaign Background */}
+        <div className="relative overflow-hidden mt-32 min-h-screen">
+          {/* Floating Campaign Background - Squarespace Style */}
+          <div className="absolute inset-0 overflow-hidden">
+            <CampaignBackgroundFlow isSpanish={isSpanish} />
+          </div>
           
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-            <div className="text-center mb-8">
-              <h2 className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.88] tracking-tight">
-                {isSpanish ? 'El Efecto LeadBoost' : 'The LeadBoost Effect'}
-              </h2>
-              <div className="text-3xl lg:text-4xl font-semibold text-brand-600 mb-8 tracking-wide">
-                {isSpanish ? 'Ser Visto → En Todos Lados. En Un Clic.' : 'Get Seen → Everywhere. In One Click.'}
-              </div>
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-black/40" />
+          
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+            <div className="max-w-3xl">
+              <h1 className="text-6xl lg:text-8xl font-black text-white mb-8 leading-[0.9] tracking-tight">
+                {isSpanish ? 'Crea tu campaña' : 'Create your campaign'}
+              </h1>
               
-              <div className="max-w-4xl mx-auto mt-8 mb-12">
-                <p className="text-lg lg:text-xl text-gray-600 leading-relaxed font-normal">
-                  {isSpanish ? 'Convierte los datos de tu negocio en campañas listas para usar en 21+ plataformas—en solo un clic.' : 'Turn your business data into ready-to-go campaigns for 21+ platforms—in just one click.'}
+              <div className="space-y-4 mb-8 text-white">
+                <p className="text-xl lg:text-2xl font-medium opacity-90">
+                  {isSpanish ? 'Plantillas de campañas fáciles de editar, sin necesidad de programar' : 'Easy-to-edit campaign templates, no coding needed'}
+                </p>
+                <p className="text-lg lg:text-xl opacity-80">
+                  {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
+                </p>
+                <p className="text-base lg:text-lg opacity-70">
+                  {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
-            </div>
-
-            {/* Visual Campaign Showcase - Squarespace Style */}
-            <div className="relative h-[600px] overflow-hidden">
-              <CampaignShowcase isSpanish={isSpanish} />
+              
+              <Button 
+                className="bg-white text-black hover:bg-gray-100 text-lg font-semibold px-8 py-4 h-auto"
+                onClick={() => window.location.href = '/campaigner'}
+              >
+                {isSpanish ? 'VER PLANTILLAS' : 'SEE TEMPLATES'}
+              </Button>
             </div>
           </div>
           
@@ -796,6 +805,93 @@ export default function Landing() {
         <HelpChatbot isSpanish={isSpanish} />
       </div>
     </>
+  );
+}
+
+// Campaign Background Flow - Squarespace Style
+function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
+  // Generate multiple columns of campaigns with different platform formats
+  const campaignData = [
+    // Column 1 - Left
+    [
+      { platform: 'instagram-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-pink-500 to-purple-600', icon: <SiInstagram className="h-3 w-3 text-white" />, title: isSpanish ? 'Historia Especial' : 'Story Special' },
+      { platform: 'facebook', width: 280, height: 160, bgColor: 'bg-gradient-to-br from-blue-600 to-indigo-700', icon: <SiFacebook className="h-3 w-3 text-white" />, title: isSpanish ? 'Evento Facebook' : 'Facebook Event' },
+      { platform: 'linkedin', width: 240, height: 240, bgColor: 'bg-gradient-to-br from-blue-700 to-indigo-800', icon: <SiLinkedin className="h-3 w-3 text-white" />, title: isSpanish ? 'Post Profesional' : 'Professional Post' },
+      { platform: 'tiktok', width: 200, height: 350, bgColor: 'bg-gradient-to-br from-gray-800 to-gray-900', icon: <SiTiktok className="h-3 w-3 text-white" />, title: isSpanish ? 'Video Viral' : 'Viral Video' },
+      { platform: 'youtube', width: 300, height: 170, bgColor: 'bg-gradient-to-br from-red-500 to-red-700', icon: <SiYoutube className="h-3 w-3 text-white" />, title: isSpanish ? 'Tutorial' : 'Tutorial' },
+    ],
+    // Column 2 - Center Left  
+    [
+      { platform: 'instagram-feed', width: 260, height: 260, bgColor: 'bg-gradient-to-br from-orange-400 to-pink-500', icon: <SiInstagram className="h-3 w-3 text-white" />, title: isSpanish ? 'Post Instagram' : 'Instagram Post' },
+      { platform: 'x', width: 320, height: 140, bgColor: 'bg-gradient-to-br from-slate-800 to-slate-900', icon: <SiX className="h-3 w-3 text-white" />, title: isSpanish ? 'Tweet' : 'Tweet' },
+      { platform: 'whatsapp', width: 280, height: 180, bgColor: 'bg-gradient-to-br from-green-500 to-green-700', icon: <SiWhatsapp className="h-3 w-3 text-white" />, title: isSpanish ? 'Mensaje' : 'Message' },
+      { platform: 'pinterest', width: 220, height: 300, bgColor: 'bg-gradient-to-br from-red-600 to-pink-600', icon: <div className="h-3 w-3 bg-white rounded-full"></div>, title: isSpanish ? 'Pin Visual' : 'Visual Pin' },
+      { platform: 'snapchat', width: 190, height: 340, bgColor: 'bg-gradient-to-br from-yellow-400 to-yellow-600', icon: <div className="h-3 w-3 bg-white rounded"></div>, title: isSpanish ? 'Snap Story' : 'Snap Story' },
+    ],
+    // Column 3 - Center Right
+    [
+      { platform: 'youtube-short', width: 200, height: 360, bgColor: 'bg-gradient-to-br from-red-600 to-orange-600', icon: <SiYoutube className="h-3 w-3 text-white" />, title: isSpanish ? 'Short Video' : 'Short Video' },
+      { platform: 'linkedin-story', width: 250, height: 250, bgColor: 'bg-gradient-to-br from-indigo-600 to-blue-700', icon: <SiLinkedin className="h-3 w-3 text-white" />, title: isSpanish ? 'Historia LinkedIn' : 'LinkedIn Story' },
+      { platform: 'instagram-reel', width: 210, height: 370, bgColor: 'bg-gradient-to-br from-purple-500 to-pink-600', icon: <SiInstagram className="h-3 w-3 text-white" />, title: isSpanish ? 'Reel' : 'Reel' },
+      { platform: 'facebook-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-blue-500 to-purple-600', icon: <SiFacebook className="h-3 w-3 text-white" />, title: isSpanish ? 'Historia FB' : 'FB Story' },
+      { platform: 'twitter-card', width: 300, height: 157, bgColor: 'bg-gradient-to-br from-gray-700 to-gray-900', icon: <SiX className="h-3 w-3 text-white" />, title: isSpanish ? 'Card Twitter' : 'Twitter Card' },
+    ],
+    // Column 4 - Right
+    [
+      { platform: 'instagram-carousel', width: 270, height: 270, bgColor: 'bg-gradient-to-br from-pink-400 to-orange-500', icon: <SiInstagram className="h-3 w-3 text-white" />, title: isSpanish ? 'Carrusel' : 'Carousel' },
+      { platform: 'tiktok-wide', width: 240, height: 135, bgColor: 'bg-gradient-to-br from-gray-900 to-black', icon: <SiTiktok className="h-3 w-3 text-white" />, title: isSpanish ? 'TikTok Ancho' : 'TikTok Wide' },
+      { platform: 'linkedin-banner', width: 320, height: 120, bgColor: 'bg-gradient-to-br from-blue-800 to-indigo-900', icon: <SiLinkedin className="h-3 w-3 text-white" />, title: isSpanish ? 'Banner' : 'Banner' },
+      { platform: 'facebook-cover', width: 340, height: 126, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-800', icon: <SiFacebook className="h-3 w-3 text-white" />, title: isSpanish ? 'Portada' : 'Cover' },
+      { platform: 'youtube-banner', width: 350, height: 140, bgColor: 'bg-gradient-to-br from-red-700 to-red-900', icon: <SiYoutube className="h-3 w-3 text-white" />, title: isSpanish ? 'Banner YT' : 'YT Banner' },
+    ]
+  ];
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {campaignData.map((column, columnIndex) => (
+        <div
+          key={columnIndex}
+          className="absolute top-0 animate-float-down"
+          style={{
+            left: `${20 + columnIndex * 25}%`,
+            animationDelay: `${columnIndex * 0.5}s`,
+            animationDuration: '20s'
+          }}
+        >
+          {/* Duplicate the column content for seamless loop */}
+          <div className="flex flex-col space-y-6">
+            {[...column, ...column].map((campaign, cardIndex) => (
+              <div
+                key={`${columnIndex}-${cardIndex}`}
+                className="rounded-xl shadow-2xl border border-white/10 overflow-hidden opacity-80 hover:opacity-100 transition-all duration-500 transform hover:scale-105"
+                style={{
+                  width: `${campaign.width * 0.8}px`,
+                  height: `${campaign.height * 0.8}px`,
+                }}
+              >
+                <div className={`w-full h-full ${campaign.bgColor} relative flex items-center justify-center`}>
+                  {/* Platform Icon */}
+                  <div className="absolute top-2 right-2 w-6 h-6 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                    {campaign.icon}
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="text-center text-white p-4">
+                    <h4 className="font-bold text-sm leading-tight opacity-90">
+                      {campaign.title}
+                    </h4>
+                    <div className="mt-2 w-8 h-0.5 bg-white/40 mx-auto"></div>
+                  </div>
+                  
+                  {/* Decorative gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 

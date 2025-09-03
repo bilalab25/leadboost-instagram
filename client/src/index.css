@@ -294,3 +294,17 @@
     opacity: 0;
   }
 }
+
+/* Campaign Background Flow Animation - Squarespace Style */
+@keyframes float-down {
+  0% {
+    transform: translateY(-100vh);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.animate-float-down {
+  animation: float-down 20s linear infinite;
+}
