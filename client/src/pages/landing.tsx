@@ -928,7 +928,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
                 <>
                   AI Generates & Posts
                   <br />
-                  <span className="text-sm italic">Data-backed campaigns</span>
+                  <span className="text-sm italic">data-backed campaigns</span>
                 </>
               )}
             </h3>
@@ -954,7 +954,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               {isSpanish ? 'Alcanza 30x Más Clientes' : (
                 <>
                   Reach 30x More Clients
-                  <span className="text-sm italic">—Without 30x the Effort</span>
+                  <span className="text-sm italic">—without 30x the effort</span>
                 </>
               )}
             </h3>
