@@ -839,61 +839,55 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
         </div>
       ))}
 
-      {/* How It Works Steps - Premium Cascade Design */}
+      {/* How It Works Steps - Cascade from Top */}
       {/* Step 1 */}
       <div className="absolute top-20 right-8 lg:right-16 z-20">
-        <div className="group bg-gradient-to-br from-brand-600/20 via-brand-700/15 to-brand-800/10 backdrop-blur-xl rounded-3xl border border-brand-400/40 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.4)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '1s' }}>
-          <div className="flex items-start gap-5 mb-5">
-            <div className="w-14 h-14 bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-500/40 group-hover:shadow-brand-400/60 transition-shadow duration-300">
-              <span className="text-white font-bold text-xl">1</span>
+        <div className="bg-gradient-to-br from-brand-600/15 via-brand-700/10 to-brand-800/5 backdrop-blur-xl rounded-3xl border border-brand-400/30 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '1s' }}>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-brand-400 to-brand-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">1</span>
             </div>
-            <div className="flex-1">
-              <h3 className="text-white font-bold text-xl mb-2 leading-tight">
-                {isSpanish ? 'Dinos tu negocio' : 'Tell us your business'}
-              </h3>
-              <p className="text-white/85 text-sm leading-relaxed">
-                {isSpanish ? 'Dentista, Agente Inmobiliario, Coach Fitness, etc.' : 'Dentist, Realtor, Fitness coach, etc.'}
-              </p>
-            </div>
+            <h3 className="text-white font-semibold text-lg">
+              {isSpanish ? 'Dinos tu negocio' : 'Tell us your business type'}
+            </h3>
           </div>
+          <p className="text-white/90 text-sm leading-relaxed">
+            {isSpanish ? 'Dentista, Agente Inmobiliario, Coach Fitness, etc.' : 'Dentist, Realtor, Fitness coach, etc.'}
+          </p>
         </div>
       </div>
 
       {/* Step 2 */}
       <div className="absolute top-72 right-8 lg:right-16 z-20">
-        <div className="group bg-gradient-to-br from-brand-600/20 via-brand-700/15 to-brand-800/10 backdrop-blur-xl rounded-3xl border border-brand-400/40 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.4)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
-          <div className="flex items-start gap-5 mb-5">
-            <div className="w-14 h-14 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-600/40 group-hover:shadow-brand-500/60 transition-shadow duration-300">
-              <span className="text-white font-bold text-xl">2</span>
+        <div className="bg-gradient-to-br from-brand-600/15 via-brand-700/10 to-brand-800/5 backdrop-blur-xl rounded-3xl border border-brand-400/30 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">2</span>
             </div>
-            <div className="flex-1">
-              <h3 className="text-white font-bold text-xl mb-2 leading-tight">
-                {isSpanish ? 'IA construye tu campaña' : 'AI builds your campaign'}
-              </h3>
-              <p className="text-white/85 text-sm leading-relaxed">
-                {isSpanish ? 'Anuncios, posts, formularios — hecho en segundos.' : 'Ads, posts, forms — done in seconds.'}
-              </p>
-            </div>
+            <h3 className="text-white font-semibold text-lg">
+              {isSpanish ? 'IA construye tu campaña' : 'AI builds your campaign'}
+            </h3>
           </div>
+          <p className="text-white/90 text-sm leading-relaxed">
+            {isSpanish ? 'Anuncios, posts, formularios — hecho en segundos.' : 'Ads, posts, forms — done in seconds.'}
+          </p>
         </div>
       </div>
 
       {/* Step 3 */}
       <div className="absolute top-[32rem] right-8 lg:right-16 z-20">
-        <div className="group bg-gradient-to-br from-brand-600/20 via-brand-700/15 to-brand-800/10 backdrop-blur-xl rounded-3xl border border-brand-400/40 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.4)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '4s' }}>
-          <div className="flex items-start gap-5 mb-5">
-            <div className="w-14 h-14 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-700/40 group-hover:shadow-brand-600/60 transition-shadow duration-300">
-              <span className="text-white font-bold text-xl">3</span>
+        <div className="bg-gradient-to-br from-brand-600/15 via-brand-700/10 to-brand-800/5 backdrop-blur-xl rounded-3xl border border-brand-400/30 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '4s' }}>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-brand-600 to-brand-800 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">3</span>
             </div>
-            <div className="flex-1">
-              <h3 className="text-white font-bold text-xl mb-2 leading-tight">
-                {isSpanish ? 'Empezar a recibir clientes' : 'Start getting leads'}
-              </h3>
-              <p className="text-white/85 text-sm leading-relaxed">
-                {isSpanish ? 'Nuevos clientes te contactan directamente.' : 'New clients reach out directly.'}
-              </p>
-            </div>
+            <h3 className="text-white font-semibold text-lg">
+              {isSpanish ? 'Empezar a recibir clientes' : 'Start getting leads'}
+            </h3>
           </div>
+          <p className="text-white/90 text-sm leading-relaxed">
+            {isSpanish ? 'Nuevos clientes te contactan directamente.' : 'New clients reach out directly.'}
+          </p>
         </div>
       </div>
     </div>
