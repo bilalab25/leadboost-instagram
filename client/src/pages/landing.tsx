@@ -37,13 +37,28 @@ export default function Landing() {
               </div>
               
               <div className="flex items-center space-x-6">
-                <Button 
-                  variant="ghost" 
-                  onClick={toggleLanguage}
-                  className="text-sm font-medium text-brand-800 hover:text-brand-700 hover:bg-white/10 backdrop-blur-xl border border-brand-400/30 rounded-xl px-4 py-2 transition-all duration-300"
-                >
-                  {isSpanish ? '🇺🇸 EN' : '🇪🇸 ES'}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost"
+                      className="text-brand-800 hover:text-brand-700 hover:bg-white/10 font-medium px-4 py-2 transition-all duration-300 group backdrop-blur-xl border border-brand-400/30 rounded-xl"
+                      data-testid="button-help-dropdown"
+                    >
+                      <HelpCircle className="mr-2 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
+                      {isSpanish ? 'AYUDA' : 'HELP'}
+                      <ChevronDown className="ml-1 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
+                    <DropdownMenuItem 
+                      className="flex items-center p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer"
+                      onClick={toggleLanguage}
+                    >
+                      <Globe className="h-4 w-4 mr-3 text-brand-600" />
+                      <span className="font-medium">{isSpanish ? '🇺🇸 Switch to English' : '🇪🇸 Cambiar a Español'}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -166,7 +181,7 @@ export default function Landing() {
                 </DropdownMenu>
                 
                 <Button 
-                  className="bg-white/10 backdrop-blur-xl border border-brand-400/40 text-brand-800 font-medium px-8 py-3 rounded-xl hover:bg-white/20 hover:border-brand-300/50 transition-all duration-300"
+                  className="bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
                   data-testid="button-pricing"
                   onClick={() => window.location.href = '/pricing'}
                 >
