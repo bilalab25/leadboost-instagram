@@ -221,7 +221,7 @@ export default function Landing() {
                 <div className="flex items-center gap-3 mt-4">
                   <span className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent">—</span>
                   <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.02em]">
-                    {isSpanish ? 'En Piloto Automático' : 'On Autopilot'}
+                    {isSpanish ? 'En Piloto Automático.' : 'On Autopilot.'}
                   </h2>
                 </div>
               </div>
