@@ -27,12 +27,12 @@ export default function Landing() {
         {/* Header */}
         <header className="absolute top-0 left-0 right-0 z-50">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center py-2">
               <div className="flex items-center">
                 <img 
                   src={leadBoostLogo} 
                   alt="LeadBoost Logo" 
-                  className="h-64 w-auto object-contain" 
+                  className="h-20 w-auto object-contain" 
                 />
               </div>
               
@@ -195,7 +195,7 @@ export default function Landing() {
           {/* Sophisticated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/70" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-40 pb-24 lg:pt-48 lg:pb-32">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
               <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
                 {isSpanish ? 'El Crecimiento de Tu Negocio, En Piloto Automático' : 'Your Business Growth, On Autopilot'}
