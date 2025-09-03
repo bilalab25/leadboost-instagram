@@ -874,7 +874,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 2 */}
-      <div className="absolute top-56 right-8 lg:right-16 z-20">
+      <div className="absolute top-72 right-8 lg:right-16 z-20">
         <div className="group bg-white border border-gray-200 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
@@ -891,7 +891,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 3 */}
-      <div className="absolute top-80 right-8 lg:right-16 z-20">
+      <div className="absolute top-[28rem] right-8 lg:right-16 z-20">
         <div className="group bg-white border border-gray-200 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-cascade-fall" style={{ animationDelay: '4s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
