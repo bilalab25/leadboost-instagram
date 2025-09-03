@@ -29,8 +29,12 @@ export default function Landing() {
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
             <div className="flex justify-between items-center py-6">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20">
-                  <Zap className="h-7 w-7 text-white" />
+                <div className="w-12 h-12 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20 overflow-hidden">
+                  <img 
+                    src={leadBoostLogo} 
+                    alt="LeadBoost Logo" 
+                    className="w-10 h-10 object-contain" 
+                  />
                 </div>
                 <div className="hidden sm:block">
                   <h1 className="text-2xl font-light text-white tracking-wide">
@@ -57,7 +61,7 @@ export default function Landing() {
                       data-testid="button-features-dropdown"
                     >
                       <Package className="mr-2 h-4 w-4 group-hover:text-white transition-colors duration-300" />
-                      {isSpanish ? 'PRODUCTOS' : 'PRODUCTS'}
+                      {isSpanish ? 'PRODUCTO' : 'PRODUCT'}
                       <ChevronDown className="ml-1 h-4 w-4 group-hover:text-white transition-colors duration-300" />
                     </Button>
                   </DropdownMenuTrigger>
