@@ -206,7 +206,7 @@ export default function Landing() {
                   {isSpanish ? 'Campañas multicanal, automatización de clientes, y bandeja unificada — todo en una plataforma.' : 'Multi-channel campaigns, client automation, and a unified inbox — all in one platform.'}
                 </p>
                 <p className="text-lg lg:text-xl xl:text-2xl font-medium text-gray-600 leading-relaxed">
-                  {isSpanish ? 'Anuncios, posts, formularios — listos en segundos. Para más de 21 plataformas.' : 'Ads, posts, forms — done in seconds. For 21+ platforms.'}
+                  {isSpanish ? 'Nuevos clientes te contactan directamente. Todo en una bandeja unificada.' : 'New clients reach out directly. All in one unified inbox.'}
                 </p>
                 <p className="text-base lg:text-lg xl:text-xl font-normal text-gray-600 leading-relaxed">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
