@@ -872,7 +872,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-lg">1</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'IA crea tu campaña en segundos' : 'AI creates your campaign in seconds'}
+              {isSpanish ? 'IA Crea Tu Campaña en Segundos' : 'AI Creates Your Campaign in Seconds'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
@@ -889,7 +889,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-lg">2</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'Publica en más de 21 plataformas' : 'Posts to 21+ platforms'}
+              {isSpanish ? 'Publica en Más de 21 Plataformas' : 'Posts to 21+ Platforms'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
@@ -906,7 +906,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-lg">3</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'Obtiene 30x más prospectos' : 'Get 30x leads'}
+              {isSpanish ? 'Obtiene 30x Más Prospectos' : 'Get 30x More Leads'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
