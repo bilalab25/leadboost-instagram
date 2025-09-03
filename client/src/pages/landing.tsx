@@ -911,8 +911,10 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-3 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
             {isSpanish ? 'Así de Fácil' : 'As Easy As'}
           </h2>
-          <div className="flex justify-center animate-ghost-appear" style={{ animationDelay: '0.2s' }}>
-            <ArrowDown className="w-8 h-8 text-[#3f82d1] animate-bounce drop-shadow-md" />
+          <div className="flex justify-center animate-ghost-appear mb-4" style={{ animationDelay: '0.2s' }}>
+            <div className="relative">
+              <div className="w-6 h-6 border-2 border-[#3f82d1] border-t-0 border-l-0 transform rotate-45 opacity-70"></div>
+            </div>
           </div>
         </div>
       </div>
