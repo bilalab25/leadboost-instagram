@@ -206,7 +206,7 @@ export default function Landing() {
                   {isSpanish ? 'Plataforma completa para hacer crecer tu negocio — marketing, ventas y atención al cliente' : 'Complete platform to grow your business — marketing, sales, and customer service'}
                 </p>
                 <p className="text-lg lg:text-xl xl:text-2xl font-medium text-gray-600 leading-relaxed">
-                  {isSpanish ? 'Todo automatizado: genera campañas, gestiona clientes, unifica mensajes — automáticamente' : 'Everything automated: generate campaigns, manage clients, unify messages — automatically'}
+                  {isSpanish ? 'Todo automatizado: genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'Everything automated: generate campaigns, manage clients, unify messages — all in one place'}
                 </p>
                 <p className="text-base lg:text-lg xl:text-xl font-normal text-gray-600 leading-relaxed">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
