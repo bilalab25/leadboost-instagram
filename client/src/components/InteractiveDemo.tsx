@@ -1258,8 +1258,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     id: 'professional',
                     name: isSpanish ? 'Profesional' : 'Professional',
                     desc: isSpanish ? 'Elegante y confiable' : 'Elegant & trustworthy',
-                    displayText: isSpanish ? 'PROFESIONAL' : 'PROFESSIONAL',
-                    textStyle: 'font-medium text-slate-700 text-xl tracking-[0.1em] uppercase'
+                    displayText: isSpanish ? 'EJECUTIVO' : 'EXECUTIVE',
+                    textStyle: 'font-light text-slate-800 text-lg tracking-[0.15em] uppercase border-b border-slate-300 pb-1'
                   },
                   {
                     id: 'creative',
