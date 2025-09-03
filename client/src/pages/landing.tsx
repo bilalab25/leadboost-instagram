@@ -40,7 +40,7 @@ export default function Landing() {
                 <Button 
                   variant="ghost" 
                   onClick={toggleLanguage}
-                  className="text-sm font-medium text-white/90 hover:text-white hover:bg-brand-600/20 backdrop-blur-xl border border-brand-400/30 rounded-xl px-4 py-2 transition-all duration-300"
+                  className="text-sm font-medium text-brand-800 hover:text-brand-700 hover:bg-white/10 backdrop-blur-xl border border-brand-400/30 rounded-xl px-4 py-2 transition-all duration-300"
                 >
                   {isSpanish ? '🇺🇸 EN' : '🇪🇸 ES'}
                 </Button>
@@ -49,12 +49,12 @@ export default function Landing() {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost"
-                      className="text-white/90 hover:text-white hover:bg-brand-600/20 font-medium px-6 py-3 transition-all duration-300 group backdrop-blur-xl border border-brand-400/30 rounded-xl"
+                      className="text-brand-800 hover:text-brand-700 hover:bg-white/10 font-medium px-6 py-3 transition-all duration-300 group backdrop-blur-xl border border-brand-400/30 rounded-xl"
                       data-testid="button-features-dropdown"
                     >
-                      <Package className="mr-2 h-4 w-4 group-hover:text-white transition-colors duration-300" />
+                      <Package className="mr-2 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
                       {isSpanish ? 'PRODUCTO' : 'PRODUCT'}
-                      <ChevronDown className="ml-1 h-4 w-4 group-hover:text-white transition-colors duration-300" />
+                      <ChevronDown className="ml-1 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
@@ -166,7 +166,7 @@ export default function Landing() {
                 </DropdownMenu>
                 
                 <Button 
-                  className="bg-brand-600/20 backdrop-blur-xl border border-brand-400/40 text-white font-medium px-8 py-3 rounded-xl hover:bg-brand-500/30 hover:border-brand-300/50 transition-all duration-300"
+                  className="bg-white/10 backdrop-blur-xl border border-brand-400/40 text-brand-800 font-medium px-8 py-3 rounded-xl hover:bg-white/20 hover:border-brand-300/50 transition-all duration-300"
                   data-testid="button-login"
                   onClick={() => window.location.href = '/pricing'}
                 >
