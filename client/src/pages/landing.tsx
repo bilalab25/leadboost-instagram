@@ -195,7 +195,7 @@ export default function Landing() {
           {/* Sophisticated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/70" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-24 lg:py-32">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-40 pb-24 lg:pt-48 lg:pb-32">
             <div className="max-w-4xl">
               <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
                 {isSpanish ? 'El Crecimiento de Tu Negocio, En Piloto Automático' : 'Your Business Growth, On Autopilot'}
