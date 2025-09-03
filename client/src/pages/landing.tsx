@@ -203,10 +203,10 @@ export default function Landing() {
               
               <div className="space-y-6 mb-14 max-w-2xl">
                 <p className="text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900 leading-relaxed">
-                  {isSpanish ? 'Campañas multicanal, automatización de clientes, y bandeja unificada — todo en una plataforma.' : 'Multi-channel campaigns, client automation, and a unified inbox — all in one platform.'}
+                  {isSpanish ? 'Software que crea campañas automáticamente en segundos — sin esfuerzo humano' : 'Software that creates campaigns automatically in seconds — no human effort'}
                 </p>
                 <p className="text-lg lg:text-xl xl:text-2xl font-medium text-gray-600 leading-relaxed">
-                  {isSpanish ? 'No necesitas conocimientos de diseño, marketing, ni equipo — nosotros lo hacemos todo' : 'No design skills, marketing knowledge, or team required — we handle everything'}
+                  {isSpanish ? 'Solo selecciona tu industria. La IA genera todo: anuncios, posts, formularios — instantáneamente' : 'Just pick your industry. AI generates everything: ads, posts, forms — instantly'}
                 </p>
                 <p className="text-base lg:text-lg xl:text-xl font-normal text-gray-600 leading-relaxed">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
