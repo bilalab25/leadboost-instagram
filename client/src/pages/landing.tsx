@@ -199,7 +199,7 @@ export default function Landing() {
             <div className="max-w-4xl">
               <h1 className="text-white mb-12 leading-[0.85] tracking-[-0.02em]">
                 <span className="text-7xl lg:text-9xl font-bold">
-                  {isSpanish ? 'Haz Crecer Tu Negocio--' : 'Grow Your Business--'}
+                  {isSpanish ? 'Haz Crecer Tu Negocio—' : 'Grow Your Business—'}
                 </span>
                 <span className="text-4xl lg:text-6xl font-bold">
                   {isSpanish ? 'En Piloto Automático' : 'On Autopilot'}
