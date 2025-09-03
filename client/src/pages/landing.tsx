@@ -28,12 +28,14 @@ export default function Landing() {
         <header className="absolute top-0 left-0 right-0 z-50 backdrop-blur-md bg-black/10">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
             <div className="flex justify-between items-center py-6">
-              <div className="flex items-center">
-                <img 
-                  src={leadBoostLogo} 
-                  alt="LeadBoost Logo" 
-                  className="h-36 w-auto object-contain" 
-                />
+              <div className="flex items-center space-x-4">
+                <div className="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20 overflow-hidden">
+                  <img 
+                    src={leadBoostLogo} 
+                    alt="LeadBoost Logo" 
+                    className="w-16 h-16 object-contain" 
+                  />
+                </div>
               </div>
               
               <div className="flex items-center space-x-4">
