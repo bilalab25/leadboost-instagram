@@ -186,17 +186,17 @@ export default function Landing() {
         </header>
 
         {/* Hero Section with Floating Campaign Background */}
-        <div className="relative overflow-hidden mt-0 min-h-screen bg-transparent">
+        <div className="relative overflow-hidden mt-0 min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
           {/* Floating Campaign Background - Squarespace Style */}
           <div className="absolute inset-0 overflow-hidden">
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
-          {/* Light overlay to preserve posts visibility */}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-900/40 via-brand-800/30 to-brand-900/50" />
+          {/* Sophisticated gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-gray-900/60 to-black/80" />
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
-            <div className="max-w-4xl bg-brand-800/80 backdrop-blur-xl rounded-3xl p-12 border border-brand-600/30 shadow-2xl">
+            <div className="max-w-4xl">
               <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
@@ -842,7 +842,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       {/* How It Works Steps - Cascade from Top */}
       {/* Step 1 */}
       <div className="absolute top-20 right-8 lg:right-16 z-20">
-        <div className="bg-brand-800/90 backdrop-blur-xl rounded-3xl border border-brand-600/50 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.6)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '1s' }}>
+        <div className="group bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/30 p-7 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '1s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-400 to-brand-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">1</span>
@@ -859,7 +859,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 2 */}
       <div className="absolute top-72 right-8 lg:right-16 z-20">
-        <div className="bg-brand-800/90 backdrop-blur-xl rounded-3xl border border-brand-600/50 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.6)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
+        <div className="group bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/30 p-7 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">2</span>
@@ -876,7 +876,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 3 */}
       <div className="absolute top-[32rem] right-8 lg:right-16 z-20">
-        <div className="bg-brand-800/90 backdrop-blur-xl rounded-3xl border border-brand-600/50 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.6)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '4s' }}>
+        <div className="group bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/30 p-7 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '4s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-600 to-brand-800 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">3</span>
