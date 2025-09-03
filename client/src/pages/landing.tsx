@@ -230,7 +230,7 @@ export default function Landing() {
                 <p className="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 leading-tight">
                   {isSpanish ? 'Plataforma completa impulsada por IA —' : 'Complete AI-powered platform —'}
                   <br />
-                  {isSpanish ? 'marketing, ventas y gestión de clientes automatizados' : 'automated marketing, sales, and customer management'}
+                  {isSpanish ? 'marketing, ventas y gestión de clientes' : 'marketing, sales, and customer management'}
                 </p>
                 <p className="text-xs lg:text-sm xl:text-base font-medium text-gray-600 leading-tight">
                   {isSpanish ? 'Todo automatizado: genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'Everything automated: generate campaigns, manage clients, unify messages — all in one place'}
