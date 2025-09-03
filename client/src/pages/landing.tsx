@@ -912,7 +912,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             {isSpanish ? 'Así de Fácil' : 'As Easy As'}
           </h2>
           <div className="flex justify-center animate-ghost-appear mb-6" style={{ animationDelay: '0.2s' }}>
-            <div className="w-0 h-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-slate-400 opacity-40"></div>
+            <div className="w-0 h-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-slate-400 opacity-40 animate-bounce"></div>
           </div>
         </div>
       </div>
