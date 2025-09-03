@@ -218,14 +218,14 @@ export default function Landing() {
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
-              <div className="space-y-6 mb-14 max-w-2xl">
-                <p className="text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900 leading-relaxed">
+              <div className="space-y-3 mb-8 max-w-2xl">
+                <p className="text-lg lg:text-xl xl:text-2xl font-semibold text-gray-900 leading-tight">
                   {isSpanish ? 'Plataforma completa para hacer crecer tu negocio — marketing, ventas y atención al cliente' : 'Complete platform to grow your business — marketing, sales, and customer service'}
                 </p>
-                <p className="text-base lg:text-lg xl:text-xl font-medium text-gray-600 leading-relaxed">
+                <p className="text-sm lg:text-base xl:text-lg font-medium text-gray-600 leading-tight">
                   {isSpanish ? 'Todo automatizado: genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'Everything automated: generate campaigns, manage clients, unify messages — all in one place'}
                 </p>
-                <p className="text-sm lg:text-base xl:text-lg font-normal text-gray-600 leading-relaxed">
+                <p className="text-xs lg:text-sm xl:text-base font-normal text-gray-600 leading-tight">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
