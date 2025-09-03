@@ -924,7 +924,13 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-base">1</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-base">
-              {isSpanish ? 'IA Genera y Publica' : 'AI Generates & Posts'}
+              {isSpanish ? 'IA Genera y Publica' : (
+                <>
+                  AI Generates & Posts
+                  <br />
+                  <span className="text-sm italic">Data-backed campaigns</span>
+                </>
+              )}
             </h3>
           </div>
           <p className="text-gray-600 text-xs leading-relaxed mb-2">
