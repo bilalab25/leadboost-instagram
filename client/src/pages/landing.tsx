@@ -197,28 +197,50 @@ export default function Landing() {
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
-                {isSpanish ? 'El Crecimiento de Tu Negocio, En Piloto Automático' : 'Your Business Growth, On Autopilot'}
+              <h1 className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-black text-white mb-8 leading-[0.8] tracking-[-0.03em] max-w-5xl">
+                {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
-              <div className="space-y-6 mb-12 max-w-2xl">
-                <p className="text-2xl lg:text-3xl font-light text-white/90 leading-relaxed tracking-wide">
+              <div className="space-y-8 mb-16 max-w-3xl">
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white/95 leading-[1.2] tracking-[-0.01em]">
                   {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
                 </p>
-                <p className="text-xl lg:text-2xl font-light text-white/80 leading-relaxed">
+                <p className="text-lg sm:text-xl lg:text-2xl font-normal text-white/85 leading-[1.4] max-w-2xl">
                   {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
                 </p>
-                <p className="text-lg lg:text-xl font-light text-white/70 leading-relaxed">
-                  {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
-                </p>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-base lg:text-lg font-medium text-white/90">
+                      {isSpanish ? 'Prueba gratuita' : 'Free trial'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                    <span className="text-base lg:text-lg font-medium text-white/90">
+                      {isSpanish ? 'Sin tarjeta de crédito' : 'No credit card required'}
+                    </span>
+                  </div>
+                </div>
               </div>
               
-              <Button 
-                className="bg-white text-black hover:bg-gray-50 text-lg font-medium px-12 py-6 h-auto rounded-none border-0 transition-all duration-300 hover:shadow-2xl"
-                onClick={() => window.location.href = '/campaigner'}
-              >
-                {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-6">
+                <Button 
+                  className="bg-white text-black hover:bg-gray-100 text-xl font-bold px-16 py-7 h-auto rounded-2xl border-0 transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 group min-w-fit"
+                  onClick={() => window.location.href = '/campaigner'}
+                >
+                  <Sparkles className="mr-3 h-6 w-6 group-hover:rotate-12 transition-transform duration-300" />
+                  {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="bg-transparent border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 text-lg font-semibold px-12 py-7 h-auto rounded-2xl transition-all duration-300 backdrop-blur-sm min-w-fit"
+                  onClick={() => window.location.href = '/waterfall'}
+                >
+                  <Play className="mr-2 h-5 w-5" />
+                  {isSpanish ? 'Ver CampAIgner' : 'See CampAIgner'}
+                </Button>
+              </div>
             </div>
           </div>
           
