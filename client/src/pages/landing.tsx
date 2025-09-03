@@ -844,7 +844,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* How It Works Steps - Floating in Background */}
       <div className="absolute top-16 right-8 lg:right-16 space-y-8 opacity-80 z-10">
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '2s', animationDuration: '25s' }}>
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '0.5s', animationDuration: '20s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">1</span>
@@ -858,7 +858,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           </p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '3s', animationDuration: '25s' }}>
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '1.5s', animationDuration: '20s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">2</span>
@@ -872,7 +872,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           </p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '4s', animationDuration: '25s' }}>
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '2.5s', animationDuration: '20s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">3</span>
