@@ -256,7 +256,7 @@ export default function Landing() {
                     </>
                   )}
                 </h1>
-                <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.01em] mt-3 drop-shadow-2xl">
+                <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent tracking-[-0.01em] mt-3 drop-shadow-lg">
                   {isSpanish ? '— En Piloto Automático.' : '— On Autopilot.'}
                 </h2>
               </div>
