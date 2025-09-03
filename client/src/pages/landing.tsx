@@ -219,8 +219,8 @@ export default function Landing() {
                   {isSpanish ? 'Haz Crecer Tu Negocio' : 'Grow Your Business'}
                 </h1>
                 <div className="flex items-center gap-3 mt-4">
-                  <span className="text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent">—</span>
-                  <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent tracking-[-0.02em]">
+                  <span className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent">—</span>
+                  <h2 className="text-4xl lg:text-6xl xl:text-8xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent tracking-[-0.02em]">
                     {isSpanish ? 'En Piloto Automático' : 'On Autopilot'}
                   </h2>
                 </div>
