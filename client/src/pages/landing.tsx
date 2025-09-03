@@ -214,9 +214,18 @@ export default function Landing() {
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-20 pb-20 lg:pt-24 lg:pb-24">
             <div className="max-w-4xl">
-              <h1 className="text-5xl lg:text-7xl xl:text-8xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent mb-10 leading-[0.9] tracking-[-0.02em] drop-shadow-2xl relative z-10">
-                {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
-              </h1>
+              <div className="mb-10">
+                <h1 className="text-5xl lg:text-7xl xl:text-8xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent leading-[0.9] tracking-[-0.02em] drop-shadow-2xl relative z-10">
+                  {isSpanish ? 'Haz Crecer Tu Negocio' : 'Grow Your Business'}
+                </h1>
+                <div className="flex items-center gap-4 mt-4">
+                  <div className="h-0.5 bg-gradient-to-r from-blue-900 to-slate-800 flex-1"></div>
+                  <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent tracking-[-0.02em]">
+                    {isSpanish ? 'En Piloto Automático' : 'On Autopilot'}
+                  </h2>
+                  <div className="h-0.5 bg-gradient-to-r from-slate-800 to-blue-900 flex-1"></div>
+                </div>
+              </div>
               
               <div className="space-y-3 mb-8 max-w-2xl">
                 <p className="text-lg lg:text-xl xl:text-2xl font-semibold text-gray-900 leading-tight">
