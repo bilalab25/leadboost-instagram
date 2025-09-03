@@ -222,13 +222,13 @@ export default function Landing() {
                 </Button>
                 
                 <Button 
-                  className="bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] hover:from-[#3470b8] hover:to-[#26527d] text-white font-bold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-0 tracking-wide text-sm"
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-medium px-6 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-sm"
                   data-testid="button-free-demo"
                   onClick={() => {
                     document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
                   }}
                 >
-                  {isSpanish ? 'PRUEBA GRATUITA' : 'FREE DEMO'}
+                  {isSpanish ? 'Demo Gratuito' : 'Free Demo'}
                 </Button>
               </div>
             </div>
@@ -236,57 +236,48 @@ export default function Landing() {
         </header>
 
         {/* Hero Section with Floating Campaign Background */}
-        <div className="relative overflow-hidden mt-0 min-h-screen bg-gradient-to-br from-slate-50 via-white to-brand-25">
+        <div className="relative overflow-hidden mt-0 min-h-screen bg-gradient-to-br from-white via-slate-50/30 to-slate-100/50">
           {/* Floating Campaign Background - Squarespace Style */}
           <div className="absolute inset-0 overflow-hidden">
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
-          {/* Premium gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-slate-50/40 to-brand-50/30" />
+          {/* Clean professional overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-slate-50/40" />
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-32 pb-16 lg:pt-40 lg:pb-20">
             <div className="max-w-5xl">
               <div className="mb-8">
-                <h1 className="text-6xl lg:text-8xl xl:text-9xl font-black bg-gradient-to-br from-[#3f82d1] via-slate-900 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.65] tracking-[-0.025em] drop-shadow-2xl relative z-10">
+                <h1 className="text-5xl lg:text-7xl xl:text-8xl font-bold text-slate-900 leading-[0.9] tracking-[-0.02em] relative z-10">
                   {isSpanish ? 'Haz Crecer Tu\u00A0Negocio' : 'Grow Your Business'}
                 </h1>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="text-5xl lg:text-6xl xl:text-7xl font-black bg-gradient-to-br from-[#3f82d1] via-slate-900 to-[#2d5a9a] bg-clip-text text-transparent opacity-60">—</span>
-                  <h2 className="text-4xl lg:text-5xl xl:text-6xl font-black bg-gradient-to-br from-[#3f82d1] via-slate-900 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.025em]">
-                    {isSpanish ? 'En Piloto Automático.' : 'On Autopilot.'}
-                  </h2>
-                </div>
+                <h2 className="text-3xl lg:text-4xl xl:text-5xl font-medium text-slate-600 tracking-[-0.01em] mt-3">
+                  {isSpanish ? 'En Piloto Automático.' : 'On Autopilot.'}
+                </h2>
               </div>
               
-              <div className="space-y-4 mb-6 max-w-4xl">
-                <p className="text-lg lg:text-xl xl:text-2xl font-bold text-slate-800 leading-snug">
-                  {isSpanish ? 'Plataforma completa impulsada por IA —' : 'Complete AI-powered platform —'}
-                  <br />
-                  <span className="text-slate-600">{isSpanish ? 'marketing, ventas y gestión de clientes' : 'marketing, sales, and customer management'}</span>
+              <div className="space-y-6 mb-8 max-w-4xl">
+                <p className="text-xl lg:text-2xl font-medium text-slate-700 leading-relaxed">
+                  {isSpanish ? 'Plataforma completa de automatización empresarial impulsada por IA' : 'Complete AI-powered business automation platform'}
                 </p>
-                <p className="text-sm lg:text-base xl:text-lg font-medium text-slate-600 leading-relaxed max-w-3xl">
-                  <span className="bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent font-bold">
-                    {isSpanish ? 'Todo automatizado:' : 'Everything automated:'}
-                  </span>{' '}
-                  {isSpanish ? 'genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'generate campaigns, manage clients, unify messages — all in one place'}
+                <p className="text-lg text-slate-600 leading-relaxed max-w-3xl">
+                  {isSpanish ? 'Automatiza marketing, ventas y gestión de clientes desde una sola plataforma. Sin complejidad técnica.' : 'Automate marketing, sales, and customer management from a single platform. No technical complexity.'}
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row sm:items-center gap-6 mt-8">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-6 mt-10">
                 <Button 
-                  className="bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] text-white hover:from-[#3470b8] hover:to-[#26527d] text-lg font-bold px-12 py-5 h-auto rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 tracking-wide"
+                  className="bg-slate-900 hover:bg-slate-800 text-white text-base font-semibold px-8 py-4 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                   onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                 >
-                  {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
+                  {isSpanish ? 'Comenzar Demo Gratuito' : 'Start Free Demo'}
                 </Button>
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-medium text-slate-700">
-                    {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
+                <div className="flex flex-col gap-2 sm:mt-1">
+                  <p className="text-sm text-slate-600">
+                    {isSpanish ? 'Sin tarjeta de crédito • Configuración en minutos' : 'No credit card • Setup in minutes'}
                   </p>
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
-                    {isSpanish ? 'Configuración en 2 minutos' : 'Setup in 2 minutes'}
+                  <p className="text-xs text-slate-500">
+                    {isSpanish ? 'Usado por 10,000+ empresas a nivel mundial' : 'Trusted by 10,000+ businesses worldwide'}
                   </p>
                 </div>
               </div>
