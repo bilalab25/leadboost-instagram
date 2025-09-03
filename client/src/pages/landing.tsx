@@ -25,9 +25,9 @@ export default function Landing() {
       <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
         
         {/* Header */}
-        <header className="absolute top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/40">
+        <header className="absolute top-0 left-0 right-0 z-50">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-            <div className="flex justify-between items-center py-3">
+            <div className="flex justify-between items-center py-1">
               <div className="flex items-center">
                 <img 
                   src={leadBoostLogo} 
@@ -222,13 +222,13 @@ export default function Landing() {
                 </Button>
                 
                 <Button 
-                  className="bg-slate-900 hover:bg-slate-800 text-white font-medium px-6 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-sm"
+                  className="bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] hover:from-[#3470b8] hover:to-[#26527d] text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0"
                   data-testid="button-free-demo"
                   onClick={() => {
                     document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
                   }}
                 >
-                  {isSpanish ? 'Demo Gratuito' : 'Free Demo'}
+                  {isSpanish ? 'PRUEBA GRATUITA' : 'FREE DEMO'}
                 </Button>
               </div>
             </div>
@@ -236,14 +236,14 @@ export default function Landing() {
         </header>
 
         {/* Hero Section with Floating Campaign Background */}
-        <div className="relative overflow-hidden mt-0 min-h-screen bg-gradient-to-br from-white via-slate-50/30 to-slate-100/50">
+        <div className="relative overflow-hidden mt-0 min-h-screen bg-gray-50">
           {/* Floating Campaign Background - Squarespace Style */}
           <div className="absolute inset-0 overflow-hidden">
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
-          {/* Clean professional overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-slate-50/40" />
+          {/* Sophisticated gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-gray-50/50 to-white/60" />
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-32 pb-16 lg:pt-40 lg:pb-20">
             <div className="max-w-5xl">

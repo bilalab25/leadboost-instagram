@@ -51,42 +51,23 @@
   --tracking-normal: 0em;
   --spacing: 0.25rem;
   
-  /* Enterprise Professional Palette */
-  --brand-25: hsl(215, 25%, 97%);
-  --brand-50: hsl(215, 20%, 95%);
-  --brand-100: hsl(215, 15%, 90%);
-  --brand-200: hsl(215, 12%, 80%);
-  --brand-300: hsl(215, 10%, 70%);
-  --brand-400: hsl(215, 8%, 60%);
-  --brand-500: hsl(215, 25%, 45%);
-  --brand-600: hsl(215, 30%, 40%);
-  --brand-700: hsl(215, 35%, 30%);
-  --brand-800: hsl(215, 40%, 20%);
-  --brand-900: hsl(215, 45%, 12%);
+  /* LeadBoost Brand Colors from Logo */
+  --brand-25: hsl(210, 75%, 98%);
+  --brand-50: hsl(210, 70%, 95%);
+  --brand-100: hsl(210, 65%, 90%);
+  --brand-200: hsl(210, 60%, 80%);
+  --brand-300: hsl(210, 55%, 70%);
+  --brand-400: hsl(210, 50%, 60%);
+  --brand-500: hsl(210, 65%, 50%);
+  --brand-600: hsl(210, 70%, 45%);
+  --brand-700: hsl(210, 75%, 35%);
+  --brand-800: hsl(210, 80%, 25%);
+  --brand-900: hsl(210, 85%, 15%);
   
-  /* Corporate UI System */
-  --surface-primary: hsl(0, 0%, 100%);
-  --surface-secondary: hsl(220, 13%, 98%);
-  --border-subtle: hsl(220, 13%, 91%);
-  --border-default: hsl(220, 13%, 85%);
-  --text-primary: hsl(215, 25%, 15%);
-  --text-secondary: hsl(215, 15%, 45%);
-  --text-tertiary: hsl(215, 10%, 65%);
-  
-  /* Enterprise Accent System */
-  --accent-primary: hsl(215, 85%, 50%);
-  --accent-success: hsl(142, 45%, 45%);
-  --accent-warning: hsl(38, 85%, 55%);
-  --accent-neutral: hsl(215, 15%, 50%);
-  
-  /* Enterprise Design System */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-default: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-prominent: 0 8px 32px rgba(0, 0, 0, 0.12);
-  --spacing-section: clamp(4rem, 8vw, 8rem);
+  /* Accent Colors */
+  --accent-blue: hsl(205, 90%, 55%);
+  --accent-navy: hsl(215, 85%, 25%);
+  --accent-light: hsl(205, 80%, 85%);
 }
 
 .dark {
