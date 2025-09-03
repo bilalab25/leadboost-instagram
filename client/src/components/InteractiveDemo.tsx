@@ -1152,16 +1152,36 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                {isSpanish ? '🏢 Describe tu Negocio' : '🏢 Describe Your Business'}
+                {isSpanish ? '🏢 Selecciona tu Industria' : '🏢 Select Your Industry'}
               </label>
-              <textarea
-                placeholder={isSpanish ? 'ej: "Local bakery famous for artisan sourdough bread and custom wedding cakes, looking to increase weekend foot traffic"' : 'e.g., "Local bakery famous for artisan sourdough bread and custom wedding cakes, looking to increase weekend foot traffic"'}
+              <select
                 value={demo.businessDescription}
                 onChange={(e) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
-                className="w-full p-4 text-lg border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                rows={3}
-                data-testid="input-business-description"
-              />
+                className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                data-testid="select-industry"
+              >
+                <option value="">{isSpanish ? 'Selecciona una industria...' : 'Select an industry...'}</option>
+                <option value="Restaurant & Food Service">{isSpanish ? 'Restaurante y Comida' : 'Restaurant & Food Service'}</option>
+                <option value="Beauty & Wellness">{isSpanish ? 'Belleza y Bienestar' : 'Beauty & Wellness'}</option>
+                <option value="Fitness & Health">{isSpanish ? 'Fitness y Salud' : 'Fitness & Health'}</option>
+                <option value="Retail & Fashion">{isSpanish ? 'Venta y Moda' : 'Retail & Fashion'}</option>
+                <option value="Professional Services">{isSpanish ? 'Servicios Profesionales' : 'Professional Services'}</option>
+                <option value="Real Estate">{isSpanish ? 'Bienes Raíces' : 'Real Estate'}</option>
+                <option value="Technology & Software">{isSpanish ? 'Tecnología y Software' : 'Technology & Software'}</option>
+                <option value="Education & Training">{isSpanish ? 'Educación y Entrenamiento' : 'Education & Training'}</option>
+                <option value="Healthcare & Medical">{isSpanish ? 'Salud y Médico' : 'Healthcare & Medical'}</option>
+                <option value="Automotive">{isSpanish ? 'Automotriz' : 'Automotive'}</option>
+                <option value="Home Services">{isSpanish ? 'Servicios para el Hogar' : 'Home Services'}</option>
+                <option value="Entertainment & Events">{isSpanish ? 'Entretenimiento y Eventos' : 'Entertainment & Events'}</option>
+                <option value="Travel & Tourism">{isSpanish ? 'Viajes y Turismo' : 'Travel & Tourism'}</option>
+                <option value="Non-Profit & Community">{isSpanish ? 'Sin Fines de Lucro y Comunidad' : 'Non-Profit & Community'}</option>
+                <option value="Financial Services">{isSpanish ? 'Servicios Financieros' : 'Financial Services'}</option>
+                <option value="E-commerce & Online Business">{isSpanish ? 'E-commerce y Negocios Online' : 'E-commerce & Online Business'}</option>
+                <option value="Manufacturing & Industrial">{isSpanish ? 'Manufactura e Industrial' : 'Manufacturing & Industrial'}</option>
+                <option value="Agriculture & Farming">{isSpanish ? 'Agricultura y Ganadería' : 'Agriculture & Farming'}</option>
+                <option value="Arts & Creative Services">{isSpanish ? 'Artes y Servicios Creativos' : 'Arts & Creative Services'}</option>
+                <option value="Other">{isSpanish ? 'Otro' : 'Other'}</option>
+              </select>
               
               {/* Optional Photo Upload */}
               <div className="mt-6 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">

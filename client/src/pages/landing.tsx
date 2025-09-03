@@ -215,7 +215,7 @@ export default function Landing() {
               
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90 text-base lg:text-lg font-semibold px-10 lg:px-12 py-4 lg:py-5 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={() => window.location.href = '/campaigner'}
+                onClick={() => window.location.href = '/demo'}
               >
                 {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
               </Button>

@@ -47,6 +47,7 @@ function Router() {
       <Route path="/integrations" component={Integrations} />
       <Route path="/waterfall" component={CampAIgner} />
       <Route path="/campaigner" component={CampAIgner} />
+      <Route path="/demo" component={CampAIgner} />
       <Route path="/brand-studio" component={BrandStudio} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/spanish-preview" component={SpanishPreview} />
