@@ -912,9 +912,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             {isSpanish ? 'Así de Fácil' : 'As Easy As'}
           </h2>
           <div className="flex justify-center animate-ghost-appear mb-4" style={{ animationDelay: '0.2s' }}>
-            <div className="relative">
-              <div className="w-6 h-6 border-2 border-[#3f82d1] border-t-0 border-l-0 transform rotate-45 opacity-70"></div>
-            </div>
+            <ArrowDown className="w-6 h-6 text-[#3f82d1] opacity-80 animate-pulse" />
           </div>
         </div>
       </div>
