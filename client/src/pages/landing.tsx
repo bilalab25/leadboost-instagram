@@ -25,9 +25,9 @@ export default function Landing() {
       <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
         
         {/* Header */}
-        <header className="absolute top-0 left-0 right-0 z-50">
+        <header className="absolute top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200/40">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-            <div className="flex justify-between items-center py-1">
+            <div className="flex justify-between items-center py-3">
               <div className="flex items-center">
                 <img 
                   src={leadBoostLogo} 
@@ -222,7 +222,7 @@ export default function Landing() {
                 </Button>
                 
                 <Button 
-                  className="bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] hover:from-[#3470b8] hover:to-[#26527d] text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+                  className="bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] hover:from-[#3470b8] hover:to-[#26527d] text-white font-bold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-0 tracking-wide text-sm"
                   data-testid="button-free-demo"
                   onClick={() => {
                     document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -236,53 +236,59 @@ export default function Landing() {
         </header>
 
         {/* Hero Section with Floating Campaign Background */}
-        <div className="relative overflow-hidden mt-0 min-h-screen bg-gray-50">
+        <div className="relative overflow-hidden mt-0 min-h-screen bg-gradient-to-br from-slate-50 via-white to-brand-25">
           {/* Floating Campaign Background - Squarespace Style */}
           <div className="absolute inset-0 overflow-hidden">
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
-          {/* Sophisticated gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-gray-50/50 to-white/60" />
+          {/* Premium gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-slate-50/40 to-brand-50/30" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-24 pb-12 lg:pt-28 lg:pb-16">
-            <div className="max-w-4xl">
-              <div className="mb-6">
-                <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.6] tracking-[-0.02em] drop-shadow-2xl relative z-10">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-32 pb-16 lg:pt-40 lg:pb-20">
+            <div className="max-w-5xl">
+              <div className="mb-8">
+                <h1 className="text-6xl lg:text-8xl xl:text-9xl font-black bg-gradient-to-br from-[#3f82d1] via-slate-900 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.65] tracking-[-0.025em] drop-shadow-2xl relative z-10">
                   {isSpanish ? 'Haz Crecer Tu\u00A0Negocio' : 'Grow Your Business'}
                 </h1>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent">—</span>
-                  <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.02em]">
+                <div className="flex items-center gap-4 mt-2">
+                  <span className="text-5xl lg:text-6xl xl:text-7xl font-black bg-gradient-to-br from-[#3f82d1] via-slate-900 to-[#2d5a9a] bg-clip-text text-transparent opacity-60">—</span>
+                  <h2 className="text-4xl lg:text-5xl xl:text-6xl font-black bg-gradient-to-br from-[#3f82d1] via-slate-900 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.025em]">
                     {isSpanish ? 'En Piloto Automático.' : 'On Autopilot.'}
                   </h2>
                 </div>
               </div>
               
-              <div className="space-y-2 mb-2 max-w-4xl">
-                <p className="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 leading-tight">
+              <div className="space-y-4 mb-6 max-w-4xl">
+                <p className="text-lg lg:text-xl xl:text-2xl font-bold text-slate-800 leading-snug">
                   {isSpanish ? 'Plataforma completa impulsada por IA —' : 'Complete AI-powered platform —'}
                   <br />
-                  {isSpanish ? 'marketing, ventas y gestión de clientes' : 'marketing, sales, and customer management'}
+                  <span className="text-slate-600">{isSpanish ? 'marketing, ventas y gestión de clientes' : 'marketing, sales, and customer management'}</span>
                 </p>
-                <p className="text-xs lg:text-sm xl:text-base font-medium text-gray-600 leading-tight">
-                  <span className="bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent font-bold animate-pulse">
+                <p className="text-sm lg:text-base xl:text-lg font-medium text-slate-600 leading-relaxed max-w-3xl">
+                  <span className="bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent font-bold">
                     {isSpanish ? 'Todo automatizado:' : 'Everything automated:'}
                   </span>{' '}
                   {isSpanish ? 'genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'generate campaigns, manage clients, unify messages — all in one place'}
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6 mt-8">
                 <Button 
-                  className="bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] text-white hover:from-[#3470b8] hover:to-[#26527d] text-base lg:text-lg font-semibold px-10 lg:px-12 py-4 lg:py-5 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] text-white hover:from-[#3470b8] hover:to-[#26527d] text-lg font-bold px-12 py-5 h-auto rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 tracking-wide"
                   onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
                 </Button>
-                <p className="text-xs lg:text-xs xl:text-sm font-normal text-gray-600 leading-tight">
-                  {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
-                </p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-medium text-slate-700">
+                    {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
+                  </p>
+                  <p className="text-xs text-slate-500 flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    {isSpanish ? 'Configuración en 2 minutos' : 'Setup in 2 minutes'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -366,53 +372,56 @@ export default function Landing() {
               </Card>
             </div>
             
-            {/* Social Proof Section */}
-            <div className="py-16 bg-gradient-to-r from-gray-50 to-white rounded-3xl border border-gray-100 mb-16">
+            {/* Social Proof Section - Enhanced */}
+            <div className="py-20 bg-gradient-to-br from-white via-brand-25 to-slate-50 rounded-3xl border border-slate-200/50 shadow-lg mb-16">
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Statistics */}
-                <div className="text-center mb-16">
-                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
+                <div className="text-center mb-20">
+                  <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-4">
                     {isSpanish ? 'Resultados que Hablan por Sí Solos' : 'Results That Speak for Themselves'}
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div className="text-center">
-                      <div className="text-4xl md:text-5xl font-black text-[#3f82d1] mb-2">10,000+</div>
-                      <p className="text-gray-600 font-medium">{isSpanish ? 'Empresas Activas' : 'Active Businesses'}</p>
+                  <p className="text-slate-600 text-lg mb-12 max-w-2xl mx-auto">
+                    {isSpanish ? 'Más de 10,000 empresas confían en nuestra plataforma para hacer crecer su negocio' : 'Over 10,000 businesses trust our platform to grow their business'}
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/30">
+                      <div className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] bg-clip-text text-transparent mb-2">10,000+</div>
+                      <p className="text-slate-700 font-semibold text-sm">{isSpanish ? 'Empresas Activas' : 'Active Businesses'}</p>
                     </div>
-                    <div className="text-center">
-                      <div className="text-4xl md:text-5xl font-black text-emerald-600 mb-2">250M+</div>
-                      <p className="text-gray-600 font-medium">{isSpanish ? 'Citas Programadas' : 'Appointments Booked'}</p>
+                    <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/30">
+                      <div className="text-4xl md:text-5xl font-black bg-gradient-to-r from-emerald-500 to-emerald-700 bg-clip-text text-transparent mb-2">2.5M+</div>
+                      <p className="text-slate-700 font-semibold text-sm">{isSpanish ? 'Campañas Generadas' : 'Campaigns Generated'}</p>
                     </div>
-                    <div className="text-center">
-                      <div className="text-4xl md:text-5xl font-black text-purple-600 mb-2">40%</div>
-                      <p className="text-gray-600 font-medium">{isSpanish ? 'Aumento en Conversión' : 'Increase in Conversions'}</p>
+                    <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/30">
+                      <div className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-500 to-purple-700 bg-clip-text text-transparent mb-2">340%</div>
+                      <p className="text-slate-700 font-semibold text-sm">{isSpanish ? 'Aumento en ROI' : 'Average ROI Increase'}</p>
                     </div>
-                    <div className="text-center">
-                      <div className="text-4xl md:text-5xl font-black text-orange-600 mb-2">24/7</div>
-                      <p className="text-gray-600 font-medium">{isSpanish ? 'IA Trabajando' : 'AI Working'}</p>
+                    <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/30">
+                      <div className="text-4xl md:text-5xl font-black bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent mb-2">24/7</div>
+                      <p className="text-slate-700 font-semibold text-sm">{isSpanish ? 'IA Automatizada' : 'AI Automation'}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Customer Testimonials with Trustpilot */}
+                {/* Customer Testimonials with Enhanced Social Proof */}
                 <div className="text-center mb-16">
-                  <h4 className="text-xl font-bold text-gray-900 mb-8">
+                  <h4 className="text-2xl font-bold text-slate-800 mb-6">
                     {isSpanish ? 'Lo Que Dicen Nuestros Clientes' : 'What Our Customers Say'}
                   </h4>
                   
-                  {/* Trustpilot Rating */}
-                  <div className="flex justify-center items-center mb-8">
-                    <div className="flex items-center space-x-2">
+                  {/* Enhanced Trust Indicators */}
+                  <div className="flex justify-center items-center mb-10">
+                    <div className="flex items-center space-x-4 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-2xl border border-slate-200/50 shadow-sm">
                       <div className="flex space-x-1">
                         {[...Array(5)].map((_, i) => (
-                          <svg key={i} className="w-5 h-5 text-green-500 fill-current" viewBox="0 0 20 20">
+                          <svg key={i} className="w-5 h-5 text-emerald-500 fill-current" viewBox="0 0 20 20">
                             <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                           </svg>
                         ))}
                       </div>
-                      <span className="text-lg font-bold text-gray-900">4.8/5</span>
-                      <span className="text-gray-600">on</span>
-                      <span className="text-lg font-bold text-green-600">Trustpilot</span>
+                      <span className="text-lg font-bold text-slate-800">4.9/5</span>
+                      <span className="text-slate-600 font-medium">based on</span>
+                      <span className="text-lg font-bold text-emerald-600">2,847 reviews</span>
                     </div>
                   </div>
 
