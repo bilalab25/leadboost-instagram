@@ -27,12 +27,12 @@ export default function Landing() {
         {/* Header */}
         <header className="absolute top-0 left-0 right-0 z-50">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-            <div className="flex justify-between items-center py-2">
+            <div className="flex justify-between items-center py-4">
               <div className="flex items-center">
                 <img 
                   src={leadBoostLogo} 
                   alt="LeadBoost Logo" 
-                  className="h-32 w-auto object-contain" 
+                  className="h-24 w-auto object-contain brightness-110" 
                 />
               </div>
               
@@ -40,7 +40,7 @@ export default function Landing() {
                 <Button 
                   variant="ghost" 
                   onClick={toggleLanguage}
-                  className="text-sm font-light text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-2"
+                  className="text-sm font-medium text-white/90 hover:text-white hover:bg-brand-600/20 backdrop-blur-xl border border-brand-400/30 rounded-xl px-4 py-2 transition-all duration-300"
                 >
                   {isSpanish ? '🇺🇸 EN' : '🇪🇸 ES'}
                 </Button>
@@ -49,7 +49,7 @@ export default function Landing() {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost"
-                      className="text-white/80 hover:text-white hover:bg-white/10 font-light px-6 py-3 transition-all duration-300 group backdrop-blur-xl border border-white/20 rounded-xl"
+                      className="text-white/90 hover:text-white hover:bg-brand-600/20 font-medium px-6 py-3 transition-all duration-300 group backdrop-blur-xl border border-brand-400/30 rounded-xl"
                       data-testid="button-features-dropdown"
                     >
                       <Package className="mr-2 h-4 w-4 group-hover:text-white transition-colors duration-300" />
@@ -166,7 +166,7 @@ export default function Landing() {
                 </DropdownMenu>
                 
                 <Button 
-                  className="bg-white/10 backdrop-blur-xl border border-white/30 text-white font-light px-8 py-3 rounded-xl hover:bg-white/20 hover:border-white/40 transition-all duration-300"
+                  className="bg-brand-600/20 backdrop-blur-xl border border-brand-400/40 text-white font-medium px-8 py-3 rounded-xl hover:bg-brand-500/30 hover:border-brand-300/50 transition-all duration-300"
                   data-testid="button-login"
                   onClick={() => window.location.href = '/pricing'}
                 >
@@ -174,7 +174,7 @@ export default function Landing() {
                 </Button>
                 
                 <Button 
-                  className="bg-white text-black hover:bg-gray-50 font-medium px-8 py-3 rounded-xl transition-all duration-300 hover:shadow-2xl"
+                  className="bg-brand-500 text-white hover:bg-brand-400 font-medium px-8 py-3 rounded-xl transition-all duration-300 hover:shadow-2xl shadow-brand-600/30"
                   data-testid="button-get-started"
                   onClick={() => window.location.href = '/campaigner'}
                 >
@@ -186,14 +186,14 @@ export default function Landing() {
         </header>
 
         {/* Hero Section with Floating Campaign Background */}
-        <div className="relative overflow-hidden mt-0 min-h-screen bg-black">
+        <div className="relative overflow-hidden mt-0 min-h-screen bg-gradient-to-br from-brand-800 via-brand-700 to-brand-900">
           {/* Floating Campaign Background - Squarespace Style */}
           <div className="absolute inset-0 overflow-hidden">
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
           {/* Sophisticated gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-800/70 via-brand-700/60 to-brand-900/80" />
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
@@ -214,9 +214,10 @@ export default function Landing() {
               </div>
               
               <Button 
-                className="bg-white text-black hover:bg-gray-50 text-lg font-medium px-12 py-6 h-auto rounded-none border-0 transition-all duration-300 hover:shadow-2xl"
+                className="bg-brand-500 text-white hover:bg-brand-400 text-lg font-bold px-12 py-6 h-auto rounded-2xl border-0 transition-all duration-300 hover:shadow-2xl shadow-brand-600/40 hover:scale-105 hover:-translate-y-1"
                 onClick={() => window.location.href = '/campaigner'}
               >
+                <Sparkles className="mr-3 h-5 w-5" />
                 {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
               </Button>
             </div>
@@ -841,9 +842,9 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       {/* How It Works Steps - Premium Cascade Design */}
       {/* Step 1 */}
       <div className="absolute top-20 right-8 lg:right-16 z-20">
-        <div className="group bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/30 p-7 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '1s' }}>
+        <div className="group bg-gradient-to-br from-brand-600/20 via-brand-700/15 to-brand-800/10 backdrop-blur-xl rounded-3xl border border-brand-400/40 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.4)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '1s' }}>
           <div className="flex items-start gap-5 mb-5">
-            <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30 group-hover:shadow-emerald-500/50 transition-shadow duration-300">
+            <div className="w-14 h-14 bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-500/40 group-hover:shadow-brand-400/60 transition-shadow duration-300">
               <span className="text-white font-bold text-xl">1</span>
             </div>
             <div className="flex-1">
@@ -860,9 +861,9 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 2 */}
       <div className="absolute top-72 right-8 lg:right-16 z-20">
-        <div className="group bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/30 p-7 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
+        <div className="group bg-gradient-to-br from-brand-600/20 via-brand-700/15 to-brand-800/10 backdrop-blur-xl rounded-3xl border border-brand-400/40 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.4)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
           <div className="flex items-start gap-5 mb-5">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-shadow duration-300">
+            <div className="w-14 h-14 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-600/40 group-hover:shadow-brand-500/60 transition-shadow duration-300">
               <span className="text-white font-bold text-xl">2</span>
             </div>
             <div className="flex-1">
@@ -879,9 +880,9 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 3 */}
       <div className="absolute top-[32rem] right-8 lg:right-16 z-20">
-        <div className="group bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/30 p-7 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '4s' }}>
+        <div className="group bg-gradient-to-br from-brand-600/20 via-brand-700/15 to-brand-800/10 backdrop-blur-xl rounded-3xl border border-brand-400/40 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.4)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '4s' }}>
           <div className="flex items-start gap-5 mb-5">
-            <div className="w-14 h-14 bg-gradient-to-br from-purple-400 via-purple-500 to-pink-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/30 group-hover:shadow-purple-500/50 transition-shadow duration-300">
+            <div className="w-14 h-14 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-700/40 group-hover:shadow-brand-600/60 transition-shadow duration-300">
               <span className="text-white font-bold text-xl">3</span>
             </div>
             <div className="flex-1">
