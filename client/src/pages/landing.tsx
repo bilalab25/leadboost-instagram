@@ -846,11 +846,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             <div className="w-12 h-12 bg-gradient-to-r from-brand-400 to-brand-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">1</span>
             </div>
-            <h3 className="text-white font-semibold text-lg">
+            <h3 className="text-brand-800 font-semibold text-lg">
               {isSpanish ? 'Dinos tu negocio' : 'Tell us your business type'}
             </h3>
           </div>
-          <p className="text-white/90 text-sm leading-relaxed">
+          <p className="text-brand-700 text-sm leading-relaxed">
             {isSpanish ? 'Dentista, Agente Inmobiliario, Coach Fitness, etc.' : 'Dentist, Realtor, Fitness coach, etc.'}
           </p>
         </div>
@@ -863,11 +863,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">2</span>
             </div>
-            <h3 className="text-white font-semibold text-lg">
+            <h3 className="text-brand-800 font-semibold text-lg">
               {isSpanish ? 'IA construye tu campaña' : 'AI builds your campaign'}
             </h3>
           </div>
-          <p className="text-white/90 text-sm leading-relaxed">
+          <p className="text-brand-700 text-sm leading-relaxed">
             {isSpanish ? 'Anuncios, posts, formularios — hecho en segundos.' : 'Ads, posts, forms — done in seconds.'}
           </p>
         </div>
@@ -880,11 +880,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             <div className="w-12 h-12 bg-gradient-to-r from-brand-600 to-brand-800 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">3</span>
             </div>
-            <h3 className="text-white font-semibold text-lg">
+            <h3 className="text-brand-800 font-semibold text-lg">
               {isSpanish ? 'Empezar a recibir clientes' : 'Start getting leads'}
             </h3>
           </div>
-          <p className="text-white/90 text-sm leading-relaxed">
+          <p className="text-brand-700 text-sm leading-relaxed">
             {isSpanish ? 'Nuevos clientes te contactan directamente.' : 'New clients reach out directly.'}
           </p>
         </div>
