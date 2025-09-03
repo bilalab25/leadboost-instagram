@@ -14,7 +14,7 @@ import { FAQ } from "@/components/FAQ";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { ReferralProgram } from "@/components/ReferralProgram";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
-import leadBoostLogo from "@assets/Lead Boost_1756776611991.png";
+import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756873932398.png";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
@@ -32,7 +32,7 @@ export default function Landing() {
                 <img 
                   src={leadBoostLogo} 
                   alt="LeadBoost Logo" 
-                  className="h-10 w-auto object-contain brightness-110" 
+                  className="h-12 w-auto object-contain brightness-110" 
                 />
               </div>
               
