@@ -868,7 +868,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Anuncios, posts, formularios — hecho en segundos.' : 'Ads, posts, forms — done in seconds.'}
+            {isSpanish ? 'Instagram, Email, WhatsApp — hecho en segundos. Publica con un clic.' : 'Instagram, Email, Whatsapp — done in seconds. Post in one click.'}
           </p>
         </div>
       </div>
@@ -885,7 +885,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Nuevos clientes te contactan directamente.' : 'New clients reach out directly.'}
+            {isSpanish ? 'Nuevos clientes te contactan directamente. Todo en una bandeja unificada.' : 'New clients reach out directly. All in one unified inbox.'}
           </p>
         </div>
       </div>
