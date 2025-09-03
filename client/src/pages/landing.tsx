@@ -245,9 +245,9 @@ export default function Landing() {
           {/* Sophisticated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-gray-50/50 to-white/60" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-32 pb-16 lg:pt-40 lg:pb-20">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-16 pb-8 lg:pt-20 lg:pb-12">
             <div className="max-w-5xl">
-              <div className="mb-8">
+              <div className="mb-4">
                 <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.6] tracking-[-0.02em] drop-shadow-2xl relative z-10">
                   {isSpanish ? 'Haz Crecer Tu\u00A0Negocio' : (
                     <>
@@ -270,7 +270,7 @@ export default function Landing() {
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row sm:items-start gap-6 mt-10">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-6 mt-6">
                 <Button 
                   className="bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] hover:from-[#3470b8] hover:via-slate-700 hover:to-[#26527d] text-white text-base font-semibold px-8 py-4 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 drop-shadow-xl"
                   onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
