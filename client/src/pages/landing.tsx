@@ -908,7 +908,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       <div className="absolute top-20 right-8 lg:right-16 z-20 w-72">
         {/* Header with Visual Connection */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-3 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
+          <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-1 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
             {isSpanish ? 'Así de Fácil' : 'As Easy As'}
           </h2>
           <div className="flex justify-center animate-ghost-appear mb-6" style={{ animationDelay: '0.2s' }}>
