@@ -1261,13 +1261,13 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     icon: (
                       <div className="relative">
                         <div className="w-7 h-7 bg-white/20 rounded-xl border border-white/30 flex items-center justify-center shadow-xl">
-                          <div className="w-2 h-2 bg-white rounded-sm shadow-inner"></div>
-                          <div className="absolute top-1 right-1 w-1 h-1 bg-blue-100 rounded-full animate-pulse"></div>
-                          <div className="absolute bottom-1 left-1 w-0.5 h-0.5 bg-blue-200 rounded-full opacity-60"></div>
+                          <div className="w-2 h-2 bg-slate-100 rounded-sm shadow-inner"></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-slate-300 rounded-full animate-pulse"></div>
+                          <div className="absolute bottom-1 left-1 w-0.5 h-0.5 bg-slate-400 rounded-full opacity-60"></div>
                         </div>
                       </div>
                     ),
-                    gradient: 'from-blue-500 to-indigo-600'
+                    gradient: 'from-slate-600 to-slate-800'
                   },
                   {
                     id: 'creative',
@@ -1277,15 +1277,15 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                       <div className="relative">
                         <div className="w-7 h-7 bg-white/15 rounded-full border-2 border-white/25 flex items-center justify-center shadow-xl">
                           <div className="grid grid-cols-2 gap-0.5">
-                            <div className="w-1 h-1 bg-purple-200 rounded-full animate-pulse"></div>
-                            <div className="w-1 h-1 bg-pink-200 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                            <div className="w-1 h-1 bg-yellow-200 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                            <div className="w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                            <div className="w-1 h-1 bg-violet-300 rounded-full animate-pulse"></div>
+                            <div className="w-1 h-1 bg-fuchsia-300 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                            <div className="w-1 h-1 bg-emerald-300 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                            <div className="w-1 h-1 bg-cyan-300 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
                           </div>
                         </div>
                       </div>
                     ),
-                    gradient: 'from-brand-500 to-brand-600'
+                    gradient: 'from-violet-500 to-fuchsia-600'
                   },
                   {
                     id: 'playful',
@@ -1295,13 +1295,13 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                       <div className="relative">
                         <div className="w-7 h-7 bg-white/20 rounded-2xl border border-white/30 flex items-center justify-center shadow-xl transform hover:scale-110 transition-transform">
                           <div className="relative">
-                            <div className="w-2 h-2 bg-gradient-to-r from-yellow-100 to-orange-200 rounded-full animate-spin"></div>
-                            <div className="absolute -top-1 -right-1 w-1 h-1 bg-pink-300 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gradient-to-r from-lime-200 to-orange-300 rounded-full animate-spin"></div>
+                            <div className="absolute -top-1 -right-1 w-1 h-1 bg-rose-400 rounded-full animate-bounce"></div>
                           </div>
                         </div>
                       </div>
                     ),
-                    gradient: 'from-yellow-500 to-orange-600'
+                    gradient: 'from-lime-400 to-orange-500'
                   },
                   {
                     id: 'luxury',
@@ -1310,14 +1310,14 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     icon: (
                       <div className="relative">
                         <div className="w-7 h-7 bg-gradient-to-br from-amber-100/20 to-yellow-100/10 rounded-lg border border-amber-200/40 flex items-center justify-center shadow-2xl">
-                          <div className="w-1.5 h-1.5 bg-gradient-to-br from-amber-200 to-yellow-300 rounded-full shadow-lg"></div>
-                          <div className="absolute top-0.5 right-0.5 w-0.5 h-0.5 bg-amber-300 rounded-full animate-ping opacity-80"></div>
-                          <div className="absolute bottom-0.5 left-0.5 w-0.5 h-0.5 bg-yellow-400 rounded-full animate-ping opacity-60" style={{animationDelay: '0.8s'}}></div>
-                          <div className="absolute top-1.5 left-0.5 w-0.5 h-0.5 bg-amber-400 rounded-full animate-pulse opacity-40" style={{animationDelay: '1.2s'}}></div>
+                          <div className="w-1.5 h-1.5 bg-gradient-to-br from-amber-300 to-yellow-400 rounded-full shadow-lg"></div>
+                          <div className="absolute top-0.5 right-0.5 w-0.5 h-0.5 bg-amber-400 rounded-full animate-ping opacity-80"></div>
+                          <div className="absolute bottom-0.5 left-0.5 w-0.5 h-0.5 bg-yellow-500 rounded-full animate-ping opacity-60" style={{animationDelay: '0.8s'}}></div>
+                          <div className="absolute top-1.5 left-0.5 w-0.5 h-0.5 bg-amber-500 rounded-full animate-pulse opacity-40" style={{animationDelay: '1.2s'}}></div>
                         </div>
                       </div>
                     ),
-                    gradient: 'from-gray-700 to-black'
+                    gradient: 'from-amber-600 to-yellow-700'
                   }
                 ].map((style) => (
                   <button
