@@ -861,8 +861,8 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           className="absolute top-0 animate-float-down"
           style={{
             left: `${-5 + columnIndex * 30}%`,
-            animationDelay: `${columnIndex * 0.5}s`,
-            animationDuration: '20s'
+            animationDelay: `${columnIndex * 2}s`,
+            animationDuration: '45s'
           }}
         >
           {/* Duplicate the column content for seamless loop */}
