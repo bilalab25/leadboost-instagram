@@ -195,49 +195,30 @@ export default function Landing() {
           {/* Sophisticated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-gray-900/60 to-black/80" />
           
-          <div className="relative z-10 flex items-center min-h-screen">
-            <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-20">
-              <div className="max-w-5xl">
-                {/* Main Headline - Premium Typography */}
-                <h1 className="text-white mb-8 leading-[0.82] tracking-[-0.03em] font-light">
-                  <span className="block text-8xl lg:text-[11rem] xl:text-[13rem] font-extralight mb-2">
-                    {isSpanish ? 'Haz Crecer Tu Negocio—' : 'Grow Your Business—'}
-                  </span>
-                  <span className="block text-5xl lg:text-7xl xl:text-8xl font-light text-white/95 ml-2 lg:ml-4">
-                    {isSpanish ? 'En Piloto Automático' : 'On Autopilot'}
-                  </span>
-                </h1>
-                
-                {/* Refined Content Hierarchy */}
-                <div className="max-w-3xl ml-2 lg:ml-4 space-y-8 mb-16">
-                  <p className="text-xl lg:text-2xl xl:text-3xl font-light text-white/90 leading-relaxed tracking-wide">
-                    {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
-                  </p>
-                  
-                  {/* Subtle Feature Highlight */}
-                  <div className="border-l-2 border-white/20 pl-6 py-2">
-                    <p className="text-lg lg:text-xl font-light text-white/75 leading-relaxed">
-                      {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
-                    </p>
-                  </div>
-                  
-                  <p className="text-base lg:text-lg font-light text-white/60 leading-relaxed uppercase tracking-widest">
-                    {isSpanish ? 'Prueba gratuita • Sin tarjeta de crédito' : 'Free trial • No credit card required'}
-                  </p>
-                </div>
-                
-                {/* Elevated CTA Design */}
-                <div className="ml-2 lg:ml-4">
-                  <Button 
-                    className="group bg-white text-gray-900 hover:bg-gray-50 text-lg font-semibold px-16 py-6 h-auto rounded-full border-0 transition-all duration-500 hover:shadow-[0_30px_60px_rgba(255,255,255,0.3)] shadow-[0_20px_40px_rgba(255,255,255,0.15)] hover:scale-[1.02] hover:-translate-y-1"
-                    onClick={() => window.location.href = '/campaigner'}
-                  >
-                    <Sparkles className="mr-3 h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-                    {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
-                    <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Button>
-                </div>
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
+            <div className="max-w-4xl">
+              <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
+                {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
+              </h1>
+              
+              <div className="space-y-6 mb-12 max-w-2xl">
+                <p className="text-2xl lg:text-3xl font-light text-white/90 leading-relaxed tracking-wide">
+                  {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
+                </p>
+                <p className="text-xl lg:text-2xl font-light text-white/80 leading-relaxed">
+                  {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
+                </p>
+                <p className="text-lg lg:text-xl font-light text-white/70 leading-relaxed">
+                  {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
+                </p>
               </div>
+              
+              <Button 
+                className="bg-white text-black hover:bg-gray-50 text-lg font-medium px-12 py-6 h-auto rounded-none border-0 transition-all duration-300 hover:shadow-2xl"
+                onClick={() => window.location.href = '/campaigner'}
+              >
+                {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
+              </Button>
             </div>
           </div>
           
