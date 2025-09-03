@@ -192,18 +192,13 @@ export default function Landing() {
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
-          {/* Light overlay for text contrast while keeping posts visible */}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-800/30 via-brand-700/20 to-brand-900/40" />
+          {/* Sophisticated gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-800/70 via-brand-700/60 to-brand-900/80" />
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-white mb-12 leading-tight">
-                <div className="text-6xl lg:text-8xl font-extrabold mb-3 tracking-tight">
-                  {isSpanish ? 'Haz Crecer Tu Negocio' : 'Grow Your Business'}
-                </div>
-                <div className="text-4xl lg:text-6xl font-medium text-white/95">
-                  {isSpanish ? 'En Piloto Automático' : 'On Autopilot'}
-                </div>
+              <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
+                {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
               <div className="space-y-6 mb-12 max-w-2xl">
