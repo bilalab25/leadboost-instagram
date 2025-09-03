@@ -347,6 +347,9 @@ export default function Landing() {
                         <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center">
                           <SiX className="h-6 w-6 text-white" />
                         </div>
+                        <div className="w-10 h-10 bg-gradient-to-r from-brand-500 to-brand-700 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">+21</span>
+                        </div>
                       </div>
                       <h3 className="text-3xl font-black text-[#3f82d1] mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? '21+ plataformas, un clic' : '21+ platforms, one click'}</p>
