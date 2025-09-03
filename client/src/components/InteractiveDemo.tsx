@@ -1258,7 +1258,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     id: 'professional',
                     name: isSpanish ? 'Profesional' : 'Professional',
                     desc: isSpanish ? 'Elegante y confiable' : 'Elegant & trustworthy',
-                    displayText: isSpanish ? 'EJECUTIVO' : 'EXECUTIVE',
+                    displayText: isSpanish ? 'PROFESIONAL' : 'PROFESSIONAL',
                     textStyle: 'font-light text-slate-800 text-lg tracking-[0.15em] uppercase border-b border-slate-300 pb-1'
                   },
                   {
