@@ -27,7 +27,7 @@ export default function Landing() {
         {/* Header */}
         <header className="absolute top-0 left-0 right-0 z-50">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-            <div className="flex justify-between items-center py-4">
+            <div className="flex justify-between items-center py-6">
               <div className="flex items-center">
                 <img 
                   src={leadBoostLogo} 
@@ -36,7 +36,7 @@ export default function Landing() {
                 />
               </div>
               
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-6">
                 <Button 
                   variant="ghost" 
                   onClick={toggleLanguage}
@@ -195,13 +195,13 @@ export default function Landing() {
           {/* Sophisticated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-brand-900/70 via-brand-800/60 to-brand-900/80" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-40 pb-24 lg:pt-48 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold text-brand-800 mb-8 leading-[0.9] tracking-[-0.02em]">
+              <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold text-brand-800 mb-12 leading-[0.9] tracking-[-0.02em]">
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
-              <div className="space-y-4 mb-10 max-w-2xl">
+              <div className="space-y-6 mb-14 max-w-2xl">
                 <p className="text-xl lg:text-2xl xl:text-3xl font-light text-brand-800 leading-relaxed tracking-wide">
                   {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
                 </p>
