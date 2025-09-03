@@ -215,27 +215,27 @@ export default function Landing() {
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-20 pb-20 lg:pt-24 lg:pb-24">
             <div className="max-w-4xl">
               <div className="mb-10">
-                <h1 className="text-5xl lg:text-7xl xl:text-8xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.9] tracking-[-0.02em] drop-shadow-2xl relative z-10">
+                <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.9] tracking-[-0.02em] drop-shadow-2xl relative z-10">
                   {isSpanish ? 'Haz Crecer Tu Negocio' : 'Grow Your Business'}
                 </h1>
                 <div className="flex items-center gap-3 mt-4">
-                  <span className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent">—</span>
-                  <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.02em]">
+                  <span className="text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent">—</span>
+                  <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.02em]">
                     {isSpanish ? 'En Piloto Automático.' : 'On Autopilot.'}
                   </h2>
                 </div>
               </div>
               
               <div className="space-y-3 mb-8 max-w-2xl">
-                <p className="text-lg lg:text-xl xl:text-2xl font-semibold text-gray-900 leading-tight">
+                <p className="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 leading-tight">
                   {isSpanish ? 'Plataforma completa para hacer crecer tu negocio —' : 'Complete platform to grow your business —'}
                   <br />
                   {isSpanish ? 'marketing, ventas y atención al cliente' : 'marketing, sales, and customer service'}
                 </p>
-                <p className="text-sm lg:text-base xl:text-lg font-medium text-gray-600 leading-tight">
+                <p className="text-xs lg:text-sm xl:text-base font-medium text-gray-600 leading-tight">
                   {isSpanish ? 'Todo automatizado: genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'Everything automated: generate campaigns, manage clients, unify messages — all in one place'}
                 </p>
-                <p className="text-xs lg:text-sm xl:text-base font-normal text-gray-600 leading-tight">
+                <p className="text-xs lg:text-xs xl:text-sm font-normal text-gray-600 leading-tight">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
