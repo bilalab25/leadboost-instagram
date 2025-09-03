@@ -237,17 +237,19 @@ export default function Landing() {
                   <br />
                   {isSpanish ? 'todo en un lugar' : 'all in one place'}
                 </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <Button 
+                  className="bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] text-white hover:from-[#3470b8] hover:to-[#26527d] text-base lg:text-lg font-semibold px-10 lg:px-12 py-4 lg:py-5 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                  onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
+                </Button>
                 <p className="text-xs lg:text-xs xl:text-sm font-normal text-gray-600 leading-tight">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
-              
-              <Button 
-                className="bg-gradient-to-r from-[#3f82d1] to-[#2d5a9a] text-white hover:from-[#3470b8] hover:to-[#26527d] text-base lg:text-lg font-semibold px-10 lg:px-12 py-4 lg:py-5 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
-              </Button>
             </div>
           </div>
           
