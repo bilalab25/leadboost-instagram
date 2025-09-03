@@ -894,48 +894,48 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* How It Works Steps - Ghost Appear */}
       {/* Connected "As Easy As" Section - Centered to Steps */}
-      <div className="absolute top-16 right-8 lg:right-16 z-20 w-80">
+      <div className="absolute top-20 right-8 lg:right-16 z-20 w-80">
         {/* Header with Visual Connection */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent animate-ghost-appear mb-2" style={{ animationDelay: '0.1s' }}>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent animate-ghost-appear mb-3" style={{ animationDelay: '0.1s' }}>
             {isSpanish ? 'Así de Fácil' : 'As Easy As'}
           </h2>
-          <div className="w-12 h-0.5 bg-gradient-to-r from-brand-500 to-brand-700 mx-auto animate-ghost-appear" style={{ animationDelay: '0.2s' }}></div>
+          <div className="w-14 h-0.5 bg-gradient-to-r from-brand-500 to-brand-700 mx-auto animate-ghost-appear" style={{ animationDelay: '0.2s' }}></div>
         </div>
       </div>
       {/* Step 1 */}
-      <div className="absolute top-28 right-8 lg:right-16 z-20">
-        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
+      <div className="absolute top-36 right-8 lg:right-16 z-20">
+        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-6 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-base">1</span>
+            <div className="w-11 h-11 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">1</span>
             </div>
-            <h3 className="text-gray-900 font-semibold text-base">
+            <h3 className="text-gray-900 font-semibold text-lg">
               {isSpanish ? 'IA Genera y Publica' : 'AI Generates & Posts'}
             </h3>
           </div>
-          <p className="text-gray-600 text-xs leading-relaxed mb-2">
+          <p className="text-gray-600 text-sm leading-relaxed mb-3">
             {isSpanish ? 'Crea y publica campañas automáticamente en más de 21 plataformas al mismo tiempo' : 'Creates and posts campaigns automatically across 21+ platforms simultaneously'}
           </p>
           <div className="flex items-center gap-2 text-xs text-brand-600 font-medium">
-            <span className="w-1.5 h-1.5 bg-brand-500 rounded-full"></span>
+            <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
             {isSpanish ? 'Instagram • LinkedIn • TikTok • Email • +17 más' : 'Instagram • LinkedIn • TikTok • Email • +17 more'}
           </div>
         </div>
       </div>
 
       {/* Step 2 */}
-      <div className="absolute top-[17rem] right-8 lg:right-16 z-20">
-        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
+      <div className="absolute top-[19rem] right-8 lg:right-16 z-20">
+        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-6 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-base">2</span>
+            <div className="w-11 h-11 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">2</span>
             </div>
-            <h3 className="text-gray-900 font-semibold text-base">
+            <h3 className="text-gray-900 font-semibold text-lg">
               {isSpanish ? 'Obtienes 30x Más Leads' : 'Get 30x More Leads'}
             </h3>
           </div>
-          <p className="text-gray-600 text-xs leading-relaxed mb-2">
+          <p className="text-gray-600 text-sm leading-relaxed mb-3">
             {isSpanish ? 'Multiplica tus clientes potenciales con contenido optimizado que atrae a tu audiencia ideal' : 'Multiply your potential customers with optimized content that attracts your ideal audience'}
           </p>
           <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
@@ -946,17 +946,17 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 3 */}
-      <div className="absolute top-[26rem] right-8 lg:right-16 z-20">
-        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
+      <div className="absolute top-[30rem] right-8 lg:right-16 z-20">
+        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-6 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-base">3</span>
+            <div className="w-11 h-11 bg-gradient-to-r from-purple-500 to-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">3</span>
             </div>
-            <h3 className="text-gray-900 font-semibold text-base">
+            <h3 className="text-gray-900 font-semibold text-lg">
               {isSpanish ? 'Convierte con IA Chat' : 'Convert with AI Chat'}
             </h3>
           </div>
-          <p className="text-gray-600 text-xs leading-relaxed mb-2">
+          <p className="text-gray-600 text-sm leading-relaxed mb-3">
             {isSpanish ? 'Nuestro chatbot inteligente convierte visitantes en clientes las 24/7 sin intervención humana' : 'Our smart chatbot converts visitors into customers 24/7 without human intervention'}
           </p>
           <div className="flex items-center gap-2 text-xs text-purple-600 font-medium">
