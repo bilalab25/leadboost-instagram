@@ -272,7 +272,7 @@ export default function Landing() {
               
               <div className="flex flex-col sm:flex-row sm:items-start gap-6 mt-10">
                 <Button 
-                  className="bg-slate-900 hover:bg-slate-800 text-white text-base font-semibold px-8 py-4 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] hover:from-[#3470b8] hover:via-slate-700 hover:to-[#26527d] text-white text-base font-semibold px-8 py-4 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 drop-shadow-xl"
                   onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   {isSpanish ? 'Comenzar Demo Gratuito' : 'Start Free Demo'}
