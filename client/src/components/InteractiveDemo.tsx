@@ -1309,15 +1309,15 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     desc: isSpanish ? 'Exclusivo y premium' : 'Exclusive & premium',
                     icon: (
                       <div className="relative">
-                        <div className="w-7 h-7 bg-gradient-to-br from-amber-100/20 to-yellow-100/10 rounded-lg border border-amber-200/40 flex items-center justify-center shadow-2xl">
-                          <div className="w-1.5 h-1.5 bg-gradient-to-br from-amber-300 to-yellow-400 rounded-full shadow-lg"></div>
-                          <div className="absolute top-0.5 right-0.5 w-0.5 h-0.5 bg-amber-400 rounded-full animate-ping opacity-80"></div>
-                          <div className="absolute bottom-0.5 left-0.5 w-0.5 h-0.5 bg-yellow-500 rounded-full animate-ping opacity-60" style={{animationDelay: '0.8s'}}></div>
-                          <div className="absolute top-1.5 left-0.5 w-0.5 h-0.5 bg-amber-500 rounded-full animate-pulse opacity-40" style={{animationDelay: '1.2s'}}></div>
+                        <div className="w-7 h-7 bg-gradient-to-br from-purple-900/30 to-indigo-900/20 rounded-lg border border-purple-300/40 flex items-center justify-center shadow-2xl">
+                          <div className="w-1.5 h-1.5 bg-gradient-to-br from-purple-200 to-indigo-300 rounded-full shadow-lg"></div>
+                          <div className="absolute top-0.5 right-0.5 w-0.5 h-0.5 bg-purple-300 rounded-full animate-ping opacity-80"></div>
+                          <div className="absolute bottom-0.5 left-0.5 w-0.5 h-0.5 bg-indigo-400 rounded-full animate-ping opacity-60" style={{animationDelay: '0.8s'}}></div>
+                          <div className="absolute top-1.5 left-0.5 w-0.5 h-0.5 bg-purple-400 rounded-full animate-pulse opacity-40" style={{animationDelay: '1.2s'}}></div>
                         </div>
                       </div>
                     ),
-                    gradient: 'from-amber-600 to-yellow-700'
+                    gradient: 'from-purple-800 to-indigo-900'
                   }
                 ].map((style) => (
                   <button
