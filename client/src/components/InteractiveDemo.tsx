@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2, X, Target, Heart, Video } from 'lucide-react';
+import { Sparkles, Instagram, Facebook, Linkedin, Twitter, Mail, Hash, ArrowRight, Play, Volume2, X, Target, Heart, Video, Camera, Palette, Globe, Zap, Briefcase, MessageCircle, FileText, Users, TrendingUp, Star } from 'lucide-react';
 import { SiTiktok } from 'react-icons/si';
 
 interface DemoState {
@@ -38,56 +38,56 @@ const generatePlatformPosts = (businessDescription: string, brandStyles: string 
       platform: 'Instagram Post',
       dimensions: '1080×1080',
       aspectRatio: 'square',
-      icon: <Instagram className="w-4 h-4" />,
+      icon: <div className="relative"><Instagram className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div></div>,
       tone: 'casual-engaging'
     },
     {
       platform: 'Instagram Story',
       dimensions: '1080×1920', 
       aspectRatio: 'story',
-      icon: <Instagram className="w-4 h-4" />,
+      icon: <div className="relative"><Camera className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div></div>,
       tone: 'urgent-visual'
     },
     {
       platform: 'LinkedIn Post',
       dimensions: '1200×628',
       aspectRatio: 'landscape',
-      icon: <Linkedin className="w-4 h-4" />,
+      icon: <div className="relative"><Briefcase className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div></div>,
       tone: 'professional'
     },
     {
       platform: 'Threads Post', 
       dimensions: '1080×1080',
       aspectRatio: 'square',
-      icon: <Hash className="w-4 h-4" />,
+      icon: <div className="relative"><MessageCircle className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div></div>,
       tone: 'conversational'
     },
     {
       platform: 'Email Newsletter',
       dimensions: '600×200',
       aspectRatio: 'banner',
-      icon: <Mail className="w-4 h-4" />,
+      icon: <div className="relative"><Mail className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div></div>,
       tone: 'direct-value'
     },
     {
       platform: 'Twitter/X Post',
       dimensions: '1600×900',
       aspectRatio: 'landscape',
-      icon: <Twitter className="w-4 h-4" />,
+      icon: <div className="relative"><X className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div></div>,
       tone: 'witty-concise'
     },
     {
       platform: 'Facebook Post',
       dimensions: '1200×628', 
       aspectRatio: 'landscape',
-      icon: <Facebook className="w-4 h-4" />,
+      icon: <div className="relative"><Users className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div></div>,
       tone: 'friendly-detailed'
     },
     {
       platform: 'TikTok Cover',
       dimensions: '1080×1920',
       aspectRatio: 'story',
-      icon: <div className="w-4 h-4 bg-black rounded-sm flex items-center justify-center text-white text-xs font-bold">T</div>,
+      icon: <div className="relative"><div className="w-4 h-4 bg-gradient-to-br from-black via-purple-900 to-pink-900 rounded-sm flex items-center justify-center text-white text-xs font-bold shadow-md">T</div><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-400 rounded-full animate-pulse"></div></div>,
       tone: 'trendy-bold'
     }
   ];
