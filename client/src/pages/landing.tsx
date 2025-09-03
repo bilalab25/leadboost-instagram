@@ -32,7 +32,7 @@ export default function Landing() {
                 <img 
                   src={leadBoostLogo} 
                   alt="LeadBoost Logo" 
-                  className="h-16 w-auto object-contain" 
+                  className="h-64 w-auto object-contain" 
                 />
               </div>
               
