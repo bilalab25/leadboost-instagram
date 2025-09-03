@@ -233,7 +233,9 @@ export default function Landing() {
                   {isSpanish ? 'marketing, ventas y atención al cliente' : 'marketing, sales, and customer service'}
                 </p>
                 <p className="text-xs lg:text-sm xl:text-base font-medium text-gray-600 leading-tight">
-                  {isSpanish ? 'Todo automatizado: genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'Everything automated: generate campaigns, manage clients, unify messages — all in one place'}
+                  {isSpanish ? 'Todo automatizado: genera campañas, gestiona clientes, unifica mensajes —' : 'Everything automated: generate campaigns, manage clients, unify messages —'}
+                  <br />
+                  {isSpanish ? 'todo en un lugar' : 'all in one place'}
                 </p>
                 <p className="text-xs lg:text-xs xl:text-sm font-normal text-gray-600 leading-tight">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
