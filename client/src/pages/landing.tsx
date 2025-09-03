@@ -197,18 +197,18 @@ export default function Landing() {
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-7xl lg:text-9xl font-bold text-gray-900 mb-12 leading-[0.85] tracking-[-0.02em] drop-shadow-2xl">
+              <h1 className="text-7xl lg:text-9xl font-bold text-black mb-12 leading-[0.85] tracking-[-0.02em]" style={{textShadow: '3px 3px 6px rgba(0,0,0,0.7), 1px 1px 3px rgba(255,255,255,0.3)'}}>
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
               <div className="space-y-6 mb-12 max-w-2xl">
-                <p className="text-2xl lg:text-3xl font-medium text-gray-800 leading-relaxed tracking-wide drop-shadow-xl">
+                <p className="text-2xl lg:text-3xl font-semibold text-black leading-relaxed tracking-wide" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.5), 1px 1px 2px rgba(255,255,255,0.2)'}}>
                   {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
                 </p>
-                <p className="text-xl lg:text-2xl font-medium text-gray-700 leading-relaxed drop-shadow-lg">
+                <p className="text-xl lg:text-2xl font-semibold text-gray-900 leading-relaxed" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.4), 1px 1px 2px rgba(255,255,255,0.2)'}}>
                   {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
                 </p>
-                <p className="text-lg lg:text-xl font-medium text-gray-600 leading-relaxed drop-shadow-lg">
+                <p className="text-lg lg:text-xl font-semibold text-gray-800 leading-relaxed" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.3), 1px 1px 2px rgba(255,255,255,0.1)'}}>
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
