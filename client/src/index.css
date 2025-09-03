@@ -308,3 +308,28 @@
 .animate-float-down {
   animation: float-down 20s linear infinite;
 }
+
+/* Cascade Fall Animation for Steps */
+@keyframes cascade-fall {
+  0% {
+    transform: translateY(-200px);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(-100px);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-cascade-fall {
+  animation: cascade-fall 1.5s ease-out forwards;
+  opacity: 0;
+}
