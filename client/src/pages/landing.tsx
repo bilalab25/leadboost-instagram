@@ -186,14 +186,14 @@ export default function Landing() {
         </header>
 
         {/* Hero Section with Floating Campaign Background */}
-        <div className="relative overflow-hidden mt-0 min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
+        <div className="relative overflow-hidden mt-0 min-h-screen bg-gradient-to-br from-brand-900 via-brand-800 to-brand-900">
           {/* Floating Campaign Background - Squarespace Style */}
           <div className="absolute inset-0 overflow-hidden">
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
           {/* Sophisticated gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-gray-900/60 to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-900/70 via-brand-800/60 to-brand-900/80" />
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
