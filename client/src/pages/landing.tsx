@@ -904,8 +904,8 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       ))}
 
       {/* How It Works Steps - Ghost Appear */}
-      {/* Connected "As Easy As" Section */}
-      <div className="absolute top-16 right-8 lg:right-16 z-20">
+      {/* Connected "As Easy As" Section - Centered to Steps */}
+      <div className="absolute top-28 right-8 lg:right-16 z-20 w-80">
         {/* Header with Visual Connection */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent animate-ghost-appear mb-3" style={{ animationDelay: '0.1s' }}>
