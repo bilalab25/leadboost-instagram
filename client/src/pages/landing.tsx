@@ -197,18 +197,18 @@ export default function Landing() {
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
+              <h1 className="text-7xl lg:text-9xl font-bold text-gray-900 mb-12 leading-[0.85] tracking-[-0.02em] drop-shadow-2xl">
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
               <div className="space-y-6 mb-12 max-w-2xl">
-                <p className="text-2xl lg:text-3xl font-light text-white/90 leading-relaxed tracking-wide">
+                <p className="text-2xl lg:text-3xl font-medium text-gray-800 leading-relaxed tracking-wide drop-shadow-xl">
                   {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
                 </p>
-                <p className="text-xl lg:text-2xl font-light text-white/80 leading-relaxed">
+                <p className="text-xl lg:text-2xl font-medium text-gray-700 leading-relaxed drop-shadow-lg">
                   {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
                 </p>
-                <p className="text-lg lg:text-xl font-light text-white/70 leading-relaxed">
+                <p className="text-lg lg:text-xl font-medium text-gray-600 leading-relaxed drop-shadow-lg">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
