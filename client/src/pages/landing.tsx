@@ -37,6 +37,17 @@ export default function Landing() {
               </div>
               
               <div className="flex items-center space-x-6">
+                {/* Discreet Language Toggle */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleLanguage}
+                  className="text-xs font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-100/30 px-2 py-1 transition-all duration-200 rounded-md border border-gray-200/50 hover:border-gray-300/70"
+                  data-testid="button-language-toggle"
+                >
+                  {isSpanish ? 'EN' : 'ES'}
+                </Button>
+                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
