@@ -861,8 +861,8 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           className="absolute top-0 animate-float-down"
           style={{
             left: `${-5 + columnIndex * 30}%`,
-            animationDelay: `${columnIndex * 0.8}s`,
-            animationDuration: '25s'
+            animationDelay: `${columnIndex * 1.2}s`,
+            animationDuration: '30s'
           }}
         >
           {/* Duplicate the column content for seamless loop */}
@@ -903,10 +903,16 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
         </div>
       ))}
 
-      {/* How It Works Steps - Cascade from Top */}
+      {/* How It Works Steps - Ghost Appear */}
+      {/* "As Easy As" Header */}
+      <div className="absolute top-16 right-8 lg:right-16 z-20">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-right animate-ghost-appear" style={{ animationDelay: '0.1s' }}>
+          {isSpanish ? 'Así de Fácil' : 'As Easy As'}
+        </h2>
+      </div>
       {/* Step 1 */}
       <div className="absolute top-32 right-8 lg:right-16 z-20">
-        <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-cascade-fall" style={{ animationDelay: '0.2s' }}>
+        <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">1</span>
@@ -923,7 +929,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 2 */}
       <div className="absolute top-72 right-8 lg:right-16 z-20">
-        <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-cascade-fall" style={{ animationDelay: '0.4s' }}>
+        <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">2</span>
@@ -940,7 +946,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 3 */}
       <div className="absolute top-[28rem] right-8 lg:right-16 z-20">
-        <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-cascade-fall" style={{ animationDelay: '0.6s' }}>
+        <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">3</span>
