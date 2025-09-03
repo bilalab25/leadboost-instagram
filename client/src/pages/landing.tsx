@@ -221,7 +221,7 @@ export default function Landing() {
                 className="bg-white text-black hover:bg-gray-50 text-lg font-medium px-12 py-6 h-auto rounded-none border-0 transition-all duration-300 hover:shadow-2xl"
                 onClick={() => window.location.href = '/campaigner'}
               >
-                {isSpanish ? 'VER PLANTILLAS' : 'SEE TEMPLATES'}
+                {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
               </Button>
             </div>
           </div>
