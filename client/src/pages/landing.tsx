@@ -940,7 +940,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-base">2</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-base">
-              {isSpanish ? 'Obtienes 30x Más Leads' : 'Get 30x More Leads'}
+              {isSpanish ? 'Obtienes 30x Más Exposición' : 'You Get 30x More Exposure'}
             </h3>
           </div>
           <p className="text-gray-600 text-xs leading-relaxed mb-2">
