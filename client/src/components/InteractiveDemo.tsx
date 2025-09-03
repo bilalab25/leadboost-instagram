@@ -1146,7 +1146,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               <p className="text-lg text-gray-600 leading-relaxed font-medium max-w-md mx-auto">
                 {isSpanish 
                   ? 'Demo Rápido - Hagamos tu campaña en segundos'
-                  : 'Quick Demo - Lets make your campaign in seconds'
+                  : 'Free Demo - Lets make your campaign in seconds'
                 }
               </p>
             </div>
