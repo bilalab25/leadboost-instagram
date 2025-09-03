@@ -900,7 +900,9 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           <h2 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent animate-ghost-appear mb-3" style={{ animationDelay: '0.1s' }}>
             {isSpanish ? 'Así de Fácil' : 'As Easy As'}
           </h2>
-          <div className="w-14 h-0.5 bg-gradient-to-r from-brand-500 to-brand-700 mx-auto animate-ghost-appear" style={{ animationDelay: '0.2s' }}></div>
+          <div className="flex justify-center animate-ghost-appear" style={{ animationDelay: '0.2s' }}>
+            <ChevronDown className="w-6 h-6 text-brand-600 animate-bounce" />
+          </div>
         </div>
       </div>
       {/* Step 1 */}
