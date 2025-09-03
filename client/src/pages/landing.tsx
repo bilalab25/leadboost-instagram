@@ -857,7 +857,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           style={{
             left: `${-5 + columnIndex * 30}%`,
             animationDelay: `${columnIndex * 0.5}s`,
-            animationDuration: '25s'
+            animationDuration: '35s'
           }}
         >
           {/* Duplicate the column content for seamless loop */}
