@@ -27,7 +27,7 @@ export default function Landing() {
         {/* Header */}
         <header className="absolute top-0 left-0 right-0 z-50">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-            <div className="flex justify-between items-center py-6">
+            <div className="flex justify-between items-center">
               <div className="flex items-center">
                 <img 
                   src={leadBoostLogo} 
