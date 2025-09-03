@@ -212,7 +212,7 @@ export default function Landing() {
           {/* Sophisticated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-gray-50/50 to-white/60" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-40 pb-20 lg:pt-48 lg:pb-24">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-20 pb-20 lg:pt-24 lg:pb-24">
             <div className="max-w-4xl">
               <h1 className="text-5xl lg:text-7xl xl:text-8xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent mb-10 leading-[0.9] tracking-[-0.02em] drop-shadow-2xl relative z-10">
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
