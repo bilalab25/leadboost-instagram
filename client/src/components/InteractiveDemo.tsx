@@ -1258,33 +1258,29 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     id: 'professional',
                     name: isSpanish ? 'Profesional' : 'Professional',
                     desc: isSpanish ? 'Elegante y confiable' : 'Elegant & trustworthy',
-                    displayText: isSpanish ? 'Pro' : 'PRO',
-                    textStyle: 'font-bold text-slate-100 text-lg tracking-wider',
-                    gradient: 'from-slate-600 to-slate-800'
+                    displayText: isSpanish ? 'PROFESIONAL' : 'PROFESSIONAL',
+                    textStyle: 'font-medium text-slate-700 text-xl tracking-[0.1em] uppercase'
                   },
                   {
                     id: 'creative',
                     name: isSpanish ? 'Creativo' : 'Creative',
                     desc: isSpanish ? 'Artístico y vibrante' : 'Artistic & vibrant',
-                    displayText: isSpanish ? 'Art' : 'ART',
-                    textStyle: 'font-extrabold text-white text-lg tracking-wide bg-gradient-to-r from-violet-200 to-fuchsia-200 bg-clip-text text-transparent',
-                    gradient: 'from-violet-500 to-fuchsia-600'
+                    displayText: isSpanish ? 'Creativo' : 'Creative',
+                    textStyle: 'font-bold text-transparent bg-gradient-to-r from-violet-600 via-fuchsia-500 to-emerald-500 bg-clip-text text-2xl italic transform -rotate-2'
                   },
                   {
                     id: 'playful',
                     name: isSpanish ? 'Divertido' : 'Playful',
                     desc: isSpanish ? 'Alegre y accesible' : 'Fun & approachable',
-                    displayText: isSpanish ? 'Fun' : 'FUN',
-                    textStyle: 'font-black text-white text-lg tracking-wide transform rotate-3 animate-pulse',
-                    gradient: 'from-lime-400 to-orange-500'
+                    displayText: isSpanish ? 'Divertido!' : 'Playful!',
+                    textStyle: 'font-black text-transparent bg-gradient-to-r from-lime-500 to-orange-400 bg-clip-text text-xl transform rotate-1 animate-bounce'
                   },
                   {
                     id: 'luxury',
                     name: isSpanish ? 'Lujo' : 'Luxury',
                     desc: isSpanish ? 'Exclusivo y premium' : 'Exclusive & premium',
-                    displayText: isSpanish ? 'Lux' : 'LUX',
-                    textStyle: 'font-light text-purple-100 text-lg tracking-widest uppercase',
-                    gradient: 'from-purple-800 to-indigo-900'
+                    displayText: isSpanish ? 'LUJO' : 'LUXURY',
+                    textStyle: 'font-extralight text-purple-900 text-xl tracking-[0.2em] uppercase'
                   }
                 ].map((style) => (
                   <button
@@ -1304,15 +1300,12 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     }`}
                     data-testid={`brand-style-${style.id}`}
                   >
-                    <div className="text-center">
-                      <div className={`w-12 h-12 mx-auto mb-2 rounded-lg bg-gradient-to-r ${style.gradient} flex items-center justify-center shadow-lg`}>
+                    <div className="text-center py-4">
+                      <div className="mb-3">
                         <span className={style.textStyle}>
                           {style.displayText}
                         </span>
                       </div>
-                      <h3 className="font-semibold text-sm text-gray-900 mb-1">
-                        {style.name}
-                      </h3>
                       <p className="text-xs text-gray-500">
                         {style.desc}
                       </p>
