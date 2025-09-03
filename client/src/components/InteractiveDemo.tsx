@@ -1258,28 +1258,28 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     id: 'professional',
                     name: isSpanish ? 'Profesional' : 'Professional',
                     desc: isSpanish ? 'Elegante y confiable' : 'Elegant & trustworthy',
-                    icon: '💼',
+                    icon: <div className="relative"><Briefcase className="w-6 h-6 text-white" /><div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-300 rounded-full animate-pulse opacity-75"></div></div>,
                     gradient: 'from-blue-500 to-indigo-600'
                   },
                   {
                     id: 'creative',
                     name: isSpanish ? 'Creativo' : 'Creative',
                     desc: isSpanish ? 'Artístico y vibrante' : 'Artistic & vibrant',
-                    icon: '🎨',
+                    icon: <div className="relative"><Palette className="w-6 h-6 text-white" /><div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-300 rounded-full animate-pulse opacity-75"></div></div>,
                     gradient: 'from-brand-500 to-brand-600'
                   },
                   {
                     id: 'playful',
                     name: isSpanish ? 'Divertido' : 'Playful',
                     desc: isSpanish ? 'Alegre y accesible' : 'Fun & approachable',
-                    icon: '🌈',
+                    icon: <div className="relative"><Heart className="w-6 h-6 text-white" /><div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-pulse opacity-75"></div></div>,
                     gradient: 'from-yellow-500 to-orange-600'
                   },
                   {
                     id: 'luxury',
                     name: isSpanish ? 'Lujo' : 'Luxury',
                     desc: isSpanish ? 'Exclusivo y premium' : 'Exclusive & premium',
-                    icon: '✨',
+                    icon: <div className="relative"><Star className="w-6 h-6 text-white" /><div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-300 rounded-full animate-pulse opacity-75"></div></div>,
                     gradient: 'from-gray-700 to-black'
                   }
                 ].map((style) => (
@@ -1301,7 +1301,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     data-testid={`brand-style-${style.id}`}
                   >
                     <div className="text-center">
-                      <div className={`w-12 h-12 mx-auto mb-2 rounded-lg bg-gradient-to-r ${style.gradient} flex items-center justify-center text-2xl`}>
+                      <div className={`w-12 h-12 mx-auto mb-2 rounded-lg bg-gradient-to-r ${style.gradient} flex items-center justify-center shadow-lg`}>
                         {style.icon}
                       </div>
                       <h3 className="font-semibold text-sm text-gray-900 mb-1">
