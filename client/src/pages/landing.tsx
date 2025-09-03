@@ -824,7 +824,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           key={columnIndex}
           className="absolute top-0 animate-float-down"
           style={{
-            left: `${20 + columnIndex * 25}%`,
+            left: `${-5 + columnIndex * 30}%`,
             animationDelay: `${columnIndex * 0.5}s`,
             animationDuration: '20s'
           }}
