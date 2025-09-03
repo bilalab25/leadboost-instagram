@@ -843,7 +843,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       ))}
 
       {/* How It Works Steps - Floating in Background */}
-      <div className="absolute top-1/3 right-8 lg:right-16 space-y-8 opacity-80 z-10">
+      <div className="absolute top-16 right-8 lg:right-16 space-y-8 opacity-80 z-10">
         <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 w-72 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-float-down" style={{ animationDelay: '2s', animationDuration: '25s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
