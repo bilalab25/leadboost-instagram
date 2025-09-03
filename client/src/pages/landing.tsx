@@ -197,11 +197,11 @@ export default function Landing() {
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-white mb-12 leading-[0.8] tracking-[-0.02em]">
-                <div className="text-8xl lg:text-[10rem] font-black mb-4">
+              <h1 className="text-white mb-12 leading-tight">
+                <div className="text-6xl lg:text-8xl font-extrabold mb-3 tracking-tight">
                   {isSpanish ? 'Haz Crecer Tu Negocio' : 'Grow Your Business'}
                 </div>
-                <div className="text-5xl lg:text-7xl font-light opacity-90">
+                <div className="text-4xl lg:text-6xl font-medium text-white/95">
                   {isSpanish ? 'En Piloto Automático' : 'On Autopilot'}
                 </div>
               </h1>
