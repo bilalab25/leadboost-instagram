@@ -218,7 +218,7 @@ export default function Landing() {
                 <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.9] tracking-[-0.02em] drop-shadow-2xl relative z-10">
                   {isSpanish ? 'Haz Crecer Tu Negocio' : 'Grow Your Business'}
                 </h1>
-                <div className="flex items-center gap-3 mt-3">
+                <div className="flex items-center gap-3 mt-1">
                   <span className="text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent">—</span>
                   <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.02em]">
                     {isSpanish ? 'En Piloto Automático.' : 'On Autopilot.'}
