@@ -189,7 +189,7 @@ export default function Landing() {
                 </Button>
                 
                 <Button 
-                  className="bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 hover:from-brand-700 hover:via-brand-800 hover:to-brand-900 text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+                  className="bg-[#3f82d1] hover:bg-[#3470b8] text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0"
                   data-testid="button-free-demo"
                   onClick={() => {
                     document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -241,7 +241,7 @@ export default function Landing() {
               </div>
               
               <Button 
-                className="bg-primary text-primary-foreground hover:bg-primary/90 text-base lg:text-lg font-semibold px-10 lg:px-12 py-4 lg:py-5 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-[#3f82d1] text-white hover:bg-[#3470b8] text-base lg:text-lg font-semibold px-10 lg:px-12 py-4 lg:py-5 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
                 onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
