@@ -847,11 +847,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-lg">1</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'Dinos tu negocio' : 'Tell us your business type'}
+              {isSpanish ? 'Anuncios y posts' : 'Ads & posts'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Dentista, Agente Inmobiliario, Coach Fitness, etc.' : 'Dentist, Realtor, Fitness coach, etc.'}
+            {isSpanish ? 'Creados en segundos para múltiples plataformas' : 'Created in seconds for multiple platforms'}
           </p>
         </div>
       </div>
@@ -864,11 +864,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-lg">2</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'IA construye tu campaña' : 'AI builds your campaign'}
+              {isSpanish ? 'Formularios listos' : 'Forms ready'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Anuncios, posts, formularios — hecho en segundos.' : 'Ads, posts, forms — done in seconds.'}
+            {isSpanish ? 'Para más de 21 plataformas diferentes' : 'For 21+ different platforms'}
           </p>
         </div>
       </div>
@@ -881,11 +881,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-lg">3</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'Empezar a recibir clientes' : 'Start getting leads'}
+              {isSpanish ? 'Bandeja unificada' : 'Unified inbox'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Nuevos clientes te contactan directamente.' : 'New clients reach out directly.'}
+            {isSpanish ? 'Nuevos clientes te contactan directamente' : 'New clients reach out directly'}
           </p>
         </div>
       </div>
