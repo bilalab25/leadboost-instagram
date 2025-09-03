@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Rocket, HelpCircle, X, Send } from "lucide-react";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Rocket, HelpCircle, X, Send, FileQuestion } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiShopify, SiZapier, SiQuickbooks, SiSquare, SiStripe } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -48,7 +48,29 @@ export default function Landing() {
                       <HelpCircle className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
+                  <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
+                    <DropdownMenuItem 
+                      className="flex items-center p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer"
+                      onClick={() => {
+                        const chatbot = document.querySelector('[data-testid="ai-chatbot-trigger"]') as HTMLElement;
+                        if (chatbot) chatbot.click();
+                      }}
+                    >
+                      <Bot className="h-4 w-4 mr-3 text-brand-600" />
+                      <span className="font-medium">{isSpanish ? 'Chat con IA' : 'AI Chat Assistant'}</span>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem 
+                      className="flex items-center p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer"
+                      onClick={() => {
+                        const faqSection = document.getElementById('faq-section');
+                        if (faqSection) faqSection.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      <FileQuestion className="h-4 w-4 mr-3 text-brand-600" />
+                      <span className="font-medium">{isSpanish ? 'Preguntas Frecuentes' : 'FAQs'}</span>
+                    </DropdownMenuItem>
+                    
                     <DropdownMenuItem 
                       className="flex items-center p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer"
                       onClick={toggleLanguage}
