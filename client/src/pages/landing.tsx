@@ -202,7 +202,7 @@ export default function Landing() {
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-24 lg:py-32">
             <div className="max-w-4xl">
               <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
-                {isSpanish ? 'Crea tu campaña' : 'Create your campaign'}
+                {isSpanish ? 'Campañas ganadoras de clientes, hechas para ti' : 'Client-winning campaigns, done for you'}
               </h1>
               
               <div className="space-y-6 mb-12 max-w-2xl">
