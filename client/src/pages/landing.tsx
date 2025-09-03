@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -243,14 +243,14 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* Hero Section with CampAIgner Tool */}
+        {/* Hero Section with Visual Campaign Showcase */}
         <div className="relative overflow-hidden mt-32">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
           <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-brand-300/20 to-brand-500/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-40 left-10 w-64 h-64 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-            <div className="text-center mb-16">
+            <div className="text-center mb-8">
               <h2 className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.88] tracking-tight">
                 {isSpanish ? 'El Efecto LeadBoost' : 'The LeadBoost Effect'}
               </h2>
@@ -258,11 +258,16 @@ export default function Landing() {
                 {isSpanish ? 'Ser Visto → En Todos Lados. En Un Clic.' : 'Get Seen → Everywhere. In One Click.'}
               </div>
               
-              <div className="max-w-4xl mx-auto mt-8">
+              <div className="max-w-4xl mx-auto mt-8 mb-12">
                 <p className="text-lg lg:text-xl text-gray-600 leading-relaxed font-normal">
                   {isSpanish ? 'Convierte los datos de tu negocio en campañas listas para usar en 21+ plataformas—en solo un clic.' : 'Turn your business data into ready-to-go campaigns for 21+ platforms—in just one click.'}
                 </p>
               </div>
+            </div>
+
+            {/* Visual Campaign Showcase - Squarespace Style */}
+            <div className="relative h-[600px] overflow-hidden">
+              <CampaignShowcase isSpanish={isSpanish} />
             </div>
           </div>
           
@@ -791,6 +796,224 @@ export default function Landing() {
         <HelpChatbot isSpanish={isSpanish} />
       </div>
     </>
+  );
+}
+
+// Campaign Showcase Component - Squarespace Style
+function CampaignShowcase({ isSpanish }: { isSpanish: boolean }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Sample campaign data for different platforms with realistic content
+  const campaignTemplates = [
+    // Instagram Stories
+    {
+      platform: 'instagram-story',
+      format: 'story',
+      width: 240,
+      height: 320,
+      bgColor: 'bg-gradient-to-br from-pink-500 to-purple-600',
+      icon: <SiInstagram className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Oferta Especial' : 'Special Offer',
+        subtitle: isSpanish ? '30% Descuento' : '30% Off',
+        cta: isSpanish ? 'Ver Más' : 'Learn More'
+      }
+    },
+    // Instagram Feed
+    {
+      platform: 'instagram-feed',
+      format: 'square',
+      width: 280,
+      height: 280,
+      bgColor: 'bg-gradient-to-br from-orange-400 to-pink-500',
+      icon: <SiInstagram className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Nuevo Producto' : 'New Product',
+        subtitle: isSpanish ? 'Disponible Ahora' : 'Available Now'
+      }
+    },
+    // TikTok Vertical
+    {
+      platform: 'tiktok',
+      format: 'vertical',
+      width: 220,
+      height: 380,
+      bgColor: 'bg-gradient-to-br from-gray-800 to-gray-900',
+      icon: <SiTiktok className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Tendencia Viral' : 'Trending Now',
+        subtitle: isSpanish ? '#ParaTi' : '#ForYou'
+      }
+    },
+    // Facebook Post
+    {
+      platform: 'facebook',
+      format: 'landscape',
+      width: 320,
+      height: 180,
+      bgColor: 'bg-gradient-to-br from-blue-600 to-indigo-700',
+      icon: <SiFacebook className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Evento Exclusivo' : 'Exclusive Event',
+        subtitle: isSpanish ? 'Solo Este Fin de Semana' : 'This Weekend Only'
+      }
+    },
+    // YouTube Thumbnail
+    {
+      platform: 'youtube',
+      format: 'landscape',
+      width: 320,
+      height: 180,
+      bgColor: 'bg-gradient-to-br from-red-500 to-red-700',
+      icon: <SiYoutube className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Tutorial Completo' : 'Complete Tutorial',
+        subtitle: isSpanish ? '10 Minutos' : '10 Minutes'
+      }
+    },
+    // LinkedIn Post  
+    {
+      platform: 'linkedin',
+      format: 'square',
+      width: 280,
+      height: 280,
+      bgColor: 'bg-gradient-to-br from-blue-700 to-indigo-800',
+      icon: <SiLinkedin className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Crecimiento Empresarial' : 'Business Growth',
+        subtitle: isSpanish ? 'Estrategias Probadas' : 'Proven Strategies'
+      }
+    },
+    // X/Twitter Post
+    {
+      platform: 'x',
+      format: 'wide',
+      width: 340,
+      height: 160,
+      bgColor: 'bg-gradient-to-br from-slate-800 to-slate-900',
+      icon: <SiX className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Última Hora' : 'Breaking News',
+        subtitle: isSpanish ? 'Actualizaciones en vivo' : 'Live Updates'
+      }
+    },
+    // WhatsApp Business
+    {
+      platform: 'whatsapp',
+      format: 'message',
+      width: 300,
+      height: 200,
+      bgColor: 'bg-gradient-to-br from-green-500 to-green-700',
+      icon: <SiWhatsapp className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Mensaje Directo' : 'Direct Message',
+        subtitle: isSpanish ? 'Respuesta Automática' : 'Auto Reply'
+      }
+    }
+  ];
+
+  // Animation cycle
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % campaignTemplates.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [campaignTemplates.length]);
+
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      {/* Background grid pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 bg-grid-pattern"></div>
+      </div>
+      
+      {/* Cascading Campaign Previews */}
+      <div className="relative">
+        {campaignTemplates.map((template, index) => {
+          const isActive = index === currentIndex;
+          const offset = (index - currentIndex + campaignTemplates.length) % campaignTemplates.length;
+          
+          return (
+            <div
+              key={`${template.platform}-${index}`}
+              className={`absolute transition-all duration-1000 ease-in-out transform ${
+                isActive 
+                  ? 'scale-110 z-20 opacity-100' 
+                  : offset === 1 || offset === campaignTemplates.length - 1
+                  ? 'scale-95 z-10 opacity-70'
+                  : 'scale-85 z-5 opacity-40'
+              }`}
+              style={{
+                left: `${50 + (offset - Math.floor(campaignTemplates.length / 2)) * 100}px`,
+                top: `${50 + Math.sin(offset * 0.5) * 30}px`,
+                width: `${template.width}px`,
+                height: `${template.height}px`,
+                transform: `translate(-50%, -50%) scale(${
+                  isActive ? 1.1 : offset === 1 || offset === campaignTemplates.length - 1 ? 0.95 : 0.85
+                }) rotate(${(offset - Math.floor(campaignTemplates.length / 2)) * 2}deg)`
+              }}
+            >
+              {/* Campaign Card */}
+              <div className={`w-full h-full ${template.bgColor} rounded-2xl shadow-2xl border border-white/20 overflow-hidden relative group`}>
+                {/* Platform Icon */}
+                <div className="absolute top-3 right-3 w-8 h-8 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                  {template.icon}
+                </div>
+                
+                {/* Content */}
+                <div className="p-4 h-full flex flex-col justify-center text-white relative z-10">
+                  <div className="text-center">
+                    <h3 className="text-lg font-bold mb-2 leading-tight">
+                      {template.content.title}
+                    </h3>
+                    <p className="text-sm opacity-90 mb-3 leading-relaxed">
+                      {template.content.subtitle}
+                    </p>
+                    {template.content.cta && (
+                      <div className="inline-block bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
+                        {template.content.cta}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Decorative Elements */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Platform Labels */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        <div className="flex space-x-3">
+          {campaignTemplates.map((template, index) => (
+            <div
+              key={`indicator-${index}`}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex 
+                  ? 'bg-brand-600 scale-125' 
+                  : 'bg-gray-300 hover:bg-gray-400'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+      
+      {/* Central Label */}
+      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center">
+        <div className="bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-gray-200">
+          <p className="text-sm font-semibold text-gray-700">
+            {isSpanish ? 'Campañas Listas Para Usar' : 'Ready-to-Use Campaigns'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {isSpanish ? '21+ Formatos Automáticos' : '21+ Automatic Formats'}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
