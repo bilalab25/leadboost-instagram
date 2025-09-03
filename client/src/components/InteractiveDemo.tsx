@@ -38,56 +38,56 @@ const generatePlatformPosts = (businessDescription: string, brandStyles: string 
       platform: 'Instagram Post',
       dimensions: '1080×1080',
       aspectRatio: 'square',
-      icon: <div className="relative"><Instagram className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div></div>,
+      icon: <Instagram className="w-4 h-4" />,
       tone: 'casual-engaging'
     },
     {
       platform: 'Instagram Story',
       dimensions: '1080×1920', 
       aspectRatio: 'story',
-      icon: <div className="relative"><Camera className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div></div>,
+      icon: <Instagram className="w-4 h-4" />,
       tone: 'urgent-visual'
     },
     {
       platform: 'LinkedIn Post',
       dimensions: '1200×628',
       aspectRatio: 'landscape',
-      icon: <div className="relative"><Briefcase className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div></div>,
+      icon: <Linkedin className="w-4 h-4" />,
       tone: 'professional'
     },
     {
       platform: 'Threads Post', 
       dimensions: '1080×1080',
       aspectRatio: 'square',
-      icon: <div className="relative"><MessageCircle className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div></div>,
+      icon: <Hash className="w-4 h-4" />,
       tone: 'conversational'
     },
     {
       platform: 'Email Newsletter',
       dimensions: '600×200',
       aspectRatio: 'banner',
-      icon: <div className="relative"><Mail className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div></div>,
+      icon: <Mail className="w-4 h-4" />,
       tone: 'direct-value'
     },
     {
       platform: 'Twitter/X Post',
       dimensions: '1600×900',
       aspectRatio: 'landscape',
-      icon: <div className="relative"><X className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div></div>,
+      icon: <Twitter className="w-4 h-4" />,
       tone: 'witty-concise'
     },
     {
       platform: 'Facebook Post',
       dimensions: '1200×628', 
       aspectRatio: 'landscape',
-      icon: <div className="relative"><Users className="w-4 h-4" /><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div></div>,
+      icon: <Facebook className="w-4 h-4" />,
       tone: 'friendly-detailed'
     },
     {
       platform: 'TikTok Cover',
       dimensions: '1080×1920',
       aspectRatio: 'story',
-      icon: <div className="relative"><div className="w-4 h-4 bg-gradient-to-br from-black via-purple-900 to-pink-900 rounded-sm flex items-center justify-center text-white text-xs font-bold shadow-md">T</div><div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-400 rounded-full animate-pulse"></div></div>,
+      icon: <div className="w-4 h-4 bg-black rounded-sm flex items-center justify-center text-white text-xs font-bold">T</div>,
       tone: 'trendy-bold'
     }
   ];
