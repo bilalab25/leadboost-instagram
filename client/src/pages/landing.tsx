@@ -41,12 +41,11 @@ export default function Landing() {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost"
-                      className="text-brand-800 hover:text-brand-700 hover:bg-white/10 font-medium px-4 py-2 transition-all duration-300 group backdrop-blur-xl border border-brand-400/30 rounded-xl"
+                      size="sm"
+                      className="text-gray-500 hover:text-gray-700 hover:bg-gray-100/50 px-2 py-1 transition-all duration-200 opacity-60 hover:opacity-100"
                       data-testid="button-help-dropdown"
                     >
-                      <HelpCircle className="mr-2 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
-                      {isSpanish ? 'AYUDA' : 'HELP'}
-                      <ChevronDown className="ml-1 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
+                      <HelpCircle className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
