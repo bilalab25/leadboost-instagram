@@ -966,7 +966,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-base">3</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-base">
-              {isSpanish ? 'Convierte con IA Chat' : 'Converts with AI Chat'}
+              {isSpanish ? 'Convierte con IA Chat' : 'Convert with AI Chat'}
             </h3>
           </div>
           <p className="text-gray-600 text-xs leading-relaxed mb-2">
