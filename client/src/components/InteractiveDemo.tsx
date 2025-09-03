@@ -1258,28 +1258,60 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     id: 'professional',
                     name: isSpanish ? 'Profesional' : 'Professional',
                     desc: isSpanish ? 'Elegante y confiable' : 'Elegant & trustworthy',
-                    icon: <div className="relative"><Briefcase className="w-6 h-6 text-white" /><div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-300 rounded-full animate-pulse opacity-75"></div></div>,
+                    icon: (
+                      <div className="relative">
+                        <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
+                          <div className="w-4 h-3 bg-white/90 rounded-sm"></div>
+                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-200 rounded-full animate-pulse opacity-60"></div>
+                        </div>
+                      </div>
+                    ),
                     gradient: 'from-blue-500 to-indigo-600'
                   },
                   {
                     id: 'creative',
                     name: isSpanish ? 'Creativo' : 'Creative',
                     desc: isSpanish ? 'Artístico y vibrante' : 'Artistic & vibrant',
-                    icon: <div className="relative"><Palette className="w-6 h-6 text-white" /><div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-300 rounded-full animate-pulse opacity-75"></div></div>,
+                    icon: (
+                      <div className="relative">
+                        <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-br from-white via-purple-200 to-pink-200"></div>
+                          <div className="absolute top-0 right-0 w-1.5 h-1.5 bg-purple-300 rounded-full animate-ping"></div>
+                        </div>
+                      </div>
+                    ),
                     gradient: 'from-brand-500 to-brand-600'
                   },
                   {
                     id: 'playful',
                     name: isSpanish ? 'Divertido' : 'Playful',
                     desc: isSpanish ? 'Alegre y accesible' : 'Fun & approachable',
-                    icon: <div className="relative"><Heart className="w-6 h-6 text-white" /><div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-pulse opacity-75"></div></div>,
+                    icon: (
+                      <div className="relative">
+                        <div className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 rotate-12 transform transition-transform hover:rotate-0">
+                          <div className="flex space-x-0.5">
+                            <div className="w-1 h-1 bg-yellow-200 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                            <div className="w-1 h-1 bg-orange-200 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-1 h-1 bg-pink-200 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
+                        </div>
+                      </div>
+                    ),
                     gradient: 'from-yellow-500 to-orange-600'
                   },
                   {
                     id: 'luxury',
                     name: isSpanish ? 'Lujo' : 'Luxury',
                     desc: isSpanish ? 'Exclusivo y premium' : 'Exclusive & premium',
-                    icon: <div className="relative"><Star className="w-6 h-6 text-white" /><div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-300 rounded-full animate-pulse opacity-75"></div></div>,
+                    icon: (
+                      <div className="relative">
+                        <div className="w-8 h-8 bg-gradient-to-br from-white/20 via-amber-200/30 to-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-amber-200/30 shadow-inner">
+                          <div className="w-2 h-2 bg-gradient-to-br from-amber-100 to-yellow-200 rounded-full shadow-lg"></div>
+                          <div className="absolute -top-0.5 -right-0.5 w-1 h-1 bg-amber-300 rounded-full animate-pulse"></div>
+                          <div className="absolute -bottom-0.5 -left-0.5 w-0.5 h-0.5 bg-amber-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                        </div>
+                      </div>
+                    ),
                     gradient: 'from-gray-700 to-black'
                   }
                 ].map((style) => (
