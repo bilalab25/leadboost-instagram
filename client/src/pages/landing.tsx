@@ -186,29 +186,29 @@ export default function Landing() {
         </header>
 
         {/* Hero Section with Floating Campaign Background */}
-        <div className="relative overflow-hidden mt-0 min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100">
+        <div className="relative overflow-hidden mt-0 min-h-screen bg-gray-50">
           {/* Floating Campaign Background - Squarespace Style */}
           <div className="absolute inset-0 overflow-hidden">
             <CampaignBackgroundFlow isSpanish={isSpanish} />
           </div>
           
           {/* Sophisticated gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-gray-50/50 to-white/60" />
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-56 pb-24 lg:pt-64 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold text-foreground mb-12 leading-[0.9] tracking-[-0.02em]">
+              <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold text-gray-900 mb-12 leading-[0.9] tracking-[-0.02em]">
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
               <div className="space-y-6 mb-14 max-w-2xl">
-                <p className="text-xl lg:text-2xl xl:text-3xl font-medium text-foreground leading-relaxed">
+                <p className="text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900 leading-relaxed">
                   {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
                 </p>
-                <p className="text-lg lg:text-xl xl:text-2xl font-normal text-muted-foreground leading-relaxed">
+                <p className="text-lg lg:text-xl xl:text-2xl font-medium text-gray-600 leading-relaxed">
                   {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
                 </p>
-                <p className="text-base lg:text-lg xl:text-xl font-normal text-muted-foreground leading-relaxed">
+                <p className="text-base lg:text-lg xl:text-xl font-normal text-gray-600 leading-relaxed">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
@@ -841,16 +841,16 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       {/* How It Works Steps - Cascade from Top */}
       {/* Step 1 */}
       <div className="absolute top-48 right-8 lg:right-16 z-20">
-        <div className="group bg-card border border-border rounded-lg shadow-lg p-7 w-80 backdrop-blur-sm animate-cascade-fall" style={{ animationDelay: '1s' }}>
+        <div className="group bg-white border border-gray-200 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-cascade-fall" style={{ animationDelay: '1s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-400 to-brand-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">1</span>
             </div>
-            <h3 className="text-card-foreground font-semibold text-lg">
+            <h3 className="text-gray-900 font-semibold text-lg">
               {isSpanish ? 'Dinos tu negocio' : 'Tell us your business type'}
             </h3>
           </div>
-          <p className="text-muted-foreground text-sm leading-relaxed">
+          <p className="text-gray-600 text-sm leading-relaxed">
             {isSpanish ? 'Dentista, Agente Inmobiliario, Coach Fitness, etc.' : 'Dentist, Realtor, Fitness coach, etc.'}
           </p>
         </div>
@@ -858,16 +858,16 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 2 */}
       <div className="absolute top-96 right-8 lg:right-16 z-20">
-        <div className="group bg-card border border-border rounded-lg shadow-lg p-7 w-80 backdrop-blur-sm animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
+        <div className="group bg-white border border-gray-200 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">2</span>
             </div>
-            <h3 className="text-card-foreground font-semibold text-lg">
+            <h3 className="text-gray-900 font-semibold text-lg">
               {isSpanish ? 'IA construye tu campaña' : 'AI builds your campaign'}
             </h3>
           </div>
-          <p className="text-muted-foreground text-sm leading-relaxed">
+          <p className="text-gray-600 text-sm leading-relaxed">
             {isSpanish ? 'Anuncios, posts, formularios — hecho en segundos.' : 'Ads, posts, forms — done in seconds.'}
           </p>
         </div>
@@ -875,16 +875,16 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 3 */}
       <div className="absolute top-[44rem] right-8 lg:right-16 z-20">
-        <div className="group bg-card border border-border rounded-lg shadow-lg p-7 w-80 backdrop-blur-sm animate-cascade-fall" style={{ animationDelay: '4s' }}>
+        <div className="group bg-white border border-gray-200 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-cascade-fall" style={{ animationDelay: '4s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-600 to-brand-800 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">3</span>
             </div>
-            <h3 className="text-card-foreground font-semibold text-lg">
+            <h3 className="text-gray-900 font-semibold text-lg">
               {isSpanish ? 'Empezar a recibir clientes' : 'Start getting leads'}
             </h3>
           </div>
-          <p className="text-muted-foreground text-sm leading-relaxed">
+          <p className="text-gray-600 text-sm leading-relaxed">
             {isSpanish ? 'Nuevos clientes te contactan directamente.' : 'New clients reach out directly.'}
           </p>
         </div>
