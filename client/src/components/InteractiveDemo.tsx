@@ -1258,65 +1258,32 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     id: 'professional',
                     name: isSpanish ? 'Profesional' : 'Professional',
                     desc: isSpanish ? 'Elegante y confiable' : 'Elegant & trustworthy',
-                    icon: (
-                      <div className="relative">
-                        <div className="w-7 h-7 bg-white/20 rounded-xl border border-white/30 flex items-center justify-center shadow-xl">
-                          <div className="w-2 h-2 bg-slate-100 rounded-sm shadow-inner"></div>
-                          <div className="absolute top-1 right-1 w-1 h-1 bg-slate-300 rounded-full animate-pulse"></div>
-                          <div className="absolute bottom-1 left-1 w-0.5 h-0.5 bg-slate-400 rounded-full opacity-60"></div>
-                        </div>
-                      </div>
-                    ),
+                    displayText: isSpanish ? 'Pro' : 'PRO',
+                    textStyle: 'font-bold text-slate-100 text-lg tracking-wider',
                     gradient: 'from-slate-600 to-slate-800'
                   },
                   {
                     id: 'creative',
                     name: isSpanish ? 'Creativo' : 'Creative',
                     desc: isSpanish ? 'Artístico y vibrante' : 'Artistic & vibrant',
-                    icon: (
-                      <div className="relative">
-                        <div className="w-7 h-7 bg-white/15 rounded-full border-2 border-white/25 flex items-center justify-center shadow-xl">
-                          <div className="grid grid-cols-2 gap-0.5">
-                            <div className="w-1 h-1 bg-violet-300 rounded-full animate-pulse"></div>
-                            <div className="w-1 h-1 bg-fuchsia-300 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                            <div className="w-1 h-1 bg-emerald-300 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                            <div className="w-1 h-1 bg-cyan-300 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
-                          </div>
-                        </div>
-                      </div>
-                    ),
+                    displayText: isSpanish ? 'Art' : 'ART',
+                    textStyle: 'font-extrabold text-white text-lg tracking-wide bg-gradient-to-r from-violet-200 to-fuchsia-200 bg-clip-text text-transparent',
                     gradient: 'from-violet-500 to-fuchsia-600'
                   },
                   {
                     id: 'playful',
                     name: isSpanish ? 'Divertido' : 'Playful',
                     desc: isSpanish ? 'Alegre y accesible' : 'Fun & approachable',
-                    icon: (
-                      <div className="relative">
-                        <div className="w-7 h-7 bg-white/20 rounded-2xl border border-white/30 flex items-center justify-center shadow-xl transform hover:scale-110 transition-transform">
-                          <div className="relative">
-                            <div className="w-2 h-2 bg-gradient-to-r from-lime-200 to-orange-300 rounded-full animate-spin"></div>
-                            <div className="absolute -top-1 -right-1 w-1 h-1 bg-rose-400 rounded-full animate-bounce"></div>
-                          </div>
-                        </div>
-                      </div>
-                    ),
+                    displayText: isSpanish ? 'Fun' : 'FUN',
+                    textStyle: 'font-black text-white text-lg tracking-wide transform rotate-3 animate-pulse',
                     gradient: 'from-lime-400 to-orange-500'
                   },
                   {
                     id: 'luxury',
                     name: isSpanish ? 'Lujo' : 'Luxury',
                     desc: isSpanish ? 'Exclusivo y premium' : 'Exclusive & premium',
-                    icon: (
-                      <div className="relative">
-                        <div className="w-7 h-7 bg-gradient-to-br from-purple-900/30 to-indigo-900/20 rounded-lg border border-purple-300/40 flex items-center justify-center shadow-2xl">
-                          <div className="w-1.5 h-1.5 bg-gradient-to-br from-purple-200 to-indigo-300 rounded-full shadow-lg"></div>
-                          <div className="absolute top-0.5 right-0.5 w-0.5 h-0.5 bg-purple-300 rounded-full animate-ping opacity-80"></div>
-                          <div className="absolute bottom-0.5 left-0.5 w-0.5 h-0.5 bg-indigo-400 rounded-full animate-ping opacity-60" style={{animationDelay: '0.8s'}}></div>
-                          <div className="absolute top-1.5 left-0.5 w-0.5 h-0.5 bg-purple-400 rounded-full animate-pulse opacity-40" style={{animationDelay: '1.2s'}}></div>
-                        </div>
-                      </div>
-                    ),
+                    displayText: isSpanish ? 'Lux' : 'LUX',
+                    textStyle: 'font-light text-purple-100 text-lg tracking-widest uppercase',
                     gradient: 'from-purple-800 to-indigo-900'
                   }
                 ].map((style) => (
@@ -1339,7 +1306,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   >
                     <div className="text-center">
                       <div className={`w-12 h-12 mx-auto mb-2 rounded-lg bg-gradient-to-r ${style.gradient} flex items-center justify-center shadow-lg`}>
-                        {style.icon}
+                        <span className={style.textStyle}>
+                          {style.displayText}
+                        </span>
                       </div>
                       <h3 className="font-semibold text-sm text-gray-900 mb-1">
                         {style.name}
