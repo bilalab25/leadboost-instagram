@@ -25,17 +25,15 @@ export default function Landing() {
       <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
         
         {/* Header */}
-        <header className="absolute top-0 left-0 right-0 z-50 backdrop-blur-md bg-black/10">
+        <header className="absolute top-0 left-0 right-0 z-50">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
             <div className="flex justify-between items-center py-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-20 h-20 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20 overflow-hidden">
-                  <img 
-                    src={leadBoostLogo} 
-                    alt="LeadBoost Logo" 
-                    className="w-16 h-16 object-contain" 
-                  />
-                </div>
+              <div className="flex items-center">
+                <img 
+                  src={leadBoostLogo} 
+                  alt="LeadBoost Logo" 
+                  className="h-16 w-auto object-contain" 
+                />
               </div>
               
               <div className="flex items-center space-x-4">
