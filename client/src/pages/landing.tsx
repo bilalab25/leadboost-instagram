@@ -908,11 +908,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       <div className="absolute top-20 right-8 lg:right-16 z-20 w-72">
         {/* Header with Visual Connection */}
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent animate-ghost-appear mb-3" style={{ animationDelay: '0.1s' }}>
+          <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-3 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
             {isSpanish ? 'Así de Fácil' : 'As Easy As'}
           </h2>
           <div className="flex justify-center animate-ghost-appear" style={{ animationDelay: '0.2s' }}>
-            <ChevronDown className="w-6 h-6 text-brand-600 animate-bounce" />
+            <ArrowDown className="w-8 h-8 text-[#3f82d1] animate-bounce drop-shadow-md" />
           </div>
         </div>
       </div>
