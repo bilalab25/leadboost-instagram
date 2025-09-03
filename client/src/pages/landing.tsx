@@ -202,12 +202,12 @@ export default function Landing() {
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-24 lg:py-32">
             <div className="max-w-4xl">
               <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
-                {isSpanish ? 'Campañas ganadoras de clientes, hechas para ti' : 'Client-winning campaigns, done for you'}
+                {isSpanish ? 'Marketing que funciona' : 'Marketing that works'}
               </h1>
               
               <div className="space-y-6 mb-12 max-w-2xl">
                 <p className="text-2xl lg:text-3xl font-light text-white/90 leading-relaxed tracking-wide">
-                  {isSpanish ? 'Plantillas de campañas sofisticadas, sin necesidad de programar' : 'Sophisticated campaign templates, no coding needed'}
+                  {isSpanish ? 'Generador de campañas IA para todas las plataformas, hecho para ti en un clic' : 'AI campaign generator for all platforms, done for you in one click'}
                 </p>
                 <p className="text-xl lg:text-2xl font-light text-white/80 leading-relaxed">
                   {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
