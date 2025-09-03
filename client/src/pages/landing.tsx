@@ -905,52 +905,64 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
       {/* Step 1 */}
       <div className="absolute top-44 right-8 lg:right-16 z-20">
-        <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
+        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">1</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'IA Crea Tu Campaña en Segundos' : 'AI Creates Your Campaign in Seconds'}
+              {isSpanish ? 'IA Genera y Publica' : 'AI Generates & Posts'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Solo selecciona tu industria y la IA hace el resto' : 'Just pick your industry and AI does the rest'}
+            {isSpanish ? 'Crea y publica campañas automáticamente en más de 21 plataformas al mismo tiempo' : 'Creates and posts campaigns automatically across 21+ platforms simultaneously'}
           </p>
+          <div className="mt-3 flex items-center gap-2 text-xs text-brand-600 font-medium">
+            <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
+            {isSpanish ? 'Instagram • LinkedIn • TikTok • Email • +17 más' : 'Instagram • LinkedIn • TikTok • Email • +17 more'}
+          </div>
         </div>
       </div>
 
       {/* Step 2 */}
-      <div className="absolute top-80 right-8 lg:right-16 z-20">
-        <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
+      <div className="absolute top-[22rem] right-8 lg:right-16 z-20">
+        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">2</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'Publica en Más de 21 Plataformas' : 'Posts to 21+ Platforms'}
+              {isSpanish ? 'Obtienes 30x Más Leads' : 'Get 30x More Leads'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Instagram, WhatsApp, Email, TikTok — con un solo clic' : 'Instagram, WhatsApp, Email, TikTok — with one click'}
+            {isSpanish ? 'Multiplica tus clientes potenciales con contenido optimizado que atrae a tu audiencia ideal' : 'Multiply your potential customers with optimized content that attracts your ideal audience'}
           </p>
+          <div className="mt-3 flex items-center gap-2 text-xs text-green-600 font-medium">
+            <TrendingUp className="w-3 h-3" />
+            {isSpanish ? 'Crecimiento Comprobado' : 'Proven Growth'}
+          </div>
         </div>
       </div>
 
       {/* Step 3 */}
-      <div className="absolute top-[30rem] right-8 lg:right-16 z-20">
-        <div className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
+      <div className="absolute top-[36rem] right-8 lg:right-16 z-20">
+        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-7 w-80 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">3</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'Obtienes 30x Más Prospectos' : 'You Get 30x More Leads'}
+              {isSpanish ? 'Convierte con IA Chat' : 'Convert with AI Chat'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Nuevos clientes llegan a tu bandeja unificada automáticamente' : 'New clients come to your unified inbox automatically'}
+            {isSpanish ? 'Nuestro chatbot inteligente convierte visitantes en clientes las 24/7 sin intervención humana' : 'Our smart chatbot converts visitors into customers 24/7 without human intervention'}
           </p>
+          <div className="mt-3 flex items-center gap-2 text-xs text-purple-600 font-medium">
+            <MessageSquare className="w-3 h-3" />
+            {isSpanish ? 'Conversión Automatizada' : 'Automated Conversion'}
+          </div>
         </div>
       </div>
     </div>
