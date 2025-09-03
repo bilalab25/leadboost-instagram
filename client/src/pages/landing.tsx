@@ -215,7 +215,7 @@ export default function Landing() {
               
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90 text-base lg:text-lg font-semibold px-10 lg:px-12 py-4 lg:py-5 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={() => window.location.href = '/demo'}
+                onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
               </Button>
@@ -290,7 +290,7 @@ export default function Landing() {
                   </div>
                   
                   {/* Interactive Demo Section */}
-                  <div className="mt-12 mb-8">
+                  <div id="demo" className="mt-12 mb-8">
                     <InteractiveDemo isSpanish={isSpanish} />
                   </div>
                   
