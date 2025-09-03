@@ -68,7 +68,7 @@ export default function Landing() {
                       }}
                     >
                       <Bot className="h-4 w-4 mr-3 text-brand-600" />
-                      <span className="font-medium">{isSpanish ? 'Chat con IA' : 'AI Chat Assistant'}</span>
+                      <span className="font-medium text-slate-800">{isSpanish ? 'Chat con IA' : 'AI Chat Assistant'}</span>
                     </DropdownMenuItem>
                     
                     <DropdownMenuItem 
@@ -79,7 +79,7 @@ export default function Landing() {
                       }}
                     >
                       <FileQuestion className="h-4 w-4 mr-3 text-brand-600" />
-                      <span className="font-medium">{isSpanish ? 'Preguntas Frecuentes' : 'FAQs'}</span>
+                      <span className="font-medium text-slate-800">{isSpanish ? 'Preguntas Frecuentes' : 'FAQs'}</span>
                     </DropdownMenuItem>
                     
                     <DropdownMenuItem 
@@ -87,7 +87,7 @@ export default function Landing() {
                       onClick={toggleLanguage}
                     >
                       <Globe className="h-4 w-4 mr-3 text-brand-600" />
-                      <span className="font-medium">{isSpanish ? '🇺🇸 Switch to English' : '🇪🇸 Cambiar a Español'}</span>
+                      <span className="font-medium text-slate-800">{isSpanish ? '🇺🇸 Switch to English' : '🇪🇸 Cambiar a Español'}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
