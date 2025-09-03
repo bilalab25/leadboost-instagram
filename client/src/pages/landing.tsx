@@ -63,12 +63,12 @@ export default function Landing() {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost"
-                      className="text-brand-800 hover:text-brand-700 hover:bg-white/10 font-medium px-6 py-3 transition-all duration-300 group backdrop-blur-xl border border-brand-400/30 rounded-xl"
+                      className="text-brand-800 hover:text-white hover:bg-gradient-to-r hover:from-brand-500 hover:to-brand-600 font-bold px-7 py-3.5 transition-all duration-300 group backdrop-blur-xl border border-brand-400/50 hover:border-brand-500/80 rounded-2xl shadow-lg hover:shadow-xl hover:shadow-brand-500/25 tracking-wide text-sm"
                       data-testid="button-features-dropdown"
                     >
-                      <Rocket className="mr-2 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
+                      <Rocket className="mr-2.5 h-4 w-4 group-hover:text-white group-hover:scale-110 transition-all duration-300" />
                       {isSpanish ? 'QUÉ HAY ADENTRO' : "WHAT'S INSIDE"}
-                      <ChevronDown className="ml-1 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
+                      <ChevronDown className="ml-2 h-4 w-4 group-hover:text-white group-hover:rotate-180 transition-all duration-300" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
