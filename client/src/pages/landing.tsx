@@ -196,19 +196,19 @@ export default function Landing() {
           <div className="absolute inset-0 bg-gradient-to-br from-brand-900/40 via-brand-800/30 to-brand-900/50" />
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
-            <div className="max-w-4xl">
-              <h1 className="text-7xl lg:text-9xl font-bold text-black mb-12 leading-[0.85] tracking-[-0.02em]" style={{textShadow: '3px 3px 6px rgba(0,0,0,0.7), 1px 1px 3px rgba(255,255,255,0.3)'}}>
+            <div className="max-w-4xl bg-brand-800/80 backdrop-blur-xl rounded-3xl p-12 border border-brand-600/30 shadow-2xl">
+              <h1 className="text-7xl lg:text-9xl font-bold text-white mb-12 leading-[0.85] tracking-[-0.02em]">
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
               <div className="space-y-6 mb-12 max-w-2xl">
-                <p className="text-2xl lg:text-3xl font-semibold text-black leading-relaxed tracking-wide" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.5), 1px 1px 2px rgba(255,255,255,0.2)'}}>
+                <p className="text-2xl lg:text-3xl font-light text-white/90 leading-relaxed tracking-wide">
                   {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
                 </p>
-                <p className="text-xl lg:text-2xl font-semibold text-gray-900 leading-relaxed" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.4), 1px 1px 2px rgba(255,255,255,0.2)'}}>
+                <p className="text-xl lg:text-2xl font-light text-white/80 leading-relaxed">
                   {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
                 </p>
-                <p className="text-lg lg:text-xl font-semibold text-gray-800 leading-relaxed" style={{textShadow: '2px 2px 4px rgba(0,0,0,0.3), 1px 1px 2px rgba(255,255,255,0.1)'}}>
+                <p className="text-lg lg:text-xl font-light text-white/70 leading-relaxed">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
@@ -842,7 +842,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       {/* How It Works Steps - Cascade from Top */}
       {/* Step 1 */}
       <div className="absolute top-20 right-8 lg:right-16 z-20">
-        <div className="bg-gradient-to-br from-brand-600/15 via-brand-700/10 to-brand-800/5 backdrop-blur-xl rounded-3xl border border-brand-400/30 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '1s' }}>
+        <div className="bg-brand-800/90 backdrop-blur-xl rounded-3xl border border-brand-600/50 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.6)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '1s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-400 to-brand-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">1</span>
@@ -859,7 +859,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 2 */}
       <div className="absolute top-72 right-8 lg:right-16 z-20">
-        <div className="bg-gradient-to-br from-brand-600/15 via-brand-700/10 to-brand-800/5 backdrop-blur-xl rounded-3xl border border-brand-400/30 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
+        <div className="bg-brand-800/90 backdrop-blur-xl rounded-3xl border border-brand-600/50 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.6)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '2.5s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">2</span>
@@ -876,7 +876,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* Step 3 */}
       <div className="absolute top-[32rem] right-8 lg:right-16 z-20">
-        <div className="bg-gradient-to-br from-brand-600/15 via-brand-700/10 to-brand-800/5 backdrop-blur-xl rounded-3xl border border-brand-400/30 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.3)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '4s' }}>
+        <div className="bg-brand-800/90 backdrop-blur-xl rounded-3xl border border-brand-600/50 p-7 w-80 shadow-[0_20px_50px_rgba(25,65,115,0.6)] transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 animate-cascade-fall" style={{ animationDelay: '4s' }}>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-brand-600 to-brand-800 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">3</span>
