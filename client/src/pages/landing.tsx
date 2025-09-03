@@ -180,11 +180,12 @@ export default function Landing() {
                 </DropdownMenu>
                 
                 <Button 
-                  className="bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2.5 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
                   data-testid="button-pricing"
                   onClick={() => window.location.href = '/pricing'}
                 >
-                  {isSpanish ? 'PRECIOS' : 'PRICING'}
+                  <Sparkles className="h-4 w-4" />
+                  {isSpanish ? 'Ver Precios!' : 'See Pricing!'}
                 </Button>
                 
                 <Button 
