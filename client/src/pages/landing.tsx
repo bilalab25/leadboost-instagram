@@ -226,7 +226,7 @@ export default function Landing() {
                 </div>
               </div>
               
-              <div className="space-y-2 mb-2 max-w-2xl">
+              <div className="space-y-2 mb-2 max-w-4xl">
                 <p className="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 leading-tight">
                   {isSpanish ? 'Plataforma completa impulsada por IA —' : 'Complete AI-powered platform —'}
                   <br />
