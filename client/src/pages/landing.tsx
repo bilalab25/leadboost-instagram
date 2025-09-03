@@ -25,24 +25,24 @@ export default function Landing() {
       <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
         
         {/* Header */}
-        <header className="absolute top-0 left-0 right-0 z-50">
-          <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-            <div className="flex justify-between items-center py-1">
-              <div className="flex items-center">
-                <img 
-                  src={leadBoostLogo} 
-                  alt="LeadBoost Logo" 
-                  className="h-10 w-auto object-contain brightness-110" 
-                />
-              </div>
+        <header className="bg-gradient-to-r from-white via-gray-50 to-white border-b border-gray-200 shadow-lg">
+          <div className="flex items-center py-1">
+            {/* Compact Header - Logo Only */}
+            <div className="w-full px-8 flex items-center justify-between">
+              <img 
+                src={leadBoostLogo} 
+                alt="Lead Boost Logo" 
+                className="h-10 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200 drop-shadow-sm"
+              />
               
               <div className="flex items-center space-x-6">
                 <Button 
                   variant="ghost" 
                   onClick={toggleLanguage}
-                  className="text-sm font-medium text-brand-800 hover:text-brand-700 hover:bg-white/10 backdrop-blur-xl border border-brand-400/30 rounded-xl px-4 py-2 transition-all duration-300"
+                  className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 font-medium transition-all duration-150"
+                  data-testid="button-toggle-language"
                 >
-                  {isSpanish ? '🇺🇸 EN' : '🇪🇸 ES'}
+                  {isSpanish ? '🇺🇸 English' : '🇪🇸 Español'}
                 </Button>
                 
                 <DropdownMenu>
@@ -174,11 +174,13 @@ export default function Landing() {
                 </Button>
                 
                 <Button 
-                  className="bg-brand-500 text-white hover:bg-brand-400 font-medium px-8 py-3 rounded-xl transition-all duration-300 hover:shadow-2xl shadow-brand-600/30"
-                  data-testid="button-get-started"
-                  onClick={() => window.location.href = '/campaigner'}
+                  className="bg-gradient-to-r from-brand-600 via-brand-700 to-brand-800 hover:from-brand-700 hover:via-brand-800 hover:to-brand-900 text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+                  data-testid="button-free-demo"
+                  onClick={() => {
+                    document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                 >
-                  {isSpanish ? 'EMPEZAR' : 'GET STARTED'}
+                  {isSpanish ? 'PRUEBA GRATUITA' : 'FREE DEMO'}
                 </Button>
               </div>
             </div>
