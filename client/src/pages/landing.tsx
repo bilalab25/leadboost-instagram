@@ -197,24 +197,24 @@ export default function Landing() {
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-28 pb-24 lg:pt-32 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-7xl lg:text-9xl font-bold text-brand-800 mb-12 leading-[0.85] tracking-[-0.02em]">
+              <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold text-brand-800 mb-8 leading-[0.9] tracking-[-0.02em]">
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
-              <div className="space-y-6 mb-12 max-w-2xl">
-                <p className="text-2xl lg:text-3xl font-light text-brand-800 leading-relaxed tracking-wide">
+              <div className="space-y-4 mb-10 max-w-2xl">
+                <p className="text-xl lg:text-2xl xl:text-3xl font-light text-brand-800 leading-relaxed tracking-wide">
                   {isSpanish ? 'LeadBoost combina campañas IA, automatización de clientes y una bandeja unificada para aumentar ventas y ahorrar tiempo.' : 'LeadBoost combines AI campaigns, client automation, and a unified inbox to boost sales and save time.'}
                 </p>
-                <p className="text-xl lg:text-2xl font-light text-brand-800 leading-relaxed">
+                <p className="text-lg lg:text-xl xl:text-2xl font-light text-brand-800 leading-relaxed">
                   {isSpanish ? 'Funciones completas de marketing y comercio para administrar tu negocio en línea' : 'Full marketing and commerce features to run your business online'}
                 </p>
-                <p className="text-lg lg:text-xl font-light text-brand-800 leading-relaxed">
+                <p className="text-base lg:text-lg xl:text-xl font-light text-brand-800 leading-relaxed">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
               
               <Button 
-                className="bg-white text-brand-800 hover:bg-gray-50 text-lg font-medium px-12 py-6 h-auto rounded-none border-0 transition-all duration-300 hover:shadow-2xl"
+                className="bg-white text-brand-800 hover:bg-gray-50 text-base lg:text-lg font-medium px-10 lg:px-12 py-4 lg:py-5 h-auto rounded-none border-0 transition-all duration-300 hover:shadow-2xl"
                 onClick={() => window.location.href = '/campaigner'}
               >
                 {isSpanish ? 'DEMO GRATUITO' : 'START FREE DEMO'}
