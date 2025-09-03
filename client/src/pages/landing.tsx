@@ -67,7 +67,7 @@ export default function Landing() {
                       data-testid="button-features-dropdown"
                     >
                       <Package className="mr-2 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
-                      {isSpanish ? 'PRODUCTO' : 'PRODUCT'}
+                      {isSpanish ? 'QUÉ HAY ADENTRO' : "WHAT'S INSIDE"}
                       <ChevronDown className="ml-1 h-4 w-4 group-hover:text-brand-700 transition-colors duration-300" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -212,7 +212,7 @@ export default function Landing() {
           {/* Sophisticated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-gray-50/50 to-white/60" />
           
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-20 pb-12 lg:pt-24 lg:pb-16">
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-24 pb-12 lg:pt-28 lg:pb-16">
             <div className="max-w-4xl">
               <div className="mb-6">
                 <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.7] tracking-[-0.02em] drop-shadow-2xl relative z-10">
@@ -951,7 +951,7 @@ function CampaignShowcase({ isSpanish }: { isSpanish: boolean }) {
       bgColor: 'bg-gradient-to-br from-orange-400 to-pink-500',
       icon: <SiInstagram className="h-4 w-4 text-white" />,
       content: {
-        title: isSpanish ? 'Nuevo Producto' : 'New Product',
+        title: isSpanish ? 'Qué Hay Adentro' : "What's Inside",
         subtitle: isSpanish ? 'Disponible Ahora' : 'Available Now'
       }
     },
