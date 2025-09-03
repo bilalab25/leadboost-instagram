@@ -847,11 +847,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-lg">1</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'Dinos tu negocio' : 'Tell us your business type'}
+              {isSpanish ? 'IA crea tu campaña en segundos' : 'AI creates your campaign in seconds'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Dentista, Agente Inmobiliario, Coach Fitness, etc.' : 'Dentist, Realtor, Fitness coach, etc.'}
+            {isSpanish ? 'Solo selecciona tu industria y la IA hace el resto' : 'Just pick your industry and AI does the rest'}
           </p>
         </div>
       </div>
@@ -864,11 +864,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-lg">2</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'IA construye tu campaña' : 'AI builds your campaign'}
+              {isSpanish ? 'Publica en más de 21 plataformas' : 'Posts to 21+ platforms'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Instagram, Email, WhatsApp — hecho en segundos. Publica con un clic.' : 'Instagram, Email, Whatsapp — done in seconds. Post in one click.'}
+            {isSpanish ? 'Instagram, WhatsApp, Email, TikTok — con un solo clic' : 'Instagram, WhatsApp, Email, TikTok — with one click'}
           </p>
         </div>
       </div>
@@ -881,11 +881,11 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
               <span className="text-white font-bold text-lg">3</span>
             </div>
             <h3 className="text-gray-900 font-semibold text-lg">
-              {isSpanish ? 'Empezar a recibir clientes' : 'Start getting leads'}
+              {isSpanish ? 'Obtiene 30x más prospectos' : 'Get 30x leads'}
             </h3>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">
-            {isSpanish ? 'Nuevos clientes te contactan directamente. Todo en una bandeja unificada.' : 'New clients reach out directly. All in one unified inbox.'}
+            {isSpanish ? 'Nuevos clientes llegan a tu bandeja unificada automáticamente' : 'New clients come to your unified inbox automatically'}
           </p>
         </div>
       </div>
