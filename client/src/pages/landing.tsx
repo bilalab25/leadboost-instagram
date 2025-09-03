@@ -197,7 +197,7 @@ export default function Landing() {
           
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-56 pb-24 lg:pt-64 lg:pb-32">
             <div className="max-w-4xl">
-              <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-r from-brand-700 via-brand-800 to-brand-900 bg-clip-text text-transparent mb-12 leading-[0.9] tracking-[-0.02em]">
+              <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-r from-blue-900 via-blue-800 to-slate-900 bg-clip-text text-transparent mb-12 leading-[0.9] tracking-[-0.02em] drop-shadow-sm">
                 {isSpanish ? 'Haz Crecer Tu Negocio, En Piloto Automático' : 'Grow Your Business, On Autopilot'}
               </h1>
               
