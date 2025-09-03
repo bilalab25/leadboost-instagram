@@ -205,10 +205,10 @@ export default function Landing() {
                 <p className="text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900 leading-relaxed">
                   {isSpanish ? 'Plataforma completa para hacer crecer tu negocio — marketing, ventas y atención al cliente' : 'Complete platform to grow your business — marketing, sales, and customer service'}
                 </p>
-                <p className="text-lg lg:text-xl xl:text-2xl font-medium text-gray-600 leading-relaxed">
+                <p className="text-base lg:text-lg xl:text-xl font-medium text-gray-600 leading-relaxed">
                   {isSpanish ? 'Todo automatizado: genera campañas, gestiona clientes, unifica mensajes — todo en un lugar' : 'Everything automated: generate campaigns, manage clients, unify messages — all in one place'}
                 </p>
-                <p className="text-base lg:text-lg xl:text-xl font-normal text-gray-600 leading-relaxed">
+                <p className="text-sm lg:text-base xl:text-lg font-normal text-gray-600 leading-relaxed">
                   {isSpanish ? 'Prueba gratuita, no se requiere tarjeta de crédito' : 'Free trial, no credit card required'}
                 </p>
               </div>
