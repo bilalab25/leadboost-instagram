@@ -905,14 +905,14 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* How It Works Steps - Ghost Appear */}
       {/* Connected "As Easy As" Section - Centered to Steps */}
-      <div className="absolute top-20 right-8 lg:right-16 z-20 w-72">
+      <div className="absolute top-16 right-8 lg:right-16 z-20 w-72">
         {/* Header with Visual Connection */}
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-3 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-6 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
             {isSpanish ? 'Así de Fácil' : 'As Easy As'}
           </h2>
-          <div className="flex justify-center animate-ghost-appear mb-4" style={{ animationDelay: '0.2s' }}>
-            <ArrowDown className="w-6 h-6 text-[#3f82d1] opacity-80 animate-pulse" />
+          <div className="flex justify-center animate-ghost-appear mb-6" style={{ animationDelay: '0.2s' }}>
+            <div className="w-0 h-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-slate-400 opacity-40"></div>
           </div>
         </div>
       </div>
