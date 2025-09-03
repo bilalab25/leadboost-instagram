@@ -215,12 +215,12 @@ export default function Landing() {
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-20 pb-20 lg:pt-24 lg:pb-24">
             <div className="max-w-4xl">
               <div className="mb-10">
-                <h1 className="text-5xl lg:text-7xl xl:text-8xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent leading-[0.9] tracking-[-0.02em] drop-shadow-2xl relative z-10">
+                <h1 className="text-5xl lg:text-7xl xl:text-8xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.9] tracking-[-0.02em] drop-shadow-2xl relative z-10">
                   {isSpanish ? 'Haz Crecer Tu Negocio' : 'Grow Your Business'}
                 </h1>
                 <div className="flex items-center gap-3 mt-4">
-                  <span className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent">—</span>
-                  <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 bg-clip-text text-transparent tracking-[-0.02em]">
+                  <span className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent">—</span>
+                  <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent tracking-[-0.02em]">
                     {isSpanish ? 'En Piloto Automático' : 'On Autopilot'}
                   </h2>
                 </div>
@@ -271,18 +271,18 @@ export default function Landing() {
                     
                     {/* ONE IDEA */}
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
+                      <div className="w-24 h-24 bg-gradient-to-br from-[#3f82d1] via-[#3470b8] to-[#2d5a9a] rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
                         <Target className="h-12 w-12 text-white" />
                       </div>
-                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
+                      <h3 className="text-3xl font-black text-[#3f82d1] mb-2">{isSpanish ? 'TU MARCA' : 'YOUR BRAND'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? 'Extraemos datos de tu negocio en tiempo real' : 'We pull real-time data from your business'}</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'IA analiza tu industria, rendimiento y ventas' : 'AI analyzes what your industry, performance and sales'}</p>
                     </div>
                     
                     {/* ARROW */}
                     <div className="flex justify-center">
-                      <ArrowRight className="h-8 w-8 text-brand-400 hidden lg:block" />
-                      <ArrowDown className="h-8 w-8 text-brand-400 lg:hidden" />
+                      <ArrowRight className="h-8 w-8 text-[#3f82d1]/70 hidden lg:block" />
+                      <ArrowDown className="h-8 w-8 text-[#3f82d1]/70 lg:hidden" />
                     </div>
                     
                     {/* EVERYWHERE */}
@@ -310,7 +310,7 @@ export default function Landing() {
                           <SiX className="h-6 w-6 text-white" />
                         </div>
                       </div>
-                      <h3 className="text-3xl font-black text-brand-600 mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
+                      <h3 className="text-3xl font-black text-[#3f82d1] mb-2">{isSpanish ? 'EN TODOS LADOS' : 'EVERYWHERE'}</h3>
                       <p className="text-gray-600 font-medium">{isSpanish ? '21+ plataformas, un clic' : '21+ platforms, one click'}</p>
                       <p className="text-sm text-gray-500 mt-1">{isSpanish ? 'Diseñado para ti, dimensionado para cada red social' : 'Designed for you, sized for every social network'}</p>
                     </div>
@@ -335,7 +335,7 @@ export default function Landing() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="text-center">
-                      <div className="text-4xl md:text-5xl font-black text-brand-600 mb-2">10,000+</div>
+                      <div className="text-4xl md:text-5xl font-black text-[#3f82d1] mb-2">10,000+</div>
                       <p className="text-gray-600 font-medium">{isSpanish ? 'Empresas Activas' : 'Active Businesses'}</p>
                     </div>
                     <div className="text-center">
