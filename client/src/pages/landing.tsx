@@ -856,7 +856,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           className="absolute top-0 animate-float-down"
           style={{
             left: `${-5 + columnIndex * 30}%`,
-            animationDelay: `${columnIndex * 0.5}s`,
+            animationDelay: `0s`,
             animationDuration: '35s'
           }}
         >
