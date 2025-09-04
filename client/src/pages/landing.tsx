@@ -906,7 +906,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
 
       {/* How It Works Steps - Ghost Appear */}
       {/* Connected "As Easy As" Section - Centered to Steps */}
-      <div className="absolute top-24 right-8 lg:right-16 z-20 w-72">
+      <div className="absolute top-29 right-8 lg:right-16 z-20 w-72">
         {/* Header with Visual Connection */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-1 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
@@ -918,7 +918,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
         </div>
       </div>
       {/* Step 1 */}
-      <div className="absolute top-36 right-8 lg:right-16 z-20">
+      <div className="absolute top-41 right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
@@ -945,7 +945,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 2 */}
-      <div className="absolute top-[20rem] right-8 lg:right-16 z-20">
+      <div className="absolute top-[21.25rem] right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
@@ -971,7 +971,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 3 */}
-      <div className="absolute top-[30rem] right-8 lg:right-16 z-20">
+      <div className="absolute top-[31.25rem] right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
