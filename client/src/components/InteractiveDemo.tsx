@@ -236,26 +236,31 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   if (desc.includes('nail salon') || desc.includes('nails') || desc.includes('manicure') || desc.includes('pedicure')) {
     const nailImages = [
       `https://images.unsplash.com/photo-1604654894610-df63bc536371`, // Nail salon station
-      `https://images.unsplash.com/photo-1522337360788-8b13dee7a37e`, // Manicure process
       `https://images.unsplash.com/photo-1616394584738-fc6e612e71b9`, // Nail art display
-      `https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3`  // Nail salon interior
+      `https://images.unsplash.com/photo-1560066984-138dadb4c035`, // Nail technician working
+      `https://images.unsplash.com/photo-1487412947147-5cebf100ffc2`  // Beautiful manicured nails
     ];
     return `${nailImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // SPA & WELLNESS - Facial Treatments & Skincare
   if (desc.includes('spa') || desc.includes('facial') || desc.includes('skincare')) {
-    // Luxury spa treatment with smooth skin focus
-    return `https://images.unsplash.com/photo-1562887284-5c6e2e3bb1e4?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const spaImages = [
+      `https://images.unsplash.com/photo-1544161515-4ab6ce6db874`, // Spa treatment room
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`, // Facial treatment
+      `https://images.unsplash.com/photo-1560066984-138dadb4c035`, // Spa relaxation
+      `https://images.unsplash.com/photo-1594736797933-d0411ba2fe65`  // Skincare products spa
+    ];
+    return `${spaImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // MEDICAL & HEALTHCARE
   if (desc.includes('dental') || desc.includes('dentist') || desc.includes('teeth') || desc.includes('orthodontic')) {
     const dentalImages = [
-      `https://images.unsplash.com/photo-1559757175-0eb30cd8c063`, // Modern dental office
       `https://images.unsplash.com/photo-1606811971618-4486d14f3f99`, // Dental chair and equipment
       `https://images.unsplash.com/photo-1576091160399-112ba8d25d1f`, // Dentist with patient
-      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`  // Dental clinic interior
+      `https://images.unsplash.com/photo-1559757175-0eb30cd8c063`, // Modern dental office
+      `https://images.unsplash.com/photo-1629909613654-28e377c37b09`  // Dental tools and setup
     ];
     return `${dentalImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
@@ -273,9 +278,9 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   if (desc.includes('therapy') || desc.includes('therapist') || desc.includes('counseling') || desc.includes('psychology')) {
     const therapyImages = [
       `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d`, // Calming therapy office
-      `https://images.unsplash.com/photo-1559757175-0eb30cd8c063`, // Professional consultation room
-      `https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3`, // Therapy session setup
-      `https://images.unsplash.com/photo-1576091160399-112ba8d25d1f`  // Counseling environment
+      `https://images.unsplash.com/photo-1581833971358-2c8b550f87b3`, // Therapy consultation setup
+      `https://images.unsplash.com/photo-1573496359142-b8d87734a5a2`, // Comfortable counseling room
+      `https://images.unsplash.com/photo-1494253109108-2e30c049369b`  // Professional therapy space
     ];
     return `${therapyImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
@@ -306,9 +311,9 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   if (desc.includes('food truck') || desc.includes('food cart') || desc.includes('mobile food')) {
     const foodTruckImages = [
       `https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb`, // Colorful food truck
-      `https://images.unsplash.com/photo-1599599810769-bcde5a160d32`, // Food truck service window
-      `https://images.unsplash.com/photo-1414235077428-338989a2e8c0`, // Food prep in truck
-      `https://images.unsplash.com/photo-1551218808-94e220e084d2`  // Mobile food service
+      `https://images.unsplash.com/photo-1523049673857-eb18f1d7b578`, // Food truck service window
+      `https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d`, // Mobile food truck
+      `https://images.unsplash.com/photo-1584464491033-06628f3a6b7b`  // Food truck cooking
     ];
     return `${foodTruckImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
@@ -490,17 +495,22 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   if (desc.includes('electronics') || desc.includes('electronics store') || desc.includes('tech store') || desc.includes('gadgets')) {
     const electronicsImages = [
       `https://images.unsplash.com/photo-1560472354-b33ff0c44a43`, // Modern electronics store
-      `https://images.unsplash.com/photo-1572044162444-ad60f128bdea`, // Tech gadgets display
-      `https://images.unsplash.com/photo-1542038784456-1ea8e732b2b9`, // Electronics showroom
-      `https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b`  // Technology store
+      `https://images.unsplash.com/photo-1550745165-9bc0b252726f`, // Tech gadgets display
+      `https://images.unsplash.com/photo-1563013544-824ae1b704d3`, // Electronics showroom
+      `https://images.unsplash.com/photo-1441986300917-64674bd600d8`  // Technology retail store
     ];
     return `${electronicsImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FURNITURE STORES
   if (desc.includes('furniture') || desc.includes('furniture store') || desc.includes('home decor')) {
-    // Modern furniture showroom
-    return `https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const furnitureImages = [
+      `https://images.unsplash.com/photo-1586023492125-27b2c045efd7`, // Modern furniture showroom
+      `https://images.unsplash.com/photo-1555041469-a586c61ea9bc`, // Home decor display
+      `https://images.unsplash.com/photo-1560448204-e02f11c3d0e2`, // Furniture store interior
+      `https://images.unsplash.com/photo-1560185893-a55cbc8c57e8`  // Home furnishings
+    ];
+    return `${furnitureImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FLORISTERÍA - Flower Shop
@@ -523,20 +533,35 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // AUTOMÓVILES - Car Dealership/Garage
   if (desc.includes('car') || desc.includes('auto') || desc.includes('automotive') || desc.includes('coche') || desc.includes('automóvil') || desc.includes('garage') || desc.includes('mechanic')) {
-    // Professional automotive service or showroom
-    return `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const automotiveImages = [
+      `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7`, // Car dealership showroom
+      `https://images.unsplash.com/photo-1632823469850-fcd3b277ec6e`, // Auto repair garage
+      `https://images.unsplash.com/photo-1609956351480-8ff9c1c64b14`, // Luxury car interior
+      `https://images.unsplash.com/photo-1503376780353-7e6692767b70`  // Car service center
+    ];
+    return `${automotiveImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // PET SHOPS
   if (desc.includes('pet shop') || desc.includes('pet store') || desc.includes('pets') || desc.includes('mascotas')) {
-    // Pet store with animals and supplies
-    return `https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const petShopImages = [
+      `https://images.unsplash.com/photo-1601758228041-f3b2795255f1`, // Pet store with supplies
+      `https://images.unsplash.com/photo-1434056886845-dac89ffe9b56`, // Pet food and accessories
+      `https://images.unsplash.com/photo-1537151608828-ea2b11777ee8`, // Pet shop interior
+      `https://images.unsplash.com/photo-1583337130417-3346a1be7dee`  // Pet care products
+    ];
+    return `${petShopImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // VETERINARY CLINICS
   if (desc.includes('vet') || desc.includes('veterinary') || desc.includes('veterinary clinic') || desc.includes('animal hospital')) {
-    // Professional veterinary clinic with doctor and pet
-    return `https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const vetImages = [
+      `https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def`, // Vet with pet examination
+      `https://images.unsplash.com/photo-1576201836106-db1758fd1c97`, // Veterinary clinic interior
+      `https://images.unsplash.com/photo-1583337130417-3346a1be7dee`, // Animal care equipment
+      `https://images.unsplash.com/photo-1537151608828-ea2b11777ee8`  // Professional vet office
+    ];
+    return `${vetImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // AUTO REPAIR SHOPS
@@ -547,7 +572,13 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // FINANCIAL SERVICES
   if (desc.includes('finance') || desc.includes('financial') || desc.includes('bank') || desc.includes('investment') || desc.includes('accounting')) {
-    return `https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const financialImages = [
+      `https://images.unsplash.com/photo-1554224155-6726b3ff858f`, // Financial office
+      `https://images.unsplash.com/photo-1560472354-b33ff0c44a43`, // Modern bank interior
+      `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d`, // Professional consultation
+      `https://images.unsplash.com/photo-1552664730-d307ca884978`  // Financial planning meeting
+    ];
+    return `${financialImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // REAL ESTATE
