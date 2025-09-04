@@ -444,32 +444,57 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // JOYERÍA - Jewelry Store
   if (desc.includes('jewelry') || desc.includes('jewellery') || desc.includes('joyería') || desc.includes('joyas') || desc.includes('anillos') || desc.includes('rings') || desc.includes('collares') || desc.includes('necklaces') || desc.includes('diamantes') || desc.includes('diamonds')) {
-    // Elegant jewelry display with diamonds and luxury pieces
-    return `https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const jewelryImages = [
+      `https://images.unsplash.com/photo-1515562141207-7a88fb7ce338`, // Elegant jewelry display
+      `https://images.unsplash.com/photo-1544376664-80b17f09d399`, // Diamond jewelry
+      `https://images.unsplash.com/photo-1605100804763-247f67b3557e`, // Wedding rings
+      `https://images.unsplash.com/photo-1630019852942-f89202989a59`  // Luxury jewelry store
+    ];
+    return `${jewelryImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // CLOTHING BOUTIQUES
   if (desc.includes('boutique') || desc.includes('clothing') || desc.includes('fashion') || desc.includes('clothing boutique')) {
-    // Stylish clothing boutique with racks and displays
-    return `https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const boutiquImages = [
+      `https://images.unsplash.com/photo-1441986300917-64674bd600d8`, // Stylish boutique
+      `https://images.unsplash.com/photo-1445205170230-053b83016050`, // Fashion store interior
+      `https://images.unsplash.com/photo-1469334031218-e382a71b716b`, // Clothing displays
+      `https://images.unsplash.com/photo-1472851294608-062f824d29cc`  // Fashion boutique
+    ];
+    return `${boutiquImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // GIFT SHOPS
   if (desc.includes('gift shop') || desc.includes('gift store') || desc.includes('souvenirs')) {
-    // Charming gift shop with various products
-    return `https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const giftImages = [
+      `https://images.unsplash.com/photo-1472851294608-062f824d29cc`, // Charming gift shop
+      `https://images.unsplash.com/photo-1441986300917-64674bd600d8`, // Gift displays
+      `https://images.unsplash.com/photo-1545558014-8692077e9b5c`, // Colorful gift items
+      `https://images.unsplash.com/photo-1560472354-b33ff0c44a43`  // Gift store interior
+    ];
+    return `${giftImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // TOY STORES
   if (desc.includes('toy store') || desc.includes('toys') || desc.includes('children') || desc.includes('kids store')) {
-    // Colorful toy store with shelves of toys
-    return `https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const toyImages = [
+      `https://images.unsplash.com/photo-1545558014-8692077e9b5c`, // Colorful toy store
+      `https://images.unsplash.com/photo-1558060370-d644479cb6f7`, // Toy display shelves
+      `https://images.unsplash.com/photo-1503602642458-232111445657`, // Children's toys
+      `https://images.unsplash.com/photo-1472851294608-062f824d29cc`  // Kids store atmosphere
+    ];
+    return `${toyImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // ELECTRONICS STORES
   if (desc.includes('electronics') || desc.includes('electronics store') || desc.includes('tech store') || desc.includes('gadgets')) {
-    // Modern electronics store with displays
-    return `https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const electronicsImages = [
+      `https://images.unsplash.com/photo-1560472354-b33ff0c44a43`, // Modern electronics store
+      `https://images.unsplash.com/photo-1572044162444-ad60f128bdea`, // Tech gadgets display
+      `https://images.unsplash.com/photo-1542038784456-1ea8e732b2b9`, // Electronics showroom
+      `https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b`  // Technology store
+    ];
+    return `${electronicsImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FURNITURE STORES
@@ -995,66 +1020,106 @@ const getTikTokOverlayText = (businessDescription: string, businessType: string,
   return defaultTexts[Math.floor(postIndex / 2)] || defaultTexts[0];
 };
 
-// Detect business type from description
+// Detect business type from description - Updated to match exact dropdown categories
 const detectBusinessType = (description: string): string => {
   const desc = description.toLowerCase();
   
-  // FOOD & RESTAURANTS
-  if (desc.includes('restaurant') || desc.includes('food') || desc.includes('cafe') || desc.includes('coffee shop') || desc.includes('coffee') || desc.includes('pizza') || desc.includes('dining') || desc.includes('bakery') || desc.includes('pastry') || desc.includes('panadería') || desc.includes('pastelería') || desc.includes('bar') || desc.includes('food truck')) {
-    return 'restaurant';
+  // Restaurant & Food Service
+  if (desc.includes('restaurant') || desc.includes('food') || desc.includes('cafe') || desc.includes('coffee shop') || desc.includes('coffee') || desc.includes('pizza') || desc.includes('dining') || desc.includes('bakery') || desc.includes('pastry') || desc.includes('panadería') || desc.includes('pastelería') || desc.includes('bar') || desc.includes('food truck') || desc.includes('catering')) {
+    return 'restaurant_food_service';
   }
   
-  // FITNESS & WELLNESS
-  if (desc.includes('gym') || desc.includes('fitness') || desc.includes('workout') || desc.includes('yoga') || desc.includes('training') || desc.includes('pilates')) {
-    return 'fitness';
+  // Beauty & Wellness  
+  if (desc.includes('beauty') || desc.includes('spa') || desc.includes('salon') || desc.includes('skincare') || desc.includes('cosmetic') || desc.includes('botox') || desc.includes('aesthetic') || desc.includes('dermal') || desc.includes('med spa') || desc.includes('nail salon') || desc.includes('hair salon') || desc.includes('barbershop') || desc.includes('wellness')) {
+    return 'beauty_wellness';
   }
   
-  // BEAUTY & MEDICAL AESTHETICS
-  if (desc.includes('beauty') || desc.includes('spa') || desc.includes('salon') || desc.includes('skincare') || desc.includes('cosmetic') || desc.includes('botox') || desc.includes('aesthetic') || desc.includes('dermal') || desc.includes('med spa') || desc.includes('nail salon') || desc.includes('hair salon') || (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face') || desc.includes('botox') || desc.includes('aesthetic')))) {
-    return 'beauty';
+  // Fitness & Health
+  if (desc.includes('gym') || desc.includes('fitness') || desc.includes('workout') || desc.includes('yoga') || desc.includes('training') || desc.includes('pilates') || desc.includes('health club') || desc.includes('personal training')) {
+    return 'fitness_health';
   }
   
-  // JEWELRY
-  if (desc.includes('jewelry') || desc.includes('jewellery') || desc.includes('joyería') || desc.includes('joyas') || desc.includes('anillos') || desc.includes('rings') || desc.includes('diamonds')) {
-    return 'jewelry';
+  // Retail & Fashion
+  if (desc.includes('retail') || desc.includes('store') || desc.includes('shop') || desc.includes('boutique') || desc.includes('clothing') || desc.includes('fashion') || desc.includes('jewelry') || desc.includes('jewellery') || desc.includes('joyería') || desc.includes('shoes') || desc.includes('accessories')) {
+    return 'retail_fashion';
   }
   
-  // AUTOMOTIVE
-  if (desc.includes('car') || desc.includes('auto') || desc.includes('automotive') || desc.includes('coche') || desc.includes('garage') || desc.includes('mechanic') || desc.includes('auto repair')) {
+  // Professional Services
+  if (desc.includes('law') || desc.includes('lawyer') || desc.includes('attorney') || desc.includes('accounting') || desc.includes('consulting') || desc.includes('marketing') || desc.includes('finance') || desc.includes('insurance') || desc.includes('business services')) {
+    return 'professional_services';
+  }
+  
+  // Real Estate
+  if (desc.includes('real estate') || desc.includes('realtor') || desc.includes('property') || desc.includes('homes') || desc.includes('housing') || desc.includes('mortgage') || desc.includes('realty')) {
+    return 'real_estate';
+  }
+  
+  // Technology & Software
+  if (desc.includes('tech') || desc.includes('software') || desc.includes('app') || desc.includes('startup') || desc.includes('technology') || desc.includes('IT') || desc.includes('computer') || desc.includes('digital')) {
+    return 'technology_software';
+  }
+  
+  // Education & Training
+  if (desc.includes('teacher') || desc.includes('education') || desc.includes('tutor') || desc.includes('school') || desc.includes('professor') || desc.includes('tutoring') || desc.includes('learning') || desc.includes('training') || desc.includes('course')) {
+    return 'education_training';
+  }
+  
+  // Healthcare & Medical
+  if (desc.includes('doctor') || desc.includes('medical') || desc.includes('clinic') || desc.includes('health') || desc.includes('physician') || desc.includes('dental') || desc.includes('dentist') || desc.includes('therapy') || desc.includes('therapist')) {
+    return 'healthcare_medical';
+  }
+  
+  // Automotive
+  if (desc.includes('car') || desc.includes('auto') || desc.includes('automotive') || desc.includes('garage') || desc.includes('mechanic') || desc.includes('auto repair') || desc.includes('dealership')) {
     return 'automotive';
   }
   
-  // PETS & VETERINARY
-  if (desc.includes('pet') || desc.includes('vet') || desc.includes('veterinary') || desc.includes('mascotas') || desc.includes('perros') || desc.includes('dogs') || desc.includes('pet shop')) {
-    return 'pets';
+  // Home Services
+  if (desc.includes('cleaning') || desc.includes('landscaping') || desc.includes('construction') || desc.includes('plumbing') || desc.includes('electrical') || desc.includes('home repair') || desc.includes('handyman')) {
+    return 'home_services';
   }
   
-  // EDUCATION
-  if (desc.includes('teacher') || desc.includes('education') || desc.includes('tutor') || desc.includes('school') || desc.includes('professor') || desc.includes('tutoring') || desc.includes('learning center')) {
-    return 'education';
+  // Entertainment & Events
+  if (desc.includes('entertainment') || desc.includes('event') || desc.includes('party') || desc.includes('music') || desc.includes('dj') || desc.includes('wedding') || desc.includes('photography') || desc.includes('videography')) {
+    return 'entertainment_events';
   }
   
-  // PROFESSIONAL SERVICES
-  if (desc.includes('law') || desc.includes('lawyer') || desc.includes('attorney') || desc.includes('accounting') || desc.includes('consulting') || desc.includes('marketing') || desc.includes('travel agency') || desc.includes('real estate') || desc.includes('finance')) {
-    return 'professional';
+  // Travel & Tourism
+  if (desc.includes('travel') || desc.includes('tourism') || desc.includes('hotel') || desc.includes('vacation') || desc.includes('tour') || desc.includes('travel agency') || desc.includes('hospitality')) {
+    return 'travel_tourism';
   }
   
-  // CREATIVE SERVICES
-  if (desc.includes('photography') || desc.includes('design') || desc.includes('tattoo') || desc.includes('interior design') || desc.includes('architecture')) {
-    return 'creative';
+  // Non-Profit & Community
+  if (desc.includes('non-profit') || desc.includes('nonprofit') || desc.includes('charity') || desc.includes('community') || desc.includes('foundation') || desc.includes('volunteer')) {
+    return 'nonprofit_community';
   }
   
-  // RETAIL & SHOPPING
-  if (desc.includes('retail') || desc.includes('store') || desc.includes('shop') || desc.includes('boutique') || desc.includes('clothing') || desc.includes('flowers') || desc.includes('florist') || desc.includes('bookstore') || desc.includes('books') || desc.includes('gift shop') || desc.includes('toy store') || desc.includes('electronics') || desc.includes('furniture')) {
-    return 'retail';
+  // Financial Services
+  if (desc.includes('bank') || desc.includes('credit') || desc.includes('loan') || desc.includes('investment') || desc.includes('financial') || desc.includes('tax') || desc.includes('bookkeeping')) {
+    return 'financial_services';
   }
   
-  // SERVICES
-  if (desc.includes('cleaning') || desc.includes('landscaping') || desc.includes('tech startup')) {
-    return 'services';
+  // E-commerce & Online Business
+  if (desc.includes('ecommerce') || desc.includes('e-commerce') || desc.includes('online') || desc.includes('dropshipping') || desc.includes('marketplace') || desc.includes('amazon') || desc.includes('shopify')) {
+    return 'ecommerce_online';
   }
   
-  return 'default';
+  // Manufacturing & Industrial
+  if (desc.includes('manufacturing') || desc.includes('factory') || desc.includes('industrial') || desc.includes('production') || desc.includes('warehouse') || desc.includes('logistics')) {
+    return 'manufacturing_industrial';
+  }
+  
+  // Agriculture & Farming
+  if (desc.includes('farm') || desc.includes('agriculture') || desc.includes('farming') || desc.includes('organic') || desc.includes('crops') || desc.includes('livestock')) {
+    return 'agriculture_farming';
+  }
+  
+  // Arts & Creative Services
+  if (desc.includes('art') || desc.includes('creative') || desc.includes('design') || desc.includes('artist') || desc.includes('gallery') || desc.includes('studio') || desc.includes('crafts')) {
+    return 'arts_creative';
+  }
+  
+  return 'other';
 };
 
 // Intelligent campaign generation based on specific business description
