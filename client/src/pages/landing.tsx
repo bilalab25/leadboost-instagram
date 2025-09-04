@@ -290,8 +290,8 @@ export default function Landing() {
           </div>
           
           {/* CampAIgner Tool Visual Flow */}
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-16">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+            <div className="mb-20">
               <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto waterfall-container">
                 {/* Waterfall particles */}
                 <div className="waterfall-particle" style={{zIndex: 5}}></div>
