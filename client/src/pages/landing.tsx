@@ -934,7 +934,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             </h3>
           </div>
           <p className="text-gray-600 text-xs leading-relaxed mb-2">
-            {isSpanish ? 'Crea y publica campañas automáticamente en más de 21 plataformas al mismo tiempo' : 'Creates and posts campaigns automatically across 21+ platforms simultaneously'}
+            {isSpanish ? 'Auto-publica en 21+ plataformas' : 'Auto-posts to 21+ platforms'}
           </p>
           <div className="flex items-center gap-2 text-xs text-brand-600 font-medium">
             <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
@@ -960,7 +960,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             </h3>
           </div>
           <p className="text-gray-600 text-xs leading-relaxed mb-2">
-            {isSpanish ? 'Multiplica tus clientes potenciales con contenido optimizado que atrae a tu audiencia ideal' : 'Multiply your potential customers with multi-channel posting that attracts your ideal audience, data-backed'}
+            {isSpanish ? 'Multiplica clientes con contenido optimizado' : 'Multiply customers with optimized content'}
           </p>
           <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
             <TrendingUp className="w-3 h-3" />
@@ -987,7 +987,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             </h3>
           </div>
           <p className="text-gray-600 text-xs leading-relaxed mb-2">
-            {isSpanish ? 'Nuestro chatbot inteligente convierte visitantes en clientes las 24/7 sin intervención humana' : 'Our smart chatbot converts visitors into customers 24/7 without human intervention'}
+            {isSpanish ? 'Chatbot IA convierte visitantes 24/7' : 'AI chatbot converts visitors 24/7'}
           </p>
           <div className="flex items-center gap-2 text-xs text-purple-600 font-medium">
             <MessageSquare className="w-3 h-3" />
