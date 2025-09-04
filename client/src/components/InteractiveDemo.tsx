@@ -234,8 +234,13 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // NAIL SALONS
   if (desc.includes('nail salon') || desc.includes('nails') || desc.includes('manicure') || desc.includes('pedicure')) {
-    // Nail salon with manicure station and nail art
-    return `https://images.unsplash.com/photo-1604654894610-df63bc536371?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const nailImages = [
+      `https://images.unsplash.com/photo-1604654894610-df63bc536371`, // Nail salon station
+      `https://images.unsplash.com/photo-1522337360788-8b13dee7a37e`, // Manicure process
+      `https://images.unsplash.com/photo-1616394584738-fc6e612e71b9`, // Nail art display
+      `https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3`  // Nail salon interior
+    ];
+    return `${nailImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // SPA & WELLNESS - Facial Treatments & Skincare
@@ -246,18 +251,33 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // MEDICAL & HEALTHCARE
   if (desc.includes('dental') || desc.includes('dentist') || desc.includes('teeth') || desc.includes('orthodontic')) {
-    // Modern dental office
-    return `https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const dentalImages = [
+      `https://images.unsplash.com/photo-1559757175-0eb30cd8c063`, // Modern dental office
+      `https://images.unsplash.com/photo-1606811971618-4486d14f3f99`, // Dental chair and equipment
+      `https://images.unsplash.com/photo-1576091160399-112ba8d25d1f`, // Dentist with patient
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`  // Dental clinic interior
+    ];
+    return `${dentalImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   if (desc.includes('doctor') || desc.includes('medical') || desc.includes('hospital') || desc.includes('health') || desc.includes('clinic') || desc.includes('physician')) {
-    // Professional medical office
-    return `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const medicalImages = [
+      `https://images.unsplash.com/photo-1559757148-5c350d0d3c56`, // Professional medical office
+      `https://images.unsplash.com/photo-1576091160399-112ba8d25d1f`, // Doctor consultation
+      `https://images.unsplash.com/photo-1582750433449-648ed127bb54`, // Medical equipment
+      `https://images.unsplash.com/photo-1559757175-0eb30cd8c063`  // Modern clinic interior
+    ];
+    return `${medicalImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   if (desc.includes('therapy') || desc.includes('therapist') || desc.includes('counseling') || desc.includes('psychology')) {
-    // Calming therapy office
-    return `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const therapyImages = [
+      `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d`, // Calming therapy office
+      `https://images.unsplash.com/photo-1559757175-0eb30cd8c063`, // Professional consultation room
+      `https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3`, // Therapy session setup
+      `https://images.unsplash.com/photo-1576091160399-112ba8d25d1f`  // Counseling environment
+    ];
+    return `${therapyImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // COFFEE SHOPS & CAFES
@@ -273,14 +293,24 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // BARS & NIGHTLIFE
   if (desc.includes('bar') || desc.includes('pub') || desc.includes('cocktail') || desc.includes('nightclub') || desc.includes('lounge')) {
-    // Modern bar with cocktails and bartender
-    return `https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const barImages = [
+      `https://images.unsplash.com/photo-1569949381669-ecf31ae8e613`, // Modern bar with cocktails
+      `https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b`, // Bartender preparing drinks
+      `https://images.unsplash.com/photo-1572116469696-31de0f17cc34`, // Bar atmosphere
+      `https://images.unsplash.com/photo-1544148103-0773bf10d330`  // Cocktail close-up
+    ];
+    return `${barImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FOOD TRUCKS
   if (desc.includes('food truck') || desc.includes('food cart') || desc.includes('mobile food')) {
-    // Colorful food truck serving customers
-    return `https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const foodTruckImages = [
+      `https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb`, // Colorful food truck
+      `https://images.unsplash.com/photo-1599599810769-bcde5a160d32`, // Food truck service window
+      `https://images.unsplash.com/photo-1414235077428-338989a2e8c0`, // Food prep in truck
+      `https://images.unsplash.com/photo-1551218808-94e220e084d2`  // Mobile food service
+    ];
+    return `${foodTruckImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FOOD & RESTAURANTS
@@ -305,8 +335,13 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // PANADERÍA Y REPOSTERÍA - Bakery & Pastry
   if (desc.includes('bakery') || desc.includes('bread') || desc.includes('pastry') || desc.includes('panadería') || desc.includes('pastelería') || desc.includes('repostería') || desc.includes('pasteles') || desc.includes('postres') || desc.includes('cakes') || desc.includes('cupcakes')) {
-    // Artisan bakery with beautiful pastries and cakes
-    return `https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const bakeryImages = [
+      `https://images.unsplash.com/photo-1578985545062-69928b1d9587`, // Artisan bakery
+      `https://images.unsplash.com/photo-1571197119037-4d7c613a2f2d`, // Fresh bread display
+      `https://images.unsplash.com/photo-1558636508-e0db3814bd1d`, // Pastries and cakes
+      `https://images.unsplash.com/photo-1517433670267-08bbd4be890f`  // Bakery interior
+    ];
+    return `${bakeryImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FITNESS & WELLNESS
@@ -322,8 +357,13 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // YOGA STUDIOS
   if (desc.includes('yoga') || desc.includes('yoga studio') || desc.includes('meditation') || desc.includes('mindfulness')) {
-    // Peaceful yoga studio with mats and natural lighting
-    return `https://images.unsplash.com/photo-1518611012118-696072aa579a?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const yogaImages = [
+      `https://images.unsplash.com/photo-1518611012118-696072aa579a`, // Peaceful yoga studio
+      `https://images.unsplash.com/photo-1544367567-0f2fcb009e0b`, // Yoga class session
+      `https://images.unsplash.com/photo-1506905925346-21bda4d32df4`, // Meditation space
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`  // Yoga equipment
+    ];
+    return `${yogaImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // PILATES STUDIOS
@@ -335,31 +375,71 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   // EDUCATION
   if (desc.includes('teacher') || desc.includes('tutor') || desc.includes('education')) {
     if (desc.includes('art') || desc.includes('art history')) {
-      return `https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+      const artTeacherImages = [
+        `https://images.unsplash.com/photo-1541961017774-22349e4a1262`, // Art gallery/museum
+        `https://images.unsplash.com/photo-1578662996442-48f60103fc96`, // Art classroom
+        `https://images.unsplash.com/photo-1578321272176-b7bbc0679853`, // Art supplies
+        `https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b`  // Art education
+      ];
+      return `${artTeacherImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
     if (desc.includes('math') || desc.includes('science')) {
-      return `https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+      const mathScienceImages = [
+        `https://images.unsplash.com/photo-1635070041078-e363dbe005cb`, // Math/science classroom
+        `https://images.unsplash.com/photo-1532094349884-543bc11b234d`, // Laboratory equipment
+        `https://images.unsplash.com/photo-1509228627152-72ae9ae6848d`, // Teaching environment
+        `https://images.unsplash.com/photo-1562887284-5c6e2e3bb1e4`  // Educational setting
+      ];
+      return `${mathScienceImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
-    // General education/classroom
-    return `https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const educationImages = [
+      `https://images.unsplash.com/photo-1509228627152-72ae9ae6848d`, // General classroom
+      `https://images.unsplash.com/photo-1580582932707-520aed937b7b`, // Modern learning space
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`, // Educational technology
+      `https://images.unsplash.com/photo-1562887284-5c6e2e3bb1e4`  // Teaching environment
+    ];
+    return `${educationImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // CREATIVE SERVICES
   if (desc.includes('photographer') || desc.includes('photography')) {
     if (desc.includes('wedding')) {
-      return `https://images.unsplash.com/photo-1519741497674-611481863552?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+      const weddingPhotoImages = [
+        `https://images.unsplash.com/photo-1519741497674-611481863552`, // Wedding photography
+        `https://images.unsplash.com/photo-1606216794074-735e91aa2c92`, // Wedding couple
+        `https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6`, // Wedding ceremony
+        `https://images.unsplash.com/photo-1542038784456-1ea8e732b2b9`  // Photography equipment
+      ];
+      return `${weddingPhotoImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
-    // Professional photography studio
-    return `https://images.unsplash.com/photo-1542038784456-1ea8e732b2b9?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const photographyImages = [
+      `https://images.unsplash.com/photo-1542038784456-1ea8e732b2b9`, // Photography studio
+      `https://images.unsplash.com/photo-1606216794074-735e91aa2c92`, // Professional camera
+      `https://images.unsplash.com/photo-1578662996442-48f60103fc96`, // Photo session
+      `https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b`  // Photography workspace
+    ];
+    return `${photographyImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   if (desc.includes('designer') || desc.includes('graphic design') || desc.includes('creative')) {
-    return `https://images.unsplash.com/photo-1561070791-2526d30994b5?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const designImages = [
+      `https://images.unsplash.com/photo-1561070791-2526d30994b5`, // Design workspace
+      `https://images.unsplash.com/photo-1572044162444-ad60f128bdea`, // Creative studio
+      `https://images.unsplash.com/photo-1578662996442-48f60103fc96`, // Design tools
+      `https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b`  // Creative environment
+    ];
+    return `${designImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // LEGAL SERVICES
   if (desc.includes('lawyer') || desc.includes('attorney') || desc.includes('legal') || desc.includes('law firm')) {
-    return `https://images.unsplash.com/photo-1589391886645-d51941baf7fb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const legalImages = [
+      `https://images.unsplash.com/photo-1589391886645-d51941baf7fb`, // Law office
+      `https://images.unsplash.com/photo-1505664194779-8beaceb93744`, // Legal consultation
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`, // Professional law firm
+      `https://images.unsplash.com/photo-1559757148-5c350d0d3c56`  // Legal services
+    ];
+    return `${legalImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // JOYERÍA - Jewelry Store
