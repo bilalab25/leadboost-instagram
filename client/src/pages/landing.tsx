@@ -248,7 +248,7 @@ export default function Landing() {
           <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-20 pb-10 lg:pt-24 lg:pb-14">
             <div className="max-w-5xl">
               <div className="mb-4">
-                <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.6] tracking-[-0.02em] drop-shadow-2xl relative z-10">
+                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.6] tracking-[-0.02em] drop-shadow-2xl relative z-10">
                   {isSpanish ? 'Haz Crecer Tu\u00A0Negocio' : (
                     <>
                       Grow Your <br />
@@ -256,23 +256,23 @@ export default function Landing() {
                     </>
                   )}
                 </h1>
-                <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent tracking-[-0.01em] mt-3 drop-shadow-lg">
+                <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent tracking-[-0.01em] mt-3 drop-shadow-lg">
                   {isSpanish ? '— En Piloto Automático.' : '— On Autopilot.'}
                 </h2>
               </div>
               
               <div className="space-y-6 mb-8 max-w-4xl">
-                <p className="text-xl lg:text-2xl font-medium text-slate-700 leading-relaxed">
+                <p className="text-lg lg:text-xl font-medium text-slate-700 leading-relaxed">
                   {isSpanish ? 'Plataforma completa de automatización empresarial impulsada por IA' : 'Complete AI-powered business automation platform'}
                 </p>
-                <p className="text-lg text-slate-600 leading-relaxed max-w-3xl">
+                <p className="text-base text-slate-600 leading-relaxed max-w-2xl">
                   {isSpanish ? 'Automatiza marketing, ventas y gestión de clientes desde una sola plataforma. Sin complejidad técnica.' : 'Automate marketing, sales, and customer management from a single platform. No technical complexity.'}
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row sm:items-start gap-6 mt-6">
                 <Button 
-                  className="bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] hover:from-[#3470b8] hover:via-slate-700 hover:to-[#26527d] text-white text-base font-semibold px-8 py-4 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 drop-shadow-xl"
+                  className="bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] hover:from-[#3470b8] hover:via-slate-700 hover:to-[#26527d] text-white text-sm font-semibold px-6 py-3 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 drop-shadow-xl"
                   onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   {isSpanish ? 'Comenzar Demo Gratuito' : 'Start Free Demo'}
@@ -870,18 +870,19 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             {[...column, ...column].map((campaign, cardIndex) => (
               <div
                 key={`${columnIndex}-${cardIndex}`}
-                className="rounded-2xl shadow-2xl border border-white/5 overflow-hidden opacity-70 hover:opacity-95 transition-all duration-700 transform hover:scale-105 backdrop-blur-sm"
+                className="rounded-2xl shadow-2xl border border-white/5 overflow-hidden opacity-85 hover:opacity-100 transition-all duration-700 transform hover:scale-110 backdrop-blur-sm"
                 style={{
-                  width: `${campaign.width * 0.75}px`,
-                  height: `${campaign.height * 0.75}px`,
+                  width: `${campaign.width * 0.9}px`,
+                  height: `${campaign.height * 0.9}px`,
                 }}
               >
                 <div className={`w-full h-full ${campaign.bgColor} relative flex items-center justify-center`}>
                   {/* Premium glass effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/20"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/25"></div>
+                  <div className="absolute inset-0 backdrop-blur-[1px]"></div>
                   
                   {/* Platform Icon */}
-                  <div className="absolute top-3 right-3 w-7 h-7 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/20">
+                  <div className="absolute top-3 right-3 w-8 h-8 bg-white/15 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/30 shadow-lg">
                     {campaign.icon}
                   </div>
                   
