@@ -204,18 +204,32 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   // Get exact dimensions for the platform
   const dimensions = PLATFORM_DIMENSIONS[platform] || { width: 1200, height: 628 };
   
-  // Comprehensive business-specific visual database with contextually relevant imagery
+  // Generate a deterministic but varied seed based on platform to ensure different images per platform
+  const platformSeed = platform.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const imageVariation = platformSeed % 4; // 0-3 for variety
+  
+  // Comprehensive business-specific visual database with multiple images per industry
   const getBusinessContextualImage = (): string => {
   // MEDICAL AESTHETICS & BEAUTY - Botox & Cosmetic Treatments
   if (desc.includes('botox') || desc.includes('dermal') || desc.includes('filler') || desc.includes('aesthetic') || desc.includes('cosmetic') || (desc.includes('clinic') && (desc.includes('beauty') || desc.includes('skin') || desc.includes('face') || desc.includes('med spa')))) {
-    // Luxury beauty spa/aesthetic clinic - clean, relaxing environment with beauty treatments focus
-    return `https://images.unsplash.com/photo-1562887284-5c6e2e3bb1e4?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const aestheticImages = [
+      `https://images.unsplash.com/photo-1562887284-5c6e2e3bb1e4`, // Spa treatment
+      `https://images.unsplash.com/photo-1570172619644-dfd03ed5d881`, // Medical aesthetic clinic
+      `https://images.unsplash.com/photo-1616391182219-e080b4d1043a`, // Beauty treatment room
+      `https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3`  // Skincare consultation
+    ];
+    return `${aestheticImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // BEAUTY SALONS
   if (desc.includes('beauty salon') || desc.includes('hair salon') || desc.includes('salon')) {
-    // Modern beauty salon interior with styling chairs
-    return `https://images.unsplash.com/photo-1560066984-138dadb4c035?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const salonImages = [
+      `https://images.unsplash.com/photo-1560066984-138dadb4c035`, // Modern salon interior
+      `https://images.unsplash.com/photo-1522337360788-8b13dee7a37e`, // Hair styling station
+      `https://images.unsplash.com/photo-1562322140-8baeececf3df`, // Salon chairs and mirrors
+      `https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f`  // Colorful salon atmosphere
+    ];
+    return `${salonImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // NAIL SALONS
@@ -248,8 +262,13 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // COFFEE SHOPS & CAFES
   if (desc.includes('coffee shop') || desc.includes('coffee') || desc.includes('cafe') || desc.includes('coffeehouse') || desc.includes('espresso') || desc.includes('barista')) {
-    // Cozy coffee shop with barista, espresso machine, and coffee atmosphere
-    return `https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const coffeeImages = [
+      `https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb`, // Cozy coffee shop
+      `https://images.unsplash.com/photo-1554118811-1e0d58224f24`, // Barista at work
+      `https://images.unsplash.com/photo-1445116572660-236099ec97a0`, // Coffee cup and beans
+      `https://images.unsplash.com/photo-1559056199-641a0ac8b55e`  // Modern cafe interior
+    ];
+    return `${coffeeImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // BARS & NIGHTLIFE
@@ -267,10 +286,21 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   // FOOD & RESTAURANTS
   if (desc.includes('restaurant') || desc.includes('bistro') || desc.includes('dining')) {
     if (desc.includes('italian') || desc.includes('pasta')) {
-      return `https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+      const italianImages = [
+        `https://images.unsplash.com/photo-1574894709920-11b28e7367e3`, // Pasta dish
+        `https://images.unsplash.com/photo-1551183053-bf91a1d81141`, // Italian restaurant
+        `https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0`, // Pizza preparation
+        `https://images.unsplash.com/photo-1551218808-94e220e084d2`  // Italian dining
+      ];
+      return `${italianImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
     }
-    // Elegant restaurant interior
-    return `https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const restaurantImages = [
+      `https://images.unsplash.com/photo-1414235077428-338989a2e8c0`, // Elegant restaurant interior
+      `https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c`, // Fine dining setup
+      `https://images.unsplash.com/photo-1559329007-40df8a9345d8`, // Restaurant atmosphere
+      `https://images.unsplash.com/photo-1552566090-a069bb8f54a0`  // Modern restaurant
+    ];
+    return `${restaurantImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // PANADERÍA Y REPOSTERÍA - Bakery & Pastry
@@ -281,8 +311,13 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // FITNESS & WELLNESS
   if (desc.includes('gym') || desc.includes('fitness') || desc.includes('personal training')) {
-    // Modern gym equipment
-    return `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const fitnessImages = [
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`, // Modern gym equipment
+      `https://images.unsplash.com/photo-1534438327276-14e5300c3a48`, // Personal training session
+      `https://images.unsplash.com/photo-1544027993-37dbfe43562a`, // Gym workout
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`  // Fitness equipment variety
+    ];
+    return `${fitnessImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // YOGA STUDIOS
