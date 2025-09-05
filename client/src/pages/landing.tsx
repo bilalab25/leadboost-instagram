@@ -984,7 +984,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             </h3>
           </div>
           <p className="text-gray-600 text-xs leading-relaxed mb-2">
-            {isSpanish ? 'Chatbot IA convierte visitantes 24/7' : 'AI chatbot converts multi-channel leads 24/7'}
+            {isSpanish ? 'Chatbot IA convierte visitantes 24/7' : 'AI chatbot converts leads from all social platforms 24/7'}
           </p>
           <div className="flex items-center gap-2 text-xs text-purple-600 font-medium">
             <MessageSquare className="w-3 h-3" />
