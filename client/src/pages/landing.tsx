@@ -914,7 +914,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
         </div>
       </div>
       {/* Step 1 */}
-      <div className="absolute top-44 right-8 lg:right-16 z-20">
+      <div className="absolute top-36 right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
@@ -941,7 +941,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 2 */}
-      <div className="absolute top-[22rem] right-8 lg:right-16 z-20">
+      <div className="absolute top-[24rem] right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
@@ -967,7 +967,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
       </div>
 
       {/* Step 3 */}
-      <div className="absolute top-[34rem] right-8 lg:right-16 z-20">
+      <div className="absolute top-[36rem] right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
