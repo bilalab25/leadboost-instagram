@@ -829,27 +829,27 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
   const campaignData = [
     // Column 1
     [
-      { platform: 'instagram-post', width: 260, height: 260, bgColor: 'bg-gradient-to-br from-pink-500 to-purple-600', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Instagram' : 'Instagram Post' },
-      { platform: 'email-newsletter', width: 300, height: 200, bgColor: 'bg-gradient-to-br from-indigo-600 to-blue-700', icon: <SiGmail className="h-4 w-4 text-white" />, title: isSpanish ? 'Newsletter' : 'Email Newsletter' },
-      { platform: 'facebook-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-blue-500 to-purple-600', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Historia FB' : 'Facebook Story' },
-      { platform: 'linkedin-post', width: 280, height: 200, bgColor: 'bg-gradient-to-br from-blue-700 to-indigo-800', icon: <SiLinkedin className="h-4 w-4 text-white" />, title: isSpanish ? 'Post LinkedIn' : 'LinkedIn Post' },
-      { platform: 'youtube-shorts', width: 200, height: 360, bgColor: 'bg-gradient-to-br from-red-600 to-orange-600', icon: <SiYoutube className="h-4 w-4 text-white" />, title: isSpanish ? 'YouTube Shorts' : 'YouTube Shorts' },
+      { platform: 'instagram-post', width: 260, height: 260, bgColor: 'bg-gradient-to-br from-pink-500 to-orange-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Instagram' : 'Instagram Post' },
+      { platform: 'email-newsletter', width: 300, height: 200, bgColor: 'bg-gradient-to-br from-red-500 to-red-600', icon: <SiGmail className="h-4 w-4 text-white" />, title: isSpanish ? 'Newsletter' : 'Email Newsletter' },
+      { platform: 'facebook-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Historia FB' : 'Facebook Story' },
+      { platform: 'linkedin-post', width: 280, height: 200, bgColor: 'bg-gradient-to-br from-blue-700 to-blue-800', icon: <SiLinkedin className="h-4 w-4 text-white" />, title: isSpanish ? 'Post LinkedIn' : 'LinkedIn Post' },
+      { platform: 'youtube-shorts', width: 200, height: 360, bgColor: 'bg-gradient-to-br from-red-600 to-red-700', icon: <SiYoutube className="h-4 w-4 text-white" />, title: isSpanish ? 'YouTube Shorts' : 'YouTube Shorts' },
     ],
     // Column 2
     [
-      { platform: 'instagram-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-purple-500 to-pink-600', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Historia' : 'Instagram Story' },
-      { platform: 'facebook-post', width: 300, height: 180, bgColor: 'bg-gradient-to-br from-blue-600 to-indigo-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Facebook' : 'Facebook Post' },
-      { platform: 'twitter-thread', width: 320, height: 240, bgColor: 'bg-gradient-to-br from-slate-700 to-slate-900', icon: <SiX className="h-4 w-4 text-white" />, title: isSpanish ? 'Hilo Twitter' : 'Twitter Thread' },
-      { platform: 'whatsapp-broadcast', width: 260, height: 180, bgColor: 'bg-gradient-to-br from-green-500 to-green-700', icon: <SiWhatsapp className="h-4 w-4 text-white" />, title: isSpanish ? 'Difusión WhatsApp' : 'WhatsApp Broadcast' },
-      { platform: 'facebook-ad', width: 280, height: 200, bgColor: 'bg-gradient-to-br from-blue-400 to-indigo-600', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Anuncio FB' : 'Facebook Ad' },
+      { platform: 'instagram-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-purple-500 to-pink-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Historia' : 'Instagram Story' },
+      { platform: 'facebook-post', width: 300, height: 180, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Facebook' : 'Facebook Post' },
+      { platform: 'twitter-thread', width: 320, height: 240, bgColor: 'bg-gradient-to-br from-black to-gray-800', icon: <SiX className="h-4 w-4 text-white" />, title: isSpanish ? 'Hilo Twitter' : 'Twitter Thread' },
+      { platform: 'whatsapp-broadcast', width: 260, height: 180, bgColor: 'bg-gradient-to-br from-green-500 to-green-600', icon: <SiWhatsapp className="h-4 w-4 text-white" />, title: isSpanish ? 'Difusión WhatsApp' : 'WhatsApp Broadcast' },
+      { platform: 'facebook-ad', width: 280, height: 200, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Anuncio FB' : 'Facebook Ad' },
     ],
     // Column 3
     [
-      { platform: 'youtube-video', width: 300, height: 170, bgColor: 'bg-gradient-to-br from-red-500 to-red-700', icon: <SiYoutube className="h-4 w-4 text-white" />, title: isSpanish ? 'Video YouTube' : 'YouTube Video' },
-      { platform: 'instagram-reel', width: 200, height: 360, bgColor: 'bg-gradient-to-br from-orange-400 to-pink-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Reel' : 'Instagram Reel' },
-      { platform: 'linkedin-article', width: 320, height: 220, bgColor: 'bg-gradient-to-br from-blue-800 to-indigo-900', icon: <SiLinkedin className="h-4 w-4 text-white" />, title: isSpanish ? 'Artículo LinkedIn' : 'LinkedIn Article' },
-      { platform: 'tiktok-video', width: 200, height: 350, bgColor: 'bg-gradient-to-br from-gray-800 to-gray-900', icon: <SiTiktok className="h-4 w-4 text-white" />, title: isSpanish ? 'Video TikTok' : 'TikTok Video' },
-      { platform: 'twitter-post', width: 320, height: 160, bgColor: 'bg-gradient-to-br from-slate-800 to-slate-900', icon: <SiX className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Twitter' : 'Twitter Post' },
+      { platform: 'youtube-video', width: 300, height: 170, bgColor: 'bg-gradient-to-br from-red-600 to-red-700', icon: <SiYoutube className="h-4 w-4 text-white" />, title: isSpanish ? 'Video YouTube' : 'YouTube Video' },
+      { platform: 'instagram-reel', width: 200, height: 360, bgColor: 'bg-gradient-to-br from-purple-500 to-pink-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Reel' : 'Instagram Reel' },
+      { platform: 'linkedin-article', width: 320, height: 220, bgColor: 'bg-gradient-to-br from-blue-700 to-blue-800', icon: <SiLinkedin className="h-4 w-4 text-white" />, title: isSpanish ? 'Artículo LinkedIn' : 'LinkedIn Article' },
+      { platform: 'tiktok-video', width: 200, height: 350, bgColor: 'bg-gradient-to-br from-black to-gray-900', icon: <SiTiktok className="h-4 w-4 text-white" />, title: isSpanish ? 'Video TikTok' : 'TikTok Video' },
+      { platform: 'twitter-post', width: 320, height: 160, bgColor: 'bg-gradient-to-br from-black to-gray-800', icon: <SiX className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Twitter' : 'Twitter Post' },
     ]
   ];
 
