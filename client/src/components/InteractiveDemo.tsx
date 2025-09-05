@@ -373,8 +373,13 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // PILATES STUDIOS
   if (desc.includes('pilates') || desc.includes('pilates studio')) {
-    // Pilates studio with reformer equipment
-    return `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const pilatesImages = [
+      `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`, // Pilates studio with reformer equipment
+      `https://images.unsplash.com/photo-1518611012118-696072aa579a`, // Pilates class session
+      `https://images.unsplash.com/photo-1544367567-0f2fcb009e0b`, // Pilates training
+      `https://images.unsplash.com/photo-1506905925346-21bda4d32df4`  // Pilates equipment setup
+    ];
+    return `${pilatesImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // EDUCATION
@@ -515,20 +520,35 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // FLORISTERÍA - Flower Shop
   if (desc.includes('flowers') || desc.includes('florist') || desc.includes('floristería') || desc.includes('flores') || desc.includes('arreglos') || desc.includes('bouquet') || desc.includes('wedding flowers')) {
-    // Beautiful flower arrangements and bouquets
-    return `https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const floristImages = [
+      `https://images.unsplash.com/photo-1563241527-3004b7be0ffd`, // Beautiful flower arrangements
+      `https://images.unsplash.com/photo-1487530811176-3780de880c2d`, // Wedding bouquet
+      `https://images.unsplash.com/photo-1414016642750-7fdd78dc33d9`, // Flower shop interior
+      `https://images.unsplash.com/photo-1584464491033-06628f3a6b7b`  // Fresh flower displays
+    ];
+    return `${floristImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // BARBERÍA - Barber Shop
   if (desc.includes('barber') || desc.includes('barbershop') || desc.includes('barbería') || desc.includes('peluquería') || desc.includes('hair salon') || desc.includes('cortes')) {
-    // Modern barber shop interior
-    return `https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const barberImages = [
+      `https://images.unsplash.com/photo-1503951914875-452162b0f3f1`, // Modern barber shop interior
+      `https://images.unsplash.com/photo-1522337360788-8b13dee7a37e`, // Barber cutting hair
+      `https://images.unsplash.com/photo-1560066984-138dadb4c035`, // Barber tools and setup
+      `https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f`  // Traditional barber shop
+    ];
+    return `${barberImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // LIBRERÍA - Bookstore
   if (desc.includes('bookstore') || desc.includes('library') || desc.includes('librería') || desc.includes('libros') || desc.includes('books')) {
-    // Cozy bookstore with shelves full of books
-    return `https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const bookstoreImages = [
+      `https://images.unsplash.com/photo-1481627834876-b7833e8f5570`, // Cozy bookstore with shelves
+      `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d`, // Reading corner
+      `https://images.unsplash.com/photo-1554118811-1e0d58224f24`, // Books and coffee
+      `https://images.unsplash.com/photo-1495446815901-a7297e633e8d`  // Library atmosphere
+    ];
+    return `${bookstoreImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // AUTOMÓVILES - Car Dealership/Garage
@@ -566,8 +586,13 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // AUTO REPAIR SHOPS
   if (desc.includes('auto repair') || desc.includes('car repair') || desc.includes('mechanic') || desc.includes('automotive repair')) {
-    // Professional auto repair shop with mechanic working
-    return `https://images.unsplash.com/photo-1632823469850-fcd3b277ec6e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const autoRepairImages = [
+      `https://images.unsplash.com/photo-1632823469850-fcd3b277ec6e`, // Mechanic working on car
+      `https://images.unsplash.com/photo-1503376780353-7e6692767b70`, // Auto repair garage
+      `https://images.unsplash.com/photo-1609956351480-8ff9c1c64b14`, // Car diagnostic equipment
+      `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7`  // Professional auto service
+    ];
+    return `${autoRepairImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // FINANCIAL SERVICES
@@ -583,67 +608,123 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // REAL ESTATE
   if (desc.includes('real estate') || desc.includes('realtor') || desc.includes('property') || desc.includes('homes')) {
-    return `https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const realEstateImages = [
+      `https://images.unsplash.com/photo-1560518883-ce09059eeffa`, // Beautiful home exterior
+      `https://images.unsplash.com/photo-1586023492125-27b2c045efd7`, // Modern home interior
+      `https://images.unsplash.com/photo-1555041469-a586c61ea9bc`, // Real estate agent showing property
+      `https://images.unsplash.com/photo-1560448204-e02f11c3d0e2`  // Luxury property
+    ];
+    return `${realEstateImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // DESIGN STUDIOS
   if (desc.includes('interior design') || desc.includes('design studio') || desc.includes('interior designer')) {
-    // Modern interior design studio with samples and plans
-    return `https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const interiorDesignImages = [
+      `https://images.unsplash.com/photo-1586023492125-27b2c045efd7`, // Modern interior design studio
+      `https://images.unsplash.com/photo-1555041469-a586c61ea9bc`, // Designer workspace
+      `https://images.unsplash.com/photo-1560448204-e02f11c3d0e2`, // Design samples and materials
+      `https://images.unsplash.com/photo-1560185893-a55cbc8c57e8`  // Interior design consultation
+    ];
+    return `${interiorDesignImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // ARCHITECTURE FIRMS
   if (desc.includes('architecture') || desc.includes('architect') || desc.includes('architecture firm')) {
-    // Architect working on building plans
-    return `https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const architectureImages = [
+      `https://images.unsplash.com/photo-1503387762-592deb58ef4e`, // Architect working on plans
+      `https://images.unsplash.com/photo-1561070791-2526d30994b5`, // Architecture blueprints
+      `https://images.unsplash.com/photo-1572044162444-ad60f128bdea`, // Modern building design
+      `https://images.unsplash.com/photo-1486406146926-c627a92ad1ab`  // Architectural drafting
+    ];
+    return `${architectureImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // CLEANING SERVICES
   if (desc.includes('cleaning') || desc.includes('cleaning service') || desc.includes('housekeeping')) {
-    // Professional cleaning service in action
-    return `https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const cleaningImages = [
+      `https://images.unsplash.com/photo-1581578731548-c64695cc6952`, // Professional cleaning in action
+      `https://images.unsplash.com/photo-1558618666-fcd25c85cd64`, // House cleaning supplies
+      `https://images.unsplash.com/photo-1525530288509-33e3c4aeb89d`, // Clean home interior
+      `https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb`  // Professional cleaning team
+    ];
+    return `${cleaningImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // LANDSCAPING
   if (desc.includes('landscaping') || desc.includes('gardening') || desc.includes('lawn care')) {
-    // Beautiful landscaped garden
-    return `https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const landscapingImages = [
+      `https://images.unsplash.com/photo-1416879595882-3373a0480b5b`, // Beautiful landscaped garden
+      `https://images.unsplash.com/photo-1558618666-fcd25c85cd64`, // Garden maintenance
+      `https://images.unsplash.com/photo-1574090891017-83dc2006e6a6`, // Landscape design
+      `https://images.unsplash.com/photo-1584362917165-526f20bf04e4`  // Professional landscaping
+    ];
+    return `${landscapingImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // MARKETING AGENCIES
   if (desc.includes('marketing') || desc.includes('marketing agency') || desc.includes('advertising')) {
-    // Creative marketing team at work
-    return `https://images.unsplash.com/photo-1552664730-d307ca884978?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const marketingImages = [
+      `https://images.unsplash.com/photo-1552664730-d307ca884978`, // Creative marketing team
+      `https://images.unsplash.com/photo-1561070791-2526d30994b5`, // Marketing strategy session
+      `https://images.unsplash.com/photo-1572044162444-ad60f128bdea`, // Digital marketing workspace
+      `https://images.unsplash.com/photo-1460925895917-afdab827c52f`  // Marketing analytics
+    ];
+    return `${marketingImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // TATTOO STUDIOS
   if (desc.includes('tattoo') || desc.includes('tattoo studio') || desc.includes('tattoo parlor')) {
-    // Professional tattoo artist at work
-    return `https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const tattooImages = [
+      `https://images.unsplash.com/photo-1611501275019-9b5cda994e8d`, // Professional tattoo artist at work
+      `https://images.unsplash.com/photo-1578662996442-48f60103fc96`, // Tattoo equipment setup
+      `https://images.unsplash.com/photo-1544027993-37dbfe43562a`, // Tattoo studio interior
+      `https://images.unsplash.com/photo-1572044162444-ad60f128bdea`  // Artistic tattoo designs
+    ];
+    return `${tattooImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // CONSULTING FIRMS
   if (desc.includes('consulting') || desc.includes('consultant') || desc.includes('consulting firm')) {
-    // Professional business consulting meeting
-    return `https://images.unsplash.com/photo-1552664730-d307ca884978?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const consultingImages = [
+      `https://images.unsplash.com/photo-1552664730-d307ca884978`, // Professional consulting meeting
+      `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d`, // Business consultation
+      `https://images.unsplash.com/photo-1581833971358-2c8b550f87b3`, // Strategy planning session
+      `https://images.unsplash.com/photo-1559757148-5c350d0d3c56`  // Corporate consulting office
+    ];
+    return `${consultingImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // TRAVEL AGENCIES
   if (desc.includes('travel') || desc.includes('travel agency') || desc.includes('tourism')) {
-    // Travel agency with maps and destinations
-    return `https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const travelImages = [
+      `https://images.unsplash.com/photo-1488646953014-85cb44e25828`, // Travel agency office
+      `https://images.unsplash.com/photo-1441974231531-c6227db76b6e`, // Travel planning
+      `https://images.unsplash.com/photo-1506905925346-21bda4d32df4`, // Travel destinations
+      `https://images.unsplash.com/photo-1471905252107-5952370f3bd5`  // Vacation planning
+    ];
+    return `${travelImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // TUTORING & EDUCATION CENTERS
   if (desc.includes('tutoring') || desc.includes('education center') || desc.includes('learning center')) {
-    // Tutoring session with teacher and student
-    return `https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const tutoringImages = [
+      `https://images.unsplash.com/photo-1509228627152-72ae9ae6848d`, // Tutoring session
+      `https://images.unsplash.com/photo-1580582932707-520aed937b7b`, // Student and teacher
+      `https://images.unsplash.com/photo-1635070041078-e363dbe005cb`, // Learning environment
+      `https://images.unsplash.com/photo-1532094349884-543bc11b234d`  // Educational materials
+    ];
+    return `${tutoringImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // TECH STARTUPS & SOFTWARE
   if (desc.includes('tech startup') || desc.includes('software') || desc.includes('tech') || desc.includes('app') || desc.includes('digital') || desc.includes('web')) {
-    // Modern tech office with developers
-    return `https://images.unsplash.com/photo-1551434678-e076c223a692?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    const techImages = [
+      `https://images.unsplash.com/photo-1551434678-e076c223a692`, // Modern tech office
+      `https://images.unsplash.com/photo-1542744173-8e7e53415bb0`, // Software development
+      `https://images.unsplash.com/photo-1581291518857-4e27b48ff24e`, // Tech team collaboration
+      `https://images.unsplash.com/photo-1519389950473-47ba0277781c`  // Coding workspace
+    ];
+    return `${techImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
   }
   
   // DEFAULT PROFESSIONAL
