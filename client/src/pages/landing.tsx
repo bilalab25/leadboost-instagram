@@ -957,7 +957,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             </h3>
           </div>
           <p className="text-gray-600 text-xs leading-relaxed mb-2">
-            {isSpanish ? 'Multiplica clientes con contenido optimizado' : 'Multiply customers with optimized content'}
+            {isSpanish ? 'Multiplica clientes con contenido optimizado' : 'Multiply customers with multi-channel data-backed content'}
           </p>
           <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
             <TrendingUp className="w-3 h-3" />
