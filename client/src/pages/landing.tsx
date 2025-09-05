@@ -870,7 +870,7 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
             {[...column, ...column].map((campaign, cardIndex) => (
               <div
                 key={`${columnIndex}-${cardIndex}`}
-                className="rounded-2xl shadow-2xl border border-white/5 overflow-hidden opacity-85 hover:opacity-100 transition-all duration-700 transform hover:scale-110 backdrop-blur-sm"
+                className="rounded-2xl shadow-2xl border border-white/5 overflow-hidden opacity-60 hover:opacity-80 transition-all duration-700 transform hover:scale-110 backdrop-blur-lg"
                 style={{
                   width: `${campaign.width * 0.9}px`,
                   height: `${campaign.height * 0.9}px`,
@@ -879,19 +879,15 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
                 <div className={`w-full h-full ${campaign.bgColor} relative flex items-center justify-center`}>
                   {/* Premium glass effect */}
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/25"></div>
-                  <div className="absolute inset-0 backdrop-blur-[1px]"></div>
+                  <div className="absolute inset-0 backdrop-blur-[3px]"></div>
                   
-                  {/* Platform Icon */}
-                  <div className="absolute top-3 right-3 w-8 h-8 bg-white/15 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/30 shadow-lg">
-                    {campaign.icon}
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="text-center text-white p-6 relative z-10">
-                    <h4 className="font-light text-base leading-tight opacity-95 tracking-wide">
-                      {campaign.title}
-                    </h4>
-                    <div className="mt-3 w-12 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent mx-auto"></div>
+                  {/* Platform Icon - Larger and Centered */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/40 shadow-lg">
+                      <div className="text-xl">
+                        {campaign.icon}
+                      </div>
+                    </div>
                   </div>
                   
                   {/* Sophisticated overlay */}
