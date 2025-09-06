@@ -16,6 +16,551 @@ import { ReferralProgram } from "@/components/ReferralProgram";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
 import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756873932398.png";
 
+// Campaign Background Flow - Squarespace Style
+function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
+  // Simplified platform showcase - Key platforms LeadBoost supports
+  const campaignData = [
+    // Column 1
+    [
+      { platform: 'instagram-post', width: 260, height: 260, bgColor: 'bg-gradient-to-br from-pink-500 to-orange-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Instagram' : 'Instagram Post' },
+      { platform: 'email-newsletter', width: 300, height: 200, bgColor: 'bg-gradient-to-br from-red-500 to-red-600', icon: <SiGmail className="h-4 w-4 text-white" />, title: isSpanish ? 'Newsletter' : 'Email Newsletter' },
+      { platform: 'facebook-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Historia FB' : 'Facebook Story' },
+      { platform: 'linkedin-post', width: 280, height: 200, bgColor: 'bg-gradient-to-br from-blue-700 to-blue-800', icon: <SiLinkedin className="h-4 w-4 text-white" />, title: isSpanish ? 'Post LinkedIn' : 'LinkedIn Post' },
+      { platform: 'youtube-shorts', width: 200, height: 360, bgColor: 'bg-gradient-to-br from-red-600 to-red-700', icon: <SiYoutube className="h-4 w-4 text-white" />, title: isSpanish ? 'YouTube Shorts' : 'YouTube Shorts' },
+    ],
+    // Column 2
+    [
+      { platform: 'instagram-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-purple-500 to-pink-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Historia' : 'Instagram Story' },
+      { platform: 'facebook-post', width: 300, height: 180, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Facebook' : 'Facebook Post' },
+      { platform: 'twitter-thread', width: 320, height: 240, bgColor: 'bg-gradient-to-br from-black to-gray-800', icon: <SiX className="h-4 w-4 text-white" />, title: isSpanish ? 'Hilo Twitter' : 'Twitter Thread' },
+      { platform: 'whatsapp-broadcast', width: 260, height: 180, bgColor: 'bg-gradient-to-br from-green-500 to-green-600', icon: <SiWhatsapp className="h-4 w-4 text-white" />, title: isSpanish ? 'Difusión WhatsApp' : 'WhatsApp Broadcast' },
+      { platform: 'facebook-ad', width: 280, height: 200, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Anuncio FB' : 'Facebook Ad' },
+    ],
+    // Column 3
+    [
+      { platform: 'youtube-video', width: 300, height: 170, bgColor: 'bg-gradient-to-br from-red-600 to-red-700', icon: <SiYoutube className="h-4 w-4 text-white" />, title: isSpanish ? 'Video YouTube' : 'YouTube Video' },
+      { platform: 'instagram-reel', width: 200, height: 360, bgColor: 'bg-gradient-to-br from-purple-500 to-pink-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Reel' : 'Instagram Reel' },
+      { platform: 'linkedin-article', width: 320, height: 220, bgColor: 'bg-gradient-to-br from-blue-700 to-blue-800', icon: <SiLinkedin className="h-4 w-4 text-white" />, title: isSpanish ? 'Artículo LinkedIn' : 'LinkedIn Article' },
+      { platform: 'tiktok-video', width: 200, height: 350, bgColor: 'bg-gradient-to-br from-black to-gray-900', icon: <SiTiktok className="h-4 w-4 text-white" />, title: isSpanish ? 'Video TikTok' : 'TikTok Video' },
+      { platform: 'twitter-post', width: 320, height: 160, bgColor: 'bg-gradient-to-br from-black to-gray-800', icon: <SiX className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Twitter' : 'Twitter Post' },
+    ]
+  ];
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {campaignData.map((column, columnIndex) => (
+        <div
+          key={columnIndex}
+          className="absolute top-0 animate-float-down"
+          style={{
+            left: `${-5 + columnIndex * 30}%`,
+            animationDelay: `0s`,
+            animationDuration: '35s'
+          }}
+        >
+          {/* Duplicate the column content for seamless loop */}
+          <div className="flex flex-col space-y-6">
+            {[...column, ...column].map((campaign, cardIndex) => (
+              <div
+                key={`${columnIndex}-${cardIndex}`}
+                className="rounded-2xl shadow-2xl border border-white/5 overflow-hidden opacity-60 hover:opacity-80 transition-all duration-700 transform hover:scale-110 backdrop-blur-lg"
+                style={{
+                  width: `${campaign.width * 0.9}px`,
+                  height: `${campaign.height * 0.9}px`,
+                }}
+              >
+                <div className={`w-full h-full ${campaign.bgColor} relative flex items-center justify-center`}>
+                  {/* Premium glass effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/25"></div>
+                  <div className="absolute inset-0 backdrop-blur-[3px]"></div>
+                  
+                  {/* Platform Icon - Larger and Centered */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/40 shadow-lg">
+                      <div className="text-xl">
+                        {campaign.icon}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Sophisticated overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/5"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* How It Works Steps - Ghost Appear - Hidden on Mobile */}
+      {/* Connected "As Easy As" Section - Centered to Steps */}
+      <div className="hidden lg:block absolute top-24 right-8 lg:right-16 z-20 w-72">
+        {/* Header with Visual Connection */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-1 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
+            {isSpanish ? 'Así de Fácil' : 'As Easy As'}
+          </h2>
+          <div className="flex justify-center animate-ghost-appear mb-6" style={{ animationDelay: '0.2s' }}>
+            <div className="w-0 h-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-slate-400 opacity-40 animate-bounce"></div>
+          </div>
+        </div>
+      </div>
+      {/* Step 1 - Hidden on Mobile */}
+      <div className="hidden lg:block absolute top-40 right-8 lg:right-16 z-20">
+        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-base">1</span>
+            </div>
+            <h3 className="text-gray-900 font-semibold text-base">
+              {isSpanish ? 'IA Genera y Publica' : (
+                <>
+                  AI Generates & Posts
+                  <br />
+                  <span className="text-sm italic text-gray-600">data-backed campaigns</span>
+                </>
+              )}
+            </h3>
+          </div>
+          <p className="text-gray-600 text-xs leading-relaxed mb-2">
+            {isSpanish ? 'Auto-publica en 21+ plataformas' : 'Auto-posts to 21+ platforms'}
+          </p>
+          <div className="flex items-center gap-2 text-xs text-brand-600 font-medium">
+            <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
+            {isSpanish ? 'Instagram • LinkedIn • TikTok • Email • +17 más' : 'Instagram • LinkedIn • TikTok • Email • +17 more'}
+          </div>
+        </div>
+      </div>
+
+      {/* Step 2 - Hidden on Mobile */}
+      <div className="hidden lg:block absolute top-[19rem] right-8 lg:right-16 z-20">
+        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-base">2</span>
+            </div>
+            <h3 className="text-gray-900 font-semibold text-base">
+              {isSpanish ? 'Alcanza 30x Más Clientes' : (
+                <>
+                  Reach 30x More Clients
+                  <span className="text-sm italic text-gray-600">—without 30x the effort</span>
+                </>
+              )}
+            </h3>
+          </div>
+          <p className="text-gray-600 text-xs leading-relaxed mb-2">
+            {isSpanish ? 'Multiplica clientes con contenido optimizado' : 'Multiply customers with multi-channel data-backed content'}
+          </p>
+          <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
+            <TrendingUp className="w-3 h-3" />
+            {isSpanish ? 'Crecimiento Comprobado' : 'Proven Growth'}
+          </div>
+        </div>
+      </div>
+
+      {/* Step 3 - Hidden on Mobile */}
+      <div className="hidden lg:block absolute top-[28rem] right-8 lg:right-16 z-20">
+        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-base">3</span>
+            </div>
+            <h3 className="text-gray-900 font-semibold text-base">
+              {isSpanish ? 'Convierte con IA Chat' : (
+                <>
+                  Convert with AI Chat
+                  <br />
+                  <span className="text-sm italic text-gray-600">in our multiplatform inbox</span>
+                </>
+              )}
+            </h3>
+          </div>
+          <p className="text-gray-600 text-xs leading-relaxed mb-2">
+            {isSpanish ? 'Chatbot IA convierte visitantes 24/7' : 'AI chatbot converts leads from all social platforms 24/7'}
+          </p>
+          <div className="flex items-center gap-2 text-xs text-purple-600 font-medium">
+            <MessageSquare className="w-3 h-3" />
+            {isSpanish ? 'Conversión Automatizada' : 'Automated Conversion'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Campaign Showcase Component - Squarespace Style
+function CampaignShowcase({ isSpanish }: { isSpanish: boolean }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Sample campaign data for different platforms with realistic content
+  const campaignTemplates = [
+    // Instagram Stories
+    {
+      platform: 'instagram-story',
+      format: 'story',
+      width: 240,
+      height: 320,
+      bgColor: 'bg-gradient-to-br from-pink-500 to-purple-600',
+      icon: <SiInstagram className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Oferta Especial' : 'Special Offer',
+        subtitle: isSpanish ? '30% Descuento' : '30% Off',
+        cta: isSpanish ? 'Ver Más' : 'Learn More'
+      }
+    },
+    // Instagram Feed
+    {
+      platform: 'instagram-feed',
+      format: 'square',
+      width: 280,
+      height: 280,
+      bgColor: 'bg-gradient-to-br from-orange-400 to-pink-500',
+      icon: <SiInstagram className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Qué Hay Adentro' : "What's Inside",
+        subtitle: isSpanish ? 'Disponible Ahora' : 'Available Now'
+      }
+    },
+    // TikTok Vertical
+    {
+      platform: 'tiktok',
+      format: 'vertical',
+      width: 220,
+      height: 380,
+      bgColor: 'bg-gradient-to-br from-gray-800 to-gray-900',
+      icon: <SiTiktok className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Tendencia Viral' : 'Trending Now',
+        subtitle: isSpanish ? '#ParaTi' : '#ForYou'
+      }
+    },
+    // Facebook Post
+    {
+      platform: 'facebook',
+      format: 'landscape',
+      width: 320,
+      height: 180,
+      bgColor: 'bg-gradient-to-br from-blue-600 to-indigo-700',
+      icon: <SiFacebook className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Evento Exclusivo' : 'Exclusive Event',
+        subtitle: isSpanish ? 'Solo Este Fin de Semana' : 'This Weekend Only'
+      }
+    },
+    // YouTube Thumbnail
+    {
+      platform: 'youtube',
+      format: 'landscape',
+      width: 320,
+      height: 180,
+      bgColor: 'bg-gradient-to-br from-red-500 to-red-700',
+      icon: <SiYoutube className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Tutorial Completo' : 'Complete Tutorial',
+        subtitle: isSpanish ? '10 Minutos' : '10 Minutes'
+      }
+    },
+    // LinkedIn Post  
+    {
+      platform: 'linkedin',
+      format: 'square',
+      width: 280,
+      height: 280,
+      bgColor: 'bg-gradient-to-br from-blue-700 to-indigo-800',
+      icon: <SiLinkedin className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Crecimiento Empresarial' : 'Business Growth',
+        subtitle: isSpanish ? 'Estrategias Probadas' : 'Proven Strategies'
+      }
+    },
+    // X/Twitter Post
+    {
+      platform: 'x',
+      format: 'wide',
+      width: 340,
+      height: 160,
+      bgColor: 'bg-gradient-to-br from-slate-800 to-slate-900',
+      icon: <SiX className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Última Hora' : 'Breaking News',
+        subtitle: isSpanish ? 'Actualizaciones en vivo' : 'Live Updates'
+      }
+    },
+    // WhatsApp Business
+    {
+      platform: 'whatsapp',
+      format: 'message',
+      width: 300,
+      height: 200,
+      bgColor: 'bg-gradient-to-br from-green-500 to-green-700',
+      icon: <SiWhatsapp className="h-4 w-4 text-white" />,
+      content: {
+        title: isSpanish ? 'Mensaje Directo' : 'Direct Message',
+        subtitle: isSpanish ? 'Respuesta Automática' : 'Auto Reply'
+      }
+    }
+  ];
+
+  // Animation cycle
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % campaignTemplates.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [campaignTemplates.length]);
+
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      {/* Background grid pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 bg-grid-pattern"></div>
+      </div>
+      
+      {/* Cascading Campaign Previews */}
+      <div className="relative">
+        {campaignTemplates.map((template, index) => {
+          const isActive = index === currentIndex;
+          const offset = (index - currentIndex + campaignTemplates.length) % campaignTemplates.length;
+          
+          return (
+            <div
+              key={`${template.platform}-${index}`}
+              className={`absolute transition-all duration-1000 ease-in-out transform ${
+                isActive 
+                  ? 'scale-110 z-20 opacity-100' 
+                  : offset === 1 || offset === campaignTemplates.length - 1
+                  ? 'scale-95 z-10 opacity-70'
+                  : 'scale-85 z-5 opacity-40'
+              }`}
+              style={{
+                left: `${50 + (offset - Math.floor(campaignTemplates.length / 2)) * 100}px`,
+                top: `${50 + Math.sin(offset * 0.5) * 30}px`,
+                width: `${template.width}px`,
+                height: `${template.height}px`,
+                transform: `translate(-50%, -50%) scale(${
+                  isActive ? 1.1 : offset === 1 || offset === campaignTemplates.length - 1 ? 0.95 : 0.85
+                }) rotate(${(offset - Math.floor(campaignTemplates.length / 2)) * 2}deg)`
+              }}
+            >
+              {/* Campaign Card */}
+              <div className={`w-full h-full ${template.bgColor} rounded-2xl shadow-2xl border border-white/20 overflow-hidden relative group`}>
+                {/* Platform Icon */}
+                <div className="absolute top-3 right-3 w-8 h-8 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                  {template.icon}
+                </div>
+                
+                {/* Content */}
+                <div className="p-4 h-full flex flex-col justify-center text-white relative z-10">
+                  <div className="text-center">
+                    <h3 className="text-lg font-bold mb-2 leading-tight">
+                      {template.content.title}
+                    </h3>
+                    <p className="text-sm opacity-90 mb-3 leading-relaxed">
+                      {template.content.subtitle}
+                    </p>
+                    {template.content.cta && (
+                      <div className="inline-block bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
+                        {template.content.cta}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Decorative Elements */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Platform Labels */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        <div className="flex space-x-3">
+          {campaignTemplates.map((template, index) => (
+            <div
+              key={`indicator-${index}`}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex 
+                  ? 'bg-brand-600 scale-125' 
+                  : 'bg-gray-300 hover:bg-gray-400'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+      
+      {/* Central Label */}
+      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center">
+        <div className="bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-gray-200">
+          <p className="text-sm font-semibold text-gray-700">
+            {isSpanish ? 'Campañas Listas Para Usar' : 'Ready-to-Use Campaigns'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {isSpanish ? '21+ Formatos Automáticos' : '21+ Automatic Formats'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Help AI Chatbot Component
+function HelpChatbot({ isSpanish, toggleLanguage }: { isSpanish: boolean; toggleLanguage: () => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Array<{id: string, text: string, isBot: boolean, timestamp: Date}>>([{
+    id: '1',
+    text: isSpanish 
+      ? '¡Hola! Soy tu asistente de LeadBoost. ¿En qué puedo ayudarte con la plataforma?' 
+      : 'Hi! I\'m your LeadBoost assistant. How can I help you with the platform?',
+    isBot: true,
+    timestamp: new Date()
+  }]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const chatMutation = useMutation({
+    mutationFn: async ({ message }: { message: string }) => {
+      const response = await fetch('/api/help-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, language: isSpanish ? 'spanish' : 'english' })
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    },
+    onSuccess: (response: any) => {
+      const botMessage = {
+        id: Date.now().toString(),
+        text: response.message || (isSpanish ? 'Lo siento, no pude procesar tu mensaje.' : 'Sorry, I couldn\'t process your message.'),
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botMessage]);
+      setIsLoading(false);
+    },
+    onError: () => {
+      const errorMessage = {
+        id: Date.now().toString(),
+        text: isSpanish 
+          ? 'Lo siento, hay un problema técnico. Puedes revisar nuestras FAQ o contactar soporte.' 
+          : 'Sorry, there\'s a technical issue. You can check our FAQ or contact support.',
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setIsLoading(false);
+    }
+  });
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+    const userMessage = {
+      id: Date.now().toString(),
+      text: inputMessage,
+      isBot: false,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+    chatMutation.mutate({ message: inputMessage });
+    setInputMessage('');
+  };
+
+  if (!isOpen) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="group flex items-center justify-center w-8 h-8 rounded-full opacity-40 hover:opacity-80 transition-all duration-500 ease-out hover:scale-110"
+          data-testid="button-open-help-chatbot"
+        >
+          <div className="text-lg font-light text-gray-500 group-hover:text-brand-500 transition-colors duration-300">?</div>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 w-96 max-h-[500px] bg-white rounded-lg shadow-xl border">
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between pb-3 bg-brand-600 text-white rounded-t-lg">
+          <div>
+            <CardTitle className="text-lg">{isSpanish ? 'Asistente LeadBoost' : 'LeadBoost Assistant'}</CardTitle>
+            <div className="flex items-center gap-1 text-sm opacity-90">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              {isSpanish ? 'En línea' : 'Online'}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleLanguage}
+              className="text-white hover:bg-brand-700 text-xs px-2"
+            >
+              {isSpanish ? '🇺🇸 EN' : '🇪🇸 ES'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="text-white hover:bg-brand-700">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col p-0 max-h-80">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((message) => (
+              <div key={message.id} className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}>
+                <div className={`max-w-xs px-3 py-2 rounded-lg ${
+                  message.isBot ? 'bg-gray-100 text-gray-800' : 'bg-brand-600 text-white'
+                }`}>
+                  <p className="text-sm">{message.text}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 px-3 py-2 rounded-lg">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="border-t p-4">
+            <div className="flex gap-2">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder={isSpanish ? 'Escribe tu pregunta...' : 'Type your question...'}
+                className="flex-1"
+                disabled={isLoading}
+              />
+              <Button onClick={handleSendMessage} size="sm" disabled={!inputMessage.trim() || isLoading}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Powered by LeadBoost AI</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const t = translations[language];
@@ -1117,553 +1662,8 @@ export default function Landing() {
         </footer>
 
         {/* Help AI Chatbot */}
-        <HelpChatbot isSpanish={isSpanish} />
+        <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
       </div>
     </>
-  );
-}
-
-// Campaign Background Flow - Squarespace Style
-function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
-  // Simplified platform showcase - Key platforms LeadBoost supports
-  const campaignData = [
-    // Column 1
-    [
-      { platform: 'instagram-post', width: 260, height: 260, bgColor: 'bg-gradient-to-br from-pink-500 to-orange-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Instagram' : 'Instagram Post' },
-      { platform: 'email-newsletter', width: 300, height: 200, bgColor: 'bg-gradient-to-br from-red-500 to-red-600', icon: <SiGmail className="h-4 w-4 text-white" />, title: isSpanish ? 'Newsletter' : 'Email Newsletter' },
-      { platform: 'facebook-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Historia FB' : 'Facebook Story' },
-      { platform: 'linkedin-post', width: 280, height: 200, bgColor: 'bg-gradient-to-br from-blue-700 to-blue-800', icon: <SiLinkedin className="h-4 w-4 text-white" />, title: isSpanish ? 'Post LinkedIn' : 'LinkedIn Post' },
-      { platform: 'youtube-shorts', width: 200, height: 360, bgColor: 'bg-gradient-to-br from-red-600 to-red-700', icon: <SiYoutube className="h-4 w-4 text-white" />, title: isSpanish ? 'YouTube Shorts' : 'YouTube Shorts' },
-    ],
-    // Column 2
-    [
-      { platform: 'instagram-story', width: 180, height: 320, bgColor: 'bg-gradient-to-br from-purple-500 to-pink-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Historia' : 'Instagram Story' },
-      { platform: 'facebook-post', width: 300, height: 180, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Facebook' : 'Facebook Post' },
-      { platform: 'twitter-thread', width: 320, height: 240, bgColor: 'bg-gradient-to-br from-black to-gray-800', icon: <SiX className="h-4 w-4 text-white" />, title: isSpanish ? 'Hilo Twitter' : 'Twitter Thread' },
-      { platform: 'whatsapp-broadcast', width: 260, height: 180, bgColor: 'bg-gradient-to-br from-green-500 to-green-600', icon: <SiWhatsapp className="h-4 w-4 text-white" />, title: isSpanish ? 'Difusión WhatsApp' : 'WhatsApp Broadcast' },
-      { platform: 'facebook-ad', width: 280, height: 200, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700', icon: <SiFacebook className="h-4 w-4 text-white" />, title: isSpanish ? 'Anuncio FB' : 'Facebook Ad' },
-    ],
-    // Column 3
-    [
-      { platform: 'youtube-video', width: 300, height: 170, bgColor: 'bg-gradient-to-br from-red-600 to-red-700', icon: <SiYoutube className="h-4 w-4 text-white" />, title: isSpanish ? 'Video YouTube' : 'YouTube Video' },
-      { platform: 'instagram-reel', width: 200, height: 360, bgColor: 'bg-gradient-to-br from-purple-500 to-pink-500', icon: <SiInstagram className="h-4 w-4 text-white" />, title: isSpanish ? 'Reel' : 'Instagram Reel' },
-      { platform: 'linkedin-article', width: 320, height: 220, bgColor: 'bg-gradient-to-br from-blue-700 to-blue-800', icon: <SiLinkedin className="h-4 w-4 text-white" />, title: isSpanish ? 'Artículo LinkedIn' : 'LinkedIn Article' },
-      { platform: 'tiktok-video', width: 200, height: 350, bgColor: 'bg-gradient-to-br from-black to-gray-900', icon: <SiTiktok className="h-4 w-4 text-white" />, title: isSpanish ? 'Video TikTok' : 'TikTok Video' },
-      { platform: 'twitter-post', width: 320, height: 160, bgColor: 'bg-gradient-to-br from-black to-gray-800', icon: <SiX className="h-4 w-4 text-white" />, title: isSpanish ? 'Post Twitter' : 'Twitter Post' },
-    ]
-  ];
-
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      {campaignData.map((column, columnIndex) => (
-        <div
-          key={columnIndex}
-          className="absolute top-0 animate-float-down"
-          style={{
-            left: `${-5 + columnIndex * 30}%`,
-            animationDelay: `0s`,
-            animationDuration: '35s'
-          }}
-        >
-          {/* Duplicate the column content for seamless loop */}
-          <div className="flex flex-col space-y-6">
-            {[...column, ...column].map((campaign, cardIndex) => (
-              <div
-                key={`${columnIndex}-${cardIndex}`}
-                className="rounded-2xl shadow-2xl border border-white/5 overflow-hidden opacity-60 hover:opacity-80 transition-all duration-700 transform hover:scale-110 backdrop-blur-lg"
-                style={{
-                  width: `${campaign.width * 0.9}px`,
-                  height: `${campaign.height * 0.9}px`,
-                }}
-              >
-                <div className={`w-full h-full ${campaign.bgColor} relative flex items-center justify-center`}>
-                  {/* Premium glass effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/25"></div>
-                  <div className="absolute inset-0 backdrop-blur-[3px]"></div>
-                  
-                  {/* Platform Icon - Larger and Centered */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/40 shadow-lg">
-                      <div className="text-xl">
-                        {campaign.icon}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Sophisticated overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/5"></div>
-                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      {/* How It Works Steps - Ghost Appear - Hidden on Mobile */}
-      {/* Connected "As Easy As" Section - Centered to Steps */}
-      <div className="hidden lg:block absolute top-24 right-8 lg:right-16 z-20 w-72">
-        {/* Header with Visual Connection */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-1 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
-            {isSpanish ? 'Así de Fácil' : 'As Easy As'}
-          </h2>
-          <div className="flex justify-center animate-ghost-appear mb-6" style={{ animationDelay: '0.2s' }}>
-            <div className="w-0 h-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-slate-400 opacity-40 animate-bounce"></div>
-          </div>
-        </div>
-      </div>
-      {/* Step 1 - Hidden on Mobile */}
-      <div className="hidden lg:block absolute top-40 right-8 lg:right-16 z-20">
-        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-base">1</span>
-            </div>
-            <h3 className="text-gray-900 font-semibold text-base">
-              {isSpanish ? 'IA Genera y Publica' : (
-                <>
-                  AI Generates & Posts
-                  <br />
-                  <span className="text-sm italic text-gray-600">data-backed campaigns</span>
-                </>
-              )}
-            </h3>
-          </div>
-          <p className="text-gray-600 text-xs leading-relaxed mb-2">
-            {isSpanish ? 'Auto-publica en 21+ plataformas' : 'Auto-posts to 21+ platforms'}
-          </p>
-          <div className="flex items-center gap-2 text-xs text-brand-600 font-medium">
-            <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
-            {isSpanish ? 'Instagram • LinkedIn • TikTok • Email • +17 más' : 'Instagram • LinkedIn • TikTok • Email • +17 more'}
-          </div>
-        </div>
-      </div>
-
-      {/* Step 2 - Hidden on Mobile */}
-      <div className="hidden lg:block absolute top-[19rem] right-8 lg:right-16 z-20">
-        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-base">2</span>
-            </div>
-            <h3 className="text-gray-900 font-semibold text-base">
-              {isSpanish ? 'Alcanza 30x Más Clientes' : (
-                <>
-                  Reach 30x More Clients
-                  <span className="text-sm italic text-gray-600">—without 30x the effort</span>
-                </>
-              )}
-            </h3>
-          </div>
-          <p className="text-gray-600 text-xs leading-relaxed mb-2">
-            {isSpanish ? 'Multiplica clientes con contenido optimizado' : 'Multiply customers with multi-channel data-backed content'}
-          </p>
-          <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
-            <TrendingUp className="w-3 h-3" />
-            {isSpanish ? 'Crecimiento Comprobado' : 'Proven Growth'}
-          </div>
-        </div>
-      </div>
-
-      {/* Step 3 - Hidden on Mobile */}
-      <div className="hidden lg:block absolute top-[28rem] right-8 lg:right-16 z-20">
-        <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-base">3</span>
-            </div>
-            <h3 className="text-gray-900 font-semibold text-base">
-              {isSpanish ? 'Convierte con IA Chat' : (
-                <>
-                  Convert with AI Chat
-                  <br />
-                  <span className="text-sm italic text-gray-600">in our multiplatform inbox</span>
-                </>
-              )}
-            </h3>
-          </div>
-          <p className="text-gray-600 text-xs leading-relaxed mb-2">
-            {isSpanish ? 'Chatbot IA convierte visitantes 24/7' : 'AI chatbot converts leads from all social platforms 24/7'}
-          </p>
-          <div className="flex items-center gap-2 text-xs text-purple-600 font-medium">
-            <MessageSquare className="w-3 h-3" />
-            {isSpanish ? 'Conversión Automatizada' : 'Automated Conversion'}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Campaign Showcase Component - Squarespace Style
-function CampaignShowcase({ isSpanish }: { isSpanish: boolean }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // Sample campaign data for different platforms with realistic content
-  const campaignTemplates = [
-    // Instagram Stories
-    {
-      platform: 'instagram-story',
-      format: 'story',
-      width: 240,
-      height: 320,
-      bgColor: 'bg-gradient-to-br from-pink-500 to-purple-600',
-      icon: <SiInstagram className="h-4 w-4 text-white" />,
-      content: {
-        title: isSpanish ? 'Oferta Especial' : 'Special Offer',
-        subtitle: isSpanish ? '30% Descuento' : '30% Off',
-        cta: isSpanish ? 'Ver Más' : 'Learn More'
-      }
-    },
-    // Instagram Feed
-    {
-      platform: 'instagram-feed',
-      format: 'square',
-      width: 280,
-      height: 280,
-      bgColor: 'bg-gradient-to-br from-orange-400 to-pink-500',
-      icon: <SiInstagram className="h-4 w-4 text-white" />,
-      content: {
-        title: isSpanish ? 'Qué Hay Adentro' : "What's Inside",
-        subtitle: isSpanish ? 'Disponible Ahora' : 'Available Now'
-      }
-    },
-    // TikTok Vertical
-    {
-      platform: 'tiktok',
-      format: 'vertical',
-      width: 220,
-      height: 380,
-      bgColor: 'bg-gradient-to-br from-gray-800 to-gray-900',
-      icon: <SiTiktok className="h-4 w-4 text-white" />,
-      content: {
-        title: isSpanish ? 'Tendencia Viral' : 'Trending Now',
-        subtitle: isSpanish ? '#ParaTi' : '#ForYou'
-      }
-    },
-    // Facebook Post
-    {
-      platform: 'facebook',
-      format: 'landscape',
-      width: 320,
-      height: 180,
-      bgColor: 'bg-gradient-to-br from-blue-600 to-indigo-700',
-      icon: <SiFacebook className="h-4 w-4 text-white" />,
-      content: {
-        title: isSpanish ? 'Evento Exclusivo' : 'Exclusive Event',
-        subtitle: isSpanish ? 'Solo Este Fin de Semana' : 'This Weekend Only'
-      }
-    },
-    // YouTube Thumbnail
-    {
-      platform: 'youtube',
-      format: 'landscape',
-      width: 320,
-      height: 180,
-      bgColor: 'bg-gradient-to-br from-red-500 to-red-700',
-      icon: <SiYoutube className="h-4 w-4 text-white" />,
-      content: {
-        title: isSpanish ? 'Tutorial Completo' : 'Complete Tutorial',
-        subtitle: isSpanish ? '10 Minutos' : '10 Minutes'
-      }
-    },
-    // LinkedIn Post  
-    {
-      platform: 'linkedin',
-      format: 'square',
-      width: 280,
-      height: 280,
-      bgColor: 'bg-gradient-to-br from-blue-700 to-indigo-800',
-      icon: <SiLinkedin className="h-4 w-4 text-white" />,
-      content: {
-        title: isSpanish ? 'Crecimiento Empresarial' : 'Business Growth',
-        subtitle: isSpanish ? 'Estrategias Probadas' : 'Proven Strategies'
-      }
-    },
-    // X/Twitter Post
-    {
-      platform: 'x',
-      format: 'wide',
-      width: 340,
-      height: 160,
-      bgColor: 'bg-gradient-to-br from-slate-800 to-slate-900',
-      icon: <SiX className="h-4 w-4 text-white" />,
-      content: {
-        title: isSpanish ? 'Última Hora' : 'Breaking News',
-        subtitle: isSpanish ? 'Actualizaciones en vivo' : 'Live Updates'
-      }
-    },
-    // WhatsApp Business
-    {
-      platform: 'whatsapp',
-      format: 'message',
-      width: 300,
-      height: 200,
-      bgColor: 'bg-gradient-to-br from-green-500 to-green-700',
-      icon: <SiWhatsapp className="h-4 w-4 text-white" />,
-      content: {
-        title: isSpanish ? 'Mensaje Directo' : 'Direct Message',
-        subtitle: isSpanish ? 'Respuesta Automática' : 'Auto Reply'
-      }
-    }
-  ];
-
-  // Animation cycle
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % campaignTemplates.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [campaignTemplates.length]);
-
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      {/* Background grid pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-grid-pattern"></div>
-      </div>
-      
-      {/* Cascading Campaign Previews */}
-      <div className="relative">
-        {campaignTemplates.map((template, index) => {
-          const isActive = index === currentIndex;
-          const offset = (index - currentIndex + campaignTemplates.length) % campaignTemplates.length;
-          
-          return (
-            <div
-              key={`${template.platform}-${index}`}
-              className={`absolute transition-all duration-1000 ease-in-out transform ${
-                isActive 
-                  ? 'scale-110 z-20 opacity-100' 
-                  : offset === 1 || offset === campaignTemplates.length - 1
-                  ? 'scale-95 z-10 opacity-70'
-                  : 'scale-85 z-5 opacity-40'
-              }`}
-              style={{
-                left: `${50 + (offset - Math.floor(campaignTemplates.length / 2)) * 100}px`,
-                top: `${50 + Math.sin(offset * 0.5) * 30}px`,
-                width: `${template.width}px`,
-                height: `${template.height}px`,
-                transform: `translate(-50%, -50%) scale(${
-                  isActive ? 1.1 : offset === 1 || offset === campaignTemplates.length - 1 ? 0.95 : 0.85
-                }) rotate(${(offset - Math.floor(campaignTemplates.length / 2)) * 2}deg)`
-              }}
-            >
-              {/* Campaign Card */}
-              <div className={`w-full h-full ${template.bgColor} rounded-2xl shadow-2xl border border-white/20 overflow-hidden relative group`}>
-                {/* Platform Icon */}
-                <div className="absolute top-3 right-3 w-8 h-8 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  {template.icon}
-                </div>
-                
-                {/* Content */}
-                <div className="p-4 h-full flex flex-col justify-center text-white relative z-10">
-                  <div className="text-center">
-                    <h3 className="text-lg font-bold mb-2 leading-tight">
-                      {template.content.title}
-                    </h3>
-                    <p className="text-sm opacity-90 mb-3 leading-relaxed">
-                      {template.content.subtitle}
-                    </p>
-                    {template.content.cta && (
-                      <div className="inline-block bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
-                        {template.content.cta}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Decorative Elements */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      
-      {/* Platform Labels */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-        <div className="flex space-x-3">
-          {campaignTemplates.map((template, index) => (
-            <div
-              key={`indicator-${index}`}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex 
-                  ? 'bg-brand-600 scale-125' 
-                  : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-      
-      {/* Central Label */}
-      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center">
-        <div className="bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-gray-200">
-          <p className="text-sm font-semibold text-gray-700">
-            {isSpanish ? 'Campañas Listas Para Usar' : 'Ready-to-Use Campaigns'}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {isSpanish ? '21+ Formatos Automáticos' : '21+ Automatic Formats'}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Help AI Chatbot Component
-function HelpChatbot({ isSpanish }: { isSpanish: boolean }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Array<{id: string, text: string, isBot: boolean, timestamp: Date}>>([{
-    id: '1',
-    text: isSpanish 
-      ? '¡Hola! Soy tu asistente de LeadBoost. ¿En qué puedo ayudarte con la plataforma?' 
-      : 'Hi! I\'m your LeadBoost assistant. How can I help you with the platform?',
-    isBot: true,
-    timestamp: new Date()
-  }]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const chatMutation = useMutation({
-    mutationFn: async ({ message }: { message: string }) => {
-      const response = await fetch('/api/help-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, language: isSpanish ? 'spanish' : 'english' })
-      });
-      if (!response.ok) throw new Error('Network response was not ok');
-      return response.json();
-    },
-    onSuccess: (response: any) => {
-      const botMessage = {
-        id: Date.now().toString(),
-        text: response.message || (isSpanish ? 'Lo siento, no pude procesar tu mensaje.' : 'Sorry, I couldn\'t process your message.'),
-        isBot: true,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, botMessage]);
-      setIsLoading(false);
-    },
-    onError: () => {
-      const errorMessage = {
-        id: Date.now().toString(),
-        text: isSpanish 
-          ? 'Lo siento, hay un problema técnico. Puedes revisar nuestras FAQ o contactar soporte.' 
-          : 'Sorry, there\'s a technical issue. You can check our FAQ or contact support.',
-        isBot: true,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      setIsLoading(false);
-    }
-  });
-
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
-    const userMessage = {
-      id: Date.now().toString(),
-      text: inputMessage,
-      isBot: false,
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, userMessage]);
-    setIsLoading(true);
-    chatMutation.mutate({ message: inputMessage });
-    setInputMessage('');
-  };
-
-  if (!isOpen) {
-    return (
-      <div className="fixed bottom-4 right-4 z-50">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="group flex items-center justify-center w-8 h-8 rounded-full opacity-40 hover:opacity-80 transition-all duration-500 ease-out hover:scale-110"
-          data-testid="button-open-help-chatbot"
-        >
-          <div className="text-lg font-light text-gray-500 group-hover:text-brand-500 transition-colors duration-300">?</div>
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50 w-96 max-h-[500px] bg-white rounded-lg shadow-xl border">
-      <Card className="h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between pb-3 bg-brand-600 text-white rounded-t-lg">
-          <div>
-            <CardTitle className="text-lg">{isSpanish ? 'Asistente LeadBoost' : 'LeadBoost Assistant'}</CardTitle>
-            <div className="flex items-center gap-1 text-sm opacity-90">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              {isSpanish ? 'En línea' : 'Online'}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={toggleLanguage}
-              className="text-white hover:bg-brand-700 text-xs px-2"
-            >
-              {isSpanish ? '🇺🇸 EN' : '🇪🇸 ES'}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="text-white hover:bg-brand-700">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col p-0 max-h-80">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message) => (
-              <div key={message.id} className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}>
-                <div className={`max-w-xs px-3 py-2 rounded-lg ${
-                  message.isBot ? 'bg-gray-100 text-gray-800' : 'bg-brand-600 text-white'
-                }`}>
-                  <p className="text-sm">{message.text}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 px-3 py-2 rounded-lg">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="border-t p-4">
-            <div className="flex gap-2">
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                placeholder={isSpanish ? 'Escribe tu pregunta...' : 'Type your question...'}
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button onClick={handleSendMessage} size="sm" disabled={!inputMessage.trim() || isLoading}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Powered by LeadBoost AI</p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
   );
 }
