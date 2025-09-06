@@ -153,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/brands', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const brandData = insertBrandSchema.parse({
         ...req.body,
         userId,
@@ -180,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/brands/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const brandId = req.params.id;
       const brand = await storage.getBrandById(brandId, userId);
       
@@ -197,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/brands/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const brandId = req.params.id;
       const updates = req.body;
       
@@ -226,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/brands/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const brandId = req.params.id;
       
       const success = await storage.deleteBrand(brandId, userId);
@@ -255,7 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Demo data endpoint
   app.post('/api/populate-demo-data', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       await populateDemoData(userId);
       res.json({ message: "Demo data populated successfully" });
     } catch (error) {
@@ -357,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/social-accounts', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const accountData = insertSocialAccountSchema.parse({
         ...req.body,
         userId,
@@ -806,7 +806,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/content-plans/generate', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const { month, year, businessData } = req.body;
 
       const strategy = await generateMonthlyContentStrategy(businessData, month, year);
@@ -944,7 +944,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/campaigns', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const campaignData = insertCampaignSchema.parse({
         ...req.body,
         userId,
@@ -970,7 +970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/campaigns/generate', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const { prompt, platforms, businessContext } = req.body;
 
       const generatedContent = await generateCampaignContent(prompt, platforms, businessContext);
@@ -1003,7 +1003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/campaigns/:id/publish', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const campaignId = req.params.id;
       
       // Get campaign details
@@ -1713,7 +1713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/customers', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const customerData = insertCustomerSchema.parse({
         ...req.body,
         userId,
@@ -1738,7 +1738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/customers/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const customerId = req.params.id;
       const updates = req.body;
       
@@ -1765,7 +1765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/customers/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const customerId = req.params.id;
       
       const success = await storage.deleteCustomer(customerId, userId);
@@ -1853,7 +1853,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/invoices', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const invoiceData = insertInvoiceSchema.parse({
         ...req.body,
         userId,
@@ -1884,7 +1884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/invoices/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const invoiceId = req.params.id;
       const updates = req.body;
       
@@ -1924,7 +1924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Team task management routes
   app.get('/api/team-tasks', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const assignedOnly = req.query.assigned === 'true';
       
       // Mock team tasks data
@@ -2010,7 +2010,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/team-tasks', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const taskData = insertTeamTaskSchema.parse({
         ...req.body,
         assignedBy: userId,
@@ -2036,7 +2036,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/team-tasks/:id/complete', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const taskId = req.params.id;
       const { notes, proofFileUrl } = req.body;
       
@@ -2164,7 +2164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new POS integration
   app.post('/api/pos-integrations', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const integrationData = insertPosIntegrationSchema.parse({ ...req.body, userId });
       
       // Validate credentials with POS provider
@@ -2226,7 +2226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete POS integration
   app.delete('/api/pos-integrations/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const { id } = req.params;
       const deleted = await storage.deletePosIntegration(id, userId);
       
@@ -2244,7 +2244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get sales transactions
   app.get('/api/sales-transactions', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const limit = parseInt(req.query.limit as string) || 50;
       const transactions = await storage.getSalesTransactionsByUserId(userId, limit);
       res.json(transactions);
@@ -2372,7 +2372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get campaign triggers
   app.get('/api/campaign-triggers', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const triggers = await storage.getCampaignTriggersByUserId(userId);
       res.json(triggers);
     } catch (error) {
@@ -2384,7 +2384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create campaign trigger
   app.post('/api/campaign-triggers', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const triggerData = insertCampaignTriggerSchema.parse({ ...req.body, userId });
       const trigger = await storage.createCampaignTrigger(triggerData);
       res.status(201).json(trigger);
@@ -2465,7 +2465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Brand Design routes
   app.get('/api/brand-design', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const brandDesign = await storage.getBrandDesignByUserId(userId);
       
       if (!brandDesign) {
@@ -2488,7 +2488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/brand-design', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       const designData = { ...req.body, userId };
       
       // Check if brand design already exists
@@ -2511,7 +2511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/brand-design/connect-canva', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
       
       // In a real implementation, this would handle Canva OAuth flow
       // For now, we'll simulate the connection
