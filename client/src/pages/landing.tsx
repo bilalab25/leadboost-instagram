@@ -389,61 +389,100 @@ export default function Landing() {
                       </div>
                     </div>
                     
-                    {/* Content - Business Ecosystem Dashboard */}
-                    <div className="p-6 space-y-6">
-                      {/* Business Overview */}
-                      <div className="space-y-3">
+                    {/* Content - Multi-Platform Publishing Dashboard */}
+                    <div className="p-6 space-y-4 relative overflow-hidden">
+                      {/* AI Status Header */}
+                      <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold text-slate-800">
-                          {isSpanish ? 'Crecimiento del Negocio' : 'Business Growth'}
+                          {isSpanish ? 'Generando Contenido...' : 'Generating Content...'}
                         </h3>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
-                            <div className="text-2xl font-bold text-emerald-600">↑47%</div>
-                            <div className="text-xs text-emerald-700">{isSpanish ? 'Ventas' : 'Sales'}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-xs text-green-600 font-medium">Live</span>
+                        </div>
+                      </div>
+                      
+                      {/* Platform Cards - Modern Floating Style */}
+                      <div className="relative space-y-3">
+                        {/* Instagram Card */}
+                        <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-4 rounded-xl border border-pink-200/50 transform hover:scale-[1.02] transition-all duration-300 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                              <SiInstagram className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-medium text-slate-800 text-sm">Instagram Story</div>
+                              <div className="text-xs text-slate-600">
+                                {isSpanish ? 'Publicando en 3min...' : 'Publishing in 3min...'}
+                              </div>
+                            </div>
+                            <div className="w-12 h-8 bg-gradient-to-r from-pink-400 to-purple-500 rounded-md opacity-80" />
                           </div>
-                          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                            <div className="text-2xl font-bold text-blue-600">1.2K</div>
-                            <div className="text-xs text-blue-700">{isSpanish ? 'Leads' : 'Leads'}</div>
+                        </div>
+                        
+                        {/* TikTok Card */}
+                        <div className="bg-gradient-to-r from-slate-50 to-gray-100 p-4 rounded-xl border border-slate-200/50 transform hover:scale-[1.02] transition-all duration-300 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-slate-800 to-black rounded-lg flex items-center justify-center shadow-md">
+                              <SiTiktok className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-medium text-slate-800 text-sm">TikTok Video</div>
+                              <div className="text-xs text-slate-600">
+                                {isSpanish ? 'Optimizando...' : 'Optimizing...'}
+                              </div>
+                            </div>
+                            <div className="w-12 h-8 bg-gradient-to-r from-slate-400 to-gray-600 rounded-md opacity-80" />
                           </div>
-                          <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
-                            <div className="text-2xl font-bold text-purple-600">94%</div>
-                            <div className="text-xs text-purple-700">{isSpanish ? 'Satisfacción' : 'Satisfaction'}</div>
+                        </div>
+                        
+                        {/* LinkedIn Card */}
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200/50 transform hover:scale-[1.02] transition-all duration-300 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
+                              <SiLinkedin className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-medium text-slate-800 text-sm">LinkedIn Post</div>
+                              <div className="text-xs text-slate-600">
+                                {isSpanish ? 'Programado' : 'Scheduled'}
+                              </div>
+                            </div>
+                            <div className="w-12 h-8 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-md opacity-80" />
+                          </div>
+                        </div>
+                        
+                        {/* More Platforms Indicator */}
+                        <div className="bg-gradient-to-r from-gray-50 to-slate-100 p-3 rounded-xl border border-gray-200/50 opacity-90">
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="flex -space-x-1">
+                              <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white">
+                                <SiYoutube className="h-3 w-3 text-white" />
+                              </div>
+                              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white">
+                                <SiFacebook className="h-3 w-3 text-white" />
+                              </div>
+                              <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center border-2 border-white">
+                                <SiWhatsapp className="h-3 w-3 text-white" />
+                              </div>
+                              <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center border-2 border-white">
+                                <span className="text-white font-bold text-xs">+18</span>
+                              </div>
+                            </div>
+                            <span className="text-xs font-medium text-slate-600">
+                              {isSpanish ? 'más plataformas' : 'more platforms'}
+                            </span>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Revenue Chart */}
-                      <div className="space-y-3">
-                        <h3 className="font-semibold text-slate-800">
-                          {isSpanish ? 'Ingresos Mensuales' : 'Monthly Revenue'}
-                        </h3>
-                        <div className="h-24 bg-gradient-to-r from-emerald-100 to-blue-100 rounded-lg flex items-end justify-between p-4">
-                          <div className="w-4 bg-emerald-500 rounded-t" style={{height: '45%'}} />
-                          <div className="w-4 bg-emerald-600 rounded-t" style={{height: '65%'}} />
-                          <div className="w-4 bg-blue-500 rounded-t" style={{height: '85%'}} />
-                          <div className="w-4 bg-blue-600 rounded-t" style={{height: '95%'}} />
-                          <div className="w-4 bg-indigo-500 rounded-t" style={{height: '78%'}} />
-                          <div className="w-4 bg-indigo-600 rounded-t" style={{height: '88%'}} />
-                        </div>
-                      </div>
-                      
-                      {/* Automation Status */}
-                      <div className="space-y-2">
-                        <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
-                          <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-sm font-medium text-emerald-800">
-                              {isSpanish ? 'Automatización activa' : 'Automation active'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                          <div className="flex items-center gap-3">
-                            <Bot className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-medium text-blue-800">
-                              {isSpanish ? 'IA procesando 47 tareas' : 'AI processing 47 tasks'}
-                            </span>
-                          </div>
+                      {/* Bottom Status */}
+                      <div className="bg-green-50 p-3 rounded-lg border border-green-200 mt-4">
+                        <div className="flex items-center gap-3">
+                          <Zap className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-800">
+                            {isSpanish ? 'IA creando contenido para 21+ plataformas' : 'AI creating content for 21+ platforms'}
+                          </span>
                         </div>
                       </div>
                     </div>
