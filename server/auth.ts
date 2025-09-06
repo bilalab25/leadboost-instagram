@@ -274,10 +274,16 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         }
         
         .access-title {
-          color: #f8fafc;
           font-size: 1.5rem;
           font-weight: 600;
+          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+          background-size: 200% 200%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
           margin-bottom: 0.5rem;
+          animation: textShine 3s ease-in-out infinite;
+          letter-spacing: -0.02em;
         }
         
         .access-subtitle {
