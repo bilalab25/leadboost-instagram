@@ -744,6 +744,84 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* Mobile Steps Section - Only visible on mobile */}
+        <div className="md:hidden bg-gradient-to-br from-white via-brand-25 to-brand-50 py-20">
+          <div className="max-w-md mx-auto px-6">
+            {/* Header */}
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent mb-4">
+                {isSpanish ? 'Así de Fácil' : 'As Easy As'}
+              </h2>
+            </div>
+            
+            {/* Steps */}
+            <div className="space-y-8">
+              {/* Step 1 */}
+              <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-lg">1</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-gray-900 font-semibold text-lg mb-2">
+                      {isSpanish ? 'IA Genera y Publica' : 'AI Generates & Posts'}
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-3">
+                      {isSpanish ? 'Auto-publica en 21+ plataformas' : 'Auto-posts to 21+ platforms'}
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-brand-600 font-medium">
+                      <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
+                      {isSpanish ? 'Instagram • LinkedIn • TikTok • Email • +17 más' : 'Instagram • LinkedIn • TikTok • Email • +17 more'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-lg">2</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-gray-900 font-semibold text-lg mb-2">
+                      {isSpanish ? 'Alcanza 30x Más Clientes' : 'Reach 30x More Clients'}
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-3">
+                      {isSpanish ? 'Multiplica clientes con contenido optimizado' : 'Multiply customers with multi-channel data-backed content'}
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
+                      <TrendingUp className="w-3 h-3" />
+                      {isSpanish ? 'Crecimiento Comprobado' : 'Proven Growth'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-lg">3</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-gray-900 font-semibold text-lg mb-2">
+                      {isSpanish ? 'Convierte con IA Chat' : 'Convert with AI Chat'}
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-3">
+                      {isSpanish ? 'Chatbot IA convierte visitantes 24/7' : 'AI chatbot converts leads from all social platforms 24/7'}
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-purple-600 font-medium">
+                      <MessageSquare className="w-3 h-3" />
+                      {isSpanish ? 'Conversión Automatizada' : 'Automated Conversion'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Onboarding Progress */}
         <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-white">
           <OnboardingProgress isSpanish={isSpanish} />
@@ -900,9 +978,9 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
         </div>
       ))}
 
-      {/* How It Works Steps - Ghost Appear */}
+      {/* How It Works Steps - Ghost Appear - Hidden on Mobile */}
       {/* Connected "As Easy As" Section - Centered to Steps */}
-      <div className="absolute top-24 right-8 lg:right-16 z-20 w-72">
+      <div className="hidden md:block absolute top-24 right-8 lg:right-16 z-20 w-72">
         {/* Header with Visual Connection */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent animate-ghost-appear mb-1 drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
@@ -913,8 +991,8 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
           </div>
         </div>
       </div>
-      {/* Step 1 */}
-      <div className="absolute top-40 right-8 lg:right-16 z-20">
+      {/* Step 1 - Hidden on Mobile */}
+      <div className="hidden md:block absolute top-40 right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.4s' }}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
@@ -940,8 +1018,8 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
         </div>
       </div>
 
-      {/* Step 2 */}
-      <div className="absolute top-[19rem] right-8 lg:right-16 z-20">
+      {/* Step 2 - Hidden on Mobile */}
+      <div className="hidden md:block absolute top-[19rem] right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '0.8s' }}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
@@ -966,8 +1044,8 @@ function CampaignBackgroundFlow({ isSpanish }: { isSpanish: boolean }) {
         </div>
       </div>
 
-      {/* Step 3 */}
-      <div className="absolute top-[28rem] right-8 lg:right-16 z-20">
+      {/* Step 3 - Hidden on Mobile */}
+      <div className="hidden md:block absolute top-[28rem] right-8 lg:right-16 z-20">
         <div className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-lg shadow-sm p-5 w-72 hover:shadow-md transition-all duration-200 animate-ghost-appear" style={{ animationDelay: '1.2s' }}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] rounded-full flex items-center justify-center flex-shrink-0">
