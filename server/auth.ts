@@ -248,8 +248,9 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         }
         
         .logo img {
-          height: 60px;
+          height: 50px;
           width: auto;
+          max-width: 280px;
           filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
           animation: logoGlow 3s ease-in-out infinite;
         }
@@ -392,7 +393,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
       <div class="particles"></div>
       <div class="container">
         <div class="logo">
-          <img src="/attached_assets/Lead Boost (500 x 200 px) (500 x 160 px) (160 x 160 px).pdf_1757190299653.png" alt="LeadBoost Logo" />
+          <img src="/attached_assets/Lead Boost (500 x 200 px) (500 x 160 px)_1757191888898.png" alt="LeadBoost Logo" />
         </div>
         <div class="logo-subtitle">AI-Powered Social Media</div>
         <div class="access-title">Access Required</div>
