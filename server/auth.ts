@@ -241,16 +241,22 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           }
         }
         .logo {
-          font-size: 2.5rem;
-          font-weight: 700;
-          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
-          background-size: 200% 200%;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
           margin-bottom: 0.5rem;
-          animation: textShine 3s ease-in-out infinite;
-          letter-spacing: -0.02em;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        
+        .logo img {
+          height: 60px;
+          width: auto;
+          filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
+          animation: logoGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes logoGlow {
+          0%, 100% { filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3)); }
+          50% { filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.6)); }
         }
         
         @keyframes textShine {
@@ -385,7 +391,9 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
     <body>
       <div class="particles"></div>
       <div class="container">
-        <div class="logo">LeadBoost</div>
+        <div class="logo">
+          <img src="/attached_assets/Lead Boost (500 x 200 px) (500 x 160 px) (160 x 160 px).pdf_1757190299653.png" alt="LeadBoost Logo" />
+        </div>
         <div class="logo-subtitle">AI-Powered Social Media</div>
         <div class="access-title">Access Required</div>
         <div class="access-subtitle">Enter authorization code to continue</div>
