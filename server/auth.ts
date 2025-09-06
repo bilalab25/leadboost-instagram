@@ -245,31 +245,19 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 8px;
         }
         
-        .logo-text {
-          font-size: 2.5rem;
-          font-weight: 700;
-          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
-          background-size: 200% 200%;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          animation: textShine 3s ease-in-out infinite;
-          letter-spacing: -0.02em;
+        .logo img {
+          height: 50px;
+          width: auto;
+          max-width: 280px;
+          filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
+          animation: logoGlow 3s ease-in-out infinite;
         }
         
-        .logo-arrows {
-          font-size: 2.5rem;
-          font-weight: 700;
-          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
-          background-size: 200% 200%;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          animation: textShine 3s ease-in-out infinite;
-          letter-spacing: -0.02em;
+        @keyframes logoGlow {
+          0%, 100% { filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3)); }
+          50% { filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.6)); }
         }
         
         @keyframes textShine {
@@ -411,9 +399,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
       <div class="particles"></div>
       <div class="container">
         <div class="logo">
-          <div class="logo-text">Lead</div>
-          <div class="logo-arrows">››</div>
-          <div class="logo-text">Boost</div>
+          <img src="/attached_assets/Lead Boost (500 x 200 px) (500 x 160 px)_1757192779772.pdf" alt="LeadBoost Logo" />
         </div>
         <div class="logo-subtitle">AI-Powered Social Media</div>
         <div class="access-title">Access Required</div>
