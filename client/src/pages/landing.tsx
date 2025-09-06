@@ -372,29 +372,19 @@ export default function Landing() {
                   </p>
                 </div>
                 
-                {/* Money-Back Guarantee & Social Proof */}
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300/50 rounded-2xl p-6 shadow-xl">
-                  <div className="text-center mb-4">
-                    <div className="text-2xl font-black text-orange-800 mb-2">
-                      {isSpanish ? '💎 GARANTÍA 100% DEVOLUCIÓN DE DINERO' : '💎 100% MONEY-BACK GUARANTEE'}
+                {/* Simple Trust Indicators */}
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm text-slate-500">
+                    {isSpanish ? 'Sin compromiso • Cancela en cualquier momento' : 'No commitment • Cancel anytime'}
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-slate-600">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-green-600" />
+                      <span>{isSpanish ? 'Seguro SSL' : 'SSL Secure'}</span>
                     </div>
-                    <p className="text-orange-700 font-semibold">
-                      {isSpanish ? 'Si no obtienes resultados en 90 días, te devolvemos cada peso' : 'If you don\'t get results in 90 days, we refund every penny'}
-                    </p>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-2xl font-black text-green-600">50,247</div>
-                      <div className="text-xs font-medium text-slate-600">{isSpanish ? 'Empresas Activas' : 'Active Businesses'}</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-black text-blue-600">$2.3B+</div>
-                      <div className="text-xs font-medium text-slate-600">{isSpanish ? 'Ventas Generadas' : 'Sales Generated'}</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-black text-purple-600">4.97★</div>
-                      <div className="text-xs font-medium text-slate-600">{isSpanish ? '12,847 Reseñas' : '12,847 Reviews'}</div>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-blue-600" />
+                      <span>{isSpanish ? '10,000+ empresas' : '10,000+ businesses'}</span>
                     </div>
                   </div>
                 </div>
