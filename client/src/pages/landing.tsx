@@ -89,32 +89,99 @@ export default function Landing() {
 
         {/* Hero Section */}
         <main className="pt-20 pb-20">
-          <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-            <div className="text-center mb-16">
-              <h1 className="text-4xl lg:text-6xl font-bold text-slate-900 mb-6">
-                {isSpanish ? 'CampAIgner: Generador de Campañas IA' : 'CampAIgner: AI Campaign Generator'}
+          <div className="relative z-10 min-h-screen flex items-center justify-center">
+            <div className="max-w-4xl mx-auto px-6 text-center">
+              
+              {/* Trust indicator */}
+              <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full bg-gray-100/50 border border-gray-200/30">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span className="text-sm font-medium text-gray-600">
+                  {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
+                </span>
+                <div className="flex items-center gap-0.5 ml-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-2.5 h-2.5 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+              </div>
+              
+              {/* Main headline */}
+              <h1 className="text-6xl lg:text-7xl font-light text-gray-900 leading-[0.95] tracking-tight mb-8">
+                {isSpanish ? (
+                  <>
+                    <span className="font-medium text-blue-600">Haz Crecer tu Negocio</span>
+                    <br />
+                    <span className="text-gray-800">En Piloto Automático</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium text-blue-600">Grow Your Business</span>
+                    <br />
+                    <span className="text-gray-800">On Autopilot</span>
+                  </>
+                )}
               </h1>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-8">
+              
+              {/* Subtitle */}
+              <p className="text-2xl font-light text-gray-500 leading-relaxed mb-12 max-w-2xl mx-auto">
                 {isSpanish 
-                  ? 'Crea campañas optimizadas para 21+ plataformas en un solo clic. Nuestra IA analiza tu negocio y genera contenido personalizado automáticamente.'
-                  : 'Create optimized campaigns for 21+ platforms in one click. Our AI analyzes your business and generates personalized content automatically.'
+                  ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
+                  : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
                 }
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Button className="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 text-lg">
-                  <Crown className="h-5 w-5 mr-2" />
-                  {isSpanish ? 'Empezar Gratis' : 'Start Free Trial'}
+              {/* Feature highlights */}
+              <div className="flex flex-wrap justify-center gap-8 mb-16 text-center">
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
+                    <CheckCircle className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <span className="text-gray-700 font-medium text-lg max-w-48">
+                    {isSpanish ? 'IA crea contenido para 21+ plataformas' : 'AI creates content for 21+ platforms'}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mb-3">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <span className="text-gray-700 font-medium text-lg max-w-48">
+                    {isSpanish ? 'Chatbot responde clientes 24/7' : 'Chatbot handles customers 24/7'}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-3">
+                    <CheckCircle className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <span className="text-gray-700 font-medium text-lg max-w-48">
+                    {isSpanish ? 'Configuración en menos de 10 minutos' : 'Setup in under 10 minutes'}
+                  </span>
+                </div>
+              </div>
+              
+              {/* CTA buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-10 py-4 text-lg rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+                  data-testid="button-start-demo"
+                >
+                  {isSpanish ? 'Empezar Demo Gratis' : 'Start Free Demo'}
                 </Button>
-                <Button variant="outline" className="px-8 py-3 text-lg">
-                  <Play className="h-5 w-5 mr-2" />
+                <Button 
+                  variant="outline" 
+                  className="font-medium px-10 py-4 text-lg rounded-full border-gray-300 hover:border-gray-400 transition-all duration-200"
+                  data-testid="button-watch-demo"
+                >
+                  <Play className="w-5 h-5 mr-2" />
                   {isSpanish ? 'Ver Demo' : 'Watch Demo'}
                 </Button>
               </div>
             </div>
+          </div>
+        </main>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
+        {/* Features Grid */}
+        <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <Card className="p-6 hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
                   <Target className="h-12 w-12 text-brand-600 mb-4" />
@@ -152,7 +219,7 @@ export default function Landing() {
               </Card>
             </div>
           </div>
-        </main>
+        </div>
 
         {/* FAQ Section */}
         <div className="bg-gradient-to-br from-gray-50 to-white faq-section">
