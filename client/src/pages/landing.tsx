@@ -252,37 +252,42 @@ export default function Landing() {
               {/* Left Column - Content */}
               <div className="max-w-2xl lg:max-w-none">
                 {/* Premium Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 mb-8">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-sm font-medium text-emerald-700">
-                    {isSpanish ? 'Ecosistema de Crecimiento' : 'Business Growth Ecosystem'}
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 mb-8">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="text-sm font-medium text-blue-700">
+                    {isSpanish ? 'Plataforma Enterprise' : 'Enterprise Platform'}
                   </span>
                 </div>
                 
                 {/* Main Headline */}
-                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 leading-[1.1] tracking-[-0.02em] mb-6">
+                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 leading-[1.1] tracking-[-0.02em] mb-3">
                   {isSpanish ? (
                     <>
                       Haz Crecer tu <br />
-                      <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                        Negocio Completo
+                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        Negocio
                       </span>
                     </>
                   ) : (
                     <>
-                      Grow Your Entire <br />
-                      <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                      Grow Your <br />
+                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                         Business
                       </span>
                     </>
                   )}
                 </h1>
                 
+                {/* Autopilot Tagline */}
+                <h2 className="text-3xl lg:text-4xl font-bold text-slate-700 mb-6">
+                  {isSpanish ? '— En Piloto Automático.' : '— On Autopilot.'}
+                </h2>
+                
                 {/* Value Proposition */}
                 <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-lg">
                   {isSpanish 
-                    ? 'Ecosistema completo que automatiza marketing, ventas, atención al cliente y operaciones. Todo en piloto automático.' 
-                    : 'Complete ecosystem that automates marketing, sales, customer service, and operations. Everything on autopilot.'
+                    ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde una sola plataforma.' 
+                    : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from a single platform.'
                   }
                 </p>
                 
