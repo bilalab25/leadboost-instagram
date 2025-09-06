@@ -280,88 +280,70 @@ export default function Landing() {
                   )}
                 </h1>
                 
-                {/* Irresistible Value Proposition */}
-                <p className="text-2xl text-slate-800 leading-tight mb-8 max-w-3xl font-bold">
+                {/* Clean Value Proposition */}
+                <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-lg">
                   {isSpanish 
-                    ? 'Mientras tus competidores luchan por mantenerse al día, nuestra IA está generando $50,000+ en ventas adicionales cada mes para nuestros clientes.' 
-                    : 'While your competitors struggle to keep up, our AI is generating $50,000+ in additional sales every month for our clients.'
+                    ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
+                    : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
                   }
                 </p>
                 
-                {/* Proof Statement */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/50 rounded-2xl px-6 py-4 mb-8 shadow-lg">
-                  <p className="text-lg text-green-800 font-semibold text-center">
-                    {isSpanish 
-                      ? '🎯 Garantizado: Clientes reportan 340% más leads en las primeras 4 semanas' 
-                      : '🎯 Guaranteed: Clients report 340% more leads in first 4 weeks'
-                    }
-                  </p>
-                </div>
-                
-                {/* Power Benefits - Results Focused */}
-                <div className="grid grid-cols-1 gap-4 mb-10">
-                  <div className="flex items-center gap-4 bg-gradient-to-r from-green-100 to-emerald-100 px-6 py-4 rounded-2xl border-2 border-green-300/50 shadow-xl">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
-                      <TrendingUp className="w-6 h-6 text-white" />
+                {/* Modern Benefits */}
+                <div className="grid grid-cols-2 gap-3 mb-10">
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 rounded-xl border border-blue-100/50">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                      <BarChart3 className="w-4 h-4 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-xl font-black text-green-800">
-                        {isSpanish ? '🚀 +340% Más Leads en 30 Días' : '🚀 +340% More Leads in 30 Days'}
-                      </div>
-                      <div className="text-sm text-green-700 font-medium">
-                        {isSpanish ? 'Resultados reales de nuestros clientes' : 'Real results from our clients'}
-                      </div>
-                    </div>
+                    <span className="text-slate-800 font-semibold text-sm">
+                      {isSpanish ? 'Campañas basadas en datos' : 'Data-backed campaigns'}
+                    </span>
                   </div>
-                  
-                  <div className="flex items-center gap-4 bg-gradient-to-r from-blue-100 to-indigo-100 px-6 py-4 rounded-2xl border-2 border-blue-300/50 shadow-xl">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                      <Globe className="w-6 h-6 text-white" />
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 rounded-xl border border-purple-100/50">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center shadow-sm">
+                      <Globe className="w-4 h-4 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-xl font-black text-blue-800">
-                        {isSpanish ? '⚡ 21+ Plataformas en Automático' : '⚡ 21+ Platforms on Autopilot'}
-                      </div>
-                      <div className="text-sm text-blue-700 font-medium">
-                        {isSpanish ? 'Instagram, TikTok, LinkedIn, Facebook y más' : 'Instagram, TikTok, LinkedIn, Facebook & more'}
-                      </div>
-                    </div>
+                    <span className="text-slate-800 font-semibold text-sm">
+                      {isSpanish ? '21+ canales auto-publicando' : '21+ channels auto-posting'}
+                    </span>
                   </div>
-                  
-                  <div className="flex items-center gap-4 bg-gradient-to-r from-purple-100 to-pink-100 px-6 py-4 rounded-2xl border-2 border-purple-300/50 shadow-xl">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
-                      <Bot className="w-6 h-6 text-white" />
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-green-50 px-4 py-3 rounded-xl border border-emerald-100/50">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-sm">
+                      <Bot className="w-4 h-4 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-xl font-black text-purple-800">
-                        {isSpanish ? '💰 IA que Vende 24/7' : '💰 AI That Sells 24/7'}
-                      </div>
-                      <div className="text-sm text-purple-700 font-medium">
-                        {isSpanish ? 'Nunca pierdes un cliente potencial' : 'Never miss a potential customer'}
-                      </div>
+                    <span className="text-slate-800 font-semibold text-sm">
+                      {isSpanish ? 'ChatBot IA 24/7 conversión' : 'AI ChatBot 24/7 conversion'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-indigo-50 to-blue-50 px-4 py-3 rounded-xl border border-indigo-100/50">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center shadow-sm">
+                      <MessageSquare className="w-4 h-4 text-white" />
                     </div>
+                    <span className="text-slate-800 font-semibold text-sm">
+                      {isSpanish ? 'Sin complejidad técnica' : 'No technical complexity'}
+                    </span>
                   </div>
                 </div>
                 
-                {/* Urgency-Driven CTAs */}
-                <div className="flex flex-col gap-4 mb-8">
+                {/* Modern CTAs */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
                   <Button 
-                    className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 hover:from-red-600 hover:via-orange-600 hover:to-yellow-600 text-white font-black px-12 py-6 h-auto rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 relative overflow-hidden group animate-pulse"
+                    className="bg-gradient-to-r from-emerald-500 via-blue-600 to-purple-600 hover:from-emerald-600 hover:via-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-4 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
                     onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                     data-testid="button-start-demo"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <div className="flex items-center justify-center">
-                      <span className="mr-3 text-xl">
-                        {isSpanish ? '🔥 OBTÉN TU 10X AHORA - GRATIS' : '🔥 GET YOUR 10X NOW - FREE'}
-                      </span>
-                      <Rocket className="w-6 h-6" />
-                    </div>
+                    <span className="mr-2">
+                      {isSpanish ? 'Comenzar Demo Gratuito' : 'Start Free Demo'}
+                    </span>
+                    <ArrowRight className="w-5 h-5" />
                   </Button>
-                  
-                  <p className="text-center text-sm font-bold text-red-600 animate-pulse">
-                    {isSpanish ? '⏰ Solo quedan 47 spots este mes' : '⏰ Only 47 spots left this month'}
-                  </p>
+                  <Button 
+                    variant="outline"
+                    className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 font-semibold px-8 py-4 h-auto rounded-xl transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    onClick={() => window.location.href = '/pricing'}
+                    data-testid="button-see-pricing"
+                  >
+                    {isSpanish ? 'Ver Precios' : 'See Pricing'}
+                  </Button>
                 </div>
                 
                 {/* Simple Trust Indicators */}
