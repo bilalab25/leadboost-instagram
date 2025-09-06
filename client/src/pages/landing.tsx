@@ -263,31 +263,27 @@ export default function Landing() {
                 </div>
                 
                 {/* Main Headline */}
-                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 leading-[1.05] tracking-[-0.025em] mb-4">
+                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 leading-[1.1] tracking-[-0.02em] mb-3">
                   {isSpanish ? (
                     <>
-                      Escala tu{' '}
+                      Haz Crecer tu <br />
                       <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Imperio
+                        Negocio
                       </span>
-                      <br />
-                      <span className="text-slate-700 text-4xl lg:text-5xl xl:text-6xl">Digital</span>
                     </>
                   ) : (
                     <>
-                      Scale Your{' '}
+                      Grow Your <br />
                       <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Empire
+                        Business
                       </span>
-                      <br />
-                      <span className="text-slate-700 text-4xl lg:text-5xl xl:text-6xl">Digitally</span>
                     </>
                   )}
                 </h1>
                 
                 {/* Autopilot Tagline */}
-                <h2 className="text-2xl lg:text-3xl font-bold text-transparent bg-gradient-to-r from-slate-600 to-slate-800 bg-clip-text mb-6">
-                  {isSpanish ? '— Con Inteligencia Artificial.' : '— With Artificial Intelligence.'}
+                <h2 className="text-3xl lg:text-4xl font-bold text-slate-700 mb-6">
+                  {isSpanish ? '— En Piloto Automático.' : '— On Autopilot.'}
                 </h2>
                 
                 {/* Value Proposition */}
