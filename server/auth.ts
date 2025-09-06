@@ -122,10 +122,13 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           min-height: 100vh;
+          min-height: -webkit-fill-available;
           display: flex;
           align-items: center;
           justify-content: center;
           margin: 0;
+          padding: 16px;
+          box-sizing: border-box;
         }
         .container {
           background: white;
@@ -135,6 +138,14 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           width: 100%;
           max-width: 400px;
           text-align: center;
+          margin: 0 auto;
+        }
+        @media (max-width: 480px) {
+          .container {
+            padding: 1.5rem;
+            margin: 0;
+            border-radius: 8px;
+          }
         }
         .logo {
           font-size: 2rem;
@@ -144,12 +155,20 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         }
         input {
           width: 100%;
-          padding: 12px;
+          padding: 16px 12px;
           border: 2px solid #e1e5e9;
           border-radius: 6px;
           font-size: 16px;
           margin-bottom: 1rem;
           box-sizing: border-box;
+          -webkit-appearance: none;
+          -webkit-border-radius: 6px;
+        }
+        @media (max-width: 480px) {
+          input {
+            font-size: 16px;
+            padding: 14px 12px;
+          }
         }
         input:focus {
           outline: none;
@@ -157,7 +176,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         }
         button {
           width: 100%;
-          padding: 12px;
+          padding: 16px 12px;
           background: #667eea;
           color: white;
           border: none;
@@ -165,6 +184,14 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           font-size: 16px;
           cursor: pointer;
           transition: background-color 0.2s;
+          -webkit-appearance: none;
+          touch-action: manipulation;
+        }
+        @media (max-width: 480px) {
+          button {
+            padding: 14px 12px;
+            font-size: 16px;
+          }
         }
         button:hover {
           background: #5a6fd8;

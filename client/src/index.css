@@ -121,9 +121,42 @@
   * {
     @apply border-border;
   }
+  
+  /* iPhone and mobile optimizations */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Fix for iPhone viewport issues */
+  html, body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  /* Improve touch targets for mobile */
+  button, [role="button"], input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Prevent zoom on iOS when focusing inputs */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  @media screen and (max-width: 480px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 }
 
