@@ -235,109 +235,210 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* Professional Hero Section */}
-        <div className="relative overflow-hidden min-h-[85vh] bg-gradient-to-br from-slate-50 via-white to-gray-50">
-          {/* Subtle Background Pattern */}
-          <div className="absolute inset-0 opacity-[0.03]">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.4'%3E%3Ccircle cx='7' cy='7' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-              backgroundSize: '60px 60px'
+        {/* Billion-Dollar Hero Section */}
+        <div className="relative overflow-hidden min-h-[85vh]">
+          {/* Ultra Sophisticated Background System */}
+          <div className="absolute inset-0">
+            {/* Multi-layer gradient foundation */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/60 to-transparent" />
+            
+            {/* Advanced mesh gradients */}
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-radial from-blue-200/25 via-transparent to-transparent blur-3xl animate-pulse" style={{animationDuration: '8s'}} />
+              <div className="absolute top-20 right-0 w-80 h-80 bg-gradient-radial from-indigo-200/20 via-transparent to-transparent blur-3xl animate-pulse" style={{animationDuration: '12s', animationDelay: '2s'}} />
+              <div className="absolute bottom-0 left-20 w-72 h-72 bg-gradient-radial from-slate-200/15 via-transparent to-transparent blur-2xl animate-pulse" style={{animationDuration: '10s', animationDelay: '4s'}} />
+            </div>
+            
+            {/* Sophisticated geometric overlay */}
+            <div className="absolute inset-0 opacity-[0.015]" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='premium-grid' width='30' height='30' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 30 0 L 0 0 0 30' fill='none' stroke='%23334155' stroke-width='0.5'/%3E%3Ccircle cx='15' cy='15' r='1' fill='%23334155' opacity='0.3'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23premium-grid)' /%3E%3C/svg%3E")`
             }} />
+            
+            {/* Floating elements for depth */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/4 left-1/3 w-3 h-3 bg-blue-400/10 rounded-full animate-float" style={{animationDelay: '0s', animationDuration: '6s'}} />
+              <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-indigo-400/15 rounded-full animate-float" style={{animationDelay: '2s', animationDuration: '8s'}} />
+              <div className="absolute bottom-1/3 left-1/4 w-2.5 h-2.5 bg-slate-400/8 rounded-full animate-float" style={{animationDelay: '4s', animationDuration: '7s'}} />
+            </div>
           </div>
           
-          {/* Premium Content Container */}
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-24 pb-16 lg:pt-32 lg:pb-20">
-            <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+          {/* Ultra Premium Content Container */}
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-16 lg:py-20">
+            {/* Glassmorphism backdrop */}
+            <div className="absolute inset-x-8 inset-y-8 bg-white/40 backdrop-blur-xl border border-white/30 rounded-[2.5rem] shadow-2xl shadow-slate-900/8" 
+                 style={{backdropFilter: 'blur(20px) saturate(180%)'}} />
+            
+            <div className="relative z-10 grid lg:grid-cols-2 gap-16 lg:gap-24 items-center py-16 px-8 lg:px-20">
               
-              {/* Left Column - Content */}
-              <div className="max-w-2xl lg:max-w-none">
-                {/* Trust Badge */}
-                <div className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200/50 mb-6 shadow-sm">
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-sm font-medium text-slate-700">
-                    {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
-                    ))}
+              {/* Left Column - Premium Content */}
+              <div className="max-w-2xl lg:max-w-none space-y-10">
+                {/* Ultra Premium Trust Badge */}
+                <div className="group inline-flex items-center gap-4 px-8 py-5 rounded-[1.75rem] bg-white/70 backdrop-blur-md border border-white/50 shadow-2xl shadow-slate-900/10 mb-8 hover:shadow-3xl hover:bg-white/80 transition-all duration-700 relative overflow-hidden">
+                  {/* Animated background glow */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-indigo-500/10 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  
+                  <div className="relative flex items-center gap-4 z-10">
+                    <div className="relative">
+                      <div className="w-4 h-4 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 animate-pulse shadow-lg" />
+                      <div className="absolute inset-0 w-4 h-4 rounded-full bg-emerald-400 animate-ping opacity-30" />
+                      <div className="absolute inset-0 w-4 h-4 rounded-full bg-white/30 animate-pulse" />
+                    </div>
+                    
+                    <span className="text-base font-bold text-slate-800 tracking-wide">
+                      {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
+                    </span>
+                    
+                    <div className="flex items-center gap-1 ml-3">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="relative">
+                          <Star className="w-4 h-4 text-amber-400 fill-current drop-shadow-sm" />
+                          <div className="absolute inset-0 w-4 h-4 text-amber-300 animate-pulse opacity-50">
+                            <Star className="w-4 h-4 fill-current" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 
-                {/* Clear Value Headline */}
-                <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-slate-900 leading-tight mb-4">
-                  {isSpanish ? (
-                    <>
-                      Automatiza tu <br />
-                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        Marketing Completo
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      Automate Your <br />
-                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        Entire Marketing
-                      </span>
-                    </>
-                  )}
-                </h1>
+                {/* Ultra Premium Typography */}
+                <div className="relative mb-8">
+                  {/* Typography with advanced shadows and effects */}
+                  <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 leading-[0.9] tracking-[-0.04em] relative">
+                    {/* Sophisticated backdrop shadow */}
+                    <div className="absolute inset-0 translate-x-1 translate-y-1 text-slate-300/20 blur-sm">
+                      {isSpanish ? (
+                        <>
+                          Automatiza tu <br />
+                          Marketing Completo
+                        </>
+                      ) : (
+                        <>
+                          Automate Your <br />
+                          Entire Marketing
+                        </>
+                      )}
+                    </div>
+                    
+                    {/* Main text with premium gradients */}
+                    <div className="relative z-10">
+                      {isSpanish ? (
+                        <>
+                          <span className="text-slate-900">Automatiza tu</span>
+                          <br />
+                          <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent relative inline-block">
+                            <span className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-indigo-600/15 to-blue-700/10 blur-2xl" />
+                            Marketing Completo
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-slate-900">Automate Your</span>
+                          <br />
+                          <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent relative inline-block">
+                            <span className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-indigo-600/15 to-blue-700/10 blur-2xl" />
+                            Entire Marketing
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </h1>
+                </div>
                 
-                {/* Simple Promise */}
-                <p className="text-xl text-slate-600 mb-6 leading-relaxed max-w-lg">
-                  {isSpanish 
-                    ? 'Desde crear contenido hasta gestionar clientes. Una plataforma, todo automatizado.' 
-                    : 'From content creation to customer management. One platform, everything automated.'
-                  }
-                </p>
+                {/* Premium Value Proposition */}
+                <div className="relative mb-10">
+                  <div className="absolute -left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400/30 via-indigo-500/50 to-blue-400/30 rounded-full" />
+                  <p className="text-2xl text-slate-700 leading-relaxed max-w-2xl font-medium pl-8 relative">
+                    <span className="absolute -left-2 top-0 w-3 h-3 bg-blue-500 rounded-full opacity-60 animate-pulse" />
+                    {isSpanish 
+                      ? 'Desde crear contenido hasta gestionar clientes. Una plataforma, todo automatizado.' 
+                      : 'From content creation to customer management. One platform, everything automated.'
+                    }
+                  </p>
+                </div>
                 
-                {/* What You Get */}
-                <div className="space-y-3 mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-blue-600" />
+                {/* Ultra Sophisticated Feature Cards */}
+                <div className="space-y-5 mb-12">
+                  <div className="group flex items-center gap-5 p-6 rounded-[1.5rem] bg-white/60 backdrop-blur-lg border border-white/40 hover:border-blue-300/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative flex items-center gap-5 z-10">
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300">
+                          <CheckCircle className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="absolute inset-0 w-10 h-10 rounded-2xl bg-blue-400 opacity-20 blur-md group-hover:opacity-40 group-hover:blur-lg transition-all duration-300" />
+                      </div>
+                      <span className="text-lg text-slate-800 font-bold tracking-wide">
+                        {isSpanish ? 'IA crea contenido para 21+ plataformas' : 'AI creates content for 21+ platforms'}
+                      </span>
                     </div>
-                    <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'IA crea contenido para 21+ plataformas' : 'AI creates content for 21+ platforms'}
-                    </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
+                  
+                  <div className="group flex items-center gap-5 p-6 rounded-[1.5rem] bg-white/60 backdrop-blur-lg border border-white/40 hover:border-emerald-300/50 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative flex items-center gap-5 z-10">
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300">
+                          <CheckCircle className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="absolute inset-0 w-10 h-10 rounded-2xl bg-emerald-400 opacity-20 blur-md group-hover:opacity-40 group-hover:blur-lg transition-all duration-300" />
+                      </div>
+                      <span className="text-lg text-slate-800 font-bold tracking-wide">
+                        {isSpanish ? 'Chatbot responde clientes 24/7' : 'Chatbot handles customers 24/7'}
+                      </span>
                     </div>
-                    <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Chatbot responde clientes 24/7' : 'Chatbot handles customers 24/7'}
-                    </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-purple-600" />
+                  
+                  <div className="group flex items-center gap-5 p-6 rounded-[1.5rem] bg-white/60 backdrop-blur-lg border border-white/40 hover:border-purple-300/50 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative flex items-center gap-5 z-10">
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300">
+                          <CheckCircle className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="absolute inset-0 w-10 h-10 rounded-2xl bg-purple-400 opacity-20 blur-md group-hover:opacity-40 group-hover:blur-lg transition-all duration-300" />
+                      </div>
+                      <span className="text-lg text-slate-800 font-bold tracking-wide">
+                        {isSpanish ? 'Configuración en menos de 10 minutos' : 'Setup in under 10 minutes'}
+                      </span>
                     </div>
-                    <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Configuración en menos de 10 minutos' : 'Setup in under 10 minutes'}
-                    </span>
                   </div>
                 </div>
                 
-                {/* Clear CTA */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                {/* Ultra Premium CTA System */}
+                <div className="flex flex-col sm:flex-row gap-6 mb-12">
                   <Button 
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-10 py-4 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group"
+                    className="relative group bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:via-indigo-700 hover:to-blue-800 text-white font-bold px-12 py-6 h-auto rounded-[1.5rem] shadow-2xl hover:shadow-3xl transition-all duration-700 overflow-hidden border border-white/20"
                     onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                     data-testid="button-start-demo"
                   >
-                    <span className="mr-2 text-lg">
-                      {isSpanish ? 'Ver Demo en Vivo' : 'Watch Live Demo'}
-                    </span>
-                    <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    {/* Sophisticated lighting effects */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10" />
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/50 via-indigo-500/50 to-blue-500/50 rounded-[1.5rem] opacity-0 group-hover:opacity-30 blur-xl transition-all duration-700" />
+                    
+                    <div className="relative flex items-center justify-center z-10">
+                      <span className="mr-4 text-xl font-bold tracking-wide">
+                        {isSpanish ? 'Ver Demo en Vivo' : 'Watch Live Demo'}
+                      </span>
+                      <div className="relative">
+                        <Play className="w-7 h-7 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
+                        <div className="absolute inset-0 w-7 h-7 bg-white/30 rounded-full opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-700" />
+                      </div>
+                    </div>
                   </Button>
+                  
                   <Button 
                     variant="ghost"
-                    className="text-slate-600 hover:text-slate-800 font-medium px-6 py-4 h-auto rounded-xl transition-all duration-300 underline decoration-slate-300 hover:decoration-slate-500"
+                    className="relative group text-slate-700 hover:text-slate-900 font-bold px-10 py-6 h-auto rounded-[1.5rem] transition-all duration-500 border-2 border-slate-200/60 hover:border-slate-300/80 bg-white/50 backdrop-blur-sm hover:bg-white/70 hover:shadow-xl"
                     onClick={() => window.location.href = '/pricing'}
                     data-testid="button-see-pricing"
                   >
-                    {isSpanish ? 'Ver precios simples' : 'View simple pricing'}
+                    <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-slate-400/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <span className="text-xl tracking-wide relative z-10">
+                      {isSpanish ? 'Ver precios simples' : 'View simple pricing'}
+                    </span>
                   </Button>
                 </div>
                 
