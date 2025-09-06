@@ -252,10 +252,10 @@ export default function Landing() {
               {/* Left Column - Content */}
               <div className="max-w-2xl lg:max-w-none">
                 {/* Premium Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 mb-8">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                  <span className="text-sm font-medium text-blue-700">
-                    {isSpanish ? 'Plataforma Enterprise' : 'Enterprise Platform'}
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 mb-8">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-sm font-medium text-emerald-700">
+                    {isSpanish ? 'Ecosistema de Crecimiento' : 'Business Growth Ecosystem'}
                   </span>
                 </div>
                 
@@ -263,16 +263,16 @@ export default function Landing() {
                 <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 leading-[1.1] tracking-[-0.02em] mb-6">
                   {isSpanish ? (
                     <>
-                      Automatiza tu <br />
-                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        Marketing Digital
+                      Haz Crecer tu <br />
+                      <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                        Negocio Completo
                       </span>
                     </>
                   ) : (
                     <>
-                      Automate Your <br />
-                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        Digital Marketing
+                      Grow Your Entire <br />
+                      <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                        Business
                       </span>
                     </>
                   )}
@@ -281,43 +281,43 @@ export default function Landing() {
                 {/* Value Proposition */}
                 <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-lg">
                   {isSpanish 
-                    ? 'Plataforma todo-en-uno impulsada por IA que genera contenido, gestiona campañas y optimiza resultados automáticamente.' 
-                    : 'AI-powered all-in-one platform that generates content, manages campaigns, and optimizes results automatically.'
+                    ? 'Ecosistema completo que automatiza marketing, ventas, atención al cliente y operaciones. Todo en piloto automático.' 
+                    : 'Complete ecosystem that automates marketing, sales, customer service, and operations. Everything on autopilot.'
                   }
                 </p>
                 
-                {/* Key Benefits */}
+                {/* Key Benefits - Business Ecosystem */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <BarChart3 className="w-3 h-3 text-emerald-600" />
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Configuración en 5 min' : '5-minute setup'}
+                      {isSpanish ? 'Ventas automatizadas' : 'Automated sales'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                      <MessageSquare className="w-3 h-3 text-blue-600" />
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Sin conocimiento técnico' : 'No technical knowledge'}
+                      {isSpanish ? 'Atención al cliente IA' : 'AI customer service'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center">
+                      <Users className="w-3 h-3 text-purple-600" />
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {isSpanish ? '21+ plataformas conectadas' : '21+ platforms connected'}
+                      {isSpanish ? 'Gestión de leads' : 'Lead management'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center">
+                      <TrendingUp className="w-3 h-3 text-orange-600" />
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Soporte 24/7' : '24/7 support'}
+                      {isSpanish ? 'Análisis predictivo' : 'Predictive analytics'}
                     </span>
                   </div>
                 </div>
@@ -384,62 +384,75 @@ export default function Landing() {
                       </div>
                     </div>
                     
-                    {/* Content */}
+                    {/* Content - Business Ecosystem Dashboard */}
                     <div className="p-6 space-y-6">
-                      {/* Campaign Status */}
+                      {/* Business Overview */}
                       <div className="space-y-3">
                         <h3 className="font-semibold text-slate-800">
-                          {isSpanish ? 'Campañas Activas' : 'Active Campaigns'}
+                          {isSpanish ? 'Crecimiento del Negocio' : 'Business Growth'}
                         </h3>
                         <div className="grid grid-cols-3 gap-3">
-                          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-                            <div className="text-2xl font-bold text-green-600">12</div>
-                            <div className="text-xs text-green-700">Instagram</div>
+                          <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                            <div className="text-2xl font-bold text-emerald-600">↑47%</div>
+                            <div className="text-xs text-emerald-700">{isSpanish ? 'Ventas' : 'Sales'}</div>
                           </div>
                           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                            <div className="text-2xl font-bold text-blue-600">8</div>
-                            <div className="text-xs text-blue-700">Facebook</div>
+                            <div className="text-2xl font-bold text-blue-600">1.2K</div>
+                            <div className="text-xs text-blue-700">{isSpanish ? 'Leads' : 'Leads'}</div>
                           </div>
                           <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
-                            <div className="text-2xl font-bold text-purple-600">5</div>
-                            <div className="text-xs text-purple-700">TikTok</div>
+                            <div className="text-2xl font-bold text-purple-600">94%</div>
+                            <div className="text-xs text-purple-700">{isSpanish ? 'Satisfacción' : 'Satisfaction'}</div>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Performance Chart */}
+                      {/* Revenue Chart */}
                       <div className="space-y-3">
                         <h3 className="font-semibold text-slate-800">
-                          {isSpanish ? 'Rendimiento' : 'Performance'}
+                          {isSpanish ? 'Ingresos Mensuales' : 'Monthly Revenue'}
                         </h3>
-                        <div className="h-24 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg flex items-end justify-between p-4">
-                          <div className="w-4 bg-blue-500 rounded-t" style={{height: '40%'}} />
-                          <div className="w-4 bg-blue-600 rounded-t" style={{height: '60%'}} />
-                          <div className="w-4 bg-blue-700 rounded-t" style={{height: '80%'}} />
-                          <div className="w-4 bg-indigo-500 rounded-t" style={{height: '95%'}} />
-                          <div className="w-4 bg-indigo-600 rounded-t" style={{height: '75%'}} />
-                          <div className="w-4 bg-indigo-700 rounded-t" style={{height: '85%'}} />
+                        <div className="h-24 bg-gradient-to-r from-emerald-100 to-blue-100 rounded-lg flex items-end justify-between p-4">
+                          <div className="w-4 bg-emerald-500 rounded-t" style={{height: '45%'}} />
+                          <div className="w-4 bg-emerald-600 rounded-t" style={{height: '65%'}} />
+                          <div className="w-4 bg-blue-500 rounded-t" style={{height: '85%'}} />
+                          <div className="w-4 bg-blue-600 rounded-t" style={{height: '95%'}} />
+                          <div className="w-4 bg-indigo-500 rounded-t" style={{height: '78%'}} />
+                          <div className="w-4 bg-indigo-600 rounded-t" style={{height: '88%'}} />
                         </div>
                       </div>
                       
-                      {/* AI Status */}
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-3">
-                          <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-sm font-medium text-green-800">
-                            {isSpanish ? 'IA generando contenido...' : 'AI generating content...'}
-                          </span>
+                      {/* Automation Status */}
+                      <div className="space-y-2">
+                        <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                          <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-sm font-medium text-emerald-800">
+                              {isSpanish ? 'Automatización activa' : 'Automation active'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                          <div className="flex items-center gap-3">
+                            <Bot className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-800">
+                              {isSpanish ? 'IA procesando 47 tareas' : 'AI processing 47 tasks'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Floating Elements */}
-                  <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  {/* Floating Elements - Business Focused */}
+                  <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-r from-emerald-400 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
                     <TrendingUp className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                    <Zap className="w-8 h-8 text-white" />
+                  <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Users className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-r from-orange-400 to-red-400 rounded-xl flex items-center justify-center shadow-lg">
+                    <Zap className="w-6 h-6 text-white" />
                   </div>
                 </div>
               </div>
