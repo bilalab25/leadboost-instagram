@@ -325,21 +325,21 @@ export default function Landing() {
                     <div className="relative z-10">
                       {isSpanish ? (
                         <>
-                          <span className="text-slate-900">Automatiza tu</span>
-                          <br />
                           <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent relative inline-block">
                             <span className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-indigo-600/15 to-blue-700/10 blur-2xl" />
-                            Marketing Completo
+                            Haz Crecer tu Negocio
                           </span>
+                          <br />
+                          <span className="text-slate-900">En Piloto Automático</span>
                         </>
                       ) : (
                         <>
-                          <span className="text-slate-900">Automate Your</span>
-                          <br />
                           <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent relative inline-block">
                             <span className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-indigo-600/15 to-blue-700/10 blur-2xl" />
-                            Entire Marketing
+                            Grow Your Business
                           </span>
+                          <br />
+                          <span className="text-slate-900">On Autopilot</span>
                         </>
                       )}
                     </div>
@@ -352,8 +352,8 @@ export default function Landing() {
                   <p className="text-2xl text-slate-700 leading-relaxed max-w-2xl font-medium pl-8 relative">
                     <span className="absolute -left-2 top-0 w-3 h-3 bg-blue-500 rounded-full opacity-60 animate-pulse" />
                     {isSpanish 
-                      ? 'Desde crear contenido hasta gestionar clientes. Una plataforma, todo automatizado.' 
-                      : 'From content creation to customer management. One platform, everything automated.'
+                      ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
+                      : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
                     }
                   </p>
                 </div>
