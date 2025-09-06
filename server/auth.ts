@@ -399,7 +399,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
       <div class="particles"></div>
       <div class="container">
         <div class="logo">
-          <img src="/attached_assets/Lead Boost (500 x 200 px) (500 x 160 px)_1757192779772.pdf" alt="LeadBoost Logo" />
+          <img src="/attached_assets/Lead Boost (500 x 200 px) (500 x 160 px)_1757192868585.png" alt="LeadBoost Logo" />
         </div>
         <div class="logo-subtitle">AI-Powered Social Media</div>
         <div class="access-title">Access Required</div>
