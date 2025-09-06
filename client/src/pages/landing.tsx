@@ -301,7 +301,7 @@ export default function Landing() {
                       <BarChart3 className="w-4 h-4 text-white" />
                     </div>
                     <span className="text-slate-800 font-semibold text-sm">
-                      {isSpanish ? 'Campañas Basadas en IA' : 'AI-Driven Campaigns'}
+                      {isSpanish ? 'Campañas basadas en datos' : 'Data-backed campaigns'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 rounded-xl border border-purple-100/50">
