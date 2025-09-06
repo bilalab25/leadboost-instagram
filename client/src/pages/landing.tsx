@@ -251,42 +251,34 @@ export default function Landing() {
               
               {/* Left Column - Content */}
               <div className="max-w-2xl lg:max-w-none">
-                {/* Unicorn Badge - Social Proof */}
-                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 border border-orange-200/50 mb-8 shadow-xl animate-pulse">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 animate-bounce" />
-                    <Crown className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <span className="text-sm font-bold text-orange-700">
-                    {isSpanish ? '🔥 MÁS DE 50,000 EMPRESAS YA ESCALARON' : '🔥 50,000+ BUSINESSES ALREADY SCALED'}
+                {/* Clean Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 mb-8">
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <span className="text-sm font-medium text-blue-700">
+                    {isSpanish ? 'Plataforma Enterprise' : 'Enterprise Platform'}
                   </span>
                 </div>
                 
-                {/* Power Headline - Direct Benefit */}
-                <h1 className="text-6xl lg:text-7xl xl:text-8xl font-black text-slate-900 leading-[0.95] tracking-[-0.03em] mb-4">
+                {/* Modern Headline */}
+                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.05] tracking-[-0.02em] mb-4">
                   {isSpanish ? (
                     <>
-                      <span className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent animate-pulse">
-                        10X
-                      </span>{' '}
-                      Tu Negocio <br />
-                      <span className="text-slate-700 text-4xl lg:text-5xl">En 90 Días</span>
+                      <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        Haz Crecer tu Negocio
+                      </span>
+                      <br />
+                      <span className="text-slate-700 text-3xl lg:text-4xl">En Piloto Automático</span>
                     </>
                   ) : (
                     <>
-                      <span className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent animate-pulse">
-                        10X
-                      </span>{' '}
-                      Your Business <br />
-                      <span className="text-slate-700 text-4xl lg:text-5xl">In 90 Days</span>
+                      <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        Grow Your Business
+                      </span>
+                      <br />
+                      <span className="text-slate-700 text-3xl lg:text-4xl">On Autopilot</span>
                     </>
                   )}
                 </h1>
-                
-                {/* Urgency Tagline */}
-                <h2 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent mb-6">
-                  {isSpanish ? '⚡ O te devolvemos tu dinero' : '⚡ Or Your Money Back'}
-                </h2>
                 
                 {/* Irresistible Value Proposition */}
                 <p className="text-2xl text-slate-800 leading-tight mb-8 max-w-3xl font-bold">
