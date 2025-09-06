@@ -286,8 +286,8 @@ export default function Landing() {
                 {/* Value Proposition */}
                 <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-lg">
                   {isSpanish 
-                    ? 'Solución todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
-                    : 'AI-powered all-in-one solution that automates marketing, sales, and customer management from one central hub.'
+                    ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
+                    : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
                   }
                 </p>
                 
