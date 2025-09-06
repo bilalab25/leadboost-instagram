@@ -291,38 +291,38 @@ export default function Landing() {
                   }
                 </p>
                 
-                {/* Key Benefits - Business Ecosystem */}
+                {/* Key Benefits */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <BarChart3 className="w-3 h-3 text-emerald-600" />
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Ventas automatizadas' : 'Automated sales'}
+                      {isSpanish ? 'Configuración en 5 min' : '5-minute setup'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
-                      <MessageSquare className="w-3 h-3 text-blue-600" />
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Atención al cliente IA' : 'AI customer service'}
+                      {isSpanish ? 'Sin conocimiento técnico' : 'No technical knowledge'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center">
-                      <Users className="w-3 h-3 text-purple-600" />
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Gestión de leads' : 'Lead management'}
+                      {isSpanish ? '21+ plataformas conectadas' : '21+ platforms connected'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center">
-                      <TrendingUp className="w-3 h-3 text-orange-600" />
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Análisis predictivo' : 'Predictive analytics'}
+                      {isSpanish ? 'Soporte 24/7' : '24/7 support'}
                     </span>
                   </div>
                 </div>
