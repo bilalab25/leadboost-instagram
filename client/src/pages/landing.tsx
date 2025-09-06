@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Rocket, HelpCircle, X, Send, FileQuestion } from "lucide-react";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Rocket, HelpCircle, X, Send, FileQuestion, Crown, Star, CheckCircle, Heart, Share2 } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiShopify, SiZapier, SiQuickbooks, SiSquare, SiStripe } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -252,116 +252,128 @@ export default function Landing() {
               {/* Left Column - Content */}
               <div className="max-w-2xl lg:max-w-none">
                 {/* Premium Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 mb-8">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                  <span className="text-sm font-medium text-blue-700">
-                    {isSpanish ? 'Plataforma Enterprise' : 'Enterprise Platform'}
+                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200/50 mb-8 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <Crown className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <span className="text-sm font-semibold text-emerald-700">
+                    {isSpanish ? '#1 Plataforma IA Enterprise' : '#1 AI Enterprise Platform'}
                   </span>
                 </div>
                 
                 {/* Main Headline */}
-                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 leading-[1.1] tracking-[-0.02em] mb-3">
+                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 leading-[1.05] tracking-[-0.025em] mb-4">
                   {isSpanish ? (
                     <>
-                      Haz Crecer tu <br />
-                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        Negocio
+                      Escala tu{' '}
+                      <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        Imperio
                       </span>
+                      <br />
+                      <span className="text-slate-700 text-4xl lg:text-5xl xl:text-6xl">Digital</span>
                     </>
                   ) : (
                     <>
-                      Grow Your <br />
-                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        Business
+                      Scale Your{' '}
+                      <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        Empire
                       </span>
+                      <br />
+                      <span className="text-slate-700 text-4xl lg:text-5xl xl:text-6xl">Digitally</span>
                     </>
                   )}
                 </h1>
                 
                 {/* Autopilot Tagline */}
-                <h2 className="text-3xl lg:text-4xl font-bold text-slate-700 mb-6">
-                  {isSpanish ? '— En Piloto Automático.' : '— On Autopilot.'}
+                <h2 className="text-2xl lg:text-3xl font-bold text-transparent bg-gradient-to-r from-slate-600 to-slate-800 bg-clip-text mb-6">
+                  {isSpanish ? '— Con Inteligencia Artificial.' : '— With Artificial Intelligence.'}
                 </h2>
                 
                 {/* Value Proposition */}
-                <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-lg">
+                <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-2xl font-medium">
                   {isSpanish 
-                    ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
-                    : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
+                    ? 'La única plataforma que necesitas para dominar 21+ canales digitales. Nuestra IA genera, optimiza y publica contenido que convierte mientras tú te enfocas en hacer crecer tu negocio.' 
+                    : 'The only platform you need to dominate 21+ digital channels. Our AI generates, optimizes, and publishes converting content while you focus on growing your business.'
                   }
                 </p>
                 
-                {/* Key Benefits */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
-                      <BarChart3 className="w-3 h-3 text-blue-600" />
+                {/* Key Benefits - Unicorn Style */}
+                <div className="grid grid-cols-2 gap-3 mb-10">
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 rounded-xl border border-blue-100/50">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                      <BarChart3 className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Campañas basadas en datos' : 'Data-backed campaigns'}
+                    <span className="text-slate-800 font-semibold text-sm">
+                      {isSpanish ? 'Campañas Basadas en IA' : 'AI-Driven Campaigns'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center">
-                      <Globe className="w-3 h-3 text-purple-600" />
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 rounded-xl border border-purple-100/50">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center shadow-sm">
+                      <Globe className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-slate-700 font-medium">
-                      {isSpanish ? '21+ canales auto-publicando' : '21+ channels auto-posting'}
+                    <span className="text-slate-800 font-semibold text-sm">
+                      {isSpanish ? 'Dominio Multi-Canal' : 'Multi-Channel Dominance'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <Bot className="w-3 h-3 text-emerald-600" />
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-green-50 px-4 py-3 rounded-xl border border-emerald-100/50">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-sm">
+                      <Bot className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'ChatBot IA 24/7 conversión' : 'AI ChatBot 24/7 conversion'}
+                    <span className="text-slate-800 font-semibold text-sm">
+                      {isSpanish ? 'Conversión 24/7' : '24/7 Conversion Engine'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center">
-                      <Zap className="w-3 h-3 text-orange-600" />
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-orange-50 to-red-50 px-4 py-3 rounded-xl border border-orange-100/50">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center shadow-sm">
+                      <Zap className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Sin complejidad técnica' : 'No technical complexity'}
+                    <span className="text-slate-800 font-semibold text-sm">
+                      {isSpanish ? 'Cero Complejidad' : 'Zero Complexity'}
                     </span>
                   </div>
                 </div>
                 
-                {/* CTA Buttons */}
+                {/* CTA Buttons - Unicorn Style */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
                   <Button 
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-4 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                    className="bg-gradient-to-r from-emerald-500 via-blue-600 to-purple-600 hover:from-emerald-600 hover:via-blue-700 hover:to-purple-700 text-white font-bold px-10 py-5 h-auto rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 hover:scale-105 relative overflow-hidden group"
                     onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                     data-testid="button-start-demo"
                   >
-                    <span className="mr-2">
-                      {isSpanish ? 'Comenzar Demo Gratuito' : 'Start Free Demo'}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <span className="mr-3 text-lg">
+                      {isSpanish ? 'Dominar Ahora — Gratis' : 'Dominate Now — Free'}
                     </span>
-                    <ArrowRight className="w-5 h-5" />
+                    <Rocket className="w-6 h-6" />
                   </Button>
                   <Button 
                     variant="outline"
-                    className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 font-semibold px-8 py-4 h-auto rounded-xl transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    className="border-2 border-slate-400 hover:border-slate-600 text-slate-700 hover:text-slate-900 font-semibold px-8 py-5 h-auto rounded-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl"
                     onClick={() => window.location.href = '/pricing'}
                     data-testid="button-see-pricing"
                   >
-                    {isSpanish ? 'Ver Precios' : 'See Pricing'}
+                    <span className="text-lg">{isSpanish ? 'Ver Planes Enterprise' : 'View Enterprise Plans'}</span>
                   </Button>
                 </div>
                 
-                {/* Trust Indicators */}
-                <div className="flex flex-col gap-3">
-                  <p className="text-sm text-slate-500">
-                    {isSpanish ? 'Sin compromiso • Cancela en cualquier momento' : 'No commitment • Cancel anytime'}
+                {/* Trust Indicators - Enhanced */}
+                <div className="flex flex-col gap-4">
+                  <p className="text-sm text-slate-500 font-medium">
+                    {isSpanish ? '✦ Sin compromiso • Resultados en 24h • Soporte premium incluido' : '✦ No commitment • Results in 24h • Premium support included'}
                   </p>
-                  <div className="flex items-center gap-4 text-sm text-slate-600">
+                  <div className="flex items-center gap-6 text-sm text-slate-700">
                     <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-green-600" />
-                      <span>{isSpanish ? 'Seguro SSL' : 'SSL Secure'}</span>
+                      <Shield className="w-4 h-4 text-emerald-600" />
+                      <span className="font-medium">{isSpanish ? 'Nivel Empresarial' : 'Enterprise Grade'}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-blue-600" />
-                      <span>{isSpanish ? '10,000+ empresas' : '10,000+ businesses'}</span>
+                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium">{isSpanish ? '10,000+ Unicornios' : '10,000+ Unicorns'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <span className="font-medium">4.9/5 Rating</span>
                     </div>
                   </div>
                 </div>
