@@ -322,7 +322,7 @@ export default function Landing() {
                       <Zap className="w-3 h-3 text-orange-600" />
                     </div>
                     <span className="text-slate-700 font-medium">
-                      {isSpanish ? 'Automatización inteligente' : 'Intelligent automation'}
+                      {isSpanish ? 'Sin complejidad técnica' : 'No technical complexity'}
                     </span>
                   </div>
                 </div>
