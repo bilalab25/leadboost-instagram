@@ -251,125 +251,150 @@ export default function Landing() {
               
               {/* Left Column - Content */}
               <div className="max-w-2xl lg:max-w-none">
-                {/* Premium Badge */}
-                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200/50 mb-8 shadow-sm">
+                {/* Unicorn Badge - Social Proof */}
+                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 border border-orange-200/50 mb-8 shadow-xl animate-pulse">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <Crown className="w-4 h-4 text-emerald-600" />
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 animate-bounce" />
+                    <Crown className="w-5 h-5 text-orange-600" />
                   </div>
-                  <span className="text-sm font-semibold text-emerald-700">
-                    {isSpanish ? '#1 Plataforma IA Enterprise' : '#1 AI Enterprise Platform'}
+                  <span className="text-sm font-bold text-orange-700">
+                    {isSpanish ? '🔥 MÁS DE 50,000 EMPRESAS YA ESCALARON' : '🔥 50,000+ BUSINESSES ALREADY SCALED'}
                   </span>
                 </div>
                 
-                {/* Main Headline */}
-                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 leading-[1.1] tracking-[-0.02em] mb-3">
+                {/* Power Headline - Direct Benefit */}
+                <h1 className="text-6xl lg:text-7xl xl:text-8xl font-black text-slate-900 leading-[0.95] tracking-[-0.03em] mb-4">
                   {isSpanish ? (
                     <>
-                      Haz Crecer tu <br />
-                      <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Negocio
-                      </span>
+                      <span className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent animate-pulse">
+                        10X
+                      </span>{' '}
+                      Tu Negocio <br />
+                      <span className="text-slate-700 text-4xl lg:text-5xl">En 90 Días</span>
                     </>
                   ) : (
                     <>
-                      Grow Your <br />
-                      <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Business
-                      </span>
+                      <span className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent animate-pulse">
+                        10X
+                      </span>{' '}
+                      Your Business <br />
+                      <span className="text-slate-700 text-4xl lg:text-5xl">In 90 Days</span>
                     </>
                   )}
                 </h1>
                 
-                {/* Autopilot Tagline */}
-                <h2 className="text-3xl lg:text-4xl font-bold text-slate-700 mb-6">
-                  {isSpanish ? '— En Piloto Automático.' : '— On Autopilot.'}
+                {/* Urgency Tagline */}
+                <h2 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent mb-6">
+                  {isSpanish ? '⚡ O te devolvemos tu dinero' : '⚡ Or Your Money Back'}
                 </h2>
                 
-                {/* Value Proposition */}
-                <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-2xl font-medium">
+                {/* Irresistible Value Proposition */}
+                <p className="text-2xl text-slate-800 leading-tight mb-8 max-w-3xl font-bold">
                   {isSpanish 
-                    ? 'La única plataforma que necesitas para dominar 21+ canales digitales. Nuestra IA genera, optimiza y publica contenido que convierte mientras tú te enfocas en hacer crecer tu negocio.' 
-                    : 'The only platform you need to dominate 21+ digital channels. Our AI generates, optimizes, and publishes converting content while you focus on growing your business.'
+                    ? 'Mientras tus competidores luchan por mantenerse al día, nuestra IA está generando $50,000+ en ventas adicionales cada mes para nuestros clientes.' 
+                    : 'While your competitors struggle to keep up, our AI is generating $50,000+ in additional sales every month for our clients.'
                   }
                 </p>
                 
-                {/* Key Benefits - Unicorn Style */}
-                <div className="grid grid-cols-2 gap-3 mb-10">
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 rounded-xl border border-blue-100/50">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
-                      <BarChart3 className="w-4 h-4 text-white" />
+                {/* Proof Statement */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/50 rounded-2xl px-6 py-4 mb-8 shadow-lg">
+                  <p className="text-lg text-green-800 font-semibold text-center">
+                    {isSpanish 
+                      ? '🎯 Garantizado: Clientes reportan 340% más leads en las primeras 4 semanas' 
+                      : '🎯 Guaranteed: Clients report 340% more leads in first 4 weeks'
+                    }
+                  </p>
+                </div>
+                
+                {/* Power Benefits - Results Focused */}
+                <div className="grid grid-cols-1 gap-4 mb-10">
+                  <div className="flex items-center gap-4 bg-gradient-to-r from-green-100 to-emerald-100 px-6 py-4 rounded-2xl border-2 border-green-300/50 shadow-xl">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                      <TrendingUp className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {isSpanish ? 'Campañas Respaldadas por Datos' : 'Data-Backed Campaigns'}
-                    </span>
+                    <div className="flex-1">
+                      <div className="text-xl font-black text-green-800">
+                        {isSpanish ? '🚀 +340% Más Leads en 30 Días' : '🚀 +340% More Leads in 30 Days'}
+                      </div>
+                      <div className="text-sm text-green-700 font-medium">
+                        {isSpanish ? 'Resultados reales de nuestros clientes' : 'Real results from our clients'}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 rounded-xl border border-purple-100/50">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center shadow-sm">
-                      <Globe className="w-4 h-4 text-white" />
+                  
+                  <div className="flex items-center gap-4 bg-gradient-to-r from-blue-100 to-indigo-100 px-6 py-4 rounded-2xl border-2 border-blue-300/50 shadow-xl">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                      <Globe className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {isSpanish ? 'Dominio Multi-Canal' : 'Multi-Channel Dominance'}
-                    </span>
+                    <div className="flex-1">
+                      <div className="text-xl font-black text-blue-800">
+                        {isSpanish ? '⚡ 21+ Plataformas en Automático' : '⚡ 21+ Platforms on Autopilot'}
+                      </div>
+                      <div className="text-sm text-blue-700 font-medium">
+                        {isSpanish ? 'Instagram, TikTok, LinkedIn, Facebook y más' : 'Instagram, TikTok, LinkedIn, Facebook & more'}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-green-50 px-4 py-3 rounded-xl border border-emerald-100/50">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-sm">
-                      <Bot className="w-4 h-4 text-white" />
+                  
+                  <div className="flex items-center gap-4 bg-gradient-to-r from-purple-100 to-pink-100 px-6 py-4 rounded-2xl border-2 border-purple-300/50 shadow-xl">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
+                      <Bot className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {isSpanish ? 'Conversión 24/7' : '24/7 Conversion Engine'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-orange-50 to-red-50 px-4 py-3 rounded-xl border border-orange-100/50">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center shadow-sm">
-                      <Zap className="w-4 h-4 text-white" />
+                    <div className="flex-1">
+                      <div className="text-xl font-black text-purple-800">
+                        {isSpanish ? '💰 IA que Vende 24/7' : '💰 AI That Sells 24/7'}
+                      </div>
+                      <div className="text-sm text-purple-700 font-medium">
+                        {isSpanish ? 'Nunca pierdes un cliente potencial' : 'Never miss a potential customer'}
+                      </div>
                     </div>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {isSpanish ? 'Cero Complejidad' : 'Zero Complexity'}
-                    </span>
                   </div>
                 </div>
                 
-                {/* CTA Buttons - Unicorn Style */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                {/* Urgency-Driven CTAs */}
+                <div className="flex flex-col gap-4 mb-8">
                   <Button 
-                    className="bg-gradient-to-r from-emerald-500 via-blue-600 to-purple-600 hover:from-emerald-600 hover:via-blue-700 hover:to-purple-700 text-white font-bold px-10 py-5 h-auto rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 hover:scale-105 relative overflow-hidden group"
+                    className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 hover:from-red-600 hover:via-orange-600 hover:to-yellow-600 text-white font-black px-12 py-6 h-auto rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 relative overflow-hidden group animate-pulse"
                     onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                     data-testid="button-start-demo"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <span className="mr-3 text-lg">
-                      {isSpanish ? 'Dominar Ahora — Gratis' : 'Dominate Now — Free'}
-                    </span>
-                    <Rocket className="w-6 h-6" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="flex items-center justify-center">
+                      <span className="mr-3 text-xl">
+                        {isSpanish ? '🔥 OBTÉN TU 10X AHORA - GRATIS' : '🔥 GET YOUR 10X NOW - FREE'}
+                      </span>
+                      <Rocket className="w-6 h-6" />
+                    </div>
                   </Button>
-                  <Button 
-                    variant="outline"
-                    className="border-2 border-slate-400 hover:border-slate-600 text-slate-700 hover:text-slate-900 font-semibold px-8 py-5 h-auto rounded-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl"
-                    onClick={() => window.location.href = '/pricing'}
-                    data-testid="button-see-pricing"
-                  >
-                    <span className="text-lg">{isSpanish ? 'Ver Planes Enterprise' : 'View Enterprise Plans'}</span>
-                  </Button>
+                  
+                  <p className="text-center text-sm font-bold text-red-600 animate-pulse">
+                    {isSpanish ? '⏰ Solo quedan 47 spots este mes' : '⏰ Only 47 spots left this month'}
+                  </p>
                 </div>
                 
-                {/* Trust Indicators - Enhanced */}
-                <div className="flex flex-col gap-4">
-                  <p className="text-sm text-slate-500 font-medium">
-                    {isSpanish ? '✦ Sin compromiso • Resultados en 24h • Soporte premium incluido' : '✦ No commitment • Results in 24h • Premium support included'}
-                  </p>
-                  <div className="flex items-center gap-6 text-sm text-slate-700">
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-emerald-600" />
-                      <span className="font-medium">{isSpanish ? 'Nivel Empresarial' : 'Enterprise Grade'}</span>
+                {/* Money-Back Guarantee & Social Proof */}
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300/50 rounded-2xl p-6 shadow-xl">
+                  <div className="text-center mb-4">
+                    <div className="text-2xl font-black text-orange-800 mb-2">
+                      {isSpanish ? '💎 GARANTÍA 100% DEVOLUCIÓN DE DINERO' : '💎 100% MONEY-BACK GUARANTEE'}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium">{isSpanish ? '10,000+ Unicornios' : '10,000+ Unicorns'}</span>
+                    <p className="text-orange-700 font-semibold">
+                      {isSpanish ? 'Si no obtienes resultados en 90 días, te devolvemos cada peso' : 'If you don\'t get results in 90 days, we refund every penny'}
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-black text-green-600">50,247</div>
+                      <div className="text-xs font-medium text-slate-600">{isSpanish ? 'Empresas Activas' : 'Active Businesses'}</div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="font-medium">4.9/5 Rating</span>
+                    <div>
+                      <div className="text-2xl font-black text-blue-600">$2.3B+</div>
+                      <div className="text-xs font-medium text-slate-600">{isSpanish ? 'Ventas Generadas' : 'Sales Generated'}</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-black text-purple-600">4.97★</div>
+                      <div className="text-xs font-medium text-slate-600">{isSpanish ? '12,847 Reseñas' : '12,847 Reviews'}</div>
                     </div>
                   </div>
                 </div>
