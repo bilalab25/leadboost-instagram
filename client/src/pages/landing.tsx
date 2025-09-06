@@ -235,141 +235,137 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* Clean Modern Hero Section */}
-        <div className="relative min-h-[90vh] bg-white">
-          {/* Simple elegant background */}
+        {/* Apple/Squarespace Inspired Hero */}
+        <div className="relative min-h-screen bg-white overflow-hidden">
+          {/* Subtle Apple-style background */}
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-blue-50/50" />
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/80" />
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-50/30 via-white to-white" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-0 w-72 h-72 bg-indigo-500/3 rounded-full blur-2xl" />
           </div>
           
-          {/* Clean Content Container */}
-          <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 pt-20 pb-16 lg:pt-28 lg:pb-20">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Squarespace-style centered layout */}
+          <div className="relative z-10 min-h-screen flex items-center justify-center">
+            <div className="max-w-4xl mx-auto px-6 text-center">
               
-              {/* Left Column - Content */}
-              <div className="max-w-2xl lg:max-w-none">
-                {/* Simple Trust Badge */}
-                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 mb-8">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span className="text-sm font-medium text-blue-800">
-                    {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
-                  </span>
-                  <div className="flex items-center gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 text-amber-400 fill-current" />
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Clean Modern Headline */}
-                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-                  {isSpanish ? (
-                    <>
-                      <span className="text-blue-600">Haz Crecer tu Negocio</span>
-                      <br />
-                      En Piloto Automático
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-blue-600">Grow Your Business</span>
-                      <br />
-                      On Autopilot
-                    </>
-                  )}
-                </h1>
-                
-                {/* Simple Value Proposition */}
-                <p className="text-xl text-gray-600 leading-relaxed mb-8 max-w-lg">
-                  {isSpanish 
-                    ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
-                    : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
-                  }
-                </p>
-                
-                {/* Clean Feature List */}
-                <div className="space-y-4 mb-10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <span className="text-gray-700 font-medium">
-                      {isSpanish ? 'IA crea contenido para 21+ plataformas' : 'AI creates content for 21+ platforms'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    </div>
-                    <span className="text-gray-700 font-medium">
-                      {isSpanish ? 'Chatbot responde clientes 24/7' : 'Chatbot handles customers 24/7'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <span className="text-gray-700 font-medium">
-                      {isSpanish ? 'Configuración en menos de 10 minutos' : 'Setup in under 10 minutes'}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Simple CTAs */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                  <Button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                    onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
-                    data-testid="button-start-demo"
-                  >
-                    {isSpanish ? 'Ver Demo en Vivo' : 'Watch Live Demo'}
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50 font-medium px-8 py-3 rounded-lg transition-all duration-300"
-                    onClick={() => window.location.href = '/pricing'}
-                    data-testid="button-see-pricing"
-                  >
-                    {isSpanish ? 'Ver precios simples' : 'View simple pricing'}
-                  </Button>
-                </div>
-                
-                {/* Trust Proof */}
-                <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200/50">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-slate-800">
-                      {isSpanish ? 'Resultados Reales' : 'Real Results'}
-                    </h3>
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
-                      <Shield className="w-3 h-3" />
-                      {isSpanish ? 'Verificado' : 'Verified'}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-2xl font-bold text-blue-600">25K+</div>
-                      <div className="text-xs text-slate-600">{isSpanish ? 'Empresas' : 'Businesses'}</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-green-600">89%</div>
-                      <div className="text-xs text-slate-600">{isSpanish ? 'Más leads' : 'More leads'}</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-purple-600">4.8★</div>
-                      <div className="text-xs text-slate-600">{isSpanish ? '2,847 reseñas' : '2,847 reviews'}</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-slate-200">
-                    <p className="text-sm text-slate-600 text-center">
-                      {isSpanish ? '✓ Sin compromiso • ✓ Cancelación gratuita • ✓ Soporte incluido' : '✓ No commitment • ✓ Free cancellation • ✓ Support included'}
-                    </p>
-                  </div>
+              {/* Apple-style minimalist trust indicator */}
+              <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full bg-gray-100/50 border border-gray-200/30">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span className="text-sm font-medium text-gray-600">
+                  {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
+                </span>
+                <div className="flex items-center gap-0.5 ml-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-2.5 h-2.5 text-yellow-400 fill-current" />
+                  ))}
                 </div>
               </div>
               
-              {/* Right Column - Visual */}
-              <div className="lg:flex lg:justify-center">
-                <div className="relative max-w-lg mx-auto lg:max-w-none">
+              {/* Apple-style typography */}
+              <h1 className="text-6xl lg:text-7xl font-light text-gray-900 leading-[0.95] tracking-tight mb-8">
+                {isSpanish ? (
+                  <>
+                    <span className="font-medium text-blue-600">Haz Crecer tu Negocio</span>
+                    <br />
+                    <span className="text-gray-800">En Piloto Automático</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium text-blue-600">Grow Your Business</span>
+                    <br />
+                    <span className="text-gray-800">On Autopilot</span>
+                  </>
+                )}
+              </h1>
+              
+              {/* Squarespace-style subtitle */}
+              <p className="text-2xl font-light text-gray-500 leading-relaxed mb-12 max-w-2xl mx-auto">
+                {isSpanish 
+                  ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
+                  : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
+                }
+              </p>
+              
+              {/* Elegant feature presentation */}
+              <div className="flex flex-wrap justify-center gap-8 mb-16 text-center">
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
+                    <CheckCircle className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <span className="text-gray-700 font-medium text-lg max-w-48">
+                    {isSpanish ? 'IA crea contenido para 21+ plataformas' : 'AI creates content for 21+ platforms'}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mb-3">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <span className="text-gray-700 font-medium text-lg max-w-48">
+                    {isSpanish ? 'Chatbot responde clientes 24/7' : 'Chatbot handles customers 24/7'}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-3">
+                    <CheckCircle className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <span className="text-gray-700 font-medium text-lg max-w-48">
+                    {isSpanish ? 'Configuración en menos de 10 minutos' : 'Setup in under 10 minutes'}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Apple-style button system */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-10 py-4 text-lg rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+                  onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+                  data-testid="button-start-demo"
+                >
+                  {isSpanish ? 'Ver Demo en Vivo' : 'Watch Live Demo'}
+                </Button>
+                <Button 
+                  variant="ghost"
+                  className="text-blue-600 hover:text-blue-700 font-medium px-8 py-4 text-lg rounded-full transition-all duration-200 hover:bg-blue-50"
+                  onClick={() => window.location.href = '/pricing'}
+                  data-testid="button-see-pricing"
+                >
+                  {isSpanish ? 'Ver precios simples' : 'View simple pricing'}
+                </Button>
+              </div>
+              
+              {/* Squarespace-style trust proof */}
+              <div className="border-t border-gray-100 pt-8">
+                <div className="flex justify-center items-center gap-8 text-sm text-gray-500">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    <span>{isSpanish ? 'Verificado' : 'Verified'}</span>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-gray-900">25K+</div>
+                    <div>{isSpanish ? 'Empresas' : 'Businesses'}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-gray-900">89%</div>
+                    <div>{isSpanish ? 'Más leads' : 'More leads'}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-gray-900">4.8★</div>
+                    <div>{isSpanish ? '2,847 reseñas' : '2,847 reviews'}</div>
+                  </div>
+                </div>
+                <p className="text-center text-xs text-gray-400 mt-4">
+                  {isSpanish ? '✓ Sin compromiso • ✓ Cancelación gratuita • ✓ Soporte incluido' : '✓ No commitment • ✓ Free cancellation • ✓ Support included'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        
+        {/* Professional Process Section */}
+        <div className="bg-slate-50 py-20">
+          <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
                   {/* Main Dashboard Mockup */}
                   <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
                     {/* Header */}
