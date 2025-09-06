@@ -37,10 +37,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
   
-  // Apply site-wide password protection (except in development)
-  if (process.env.NODE_ENV === "production") {
-    app.use(requireSitePassword);
-  }
+  // Apply site-wide password protection for deployed domain
+  app.use(requireSitePassword);
 
   // Auth routes (Demo mode - no authentication required)
   app.get('/api/auth/user', async (req: any, res) => {
