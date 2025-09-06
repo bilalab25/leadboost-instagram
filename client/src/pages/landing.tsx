@@ -251,115 +251,125 @@ export default function Landing() {
               
               {/* Left Column - Content */}
               <div className="max-w-2xl lg:max-w-none">
-                {/* Clean Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 mb-8">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  <span className="text-sm font-medium text-blue-700">
-                    {isSpanish ? 'Plataforma Enterprise' : 'Enterprise Platform'}
+                {/* Trust Badge */}
+                <div className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200/50 mb-6 shadow-sm">
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-sm font-medium text-slate-700">
+                    {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
                   </span>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
                 </div>
                 
-                {/* Modern Headline */}
-                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.05] tracking-[-0.02em] mb-4">
+                {/* Clear Value Headline */}
+                <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-slate-900 leading-tight mb-4">
                   {isSpanish ? (
                     <>
-                      <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Haz Crecer tu Negocio
+                      Automatiza tu <br />
+                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        Marketing Completo
                       </span>
-                      <br />
-                      <span className="text-slate-700 text-3xl lg:text-4xl">En Piloto Automático</span>
                     </>
                   ) : (
                     <>
-                      <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Grow Your Business
+                      Automate Your <br />
+                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        Entire Marketing
                       </span>
-                      <br />
-                      <span className="text-slate-700 text-3xl lg:text-4xl">On Autopilot</span>
                     </>
                   )}
                 </h1>
                 
-                {/* Clean Value Proposition */}
-                <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-lg">
+                {/* Simple Promise */}
+                <p className="text-xl text-slate-600 mb-6 leading-relaxed max-w-lg">
                   {isSpanish 
-                    ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
-                    : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
+                    ? 'Desde crear contenido hasta gestionar clientes. Una plataforma, todo automatizado.' 
+                    : 'From content creation to customer management. One platform, everything automated.'
                   }
                 </p>
                 
-                {/* Modern Benefits */}
-                <div className="grid grid-cols-2 gap-3 mb-10">
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 rounded-xl border border-blue-100/50">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
-                      <BarChart3 className="w-4 h-4 text-white" />
+                {/* What You Get */}
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-blue-600" />
                     </div>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {isSpanish ? 'Campañas basadas en datos' : 'Data-backed campaigns'}
+                    <span className="text-slate-700 font-medium">
+                      {isSpanish ? 'IA crea contenido para 21+ plataformas' : 'AI creates content for 21+ platforms'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 rounded-xl border border-purple-100/50">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center shadow-sm">
-                      <Globe className="w-4 h-4 text-white" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
                     </div>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {isSpanish ? '21+ canales auto-publicando' : '21+ channels auto-posting'}
+                    <span className="text-slate-700 font-medium">
+                      {isSpanish ? 'Chatbot responde clientes 24/7' : 'Chatbot handles customers 24/7'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-green-50 px-4 py-3 rounded-xl border border-emerald-100/50">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-sm">
-                      <Bot className="w-4 h-4 text-white" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-purple-600" />
                     </div>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {isSpanish ? 'ChatBot IA 24/7 conversión' : 'AI ChatBot 24/7 conversion'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-indigo-50 to-blue-50 px-4 py-3 rounded-xl border border-indigo-100/50">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center shadow-sm">
-                      <MessageSquare className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {isSpanish ? 'Sin complejidad técnica' : 'No technical complexity'}
+                    <span className="text-slate-700 font-medium">
+                      {isSpanish ? 'Configuración en menos de 10 minutos' : 'Setup in under 10 minutes'}
                     </span>
                   </div>
                 </div>
                 
-                {/* Modern CTAs */}
+                {/* Clear CTA */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
                   <Button 
-                    className="bg-gradient-to-r from-emerald-500 via-blue-600 to-purple-600 hover:from-emerald-600 hover:via-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-4 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-10 py-4 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group"
                     onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                     data-testid="button-start-demo"
                   >
-                    <span className="mr-2">
-                      {isSpanish ? 'Comenzar Demo Gratuito' : 'Start Free Demo'}
+                    <span className="mr-2 text-lg">
+                      {isSpanish ? 'Ver Demo en Vivo' : 'Watch Live Demo'}
                     </span>
-                    <ArrowRight className="w-5 h-5" />
+                    <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   </Button>
                   <Button 
-                    variant="outline"
-                    className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 font-semibold px-8 py-4 h-auto rounded-xl transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    variant="ghost"
+                    className="text-slate-600 hover:text-slate-800 font-medium px-6 py-4 h-auto rounded-xl transition-all duration-300 underline decoration-slate-300 hover:decoration-slate-500"
                     onClick={() => window.location.href = '/pricing'}
                     data-testid="button-see-pricing"
                   >
-                    {isSpanish ? 'Ver Precios' : 'See Pricing'}
+                    {isSpanish ? 'Ver precios simples' : 'View simple pricing'}
                   </Button>
                 </div>
                 
-                {/* Simple Trust Indicators */}
-                <div className="flex flex-col gap-3">
-                  <p className="text-sm text-slate-500">
-                    {isSpanish ? 'Sin compromiso • Cancela en cualquier momento' : 'No commitment • Cancel anytime'}
-                  </p>
-                  <div className="flex items-center gap-4 text-sm text-slate-600">
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-green-600" />
-                      <span>{isSpanish ? 'Seguro SSL' : 'SSL Secure'}</span>
+                {/* Trust Proof */}
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 border border-slate-200/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-slate-800">
+                      {isSpanish ? 'Resultados Reales' : 'Real Results'}
+                    </h3>
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                      <Shield className="w-3 h-3" />
+                      {isSpanish ? 'Verificado' : 'Verified'}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-blue-600" />
-                      <span>{isSpanish ? '10,000+ empresas' : '10,000+ businesses'}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-blue-600">25K+</div>
+                      <div className="text-xs text-slate-600">{isSpanish ? 'Empresas' : 'Businesses'}</div>
                     </div>
+                    <div>
+                      <div className="text-2xl font-bold text-green-600">89%</div>
+                      <div className="text-xs text-slate-600">{isSpanish ? 'Más leads' : 'More leads'}</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-purple-600">4.8★</div>
+                      <div className="text-xs text-slate-600">{isSpanish ? '2,847 reseñas' : '2,847 reviews'}</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <p className="text-sm text-slate-600 text-center">
+                      {isSpanish ? '✓ Sin compromiso • ✓ Cancelación gratuita • ✓ Soporte incluido' : '✓ No commitment • ✓ Free cancellation • ✓ Support included'}
+                    </p>
                   </div>
                 </div>
               </div>
