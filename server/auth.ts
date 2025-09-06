@@ -1,27 +1,43 @@
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
-import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+
+// Import connect-pg-simple only if DATABASE_URL is available
+let connectPg: any = null;
+try {
+  if (process.env.DATABASE_URL) {
+    connectPg = require("connect-pg-simple");
+  }
+} catch (error) {
+  console.log("PostgreSQL session store not available, using memory store");
+}
 
 // Production-ready authentication setup without Replit dependencies
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   
-  // Use in-memory store for production if DATABASE_URL is not available
+  // Use PostgreSQL store if available, otherwise use memory store
   let sessionStore: any = undefined;
   
-  if (process.env.DATABASE_URL) {
-    const pgStore = connectPg(session);
-    sessionStore = new pgStore({
-      conString: process.env.DATABASE_URL,
-      createTableIfMissing: false,
-      ttl: sessionTtl,
-      tableName: "sessions",
-    });
+  if (process.env.DATABASE_URL && connectPg) {
+    try {
+      const pgStore = connectPg(session);
+      sessionStore = new pgStore({
+        conString: process.env.DATABASE_URL,
+        createTableIfMissing: false,
+        ttl: sessionTtl,
+        tableName: "sessions",
+      });
+      console.log("Using PostgreSQL session store");
+    } catch (error) {
+      console.log("Failed to setup PostgreSQL session store, using memory store:", error.message);
+    }
+  } else {
+    console.log("Using memory session store (not recommended for production)");
   }
   
   return session({
-    secret: process.env.SESSION_SECRET || 'fallback-demo-secret-key-not-for-production',
+    secret: process.env.SESSION_SECRET || 'demo-secret-' + Math.random().toString(36).substring(7),
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
