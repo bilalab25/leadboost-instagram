@@ -235,64 +235,233 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* Hero Section with Floating Campaign Background */}
-        <div className="relative overflow-hidden mt-0 min-h-screen bg-gray-50">
-          {/* Floating Campaign Background - Squarespace Style */}
-          <div className="absolute inset-0 overflow-hidden">
-            <CampaignBackgroundFlow isSpanish={isSpanish} />
+        {/* Professional Hero Section */}
+        <div className="relative overflow-hidden min-h-[85vh] bg-gradient-to-br from-slate-50 via-white to-gray-50">
+          {/* Subtle Background Pattern */}
+          <div className="absolute inset-0 opacity-[0.03]">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.4'%3E%3Ccircle cx='7' cy='7' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              backgroundSize: '60px 60px'
+            }} />
           </div>
           
-          {/* Sophisticated gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-gray-50/50 to-white/60" />
-          
-          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-20 pb-10 lg:pt-24 lg:pb-14">
-            <div className="max-w-5xl">
-              <div className="mb-4">
-                <h1 className="text-6xl lg:text-8xl xl:text-9xl font-bold bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] bg-clip-text text-transparent leading-[0.6] tracking-[-0.02em] drop-shadow-2xl relative z-10">
-                  {isSpanish ? 'Haz Crecer Tu\u00A0Negocio' : (
+          {/* Premium Content Container */}
+          <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 pt-24 pb-16 lg:pt-32 lg:pb-20">
+            <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+              
+              {/* Left Column - Content */}
+              <div className="max-w-2xl lg:max-w-none">
+                {/* Premium Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 mb-8">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="text-sm font-medium text-blue-700">
+                    {isSpanish ? 'Plataforma Enterprise' : 'Enterprise Platform'}
+                  </span>
+                </div>
+                
+                {/* Main Headline */}
+                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 leading-[1.1] tracking-[-0.02em] mb-6">
+                  {isSpanish ? (
                     <>
-                      Grow Your <br />
-                      Business
+                      Automatiza tu <br />
+                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        Marketing Digital
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      Automate Your <br />
+                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        Digital Marketing
+                      </span>
                     </>
                   )}
                 </h1>
-                <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent tracking-[-0.01em] mt-3 drop-shadow-lg">
-                  {isSpanish ? '— En Piloto Automático.' : '— On Autopilot.'}
-                </h2>
+                
+                {/* Value Proposition */}
+                <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-lg">
+                  {isSpanish 
+                    ? 'Plataforma todo-en-uno impulsada por IA que genera contenido, gestiona campañas y optimiza resultados automáticamente.' 
+                    : 'AI-powered all-in-one platform that generates content, manages campaigns, and optimizes results automatically.'
+                  }
+                </p>
+                
+                {/* Key Benefits */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    </div>
+                    <span className="text-slate-700 font-medium">
+                      {isSpanish ? 'Configuración en 5 min' : '5-minute setup'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    </div>
+                    <span className="text-slate-700 font-medium">
+                      {isSpanish ? 'Sin conocimiento técnico' : 'No technical knowledge'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    </div>
+                    <span className="text-slate-700 font-medium">
+                      {isSpanish ? '21+ plataformas conectadas' : '21+ platforms connected'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    </div>
+                    <span className="text-slate-700 font-medium">
+                      {isSpanish ? 'Soporte 24/7' : '24/7 support'}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                  <Button 
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-4 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                    onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+                    data-testid="button-start-demo"
+                  >
+                    <span className="mr-2">
+                      {isSpanish ? 'Comenzar Demo Gratuito' : 'Start Free Demo'}
+                    </span>
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 font-semibold px-8 py-4 h-auto rounded-xl transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                    onClick={() => window.location.href = '/pricing'}
+                    data-testid="button-see-pricing"
+                  >
+                    {isSpanish ? 'Ver Precios' : 'See Pricing'}
+                  </Button>
+                </div>
+                
+                {/* Trust Indicators */}
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm text-slate-500">
+                    {isSpanish ? 'Sin compromiso • Cancela en cualquier momento' : 'No commitment • Cancel anytime'}
+                  </p>
+                  <div className="flex items-center gap-4 text-sm text-slate-600">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-green-600" />
+                      <span>{isSpanish ? 'Seguro SSL' : 'SSL Secure'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-blue-600" />
+                      <span>{isSpanish ? '10,000+ empresas' : '10,000+ businesses'}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               
-              <div className="space-y-6 mb-8 max-w-4xl">
-                <p className="text-lg lg:text-xl font-medium text-slate-700 leading-relaxed">
-                  {isSpanish ? 'Plataforma completa de automatización empresarial impulsada por IA' : 'Complete AI-powered business automation platform'}
-                </p>
-                <p className="text-base text-slate-600 leading-relaxed max-w-2xl">
-                  {isSpanish ? 'Automatiza marketing, ventas y gestión de clientes desde una sola plataforma. Sin complejidad técnica.' : 'Automate marketing, sales, and customer management from a single platform. No technical complexity.'}
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row sm:items-start gap-6 mt-6">
-                <Button 
-                  className="bg-gradient-to-br from-[#3f82d1] via-slate-800 to-[#2d5a9a] hover:from-[#3470b8] hover:via-slate-700 hover:to-[#26527d] text-white text-sm font-semibold px-6 py-3 h-auto rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 drop-shadow-xl"
-                  onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  {isSpanish ? 'Comenzar Demo Gratuito' : 'Start Free Demo'}
-                </Button>
-                <div className="flex flex-col gap-2 sm:mt-1">
-                  <p className="text-sm text-slate-600">
-                    {isSpanish ? 'Sin tarjeta de crédito • Configuración en minutos' : 'No credit card • Setup in minutes'}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {isSpanish ? 'Usado por 10,000+ empresas a nivel mundial' : 'Trusted by 10,000+ businesses worldwide'}
-                  </p>
+              {/* Right Column - Visual */}
+              <div className="lg:flex lg:justify-center">
+                <div className="relative max-w-lg mx-auto lg:max-w-none">
+                  {/* Main Dashboard Mockup */}
+                  <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <Bot className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="font-semibold text-slate-800">LeadBoost AI</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="w-3 h-3 rounded-full bg-red-400" />
+                          <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                          <div className="w-3 h-3 rounded-full bg-green-400" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="p-6 space-y-6">
+                      {/* Campaign Status */}
+                      <div className="space-y-3">
+                        <h3 className="font-semibold text-slate-800">
+                          {isSpanish ? 'Campañas Activas' : 'Active Campaigns'}
+                        </h3>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                            <div className="text-2xl font-bold text-green-600">12</div>
+                            <div className="text-xs text-green-700">Instagram</div>
+                          </div>
+                          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                            <div className="text-2xl font-bold text-blue-600">8</div>
+                            <div className="text-xs text-blue-700">Facebook</div>
+                          </div>
+                          <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                            <div className="text-2xl font-bold text-purple-600">5</div>
+                            <div className="text-xs text-purple-700">TikTok</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Performance Chart */}
+                      <div className="space-y-3">
+                        <h3 className="font-semibold text-slate-800">
+                          {isSpanish ? 'Rendimiento' : 'Performance'}
+                        </h3>
+                        <div className="h-24 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg flex items-end justify-between p-4">
+                          <div className="w-4 bg-blue-500 rounded-t" style={{height: '40%'}} />
+                          <div className="w-4 bg-blue-600 rounded-t" style={{height: '60%'}} />
+                          <div className="w-4 bg-blue-700 rounded-t" style={{height: '80%'}} />
+                          <div className="w-4 bg-indigo-500 rounded-t" style={{height: '95%'}} />
+                          <div className="w-4 bg-indigo-600 rounded-t" style={{height: '75%'}} />
+                          <div className="w-4 bg-indigo-700 rounded-t" style={{height: '85%'}} />
+                        </div>
+                      </div>
+                      
+                      {/* AI Status */}
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div className="flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-sm font-medium text-green-800">
+                            {isSpanish ? 'IA generando contenido...' : 'AI generating content...'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <TrendingUp className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Zap className="w-8 h-8 text-white" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           
-          {/* CampAIgner Tool Visual Flow */}
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-32">
-            <div className="mb-24">
-              <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 max-w-6xl mx-auto waterfall-container">
+          {/* Professional Process Section */}
+          <div className="bg-slate-50 py-20">
+            <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
+              <div className="text-center mb-16">
+                <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+                  {isSpanish ? 'Cómo Funciona' : 'How It Works'}
+                </h2>
+                <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+                  {isSpanish 
+                    ? 'Nuestra IA analiza tu negocio y genera campañas optimizadas para cada plataforma automáticamente.'
+                    : 'Our AI analyzes your business and generates optimized campaigns for each platform automatically.'
+                  }
+                </p>
+              </div>
+              
+              <Card className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-6xl mx-auto overflow-hidden">
                 {/* Waterfall particles */}
                 <div className="waterfall-particle" style={{zIndex: 5}}></div>
                 <div className="waterfall-particle" style={{zIndex: 5}}></div>
