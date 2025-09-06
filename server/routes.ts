@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./auth";
+import { setupAuth, isAuthenticated, requireSitePassword } from "./auth";
 import OpenAI from "openai";
 import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
 import { socialMediaService } from "./services/socialMedia";
@@ -36,6 +36,11 @@ const openai = new OpenAI({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  
+  // Apply site-wide password protection (except in development)
+  if (process.env.NODE_ENV === "production") {
+    app.use(requireSitePassword);
+  }
 
   // Auth routes (Demo mode - no authentication required)
   app.get('/api/auth/user', async (req: any, res) => {
