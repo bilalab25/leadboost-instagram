@@ -199,12 +199,12 @@ export default function Landing() {
               {isSpanish ? 'CARACTERÍSTICAS PRINCIPALES' : 'CORE FEATURES'}
             </Badge>
             <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              {isSpanish ? 'El Motor De Crecimiento Empresarial Automatizado' : 'The Automated Business Growth Engine'}
+              {isSpanish ? 'Campañas Que Se Crean Y Publican Solas' : 'Campaigns That Create And Post Themselves'}
             </h2>
             <p className="text-xl text-white/70 max-w-3xl mx-auto">
               {isSpanish 
-                ? 'Conecta datos reales de tu negocio, alcanza 30x más clientes en 21+ plataformas y convierte conversaciones con IA. Todo automatizado.'
-                : 'Connect real business data, reach 30x more clients across 21+ platforms, and convert conversations with AI. Fully automated.'
+                ? 'IA alimentada constantemente con datos de tu POS, web y redes sociales. Genera y publica campañas por años sin intervención humana.'
+                : 'AI constantly fed with data from your POS, web and social media. Generates and posts campaigns for years without human intervention.'
               }
             </p>
           </div>
@@ -216,16 +216,16 @@ export default function Landing() {
                   <BarChart3 className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Campañas Basadas En Datos' : 'Data-Backed Campaigns'}
+                  {isSpanish ? 'Generación Automática De Campañas' : 'Automated Campaign Generation'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'Conecta información real de tu negocio - inventario, precios, ofertas, eventos. Campañas que se actualizan automáticamente con datos empresariales en tiempo real.'
-                    : 'Connect real business info - inventory, pricing, offers, events. Campaigns that auto-update with real-time business data.'
+                    ? 'Conectamos tu POS, website, redes sociales y sistemas. IA crea campañas 24/7 usando datos reales: inventario, ventas, eventos, promociones. Años sin tocar nada.'
+                    : 'We connect your POS, website, social media and systems. AI creates campaigns 24/7 using real data: inventory, sales, events, promotions. Years without touching anything.'
                   }
                 </p>
                 <div className="flex items-center justify-center text-green-400 font-medium">
-                  <span>{isSpanish ? 'Datos Reales, Resultados Reales' : 'Real Data, Real Results'}</span>
+                  <span>{isSpanish ? 'Sin Intervención Humana' : 'Zero Human Intervention'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -285,21 +285,21 @@ export default function Landing() {
                 {isSpanish ? 'RESULTADOS GARANTIZADOS' : 'GUARANTEED RESULTS'}
               </Badge>
               <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-                {isSpanish ? 'Alcanza 30x Más Clientes Automáticamente' : 'Reach 30x More Clients Automatically'}
+                {isSpanish ? 'Marketing Que Funciona Solo Por Años' : 'Marketing That Works Alone For Years'}
               </h2>
               <p className="text-xl text-white/70 mb-8 leading-relaxed">
                 {isSpanish 
-                  ? 'Conecta datos empresariales reales, multiplica tu alcance en 21+ plataformas y convierte conversaciones con IA. Clientes logran 30x más alcance y 400% más conversiones.'
-                  : 'Connect real business data, multiply reach across 21+ platforms, and convert conversations with AI. Clients achieve 30x more reach and 400% more conversions.'
+                  ? 'Conectamos todos tus sistemas empresariales. IA genera contenido constantemente basado en datos reales. Clientes olvidan que tienen marketing porque funciona automáticamente.'
+                  : 'We connect all your business systems. AI constantly generates content based on real data. Clients forget they have marketing because it works automatically.'
                 }
               </p>
               
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: Check, text: isSpanish ? 'Datos empresariales conectados en tiempo real' : 'Real-time business data connected' },
-                  { icon: Check, text: isSpanish ? 'Auto-redimensionado para 21+ plataformas simultáneamente' : 'Auto-sized for 21+ platforms simultaneously' },
-                  { icon: Check, text: isSpanish ? 'ChatDeck IA unificado para conversiones 24/7' : 'Unified AI ChatDeck for 24/7 conversions' },
-                  { icon: Check, text: isSpanish ? 'Alcance 30x mayor con un solo clic' : '30x greater reach with one click' }
+                  { icon: Check, text: isSpanish ? 'POS, website, redes sociales conectados automáticamente' : 'POS, website, social media connected automatically' },
+                  { icon: Check, text: isSpanish ? 'IA crea y publica campañas por meses sin intervención' : 'AI creates and posts campaigns for months without intervention' },
+                  { icon: Check, text: isSpanish ? 'Datos de negocio actualizan contenido en tiempo real' : 'Business data updates content in real-time' },
+                  { icon: Check, text: isSpanish ? 'Marketing completamente en piloto automático' : 'Marketing completely on autopilot' }
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-4">
                     <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -349,12 +349,12 @@ export default function Landing() {
       <section className="relative py-20 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-            {isSpanish ? '¿Listo Para Alcanzar 30x Más Clientes?' : 'Ready To Reach 30x More Clients?'}
+            {isSpanish ? '¿Listo Para Marketing Que Nunca Para?' : 'Ready For Marketing That Never Stops?'}
           </h2>
           <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
             {isSpanish 
-              ? 'Conecta datos reales de tu negocio, multiplica tu presencia en 21+ plataformas y convierte con IA 24/7. Todo automatizado. Prueba gratis 14 días.'
-              : 'Connect real business data, multiply your presence across 21+ platforms, and convert with AI 24/7. Fully automated. Free 14-day trial.'
+              ? 'Conectamos tus sistemas. IA genera campañas automáticamente por años usando datos reales de tu negocio. Sin tocar botones. Prueba gratis 14 días.'
+              : 'We connect your systems. AI generates campaigns automatically for years using real business data. Without touching buttons. Free 14-day trial.'
             }
           </p>
           
