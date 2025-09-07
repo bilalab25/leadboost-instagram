@@ -262,7 +262,7 @@ export default function Landing() {
                 {isSpanish ? 'Demo Interactivo' : 'Interactive Demo'}
               </div>
               <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                {isSpanish ? 'Ve CampAIgner en Acción' : 'See CampAIgner in Action'}
+                {isSpanish ? 'Ve nuestra herramienta CampAIgner en Acción' : 'See our CampAIgner tool in Action'}
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                 {isSpanish 
