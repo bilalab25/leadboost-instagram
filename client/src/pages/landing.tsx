@@ -87,7 +87,7 @@ export default function Landing() {
           <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
             <span className="text-sm font-medium text-white/90">
-              {isSpanish ? '✨ Usado por 25,000+ empresas exitosas' : '✨ Used by 25,000+ successful businesses'}
+              {isSpanish ? '✨ Gestiona más de 1M+ conversaciones mensualmente' : '✨ Managing 1M+ conversations monthly'}
             </span>
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
@@ -101,18 +101,18 @@ export default function Landing() {
           <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 text-white transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish ? (
               <>
-                El Ecosistema Completo
+                Gestiona Todas Tus
                 <br />
                 <span className="text-blue-300">
-                  Para Tu Negocio
+                  Redes Sociales Con IA
                 </span>
               </>
             ) : (
               <>
-                The Complete
+                Manage All Your
                 <br />
                 <span className="text-blue-300">
-                  Business Ecosystem
+                  Social Media With AI
                 </span>
               </>
             )}
@@ -121,8 +121,8 @@ export default function Landing() {
           {/* Subtitle */}
           <p className={`text-xl sm:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish 
-              ? 'Marketing, ventas, relaciones con clientes, retención y análisis empresarial unificados. La única plataforma que necesita tu empresa para vender más.' 
-              : 'Marketing, sales, customer relationship, retention, and business analytics unified. The only platform your business needs to sell more.'
+              ? 'Bandeja de entrada unificada para Instagram, WhatsApp, TikTok y más. IA que crea contenido, gestiona campañas y analiza sentimientos. Todo en una plataforma.' 
+              : 'Unified inbox for Instagram, WhatsApp, TikTok and more. AI that creates content, manages campaigns, and analyzes sentiment. All in one platform.'
             }
           </p>
 
@@ -172,20 +172,20 @@ export default function Landing() {
           {/* Social Proof Numbers */}
           <div className={`grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto transition-all duration-1000 delay-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">25K+</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Empresas activas' : 'Active businesses'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">21+</div>
+              <div className="text-white/60 text-sm">{isSpanish ? 'Plataformas conectadas' : 'Connected platforms'}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">2.3M+</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Posts generados' : 'Posts generated'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">10k+</div>
+              <div className="text-white/60 text-sm">{isSpanish ? 'Contenidos IA/mes' : 'AI content/month'}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">421%</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Crecimiento promedio' : 'Average growth'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">85%</div>
+              <div className="text-white/60 text-sm">{isSpanish ? 'Tiempo ahorrado' : 'Time saved'}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-bold text-white mb-2">24/7</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Soporte IA' : 'AI support'}</div>
+              <div className="text-white/60 text-sm">{isSpanish ? 'Respuesta automática' : 'Auto responses'}</div>
             </div>
           </div>
         </div>
