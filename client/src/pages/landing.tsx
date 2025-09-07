@@ -26,7 +26,7 @@ export default function Landing() {
   const t = translations[language];
 
   return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
         {/* Header */}
         <header className="absolute top-0 left-0 right-0 z-50">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
@@ -126,37 +126,37 @@ export default function Landing() {
             <div className="max-w-4xl mx-auto px-6 text-center">
               
               {/* Trust indicator */}
-              <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full bg-gray-100/50 border border-gray-200/30">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span className="text-sm font-medium text-gray-600">
+              <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm shadow-lg">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+                <span className="text-sm font-medium text-slate-200">
                   {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
                 </span>
                 <div className="flex items-center gap-0.5 ml-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-2.5 h-2.5 text-yellow-400 fill-current" />
+                    <Star key={i} className="w-2.5 h-2.5 text-amber-400 fill-current" />
                   ))}
                 </div>
               </div>
               
               {/* Main headline */}
-              <h1 className="text-6xl lg:text-7xl font-light text-gray-900 leading-[0.95] tracking-tight mb-8">
+              <h1 className="text-6xl lg:text-7xl font-light text-white leading-[0.95] tracking-tight mb-8">
                 {isSpanish ? (
                   <>
-                    <span className="font-medium text-blue-600">Haz Crecer tu Negocio</span>
+                    <span className="font-medium bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Haz Crecer tu Negocio</span>
                     <br />
-                    <span className="text-gray-800">En Piloto Automático</span>
+                    <span className="text-slate-200">En Piloto Automático</span>
                   </>
                 ) : (
                   <>
-                    <span className="font-medium text-blue-600">Grow Your Business</span>
+                    <span className="font-medium bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Grow Your Business</span>
                     <br />
-                    <span className="text-gray-800">On Autopilot</span>
+                    <span className="text-slate-200">On Autopilot</span>
                   </>
                 )}
               </h1>
               
               {/* Subtitle */}
-              <p className="text-2xl font-light text-gray-500 leading-relaxed mb-12 max-w-2xl mx-auto">
+              <p className="text-2xl font-light text-slate-300 leading-relaxed mb-12 max-w-2xl mx-auto">
                 {isSpanish 
                   ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
                   : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
@@ -166,26 +166,26 @@ export default function Landing() {
               {/* Feature highlights */}
               <div className="flex flex-wrap justify-center gap-8 mb-16 text-center">
                 <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
-                    <CheckCircle className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-3 shadow-lg">
+                    <CheckCircle className="w-6 h-6 text-cyan-400" />
                   </div>
-                  <span className="text-gray-700 font-medium text-lg max-w-48">
+                  <span className="text-slate-200 font-medium text-lg max-w-48">
                     {isSpanish ? 'IA crea contenido para 21+ plataformas' : 'AI creates content for 21+ platforms'}
                   </span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mb-3">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-3 shadow-lg">
+                    <CheckCircle className="w-6 h-6 text-cyan-400" />
                   </div>
-                  <span className="text-gray-700 font-medium text-lg max-w-48">
+                  <span className="text-slate-200 font-medium text-lg max-w-48">
                     {isSpanish ? 'Chatbot responde clientes 24/7' : 'Chatbot handles customers 24/7'}
                   </span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-3">
-                    <CheckCircle className="w-6 h-6 text-purple-600" />
+                  <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-3 shadow-lg">
+                    <CheckCircle className="w-6 h-6 text-cyan-400" />
                   </div>
-                  <span className="text-gray-700 font-medium text-lg max-w-48">
+                  <span className="text-slate-200 font-medium text-lg max-w-48">
                     {isSpanish ? 'Configuración en menos de 10 minutos' : 'Setup in under 10 minutes'}
                   </span>
                 </div>
@@ -194,14 +194,14 @@ export default function Landing() {
               {/* CTA buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
                 <Button 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-10 py-4 text-lg rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium px-10 py-4 text-lg rounded-full shadow-lg shadow-cyan-500/25 hover:shadow-xl hover:shadow-cyan-500/30 transition-all duration-200"
                   data-testid="button-start-demo"
                 >
                   {isSpanish ? 'Empezar Demo Gratis' : 'Start Free Demo'}
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="font-medium px-10 py-4 text-lg rounded-full border-gray-300 hover:border-gray-400 transition-all duration-200"
+                  className="font-medium px-10 py-4 text-lg rounded-full border-white/30 hover:border-white/50 text-slate-200 hover:text-white hover:bg-white/10 backdrop-blur-sm transition-all duration-200"
                   data-testid="button-watch-demo"
                 >
                   <Play className="w-5 h-5 mr-2" />
