@@ -349,12 +349,12 @@ export default function Landing() {
       <section className="relative py-20 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-            {isSpanish ? '¿Listo Para Dominar Tus Redes Sociales?' : 'Ready To Master Your Social Media?'}
+            {isSpanish ? '¿Listo Para Alcanzar 30x Más Clientes?' : 'Ready To Reach 30x More Clients?'}
           </h2>
           <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
             {isSpanish 
-              ? 'Únete a miles de marcas que han revolucionado su presencia digital con IA. Gestiona todas tus redes desde una plataforma. Prueba gratis durante 14 días.'
-              : 'Join thousands of brands that have revolutionized their digital presence with AI. Manage all your networks from one platform. Try free for 14 days.'
+              ? 'Conecta datos reales de tu negocio, multiplica tu presencia en 21+ plataformas y convierte con IA 24/7. Todo automatizado. Prueba gratis 14 días.'
+              : 'Connect real business data, multiply your presence across 21+ platforms, and convert with AI 24/7. Fully automated. Free 14-day trial.'
             }
           </p>
           
@@ -367,7 +367,7 @@ export default function Landing() {
               {isSpanish ? 'Comenzar Prueba Gratuita' : 'Start Free Trial'}
             </Button>
             <div className="text-white/60 text-sm">
-              {isSpanish ? '✓ Sin tarjeta de crédito • ✓ Configuración instantánea' : '✓ No credit card • ✓ Instant setup'}
+              {isSpanish ? '✓ Conexión instantánea 21+ plataformas • ✓ ChatDeck IA incluido' : '✓ Instant 21+ platform connection • ✓ AI ChatDeck included'}
             </div>
           </div>
           
