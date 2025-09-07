@@ -21,7 +21,6 @@ export default function Landing() {
   const t = translations[language];
 
   return (
-    <>
       <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
         {/* Header */}
         <header className="absolute top-0 left-0 right-0 z-50">
@@ -219,7 +218,6 @@ export default function Landing() {
               </Card>
             </div>
           </div>
-        </div>
 
         {/* FAQ Section */}
         <div className="bg-gradient-to-br from-gray-50 to-white faq-section">
@@ -256,6 +254,5 @@ export default function Landing() {
           </div>
         </footer>
       </div>
-    </>
   );
 }
