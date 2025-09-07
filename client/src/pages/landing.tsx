@@ -285,21 +285,21 @@ export default function Landing() {
                 {isSpanish ? 'RESULTADOS GARANTIZADOS' : 'GUARANTEED RESULTS'}
               </Badge>
               <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-                {isSpanish ? 'Multiplica Tu Presencia En Redes Sociales' : 'Multiply Your Social Media Presence'}
+                {isSpanish ? 'Alcanza 30x Más Clientes Automáticamente' : 'Reach 30x More Clients Automatically'}
               </h2>
               <p className="text-xl text-white/70 mb-8 leading-relaxed">
                 {isSpanish 
-                  ? 'Nuestros clientes crean contenido 10x más rápido, aumentan engagement en 300% y responden mensajes en segundos con nuestra plataforma de gestión social potenciada por IA.'
-                  : 'Our clients create content 10x faster, increase engagement by 300%, and respond to messages in seconds with our AI-powered social management platform.'
+                  ? 'Conecta datos empresariales reales, multiplica tu alcance en 21+ plataformas y convierte conversaciones con IA. Clientes logran 30x más alcance y 400% más conversiones.'
+                  : 'Connect real business data, multiply reach across 21+ platforms, and convert conversations with AI. Clients achieve 30x more reach and 400% more conversions.'
                 }
               </p>
               
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: Check, text: isSpanish ? 'Conexión instantánea con 21+ plataformas' : 'Instant connection to 21+ platforms' },
-                  { icon: Check, text: isSpanish ? 'Contenido IA personalizado para cada red' : 'AI content personalized for each network' },
-                  { icon: Check, text: isSpanish ? 'Respuestas automáticas inteligentes' : 'Smart automated responses' },
-                  { icon: Check, text: isSpanish ? 'Análisis de sentimientos en tiempo real' : 'Real-time sentiment analysis' }
+                  { icon: Check, text: isSpanish ? 'Datos empresariales conectados en tiempo real' : 'Real-time business data connected' },
+                  { icon: Check, text: isSpanish ? 'Auto-redimensionado para 21+ plataformas simultáneamente' : 'Auto-sized for 21+ platforms simultaneously' },
+                  { icon: Check, text: isSpanish ? 'ChatDeck IA unificado para conversiones 24/7' : 'Unified AI ChatDeck for 24/7 conversions' },
+                  { icon: Check, text: isSpanish ? 'Alcance 30x mayor con un solo clic' : '30x greater reach with one click' }
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-4">
                     <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -322,23 +322,23 @@ export default function Landing() {
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
                 <TrendingUp className="w-8 h-8 text-green-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">300%</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Más engagement' : 'More engagement'}</div>
+                <div className="text-3xl font-bold text-white mb-2">30x</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Más alcance de clientes' : 'More client reach'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <Clock className="w-8 h-8 text-blue-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">10x</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Creación más rápida' : 'Faster content creation'}</div>
+                <BarChart3 className="w-8 h-8 text-blue-400 mx-auto mb-4" />
+                <div className="text-3xl font-bold text-white mb-2">400%</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Más conversiones' : 'More conversions'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <MessageSquare className="w-8 h-8 text-purple-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">2min</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Tiempo de respuesta' : 'Response time'}</div>
+                <Globe className="w-8 h-8 text-purple-400 mx-auto mb-4" />
+                <div className="text-3xl font-bold text-white mb-2">21+</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Plataformas automáticas' : 'Automated platforms'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <Bot className="w-8 h-8 text-cyan-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">95%</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Precisión IA' : 'AI accuracy'}</div>
+                <MessageSquare className="w-8 h-8 text-cyan-400 mx-auto mb-4" />
+                <div className="text-3xl font-bold text-white mb-2">24/7</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'ChatDeck IA activo' : 'AI ChatDeck active'}</div>
               </div>
             </div>
           </div>
