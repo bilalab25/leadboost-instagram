@@ -16,7 +16,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 text-white overflow-hidden">
       {/* Header */}
       <header className="relative z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
@@ -80,7 +80,7 @@ export default function Landing() {
               <>
                 Automatiza tu
                 <br />
-                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                   imperio digital
                 </span>
               </>
@@ -88,7 +88,7 @@ export default function Landing() {
               <>
                 Automate your
                 <br />
-                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                   digital empire
                 </span>
               </>
@@ -120,7 +120,7 @@ export default function Landing() {
           {/* CTA Buttons */}
           <div className={`flex flex-col sm:flex-row gap-6 justify-center mb-16 transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <Button 
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-10 py-4 text-lg rounded-2xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-10 py-4 text-lg rounded-2xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
               data-testid="button-start-free-trial"
             >
               <Zap className="w-5 h-5 mr-2" />
@@ -314,7 +314,7 @@ export default function Landing() {
       </section>
 
       {/* Final CTA */}
-      <section className="relative py-20 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-md">
+      <section className="relative py-20 bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
             {isSpanish ? '¿Listo para dominar el marketing digital?' : 'Ready to dominate digital marketing?'}
@@ -328,7 +328,7 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
             <Button 
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-12 py-5 text-xl rounded-2xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold px-12 py-5 text-xl rounded-2xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
               data-testid="button-start-free-trial-final"
             >
               <Zap className="w-6 h-6 mr-3" />
