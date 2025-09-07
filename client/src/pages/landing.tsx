@@ -291,6 +291,107 @@ export default function Landing() {
               <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent" style={{animation: 'float 15s ease-in-out infinite'}}></div>
               <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-blue-400/15 to-transparent" style={{animation: 'float 18s ease-in-out infinite 5s'}}></div>
             </div>
+            
+            {/* Floating Social Media Cards Background */}
+            <div className="absolute inset-0 opacity-5 pointer-events-none">
+              {/* Instagram Story Cards */}
+              <div className="absolute top-16 left-12 w-16 h-28 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-12 shadow-lg" style={{animation: 'float 8s ease-in-out infinite, slowDrift 20s linear infinite'}}>
+                <SiInstagram className="w-6 h-6 text-white" />
+              </div>
+              <div className="absolute top-64 right-20 w-20 h-36 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-6 shadow-lg" style={{animation: 'float 6s ease-in-out infinite 2s, slowDrift 25s linear infinite 3s'}}>
+                <SiInstagram className="w-8 h-8 text-white" />
+              </div>
+
+              {/* TikTok Cover Cards */}
+              <div className="absolute top-32 right-32 w-18 h-32 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-8 shadow-lg" style={{animation: 'float 7s ease-in-out infinite 1s, slowDrift 22s linear infinite 1s'}}>
+                <SiTiktok className="w-7 h-7 text-white" />
+              </div>
+              <div className="absolute bottom-32 left-16 w-16 h-28 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-12 shadow-lg" style={{animation: 'float 9s ease-in-out infinite 4s, slowDrift 18s linear infinite 2s'}}>
+                <SiTiktok className="w-6 h-6 text-white" />
+              </div>
+
+              {/* LinkedIn Article Cards */}
+              <div className="absolute top-20 left-1/3 w-32 h-20 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-3 shadow-lg" style={{animation: 'float 6.5s ease-in-out infinite 0.5s, slowDrift 24s linear infinite 4s'}}>
+                <SiLinkedin className="w-8 h-8 text-white" />
+              </div>
+              <div className="absolute bottom-40 right-1/4 w-28 h-18 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-8 shadow-lg" style={{animation: 'float 8.5s ease-in-out infinite 3s, slowDrift 21s linear infinite 1.5s'}}>
+                <SiLinkedin className="w-6 h-6 text-white" />
+              </div>
+
+              {/* Facebook Post Cards */}
+              <div className="absolute top-40 right-12 w-24 h-20 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-15 shadow-lg" style={{animation: 'float 7.5s ease-in-out infinite 2.5s, slowDrift 19s linear infinite 3.5s'}}>
+                <SiFacebook className="w-6 h-6 text-white" />
+              </div>
+              <div className="absolute bottom-20 left-1/4 w-28 h-22 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-3 shadow-lg" style={{animation: 'float 6s ease-in-out infinite 1.5s, slowDrift 23s linear infinite 2.5s'}}>
+                <SiFacebook className="w-7 h-7 text-white" />
+              </div>
+
+              {/* YouTube Thumbnail Cards */}
+              <div className="absolute top-60 left-20 w-36 h-24 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-6 shadow-lg" style={{animation: 'float 8s ease-in-out infinite 1s, slowDrift 20s linear infinite 4s'}}>
+                <SiYoutube className="w-8 h-8 text-white" />
+              </div>
+              <div className="absolute bottom-60 right-16 w-32 h-20 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-12 shadow-lg" style={{animation: 'float 7s ease-in-out infinite 2s, slowDrift 26s linear infinite 1s'}}>
+                <SiYoutube className="w-7 h-7 text-white" />
+              </div>
+
+              {/* Twitter/X Cards */}
+              <div className="absolute top-80 right-1/3 w-24 h-16 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-9 shadow-lg" style={{animation: 'float 6.5s ease-in-out infinite 3.5s, slowDrift 17s linear infinite 2s'}}>
+                <SiX className="w-6 h-6 text-white" />
+              </div>
+              <div className="absolute bottom-80 left-1/3 w-20 h-14 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-6 shadow-lg" style={{animation: 'float 9s ease-in-out infinite 0.5s, slowDrift 22s linear infinite 3s'}}>
+                <SiX className="w-5 h-5 text-white" />
+              </div>
+
+              {/* WhatsApp Cards */}
+              <div className="absolute top-48 left-8 w-22 h-18 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-12 shadow-lg" style={{animation: 'float 7.5s ease-in-out infinite 1.5s, slowDrift 24s linear infinite 0.5s'}}>
+                <SiWhatsapp className="w-6 h-6 text-white" />
+              </div>
+              <div className="absolute bottom-48 right-8 w-20 h-16 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-9 shadow-lg" style={{animation: 'float 8.5s ease-in-out infinite 2.5s, slowDrift 19s linear infinite 4s'}}>
+                <SiWhatsapp className="w-5 h-5 text-white" />
+              </div>
+
+              {/* Email Cards */}
+              <div className="absolute top-24 left-2/3 w-40 h-16 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-4 shadow-lg" style={{animation: 'float 6s ease-in-out infinite 2s, slowDrift 25s linear infinite 1s'}}>
+                <Mail className="w-8 h-8 text-white" />
+              </div>
+              <div className="absolute bottom-24 left-8 w-36 h-14 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-7 shadow-lg" style={{animation: 'float 8s ease-in-out infinite 3s, slowDrift 18s linear infinite 2s'}}>
+                <Mail className="w-7 h-7 text-white" />
+              </div>
+
+              {/* Pinterest Cards */}
+              <div className="absolute top-72 left-1/2 w-20 h-30 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-8 shadow-lg" style={{animation: 'float 7s ease-in-out infinite 1s, slowDrift 23s linear infinite 3.5s'}}>
+                <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">P</div>
+              </div>
+              <div className="absolute bottom-72 right-1/2 w-18 h-28 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-11 shadow-lg" style={{animation: 'float 9s ease-in-out infinite 4s, slowDrift 21s linear infinite 0.5s'}}>
+                <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">P</div>
+              </div>
+
+              {/* Snapchat Cards */}
+              <div className="absolute top-36 right-1/4 w-16 h-32 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-14 shadow-lg" style={{animation: 'float 6.5s ease-in-out infinite 2.5s, slowDrift 20s linear infinite 1.5s'}}>
+                <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">S</div>
+              </div>
+              <div className="absolute bottom-36 left-1/2 w-14 h-26 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-5 shadow-lg" style={{animation: 'float 8.5s ease-in-out infinite 1.5s, slowDrift 26s linear infinite 2.5s'}}>
+                <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">S</div>
+              </div>
+
+              {/* Discord Cards */}
+              <div className="absolute top-56 right-4 w-26 h-20 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-7 shadow-lg" style={{animation: 'float 7.5s ease-in-out infinite 3.5s, slowDrift 19s linear infinite 4s'}}>
+                <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-slate-900 text-xs font-bold">D</div>
+              </div>
+
+              {/* Additional Platform Cards */}
+              <div className="absolute top-44 left-1/4 w-24 h-18 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-4 shadow-lg" style={{animation: 'float 6s ease-in-out infinite 0.5s, slowDrift 24s linear infinite 3s'}}>
+                <div className="w-5 h-5 bg-white rounded flex items-center justify-center text-slate-900 text-xs font-bold">R</div>
+              </div>
+              
+              <div className="absolute bottom-44 right-1/3 w-22 h-22 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-10 shadow-lg" style={{animation: 'float 9s ease-in-out infinite 2s, slowDrift 22s linear infinite 1s'}}>
+                <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-slate-900 text-xs font-bold">T</div>
+              </div>
+
+              <div className="absolute top-68 right-2/3 w-18 h-26 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-8 shadow-lg" style={{animation: 'float 8s ease-in-out infinite 4s, slowDrift 17s linear infinite 2.5s'}}>
+                <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">M</div>
+              </div>
+            </div>
           </div>
           
           <div className="relative z-10 min-h-screen flex items-center justify-center">
