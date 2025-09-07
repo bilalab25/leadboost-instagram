@@ -285,21 +285,21 @@ export default function Landing() {
                 {isSpanish ? 'RESULTADOS GARANTIZADOS' : 'GUARANTEED RESULTS'}
               </Badge>
               <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-                {isSpanish ? 'Transforma Tu Negocio Completo' : 'Transform Your Entire Business'}
+                {isSpanish ? 'Multiplica Tu Presencia En Redes Sociales' : 'Multiply Your Social Media Presence'}
               </h2>
               <p className="text-xl text-white/70 mb-8 leading-relaxed">
                 {isSpanish 
-                  ? 'Nuestros clientes automatizan operaciones completas, incrementan ventas en un 400% y reducen costos operativos en un 60% con nuestro ecosistema empresarial unificado.'
-                  : 'Our clients automate complete operations, increase sales by 400%, and reduce operational costs by 60% with our unified business ecosystem.'
+                  ? 'Nuestros clientes crean contenido 10x más rápido, aumentan engagement en 300% y responden mensajes en segundos con nuestra plataforma de gestión social potenciada por IA.'
+                  : 'Our clients create content 10x faster, increase engagement by 300%, and respond to messages in seconds with our AI-powered social management platform.'
                 }
               </p>
               
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: Check, text: isSpanish ? 'Migración e integración automática' : 'Automatic migration and integration' },
-                  { icon: Check, text: isSpanish ? 'CRM, ventas y marketing unificados' : 'Unified CRM, sales, and marketing' },
-                  { icon: Check, text: isSpanish ? 'Automatización de procesos empresariales' : 'Business process automation' },
-                  { icon: Check, text: isSpanish ? 'Dashboard ejecutivo en tiempo real' : 'Real-time executive dashboard' }
+                  { icon: Check, text: isSpanish ? 'Conexión instantánea con 21+ plataformas' : 'Instant connection to 21+ platforms' },
+                  { icon: Check, text: isSpanish ? 'Contenido IA personalizado para cada red' : 'AI content personalized for each network' },
+                  { icon: Check, text: isSpanish ? 'Respuestas automáticas inteligentes' : 'Smart automated responses' },
+                  { icon: Check, text: isSpanish ? 'Análisis de sentimientos en tiempo real' : 'Real-time sentiment analysis' }
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-4">
                     <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -322,23 +322,23 @@ export default function Landing() {
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
                 <TrendingUp className="w-8 h-8 text-green-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">400%</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Crecimiento en ventas' : 'Sales growth'}</div>
+                <div className="text-3xl font-bold text-white mb-2">300%</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Más engagement' : 'More engagement'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
                 <Clock className="w-8 h-8 text-blue-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">60%</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Reducción de costos' : 'Cost reduction'}</div>
+                <div className="text-3xl font-bold text-white mb-2">10x</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Creación más rápida' : 'Faster content creation'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <Users className="w-8 h-8 text-blue-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">24/7</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Operación automática' : 'Automated operations'}</div>
+                <MessageSquare className="w-8 h-8 text-purple-400 mx-auto mb-4" />
+                <div className="text-3xl font-bold text-white mb-2">2min</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Tiempo de respuesta' : 'Response time'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <Shield className="w-8 h-8 text-yellow-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">99.9%</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Uptime' : 'Uptime'}</div>
+                <Bot className="w-8 h-8 text-cyan-400 mx-auto mb-4" />
+                <div className="text-3xl font-bold text-white mb-2">95%</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Precisión IA' : 'AI accuracy'}</div>
               </div>
             </div>
           </div>
