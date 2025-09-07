@@ -26,11 +26,7 @@ export default function Landing() {
   const t = translations[language];
 
   return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-        
-        {/* Floating Social Media Cards Background */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none">
-          {/* Instagram Story Cards */}
+      <div className="min-h-screen bg-white relative">
           <div className="absolute top-16 left-12 w-16 h-28 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-12 shadow-lg" style={{animation: 'float 8s ease-in-out infinite, slowDrift 20s linear infinite'}}>
             <SiInstagram className="w-6 h-6 text-white" />
           </div>
@@ -271,240 +267,97 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* Hero Section */}
-        <main className="pt-20 pb-20 relative">
-          {/* Advanced Background Effects */}
+        {/* Hero Section - Billion Dollar Company Style */}
+        <main className="relative min-h-screen bg-white">
+          {/* Subtle Premium Background */}
           <div className="absolute inset-0 overflow-hidden">
-            {/* Animated Mesh Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-              <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 via-transparent to-blue-500/10 animate-pulse"></div>
-              <div className="absolute inset-0 bg-gradient-to-bl from-purple-500/5 via-transparent to-pink-500/5" style={{animation: 'slowDrift 30s ease-in-out infinite'}}></div>
-            </div>
+            {/* Clean Gradient Background */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-slate-50"></div>
             
-            {/* Floating Geometric Shapes */}
-            <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl" style={{animation: 'float 20s ease-in-out infinite'}}></div>
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-tl from-purple-400/10 to-pink-400/10 rounded-full blur-3xl" style={{animation: 'float 25s ease-in-out infinite 10s'}}></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-blue-500/5 via-transparent to-transparent rounded-full blur-2xl" style={{animation: 'slowDrift 35s ease-in-out infinite reverse'}}></div>
-            
-            {/* Dynamic Light Rays */}
-            <div className="absolute inset-0">
-              <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent" style={{animation: 'float 15s ease-in-out infinite'}}></div>
-              <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-blue-400/15 to-transparent" style={{animation: 'float 18s ease-in-out infinite 5s'}}></div>
-            </div>
-            
-            {/* Floating Social Media Cards Background */}
-            <div className="absolute inset-0 opacity-5 pointer-events-none">
-              {/* Instagram Story Cards */}
-              <div className="absolute top-16 left-12 w-16 h-28 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-12 shadow-lg" style={{animation: 'float 8s ease-in-out infinite, slowDrift 20s linear infinite'}}>
-                <SiInstagram className="w-6 h-6 text-white" />
-              </div>
-              <div className="absolute top-64 right-20 w-20 h-36 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-6 shadow-lg" style={{animation: 'float 6s ease-in-out infinite 2s, slowDrift 25s linear infinite 3s'}}>
-                <SiInstagram className="w-8 h-8 text-white" />
-              </div>
-
-              {/* TikTok Cover Cards */}
-              <div className="absolute top-32 right-32 w-18 h-32 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-8 shadow-lg" style={{animation: 'float 7s ease-in-out infinite 1s, slowDrift 22s linear infinite 1s'}}>
-                <SiTiktok className="w-7 h-7 text-white" />
-              </div>
-              <div className="absolute bottom-32 left-16 w-16 h-28 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-12 shadow-lg" style={{animation: 'float 9s ease-in-out infinite 4s, slowDrift 18s linear infinite 2s'}}>
-                <SiTiktok className="w-6 h-6 text-white" />
-              </div>
-
-              {/* LinkedIn Article Cards */}
-              <div className="absolute top-20 left-1/3 w-32 h-20 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-3 shadow-lg" style={{animation: 'float 6.5s ease-in-out infinite 0.5s, slowDrift 24s linear infinite 4s'}}>
-                <SiLinkedin className="w-8 h-8 text-white" />
-              </div>
-              <div className="absolute bottom-40 right-1/4 w-28 h-18 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-8 shadow-lg" style={{animation: 'float 8.5s ease-in-out infinite 3s, slowDrift 21s linear infinite 1.5s'}}>
-                <SiLinkedin className="w-6 h-6 text-white" />
-              </div>
-
-              {/* Facebook Post Cards */}
-              <div className="absolute top-40 right-12 w-24 h-20 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-15 shadow-lg" style={{animation: 'float 7.5s ease-in-out infinite 2.5s, slowDrift 19s linear infinite 3.5s'}}>
-                <SiFacebook className="w-6 h-6 text-white" />
-              </div>
-              <div className="absolute bottom-20 left-1/4 w-28 h-22 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-3 shadow-lg" style={{animation: 'float 6s ease-in-out infinite 1.5s, slowDrift 23s linear infinite 2.5s'}}>
-                <SiFacebook className="w-7 h-7 text-white" />
-              </div>
-
-              {/* YouTube Thumbnail Cards */}
-              <div className="absolute top-60 left-20 w-36 h-24 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-6 shadow-lg" style={{animation: 'float 8s ease-in-out infinite 1s, slowDrift 20s linear infinite 4s'}}>
-                <SiYoutube className="w-8 h-8 text-white" />
-              </div>
-              <div className="absolute bottom-60 right-16 w-32 h-20 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-12 shadow-lg" style={{animation: 'float 7s ease-in-out infinite 2s, slowDrift 26s linear infinite 1s'}}>
-                <SiYoutube className="w-7 h-7 text-white" />
-              </div>
-
-              {/* Twitter/X Cards */}
-              <div className="absolute top-80 right-1/3 w-24 h-16 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-9 shadow-lg" style={{animation: 'float 6.5s ease-in-out infinite 3.5s, slowDrift 17s linear infinite 2s'}}>
-                <SiX className="w-6 h-6 text-white" />
-              </div>
-              <div className="absolute bottom-80 left-1/3 w-20 h-14 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-6 shadow-lg" style={{animation: 'float 9s ease-in-out infinite 0.5s, slowDrift 22s linear infinite 3s'}}>
-                <SiX className="w-5 h-5 text-white" />
-              </div>
-
-              {/* WhatsApp Cards */}
-              <div className="absolute top-48 left-8 w-22 h-18 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-12 shadow-lg" style={{animation: 'float 7.5s ease-in-out infinite 1.5s, slowDrift 24s linear infinite 0.5s'}}>
-                <SiWhatsapp className="w-6 h-6 text-white" />
-              </div>
-              <div className="absolute bottom-48 right-8 w-20 h-16 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-9 shadow-lg" style={{animation: 'float 8.5s ease-in-out infinite 2.5s, slowDrift 19s linear infinite 4s'}}>
-                <SiWhatsapp className="w-5 h-5 text-white" />
-              </div>
-
-              {/* Email Cards */}
-              <div className="absolute top-24 left-2/3 w-40 h-16 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-4 shadow-lg" style={{animation: 'float 6s ease-in-out infinite 2s, slowDrift 25s linear infinite 1s'}}>
-                <Mail className="w-8 h-8 text-white" />
-              </div>
-              <div className="absolute bottom-24 left-8 w-36 h-14 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-7 shadow-lg" style={{animation: 'float 8s ease-in-out infinite 3s, slowDrift 18s linear infinite 2s'}}>
-                <Mail className="w-7 h-7 text-white" />
-              </div>
-
-              {/* Pinterest Cards */}
-              <div className="absolute top-72 left-1/2 w-20 h-30 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-8 shadow-lg" style={{animation: 'float 7s ease-in-out infinite 1s, slowDrift 23s linear infinite 3.5s'}}>
-                <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">P</div>
-              </div>
-              <div className="absolute bottom-72 right-1/2 w-18 h-28 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-11 shadow-lg" style={{animation: 'float 9s ease-in-out infinite 4s, slowDrift 21s linear infinite 0.5s'}}>
-                <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">P</div>
-              </div>
-
-              {/* Snapchat Cards */}
-              <div className="absolute top-36 right-1/4 w-16 h-32 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-14 shadow-lg" style={{animation: 'float 6.5s ease-in-out infinite 2.5s, slowDrift 20s linear infinite 1.5s'}}>
-                <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">S</div>
-              </div>
-              <div className="absolute bottom-36 left-1/2 w-14 h-26 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-5 shadow-lg" style={{animation: 'float 8.5s ease-in-out infinite 1.5s, slowDrift 26s linear infinite 2.5s'}}>
-                <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">S</div>
-              </div>
-
-              {/* Discord Cards */}
-              <div className="absolute top-56 right-4 w-26 h-20 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-7 shadow-lg" style={{animation: 'float 7.5s ease-in-out infinite 3.5s, slowDrift 19s linear infinite 4s'}}>
-                <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-slate-900 text-xs font-bold">D</div>
-              </div>
-
-              {/* Additional Platform Cards */}
-              <div className="absolute top-44 left-1/4 w-24 h-18 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-4 shadow-lg" style={{animation: 'float 6s ease-in-out infinite 0.5s, slowDrift 24s linear infinite 3s'}}>
-                <div className="w-5 h-5 bg-white rounded flex items-center justify-center text-slate-900 text-xs font-bold">R</div>
-              </div>
-              
-              <div className="absolute bottom-44 right-1/3 w-22 h-22 bg-white/10 rounded-lg border border-white/5 flex items-center justify-center transform rotate-10 shadow-lg" style={{animation: 'float 9s ease-in-out infinite 2s, slowDrift 22s linear infinite 1s'}}>
-                <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-slate-900 text-xs font-bold">T</div>
-              </div>
-
-              <div className="absolute top-68 right-2/3 w-18 h-26 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-8 shadow-lg" style={{animation: 'float 8s ease-in-out infinite 4s, slowDrift 17s linear infinite 2.5s'}}>
-                <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">M</div>
-              </div>
-            </div>
+            {/* Minimal Geometric Accent - Single Premium Element */}
+            <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-gradient-to-br from-blue-500/3 to-purple-500/3 rounded-full blur-3xl" style={{animation: 'float 30s ease-in-out infinite'}}></div>
+          </div>
           </div>
           
-          <div className="relative z-10 min-h-screen flex items-center justify-center">
-            <div className="max-w-5xl mx-auto px-6 text-center">
+          {/* Premium Hero Content */}
+          <div className="relative z-10 min-h-screen flex items-center justify-center px-8">
+            <div className="max-w-6xl mx-auto text-center">
               
-              {/* Trust indicator - Enhanced */}
-              <div className="inline-flex items-center gap-2 mb-10 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-lg shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500 hover:scale-105 group">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse" />
-                <span className="text-sm font-semibold text-white group-hover:text-cyan-100 transition-colors duration-300">
+              {/* Trust Badge - Premium Minimal */}
+              <div className="inline-flex items-center gap-3 mb-16 px-6 py-3 rounded-full bg-slate-100 border border-slate-200/50 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-sm font-medium text-slate-700">
                   {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
                 </span>
-                <div className="flex items-center gap-0.5 ml-1">
+                <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 text-amber-400 fill-current drop-shadow-sm hover:scale-110 transition-transform duration-200" style={{animationDelay: `${i * 0.1}s`}} />
+                    <Star key={i} className="w-3 h-3 text-amber-500 fill-current" />
                   ))}
                 </div>
               </div>
               
-              {/* Main headline - Spectacular */}
-              <h1 className="text-6xl lg:text-8xl font-light text-white leading-[0.9] tracking-tight mb-10 relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent blur-2xl opacity-30" style={{animation: 'pulse 3s ease-in-out infinite'}}>
-                  {isSpanish ? (
-                    <>
-                      <span className="font-semibold">Haz Crecer tu Negocio</span>
-                      <br />
-                      <span>En Piloto Automático</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="font-semibold">Grow Your Business</span>
-                      <br />
-                      <span>On Autopilot</span>
-                    </>
-                  )}
-                </div>
+              {/* Main Headline - Billion Dollar Company Style */}
+              <h1 className="text-5xl lg:text-8xl xl:text-9xl font-light text-slate-900 leading-[0.9] tracking-tight mb-8">
                 {isSpanish ? (
                   <>
-                    <span className="font-semibold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl animate-gradient-x" style={{backgroundSize: '400% 400%'}}>Haz Crecer tu Negocio</span>
+                    <span className="font-medium">Haz crecer tu negocio</span>
                     <br />
-                    <span className="text-white drop-shadow-lg font-light hover:text-cyan-100 transition-colors duration-500 text-5xl">En Piloto Automático.</span>
+                    <span className="text-4xl lg:text-6xl xl:text-7xl text-slate-500 font-light">en piloto automático.</span>
                   </>
                 ) : (
                   <>
-                    <span className="font-semibold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl animate-gradient-x" style={{backgroundSize: '400% 400%'}}>Grow Your Business</span>
+                    <span className="font-medium">Grow your business</span>
                     <br />
-                    <span className="text-white drop-shadow-lg font-light hover:text-cyan-100 transition-colors duration-500 text-5xl">On Autopilot.</span>
+                    <span className="text-4xl lg:text-6xl xl:text-7xl text-slate-500 font-light">on autopilot.</span>
                   </>
                 )}
               </h1>
               
-              {/* Subtitle - Enhanced */}
-              <p className="text-2xl lg:text-3xl font-light text-slate-200 leading-relaxed mb-16 max-w-4xl mx-auto drop-shadow-lg hover:text-slate-100 transition-colors duration-500">
-                <span className="bg-gradient-to-r from-slate-200 via-white to-slate-200 bg-clip-text text-transparent">
-                  {isSpanish 
-                    ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
-                    : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
-                  }
-                </span>
+              {/* Subtitle - Clean & Clear */}
+              <p className="text-xl lg:text-2xl text-slate-600 leading-relaxed mb-20 max-w-4xl mx-auto font-light">
+                {isSpanish 
+                  ? 'Plataforma de IA que automatiza marketing, ventas y atención al cliente. Todo desde un solo lugar.' 
+                  : 'AI platform that automates marketing, sales, and customer service. All from one place.'
+                }
               </p>
               
-              {/* Feature highlights - Stunning */}
-              <div className="flex flex-wrap justify-center gap-12 mb-20 text-center">
-                <div className="group flex flex-col items-center hover:scale-110 transition-all duration-500">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-lg border border-cyan-400/30 flex items-center justify-center mb-4 shadow-2xl shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all duration-500 relative">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-400/20 blur-sm animate-pulse"></div>
-                    <CheckCircle className="w-8 h-8 text-cyan-400 relative z-10 group-hover:text-cyan-300 transition-colors duration-300" />
-                  </div>
-                  <span className="text-white font-semibold text-xl max-w-56 group-hover:text-cyan-100 transition-colors duration-300 drop-shadow-lg">
+              {/* Feature highlights - Premium Minimal */}
+              <div className="flex flex-wrap justify-center gap-16 mb-24 text-center">
+                <div className="flex flex-col items-center max-w-xs">
+                  <div className="w-4 h-4 bg-blue-600 rounded-full mb-6"></div>
+                  <p className="text-lg text-slate-600 font-light leading-relaxed">
                     {isSpanish ? 'IA crea contenido para 21+ plataformas' : 'AI creates content for 21+ platforms'}
-                  </span>
+                  </p>
                 </div>
-                <div className="group flex flex-col items-center hover:scale-110 transition-all duration-500">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-lg border border-blue-400/30 flex items-center justify-center mb-4 shadow-2xl shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-500 relative">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-400/20 blur-sm animate-pulse"></div>
-                    <CheckCircle className="w-8 h-8 text-blue-400 relative z-10 group-hover:text-blue-300 transition-colors duration-300" />
-                  </div>
-                  <span className="text-white font-semibold text-xl max-w-56 group-hover:text-blue-100 transition-colors duration-300 drop-shadow-lg">
+                <div className="flex flex-col items-center max-w-xs">
+                  <div className="w-4 h-4 bg-blue-600 rounded-full mb-6"></div>
+                  <p className="text-lg text-slate-600 font-light leading-relaxed">
                     {isSpanish ? 'Chatbot responde clientes 24/7' : 'Chatbot handles customers 24/7'}
-                  </span>
+                  </p>
                 </div>
-                <div className="group flex flex-col items-center hover:scale-110 transition-all duration-500">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg border border-purple-400/30 flex items-center justify-center mb-4 shadow-2xl shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-all duration-500 relative">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 blur-sm animate-pulse"></div>
-                    <CheckCircle className="w-8 h-8 text-purple-400 relative z-10 group-hover:text-purple-300 transition-colors duration-300" />
-                  </div>
-                  <span className="text-white font-semibold text-xl max-w-56 group-hover:text-purple-100 transition-colors duration-300 drop-shadow-lg">
+                <div className="flex flex-col items-center max-w-xs">
+                  <div className="w-4 h-4 bg-blue-600 rounded-full mb-6"></div>
+                  <p className="text-lg text-slate-600 font-light leading-relaxed">
                     {isSpanish ? 'Configuración en menos de 10 minutos' : 'Setup in under 10 minutes'}
-                  </span>
+                  </p>
                 </div>
               </div>
               
-              {/* CTA buttons - Spectacular */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+              {/* CTA buttons - Premium Clean */}
+              <div className="flex flex-col sm:flex-row gap-6 justify-center">
                 <Button 
-                  className="relative group bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 hover:from-cyan-400 hover:via-blue-400 hover:to-purple-400 text-white font-semibold px-12 py-5 text-xl rounded-full shadow-2xl shadow-cyan-500/30 hover:shadow-3xl hover:shadow-cyan-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden"
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-medium px-8 py-4 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
                   data-testid="button-start-demo"
-                  style={{backgroundSize: '400% 400%', animation: 'gradient-shift 8s ease-in-out infinite'}}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <span className="relative z-10 flex items-center">
-                    <Sparkles className="w-5 h-5 mr-2 group-hover:animate-spin" />
-                    {isSpanish ? 'Empezar Demo Gratis' : 'Start Free Demo'}
-                  </span>
+                  {isSpanish ? 'Empezar gratis' : 'Get started'}
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="group font-semibold px-12 py-5 text-xl rounded-full border-2 border-white/40 hover:border-cyan-400/60 text-white hover:text-cyan-100 hover:bg-white/10 backdrop-blur-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-2xl hover:shadow-white/20"
+                  className="border-slate-300 text-slate-700 hover:bg-slate-50 font-medium px-8 py-4 text-lg rounded-lg transition-all duration-300"
                   data-testid="button-watch-demo"
                 >
-                  <div className="flex items-center">
-                    <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
-                    {isSpanish ? 'Ver Demo' : 'Watch Demo'}
-                  </div>
+                  <Play className="w-4 h-4 mr-2" />
+                  {isSpanish ? 'Ver demo' : 'Watch demo'}
                 </Button>
               </div>
             </div>
