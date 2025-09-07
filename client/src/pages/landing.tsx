@@ -272,91 +272,138 @@ export default function Landing() {
         </header>
 
         {/* Hero Section */}
-        <main className="pt-20 pb-20">
+        <main className="pt-20 pb-20 relative">
+          {/* Advanced Background Effects */}
+          <div className="absolute inset-0 overflow-hidden">
+            {/* Animated Mesh Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+              <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 via-transparent to-blue-500/10 animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-bl from-purple-500/5 via-transparent to-pink-500/5" style={{animation: 'slowDrift 30s ease-in-out infinite'}}></div>
+            </div>
+            
+            {/* Floating Geometric Shapes */}
+            <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl" style={{animation: 'float 20s ease-in-out infinite'}}></div>
+            <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-tl from-purple-400/10 to-pink-400/10 rounded-full blur-3xl" style={{animation: 'float 25s ease-in-out infinite 10s'}}></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-blue-500/5 via-transparent to-transparent rounded-full blur-2xl" style={{animation: 'slowDrift 35s ease-in-out infinite reverse'}}></div>
+            
+            {/* Dynamic Light Rays */}
+            <div className="absolute inset-0">
+              <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent" style={{animation: 'float 15s ease-in-out infinite'}}></div>
+              <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-blue-400/15 to-transparent" style={{animation: 'float 18s ease-in-out infinite 5s'}}></div>
+            </div>
+          </div>
+          
           <div className="relative z-10 min-h-screen flex items-center justify-center">
-            <div className="max-w-4xl mx-auto px-6 text-center">
+            <div className="max-w-5xl mx-auto px-6 text-center">
               
-              {/* Trust indicator */}
-              <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm shadow-lg">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
-                <span className="text-sm font-medium text-slate-200">
+              {/* Trust indicator - Enhanced */}
+              <div className="inline-flex items-center gap-2 mb-10 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-lg shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500 hover:scale-105 group">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse" />
+                <span className="text-sm font-semibold text-white group-hover:text-cyan-100 transition-colors duration-300">
                   {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
                 </span>
                 <div className="flex items-center gap-0.5 ml-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-2.5 h-2.5 text-amber-400 fill-current" />
+                    <Star key={i} className="w-3 h-3 text-amber-400 fill-current drop-shadow-sm hover:scale-110 transition-transform duration-200" style={{animationDelay: `${i * 0.1}s`}} />
                   ))}
                 </div>
               </div>
               
-              {/* Main headline */}
-              <h1 className="text-6xl lg:text-7xl font-light text-white leading-[0.95] tracking-tight mb-8">
+              {/* Main headline - Spectacular */}
+              <h1 className="text-6xl lg:text-8xl font-light text-white leading-[0.9] tracking-tight mb-10 relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent blur-2xl opacity-30" style={{animation: 'pulse 3s ease-in-out infinite'}}>
+                  {isSpanish ? (
+                    <>
+                      <span className="font-semibold">Haz Crecer tu Negocio</span>
+                      <br />
+                      <span>En Piloto Automático</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-semibold">Grow Your Business</span>
+                      <br />
+                      <span>On Autopilot</span>
+                    </>
+                  )}
+                </div>
                 {isSpanish ? (
                   <>
-                    <span className="font-medium bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Haz Crecer tu Negocio</span>
+                    <span className="font-semibold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl animate-gradient-x" style={{backgroundSize: '400% 400%'}}>Haz Crecer tu Negocio</span>
                     <br />
-                    <span className="text-slate-200">En Piloto Automático</span>
+                    <span className="text-white drop-shadow-lg font-light hover:text-cyan-100 transition-colors duration-500">En Piloto Automático</span>
                   </>
                 ) : (
                   <>
-                    <span className="font-medium bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Grow Your Business</span>
+                    <span className="font-semibold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl animate-gradient-x" style={{backgroundSize: '400% 400%'}}>Grow Your Business</span>
                     <br />
-                    <span className="text-slate-200">On Autopilot</span>
+                    <span className="text-white drop-shadow-lg font-light hover:text-cyan-100 transition-colors duration-500">On Autopilot</span>
                   </>
                 )}
               </h1>
               
-              {/* Subtitle */}
-              <p className="text-2xl font-light text-slate-300 leading-relaxed mb-12 max-w-2xl mx-auto">
-                {isSpanish 
-                  ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
-                  : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
-                }
+              {/* Subtitle - Enhanced */}
+              <p className="text-2xl lg:text-3xl font-light text-slate-200 leading-relaxed mb-16 max-w-4xl mx-auto drop-shadow-lg hover:text-slate-100 transition-colors duration-500">
+                <span className="bg-gradient-to-r from-slate-200 via-white to-slate-200 bg-clip-text text-transparent">
+                  {isSpanish 
+                    ? 'Plataforma todo-en-uno impulsada por IA que automatiza marketing, ventas y gestión de clientes desde un solo lugar.' 
+                    : 'AI-powered all-in-one platform that automates marketing, sales, and customer management from one central hub.'
+                  }
+                </span>
               </p>
               
-              {/* Feature highlights */}
-              <div className="flex flex-wrap justify-center gap-8 mb-16 text-center">
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-3 shadow-lg">
-                    <CheckCircle className="w-6 h-6 text-cyan-400" />
+              {/* Feature highlights - Stunning */}
+              <div className="flex flex-wrap justify-center gap-12 mb-20 text-center">
+                <div className="group flex flex-col items-center hover:scale-110 transition-all duration-500">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-lg border border-cyan-400/30 flex items-center justify-center mb-4 shadow-2xl shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all duration-500 relative">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-400/20 blur-sm animate-pulse"></div>
+                    <CheckCircle className="w-8 h-8 text-cyan-400 relative z-10 group-hover:text-cyan-300 transition-colors duration-300" />
                   </div>
-                  <span className="text-slate-200 font-medium text-lg max-w-48">
+                  <span className="text-white font-semibold text-xl max-w-56 group-hover:text-cyan-100 transition-colors duration-300 drop-shadow-lg">
                     {isSpanish ? 'IA crea contenido para 21+ plataformas' : 'AI creates content for 21+ platforms'}
                   </span>
                 </div>
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-3 shadow-lg">
-                    <CheckCircle className="w-6 h-6 text-cyan-400" />
+                <div className="group flex flex-col items-center hover:scale-110 transition-all duration-500">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-lg border border-blue-400/30 flex items-center justify-center mb-4 shadow-2xl shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-500 relative">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400/20 to-purple-400/20 blur-sm animate-pulse"></div>
+                    <CheckCircle className="w-8 h-8 text-blue-400 relative z-10 group-hover:text-blue-300 transition-colors duration-300" />
                   </div>
-                  <span className="text-slate-200 font-medium text-lg max-w-48">
+                  <span className="text-white font-semibold text-xl max-w-56 group-hover:text-blue-100 transition-colors duration-300 drop-shadow-lg">
                     {isSpanish ? 'Chatbot responde clientes 24/7' : 'Chatbot handles customers 24/7'}
                   </span>
                 </div>
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-3 shadow-lg">
-                    <CheckCircle className="w-6 h-6 text-cyan-400" />
+                <div className="group flex flex-col items-center hover:scale-110 transition-all duration-500">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg border border-purple-400/30 flex items-center justify-center mb-4 shadow-2xl shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-all duration-500 relative">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 blur-sm animate-pulse"></div>
+                    <CheckCircle className="w-8 h-8 text-purple-400 relative z-10 group-hover:text-purple-300 transition-colors duration-300" />
                   </div>
-                  <span className="text-slate-200 font-medium text-lg max-w-48">
+                  <span className="text-white font-semibold text-xl max-w-56 group-hover:text-purple-100 transition-colors duration-300 drop-shadow-lg">
                     {isSpanish ? 'Configuración en menos de 10 minutos' : 'Setup in under 10 minutes'}
                   </span>
                 </div>
               </div>
               
-              {/* CTA buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              {/* CTA buttons - Spectacular */}
+              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
                 <Button 
-                  className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium px-10 py-4 text-lg rounded-full shadow-lg shadow-cyan-500/25 hover:shadow-xl hover:shadow-cyan-500/30 transition-all duration-200"
+                  className="relative group bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 hover:from-cyan-400 hover:via-blue-400 hover:to-purple-400 text-white font-semibold px-12 py-5 text-xl rounded-full shadow-2xl shadow-cyan-500/30 hover:shadow-3xl hover:shadow-cyan-500/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden"
                   data-testid="button-start-demo"
+                  style={{backgroundSize: '400% 400%', animation: 'gradient-shift 8s ease-in-out infinite'}}
                 >
-                  {isSpanish ? 'Empezar Demo Gratis' : 'Start Free Demo'}
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <span className="relative z-10 flex items-center">
+                    <Sparkles className="w-5 h-5 mr-2 group-hover:animate-spin" />
+                    {isSpanish ? 'Empezar Demo Gratis' : 'Start Free Demo'}
+                  </span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="font-medium px-10 py-4 text-lg rounded-full border-white/30 hover:border-white/50 text-slate-200 hover:text-white hover:bg-white/10 backdrop-blur-sm transition-all duration-200"
+                  className="group font-semibold px-12 py-5 text-xl rounded-full border-2 border-white/40 hover:border-cyan-400/60 text-white hover:text-cyan-100 hover:bg-white/10 backdrop-blur-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-2xl hover:shadow-white/20"
                   data-testid="button-watch-demo"
                 >
-                  <Play className="w-5 h-5 mr-2" />
-                  {isSpanish ? 'Ver Demo' : 'Watch Demo'}
+                  <div className="flex items-center">
+                    <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
+                    {isSpanish ? 'Ver Demo' : 'Watch Demo'}
+                  </div>
                 </Button>
               </div>
             </div>
