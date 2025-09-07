@@ -78,18 +78,18 @@ export default function Landing() {
           <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish ? (
               <>
-                El ecosistema completo
+                El Ecosistema Completo
                 <br />
                 <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                  para tu negocio
+                  Para Tu Negocio
                 </span>
               </>
             ) : (
               <>
-                The complete
+                The Complete
                 <br />
                 <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                  business ecosystem
+                  Business Ecosystem
                 </span>
               </>
             )}
@@ -167,7 +167,7 @@ export default function Landing() {
               {isSpanish ? 'CARACTERÍSTICAS PRINCIPALES' : 'CORE FEATURES'}
             </Badge>
             <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              {isSpanish ? 'Todo en una plataforma' : 'Everything in one platform'}
+              {isSpanish ? 'Todo En Una Plataforma' : 'Everything In One Platform'}
             </h2>
             <p className="text-xl text-white/70 max-w-3xl mx-auto">
               {isSpanish 
@@ -193,7 +193,7 @@ export default function Landing() {
                   }
                 </p>
                 <div className="flex items-center justify-center text-blue-400 font-medium">
-                  <span>{isSpanish ? 'Automatización total' : 'Total automation'}</span>
+                  <span>{isSpanish ? 'Automatización Total' : 'Total Automation'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -214,7 +214,7 @@ export default function Landing() {
                   }
                 </p>
                 <div className="flex items-center justify-center text-blue-400 font-medium">
-                  <span>{isSpanish ? 'Gestión integral' : 'Complete management'}</span>
+                  <span>{isSpanish ? 'Gestión Integral' : 'Complete Management'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -235,7 +235,7 @@ export default function Landing() {
                   }
                 </p>
                 <div className="flex items-center justify-center text-green-400 font-medium">
-                  <span>{isSpanish ? 'Visión 360° del negocio' : '360° business view'}</span>
+                  <span>{isSpanish ? 'Visión 360° Del Negocio' : '360° Business View'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -253,7 +253,7 @@ export default function Landing() {
                 {isSpanish ? 'RESULTADOS GARANTIZADOS' : 'GUARANTEED RESULTS'}
               </Badge>
               <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-                {isSpanish ? 'Transforma tu negocio completo' : 'Transform your entire business'}
+                {isSpanish ? 'Transforma Tu Negocio Completo' : 'Transform Your Entire Business'}
               </h2>
               <p className="text-xl text-white/70 mb-8 leading-relaxed">
                 {isSpanish 
@@ -317,7 +317,7 @@ export default function Landing() {
       <section className="relative py-20 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-            {isSpanish ? '¿Listo para transformar tu empresa?' : 'Ready to transform your business?'}
+            {isSpanish ? '¿Listo Para Transformar Tu Empresa?' : 'Ready To Transform Your Business?'}
           </h2>
           <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
             {isSpanish 
