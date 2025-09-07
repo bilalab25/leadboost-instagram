@@ -78,18 +78,18 @@ export default function Landing() {
           <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish ? (
               <>
-                Automatiza tu
+                El ecosistema completo
                 <br />
                 <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                  imperio digital
+                  para tu negocio
                 </span>
               </>
             ) : (
               <>
-                Automate your
+                The complete
                 <br />
                 <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                  digital empire
+                  business ecosystem
                 </span>
               </>
             )}
@@ -98,8 +98,8 @@ export default function Landing() {
           {/* Subtitle */}
           <p className={`text-xl sm:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish 
-              ? 'La única plataforma de IA que necesitas para generar contenido viral, gestionar clientes y multiplicar tus ventas en 21+ plataformas sociales.' 
-              : 'The only AI platform you need to generate viral content, manage customers, and multiply your sales across 21+ social platforms.'
+              ? 'Marketing, ventas, CRM, operaciones y análisis empresarial unificados. La única plataforma que necesitas para automatizar todo tu negocio.' 
+              : 'Marketing, sales, CRM, operations, and business analytics unified. The only platform you need to automate your entire business.'
             }
           </p>
 
@@ -184,16 +184,16 @@ export default function Landing() {
                   <Bot className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'IA Generativa' : 'Generative AI'}
+                  {isSpanish ? 'IA Empresarial' : 'Business AI'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'Crea contenido viral personalizado para cada plataforma. Nuestro motor de IA analiza tendencias y genera posts que convierten.'
-                    : 'Create personalized viral content for every platform. Our AI engine analyzes trends and generates posts that convert.'
+                    ? 'IA que gestiona marketing, ventas, atención al cliente y operaciones. Automatiza workflows completos y toma decisiones inteligentes.'
+                    : 'AI that handles marketing, sales, customer service, and operations. Automates complete workflows and makes intelligent decisions.'
                   }
                 </p>
                 <div className="flex items-center justify-center text-purple-400 font-medium">
-                  <span>{isSpanish ? 'Contenido ilimitado' : 'Unlimited content'}</span>
+                  <span>{isSpanish ? 'Automatización total' : 'Total automation'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -205,16 +205,16 @@ export default function Landing() {
                   <MessageSquare className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}
+                  {isSpanish ? 'Centro de Operaciones' : 'Operations Hub'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'Gestiona mensajes de Instagram, WhatsApp, TikTok y más desde un solo lugar. Respuestas automáticas con IA que suenan humanas.'
-                    : 'Manage messages from Instagram, WhatsApp, TikTok and more from one place. AI auto-replies that sound human.'
+                    ? 'CRM unificado, pipeline de ventas, soporte 24/7 y gestión de leads. Conecta todos los puntos de contacto de tu negocio.'
+                    : 'Unified CRM, sales pipeline, 24/7 support, and lead management. Connects every touchpoint of your business.'
                   }
                 </p>
                 <div className="flex items-center justify-center text-blue-400 font-medium">
-                  <span>{isSpanish ? 'Respuesta instantánea' : 'Instant response'}</span>
+                  <span>{isSpanish ? 'Gestión integral' : 'Complete management'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -226,16 +226,16 @@ export default function Landing() {
                   <BarChart3 className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Analytics Avanzados' : 'Advanced Analytics'}
+                  {isSpanish ? 'Business Intelligence' : 'Business Intelligence'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'Métricas en tiempo real, predicciones de tendencias y recomendaciones automáticas para maximizar tu ROI.'
-                    : 'Real-time metrics, trend predictions and automated recommendations to maximize your ROI.'
+                    ? 'Dashboard ejecutivo con métricas de ventas, marketing, operaciones y finanzas. Predicciones de negocio e informes automáticos.'
+                    : 'Executive dashboard with sales, marketing, operations, and finance metrics. Business forecasting and automated reporting.'
                   }
                 </p>
                 <div className="flex items-center justify-center text-green-400 font-medium">
-                  <span>{isSpanish ? 'Insights predictivos' : 'Predictive insights'}</span>
+                  <span>{isSpanish ? 'Visión 360° del negocio' : '360° business view'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -253,21 +253,21 @@ export default function Landing() {
                 {isSpanish ? 'RESULTADOS GARANTIZADOS' : 'GUARANTEED RESULTS'}
               </Badge>
               <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-                {isSpanish ? 'De 2 horas a 2 minutos' : 'From 2 hours to 2 minutes'}
+                {isSpanish ? 'Transforma tu negocio completo' : 'Transform your entire business'}
               </h2>
               <p className="text-xl text-white/70 mb-8 leading-relaxed">
                 {isSpanish 
-                  ? 'Nuestros clientes ahorran un promedio de 15 horas semanales en marketing digital mientras aumentan su engagement en 300%.'
-                  : 'Our clients save an average of 15 hours per week on digital marketing while increasing engagement by 300%.'
+                  ? 'Nuestros clientes automatizan operaciones completas, aumentan ventas 400% y reducen costos operativos en 60% usando nuestro ecosistema unificado.'
+                  : 'Our clients automate complete operations, increase sales by 400%, and reduce operational costs by 60% using our unified ecosystem.'
                 }
               </p>
               
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: Check, text: isSpanish ? 'Configuración automática en 5 minutos' : 'Auto-setup in 5 minutes' },
-                  { icon: Check, text: isSpanish ? 'Contenido viral generado diariamente' : 'Viral content generated daily' },
-                  { icon: Check, text: isSpanish ? 'Respuestas a clientes 24/7' : 'Customer responses 24/7' },
-                  { icon: Check, text: isSpanish ? 'ROI medible desde el día 1' : 'Measurable ROI from day 1' }
+                  { icon: Check, text: isSpanish ? 'Migración e integración automática' : 'Automatic migration and integration' },
+                  { icon: Check, text: isSpanish ? 'CRM, ventas y marketing unificados' : 'Unified CRM, sales, and marketing' },
+                  { icon: Check, text: isSpanish ? 'Automatización de procesos empresariales' : 'Business process automation' },
+                  { icon: Check, text: isSpanish ? 'Dashboard ejecutivo en tiempo real' : 'Real-time executive dashboard' }
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-4">
                     <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -290,18 +290,18 @@ export default function Landing() {
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
                 <TrendingUp className="w-8 h-8 text-green-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">300%</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Más engagement' : 'More engagement'}</div>
+                <div className="text-3xl font-bold text-white mb-2">400%</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Crecimiento en ventas' : 'Sales growth'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
                 <Clock className="w-8 h-8 text-blue-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">15h</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Ahorradas/semana' : 'Saved per week'}</div>
+                <div className="text-3xl font-bold text-white mb-2">60%</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Reducción de costos' : 'Cost reduction'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
                 <Users className="w-8 h-8 text-purple-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">5x</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Más clientes' : 'More customers'}</div>
+                <div className="text-3xl font-bold text-white mb-2">24/7</div>
+                <div className="text-white/60 text-sm">{isSpanish ? 'Operación automática' : 'Automated operations'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
                 <Shield className="w-8 h-8 text-yellow-400 mx-auto mb-4" />
@@ -317,12 +317,12 @@ export default function Landing() {
       <section className="relative py-20 bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-            {isSpanish ? '¿Listo para dominar el marketing digital?' : 'Ready to dominate digital marketing?'}
+            {isSpanish ? '¿Listo para automatizar tu negocio completo?' : 'Ready to automate your entire business?'}
           </h2>
           <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
             {isSpanish 
-              ? 'Únete a 25,000+ empresas que ya están automatizando su crecimiento con CampAIgner. Prueba gratis por 14 días.'
-              : 'Join 25,000+ businesses already automating their growth with CampAIgner. Try free for 14 days.'
+              ? 'Únete a 25,000+ empresas que han transformado completamente sus operaciones con nuestro ecosistema empresarial. Prueba gratis por 14 días.'
+              : 'Join 25,000+ businesses that have completely transformed their operations with our business ecosystem. Try free for 14 days.'
             }
           </p>
           
