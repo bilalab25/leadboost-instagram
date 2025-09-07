@@ -431,13 +431,13 @@ export default function Landing() {
                   <>
                     <span className="font-semibold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl animate-gradient-x" style={{backgroundSize: '400% 400%'}}>Haz Crecer tu Negocio</span>
                     <br />
-                    <span className="text-white drop-shadow-lg font-light hover:text-cyan-100 transition-colors duration-500">En Piloto Automático</span>
+                    <span className="text-white drop-shadow-lg font-light hover:text-cyan-100 transition-colors duration-500 text-5xl">En Piloto Automático.</span>
                   </>
                 ) : (
                   <>
                     <span className="font-semibold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl animate-gradient-x" style={{backgroundSize: '400% 400%'}}>Grow Your Business</span>
                     <br />
-                    <span className="text-white drop-shadow-lg font-light hover:text-cyan-100 transition-colors duration-500">On Autopilot</span>
+                    <span className="text-white drop-shadow-lg font-light hover:text-cyan-100 transition-colors duration-500 text-5xl">On Autopilot.</span>
                   </>
                 )}
               </h1>
