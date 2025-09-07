@@ -288,7 +288,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         .access-title {
           font-size: 1.5rem;
           font-weight: 600;
-          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
           background-size: 200% 200%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
