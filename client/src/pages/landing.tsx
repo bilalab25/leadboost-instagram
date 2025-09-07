@@ -42,18 +42,68 @@ export default function Landing() {
               <div className="flex items-center space-x-6">
                 {/* Navigation Buttons */}
                 <div className="hidden sm:flex items-center space-x-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const featuresSection = document.querySelector('[data-section="features"]');
-                      featuresSection?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-white/20 px-3 py-2 transition-all duration-200 rounded-lg"
-                    data-testid="button-whats-inside"
-                  >
-                    {isSpanish ? "Qué Incluye" : "What's Inside"}
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-white/20 px-3 py-2 transition-all duration-200 rounded-lg"
+                        data-testid="button-whats-inside"
+                      >
+                        {isSpanish ? "Qué Incluye" : "What's Inside"}
+                        <ChevronDown className="ml-1 h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-64 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
+                      <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                        <Sparkles className="h-4 w-4 mr-3 text-cyan-600" />
+                        <div>
+                          <div className="font-medium text-slate-800">CampAIgner</div>
+                          <div className="text-xs text-slate-500">{isSpanish ? 'Generador de campañas IA' : 'AI Campaign Generator'}</div>
+                        </div>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                        <MessageSquare className="h-4 w-4 mr-3 text-blue-600" />
+                        <div>
+                          <div className="font-medium text-slate-800">{isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}</div>
+                          <div className="text-xs text-slate-500">{isSpanish ? 'Gestión de mensajes multicanal' : 'Multi-platform messaging'}</div>
+                        </div>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                        <Bot className="h-4 w-4 mr-3 text-purple-600" />
+                        <div>
+                          <div className="font-medium text-slate-800">{isSpanish ? 'Planificador IA' : 'AI Content Planner'}</div>
+                          <div className="text-xs text-slate-500">{isSpanish ? 'Estrategias de contenido inteligentes' : 'Smart content strategies'}</div>
+                        </div>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                        <BarChart3 className="h-4 w-4 mr-3 text-green-600" />
+                        <div>
+                          <div className="font-medium text-slate-800">{isSpanish ? 'Analytics' : 'Analytics Dashboard'}</div>
+                          <div className="text-xs text-slate-500">{isSpanish ? 'Métricas e insights en tiempo real' : 'Real-time metrics & insights'}</div>
+                        </div>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                        <ShoppingBag className="h-4 w-4 mr-3 text-orange-600" />
+                        <div>
+                          <div className="font-medium text-slate-800">{isSpanish ? 'Integraciones POS' : 'POS Integrations'}</div>
+                          <div className="text-xs text-slate-500">{isSpanish ? 'Conecta tu sistema de ventas' : 'Connect your sales system'}</div>
+                        </div>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                        <Palette className="h-4 w-4 mr-3 text-pink-600" />
+                        <div>
+                          <div className="font-medium text-slate-800">{isSpanish ? 'Brand Studio' : 'Brand Studio'}</div>
+                          <div className="text-xs text-slate-500">{isSpanish ? 'Herramientas de diseño profesional' : 'Professional design tools'}</div>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   
                   <Button
                     variant="ghost"
