@@ -148,18 +148,18 @@ export default function Landing() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-white/20 px-3 py-2 transition-all duration-200 rounded-lg"
+                        className="text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 px-3 py-2 transition-all duration-200 rounded-lg"
                         data-testid="button-whats-inside"
                       >
                         {isSpanish ? "Qué Incluye" : "What's Inside"}
                         <ChevronDown className="ml-1 h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-64 bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-2">
+                    <DropdownMenuContent align="start" className="w-64 bg-white/95 backdrop-blur-md border border-slate-200 shadow-xl rounded-2xl p-2">
                       <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
                         <Sparkles className="h-4 w-4 mr-3 text-cyan-600" />
                         <div>
-                          <div className="font-medium text-slate-800">CampAIgner</div>
+                          <div className="font-medium text-white">CampAIgner</div>
                           <div className="text-xs text-slate-500">{isSpanish ? 'Generador de campañas IA' : 'AI Campaign Generator'}</div>
                         </div>
                       </DropdownMenuItem>
@@ -167,7 +167,7 @@ export default function Landing() {
                       <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
                         <MessageSquare className="h-4 w-4 mr-3 text-blue-600" />
                         <div>
-                          <div className="font-medium text-slate-800">{isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}</div>
+                          <div className="font-medium text-white">{isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}</div>
                           <div className="text-xs text-slate-500">{isSpanish ? 'Gestión de mensajes multicanal' : 'Multi-platform messaging'}</div>
                         </div>
                       </DropdownMenuItem>
@@ -175,7 +175,7 @@ export default function Landing() {
                       <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
                         <Bot className="h-4 w-4 mr-3 text-purple-600" />
                         <div>
-                          <div className="font-medium text-slate-800">{isSpanish ? 'Planificador IA' : 'AI Content Planner'}</div>
+                          <div className="font-medium text-white">{isSpanish ? 'Planificador IA' : 'AI Content Planner'}</div>
                           <div className="text-xs text-slate-500">{isSpanish ? 'Estrategias de contenido inteligentes' : 'Smart content strategies'}</div>
                         </div>
                       </DropdownMenuItem>
@@ -183,7 +183,7 @@ export default function Landing() {
                       <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
                         <BarChart3 className="h-4 w-4 mr-3 text-green-600" />
                         <div>
-                          <div className="font-medium text-slate-800">{isSpanish ? 'Analytics' : 'Analytics Dashboard'}</div>
+                          <div className="font-medium text-white">{isSpanish ? 'Analytics' : 'Analytics Dashboard'}</div>
                           <div className="text-xs text-slate-500">{isSpanish ? 'Métricas e insights en tiempo real' : 'Real-time metrics & insights'}</div>
                         </div>
                       </DropdownMenuItem>
@@ -191,7 +191,7 @@ export default function Landing() {
                       <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
                         <ShoppingBag className="h-4 w-4 mr-3 text-orange-600" />
                         <div>
-                          <div className="font-medium text-slate-800">{isSpanish ? 'Integraciones POS' : 'POS Integrations'}</div>
+                          <div className="font-medium text-white">{isSpanish ? 'Integraciones POS' : 'POS Integrations'}</div>
                           <div className="text-xs text-slate-500">{isSpanish ? 'Conecta tu sistema de ventas' : 'Connect your sales system'}</div>
                         </div>
                       </DropdownMenuItem>
@@ -199,7 +199,7 @@ export default function Landing() {
                       <DropdownMenuItem className="flex items-center p-3 hover:bg-slate-50 rounded-xl transition-colors duration-200 cursor-pointer">
                         <Palette className="h-4 w-4 mr-3 text-pink-600" />
                         <div>
-                          <div className="font-medium text-slate-800">{isSpanish ? 'Brand Studio' : 'Brand Studio'}</div>
+                          <div className="font-medium text-white">{isSpanish ? 'Brand Studio' : 'Brand Studio'}</div>
                           <div className="text-xs text-slate-500">{isSpanish ? 'Herramientas de diseño profesional' : 'Professional design tools'}</div>
                         </div>
                       </DropdownMenuItem>
@@ -225,7 +225,7 @@ export default function Landing() {
                   variant="ghost"
                   size="sm"
                   onClick={toggleLanguage}
-                  className="text-xs font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-100/30 px-2 py-1 transition-all duration-200 rounded-md border border-gray-200/50 hover:border-brand-300/70"
+                  className="text-xs font-medium text-slate-600 hover:text-white hover:bg-slate-100/50 px-2 py-1 transition-all duration-200 rounded-md border border-slate-200/60 hover:border-slate-300/70"
                   data-testid="button-language-toggle"
                 >
                   {isSpanish ? 'EN' : 'ES'}
@@ -247,14 +247,14 @@ export default function Landing() {
                       className="flex items-center p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer"
                     >
                       <Bot className="h-4 w-4 mr-3 text-brand-600" />
-                      <span className="font-medium text-slate-800">{isSpanish ? 'Chat con IA' : 'AI Chat Assistant'}</span>
+                      <span className="font-medium text-white">{isSpanish ? 'Chat con IA' : 'AI Chat Assistant'}</span>
                     </DropdownMenuItem>
                     
                     <DropdownMenuItem 
                       className="flex items-center p-3 hover:bg-brand-50/80 rounded-xl transition-colors duration-200 cursor-pointer"
                     >
                       <FileQuestion className="h-4 w-4 mr-3 text-brand-600" />
-                      <span className="font-medium text-slate-800">{isSpanish ? 'Preguntas Frecuentes' : 'FAQs'}</span>
+                      <span className="font-medium text-white">{isSpanish ? 'Preguntas Frecuentes' : 'FAQs'}</span>
                     </DropdownMenuItem>
                     
                     <DropdownMenuItem 
@@ -262,7 +262,7 @@ export default function Landing() {
                       onClick={toggleLanguage}
                     >
                       <Globe className="h-4 w-4 mr-3 text-brand-600" />
-                      <span className="font-medium text-slate-800">{isSpanish ? 'Cambiar Idioma' : 'Change Language'}</span>
+                      <span className="font-medium text-white">{isSpanish ? 'Cambiar Idioma' : 'Change Language'}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -277,9 +277,9 @@ export default function Landing() {
             <div className="max-w-4xl mx-auto px-6 text-center">
               
               {/* Trust indicator */}
-              <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm shadow-lg">
+              <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full bg-slate-900/10 border border-slate-200/40 backdrop-blur-sm shadow-lg">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
-                <span className="text-sm font-medium text-slate-200">
+                <span className="text-sm font-medium text-slate-700">
                   {isSpanish ? 'Confiado por 25,000+ empresas' : 'Trusted by 25,000+ businesses'}
                 </span>
                 <div className="flex items-center gap-0.5 ml-1">
@@ -290,18 +290,18 @@ export default function Landing() {
               </div>
               
               {/* Main headline */}
-              <h1 className="text-6xl lg:text-7xl font-light text-white leading-[0.95] tracking-tight mb-8">
+              <h1 className="text-6xl lg:text-7xl font-light text-slate-900 leading-[0.95] tracking-tight mb-8">
                 {isSpanish ? (
                   <>
-                    <span className="font-medium bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Haz Crecer tu Negocio</span>
+                    <span className="font-medium bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">Haz Crecer tu Negocio</span>
                     <br />
-                    <span className="text-slate-200">En Piloto Automático</span>
+                    <span className="text-slate-600">En Piloto Automático</span>
                   </>
                 ) : (
                   <>
-                    <span className="font-medium bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Grow Your Business</span>
+                    <span className="font-medium bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">Grow Your Business</span>
                     <br />
-                    <span className="text-slate-200">On Autopilot</span>
+                    <span className="text-slate-600">On Autopilot</span>
                   </>
                 )}
               </h1>
