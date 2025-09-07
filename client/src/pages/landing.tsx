@@ -87,7 +87,7 @@ export default function Landing() {
           <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
             <span className="text-sm font-medium text-white/90">
-              {isSpanish ? '✨ Conecta 21+ plataformas • Convierte 30x más clientes' : '✨ Connects 21+ platforms • Converts 30x more clients'}
+              {isSpanish ? '✨ Genera campañas automáticamente años sin intervención' : '✨ Generates campaigns automatically for years without intervention'}
             </span>
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
@@ -121,8 +121,8 @@ export default function Landing() {
           {/* Subtitle */}
           <p className={`text-xl sm:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish 
-              ? 'Campañas basadas en datos reales de tu negocio • Auto-optimizadas para 21+ plataformas • Bandeja unificada con IA que convierte 30x más clientes' 
-              : 'Data-backed campaigns from your real business • Auto-sized for 21+ platforms • Unified AI inbox that converts 30x more clients'
+              ? 'IA genera y publica campañas automáticamente por meses/años usando datos en tiempo real de tu negocio • POS, web, redes sociales • Sin tocar un botón' 
+              : 'AI generates and posts campaigns automatically for months/years using real-time business data • POS, web, social media • Without touching a button'
             }
           </p>
 
@@ -172,20 +172,20 @@ export default function Landing() {
           {/* Social Proof Numbers */}
           <div className={`grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto transition-all duration-1000 delay-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">30x</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Más alcance de clientes' : 'More client reach'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">Years</div>
+              <div className="text-white/60 text-sm">{isSpanish ? 'Campañas automáticas' : 'Automated campaigns'}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">21+</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Plataformas auto-optimizadas' : 'Auto-optimized platforms'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">0 Clicks</div>
+              <div className="text-white/60 text-sm">{isSpanish ? 'Para generar contenido' : 'To generate content'}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-bold text-white mb-2">Real-time</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Datos empresariales' : 'Business data'}</div>
+              <div className="text-white/60 text-sm">{isSpanish ? 'Datos POS/Web/Social' : 'POS/Web/Social data'}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">Unified Inbox</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'IA conversiones' : 'AI conversions'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">21+ Platforms</div>
+              <div className="text-white/60 text-sm">{isSpanish ? 'Publicación automática' : 'Auto-posting'}</div>
             </div>
           </div>
         </div>
