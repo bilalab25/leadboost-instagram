@@ -381,3 +381,31 @@
   animation-fill-mode: both;
   will-change: transform, opacity, filter;
 }
+
+/* Floating Social Media Cards Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(var(--rotation, 0deg));
+  }
+  50% {
+    transform: translateY(-15px) rotate(var(--rotation, 0deg));
+  }
+}
+
+@keyframes slowDrift {
+  0% {
+    transform: translateX(0px);
+  }
+  25% {
+    transform: translateX(8px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
