@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useMutation } from "@tanstack/react-query";
-import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Rocket, HelpCircle, X, Send, FileQuestion, Crown, Star, CheckCircle, Heart, Share2 } from "lucide-react";
+import { MessageSquare, Bot, BarChart3, Users, Zap, Shield, ArrowDown, ArrowRight, Sparkles, Target, Globe, TrendingUp, Play, Volume2, Settings, Maximize, Palette, Video, Mail, ChevronDown, Calendar, Compass, Rocket, HelpCircle, X, Send, FileQuestion, Crown, Star, CheckCircle, Heart, Share2, Eye, Activity, DollarSign, ShoppingBag, CreditCard, Clock } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiGmail, SiWix, SiShopify, SiZapier, SiQuickbooks, SiSquare, SiStripe } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
@@ -473,7 +475,7 @@ export default function Landing() {
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center">
-                          <Instagram className="text-white h-4 w-4" />
+                          <SiInstagram className="text-white h-4 w-4" />
                         </div>
                         <div>
                           <p className="text-sm font-medium">
@@ -607,7 +609,7 @@ export default function Landing() {
               <CardContent>
                 <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-7 gap-4">
                   {[
-                    { icon: <Instagram className="h-6 w-6" />, name: "Instagram", color: "text-pink-500" },
+                    { icon: <SiInstagram className="h-6 w-6" />, name: "Instagram", color: "text-pink-500" },
                     { icon: <SiTiktok className="h-6 w-6" />, name: "TikTok", color: "text-gray-800" },
                     { icon: <SiFacebook className="h-6 w-6" />, name: "Facebook", color: "text-primary" },
                     { icon: <SiLinkedin className="h-6 w-6" />, name: "LinkedIn", color: "text-primary" },
