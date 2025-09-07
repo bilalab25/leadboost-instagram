@@ -123,7 +123,7 @@ export default function Landing() {
           <div className="absolute top-68 right-2/3 w-18 h-26 bg-white/8 rounded-lg border border-white/5 flex items-center justify-center transform -rotate-8 shadow-lg" style={{animation: 'float 8s ease-in-out infinite 4s, slowDrift 17s linear infinite 2.5s'}}>
             <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-slate-900 text-xs font-bold">M</div>
           </div>
-        </div>
+
         {/* Header */}
         <header className="absolute top-0 left-0 right-0 z-50">
           <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
@@ -276,7 +276,6 @@ export default function Landing() {
             
             {/* Minimal Geometric Accent - Single Premium Element */}
             <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-gradient-to-br from-blue-500/3 to-purple-500/3 rounded-full blur-3xl" style={{animation: 'float 30s ease-in-out infinite'}}></div>
-          </div>
           </div>
           
           {/* Premium Hero Content */}
