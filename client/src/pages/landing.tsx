@@ -16,7 +16,11 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-900 text-white overflow-hidden">
+    <div className="min-h-screen relative text-white overflow-hidden" style={{
+      background: 'linear-gradient(-45deg, #0f172a, #1e3a8a, #0891b2, #0f172a)',
+      backgroundSize: '400% 400%',
+      animation: 'gradientShift 15s ease infinite'
+    }}>
       {/* Header */}
       <header className="relative z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
@@ -53,10 +57,29 @@ export default function Landing() {
 
       {/* Hero Section */}
       <section className="relative py-20 sm:py-32">
-        {/* Background Effects */}
+        {/* Enhanced Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div 
+            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-30"
+            style={{
+              background: 'radial-gradient(circle, #3b82f6, #06b6d4, transparent)',
+              animation: 'float 20s ease-in-out infinite, glow 8s ease-in-out infinite'
+            }}
+          ></div>
+          <div 
+            className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-25"
+            style={{
+              background: 'radial-gradient(circle, #06b6d4, #3b82f6, transparent)',
+              animation: 'float 25s ease-in-out infinite reverse, glow 10s ease-in-out infinite 2s'
+            }}
+          ></div>
+          <div 
+            className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full blur-2xl opacity-20 transform -translate-x-1/2 -translate-y-1/2"
+            style={{
+              background: 'conic-gradient(from 0deg, #3b82f6, #06b6d4, #1d4ed8, #3b82f6)',
+              animation: 'slowDrift 30s linear infinite'
+            }}
+          ></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8 text-center">
@@ -75,12 +98,25 @@ export default function Landing() {
           </div>
           
           {/* Main Headline */}
-          <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              style={{
+                background: 'linear-gradient(45deg, #ffffff, #3b82f6, #06b6d4, #ffffff)',
+                backgroundSize: '300% 100%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                animation: 'textShine 4s ease-in-out infinite'
+              }}>
             {isSpanish ? (
               <>
                 El Ecosistema Completo
                 <br />
-                <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                <span style={{
+                  background: 'linear-gradient(45deg, #3b82f6, #06b6d4, #1d4ed8, #0891b2)',
+                  backgroundSize: '300% 100%',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  animation: 'textShine 3s ease-in-out infinite 1s'
+                }}>
                   Para Tu Negocio
                 </span>
               </>
@@ -88,7 +124,13 @@ export default function Landing() {
               <>
                 The Complete
                 <br />
-                <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                <span style={{
+                  background: 'linear-gradient(45deg, #3b82f6, #06b6d4, #1d4ed8, #0891b2)',
+                  backgroundSize: '300% 100%',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  animation: 'textShine 3s ease-in-out infinite 1s'
+                }}>
                   Business Ecosystem
                 </span>
               </>
@@ -105,7 +147,11 @@ export default function Landing() {
 
           {/* Platform Showcase */}
           <div className={`flex justify-center items-center gap-6 mb-12 transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="flex items-center gap-4 px-6 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+            <div className="flex items-center gap-4 px-6 py-3 rounded-2xl backdrop-blur-md border border-white/20 hover:scale-105 transition-all duration-300" style={{
+                background: 'linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1))',
+                backgroundSize: '200% 100%',
+                animation: 'gradientShift 8s ease infinite'
+              }}>
               <SiInstagram className="w-6 h-6 text-pink-400" />
               <SiTiktok className="w-6 h-6 text-white" />
               <SiFacebook className="w-6 h-6 text-blue-400" />
@@ -120,7 +166,12 @@ export default function Landing() {
           {/* CTA Buttons */}
           <div className={`flex flex-col sm:flex-row gap-6 justify-center mb-16 transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <Button 
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold px-10 py-4 text-lg rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
+              className="relative text-white font-semibold px-10 py-4 text-lg rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden group"
+              style={{
+                background: 'linear-gradient(45deg, #1e40af, #0891b2, #1e40af)',
+                backgroundSize: '200% 100%',
+                animation: 'gradientShift 3s ease infinite'
+              }}
               data-testid="button-start-free-trial"
             >
               <Zap className="w-5 h-5 mr-2" />
