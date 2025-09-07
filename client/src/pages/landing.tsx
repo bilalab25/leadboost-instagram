@@ -184,7 +184,7 @@ export default function Landing() {
               <div className="text-white/60 text-sm">{isSpanish ? 'Datos empresariales' : 'Business data'}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">1-Inbox</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">Unified Inbox</div>
               <div className="text-white/60 text-sm">{isSpanish ? 'IA conversiones' : 'AI conversions'}</div>
             </div>
           </div>
