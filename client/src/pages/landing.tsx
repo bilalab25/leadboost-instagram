@@ -101,18 +101,18 @@ export default function Landing() {
           <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 text-white transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish ? (
               <>
-                Gestiona Todas Tus
+                Haz Crecer Tu Negocio
                 <br />
                 <span className="text-blue-300">
-                  Redes Sociales Con IA
+                  En Piloto Automático
                 </span>
               </>
             ) : (
               <>
-                Manage All Your
+                Grow Your Business
                 <br />
                 <span className="text-blue-300">
-                  Social Media With AI
+                  On Autopilot
                 </span>
               </>
             )}
