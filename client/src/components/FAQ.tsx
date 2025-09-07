@@ -143,37 +143,50 @@ export function FAQ({ isSpanish }: FAQProps) {
           ))}
         </div>
 
-        <div className="text-center mt-12">
-          <p className="text-gray-600 mb-6">
+        <div className="text-center mt-16">
+          <h4 className="text-xl font-medium text-gray-900 mb-8">
             {isSpanish ? '¿Tienes más preguntas?' : 'Have more questions?'}
-          </p>
-          <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
-            <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-              <div className="text-center">
-                <h5 className="font-semibold text-gray-900 mb-2">
-                  {isSpanish ? '📧 Email' : '📧 Email'}
+          </h4>
+          <div className="max-w-2xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="group">
+                <div className="text-gray-400 group-hover:text-gray-600 transition-colors duration-200 mb-3">
+                  <div className="w-10 h-10 mx-auto bg-gray-50 rounded-full flex items-center justify-center text-lg">
+                    📧
+                  </div>
+                </div>
+                <h5 className="text-sm font-medium text-gray-900 mb-1">
+                  {isSpanish ? 'Email' : 'Email'}
                 </h5>
-                <p className="text-gray-600">support@leadboost.com</p>
+                <p className="text-sm text-gray-500">support@leadboost.com</p>
               </div>
-            </Card>
-            <Card className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-              <div className="text-center">
-                <h5 className="font-semibold text-gray-900 mb-2">
-                  {isSpanish ? '💬 Chat en Vivo' : '💬 Live Chat'}
+              
+              <div className="group">
+                <div className="text-gray-400 group-hover:text-gray-600 transition-colors duration-200 mb-3">
+                  <div className="w-10 h-10 mx-auto bg-gray-50 rounded-full flex items-center justify-center text-lg">
+                    💬
+                  </div>
+                </div>
+                <h5 className="text-sm font-medium text-gray-900 mb-1">
+                  {isSpanish ? 'Chat en Vivo' : 'Live Chat'}
                 </h5>
-                <p className="text-gray-600">
+                <p className="text-sm text-gray-500">
                   {isSpanish ? 'Disponible 24/7' : 'Available 24/7'}
                 </p>
               </div>
-            </Card>
-            <Card className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
-              <div className="text-center">
-                <h5 className="font-semibold text-gray-900 mb-2">
-                  {isSpanish ? '📞 Teléfono' : '📞 Phone'}
+              
+              <div className="group">
+                <div className="text-gray-400 group-hover:text-gray-600 transition-colors duration-200 mb-3">
+                  <div className="w-10 h-10 mx-auto bg-gray-50 rounded-full flex items-center justify-center text-lg">
+                    📞
+                  </div>
+                </div>
+                <h5 className="text-sm font-medium text-gray-900 mb-1">
+                  {isSpanish ? 'Teléfono' : 'Phone'}
                 </h5>
-                <p className="text-gray-600">+1 (555) 123-4567</p>
+                <p className="text-sm text-gray-500">+1 (555) 123-4567</p>
               </div>
-            </Card>
+            </div>
           </div>
         </div>
       </div>
