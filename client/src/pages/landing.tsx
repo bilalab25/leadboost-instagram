@@ -349,12 +349,12 @@ export default function Landing() {
       <section className="relative py-20 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-            {isSpanish ? '¿Listo Para Transformar Tu Empresa?' : 'Ready To Transform Your Business?'}
+            {isSpanish ? '¿Listo Para Dominar Tus Redes Sociales?' : 'Ready To Master Your Social Media?'}
           </h2>
           <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
             {isSpanish 
-              ? 'Únete a más de 25,000 empresas que han transformado completamente sus operaciones con nuestro ecosistema empresarial. Prueba gratis durante 14 días.'
-              : 'Join over 25,000 businesses that have completely transformed their operations with our business ecosystem. Try free for 14 days.'
+              ? 'Únete a miles de marcas que han revolucionado su presencia digital con IA. Gestiona todas tus redes desde una plataforma. Prueba gratis durante 14 días.'
+              : 'Join thousands of brands that have revolutionized their digital presence with AI. Manage all your networks from one platform. Try free for 14 days.'
             }
           </p>
           
