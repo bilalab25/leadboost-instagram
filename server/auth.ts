@@ -54,7 +54,7 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
 
   // Password protection for the entire site
-  const SITE_PASSWORD = "Leadboost198$";
+  const SITE_PASSWORD = "nandaparbat7";
 
   // Password check endpoint
   app.post("/api/site-auth", (req, res) => {
