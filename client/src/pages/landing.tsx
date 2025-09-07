@@ -40,6 +40,35 @@ export default function Landing() {
               </div>
               
               <div className="flex items-center space-x-6">
+                {/* Navigation Buttons */}
+                <div className="hidden sm:flex items-center space-x-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const featuresSection = document.querySelector('[data-section="features"]');
+                      featuresSection?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-white/20 px-3 py-2 transition-all duration-200 rounded-lg"
+                    data-testid="button-whats-inside"
+                  >
+                    {isSpanish ? "Qué Incluye" : "What's Inside"}
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const pricingSection = document.querySelector('[data-section="pricing"]');
+                      pricingSection?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-white/20 px-3 py-2 transition-all duration-200 rounded-lg"
+                    data-testid="button-pricing"
+                  >
+                    {isSpanish ? 'Precios' : 'Pricing'}
+                  </Button>
+                </div>
+                
                 {/* Language Toggle */}
                 <Button
                   variant="ghost"
@@ -184,7 +213,7 @@ export default function Landing() {
         </main>
 
         {/* Features Grid */}
-        <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-16">
+        <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-16" data-section="features">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <Card className="p-6 hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
@@ -888,6 +917,158 @@ export default function Landing() {
                       </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing Section */}
+        <div className="bg-gradient-to-br from-brand-50 to-white py-20" data-section="pricing">
+          <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center bg-brand-100 text-brand-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                <Crown className="mr-2 h-4 w-4" />
+                {isSpanish ? 'Precios' : 'Pricing'}
+              </div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                {isSpanish ? 'Planes Diseñados para tu Crecimiento' : 'Plans Built for Your Growth'}
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                {isSpanish 
+                  ? 'Desde startups hasta empresas, tenemos el plan perfecto para acelerar tu crecimiento'
+                  : 'From startups to enterprises, we have the perfect plan to accelerate your growth'
+                }
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {/* Starter Plan */}
+              <Card className="relative border-2 border-gray-200 hover:border-brand-300 transition-all duration-200">
+                <CardHeader className="text-center pb-8">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {isSpanish ? 'Iniciador' : 'Starter'}
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-4xl font-bold text-gray-900">$29</span>
+                    <span className="text-gray-500 ml-2">{isSpanish ? '/mes' : '/month'}</span>
+                  </div>
+                  <p className="text-gray-600">
+                    {isSpanish ? 'Perfecto para pequeños negocios' : 'Perfect for small businesses'}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? '5 campañas IA por mes' : '5 AI campaigns per month'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? '3 plataformas conectadas' : '3 connected platforms'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'Analytics básicos' : 'Basic analytics'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'Soporte por email' : 'Email support'}</span>
+                    </li>
+                  </ul>
+                  <Button className="w-full" variant="outline">
+                    {isSpanish ? 'Comenzar Gratis' : 'Start Free'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Pro Plan - Featured */}
+              <Card className="relative border-2 border-brand-500 hover:border-brand-600 transition-all duration-200 transform scale-105">
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <Badge className="bg-brand-500 text-white px-4 py-1">
+                    {isSpanish ? 'Más Popular' : 'Most Popular'}
+                  </Badge>
+                </div>
+                <CardHeader className="text-center pb-8 pt-8">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {isSpanish ? 'Profesional' : 'Professional'}
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-4xl font-bold text-gray-900">$79</span>
+                    <span className="text-gray-500 ml-2">{isSpanish ? '/mes' : '/month'}</span>
+                  </div>
+                  <p className="text-gray-600">
+                    {isSpanish ? 'Para equipos en crecimiento' : 'For growing teams'}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? '25 campañas IA por mes' : '25 AI campaigns per month'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? '10 plataformas conectadas' : '10 connected platforms'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'Analytics avanzados' : 'Advanced analytics'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'Bandeja unificada' : 'Unified inbox'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'Soporte prioritario' : 'Priority support'}</span>
+                    </li>
+                  </ul>
+                  <Button className="w-full">
+                    {isSpanish ? 'Prueba 14 Días Gratis' : '14-Day Free Trial'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Enterprise Plan */}
+              <Card className="relative border-2 border-gray-200 hover:border-brand-300 transition-all duration-200">
+                <CardHeader className="text-center pb-8">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {isSpanish ? 'Empresarial' : 'Enterprise'}
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-4xl font-bold text-gray-900">{isSpanish ? 'Personalizado' : 'Custom'}</span>
+                  </div>
+                  <p className="text-gray-600">
+                    {isSpanish ? 'Para grandes organizaciones' : 'For large organizations'}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'Campañas ilimitadas' : 'Unlimited campaigns'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'Todas las plataformas' : 'All platforms'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'API personalizada' : 'Custom API'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'Manager dedicado' : 'Dedicated manager'}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{isSpanish ? 'SLA garantizado' : 'SLA guarantee'}</span>
+                    </li>
+                  </ul>
+                  <Button className="w-full" variant="outline">
+                    {isSpanish ? 'Contactar Ventas' : 'Contact Sales'}
+                  </Button>
                 </CardContent>
               </Card>
             </div>
