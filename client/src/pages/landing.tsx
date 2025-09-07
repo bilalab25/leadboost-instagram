@@ -16,7 +16,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 text-white overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-900 text-white overflow-hidden">
       {/* Header */}
       <header className="relative z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
@@ -55,7 +55,7 @@ export default function Landing() {
       <section className="relative py-20 sm:py-32">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
         </div>
 
@@ -80,7 +80,7 @@ export default function Landing() {
               <>
                 El ecosistema completo
                 <br />
-                <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                   para tu negocio
                 </span>
               </>
@@ -88,7 +88,7 @@ export default function Landing() {
               <>
                 The complete
                 <br />
-                <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                   business ecosystem
                 </span>
               </>
@@ -98,8 +98,8 @@ export default function Landing() {
           {/* Subtitle */}
           <p className={`text-xl sm:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish 
-              ? 'Marketing, ventas, CRM, operaciones y análisis empresarial unificados. La única plataforma que necesitas para automatizar todo tu negocio.' 
-              : 'Marketing, sales, CRM, operations, and business analytics unified. The only platform you need to automate your entire business.'
+              ? 'Marketing, ventas, CRM, operaciones y análisis empresarial unificados. La única plataforma que necesita tu empresa para automatizar todo el negocio.' 
+              : 'Marketing, sales, CRM, operations, and business analytics unified. The only platform your business needs to automate everything.'
             }
           </p>
 
@@ -120,7 +120,7 @@ export default function Landing() {
           {/* CTA Buttons */}
           <div className={`flex flex-col sm:flex-row gap-6 justify-center mb-16 transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <Button 
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-10 py-4 text-lg rounded-2xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold px-10 py-4 text-lg rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
               data-testid="button-start-free-trial"
             >
               <Zap className="w-5 h-5 mr-2" />
@@ -163,16 +163,16 @@ export default function Landing() {
       <section className="relative py-20 bg-black/20 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="text-center mb-16">
-            <Badge className="mb-6 bg-purple-500/20 text-purple-300 border-purple-500/30 px-4 py-2 text-sm font-medium">
+            <Badge className="mb-6 bg-blue-500/20 text-blue-300 border-blue-500/30 px-4 py-2 text-sm font-medium">
               {isSpanish ? 'CARACTERÍSTICAS PRINCIPALES' : 'CORE FEATURES'}
             </Badge>
-            <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
               {isSpanish ? 'Todo en una plataforma' : 'Everything in one platform'}
             </h2>
             <p className="text-xl text-white/70 max-w-3xl mx-auto">
               {isSpanish 
-                ? 'Desde la creación de contenido hasta el análisis de resultados, CampAIgner maneja todo tu ecosistema digital'
-                : 'From content creation to performance analytics, CampAIgner handles your entire digital ecosystem'
+                ? 'De la automatización de ventas al análisis empresarial, CampAIgner maneja todo tu ecosistema de negocio'
+                : 'From sales automation to business analytics, CampAIgner handles your entire business ecosystem'
               }
             </p>
           </div>
@@ -180,7 +180,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <Card className="bg-white/5 backdrop-blur-md border-white/10 p-8 hover:bg-white/10 transition-all duration-300 group">
               <CardContent className="text-center pt-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Bot className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
@@ -188,11 +188,11 @@ export default function Landing() {
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'IA que gestiona marketing, ventas, atención al cliente y operaciones. Automatiza workflows completos y toma decisiones inteligentes.'
-                    : 'AI that handles marketing, sales, customer service, and operations. Automates complete workflows and makes intelligent decisions.'
+                    ? 'IA empresarial que gestiona marketing, ventas, atención al cliente y operaciones. Automatiza procesos completos y toma decisiones estratégicas en tiempo real.'
+                    : 'Enterprise AI that handles marketing, sales, customer service, and operations. Automates complete processes and makes strategic decisions in real-time.'
                   }
                 </p>
-                <div className="flex items-center justify-center text-purple-400 font-medium">
+                <div className="flex items-center justify-center text-blue-400 font-medium">
                   <span>{isSpanish ? 'Automatización total' : 'Total automation'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
@@ -230,8 +230,8 @@ export default function Landing() {
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'Dashboard ejecutivo con métricas de ventas, marketing, operaciones y finanzas. Predicciones de negocio e informes automáticos.'
-                    : 'Executive dashboard with sales, marketing, operations, and finance metrics. Business forecasting and automated reporting.'
+                    ? 'Dashboard ejecutivo con métricas de ventas, marketing, operaciones y finanzas en tiempo real. Predicciones de negocio e informes inteligentes automatizados.'
+                    : 'Executive dashboard with real-time sales, marketing, operations, and finance metrics. Business forecasting and intelligent automated reporting.'
                   }
                 </p>
                 <div className="flex items-center justify-center text-green-400 font-medium">
@@ -257,8 +257,8 @@ export default function Landing() {
               </h2>
               <p className="text-xl text-white/70 mb-8 leading-relaxed">
                 {isSpanish 
-                  ? 'Nuestros clientes automatizan operaciones completas, aumentan ventas 400% y reducen costos operativos en 60% usando nuestro ecosistema unificado.'
-                  : 'Our clients automate complete operations, increase sales by 400%, and reduce operational costs by 60% using our unified ecosystem.'
+                  ? 'Nuestros clientes automatizan operaciones completas, incrementan ventas en un 400% y reducen costos operativos en un 60% con nuestro ecosistema empresarial unificado.'
+                  : 'Our clients automate complete operations, increase sales by 400%, and reduce operational costs by 60% with our unified business ecosystem.'
                 }
               </p>
               
@@ -299,7 +299,7 @@ export default function Landing() {
                 <div className="text-white/60 text-sm">{isSpanish ? 'Reducción de costos' : 'Cost reduction'}</div>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <Users className="w-8 h-8 text-purple-400 mx-auto mb-4" />
+                <Users className="w-8 h-8 text-blue-400 mx-auto mb-4" />
                 <div className="text-3xl font-bold text-white mb-2">24/7</div>
                 <div className="text-white/60 text-sm">{isSpanish ? 'Operación automática' : 'Automated operations'}</div>
               </div>
@@ -314,21 +314,21 @@ export default function Landing() {
       </section>
 
       {/* Final CTA */}
-      <section className="relative py-20 bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-md">
+      <section className="relative py-20 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-            {isSpanish ? '¿Listo para automatizar tu negocio completo?' : 'Ready to automate your entire business?'}
+            {isSpanish ? '¿Listo para transformar tu empresa?' : 'Ready to transform your business?'}
           </h2>
           <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
             {isSpanish 
-              ? 'Únete a 25,000+ empresas que han transformado completamente sus operaciones con nuestro ecosistema empresarial. Prueba gratis por 14 días.'
-              : 'Join 25,000+ businesses that have completely transformed their operations with our business ecosystem. Try free for 14 days.'
+              ? 'Únete a más de 25,000 empresas que han transformado completamente sus operaciones con nuestro ecosistema empresarial. Prueba gratis durante 14 días.'
+              : 'Join over 25,000 businesses that have completely transformed their operations with our business ecosystem. Try free for 14 days.'
             }
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
             <Button 
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold px-12 py-5 text-xl rounded-2xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold px-12 py-5 text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
               data-testid="button-start-free-trial-final"
             >
               <Zap className="w-6 h-6 mr-3" />
