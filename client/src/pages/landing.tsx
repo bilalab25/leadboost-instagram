@@ -199,12 +199,12 @@ export default function Landing() {
               {isSpanish ? 'CARACTERÍSTICAS PRINCIPALES' : 'CORE FEATURES'}
             </Badge>
             <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              {isSpanish ? 'Todo En Una Plataforma' : 'Everything In One Platform'}
+              {isSpanish ? 'El Centro De Control De Tus Redes Sociales' : 'Your Social Media Command Center'}
             </h2>
             <p className="text-xl text-white/70 max-w-3xl mx-auto">
               {isSpanish 
-                ? 'De la automatización de ventas al análisis empresarial, CampAIgner maneja todo tu ecosistema de negocio'
-                : 'From sales automation to business analytics, CampAIgner handles your entire business ecosystem'
+                ? 'Desde responder mensajes hasta crear contenido con IA, CampAIgner automatiza y optimiza toda tu presencia en redes sociales'
+                : 'From responding to messages to creating AI content, CampAIgner automates and optimizes your entire social media presence'
               }
             </p>
           </div>
@@ -213,19 +213,19 @@ export default function Landing() {
             <Card className="bg-white/5 backdrop-blur-md border-white/10 p-8 hover:bg-white/10 transition-all duration-300 group">
               <CardContent className="text-center pt-0">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Bot className="h-8 w-8 text-white" />
+                  <MessageSquare className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'IA Empresarial' : 'Business AI'}
+                  {isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'IA empresarial que gestiona marketing, ventas, atención al cliente y operaciones. Automatiza procesos completos y toma decisiones estratégicas en tiempo real.'
-                    : 'Enterprise AI that handles marketing, sales, customer service, and operations. Automates complete processes and makes strategic decisions in real-time.'
+                    ? 'Todos tus mensajes de Instagram, WhatsApp, TikTok, Facebook y más en un solo lugar. Respuestas automáticas con IA y análisis de sentimientos en tiempo real.'
+                    : 'All your messages from Instagram, WhatsApp, TikTok, Facebook and more in one place. AI auto-responses and real-time sentiment analysis.'
                   }
                 </p>
                 <div className="flex items-center justify-center text-blue-400 font-medium">
-                  <span>{isSpanish ? 'Automatización Total' : 'Total Automation'}</span>
+                  <span>{isSpanish ? 'Gestión Centralizada' : 'Centralized Management'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -233,20 +233,20 @@ export default function Landing() {
 
             <Card className="bg-white/5 backdrop-blur-md border-white/10 p-8 hover:bg-white/10 transition-all duration-300 group">
               <CardContent className="text-center pt-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <MessageSquare className="h-8 w-8 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Bot className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Centro de Operaciones' : 'Operations Hub'}
+                  {isSpanish ? 'Creación IA de Contenido' : 'AI Content Creation'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'CRM unificado, pipeline de ventas, soporte 24/7 y gestión de leads. Conecta todos los puntos de contacto de tu negocio.'
-                    : 'Unified CRM, sales pipeline, 24/7 support, and lead management. Connects every touchpoint of your business.'
+                    ? 'GPT-4o genera estrategias mensuales, posts personalizados, hashtags optimizados y variaciones para cada plataforma. Brand Studio integrado con Canva.'
+                    : 'GPT-4o generates monthly strategies, personalized posts, optimized hashtags and platform variations. Integrated Brand Studio with Canva.'
                   }
                 </p>
-                <div className="flex items-center justify-center text-blue-400 font-medium">
-                  <span>{isSpanish ? 'Gestión Integral' : 'Complete Management'}</span>
+                <div className="flex items-center justify-center text-purple-400 font-medium">
+                  <span>{isSpanish ? 'Contenido Inteligente' : 'Smart Content'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -258,16 +258,16 @@ export default function Landing() {
                   <BarChart3 className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Business Intelligence' : 'Business Intelligence'}
+                  {isSpanish ? 'Campañas Y Análisis' : 'Campaigns & Analytics'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'Dashboard ejecutivo con métricas de ventas, marketing, operaciones y finanzas en tiempo real. Predicciones de negocio e informes inteligentes automatizados.'
-                    : 'Executive dashboard with real-time sales, marketing, operations, and finance metrics. Business forecasting and intelligent automated reporting.'
+                    ? 'Publica en 21+ plataformas simultáneamente. Seguimiento de performance, engagement y ROI en tiempo real. Informes automatizados de rendimiento.'
+                    : 'Publish to 21+ platforms simultaneously. Real-time performance, engagement and ROI tracking. Automated performance reports.'
                   }
                 </p>
                 <div className="flex items-center justify-center text-green-400 font-medium">
-                  <span>{isSpanish ? 'Visión 360° Del Negocio' : '360° Business View'}</span>
+                  <span>{isSpanish ? 'Publicación Inteligente' : 'Smart Publishing'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
