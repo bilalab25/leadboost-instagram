@@ -140,8 +140,8 @@ export default function Landing() {
           {/* Subtitle */}
           <p className={`text-xl sm:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish 
-              ? 'Marketing, ventas, CRM, operaciones y análisis empresarial unificados. La única plataforma que necesita tu empresa para automatizar todo el negocio.' 
-              : 'Marketing, sales, CRM, operations, and business analytics unified. The only platform your business needs to automate everything.'
+              ? 'Marketing, ventas, relaciones con clientes, retención y análisis empresarial unificados. La única plataforma que necesita tu empresa para vender más.' 
+              : 'Marketing, sales, customer relationship, retention, and business analytics unified. The only platform your business needs to sell more.'
             }
           </p>
 
