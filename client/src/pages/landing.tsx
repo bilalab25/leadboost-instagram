@@ -98,25 +98,12 @@ export default function Landing() {
           </div>
           
           {/* Main Headline */}
-          <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-              style={{
-                background: 'linear-gradient(90deg, #ffffff, #e2e8f0, #3b82f6, #e2e8f0, #ffffff)',
-                backgroundSize: '400% 100%',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                animation: 'textShine 12s ease-in-out infinite'
-              }}>
+          <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 text-white transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish ? (
               <>
                 El Ecosistema Completo
                 <br />
-                <span style={{
-                  background: 'linear-gradient(90deg, #94a3b8, #3b82f6, #06b6d4, #3b82f6, #94a3b8)',
-                  backgroundSize: '500% 100%',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  animation: 'textShine 15s ease-in-out infinite 3s'
-                }}>
+                <span className="text-blue-300">
                   Para Tu Negocio
                 </span>
               </>
@@ -124,13 +111,7 @@ export default function Landing() {
               <>
                 The Complete
                 <br />
-                <span style={{
-                  background: 'linear-gradient(90deg, #94a3b8, #3b82f6, #06b6d4, #3b82f6, #94a3b8)',
-                  backgroundSize: '500% 100%',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  animation: 'textShine 15s ease-in-out infinite 3s'
-                }}>
+                <span className="text-blue-300">
                   Business Ecosystem
                 </span>
               </>
