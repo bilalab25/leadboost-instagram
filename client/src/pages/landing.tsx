@@ -199,12 +199,12 @@ export default function Landing() {
               {isSpanish ? 'CARACTERÍSTICAS PRINCIPALES' : 'CORE FEATURES'}
             </Badge>
             <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              {isSpanish ? 'El Centro De Control De Tus Redes Sociales' : 'Your Social Media Command Center'}
+              {isSpanish ? 'El Motor De Crecimiento Empresarial Automatizado' : 'The Automated Business Growth Engine'}
             </h2>
             <p className="text-xl text-white/70 max-w-3xl mx-auto">
               {isSpanish 
-                ? 'Desde responder mensajes hasta crear contenido con IA, CampAIgner automatiza y optimiza toda tu presencia en redes sociales'
-                : 'From responding to messages to creating AI content, CampAIgner automates and optimizes your entire social media presence'
+                ? 'Conecta datos reales de tu negocio, alcanza 30x más clientes en 21+ plataformas y convierte conversaciones con IA. Todo automatizado.'
+                : 'Connect real business data, reach 30x more clients across 21+ platforms, and convert conversations with AI. Fully automated.'
               }
             </p>
           </div>
@@ -212,20 +212,20 @@ export default function Landing() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <Card className="bg-white/5 backdrop-blur-md border-white/10 p-8 hover:bg-white/10 transition-all duration-300 group">
               <CardContent className="text-center pt-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <MessageSquare className="h-8 w-8 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <BarChart3 className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}
+                  {isSpanish ? 'Campañas Basadas En Datos' : 'Data-Backed Campaigns'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'Todos tus mensajes de Instagram, WhatsApp, TikTok, Facebook y más en un solo lugar. Respuestas automáticas con IA y análisis de sentimientos en tiempo real.'
-                    : 'All your messages from Instagram, WhatsApp, TikTok, Facebook and more in one place. AI auto-responses and real-time sentiment analysis.'
+                    ? 'Conecta información real de tu negocio - inventario, precios, ofertas, eventos. Campañas que se actualizan automáticamente con datos empresariales en tiempo real.'
+                    : 'Connect real business info - inventory, pricing, offers, events. Campaigns that auto-update with real-time business data.'
                   }
                 </p>
-                <div className="flex items-center justify-center text-blue-400 font-medium">
-                  <span>{isSpanish ? 'Gestión Centralizada' : 'Centralized Management'}</span>
+                <div className="flex items-center justify-center text-green-400 font-medium">
+                  <span>{isSpanish ? 'Datos Reales, Resultados Reales' : 'Real Data, Real Results'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -233,20 +233,20 @@ export default function Landing() {
 
             <Card className="bg-white/5 backdrop-blur-md border-white/10 p-8 hover:bg-white/10 transition-all duration-300 group">
               <CardContent className="text-center pt-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Bot className="h-8 w-8 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Globe className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Creación IA de Contenido' : 'AI Content Creation'}
+                  {isSpanish ? 'Alcance 30x En 21+ Plataformas' : '30x Reach Across 21+ Platforms'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'GPT-4o genera estrategias mensuales, posts personalizados, hashtags optimizados y variaciones para cada plataforma. Brand Studio integrado con Canva.'
-                    : 'GPT-4o generates monthly strategies, personalized posts, optimized hashtags and platform variations. Integrated Brand Studio with Canva.'
+                    ? 'Contenido auto-redimensionado para Instagram, TikTok, Facebook, LinkedIn, YouTube y 16+ plataformas más. Un clic = presencia completa multiplicada por 30.'
+                    : 'Content auto-sized for Instagram, TikTok, Facebook, LinkedIn, YouTube and 16+ more platforms. One click = complete presence multiplied by 30.'
                   }
                 </p>
-                <div className="flex items-center justify-center text-purple-400 font-medium">
-                  <span>{isSpanish ? 'Contenido Inteligente' : 'Smart Content'}</span>
+                <div className="flex items-center justify-center text-blue-400 font-medium">
+                  <span>{isSpanish ? 'Multiplicación Instantánea' : 'Instant Multiplication'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
@@ -258,16 +258,16 @@ export default function Landing() {
                   <BarChart3 className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Campañas Y Análisis' : 'Campaigns & Analytics'}
+                  {isSpanish ? 'ChatDeck IA Para Conversiones' : 'AI ChatDeck For Conversions'}
                 </h3>
                 <p className="text-white/70 leading-relaxed mb-6">
                   {isSpanish 
-                    ? 'Publica en 21+ plataformas simultáneamente. Seguimiento de performance, engagement y ROI en tiempo real. Informes automatizados de rendimiento.'
-                    : 'Publish to 21+ platforms simultaneously. Real-time performance, engagement and ROI tracking. Automated performance reports.'
+                    ? 'Bandeja unificada con chatbot IA que responde en todas las plataformas. Convierte visitantes en clientes 24/7 con respuestas personalizadas e inteligentes.'
+                    : 'Unified inbox with AI chatbot responding across all platforms. Convert visitors to clients 24/7 with personalized, intelligent responses.'
                   }
                 </p>
                 <div className="flex items-center justify-center text-green-400 font-medium">
-                  <span>{isSpanish ? 'Publicación Inteligente' : 'Smart Publishing'}</span>
+                  <span>{isSpanish ? 'Conversión Automatizada' : 'Automated Conversion'}</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               </CardContent>
