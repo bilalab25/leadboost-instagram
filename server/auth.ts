@@ -14,6 +14,9 @@ try {
   console.log("PostgreSQL session store not available, using memory store");
 }
 
+// Site password protection
+const SITE_PASSWORD = "leadboost177$";
+
 // Production-ready authentication setup without Replit dependencies
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
@@ -51,12 +54,34 @@ export function getSession() {
   });
 }
 
+// Site access check middleware
+export const checkSiteAccess: RequestHandler = (req, res, next) => {
+  const session = req.session as any;
+  if (session.siteAccess) {
+    return next();
+  }
+  return res.status(401).json({ message: "Site access required" });
+};
+
+// Password check endpoint
+export const setupSiteAuth = (app: Express) => {
+  app.post("/api/site-auth", (req, res) => {
+    const { password } = req.body;
+    
+    if (password === SITE_PASSWORD) {
+      (req.session as any).siteAccess = true;
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ success: false, message: "Invalid password" });
+    }
+  });
+};
+
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(getSession());
 
-  // Password protection for the entire site
-  const SITE_PASSWORD = "nandaparbat7";
+  // Password protection for the entire site (use the global SITE_PASSWORD)
 
   // Password check endpoint
   app.post("/api/site-auth", (req, res) => {
