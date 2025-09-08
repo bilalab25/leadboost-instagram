@@ -68,29 +68,88 @@ export async function setupAuth(app: Express) {
     }
   });
 
-  // Simple demo authentication routes that work in any environment
-  app.get("/api/login", (req, res) => {
-    // In demo mode, automatically log in as the demo user
-    (req.session as any).user = {
-      id: "demo-user",
-      email: "said@renuvederm.com",
-      firstName: "Said",
-      lastName: "Renuve",
-      profileImageUrl: null,
-    };
-    res.redirect("/home");
+  // Real authentication endpoints for production use
+  app.post("/api/signup", async (req, res) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+      
+      if (!email || !password || !firstName || !lastName) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists with this email" });
+      }
+
+      // Hash password
+      const bcrypt = require("bcrypt");
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user
+      const newUser = await storage.createUser({
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        profileImageUrl: null,
+      });
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = newUser;
+
+      // Set session
+      (req.session as any).user = userWithoutPassword;
+      
+      res.status(201).json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(500).json({ message: "Failed to create account" });
+    }
   });
 
-  app.get("/api/callback", (req, res) => {
-    res.redirect("/");
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Find user
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Verify password
+      const bcrypt = require("bcrypt");
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Remove password from user object
+      const { password: _, ...userWithoutPassword } = user;
+
+      // Set session
+      (req.session as any).user = userWithoutPassword;
+      
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Login failed" });
+    }
   });
 
-  app.get("/api/logout", (req, res) => {
+  app.post("/api/logout", (req, res) => {
     req.session.destroy((err) => {
       if (err) {
         console.error("Error destroying session:", err);
+        return res.status(500).json({ message: "Logout failed" });
       }
-      res.redirect("/");
+      res.json({ message: "Logged out successfully" });
     });
   });
 }
