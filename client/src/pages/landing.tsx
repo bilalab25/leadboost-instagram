@@ -55,12 +55,14 @@ export default function Landing() {
                 variant="outline"
                 className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300"
                 data-testid="button-login"
+                onClick={() => window.location.href = '/api/login'}
               >
                 {isSpanish ? 'Iniciar Sesión' : 'Login'}
               </Button>
               <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
                 data-testid="button-header-cta"
+                onClick={() => window.location.href = '/api/login'}
               >
                 {isSpanish ? 'Empezar Gratis' : 'Start Free'}
               </Button>

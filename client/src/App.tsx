@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
+import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import Inbox from "@/pages/inbox";
 import AIPlanner from "@/pages/ai-planner";
@@ -34,23 +35,29 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/" component={Landing} />
-      <Route path="/inbox" component={Inbox} />
-      <Route path="/ai-planner" component={AIPlanner} />
-      <Route path="/calendar" component={Calendar} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/campaigns" component={Campaigns} />
-      <Route path="/customers" component={Customers} />
-      <Route path="/team" component={Team} />
-      <Route path="/approvals" component={Approvals} />
-      <Route path="/integrations" component={Integrations} />
-      <Route path="/waterfall" component={CampAIgner} />
-      <Route path="/campaigner" component={CampAIgner} />
-      <Route path="/demo" component={CampAIgner} />
-      <Route path="/brand-studio" component={BrandStudio} />
-      <Route path="/pricing" component={Pricing} />
-      <Route path="/spanish-preview" component={SpanishPreview} />
+      {isLoading || !isAuthenticated ? (
+        <Route path="/" component={Landing} />
+      ) : (
+        <>
+          <Route path="/" component={Home} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/inbox" component={Inbox} />
+          <Route path="/ai-planner" component={AIPlanner} />
+          <Route path="/calendar" component={Calendar} />
+          <Route path="/analytics" component={Analytics} />
+          <Route path="/campaigns" component={Campaigns} />
+          <Route path="/customers" component={Customers} />
+          <Route path="/team" component={Team} />
+          <Route path="/approvals" component={Approvals} />
+          <Route path="/integrations" component={Integrations} />
+          <Route path="/waterfall" component={CampAIgner} />
+          <Route path="/campaigner" component={CampAIgner} />
+          <Route path="/demo" component={CampAIgner} />
+          <Route path="/brand-studio" component={BrandStudio} />
+          <Route path="/pricing" component={Pricing} />
+          <Route path="/spanish-preview" component={SpanishPreview} />
+        </>
+      )}
       <Route component={NotFound} />
     </Switch>
   );
