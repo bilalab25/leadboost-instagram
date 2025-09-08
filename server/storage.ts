@@ -71,6 +71,7 @@ export interface IStorage {
   // Brand operations
   createBrand(brand: InsertBrand): Promise<Brand>;
   getBrandsByUserId(userId: string): Promise<Brand[]>;
+  getBrandById(id: string, userId: string): Promise<Brand | undefined>;
   updateBrand(id: string, userId: string, updates: Partial<Brand>): Promise<Brand | undefined>;
   deleteBrand(id: string, userId: string): Promise<boolean>;
 
@@ -85,6 +86,8 @@ export interface IStorage {
   getMessagesByUserId(userId: string, unreadOnly?: boolean): Promise<Message[]>;
   getMessagesByAccountId(accountId: string): Promise<Message[]>;
   updateMessageStatus(id: string, isRead: boolean): Promise<void>;
+  markMessageAsRead(id: string): Promise<void>;
+  updateMessagePriority(id: string, priority: string): Promise<void>;
   assignMessage(id: string, assignedTo: string): Promise<void>;
 
   // Content plan operations
@@ -97,10 +100,12 @@ export interface IStorage {
   createCampaign(campaign: InsertCampaign): Promise<Campaign>;
   getCampaignsByUserId(userId: string): Promise<Campaign[]>;
   updateCampaign(id: string, userId: string, updates: Partial<Campaign>): Promise<Campaign | undefined>;
+  updateCampaignStatus(id: string, status: string): Promise<void>;
   deleteCampaign(id: string, userId: string): Promise<boolean>;
 
   // Analytics operations
   createAnalytics(analytics: InsertAnalytics): Promise<Analytics>;
+  createAnalyticsEntry(analytics: InsertAnalytics): Promise<Analytics>;
   getAnalyticsByUserId(userId: string, days?: number): Promise<Analytics[]>;
 
   // Activity log operations
@@ -111,6 +116,7 @@ export interface IStorage {
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   getCustomersByUserId(userId: string): Promise<Customer[]>;
   updateCustomer(id: string, userId: string, updates: Partial<Customer>): Promise<Customer | undefined>;
+  updateCustomerTotalInvoiced(customerId: string, amount: number): Promise<void>;
   deleteCustomer(id: string, userId: string): Promise<boolean>;
 
   // Invoice operations
@@ -223,6 +229,11 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(brands).where(eq(brands.userId, userId)).orderBy(desc(brands.createdAt));
   }
 
+  async getBrandById(id: string, userId: string): Promise<Brand | undefined> {
+    const [brand] = await db.select().from(brands).where(and(eq(brands.id, id), eq(brands.userId, userId)));
+    return brand;
+  }
+
   async updateBrand(id: string, userId: string, updates: Partial<Brand>): Promise<Brand | undefined> {
     const [updated] = await db
       .update(brands)
@@ -272,13 +283,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMessagesByUserId(userId: string, unreadOnly: boolean = false): Promise<Message[]> {
-    let query = db.select().from(messages)
-      .innerJoin(socialAccounts, eq(messages.socialAccountId, socialAccounts.id))
-      .where(eq(socialAccounts.userId, userId));
-
+    const whereConditions = [eq(socialAccounts.userId, userId)];
     if (unreadOnly) {
-      query = query.where(eq(messages.isRead, false));
+      whereConditions.push(eq(messages.isRead, false));
     }
+
+    const query = db.select().from(messages)
+      .innerJoin(socialAccounts, eq(messages.socialAccountId, socialAccounts.id))
+      .where(and(...whereConditions));
 
     const results = await query.orderBy(desc(messages.createdAt));
     return results.map(row => row.messages);
@@ -299,6 +311,18 @@ export class DatabaseStorage implements IStorage {
   async assignMessage(id: string, assignedTo: string): Promise<void> {
     await db.update(messages)
       .set({ assignedTo })
+      .where(eq(messages.id, id));
+  }
+
+  async markMessageAsRead(id: string): Promise<void> {
+    await db.update(messages)
+      .set({ isRead: true })
+      .where(eq(messages.id, id));
+  }
+
+  async updateMessagePriority(id: string, priority: string): Promise<void> {
+    await db.update(messages)
+      .set({ priority })
       .where(eq(messages.id, id));
   }
 
@@ -358,6 +382,12 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
+  async updateCampaignStatus(id: string, status: string): Promise<void> {
+    await db.update(campaigns)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(campaigns.id, id));
+  }
+
   // Analytics operations
   async createAnalytics(analyticsData: InsertAnalytics): Promise<Analytics> {
     const [newAnalytics] = await db.insert(analytics).values(analyticsData).returning();
@@ -374,6 +404,11 @@ export class DatabaseStorage implements IStorage {
         gte(analytics.createdAt, startDate)
       ))
       .orderBy(desc(analytics.createdAt));
+  }
+
+  async createAnalyticsEntry(analyticsData: InsertAnalytics): Promise<Analytics> {
+    const [newAnalytics] = await db.insert(analytics).values(analyticsData).returning();
+    return newAnalytics;
   }
 
   // Activity log operations
@@ -417,6 +452,15 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
+  async updateCustomerTotalInvoiced(customerId: string, amount: number): Promise<void> {
+    await db.update(customers)
+      .set({ 
+        totalInvoiced: sql`${customers.totalInvoiced} + ${amount}`,
+        updatedAt: new Date() 
+      })
+      .where(eq(customers.id, customerId));
+  }
+
   // Invoice operations
   async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
     const [newInvoice] = await db.insert(invoices).values(invoice).returning();
@@ -424,17 +468,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInvoicesByUserId(userId: string, customerId?: string): Promise<(Invoice & { customer?: Customer })[]> {
-    let query = db.select({
+    const whereConditions = [eq(invoices.userId, userId)];
+    if (customerId) {
+      whereConditions.push(eq(invoices.customerId, customerId));
+    }
+
+    const query = db.select({
       invoice: invoices,
       customer: customers
     })
     .from(invoices)
     .leftJoin(customers, eq(invoices.customerId, customers.id))
-    .where(eq(invoices.userId, userId));
-
-    if (customerId) {
-      query = query.where(and(eq(invoices.userId, userId), eq(invoices.customerId, customerId)));
-    }
+    .where(and(...whereConditions));
 
     const results = await query.orderBy(desc(invoices.createdAt));
     
@@ -515,11 +560,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsersWithApprovalRights(minLevel?: number): Promise<User[]> {
-    let query = db.select().from(users).where(eq(users.canApprove, true));
+    const whereConditions = [eq(users.canApprove, true)];
     if (minLevel) {
-      query = query.where(lte(users.hierarchyLevel, minLevel));
+      whereConditions.push(lte(users.hierarchyLevel, minLevel));
     }
-    return query;
+    return db.select().from(users).where(and(...whereConditions));
   }
 
   async getSubordinates(managerId: string): Promise<User[]> {
@@ -612,14 +657,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getNotificationsByUserId(userId: string, unreadOnly: boolean = false): Promise<ApprovalNotification[]> {
-    let query = db.select().from(approvalNotifications)
-      .where(eq(approvalNotifications.userId, userId));
-    
+    const whereConditions = [eq(approvalNotifications.userId, userId)];
     if (unreadOnly) {
-      query = query.where(and(eq(approvalNotifications.userId, userId), eq(approvalNotifications.isRead, false)));
+      whereConditions.push(eq(approvalNotifications.isRead, false));
     }
     
-    return query.orderBy(desc(approvalNotifications.createdAt));
+    return db.select().from(approvalNotifications)
+      .where(and(...whereConditions))
+      .orderBy(desc(approvalNotifications.createdAt));
   }
 
   async markNotificationAsRead(notificationId: string): Promise<void> {

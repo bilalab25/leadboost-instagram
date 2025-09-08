@@ -30,7 +30,7 @@ export function getSession() {
       });
       console.log("Using PostgreSQL session store");
     } catch (error) {
-      console.log("Failed to setup PostgreSQL session store, using memory store:", error.message);
+      console.log("Failed to setup PostgreSQL session store, using memory store:", (error as Error).message);
     }
   } else {
     console.log("Using memory session store (not recommended for production)");

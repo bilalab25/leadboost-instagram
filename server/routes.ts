@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./auth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import OpenAI from "openai";
 import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
 import { socialMediaService } from "./services/socialMedia";
@@ -42,15 +42,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const user = req.user || {
-        id: "demo-user",
-        email: "said@renuvederm.com",
-        firstName: "Said",
-        lastName: "Renuve",
-        profileImageUrl: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -1180,7 +1173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       Answer questions about platform features, pricing, usage, and provide helpful guidance.
       Keep responses concise and friendly. If you can't answer something specific, direct users to FAQ or support.
       
-      Respond in ${language === 'spanish' ? 'Spanish' : 'English'}.`;
+      Respond in English.`;
 
       // Generate response using OpenAI
       const completion = await openai.chat.completions.create({
@@ -1194,17 +1187,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const botMessage = completion.choices[0]?.message?.content || 
-        (language === 'spanish' ? 
-          'Lo siento, no pude procesar tu mensaje. Por favor revisa nuestras FAQ o contacta soporte.' :
-          'Sorry, I couldn\'t process your message. Please check our FAQ or contact support.');
+          'Sorry, I couldn\'t process your message. Please check our FAQ or contact support.';
 
       res.json({ message: botMessage });
     } catch (error) {
       console.error("Help chat error:", error);
       res.status(500).json({ 
-        message: language === 'spanish' ? 
-          'Lo siento, hay un problema técnico. Puedes revisar nuestras FAQ o contactar soporte.' :
-          'Sorry, there\'s a technical issue. You can check our FAQ or contact support.'
+        message: 'Sorry, there\'s a technical issue. You can check our FAQ or contact support.'
       });
     }
   });
@@ -1491,7 +1480,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Generate properly sized image URLs using Unsplash with exact dimensions
       for (const platform of platformsToProcess) {
-        const dimensions = imageProcessor.PLATFORM_DIMENSIONS?.[platform];
+        const platformDimensions = {
+          'Instagram Post': { width: 1080, height: 1080 },
+          'Instagram Story': { width: 1080, height: 1920 },
+          'LinkedIn Post': { width: 1200, height: 627 },
+          'Facebook Post': { width: 1200, height: 630 },
+          'Twitter/X Post': { width: 1200, height: 675 },
+          'TikTok Cover': { width: 1080, height: 1920 },
+          'Email Banner': { width: 1200, height: 400 }
+        };
+        const dimensions = platformDimensions[platform as keyof typeof platformDimensions];
         if (dimensions) {
           // Use the source image with exact dimensions and smart cropping
           const optimizedUrl = `${sourceImageUrl}&w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart`;
@@ -1572,7 +1570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
-    const userId = req.user?.claims?.sub;
+    const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
     const objectStorageService = new ObjectStorageService();
     try {
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
@@ -2557,12 +2555,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 async function populateDemoData(userId: string) {
   // Create social accounts
   const socialAccountsData = [
-    { platform: "instagram", accountName: "@mybusiness", followerCount: 15420, isActive: true, accessToken: "demo_token_ig" },
-    { platform: "facebook", accountName: "My Business Page", followerCount: 8750, isActive: true, accessToken: "demo_token_fb" },
-    { platform: "linkedin", accountName: "My Business", followerCount: 3200, isActive: true, accessToken: "demo_token_li" },
-    { platform: "tiktok", accountName: "@mybiz", followerCount: 22100, isActive: true, accessToken: "demo_token_tt" },
-    { platform: "x", accountName: "@MyBusiness", followerCount: 12800, isActive: true, accessToken: "demo_token_x" },
-    { platform: "youtube", accountName: "My Business Channel", followerCount: 5600, isActive: true, accessToken: "demo_token_yt" },
+    { platform: "instagram", accountId: "ig_demo_123", accountName: "@mybusiness", isActive: true, accessToken: "demo_token_ig" },
+    { platform: "facebook", accountId: "fb_demo_456", accountName: "My Business Page", isActive: true, accessToken: "demo_token_fb" },
+    { platform: "linkedin", accountId: "li_demo_789", accountName: "My Business", isActive: true, accessToken: "demo_token_li" },
+    { platform: "tiktok", accountId: "tt_demo_012", accountName: "@mybiz", isActive: true, accessToken: "demo_token_tt" },
+    { platform: "x", accountId: "x_demo_345", accountName: "@MyBusiness", isActive: true, accessToken: "demo_token_x" },
+    { platform: "youtube", accountId: "yt_demo_678", accountName: "My Business Channel", isActive: true, accessToken: "demo_token_yt" },
   ];
 
   const socialAccounts = [];
@@ -2593,9 +2591,10 @@ async function populateDemoData(userId: string) {
   for (const messageData of messagesData) {
     try {
       await storage.createMessage({
-        userId,
         socialAccountId: socialAccounts.find(acc => acc.platform === messageData.platform)?.id || socialAccounts[0].id,
-        ...messageData,
+        senderId: messageData.senderName,
+        senderName: messageData.senderName,
+        content: messageData.content,
         priority: messageData.sentiment === "negative" ? "high" : messageData.sentiment === "positive" ? "normal" : "low",
       });
     } catch (error) {
@@ -2654,7 +2653,7 @@ async function populateDemoData(userId: string) {
       },
       status: "scheduled",
       aiGenerated: true,
-      scheduledFor: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+      scheduledFor: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
     },
     {
       title: "Behind the Scenes: Our Team",
@@ -2701,7 +2700,7 @@ async function populateDemoData(userId: string) {
       description: "Comprehensive content strategy for the fourth quarter focusing on holiday campaigns and year-end promotions",
       month: 12,
       year: 2024,
-      strategy: {
+      strategy: JSON.stringify({
         insights: [
           "Holiday shopping peaks in November and December, with Black Friday and Cyber Monday as key conversion periods",
           "Instagram engagement rates increase 23% during holiday season with visual content",
@@ -2734,7 +2733,7 @@ async function populateDemoData(userId: string) {
             optimalTime: "7:00 PM"
           }
         ]
-      },
+      }),
       status: "active"
     }
   ];
@@ -2771,12 +2770,12 @@ async function populateDemoData(userId: string) {
 
   // Create analytics entries
   const analyticsData = [
-    { platform: "instagram", metric: "reach", value: 15420, period: "weekly", recordedAt: new Date().toISOString() },
-    { platform: "instagram", metric: "engagement", value: 1247, period: "weekly", recordedAt: new Date().toISOString() },
-    { platform: "facebook", metric: "reach", value: 8750, period: "weekly", recordedAt: new Date().toISOString() },
-    { platform: "facebook", metric: "engagement", value: 892, period: "weekly", recordedAt: new Date().toISOString() },
-    { platform: "tiktok", metric: "reach", value: 22100, period: "weekly", recordedAt: new Date().toISOString() },
-    { platform: "tiktok", metric: "engagement", value: 2847, period: "weekly", recordedAt: new Date().toISOString() },
+    { platform: "instagram", metric: "reach", value: 15420, period: "weekly", recordedAt: new Date() },
+    { platform: "instagram", metric: "engagement", value: 1247, period: "weekly", recordedAt: new Date() },
+    { platform: "facebook", metric: "reach", value: 8750, period: "weekly", recordedAt: new Date() },
+    { platform: "facebook", metric: "engagement", value: 892, period: "weekly", recordedAt: new Date() },
+    { platform: "tiktok", metric: "reach", value: 22100, period: "weekly", recordedAt: new Date() },
+    { platform: "tiktok", metric: "engagement", value: 2847, period: "weekly", recordedAt: new Date() },
   ];
 
   for (const analyticsEntry of analyticsData) {
@@ -2813,10 +2812,10 @@ async function populateDemoData(userId: string) {
 
   // Create sample social accounts for different platforms
   const demoSocialAccountsData = [
-    { platform: "instagram", accountName: "@mybusiness", isActive: true, accessToken: "demo_token_ig", refreshToken: "demo_refresh_ig" },
-    { platform: "whatsapp", accountName: "Business WhatsApp", isActive: true, accessToken: "demo_token_wa", refreshToken: "demo_refresh_wa" },
-    { platform: "email", accountName: "info@mybusiness.com", isActive: true, accessToken: "demo_token_email", refreshToken: "demo_refresh_email" },
-    { platform: "tiktok", accountName: "@mybiz_official", isActive: true, accessToken: "demo_token_tt", refreshToken: "demo_refresh_tt" },
+    { platform: "instagram", accountId: "ig_demo_acc1", accountName: "@mybusiness", isActive: true, accessToken: "demo_token_ig", refreshToken: "demo_refresh_ig" },
+    { platform: "whatsapp", accountId: "wa_demo_acc2", accountName: "Business WhatsApp", isActive: true, accessToken: "demo_token_wa", refreshToken: "demo_refresh_wa" },
+    { platform: "email", accountId: "email_demo_acc3", accountName: "info@mybusiness.com", isActive: true, accessToken: "demo_token_email", refreshToken: "demo_refresh_email" },
+    { platform: "tiktok", accountId: "tt_demo_acc4", accountName: "@mybiz_official", isActive: true, accessToken: "demo_token_tt", refreshToken: "demo_refresh_tt" },
   ];
 
   const createdSocialAccounts: { [platform: string]: string } = {};
