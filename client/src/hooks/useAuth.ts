@@ -8,8 +8,9 @@ export function useAuth() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    staleTime: Infinity, // Don't automatically refetch
-    gcTime: Infinity, // Keep in cache forever until manually invalidated
+    staleTime: Infinity,
+    gcTime: Infinity,
+    enabled: false, // Disable automatic fetching completely
   });
 
   return {

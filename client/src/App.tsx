@@ -3,7 +3,6 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
@@ -24,46 +23,32 @@ import Pricing from "@/pages/pricing";
 import Approvals from "@/pages/approvals";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
-      </div>
-    );
-  }
+  // Remove auth checking from router to prevent infinite loops
 
   return (
     <Switch>
-      {/* Public routes - always accessible */}
-      <Route path="/" component={isAuthenticated ? Home : Landing} />
+      {/* Always show landing page at root */}
+      <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/spanish-preview" component={SpanishPreview} />
       
-      {/* Protected routes - require authentication */}
-      {isAuthenticated ? (
-        <>
-          <Route path="/home" component={Home} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/inbox" component={Inbox} />
-          <Route path="/ai-planner" component={AIPlanner} />
-          <Route path="/calendar" component={Calendar} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/campaigns" component={Campaigns} />
-          <Route path="/customers" component={Customers} />
-          <Route path="/team" component={Team} />
-          <Route path="/approvals" component={Approvals} />
-          <Route path="/integrations" component={Integrations} />
-          <Route path="/waterfall" component={CampAIgner} />
-          <Route path="/campaigner" component={CampAIgner} />
-          <Route path="/demo" component={CampAIgner} />
-          <Route path="/brand-studio" component={BrandStudio} />
-        </>
-      ) : (
-        <Route path="*" component={Login} />
-      )}
+      {/* App routes - authentication will be handled by individual pages */}
+      <Route path="/home" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/inbox" component={Inbox} />
+      <Route path="/ai-planner" component={AIPlanner} />
+      <Route path="/calendar" component={Calendar} />
+      <Route path="/analytics" component={Analytics} />
+      <Route path="/campaigns" component={Campaigns} />
+      <Route path="/customers" component={Customers} />
+      <Route path="/team" component={Team} />
+      <Route path="/approvals" component={Approvals} />
+      <Route path="/integrations" component={Integrations} />
+      <Route path="/waterfall" component={CampAIgner} />
+      <Route path="/campaigner" component={CampAIgner} />
+      <Route path="/demo" component={CampAIgner} />
+      <Route path="/brand-studio" component={BrandStudio} />
       
       <Route component={NotFound} />
     </Switch>

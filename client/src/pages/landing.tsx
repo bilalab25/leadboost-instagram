@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
+  const [, navigate] = useLocation();
 
   useEffect(() => {
     setIsVisible(true);
@@ -55,14 +57,14 @@ export default function Landing() {
                 variant="outline"
                 className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300"
                 data-testid="button-login"
-                onClick={() => window.location.href = '/api/login'}
+                onClick={() => navigate("/login")}
               >
                 {isSpanish ? 'Iniciar Sesión' : 'Login'}
               </Button>
               <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
                 data-testid="button-header-cta"
-                onClick={() => window.location.href = '/api/login'}
+                onClick={() => navigate("/login")}
               >
                 {isSpanish ? 'Empezar Gratis' : 'Start Free'}
               </Button>
@@ -139,6 +141,7 @@ export default function Landing() {
             <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-12 py-4 text-xl rounded-xl shadow-xl transition-all duration-300 transform hover:scale-105"
               data-testid="button-start-free-trial"
+              onClick={() => navigate("/login")}
             >
               {isSpanish ? 'Comenzar Gratis Ahora' : 'Start Free Now'}
               <ArrowRight className="w-5 h-5 ml-2" />
@@ -406,7 +409,10 @@ export default function Landing() {
                   <span className="text-gray-700">{isSpanish ? 'Analytics básicos' : 'Basic analytics'}</span>
                 </li>
               </ul>
-              <Button className="w-full bg-gray-100 text-gray-900 hover:bg-gray-200 font-semibold py-3 rounded-lg">
+              <Button 
+                className="w-full bg-gray-100 text-gray-900 hover:bg-gray-200 font-semibold py-3 rounded-lg"
+                onClick={() => navigate("/login")}
+              >
                 {isSpanish ? 'Empezar Gratis' : 'Start Free'}
               </Button>
             </div>
@@ -489,6 +495,7 @@ export default function Landing() {
             <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-12 py-4 text-xl rounded-xl shadow-xl transition-all duration-300 transform hover:scale-105"
               data-testid="button-start-free-trial-final"
+              onClick={() => navigate("/login")}
             >
               {isSpanish ? 'Comenzar Gratis Ahora' : 'Start Free Now'}
               <ArrowRight className="w-5 h-5 ml-2" />
