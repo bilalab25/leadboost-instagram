@@ -101,18 +101,18 @@ export default function Landing() {
           <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 text-white transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish ? (
               <>
-                Haz Crecer Tu Negocio
+                Haz Crecer Tus Ventas,
                 <br />
                 <span className="text-blue-300">
-                  En Piloto Automático
+                  Automáticamente
                 </span>
               </>
             ) : (
               <>
-                Grow Your Business
+                Grow Your Sales,
                 <br />
                 <span className="text-blue-300">
-                  On Autopilot
+                  Automatically
                 </span>
               </>
             )}
@@ -121,51 +121,45 @@ export default function Landing() {
           {/* Subtitle */}
           <p className={`text-xl sm:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish 
-              ? 'IA genera y publica campañas automáticamente por meses/años usando datos en tiempo real de tu negocio • POS, web, redes sociales • Sin tocar un botón' 
-              : 'AI generates and posts campaigns automatically for months/years using real-time business data • POS, web, social media • Without touching a button'
+              ? 'La única plataforma que conecta todos tus sistemas empresariales y crea campañas de marketing inteligentes que se ejecutan automáticamente, generando más ventas sin esfuerzo manual.' 
+              : 'The only platform that connects all your business systems and creates intelligent marketing campaigns that run automatically, generating more sales without manual effort.'
             }
           </p>
 
-          {/* Platform Showcase */}
-          <div className={`flex justify-center items-center gap-6 mb-12 transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="flex items-center gap-4 px-6 py-3 rounded-2xl backdrop-blur-md border border-white/20 hover:scale-105 transition-all duration-300" style={{
-                background: 'linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1))',
-                backgroundSize: '200% 100%',
-                animation: 'gradientShift 8s ease infinite'
-              }}>
-              <SiInstagram className="w-6 h-6 text-pink-400" />
-              <SiTiktok className="w-6 h-6 text-white" />
-              <SiFacebook className="w-6 h-6 text-blue-400" />
-              <SiWhatsapp className="w-6 h-6 text-green-400" />
-              <SiLinkedin className="w-6 h-6 text-blue-500" />
-              <SiYoutube className="w-6 h-6 text-red-400" />
-              <SiX className="w-6 h-6 text-white" />
-              <span className="text-white/60 text-sm font-medium ml-2">+14 more</span>
+          {/* Value Proposition */}
+          <div className={`flex justify-center items-center gap-8 mb-12 transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="flex items-center gap-2 text-white/80">
+              <Check className="w-5 h-5 text-green-400" />
+              <span className="text-sm font-medium">{isSpanish ? 'Sin configuración' : 'No setup required'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-white/80">
+              <Check className="w-5 h-5 text-green-400" />
+              <span className="text-sm font-medium">{isSpanish ? 'Resultados en 24h' : 'Results in 24h'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-white/80">
+              <Check className="w-5 h-5 text-green-400" />
+              <span className="text-sm font-medium">{isSpanish ? 'Cancela cuando quieras' : 'Cancel anytime'}</span>
             </div>
           </div>
           
-          {/* CTA Buttons */}
-          <div className={`flex flex-col sm:flex-row gap-6 justify-center mb-16 transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Primary CTA */}
+          <div className={`flex flex-col items-center gap-4 mb-16 transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <Button 
-              className="relative text-white font-semibold px-10 py-4 text-lg rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden group"
-              style={{
-                background: 'linear-gradient(45deg, #1e40af, #0891b2, #1e40af)',
-                backgroundSize: '200% 100%',
-                animation: 'gradientShift 3s ease infinite'
-              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-12 py-4 text-xl rounded-xl shadow-xl transition-all duration-300 transform hover:scale-105"
               data-testid="button-start-free-trial"
             >
-              <Zap className="w-5 h-5 mr-2" />
-              {isSpanish ? 'Comenzar Prueba Gratuita' : 'Start Free Trial'}
+              {isSpanish ? 'Comenzar Gratis Ahora' : 'Start Free Now'}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
+            <p className="text-white/60 text-sm">
+              {isSpanish ? 'Prueba gratis por 14 días • No se requiere tarjeta de crédito' : 'Free 14-day trial • No credit card required'}
+            </p>
             <Button 
-              variant="outline" 
-              className="border-2 border-white/30 text-white hover:bg-white hover:text-slate-900 font-semibold px-10 py-4 text-lg rounded-2xl backdrop-blur-md transition-all duration-300"
+              variant="ghost" 
+              className="text-white/80 hover:text-white font-medium underline"
               data-testid="button-watch-demo"
             >
-              <Play className="w-5 h-5 mr-2" />
-              {isSpanish ? 'Ver Demo en Vivo' : 'Watch Live Demo'}
+              {isSpanish ? 'Ver demo (2 min)' : 'Watch demo (2 min)'}
             </Button>
           </div>
 
