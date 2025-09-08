@@ -1,12 +1,14 @@
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
+import bcrypt from "bcrypt";
 import { storage } from "./storage";
 
 // Import connect-pg-simple only if DATABASE_URL is available
 let connectPg: any = null;
 try {
   if (process.env.DATABASE_URL) {
-    connectPg = require("connect-pg-simple");
+    const { default: connectPgSimple } = await import("connect-pg-simple");
+    connectPg = connectPgSimple;
   }
 } catch (error) {
   console.log("PostgreSQL session store not available, using memory store");
@@ -78,13 +80,19 @@ export async function setupAuth(app: Express) {
       }
 
       // Check if user already exists
-      const existingUser = await storage.getUserByEmail(email);
+      let existingUser;
+      try {
+        existingUser = await storage.getUserByEmail(email);
+      } catch (error) {
+        console.error("Error checking existing user:", error);
+        return res.status(500).json({ message: "Database error" });
+      }
+      
       if (existingUser) {
         return res.status(400).json({ message: "User already exists with this email" });
       }
 
       // Hash password
-      const bcrypt = require("bcrypt");
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Create user
@@ -124,7 +132,6 @@ export async function setupAuth(app: Express) {
       }
 
       // Verify password
-      const bcrypt = require("bcrypt");
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
         return res.status(401).json({ message: "Invalid email or password" });
