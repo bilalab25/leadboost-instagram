@@ -12,20 +12,35 @@ interface SitePasswordGateProps {
 }
 
 export default function SitePasswordGate({ children }: SitePasswordGateProps) {
-  const [hasAccess, setHasAccess] = useState(() => {
-    // Check if we have site access stored in session storage
-    try {
-      return sessionStorage.getItem('siteAccess') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [hasAccess, setHasAccess] = useState(false); // Always start with false to show password screen
   const [password, setPassword] = useState("");
   const { toast } = useToast();
 
   const checkPasswordMutation = useMutation({
     mutationFn: async (password: string) => {
-      return await apiRequest("/api/site-auth", "POST", { password });
+      console.log("Attempting password check with:", password);
+      try {
+        const response = await fetch("/api/site-auth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password }),
+          credentials: "include", // Important for sessions
+        });
+        
+        const data = await response.json();
+        console.log("Response:", response.status, data);
+        
+        if (!response.ok) {
+          throw new Error(data.message || "Authentication failed");
+        }
+        
+        return data;
+      } catch (error) {
+        console.error("Password check error:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       console.log("Password success:", data);
@@ -40,9 +55,10 @@ export default function SitePasswordGate({ children }: SitePasswordGateProps) {
         description: "Welcome to CampAIgner",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Password error:", error);
       toast({
-        title: "Access denied",
+        title: "Access denied", 
         description: error.message || "Invalid password",
         variant: "destructive",
       });

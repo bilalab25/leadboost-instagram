@@ -37,10 +37,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
   
-  // Add site-wide password protection
+  // Add site-wide password protection (skip for site-auth and some endpoints)
   app.use('/api', (req, res, next) => {
     // Skip password check for the site-auth endpoint itself
     if (req.path === '/site-auth') {
+      return next();
+    }
+    // Also skip for auth endpoints
+    if (req.path === '/signup' || req.path === '/login') {
       return next();
     }
     return checkSiteAccess(req, res, next);
