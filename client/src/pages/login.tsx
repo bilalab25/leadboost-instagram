@@ -67,6 +67,7 @@ export default function LoginPage() {
       return await response.json();
     },
     onSuccess: (data) => {
+      console.log("Login success data:", data);
       // Set the user data in React Query cache
       queryClient.setQueryData(["/api/auth/user"], data.user);
       toast({
@@ -76,6 +77,7 @@ export default function LoginPage() {
       navigate("/");
     },
     onError: (error) => {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message || "Invalid email or password",
@@ -91,6 +93,7 @@ export default function LoginPage() {
       return await response.json();
     },
     onSuccess: (data) => {
+      console.log("Signup success data:", data);
       // Set the user data in React Query cache
       queryClient.setQueryData(["/api/auth/user"], data.user);
       toast({
@@ -100,8 +103,9 @@ export default function LoginPage() {
       navigate("/");
     },
     onError: (error) => {
+      console.error("Signup error:", error);
       toast({
-        title: "Signup failed",
+        title: "Signup failed", 
         description: error.message || "Failed to create account",
         variant: "destructive",
       });
