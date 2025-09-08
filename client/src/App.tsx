@@ -35,11 +35,15 @@ function Router() {
 
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
+      {/* Public routes - always accessible */}
+      <Route path="/" component={Landing} />
+      <Route path="/pricing" component={Pricing} />
+      <Route path="/spanish-preview" component={SpanishPreview} />
+      
+      {/* Protected routes - require authentication */}
+      {isAuthenticated ? (
         <>
-          <Route path="/" component={Home} />
+          <Route path="/home" component={Home} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/inbox" component={Inbox} />
           <Route path="/ai-planner" component={AIPlanner} />
@@ -54,10 +58,9 @@ function Router() {
           <Route path="/campaigner" component={CampAIgner} />
           <Route path="/demo" component={CampAIgner} />
           <Route path="/brand-studio" component={BrandStudio} />
-          <Route path="/pricing" component={Pricing} />
-          <Route path="/spanish-preview" component={SpanishPreview} />
         </>
-      )}
+      ) : null}
+      
       <Route component={NotFound} />
     </Switch>
   );

@@ -78,7 +78,7 @@ export async function setupAuth(app: Express) {
       lastName: "Renuve",
       profileImageUrl: null,
     };
-    res.redirect("/");
+    res.redirect("/home");
   });
 
   app.get("/api/callback", (req, res) => {
@@ -522,9 +522,6 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
 };
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  // For demo/production deployment, we'll use a simplified approach
-  // In a real production app, you would implement proper JWT or OAuth authentication
-  
   const session = req.session as any;
   
   // Check if user is in session
@@ -533,21 +530,6 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return next();
   }
   
-  // For demo purposes, automatically authenticate as demo user
-  session.user = {
-    id: "demo-user",
-    email: "said@renuvederm.com",
-    firstName: "Said",
-    lastName: "Renuve",
-    profileImageUrl: null,
-    claims: {
-      sub: "demo-user",
-      email: "said@renuvederm.com",
-      first_name: "Said",
-      last_name: "Renuve",
-    }
-  };
-  
-  req.user = session.user;
-  return next();
+  // If not authenticated, return 401
+  return res.status(401).json({ message: "Unauthorized" });
 };
