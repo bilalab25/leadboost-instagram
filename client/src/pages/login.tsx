@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ export default function LoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const queryClient = useQueryClient();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -63,13 +64,14 @@ export default function LoginPage() {
     mutationFn: async (data: LoginForm) => {
       return await apiRequest("/api/login", "POST", data);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Set the user data in React Query cache
+      queryClient.setQueryData(["/api/auth/user"], data.user);
       toast({
         title: "Welcome back!",
         description: "You've been logged in successfully.",
       });
-      // Force a page reload to update auth state
-      window.location.href = "/";
+      navigate("/");
     },
     onError: (error) => {
       toast({
@@ -84,13 +86,14 @@ export default function LoginPage() {
     mutationFn: async (data: SignupForm) => {
       return await apiRequest("/api/signup", "POST", data);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Set the user data in React Query cache
+      queryClient.setQueryData(["/api/auth/user"], data.user);
       toast({
         title: "Account created!",
         description: "Welcome to CampAIgner. You've been logged in automatically.",
       });
-      // Force a page reload to update auth state
-      window.location.href = "/";
+      navigate("/");
     },
     onError: (error) => {
       toast({
