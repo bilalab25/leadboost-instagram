@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { requireSitePassword } from "./auth";
 import OpenAI from "openai";
 import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
 import { socialMediaService } from "./services/socialMedia";
@@ -38,8 +37,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
   
-  // Apply site-wide password protection for deployed domain
-  app.use(requireSitePassword);
+  // Password protection removed for easier access
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
