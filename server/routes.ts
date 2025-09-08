@@ -46,6 +46,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return checkSiteAccess(req, res, next);
   });
 
+  // Site password endpoint (must come before other routes)
+  app.post("/api/site-auth", (req, res) => {
+    const { password } = req.body;
+    
+    if (password === "leadboost177$") {
+      (req.session as any).siteAccess = true;
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ success: false, message: "Invalid password" });
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

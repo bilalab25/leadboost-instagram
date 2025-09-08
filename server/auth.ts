@@ -5,13 +5,12 @@ import { storage } from "./storage";
 
 // Import connect-pg-simple only if DATABASE_URL is available
 let connectPg: any = null;
-try {
-  if (process.env.DATABASE_URL) {
-    const { default: connectPgSimple } = await import("connect-pg-simple");
-    connectPg = connectPgSimple;
+if (process.env.DATABASE_URL) {
+  try {
+    connectPg = require("connect-pg-simple");
+  } catch (error) {
+    console.log("PostgreSQL session store not available, using memory store");
   }
-} catch (error) {
-  console.log("PostgreSQL session store not available, using memory store");
 }
 
 // Site password protection
@@ -80,20 +79,6 @@ export const setupSiteAuth = (app: Express) => {
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(getSession());
-
-  // Password protection for the entire site (use the global SITE_PASSWORD)
-
-  // Password check endpoint
-  app.post("/api/site-auth", (req, res) => {
-    const { password } = req.body;
-    
-    if (password === SITE_PASSWORD) {
-      (req.session as any).siteAccess = true;
-      res.json({ success: true });
-    } else {
-      res.status(401).json({ success: false, message: "Invalid password" });
-    }
-  });
 
   // Real authentication endpoints for production use
   app.post("/api/signup", async (req, res) => {

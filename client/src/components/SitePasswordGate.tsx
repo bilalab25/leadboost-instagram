@@ -14,7 +14,11 @@ interface SitePasswordGateProps {
 export default function SitePasswordGate({ children }: SitePasswordGateProps) {
   const [hasAccess, setHasAccess] = useState(() => {
     // Check if we have site access stored in session storage
-    return sessionStorage.getItem('siteAccess') === 'true';
+    try {
+      return sessionStorage.getItem('siteAccess') === 'true';
+    } catch {
+      return false;
+    }
   });
   const [password, setPassword] = useState("");
   const { toast } = useToast();
@@ -23,9 +27,14 @@ export default function SitePasswordGate({ children }: SitePasswordGateProps) {
     mutationFn: async (password: string) => {
       return await apiRequest("/api/site-auth", "POST", { password });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Password success:", data);
       setHasAccess(true);
-      sessionStorage.setItem('siteAccess', 'true');
+      try {
+        sessionStorage.setItem('siteAccess', 'true');
+      } catch (error) {
+        console.log("SessionStorage not available:", error);
+      }
       toast({
         title: "Access granted",
         description: "Welcome to CampAIgner",
