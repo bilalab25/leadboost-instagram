@@ -62,7 +62,9 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginForm) => {
-      return await apiRequest("/api/login", "POST", data);
+      console.log("Logging in with data:", data);
+      const response = await apiRequest("POST", "/api/login", data);
+      return await response.json();
     },
     onSuccess: (data) => {
       // Set the user data in React Query cache
@@ -84,7 +86,9 @@ export default function LoginPage() {
 
   const signupMutation = useMutation({
     mutationFn: async (data: SignupForm) => {
-      return await apiRequest("/api/signup", "POST", data);
+      console.log("Signing up with data:", data);
+      const response = await apiRequest("POST", "/api/signup", data);
+      return await response.json();
     },
     onSuccess: (data) => {
       // Set the user data in React Query cache
