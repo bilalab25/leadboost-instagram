@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, requireSitePassword } from "./auth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { requireSitePassword } from "./auth";
 import OpenAI from "openai";
 import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
 import { socialMediaService } from "./services/socialMedia";
@@ -40,21 +41,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply site-wide password protection for deployed domain
   app.use(requireSitePassword);
 
-  // Auth routes (Demo mode - no authentication required)
-  app.get('/api/auth/user', async (req: any, res) => {
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // Return Said's user profile
-      const mockUser = {
-        id: "demo-user",
-        email: "said@renuvederm.com",
-        firstName: "Said",
-        lastName: "Renuve",
-        profileImageUrl: null,
-        posConnected: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      res.json(mockUser);
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
