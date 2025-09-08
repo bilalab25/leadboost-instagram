@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 import OpenAI from "openai";
 import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
 import { socialMediaService } from "./services/socialMedia";
@@ -2397,7 +2397,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const updates = req.body;
-      const trigger = await storage.updateCampaignTrigger(id, updates);
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || 'demo-user';
+      const trigger = await storage.updateCampaignTrigger(id, userId, updates);
       
       if (!trigger) {
         return res.status(404).json({ message: "Campaign trigger not found" });
@@ -2494,7 +2495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (existingDesign) {
         // Update existing design
-        const updated = await storage.updateBrandDesign(existingDesign.id, designData);
+        const updated = await storage.updateBrandDesign(existingDesign.id, userId, designData);
         res.json(updated);
       } else {
         // Create new design
@@ -2516,7 +2517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingDesign = await storage.getBrandDesignByUserId(userId);
       
       if (existingDesign) {
-        const updated = await storage.updateBrandDesign(existingDesign.id, {
+        const updated = await storage.updateBrandDesign(existingDesign.id, userId, {
           isCanvaConnected: true,
           canvaUserId: "simulated_canva_user",
           canvaTeamId: "simulated_team",
