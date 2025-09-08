@@ -42,8 +42,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      // The user is already in the session from our auth middleware
+      const user = req.user;
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
