@@ -186,186 +186,327 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="relative py-20 bg-black/20 backdrop-blur-md">
+      <section className="relative py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="text-center mb-16">
-            <Badge className="mb-6 bg-blue-500/20 text-blue-300 border-blue-500/30 px-4 py-2 text-sm font-medium">
-              {isSpanish ? 'CARACTERÍSTICAS PRINCIPALES' : 'CORE FEATURES'}
-            </Badge>
-            <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              {isSpanish ? 'Campañas Que Se Crean Y Publican Solas' : 'Campaigns That Create And Post Themselves'}
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-gray-900">
+              {isSpanish ? 'Todo Lo Que Necesitas Para Vender Más' : 'Everything You Need To Sell More'}
             </h2>
-            <p className="text-xl text-white/70 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               {isSpanish 
-                ? 'IA alimentada constantemente con datos de tu POS, web y redes sociales. Genera y publica campañas por años sin intervención humana.'
-                : 'AI constantly fed with data from your POS, web and social media. Generates and posts campaigns for years without human intervention.'
+                ? 'Una plataforma completa que automatiza tu marketing y ventas mientras tú te enfocas en hacer crecer tu negocio.'
+                : 'A complete platform that automates your marketing and sales while you focus on growing your business.'
               }
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card className="bg-white/5 backdrop-blur-md border-white/10 p-8 hover:bg-white/10 transition-all duration-300 group">
-              <CardContent className="text-center pt-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <BarChart3 className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Generación Automática De Campañas' : 'Automated Campaign Generation'}
-                </h3>
-                <p className="text-white/70 leading-relaxed mb-6">
-                  {isSpanish 
-                    ? 'Conectamos tu POS, website, redes sociales y sistemas. IA crea campañas 24/7 usando datos reales: inventario, ventas, eventos, promociones. Años sin tocar nada.'
-                    : 'We connect your POS, website, social media and systems. AI creates campaigns 24/7 using real data: inventory, sales, events, promotions. Years without touching anything.'
-                  }
-                </p>
-                <div className="flex items-center justify-center text-green-400 font-medium">
-                  <span>{isSpanish ? 'Sin Intervención Humana' : 'Zero Human Intervention'}</span>
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                <Bot className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                {isSpanish ? 'Campañas IA Automatizadas' : 'AI Automated Campaigns'}
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                {isSpanish 
+                  ? 'IA crea y publica contenido de marketing basado en datos reales de tu negocio - inventario, ventas, eventos.'
+                  : 'AI creates and posts marketing content based on real business data - inventory, sales, events.'
+                }
+              </p>
+            </div>
 
-            <Card className="bg-white/5 backdrop-blur-md border-white/10 p-8 hover:bg-white/10 transition-all duration-300 group">
-              <CardContent className="text-center pt-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Globe className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'Alcance 30x En 21+ Plataformas' : '30x Reach Across 21+ Platforms'}
-                </h3>
-                <p className="text-white/70 leading-relaxed mb-6">
-                  {isSpanish 
-                    ? 'Contenido auto-redimensionado para Instagram, TikTok, Facebook, LinkedIn, YouTube y 16+ plataformas más. Un clic = presencia completa multiplicada por 30.'
-                    : 'Content auto-sized for Instagram, TikTok, Facebook, LinkedIn, YouTube and 16+ more platforms. One click = complete presence multiplied by 30.'
-                  }
-                </p>
-                <div className="flex items-center justify-center text-blue-400 font-medium">
-                  <span>{isSpanish ? 'Multiplicación Instantánea' : 'Instant Multiplication'}</span>
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                <MessageSquare className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                {isSpanish ? 'Bandeja de Entrada Unificada' : 'Unified Inbox'}
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                {isSpanish 
+                  ? 'Gestiona todos los mensajes de redes sociales desde un solo lugar con respuestas automáticas inteligentes.'
+                  : 'Manage all social media messages from one place with intelligent automatic responses.'
+                }
+              </p>
+            </div>
 
-            <Card className="bg-white/5 backdrop-blur-md border-white/10 p-8 hover:bg-white/10 transition-all duration-300 group">
-              <CardContent className="text-center pt-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <BarChart3 className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-4">
-                  {isSpanish ? 'ChatDeck IA Para Conversiones' : 'AI ChatDeck For Conversions'}
-                </h3>
-                <p className="text-white/70 leading-relaxed mb-6">
-                  {isSpanish 
-                    ? 'Bandeja unificada con chatbot IA que responde en todas las plataformas. Convierte visitantes en clientes 24/7 con respuestas personalizadas e inteligentes.'
-                    : 'Unified inbox with AI chatbot responding across all platforms. Convert visitors to clients 24/7 with personalized, intelligent responses.'
-                  }
-                </p>
-                <div className="flex items-center justify-center text-green-400 font-medium">
-                  <span>{isSpanish ? 'Conversión Automatizada' : 'Automated Conversion'}</span>
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-6">
+                <TrendingUp className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                {isSpanish ? 'Análisis en Tiempo Real' : 'Real-Time Analytics'}
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                {isSpanish 
+                  ? 'Dashboard con métricas de ventas, engagement y ROI para optimizar tu estrategia automáticamente.'
+                  : 'Dashboard with sales, engagement and ROI metrics to optimize your strategy automatically.'
+                }
+              </p>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-6">
+                <Globe className="h-6 w-6 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                {isSpanish ? '21+ Plataformas Conectadas' : '21+ Connected Platforms'}
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                {isSpanish 
+                  ? 'Publica automáticamente en Instagram, Facebook, TikTok, LinkedIn y más plataformas simultáneamente.'
+                  : 'Automatically post to Instagram, Facebook, TikTok, LinkedIn and more platforms simultaneously.'
+                }
+              </p>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-6">
+                <Users className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                {isSpanish ? 'CRM Inteligente' : 'Smart CRM'}
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                {isSpanish 
+                  ? 'Gestión automática de leads y clientes con seguimiento inteligente y nurturing personalizado.'
+                  : 'Automatic lead and customer management with intelligent tracking and personalized nurturing.'
+                }
+              </p>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center mb-6">
+                <Shield className="h-6 w-6 text-cyan-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                {isSpanish ? 'Seguridad Empresarial' : 'Enterprise Security'}
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                {isSpanish 
+                  ? 'Cifrado de extremo a extremo, cumplimiento GDPR y backups automáticos de todos tus datos.'
+                  : 'End-to-end encryption, GDPR compliance and automatic backups of all your data.'
+                }
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="relative py-20">
+      {/* Testimonials Section */}
+      <section className="relative py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <Badge className="mb-6 bg-green-500/20 text-green-300 border-green-500/30 px-4 py-2 text-sm font-medium">
-                {isSpanish ? 'RESULTADOS GARANTIZADOS' : 'GUARANTEED RESULTS'}
-              </Badge>
-              <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-                {isSpanish ? 'Marketing Que Funciona Solo Por Años' : 'Marketing That Works Alone For Years'}
-              </h2>
-              <p className="text-xl text-white/70 mb-8 leading-relaxed">
-                {isSpanish 
-                  ? 'Conectamos todos tus sistemas empresariales. IA genera contenido constantemente basado en datos reales. Clientes olvidan que tienen marketing porque funciona automáticamente.'
-                  : 'We connect all your business systems. AI constantly generates content based on real data. Clients forget they have marketing because it works automatically.'
-                }
-              </p>
-              
-              <div className="space-y-4 mb-8">
-                {[
-                  { icon: Check, text: isSpanish ? 'POS, website, redes sociales conectados automáticamente' : 'POS, website, social media connected automatically' },
-                  { icon: Check, text: isSpanish ? 'IA crea y publica campañas por meses sin intervención' : 'AI creates and posts campaigns for months without intervention' },
-                  { icon: Check, text: isSpanish ? 'Datos de negocio actualizan contenido en tiempo real' : 'Business data updates content in real-time' },
-                  { icon: Check, text: isSpanish ? 'Marketing completamente en piloto automático' : 'Marketing completely on autopilot' }
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <item.icon className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="text-white/90 text-lg">{item.text}</span>
-                  </div>
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-gray-900">
+              {isSpanish ? 'Lo Que Dicen Nuestros Clientes' : 'What Our Customers Say'}
+            </h2>
+            <p className="text-xl text-gray-600">
+              {isSpanish ? 'Miles de empresas ya están creciendo en piloto automático' : 'Thousands of businesses are already growing on autopilot'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white rounded-xl p-8 shadow-lg">
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                 ))}
               </div>
-              
-              <Button 
-                className="bg-white text-slate-900 hover:bg-gray-100 font-semibold px-8 py-4 text-lg rounded-xl shadow-xl transition-all duration-300 transform hover:scale-105"
-                data-testid="button-start-now"
-              >
-                <TrendingUp className="w-5 h-5 mr-2" />
-                {isSpanish ? 'Empezar Ahora' : 'Start Now'}
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                {isSpanish 
+                  ? '"En 3 meses aumentamos nuestras ventas en un 300%. La plataforma literalmente funciona sola, es increíble."'
+                  : '"In 3 months we increased our sales by 300%. The platform literally works by itself, it\'s incredible."'
+                }
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  M
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Maria Rodriguez</p>
+                  <p className="text-sm text-gray-500">{isSpanish ? 'Dueña, Boutique Luna' : 'Owner, Luna Boutique'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-8 shadow-lg">
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                {isSpanish 
+                  ? '"Antes pasaba 4 horas al día en marketing. Ahora tengo ese tiempo para mi negocio y las ventas siguen creciendo."'
+                  : '"I used to spend 4 hours a day on marketing. Now I have that time for my business and sales keep growing."'
+                }
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  C
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Carlos Mendez</p>
+                  <p className="text-sm text-gray-500">{isSpanish ? 'CEO, FitGym' : 'CEO, FitGym'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-8 shadow-lg">
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                {isSpanish 
+                  ? '"La IA conoce mi inventario mejor que yo. Crea campañas perfectas para cada producto automáticamente."'
+                  : '"The AI knows my inventory better than I do. It creates perfect campaigns for each product automatically."'
+                }
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  A
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Ana Torres</p>
+                  <p className="text-sm text-gray-500">{isSpanish ? 'Fundadora, TechStore' : 'Founder, TechStore'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="relative py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-gray-900">
+              {isSpanish ? 'Planes Simples y Transparentes' : 'Simple, Transparent Pricing'}
+            </h2>
+            <p className="text-xl text-gray-600">
+              {isSpanish ? 'Empieza gratis. Crece con nosotros. Cancela cuando quieras.' : 'Start free. Grow with us. Cancel anytime.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                {isSpanish ? 'Starter' : 'Starter'}
+              </h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-gray-900">$29</span>
+                <span className="text-gray-500 ml-2">{isSpanish ? '/mes' : '/month'}</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-700">{isSpanish ? 'Hasta 3 plataformas' : 'Up to 3 platforms'}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-700">{isSpanish ? 'IA básica de campañas' : 'Basic AI campaigns'}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-700">{isSpanish ? 'Analytics básicos' : 'Basic analytics'}</span>
+                </li>
+              </ul>
+              <Button className="w-full bg-gray-100 text-gray-900 hover:bg-gray-200 font-semibold py-3 rounded-lg">
+                {isSpanish ? 'Empezar Gratis' : 'Start Free'}
               </Button>
             </div>
-            
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <TrendingUp className="w-8 h-8 text-green-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">30x</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Más alcance de clientes' : 'More client reach'}</div>
+
+            <div className="bg-blue-600 text-white rounded-xl p-8 shadow-2xl transform scale-105 relative">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-yellow-400 text-yellow-900 px-3 py-1">
+                  {isSpanish ? 'MÁS POPULAR' : 'MOST POPULAR'}
+                </Badge>
               </div>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <BarChart3 className="w-8 h-8 text-blue-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">400%</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Más conversiones' : 'More conversions'}</div>
+              <h3 className="text-2xl font-bold mb-4">Professional</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold">$99</span>
+                <span className="text-blue-200 ml-2">{isSpanish ? '/mes' : '/month'}</span>
               </div>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <Globe className="w-8 h-8 text-purple-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">21+</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'Plataformas automáticas' : 'Automated platforms'}</div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-white" />
+                  <span>{isSpanish ? 'Todas las 21+ plataformas' : 'All 21+ platforms'}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-white" />
+                  <span>{isSpanish ? 'IA avanzada + datos en tiempo real' : 'Advanced AI + real-time data'}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-white" />
+                  <span>{isSpanish ? 'Bandeja unificada + ChatBot IA' : 'Unified inbox + AI ChatBot'}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-white" />
+                  <span>{isSpanish ? 'Analytics avanzados' : 'Advanced analytics'}</span>
+                </li>
+              </ul>
+              <Button className="w-full bg-white text-blue-600 hover:bg-gray-50 font-semibold py-3 rounded-lg">
+                {isSpanish ? 'Empezar Gratis 14 Días' : 'Start 14-Day Free Trial'}
+              </Button>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Enterprise</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-gray-900">{isSpanish ? 'Personalizado' : 'Custom'}</span>
               </div>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
-                <MessageSquare className="w-8 h-8 text-cyan-400 mx-auto mb-4" />
-                <div className="text-3xl font-bold text-white mb-2">24/7</div>
-                <div className="text-white/60 text-sm">{isSpanish ? 'ChatDeck IA activo' : 'AI ChatDeck active'}</div>
-              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-700">{isSpanish ? 'Integraciones personalizadas' : 'Custom integrations'}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-700">{isSpanish ? 'Soporte dedicado' : 'Dedicated support'}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-700">{isSpanish ? 'SLA garantizado' : 'SLA guarantee'}</span>
+                </li>
+              </ul>
+              <Button className="w-full bg-gray-100 text-gray-900 hover:bg-gray-200 font-semibold py-3 rounded-lg">
+                {isSpanish ? 'Contactar Ventas' : 'Contact Sales'}
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
       {/* Final CTA */}
-      <section className="relative py-20 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 backdrop-blur-md">
+      <section className="relative py-24 bg-gray-900">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-            {isSpanish ? '¿Listo Para Marketing Que Nunca Para?' : 'Ready For Marketing That Never Stops?'}
+            {isSpanish ? '¿Listo Para Hacer Crecer Tus Ventas?' : 'Ready To Grow Your Sales?'}
           </h2>
-          <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
             {isSpanish 
-              ? 'Conectamos tus sistemas. IA genera campañas automáticamente por años usando datos reales de tu negocio. Sin tocar botones. Prueba gratis 14 días.'
-              : 'We connect your systems. AI generates campaigns automatically for years using real business data. Without touching buttons. Free 14-day trial.'
+              ? 'Únete a miles de empresas que ya están creciendo en piloto automático. Sin configuración complicada, sin contratos largos.'
+              : 'Join thousands of businesses already growing on autopilot. No complex setup, no long contracts.'
             }
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
+          <div className="flex flex-col items-center gap-6 mb-12">
             <Button 
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold px-12 py-5 text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-12 py-4 text-xl rounded-xl shadow-xl transition-all duration-300 transform hover:scale-105"
               data-testid="button-start-free-trial-final"
             >
-              <Zap className="w-6 h-6 mr-3" />
-              {isSpanish ? 'Comenzar Prueba Gratuita' : 'Start Free Trial'}
+              {isSpanish ? 'Comenzar Gratis Ahora' : 'Start Free Now'}
+              <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <div className="text-white/60 text-sm">
-              {isSpanish ? '✓ Conexión instantánea 21+ plataformas • ✓ ChatDeck IA incluido' : '✓ Instant 21+ platform connection • ✓ AI ChatDeck included'}
-            </div>
+            <p className="text-gray-400 text-sm">
+              {isSpanish ? 'Prueba gratis 14 días • No se requiere tarjeta de crédito • Cancela cuando quieras' : '14-day free trial • No credit card required • Cancel anytime'}
+            </p>
           </div>
           
-          <div className="flex justify-center items-center gap-8 text-white/40 text-sm">
+          <div className="flex justify-center items-center gap-8 text-gray-500 text-sm">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
               {isSpanish ? 'Seguro SSL' : 'SSL Secure'}
