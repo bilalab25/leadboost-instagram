@@ -16,39 +16,53 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen relative text-white overflow-hidden" style={{
-      background: 'linear-gradient(-45deg, #0f172a, #1e3a8a, #0891b2, #0f172a)',
-      backgroundSize: '400% 400%',
-      animation: 'gradientShift 15s ease infinite'
-    }}>
+    <div className="min-h-screen relative text-gray-900 overflow-hidden bg-white">
       {/* Header */}
-      <header className="relative z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
+      <header className="relative z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <img 
                 src={leadBoostLogo} 
                 alt="CampAIgner" 
-                className="h-8 w-auto brightness-150" 
+                className="h-8 w-auto" 
               />
             </div>
+            
+            <nav className="hidden md:flex items-center space-x-8">
+              <a href="#features" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                {isSpanish ? 'Características' : 'Features'}
+              </a>
+              <a href="#testimonials" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                {isSpanish ? 'Testimonios' : 'Testimonials'}
+              </a>
+              <a href="#pricing" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                {isSpanish ? 'Precios' : 'Pricing'}
+              </a>
+            </nav>
             
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleLanguage}
-                className="text-white/80 hover:text-white hover:bg-white/10"
+                className="text-gray-600 hover:text-gray-900"
               >
                 <Globe className="h-4 w-4 mr-2" />
                 {isSpanish ? 'EN' : 'ES'}
               </Button>
               <Button
                 variant="outline"
-                className="border-white/30 text-white hover:bg-white hover:text-slate-900 transition-all duration-300"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300"
                 data-testid="button-login"
               >
                 {isSpanish ? 'Iniciar Sesión' : 'Login'}
+              </Button>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
+                data-testid="button-header-cta"
+              >
+                {isSpanish ? 'Empezar Gratis' : 'Start Free'}
               </Button>
             </div>
           </div>
@@ -56,49 +70,25 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-20 sm:py-32">
-        {/* Enhanced Background Effects */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div 
-            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-30"
-            style={{
-              background: 'radial-gradient(circle, #3b82f6, #06b6d4, transparent)',
-              animation: 'float 20s ease-in-out infinite, glow 8s ease-in-out infinite'
-            }}
-          ></div>
-          <div 
-            className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-25"
-            style={{
-              background: 'radial-gradient(circle, #06b6d4, #3b82f6, transparent)',
-              animation: 'float 25s ease-in-out infinite reverse, glow 10s ease-in-out infinite 2s'
-            }}
-          ></div>
-          <div 
-            className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full blur-2xl opacity-20 transform -translate-x-1/2 -translate-y-1/2"
-            style={{
-              background: 'conic-gradient(from 0deg, #3b82f6, #06b6d4, #1d4ed8, #3b82f6)',
-              animation: 'slowDrift 30s linear infinite'
-            }}
-          ></div>
-        </div>
+      <section className="relative py-24 sm:py-32 bg-gradient-to-br from-blue-50 to-indigo-100">
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8 text-center">
           {/* Trust Badge */}
-          <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-            <span className="text-sm font-medium text-white/90">
-              {isSpanish ? '✨ Genera campañas automáticamente años sin intervención' : '✨ Generates campaigns automatically for years without intervention'}
+          <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-white border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span className="text-sm font-medium text-gray-700">
+              {isSpanish ? '✨ Más de 5,000 empresas confían en nosotros' : '✨ Trusted by 5,000+ businesses'}
             </span>
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
               ))}
-              <span className="text-xs text-white/70 ml-1">4.9</span>
+              <span className="text-xs text-gray-500 ml-1">4.9</span>
             </div>
           </div>
           
           {/* Main Headline */}
-          <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 text-white transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 text-gray-900 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish ? (
               <>
                 Haz Crecer Tus Ventas,
@@ -119,7 +109,7 @@ export default function Landing() {
           </h1>
           
           {/* Subtitle */}
-          <p className={`text-xl sm:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <p className={`text-xl sm:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish 
               ? 'La única plataforma que conecta todos tus sistemas empresariales y crea campañas de marketing inteligentes que se ejecutan automáticamente, generando más ventas sin esfuerzo manual.' 
               : 'The only platform that connects all your business systems and creates intelligent marketing campaigns that run automatically, generating more sales without manual effort.'
@@ -128,16 +118,16 @@ export default function Landing() {
 
           {/* Value Proposition */}
           <div className={`flex justify-center items-center gap-8 mb-12 transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="flex items-center gap-2 text-white/80">
-              <Check className="w-5 h-5 text-green-400" />
+            <div className="flex items-center gap-2 text-gray-600">
+              <Check className="w-5 h-5 text-green-500" />
               <span className="text-sm font-medium">{isSpanish ? 'Sin configuración' : 'No setup required'}</span>
             </div>
-            <div className="flex items-center gap-2 text-white/80">
-              <Check className="w-5 h-5 text-green-400" />
+            <div className="flex items-center gap-2 text-gray-600">
+              <Check className="w-5 h-5 text-green-500" />
               <span className="text-sm font-medium">{isSpanish ? 'Resultados en 24h' : 'Results in 24h'}</span>
             </div>
-            <div className="flex items-center gap-2 text-white/80">
-              <Check className="w-5 h-5 text-green-400" />
+            <div className="flex items-center gap-2 text-gray-600">
+              <Check className="w-5 h-5 text-green-500" />
               <span className="text-sm font-medium">{isSpanish ? 'Cancela cuando quieras' : 'Cancel anytime'}</span>
             </div>
           </div>
@@ -151,12 +141,12 @@ export default function Landing() {
               {isSpanish ? 'Comenzar Gratis Ahora' : 'Start Free Now'}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <p className="text-white/60 text-sm">
+            <p className="text-gray-500 text-sm">
               {isSpanish ? 'Prueba gratis por 14 días • No se requiere tarjeta de crédito' : 'Free 14-day trial • No credit card required'}
             </p>
             <Button 
               variant="ghost" 
-              className="text-white/80 hover:text-white font-medium underline"
+              className="text-gray-600 hover:text-gray-900 font-medium underline"
               data-testid="button-watch-demo"
             >
               {isSpanish ? 'Ver demo (2 min)' : 'Watch demo (2 min)'}
@@ -166,20 +156,20 @@ export default function Landing() {
           {/* Social Proof Numbers */}
           <div className={`grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto transition-all duration-1000 delay-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">Years</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Campañas automáticas' : 'Automated campaigns'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Years</div>
+              <div className="text-gray-500 text-sm">{isSpanish ? 'Campañas automáticas' : 'Automated campaigns'}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">0 Clicks</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Para generar contenido' : 'To generate content'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">0 Clicks</div>
+              <div className="text-gray-500 text-sm">{isSpanish ? 'Para generar contenido' : 'To generate content'}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">Real-time</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Datos POS/Web/Social' : 'POS/Web/Social data'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Real-time</div>
+              <div className="text-gray-500 text-sm">{isSpanish ? 'Datos POS/Web/Social' : 'POS/Web/Social data'}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">21+ Platforms</div>
-              <div className="text-white/60 text-sm">{isSpanish ? 'Publicación automática' : 'Auto-posting'}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">21+ Platforms</div>
+              <div className="text-gray-500 text-sm">{isSpanish ? 'Publicación automática' : 'Auto-posting'}</div>
             </div>
           </div>
         </div>
