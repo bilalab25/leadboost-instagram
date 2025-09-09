@@ -3,14 +3,17 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MessageSquare, Bot, BarChart3, ArrowRight, Star, Check, Play, Zap, TrendingUp, Users, Globe, Shield, Clock } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
+import { InteractiveDemo } from "@/components/InteractiveDemo";
 import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756873932398.png";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -149,13 +152,25 @@ export default function Landing() {
             <p className="text-gray-500 text-sm">
               {isSpanish ? 'Prueba gratis por 14 días • No se requiere tarjeta de crédito' : 'Free 14-day trial • No credit card required'}
             </p>
-            <Button 
-              variant="ghost" 
-              className="text-gray-600 hover:text-gray-900 font-medium underline"
-              data-testid="button-watch-demo"
-            >
-              {isSpanish ? 'Ver demo (2 min)' : 'Watch demo (2 min)'}
-            </Button>
+            <Dialog open={showDemo} onOpenChange={setShowDemo}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="text-gray-600 hover:text-gray-900 font-medium underline"
+                  data-testid="button-watch-demo"
+                >
+                  {isSpanish ? 'Ver demo (2 min)' : 'Watch demo (2 min)'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold text-center">
+                    {isSpanish ? 'Demo Interactivo - CampAIgner' : 'Interactive Demo - CampAIgner'}
+                  </DialogTitle>
+                </DialogHeader>
+                <InteractiveDemo isSpanish={isSpanish} />
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Social Proof Numbers - Premium Grid */}
