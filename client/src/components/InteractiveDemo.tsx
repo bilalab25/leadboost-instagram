@@ -1434,8 +1434,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           </h3>
           <p className="text-xl sm:text-2xl text-gray-600 font-light leading-relaxed max-w-3xl mx-auto">
             {isSpanish 
-              ? 'Nuestra IA generará campañas personalizadas para cada plataforma en segundos'
-              : 'Our AI will generate personalized campaigns for every platform in seconds'
+              ? 'Nuestra IA genera campañas inteligentes para cada plataforma en segundos basándose en los datos de tu negocio (sitio web, TPV, redes sociales)'
+              : 'Our AI generates smart campaigns for every platform in seconds based on your business data (website, POS, socials)'
             }
           </p>
         </div>
