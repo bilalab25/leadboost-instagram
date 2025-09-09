@@ -257,18 +257,6 @@ export default function Landing() {
       {/* Interactive Demo Section - Premium Style */}
       <section className="relative py-32 bg-gradient-to-b from-blue-50/30 via-white to-slate-50/30">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
-              {isSpanish ? 'Prueba CampAIgner Ahora' : 'Try CampAIgner Now'}
-            </h2>
-            <p className="text-xl sm:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
-              {isSpanish 
-                ? 'Describe tu negocio y mira cómo nuestra IA genera campañas perfectas para cada plataforma en segundos.'
-                : 'Describe your business and watch our AI generate perfect campaigns for every platform in seconds.'
-              }
-            </p>
-          </div>
-
           {/* Demo Container with Premium Styling */}
           <div className="bg-white/80 backdrop-blur-sm border border-white/50 rounded-3xl shadow-2xl p-8 lg:p-12">
             <InteractiveDemo isSpanish={isSpanish} />

@@ -1426,9 +1426,11 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
       <div className="space-y-8">
         {/* Header Section */}
         <div className="text-center">
-          <div className="text-6xl mb-6">🚀</div>
+          <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Sparkles className="w-8 h-8 text-white" />
+          </div>
           <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
-            {isSpanish ? '¡Describe Tu Negocio!' : 'Describe Your Business!'}
+            {isSpanish ? '¡Prueba Nuestro Demo Gratis!' : 'Try Our Free Demo!'}
           </h3>
           <p className="text-xl sm:text-2xl text-gray-600 font-light leading-relaxed max-w-3xl mx-auto">
             {isSpanish 
@@ -1677,7 +1679,9 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   return (
     <div className="space-y-12">
       <div className="text-center">
-        <div className="text-6xl mb-6">🎉</div>
+        <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <Star className="w-8 h-8 text-white fill-current" />
+        </div>
         <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
           {isSpanish ? '¡Tu Campaña Está Lista!' : 'Your Campaign is Ready!'}
         </h3>
