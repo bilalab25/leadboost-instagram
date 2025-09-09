@@ -151,10 +151,10 @@ const generatePlatformCaption = (campaignIdea: string, businessType: string, ton
       'default': `Take advantage of ${campaignIdea} and join forward-thinking professionals who recognize exceptional value. Limited time opportunity for growth-minded individuals.`
     },
     'conversational': {
-      'restaurant': `Just heard about ${campaignIdea} and had to share! Anyone else excited about trying this? The reviews are incredible 👀`,
+      'restaurant': `Just heard about ${campaignIdea} and had to share! Anyone else excited about trying this? The reviews are incredible`,
       'fitness': `So ${campaignIdea} is happening and I'm honestly tempted... Who's tried this before? Looking for honest opinions!`,
       'beauty': `Okay but ${campaignIdea} sounds pretty amazing? Has anyone used their products before? Thinking about giving it a try`,
-      'default': `Wait, ${campaignIdea} is actually happening? This seems too good to be true... anyone else seeing this? 🤔`
+      'default': `Wait, ${campaignIdea} is actually happening? This seems too good to be true... anyone else seeing this?`
     },
     'direct-value': {
       'restaurant': `${campaignIdea} - Exclusive Email Subscriber Benefit! Reserve your table now and save big on premium dining.`,
@@ -1918,7 +1918,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                           <p className="text-gray-900 text-lg font-bold text-center leading-tight">
                             {index === 1 ? (isSpanish ? "NUEVO" : "NEW") :
                              index === 4 ? (isSpanish ? "GRATIS" : "FREE") :
-                             index === 7 ? (isSpanish ? "💯 GARANTÍA" : "💯 GUARANTEE") :
+                             index === 7 ? (isSpanish ? "GARANTÍA" : "GUARANTEE") :
                              isSpanish ? "ESPECIAL" : "SPECIAL"}
                           </p>
                           <p className="text-gray-700 text-sm mt-1 text-center">
