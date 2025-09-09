@@ -13,10 +13,12 @@ import ContentCalendar from "@/components/ContentCalendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Plus, Database, Sparkles, Zap, Target, ArrowRight, TrendingUp, Users, Activity, BarChart3, AlertTriangle, CheckCircle2, Lightbulb, HelpCircle, X, Send } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Bell, Plus, Database, Sparkles, Zap, Target, ArrowRight, TrendingUp, Users, Activity, BarChart3, AlertTriangle, CheckCircle2, Lightbulb, HelpCircle, X, Send, Play } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
+import { InteractiveDemo } from "@/components/InteractiveDemo";
 
 interface DashboardStats {
   unreadMessages: number;
@@ -41,6 +43,7 @@ export default function Dashboard() {
   const t = translations['es']; // Force Spanish for demo
   const [selectedPeriod, setSelectedPeriod] = useState<'weekly' | 'monthly' | 'daily'>('weekly');
   const [showDollarAmount, setShowDollarAmount] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
 
   // Authentication check disabled for direct dashboard access
   // useEffect(() => {
@@ -138,7 +141,25 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="flex items-center space-x-3">
-                    {/* Removed duplicate CampAIgner button - now in header */}
+                    <Dialog open={showDemo} onOpenChange={setShowDemo}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                          data-testid="button-watch-demo"
+                        >
+                          <Play className="h-4 w-4 mr-2" />
+                          {isSpanish ? 'Ver Demo' : 'Watch Demo'}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="text-2xl font-bold text-center">
+                            {isSpanish ? 'Demo Interactivo - CampAIgner' : 'Interactive Demo - CampAIgner'}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <InteractiveDemo isSpanish={isSpanish} />
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
