@@ -111,38 +111,38 @@ const generatePlatformCaption = (campaignIdea: string, businessType: string, ton
   // Art History Teacher - Educational and cultural
   if (desc.includes('art history') && desc.includes('teacher')) {
     if (tone === 'professional') return `Transform your understanding of art history with ${campaignIdea}. From Renaissance masters to contemporary movements, explore the stories that shaped our visual culture. Join art enthusiasts who value deep, scholarly insight.`;
-    if (tone === 'casual-engaging') return `🎨 ${campaignIdea} From Monet's water lilies to Picasso's revolutionary cubism - art history has never been this engaging! Who else loves discovering the stories behind masterpieces? #ArtHistory #Monet #Picasso`;
-    if (tone === 'friendly-detailed') return `Hello art lovers! 🏛️ I'm excited to offer ${campaignIdea} to fellow enthusiasts of visual culture! Whether you're fascinated by the mysteries of ancient Egyptian art or the bold innovations of modern expressionism, let's explore art history together. Each lesson brings masterpieces to life with context, meaning, and cultural significance!`;
-    return `${campaignIdea} - Discover the secrets of the masters! 🎨 Art history comes alive ✨`;
+    if (tone === 'casual-engaging') return `${campaignIdea} From Monet's water lilies to Picasso's revolutionary cubism - art history has never been this engaging! Who else loves discovering the stories behind masterpieces? #ArtHistory #Monet #Picasso`;
+    if (tone === 'friendly-detailed') return `Hello art lovers! I'm excited to offer ${campaignIdea} to fellow enthusiasts of visual culture! Whether you're fascinated by the mysteries of ancient Egyptian art or the bold innovations of modern expressionism, let's explore art history together. Each lesson brings masterpieces to life with context, meaning, and cultural significance!`;
+    return `${campaignIdea} - Discover the secrets of the masters! Art history comes alive`;
   }
   
   // Therapist/Counselor - Healing and supportive  
   if (desc.includes('therapist') || desc.includes('counseling') || desc.includes('therapy')) {
     if (tone === 'professional') return `Experience compassionate, evidence-based therapy with ${campaignIdea}. In a safe, confidential environment, we work together toward healing, growth, and emotional wellness. Join individuals who prioritize their mental health journey.`;
-    if (tone === 'friendly-detailed') return `Dear friends seeking wellness 💚 I'm honored to offer ${campaignIdea} to support your journey toward emotional health and personal growth. Therapy is a brave step, and you don't have to walk this path alone. Together, we'll work at your pace in a judgment-free space where healing begins.`;
-    if (tone === 'conversational') return `Taking care of your mental health is one of the bravest things you can do. ${campaignIdea} offers a safe space to process, heal, and grow. Anyone else believe therapy should be accessible and stigma-free? 💚`;
-    return `${campaignIdea} - Your mental health matters. Start your healing journey 🌱`;
+    if (tone === 'friendly-detailed') return `Dear friends seeking wellness. I'm honored to offer ${campaignIdea} to support your journey toward emotional health and personal growth. Therapy is a brave step, and you don't have to walk this path alone. Together, we'll work at your pace in a judgment-free space where healing begins.`;
+    if (tone === 'conversational') return `Taking care of your mental health is one of the bravest things you can do. ${campaignIdea} offers a safe space to process, heal, and grow. Anyone else believe therapy should be accessible and stigma-free?`;
+    return `${campaignIdea} - Your mental health matters. Start your healing journey`;
   }
   
   // Wedding Photographer - Romantic and memorable
   if (desc.includes('photographer') && desc.includes('wedding')) {
     if (tone === 'professional') return `Preserve your most precious moments with ${campaignIdea}. Specializing in timeless wedding photography that captures the authentic emotions, intimate details, and pure joy of your celebration. Trusted by couples who value artistry and excellence.`;
-    if (tone === 'friendly-detailed') return `Beautiful couples! 💕 I'm thrilled to announce ${campaignIdea} for engagements and weddings! Your love story deserves to be told through stunning imagery that captures every laugh, every tear, and every magical moment. From getting-ready shots to your first dance, let's create heirloom images you'll treasure forever!`;
-    if (tone === 'casual-engaging') return `💕 ${campaignIdea} Because your love story deserves to be captured beautifully! From the nervous excitement of getting ready to that perfect kiss at the altar - every moment is precious ✨ Tag your person! #WeddingPhotography #LoveStory`;
-    return `${campaignIdea} - Capture your forever moments 💕 Timeless wedding photography ✨`;
+    if (tone === 'friendly-detailed') return `Beautiful couples! I'm thrilled to announce ${campaignIdea} for engagements and weddings! Your love story deserves to be told through stunning imagery that captures every laugh, every tear, and every magical moment. From getting-ready shots to your first dance, let's create heirloom images you'll treasure forever!`;
+    if (tone === 'casual-engaging') return `${campaignIdea} Because your love story deserves to be captured beautifully! From the nervous excitement of getting ready to that perfect kiss at the altar - every moment is precious. Tag your person! #WeddingPhotography #LoveStory`;
+    return `${campaignIdea} - Capture your forever moments. Timeless wedding photography`;
   }
   const captions: Record<string, Record<string, string>> = {
     'casual-engaging': {
-      'restaurant': `🍽️ ${campaignIdea} Don't miss out on amazing flavors! Tag a friend who loves good food 👯‍♀️ #FoodieLife #GreatDeals`,
-      'fitness': `💪 ${campaignIdea} Transform your fitness journey TODAY! Who's ready to crush their goals? 🔥 #FitnessMotivation #NoExcuses`,
-      'beauty': `✨ ${campaignIdea} Glow up time! Your skin deserves this amazing deal 💫 Drop a 🙋‍♀️ if you're ready! #GlowUp #SkincareTips`,
-      'default': `🎉 ${campaignIdea} This is the moment you've been waiting for! Don't let this opportunity slip away ⏰ #LimitedTime #DontMiss`
+      'restaurant': `${campaignIdea} Don't miss out on amazing flavors! Tag a friend who loves good food #FoodieLife #GreatDeals`,
+      'fitness': `${campaignIdea} Transform your fitness journey TODAY! Who's ready to crush their goals? #FitnessMotivation #NoExcuses`,
+      'beauty': `${campaignIdea} Glow up time! Your skin deserves this amazing deal. Let us know if you're ready! #GlowUp #SkincareTips`,
+      'default': `${campaignIdea} This is the moment you've been waiting for! Don't let this opportunity slip away #LimitedTime #DontMiss`
     },
     'urgent-visual': {
-      'restaurant': `${campaignIdea}! 🔥\nTASTE THE DIFFERENCE\nToday Only! ⏰`,
-      'fitness': `${campaignIdea}! 💪\nSTART TODAY\nLimited Time ⚡`,
-      'beauty': `${campaignIdea}! ✨\nGLOW TIME\nAct Fast! 💨`,
-      'default': `${campaignIdea}! 🚀\nACT NOW\nLimited Time ⏰`
+      'restaurant': `${campaignIdea}!\nTASTE THE DIFFERENCE\nToday Only!`,
+      'fitness': `${campaignIdea}!\nSTART TODAY\nLimited Time`,
+      'beauty': `${campaignIdea}!\nGLOW TIME\nAct Fast!`,
+      'default': `${campaignIdea}!\nACT NOW\nLimited Time`
     },
     'professional': {
       'restaurant': `Elevate your dining experience with ${campaignIdea}. Join industry professionals who choose quality and value. Limited time offer for discerning customers.`,
@@ -153,7 +153,7 @@ const generatePlatformCaption = (campaignIdea: string, businessType: string, ton
     'conversational': {
       'restaurant': `Just heard about ${campaignIdea} and had to share! Anyone else excited about trying this? The reviews are incredible 👀`,
       'fitness': `So ${campaignIdea} is happening and I'm honestly tempted... Who's tried this before? Looking for honest opinions!`,
-      'beauty': `Okay but ${campaignIdea} sounds pretty amazing? Has anyone used their products before? Thinking about giving it a try ✨`,
+      'beauty': `Okay but ${campaignIdea} sounds pretty amazing? Has anyone used their products before? Thinking about giving it a try`,
       'default': `Wait, ${campaignIdea} is actually happening? This seems too good to be true... anyone else seeing this? 🤔`
     },
     'direct-value': {
@@ -163,22 +163,22 @@ const generatePlatformCaption = (campaignIdea: string, businessType: string, ton
       'default': `${campaignIdea} - Exclusive Subscriber Offer! Take advantage of this limited-time opportunity designed just for you.`
     },
     'witty-concise': {
-      'restaurant': `Plot twist: ${campaignIdea} and your taste buds are about to be very happy 🍽️ You're welcome in advance.`,
-      'fitness': `Breaking: ${campaignIdea} Your future self is already thanking you 💪 Time to make it official.`,
-      'beauty': `PSA: ${campaignIdea} Your skin called, it wants this ASAP ✨ Don't keep it waiting.`,
-      'default': `This just in: ${campaignIdea} Your wallet and your happiness both approve of this message 🎉`
+      'restaurant': `Plot twist: ${campaignIdea} and your taste buds are about to be very happy. You're welcome in advance.`,
+      'fitness': `Breaking: ${campaignIdea} Your future self is already thanking you. Time to make it official.`,
+      'beauty': `PSA: ${campaignIdea} Your skin called, it wants this ASAP. Don't keep it waiting.`,
+      'default': `This just in: ${campaignIdea} Your wallet and your happiness both approve of this message`
     },
     'friendly-detailed': {
-      'restaurant': `Hey food lovers! 🍽️ We're thrilled to announce ${campaignIdea}! This is our way of saying thank you to our amazing community. Whether you're planning a date night, family dinner, or catching up with friends, this is the perfect opportunity to experience our signature dishes at incredible value. Book your table now!`,
-      'fitness': `Hello fitness family! 💪 We're excited to share ${campaignIdea} with our incredible community! This special offer includes access to all our classes, equipment, and personal training sessions. Whether you're just starting your fitness journey or looking to reach new goals, we're here to support you every step of the way!`,
-      'beauty': `Beautiful souls! ✨ We're delighted to offer ${campaignIdea} to our wonderful community! This exclusive deal includes our best-selling products that have helped thousands achieve their skincare goals. Treat yourself to the glow-up you deserve - your skin will thank you later!`,
-      'default': `Dear valued customers! 🎉 We're excited to present ${campaignIdea} as our special thank you to the amazing community that supports us. This limited-time offer represents our commitment to providing exceptional value while maintaining the quality you've come to expect. Don't miss this opportunity!`
+      'restaurant': `Hey food lovers! We're thrilled to announce ${campaignIdea}! This is our way of saying thank you to our amazing community. Whether you're planning a date night, family dinner, or catching up with friends, this is the perfect opportunity to experience our signature dishes at incredible value. Book your table now!`,
+      'fitness': `Hello fitness family! We're excited to share ${campaignIdea} with our incredible community! This special offer includes access to all our classes, equipment, and personal training sessions. Whether you're just starting your fitness journey or looking to reach new goals, we're here to support you every step of the way!`,
+      'beauty': `Beautiful souls! We're delighted to offer ${campaignIdea} to our wonderful community! This exclusive deal includes our best-selling products that have helped thousands achieve their skincare goals. Treat yourself to the glow-up you deserve - your skin will thank you later!`,
+      'default': `Dear valued customers! We're excited to present ${campaignIdea} as our special thank you to the amazing community that supports us. This limited-time offer represents our commitment to providing exceptional value while maintaining the quality you've come to expect. Don't miss this opportunity!`
     },
     'trendy-bold': {
-      'restaurant': `${campaignIdea} is SENDING me 🤤\nFood that hits DIFFERENT ✨`,
-      'fitness': `${campaignIdea} = Main character energy 💅\nWe're leveling UP! 🔥`,
-      'beauty': `${campaignIdea} has me GLOWING ✨\nSkin looking EXPENSIVE 💎`,
-      'default': `${campaignIdea} is the MOMENT 🔥\nThis is IT chief! ✨`
+      'restaurant': `${campaignIdea} is SENDING me\nFood that hits DIFFERENT`,
+      'fitness': `${campaignIdea} = Main character energy\nWe're leveling UP!`,
+      'beauty': `${campaignIdea} has me GLOWING\nSkin looking EXPENSIVE`,
+      'default': `${campaignIdea} is the MOMENT\nThis is IT chief!`
     }
   };
 
@@ -744,7 +744,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
   
   // Botox Clinic / Medical Aesthetics (FULL PHRASE MATCH)
   if (desc.includes('botox clinic') || desc.includes('aesthetic clinic') || desc.includes('cosmetic clinic') || desc.includes('med spa') || desc.includes('medical spa')) {
-    console.log('🎯 EXACT BOTOX CLINIC PHRASE MATCH!', desc);
+    console.log('EXACT BOTOX CLINIC PHRASE MATCH!', desc);
     const botoxClinicImages = [
       `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Clean medical spa interior
       `https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Professional skincare consultation
@@ -758,7 +758,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
   
   // Wedding Photography (FULL PHRASE MATCH)
   if (desc.includes('wedding photographer') || desc.includes('wedding photography')) {
-    console.log('🎯 EXACT WEDDING PHOTOGRAPHY PHRASE MATCH!', desc);
+    console.log('EXACT WEDDING PHOTOGRAPHY PHRASE MATCH!', desc);
     const weddingPhotographyImages = [
       `https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding couple
       `https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Wedding rings
@@ -772,7 +772,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
   
   // Coffee Shop (FULL PHRASE MATCH)
   if (desc.includes('coffee shop') || desc.includes('coffee cafe')) {
-    console.log('🎯 EXACT COFFEE SHOP PHRASE MATCH!', desc);
+    console.log('EXACT COFFEE SHOP PHRASE MATCH!', desc);
     const coffeeShopImages = [
       `https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Coffee shop interior
       `https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Coffee cup with latte art
@@ -786,7 +786,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
   
   // Italian Restaurant (FULL PHRASE MATCH)
   if (desc.includes('italian restaurant') || desc.includes('italian pizzeria') || desc.includes('italian cuisine')) {
-    console.log('🎯 EXACT ITALIAN RESTAURANT PHRASE MATCH!', desc);
+    console.log('EXACT ITALIAN RESTAURANT PHRASE MATCH!', desc);
     const italianRestaurantImages = [
       `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Authentic pizza
       `https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Fresh pasta
@@ -800,7 +800,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
   
   // Personal Trainer (FULL PHRASE MATCH)
   if (desc.includes('personal trainer') || desc.includes('fitness trainer') || desc.includes('fitness coach')) {
-    console.log('🎯 EXACT PERSONAL TRAINER PHRASE MATCH!', desc);
+    console.log('EXACT PERSONAL TRAINER PHRASE MATCH!', desc);
     const personalTrainerImages = [
       `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Training session
       `https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Personal training
@@ -814,7 +814,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
   
   // Artisan Bakery (FULL PHRASE MATCH)
   if (desc.includes('artisan bakery') || desc.includes('sourdough bakery') || desc.includes('local bakery')) {
-    console.log('🎯 EXACT ARTISAN BAKERY PHRASE MATCH!', desc);
+    console.log('EXACT ARTISAN BAKERY PHRASE MATCH!', desc);
     const artisanBakeryImages = [
       `https://images.unsplash.com/photo-1509440159596-0249088772ff?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Sourdough loaves
       `https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`, // Fresh sourdough cut
@@ -973,7 +973,7 @@ const getIndustryVariedImage = (businessDescription: string, businessType: strin
   }
   
   // Default: Use the main image function with slight variation
-  console.log('⚠️ NO SPECIFIC MATCH FOUND, using fallback for:', desc);
+  console.log('NO SPECIFIC MATCH FOUND, using fallback for:', desc);
   return getSmartVisual(businessDescription, businessType, 'square', 'Instagram Post');
 };
 
@@ -1450,8 +1450,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             <div className="space-y-4">
               <label className="block text-2xl font-bold text-gray-900">
                 {isSpanish 
-                  ? '📝 Cuéntanos sobre tu negocio' 
-                  : '📝 Tell us about your business'
+                  ? 'Cuéntanos sobre tu negocio' 
+                  : 'Tell us about your business'
                 }
               </label>
               <p className="text-gray-600 leading-relaxed text-lg">
@@ -1474,7 +1474,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
             <div>
               <label className="block text-lg font-semibold text-gray-800 mb-2">
-                {isSpanish ? '🏢 Selecciona tu Industria' : '🏢 Select Your Industry'}
+{isSpanish ? 'Selecciona tu Industria' : 'Select Your Industry'}
               </label>
               <select
                 value={demo.businessDescription}
@@ -1508,7 +1508,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               {/* Optional Photo Upload */}
               <div className="mt-6 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
                 <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                  {isSpanish ? '📸 Fotos de tu negocio (opcional)' : '📸 Your Business Photos (Optional)'}
+{isSpanish ? 'Fotos de tu negocio (opcional)' : 'Your Business Photos (Optional)'}
                 </h4>
                 <p className="text-xs text-gray-600 mb-3">
                   {isSpanish 
@@ -1531,7 +1531,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   htmlFor="photo-upload" 
                   className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
-                  📎 {isSpanish ? 'Seleccionar fotos' : 'Choose photos'}
+{isSpanish ? 'Seleccionar fotos' : 'Choose photos'}
                 </label>
                 
                 {/* Display uploaded images */}
@@ -1572,7 +1572,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             {/* Brand Style Selector */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                {isSpanish ? '🎨 Elige tu Estilo de Marca' : '🎨 Choose Your Brand Style'}
+{isSpanish ? 'Elige tu Estilo de Marca' : 'Choose Your Brand Style'}
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
@@ -1916,10 +1916,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="bg-white/95 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-gray-200 max-w-[80%]">
                           <p className="text-gray-900 text-lg font-bold text-center leading-tight">
-                            {index === 1 ? (isSpanish ? "🔥 ¡NUEVO!" : "🔥 NEW!") :
-                             index === 4 ? (isSpanish ? "✨ GRATIS" : "✨ FREE") :
+                            {index === 1 ? (isSpanish ? "NUEVO" : "NEW") :
+                             index === 4 ? (isSpanish ? "GRATIS" : "FREE") :
                              index === 7 ? (isSpanish ? "💯 GARANTÍA" : "💯 GUARANTEE") :
-                             isSpanish ? "🎯 ESPECIAL" : "🎯 SPECIAL"}
+                             isSpanish ? "ESPECIAL" : "SPECIAL"}
                           </p>
                           <p className="text-gray-700 text-sm mt-1 text-center">
                             {index === 1 ? (isSpanish ? "Disponible ya" : "Available now") :
@@ -2022,7 +2022,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                     {/* TikTok UI Elements */}
                     <div className="absolute top-2 right-2">
                       <div className="w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs">▶️</span>
+                        <span className="text-white text-xs">▶</span>
                       </div>
                     </div>
                     
@@ -2045,10 +2045,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl px-4 py-3 shadow-xl border-2 border-white/30 max-w-[85%] transform rotate-[-2deg]">
                           <p className="text-white text-base font-black text-center leading-tight">
-                            {index === 1 ? (isSpanish ? "🚀 VIRAL" : "🚀 VIRAL") :
+                            {index === 1 ? (isSpanish ? "VIRAL" : "VIRAL") :
                              index === 3 ? (isSpanish ? "💥 BOOM" : "💥 BOOM") :
-                             index === 5 ? (isSpanish ? "🔥 FIRE" : "🔥 FIRE") :
-                             isSpanish ? "✨ WOW" : "✨ WOW"}
+                             index === 5 ? (isSpanish ? "FIRE" : "FIRE") :
+                             isSpanish ? "WOW" : "WOW"}
                           </p>
                           <p className="text-white/90 text-xs mt-1 text-center font-bold">
                             {index === 1 ? (isSpanish ? "No te lo pierdas" : "Don't miss this") :
@@ -2077,16 +2077,16 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         <div className="mt-8 relative max-w-4xl mx-auto">
           <div className="bg-gradient-to-r from-brand-50 via-white to-brand-50 rounded-2xl p-6 border border-brand-200">
             <h5 className="text-lg font-bold text-center mb-4 text-gray-900">
-              {isSpanish ? '🌟 Planificación Completa para Todas las Plataformas' : '🌟 Complete Planning for All Platforms'}
+{isSpanish ? 'Planificación Completa para Todas las Plataformas' : 'Complete Planning for All Platforms'}
             </h5>
             
             {/* Platform previews with gradient transparency */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { name: 'Pinterest', icon: '📌', color: 'from-red-500 to-red-600' },
-                { name: 'YouTube', icon: '▶️', color: 'from-red-600 to-red-700' },
+                { name: 'YouTube', icon: '▶', color: 'from-red-600 to-red-700' },
                 { name: 'Twitter/X', icon: '🐦', color: 'from-sky-400 to-sky-500' },
-                { name: 'LinkedIn', icon: '💼', color: 'from-blue-600 to-blue-700' }
+                { name: 'LinkedIn', icon: 'LI', color: 'from-blue-600 to-blue-700' }
               ].map((platform, index) => (
                 <div key={platform.name} className="relative group">
                   <div className={`bg-gradient-to-br ${platform.color} rounded-xl p-4 text-white text-center transition-all duration-300 group-hover:scale-105`}>
@@ -2109,8 +2109,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             
             <p className="text-center text-sm text-gray-600 mt-4">
               {isSpanish 
-                ? '✨ CampAIgner: Tu planificador inteligente de 30 días para todas las plataformas'
-                : '✨ CampAIgner: Your intelligent 30-day planner for all platforms'
+                ? 'CampAIgner: Tu planificador inteligente de 30 días para todas las plataformas'
+                : 'CampAIgner: Your intelligent 30-day planner for all platforms'
               }
             </p>
           </div>
@@ -2140,8 +2140,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         </div>
         <p className="text-sm text-gray-500 mt-3 max-w-lg mx-auto">
           {isSpanish 
-            ? '🚀 Un clic para publicar tu campaña en todas las plataformas simultáneamente'
-            : '🚀 One click to publish your campaign across all platforms simultaneously'
+            ? 'Un clic para publicar tu campaña en todas las plataformas simultáneamente'
+            : 'One click to publish your campaign across all platforms simultaneously'
           }
         </p>
       </div>
@@ -2149,13 +2149,13 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
       <div className="text-center mt-12 pt-8 border-t">
         <p className="text-gray-600 mb-6 text-lg">
           {isSpanish 
-            ? '✨ Una sola idea de campaña → 8 posts listos para publicar en diferentes plataformas'
-            : '✨ One campaign idea → 8 ready-to-publish posts across different platforms'
+            ? 'Una sola idea de campaña → 8 posts listos para publicar en diferentes plataformas'
+            : 'One campaign idea → 8 ready-to-publish posts across different platforms'
           }
         </p>
         <div className="bg-gradient-to-r from-brand-50 to-brand-100 rounded-xl p-6 mb-6">
           <h4 className="text-lg font-bold text-gray-900 mb-2">
-            {isSpanish ? '🚀 ¿Quieres VERDADERO contenido IA personalizado?' : '🚀 Want REAL AI-personalized content?'}
+            {isSpanish ? '¿Quieres VERDADERO contenido IA personalizado?' : 'Want REAL AI-personalized content?'}
           </h4>
           <p className="text-gray-600 text-sm mb-4">
             {isSpanish 

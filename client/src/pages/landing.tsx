@@ -162,7 +162,7 @@ export default function Landing() {
           <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-white border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-sm font-medium text-gray-700">
-              {isSpanish ? '✨ Más de 5,000 empresas confían en nosotros' : '✨ Trusted by 5,000+ businesses'}
+{isSpanish ? 'Más de 5,000 empresas confían en nosotros' : 'Trusted by 5,000+ businesses'}
             </span>
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
