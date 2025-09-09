@@ -73,8 +73,8 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative py-24 sm:py-32 bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Hero Section - Apple/Squarespace Inspired */}
+      <section className="relative py-32 sm:py-40 lg:py-48 bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8 text-center">
           {/* Trust Badge */}
@@ -91,13 +91,13 @@ export default function Landing() {
             </div>
           </div>
           
-          {/* Main Headline */}
-          <h1 className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight mb-8 text-gray-900 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Main Headline - Premium Typography */}
+          <h1 className={`text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-bold leading-[0.9] tracking-tight mb-12 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-700 bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish ? (
               <>
                 Haz Crecer Tus Ventas,
                 <br />
-                <span className="text-blue-300">
+                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
                   Automáticamente
                 </span>
               </>
@@ -105,15 +105,15 @@ export default function Landing() {
               <>
                 Grow Your Sales,
                 <br />
-                <span className="text-blue-300">
+                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
                   Automatically
                 </span>
               </>
             )}
           </h1>
           
-          {/* Subtitle */}
-          <p className={`text-xl sm:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Subtitle - Enhanced */}
+          <p className={`text-xl sm:text-2xl lg:text-3xl text-gray-600 mb-16 max-w-5xl mx-auto leading-relaxed font-light transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish 
               ? 'La única plataforma que conecta todos tus sistemas empresariales y crea campañas de marketing inteligentes que se ejecutan automáticamente, generando más ventas sin esfuerzo manual.' 
               : 'The only platform that connects all your business systems and creates intelligent marketing campaigns that run automatically, generating more sales without manual effort.'
@@ -136,10 +136,10 @@ export default function Landing() {
             </div>
           </div>
           
-          {/* Primary CTA */}
-          <div className={`flex flex-col items-center gap-4 mb-16 transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Primary CTA - Apple Style */}
+          <div className={`flex flex-col items-center gap-6 mb-20 transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-12 py-4 text-xl rounded-xl shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/30 transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1"
               data-testid="button-start-free-trial"
               onClick={() => navigate("/login")}
             >
@@ -158,36 +158,36 @@ export default function Landing() {
             </Button>
           </div>
 
-          {/* Social Proof Numbers */}
-          <div className={`grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto transition-all duration-1000 delay-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Years</div>
-              <div className="text-gray-500 text-sm">{isSpanish ? 'Campañas automáticas' : 'Automated campaigns'}</div>
+          {/* Social Proof Numbers - Premium Grid */}
+          <div className={`grid grid-cols-2 md:grid-cols-4 gap-12 max-w-6xl mx-auto transition-all duration-1000 delay-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg">
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">Years</div>
+              <div className="text-gray-600 text-sm font-medium">{isSpanish ? 'Campañas automáticas' : 'Automated campaigns'}</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">0 Clicks</div>
-              <div className="text-gray-500 text-sm">{isSpanish ? 'Para generar contenido' : 'To generate content'}</div>
+            <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg">
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-3">0 Clicks</div>
+              <div className="text-gray-600 text-sm font-medium">{isSpanish ? 'Para generar contenido' : 'To generate content'}</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Real-time</div>
-              <div className="text-gray-500 text-sm">{isSpanish ? 'Datos POS/Web/Social' : 'POS/Web/Social data'}</div>
+            <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg">
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">Real-time</div>
+              <div className="text-gray-600 text-sm font-medium">{isSpanish ? 'Datos POS/Web/Social' : 'POS/Web/Social data'}</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">21+ Platforms</div>
-              <div className="text-gray-500 text-sm">{isSpanish ? 'Publicación automática' : 'Auto-posting'}</div>
+            <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg">
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-3">21+ Platforms</div>
+              <div className="text-gray-600 text-sm font-medium">{isSpanish ? 'Publicación automática' : 'Auto-posting'}</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="relative py-24 bg-white">
+      {/* Features Section - Squarespace Style */}
+      <section className="relative py-32 bg-gradient-to-b from-white via-slate-50/30 to-white">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-gray-900">
+          <div className="text-center mb-24">
+            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
               {isSpanish ? 'Todo Lo Que Necesitas Para Vender Más' : 'Everything You Need To Sell More'}
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl sm:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
               {isSpanish 
                 ? 'Una plataforma completa que automatiza tu marketing y ventas mientras tú te enfocas en hacer crecer tu negocio.'
                 : 'A complete platform that automates your marketing and sales while you focus on growing your business.'
@@ -195,15 +195,15 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                <Bot className="h-6 w-6 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12">
+            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <Bot className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-blue-600 transition-colors duration-300">
                 {isSpanish ? 'Campañas IA Automatizadas' : 'AI Automated Campaigns'}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed text-lg">
                 {isSpanish 
                   ? 'IA crea y publica contenido de marketing basado en datos reales de tu negocio - inventario, ventas, eventos.'
                   : 'AI creates and posts marketing content based on real business data - inventory, sales, events.'
@@ -211,14 +211,14 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-6">
-                <MessageSquare className="h-6 w-6 text-green-600" />
+            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <MessageSquare className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-green-600 transition-colors duration-300">
                 {isSpanish ? 'Bandeja de Entrada Unificada' : 'Unified Inbox'}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed text-lg">
                 {isSpanish 
                   ? 'Gestiona todos los mensajes de redes sociales desde un solo lugar con respuestas automáticas inteligentes.'
                   : 'Manage all social media messages from one place with intelligent automatic responses.'
@@ -226,14 +226,14 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-6">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
+            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <TrendingUp className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-purple-600 transition-colors duration-300">
                 {isSpanish ? 'Análisis en Tiempo Real' : 'Real-Time Analytics'}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed text-lg">
                 {isSpanish 
                   ? 'Dashboard con métricas de ventas, engagement y ROI para optimizar tu estrategia automáticamente.'
                   : 'Dashboard with sales, engagement and ROI metrics to optimize your strategy automatically.'
@@ -241,14 +241,14 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-6">
-                <Globe className="h-6 w-6 text-orange-600" />
+            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <Globe className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-orange-600 transition-colors duration-300">
                 {isSpanish ? '21+ Plataformas Conectadas' : '21+ Connected Platforms'}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed text-lg">
                 {isSpanish 
                   ? 'Publica automáticamente en Instagram, Facebook, TikTok, LinkedIn y más plataformas simultáneamente.'
                   : 'Automatically post to Instagram, Facebook, TikTok, LinkedIn and more platforms simultaneously.'
@@ -256,14 +256,14 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-6">
-                <Users className="h-6 w-6 text-red-600" />
+            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <Users className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-red-600 transition-colors duration-300">
                 {isSpanish ? 'CRM Inteligente' : 'Smart CRM'}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed text-lg">
                 {isSpanish 
                   ? 'Gestión automática de leads y clientes con seguimiento inteligente y nurturing personalizado.'
                   : 'Automatic lead and customer management with intelligent tracking and personalized nurturing.'
@@ -271,14 +271,14 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center mb-6">
-                <Shield className="h-6 w-6 text-cyan-600" />
+            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <Shield className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-cyan-600 transition-colors duration-300">
                 {isSpanish ? 'Seguridad Empresarial' : 'Enterprise Security'}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed text-lg">
                 {isSpanish 
                   ? 'Cifrado de extremo a extremo, cumplimiento GDPR y backups automáticos de todos tus datos.'
                   : 'End-to-end encryption, GDPR compliance and automatic backups of all your data.'
@@ -289,56 +289,56 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="relative py-24 bg-gray-50">
+      {/* Testimonials Section - Premium Style */}
+      <section className="relative py-32 bg-gradient-to-b from-slate-100/50 via-white to-slate-50/30">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-gray-900">
+          <div className="text-center mb-24">
+            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
               {isSpanish ? 'Lo Que Dicen Nuestros Clientes' : 'What Our Customers Say'}
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl sm:text-2xl text-gray-600 font-light">
               {isSpanish ? 'Miles de empresas ya están creciendo en piloto automático' : 'Thousands of businesses are already growing on autopilot'}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl p-8 shadow-lg">
-              <div className="flex items-center gap-1 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12">
+            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 hover:bg-white/90 transition-all duration-500 hover:-translate-y-1">
+              <div className="flex items-center gap-1 mb-6">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                 ))}
               </div>
-              <p className="text-gray-700 mb-6 leading-relaxed">
+              <p className="text-gray-800 mb-8 leading-relaxed text-lg font-medium">
                 {isSpanish 
                   ? '"En 3 meses aumentamos nuestras ventas en un 300%. La plataforma literalmente funciona sola, es increíble."'
                   : '"In 3 months we increased our sales by 300%. The platform literally works by itself, it\'s incredible."'
                 }
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                   M
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">Maria Rodriguez</p>
-                  <p className="text-sm text-gray-500">{isSpanish ? 'Dueña, Boutique Luna' : 'Owner, Luna Boutique'}</p>
+                  <p className="font-bold text-gray-900 text-lg">Maria Rodriguez</p>
+                  <p className="text-gray-600 font-medium">{isSpanish ? 'Dueña, Boutique Luna' : 'Owner, Luna Boutique'}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-8 shadow-lg">
-              <div className="flex items-center gap-1 mb-4">
+            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 hover:bg-white/90 transition-all duration-500 hover:-translate-y-1">
+              <div className="flex items-center gap-1 mb-6">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                 ))}
               </div>
-              <p className="text-gray-700 mb-6 leading-relaxed">
+              <p className="text-gray-800 mb-8 leading-relaxed text-lg font-medium">
                 {isSpanish 
                   ? '"Antes pasaba 4 horas al día en marketing. Ahora tengo ese tiempo para mi negocio y las ventas siguen creciendo."'
                   : '"I used to spend 4 hours a day on marketing. Now I have that time for my business and sales keep growing."'
                 }
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                   C
                 </div>
                 <div>
@@ -348,20 +348,20 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-8 shadow-lg">
-              <div className="flex items-center gap-1 mb-4">
+            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 hover:bg-white/90 transition-all duration-500 hover:-translate-y-1">
+              <div className="flex items-center gap-1 mb-6">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                 ))}
               </div>
-              <p className="text-gray-700 mb-6 leading-relaxed">
+              <p className="text-gray-800 mb-8 leading-relaxed text-lg font-medium">
                 {isSpanish 
                   ? '"La IA conoce mi inventario mejor que yo. Crea campañas perfectas para cada producto automáticamente."'
                   : '"The AI knows my inventory better than I do. It creates perfect campaigns for each product automatically."'
                 }
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                   A
                 </div>
                 <div>
@@ -374,26 +374,26 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="relative py-24 bg-white">
+      {/* Pricing Section - Premium Apple Style */}
+      <section className="relative py-32 bg-gradient-to-b from-white via-slate-50/20 to-white">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-gray-900">
+          <div className="text-center mb-24">
+            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
               {isSpanish ? 'Planes Simples y Transparentes' : 'Simple, Transparent Pricing'}
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl sm:text-2xl text-gray-600 font-light">
               {isSpanish ? 'Empieza gratis. Crece con nosotros. Cancela cuando quieras.' : 'Start free. Grow with us. Cancel anytime.'}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+            <div className="group bg-white/80 backdrop-blur-sm border border-white/50 rounded-3xl p-10 shadow-2xl hover:shadow-3xl hover:bg-white/90 transition-all duration-500">
+              <h3 className="text-3xl font-bold text-gray-900 mb-6">
                 {isSpanish ? 'Starter' : 'Starter'}
               </h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">$29</span>
-                <span className="text-gray-500 ml-2">{isSpanish ? '/mes' : '/month'}</span>
+              <div className="mb-8">
+                <span className="text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">$29</span>
+                <span className="text-gray-600 ml-3 text-lg font-medium">{isSpanish ? '/mes' : '/month'}</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-3">
@@ -410,23 +410,23 @@ export default function Landing() {
                 </li>
               </ul>
               <Button 
-                className="w-full bg-gray-100 text-gray-900 hover:bg-gray-200 font-semibold py-3 rounded-lg"
+                className="w-full bg-gradient-to-r from-gray-100 to-gray-200 text-gray-900 hover:from-gray-200 hover:to-gray-300 font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-lg"
                 onClick={() => navigate("/login")}
               >
                 {isSpanish ? 'Empezar Gratis' : 'Start Free'}
               </Button>
             </div>
 
-            <div className="bg-blue-600 text-white rounded-xl p-8 shadow-2xl transform scale-105 relative">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-yellow-400 text-yellow-900 px-3 py-1">
+            <div className="group bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white rounded-3xl p-12 shadow-3xl transform scale-105 relative border border-blue-500/20">
+              <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 font-bold text-sm shadow-lg">
                   {isSpanish ? 'MÁS POPULAR' : 'MOST POPULAR'}
                 </Badge>
               </div>
-              <h3 className="text-2xl font-bold mb-4">Professional</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold">$99</span>
-                <span className="text-blue-200 ml-2">{isSpanish ? '/mes' : '/month'}</span>
+              <h3 className="text-3xl font-bold mb-6">Professional</h3>
+              <div className="mb-8">
+                <span className="text-5xl font-bold">$99</span>
+                <span className="text-blue-200 ml-3 text-lg font-medium">{isSpanish ? '/mes' : '/month'}</span>
               </div>
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-3">
@@ -446,14 +446,14 @@ export default function Landing() {
                   <span>{isSpanish ? 'Analytics avanzados' : 'Advanced analytics'}</span>
                 </li>
               </ul>
-              <Button className="w-full bg-white text-blue-600 hover:bg-gray-50 font-semibold py-3 rounded-lg">
+              <Button className="w-full bg-white text-blue-600 hover:bg-gray-50 font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 text-lg group-hover:scale-105">
                 {isSpanish ? 'Empezar Gratis 14 Días' : 'Start 14-Day Free Trial'}
               </Button>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Enterprise</h3>
-              <div className="mb-6">
+            <div className="group bg-white/80 backdrop-blur-sm border border-white/50 rounded-3xl p-10 shadow-2xl hover:shadow-3xl hover:bg-white/90 transition-all duration-500">
+              <h3 className="text-3xl font-bold text-gray-900 mb-6">Enterprise</h3>
+              <div className="mb-8">
                 <span className="text-4xl font-bold text-gray-900">{isSpanish ? 'Personalizado' : 'Custom'}</span>
               </div>
               <ul className="space-y-3 mb-8">
@@ -478,13 +478,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="relative py-24 bg-gray-900">
+      {/* Final CTA - Premium Style */}
+      <section className="relative py-32 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+          <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-8 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent leading-tight">
             {isSpanish ? '¿Listo Para Hacer Crecer Tus Ventas?' : 'Ready To Grow Your Sales?'}
           </h2>
-          <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+          <p className="text-xl sm:text-2xl text-gray-300/90 mb-16 max-w-3xl mx-auto font-light leading-relaxed">
             {isSpanish 
               ? 'Únete a miles de empresas que ya están creciendo en piloto automático. Sin configuración complicada, sin contratos largos.'
               : 'Join thousands of businesses already growing on autopilot. No complex setup, no long contracts.'
@@ -493,7 +493,7 @@ export default function Landing() {
           
           <div className="flex flex-col items-center gap-6 mb-12">
             <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-12 py-4 text-xl rounded-xl shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="bg-white text-gray-900 hover:bg-gray-50 font-bold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1"
               data-testid="button-start-free-trial-final"
               onClick={() => navigate("/login")}
             >
