@@ -15,7 +15,6 @@ import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
-  const [showDemo, setShowDemo] = useState(false);
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -231,25 +230,6 @@ export default function Landing() {
             <p className="text-gray-500 text-sm">
               {isSpanish ? 'Prueba gratis por 14 días • No se requiere tarjeta de crédito' : 'Free 14-day trial • No credit card required'}
             </p>
-            <Dialog open={showDemo} onOpenChange={setShowDemo}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="text-gray-600 hover:text-gray-900 font-medium underline"
-                  data-testid="button-watch-demo"
-                >
-                  {isSpanish ? 'Ver demo (2 min)' : 'Watch demo (2 min)'}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold text-center">
-                    {isSpanish ? 'Demo Interactivo - CampAIgner' : 'Interactive Demo - CampAIgner'}
-                  </DialogTitle>
-                </DialogHeader>
-                <InteractiveDemo isSpanish={isSpanish} />
-              </DialogContent>
-            </Dialog>
           </div>
 
           {/* Social Proof Numbers - Premium Grid */}
@@ -270,6 +250,28 @@ export default function Landing() {
               <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-3">21+ Platforms</div>
               <div className="text-gray-600 text-sm font-medium">{isSpanish ? 'Publicación automática' : 'Auto-posting'}</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Demo Section - Premium Style */}
+      <section className="relative py-32 bg-gradient-to-b from-blue-50/30 via-white to-slate-50/30">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
+              {isSpanish ? 'Prueba CampAIgner Ahora' : 'Try CampAIgner Now'}
+            </h2>
+            <p className="text-xl sm:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
+              {isSpanish 
+                ? 'Describe tu negocio y mira cómo nuestra IA genera campañas perfectas para cada plataforma en segundos.'
+                : 'Describe your business and watch our AI generate perfect campaigns for every platform in seconds.'
+              }
+            </p>
+          </div>
+
+          {/* Demo Container with Premium Styling */}
+          <div className="bg-white/80 backdrop-blur-sm border border-white/50 rounded-3xl shadow-2xl p-8 lg:p-12">
+            <InteractiveDemo isSpanish={isSpanish} />
           </div>
         </div>
       </section>
