@@ -1447,31 +1447,6 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-500/15 to-blue-600/10 rounded-full blur-2xl"></div>
           
           <div className="space-y-8 relative z-10">
-            <div className="space-y-4">
-              <label className="block text-2xl font-bold text-gray-900">
-                {isSpanish 
-                  ? 'Cuéntanos sobre tu negocio' 
-                  : 'Tell us about your business'
-                }
-              </label>
-              <p className="text-gray-600 leading-relaxed text-lg">
-                {isSpanish 
-                  ? 'Ejemplo: "Mi sitio web de negocio es: renuvederm.com mi instagram de negocio es @renuvederm"'
-                  : 'Example: "My business website is: renuvederm.com my business instagram is @renuvederm"'
-                }
-              </p>
-              <Textarea
-                placeholder={isSpanish 
-                  ? "Describe tu negocio aquí..." 
-                  : "Describe your business here..."
-                }
-                value={demo.businessDescription}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
-                className="min-h-[150px] text-lg resize-none border border-gray-300 focus:border-blue-500 rounded-2xl p-6 bg-white/50 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
-                data-testid="textarea-business-description"
-              />
-            </div>
-
             <div>
               <label className="block text-lg font-semibold text-gray-800 mb-2">
 {isSpanish ? 'Selecciona tu Industria' : 'Select Your Industry'}
@@ -1650,10 +1625,36 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </p>
             </div>
 
+            {/* Tell us about your business - Optional and Last */}
+            <div className="space-y-4">
+              <label className="block text-2xl font-bold text-gray-900">
+                {isSpanish 
+                  ? 'Cuéntanos sobre tu negocio (opcional)' 
+                  : 'Tell us about your business (optional)'
+                }
+              </label>
+              <p className="text-gray-600 leading-relaxed text-lg">
+                {isSpanish 
+                  ? 'Ejemplo: "Mi sitio web de negocio es: renuvederm.com mi instagram de negocio es @renuvederm"'
+                  : 'Example: "My business website is: renuvederm.com my business instagram is @renuvederm"'
+                }
+              </p>
+              <Textarea
+                placeholder={isSpanish 
+                  ? "Describe tu negocio aquí..." 
+                  : "Describe your business here..."
+                }
+                value={demo.businessDescription}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
+                className="min-h-[150px] text-lg resize-none border border-gray-300 focus:border-blue-500 rounded-2xl p-6 bg-white/50 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                data-testid="textarea-business-description"
+              />
+            </div>
+
             <div className="text-center">
               <Button 
                 onClick={handleGenerateCampaign}
-                disabled={demo.isGenerating || !demo.businessDescription.trim()}
+                disabled={demo.isGenerating}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/30 transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1"
                 data-testid="button-generate-campaign"
               >
