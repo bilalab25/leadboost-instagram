@@ -8,6 +8,7 @@ import { MessageSquare, Bot, BarChart3, ArrowRight, Star, Check, Play, Zap, Tren
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
+import { HelpDropdown } from "@/components/HelpDropdown";
 import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756873932398.png";
 
 export default function Landing() {
@@ -47,6 +48,7 @@ export default function Landing() {
             </nav>
             
             <div className="flex items-center space-x-4">
+              <HelpDropdown isSpanish={isSpanish} />
               <Button
                 variant="ghost"
                 size="sm"

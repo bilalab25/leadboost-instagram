@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, checkSiteAccess } from "./auth";
 import OpenAI from "openai";
+import chatRoutes from "./chatRoutes";
 import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
 import { socialMediaService } from "./services/socialMedia";
 import { imageProcessor } from "./services/imageProcessor";
@@ -73,6 +74,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
+
+  // Chat routes
+  app.use('/api', chatRoutes);
 
   // Subscription plan routes
   app.get('/api/subscription-plans', async (req: any, res) => {
