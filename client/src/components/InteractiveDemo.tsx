@@ -1456,8 +1456,8 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </label>
               <p className="text-gray-600 leading-relaxed text-lg">
                 {isSpanish 
-                  ? 'Ejemplo: "Somos una panadería artesanal en el centro de Barcelona que hace panes orgánicos y pasteles caseros desde 1985"'
-                  : 'Example: "We are an artisan bakery in downtown Barcelona making organic breads and homemade pastries since 1985"'
+                  ? 'Ejemplo: "Mi sitio web de negocio es: renuvederm.com mi instagram de negocio es @renuvederm"'
+                  : 'Example: "My business website is: renuvederm.com my business instagram is @renuvederm"'
                 }
               </p>
               <Textarea
