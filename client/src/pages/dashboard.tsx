@@ -42,20 +42,20 @@ export default function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState<'weekly' | 'monthly' | 'daily'>('weekly');
   const [showDollarAmount, setShowDollarAmount] = useState(false);
 
-  // Redirect to home if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: language === 'es' ? "No Autorizado" : "Unauthorized",
-        description: language === 'es' ? "Has cerrado sesión. Iniciando sesión nuevamente..." : "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast]);
+  // Authentication check disabled for direct dashboard access
+  // useEffect(() => {
+  //   if (!isLoading && !isAuthenticated) {
+  //     toast({
+  //       title: language === 'es' ? "No Autorizado" : "Unauthorized",
+  //       description: language === 'es' ? "Has cerrado sesión. Iniciando sesión nuevamente..." : "You are logged out. Logging in again...",
+  //       variant: "destructive",
+  //     });
+  //     setTimeout(() => {
+  //       window.location.href = "/api/login";
+  //     }, 500);
+  //     return;
+  //   }
+  // }, [isAuthenticated, isLoading, toast]);
 
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
@@ -100,13 +100,14 @@ export default function Dashboard() {
     },
   });
 
-  if (isLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
-      </div>
-    );
-  }
+  // Remove loading check to allow direct access
+  // if (isLoading || !isAuthenticated) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">
