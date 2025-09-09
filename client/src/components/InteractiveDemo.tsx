@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -1422,28 +1423,55 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   if (!demo.showResults) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <Card className="bg-white rounded-3xl shadow-lg border border-gray-200 relative overflow-hidden">
-          {/* Subtle background elements like the main site */}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-50/40 to-brand-200/20" />
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-brand-300/20 to-brand-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
+      <div className="space-y-8">
+        {/* Header Section */}
+        <div className="text-center">
+          <div className="text-6xl mb-6">🚀</div>
+          <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
+            {isSpanish ? '¡Describe Tu Negocio!' : 'Describe Your Business!'}
+          </h3>
+          <p className="text-xl sm:text-2xl text-gray-600 font-light leading-relaxed max-w-3xl mx-auto">
+            {isSpanish 
+              ? 'Nuestra IA generará campañas personalizadas para cada plataforma en segundos'
+              : 'Our AI will generate personalized campaigns for every platform in seconds'
+            }
+          </p>
+        </div>
+
+        {/* Demo Input Container */}
+        <div className="bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl relative overflow-hidden">
+          {/* Subtle background elements matching landing page */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-500/15 to-blue-600/10 rounded-full blur-2xl"></div>
           
-          <CardContent className="p-8 lg:p-12 space-y-8 relative z-10">
-            <div className="text-center mb-8">
-              <div className="text-6xl mb-6 bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent">🚀</div>
-              <h3 className="text-4xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight tracking-tight">
-                {isSpanish ? '¡Haz Tu Propio Demo!' : 'Try Our Free Demo!'}
-              </h3>
-              <p className="text-lg text-gray-600 leading-relaxed font-medium max-w-md mx-auto">
+          <div className="space-y-8 relative z-10">
+            <div className="space-y-4">
+              <label className="block text-2xl font-bold text-gray-900">
                 {isSpanish 
-                  ? 'Demo Rápido - Hagamos tu campaña en segundos'
-                  : 'Free Demo - Lets make your campaign in seconds'
+                  ? '📝 Cuéntanos sobre tu negocio' 
+                  : '📝 Tell us about your business'
+                }
+              </label>
+              <p className="text-gray-600 leading-relaxed text-lg">
+                {isSpanish 
+                  ? 'Ejemplo: "Somos una panadería artesanal en el centro de Barcelona que hace panes orgánicos y pasteles caseros desde 1985"'
+                  : 'Example: "We are an artisan bakery in downtown Barcelona making organic breads and homemade pastries since 1985"'
                 }
               </p>
+              <Textarea
+                placeholder={isSpanish 
+                  ? "Describe tu negocio aquí..." 
+                  : "Describe your business here..."
+                }
+                value={demo.businessDescription}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
+                className="min-h-[150px] text-lg resize-none border border-gray-300 focus:border-blue-500 rounded-2xl p-6 bg-white/50 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                data-testid="textarea-business-description"
+              />
             </div>
+
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-lg font-semibold text-gray-800 mb-2">
                 {isSpanish ? '🏢 Selecciona tu Industria' : '🏢 Select Your Industry'}
               </label>
               <select
@@ -1620,59 +1648,56 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               </p>
             </div>
 
-            <div className="relative">
-              {/* Glowing effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-brand-500 to-brand-700 rounded-full blur-lg opacity-60 animate-pulse"></div>
+            <div className="text-center">
               <Button 
                 onClick={handleGenerateCampaign}
                 disabled={demo.isGenerating || !demo.businessDescription.trim()}
-                className="relative overflow-hidden bg-gradient-to-r from-brand-500 via-brand-600 to-brand-700 hover:from-brand-600 hover:via-brand-700 hover:to-brand-800 text-white font-bold px-8 py-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group border border-brand-400/30 w-full h-14 text-lg"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/30 transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1"
                 data-testid="button-generate-campaign"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-400 via-brand-500 to-brand-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
-                <div className="absolute inset-0 rounded-full">
-                  <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full animate-ping opacity-75"></div>
-                  <div className="absolute top-3 left-3 w-0.5 h-0.5 bg-white rounded-full animate-pulse"></div>
-                  <div className="absolute bottom-2 right-4 w-0.5 h-0.5 bg-brand-200 rounded-full animate-ping" style={{animationDelay: '500ms'}}></div>
-                </div>
-                <span className="relative z-10 flex items-center justify-center">
-                  {demo.isGenerating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      {isSpanish ? 'IA creando tu campaña...' : 'AI creating your campaign...'}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5 animate-spin" />
-                      {isSpanish ? 'Generar Campaña con IA' : 'Generate AI Campaign'}
-                    </>
-                  )}
-                </span>
+                {demo.isGenerating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                    {isSpanish ? 'IA creando tu campaña...' : 'AI creating your campaign...'}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-3 h-6 w-6" />
+                    {isSpanish ? 'Generar Campaña con IA' : 'Generate AI Campaign'}
+                  </>
+                )}
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="text-center mb-8">
-        <h3 className="text-3xl font-bold mb-4">
-          {isSpanish ? '🎉 Tu Campaña Multiplataforma - Vista Previa' : '🎉 Your Multi-Platform Campaign - Preview'}
+    <div className="space-y-12">
+      <div className="text-center">
+        <div className="text-6xl mb-6">🎉</div>
+        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
+          {isSpanish ? '¡Tu Campaña Está Lista!' : 'Your Campaign is Ready!'}
         </h3>
-        <p className="text-gray-600 text-lg mb-4">
-          <strong>"{generatedCampaign}"</strong> {isSpanish ? 'optimizada para 8 plataformas' : 'optimized for 8 platforms'}
+        <p className="text-xl sm:text-2xl text-gray-600 font-light leading-relaxed mb-8 max-w-4xl mx-auto">
+          <strong>"{generatedCampaign}"</strong><br />
+          <span className="text-lg">{isSpanish ? 'optimizada para 8 plataformas populares' : 'optimized for 8 popular platforms'}</span>
         </p>
-        <Button variant="outline" onClick={resetDemo} data-testid="button-try-another">
+        <Button 
+          variant="outline" 
+          onClick={resetDemo} 
+          className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300 px-8 py-3 text-lg rounded-2xl"
+          data-testid="button-try-another"
+        >
           {isSpanish ? 'Probar Otra Campaña' : 'Try Another Campaign'}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {platformPosts.map((post, index) => (
-          <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-white/80 backdrop-blur-sm cursor-pointer" data-testid={`platform-card-${index}`} onClick={() => handleCardClick(post)}>
+          <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-white/40 bg-white/70 backdrop-blur-sm cursor-pointer rounded-3xl shadow-lg" data-testid={`platform-card-${index}`} onClick={() => handleCardClick(post)}>
             <CardHeader className={`pb-3 relative ${getPlatformHeaderStyle(post.platform)}`}>
               <div className={`absolute inset-0 bg-gradient-to-r opacity-90 ${getPlatformGradient(post.platform)}`}></div>
               <CardTitle className="relative text-sm flex items-center gap-2 text-white font-semibold">
