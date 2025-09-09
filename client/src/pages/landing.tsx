@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { MessageSquare, Bot, BarChart3, ArrowRight, Star, Check, Play, Zap, TrendingUp, Users, Globe, Shield, Clock } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MessageSquare, Bot, BarChart3, ArrowRight, Star, Check, Play, Zap, TrendingUp, Users, Globe, Shield, Clock, ChevronDown } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
@@ -36,9 +37,85 @@ export default function Landing() {
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                {isSpanish ? 'Características' : 'Features'}
-              </a>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="text-gray-600 hover:text-gray-900 font-medium transition-colors p-0 h-auto"
+                  >
+                    {isSpanish ? 'Características' : 'Features'}
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-80">
+                  <DropdownMenuItem className="flex items-start gap-3 p-4">
+                    <Bot className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {isSpanish ? 'Campañas IA Automatizadas' : 'AI Automated Campaigns'}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {isSpanish ? 'IA crea contenido basado en datos reales' : 'AI creates content based on real data'}
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-start gap-3 p-4">
+                    <MessageSquare className="h-5 w-5 text-green-600 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {isSpanish ? 'Gestiona todos los mensajes desde un lugar' : 'Manage all messages from one place'}
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-start gap-3 p-4">
+                    <TrendingUp className="h-5 w-5 text-purple-600 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {isSpanish ? 'Análisis en Tiempo Real' : 'Real-Time Analytics'}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {isSpanish ? 'Métricas de ventas y ROI automáticas' : 'Automatic sales and ROI metrics'}
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-start gap-3 p-4">
+                    <Globe className="h-5 w-5 text-orange-600 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {isSpanish ? '21+ Plataformas' : '21+ Platforms'}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {isSpanish ? 'Instagram, TikTok, Facebook, LinkedIn y más' : 'Instagram, TikTok, Facebook, LinkedIn and more'}
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-start gap-3 p-4">
+                    <Users className="h-5 w-5 text-red-600 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {isSpanish ? 'CRM Inteligente' : 'Smart CRM'}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {isSpanish ? 'Gestión automática de leads y clientes' : 'Automatic lead and customer management'}
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-start gap-3 p-4">
+                    <Shield className="h-5 w-5 text-cyan-600 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {isSpanish ? 'Seguridad Empresarial' : 'Enterprise Security'}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {isSpanish ? 'Cifrado, GDPR y backups automáticos' : 'Encryption, GDPR and automatic backups'}
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <a href="#testimonials" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
                 {isSpanish ? 'Testimonios' : 'Testimonials'}
               </a>
