@@ -245,8 +245,8 @@ export default function Landing() {
       {/* LeadBoost Introduction Section - Clean Style */}
       <section className="relative py-24 bg-white">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-normal leading-tight">
-            <span className="text-purple-600 font-medium">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">
               {isSpanish ? 'Conoce LeadBoost' : 'Meet LeadBoost'}
             </span>
             <span className="text-gray-900">
