@@ -251,8 +251,8 @@ export default function Landing() {
             </span>
             <span className="text-gray-900">
               {isSpanish 
-                ? ', el primer motor de crecimiento IA integral del mundo: analizando, creando, publicando, convirtiendo y cerrando—todo por ti.'
-                : ', the world\'s first end-to-end AI growth engine: analyzing, creating, posting, converting, and closing—all for you.'
+                ? ', el primer motor de marketing IA integral del mundo: analizando, creando, publicando, convirtiendo y cerrando—todo por ti.'
+                : ', the world\'s first end-to-end AI marketing engine: analyzing, creating, posting, converting, and closing—all for you.'
               }
             </span>
           </h2>
