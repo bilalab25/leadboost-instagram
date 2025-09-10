@@ -244,6 +244,102 @@ export default function Landing() {
 
       {/* LeadBoost Introduction Section - Clean Style */}
       <section className="relative py-24 bg-white">
+        {/* AI Workflow Visualization */}
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 mb-16">
+          <div className="relative bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-3xl p-8 lg:p-12 overflow-hidden">
+            {/* Background tech pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute top-4 left-4 w-32 h-32 border border-blue-300 rounded-full"></div>
+              <div className="absolute bottom-4 right-4 w-24 h-24 border border-purple-300 rounded-full"></div>
+              <div className="absolute top-1/2 left-1/2 w-16 h-16 border border-cyan-300 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+            </div>
+            
+            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
+              {/* Data Sources */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="text-sm font-medium text-gray-600 mb-2">Data Sources</div>
+                {['Website', 'POS', 'Social'].map((source, i) => (
+                  <div key={source} className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 animate-pulse`} style={{animationDelay: `${i * 0.3}s`}}></div>
+                    <div className="bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-200 text-sm font-medium text-gray-700">
+                      {source}
+                    </div>
+                    <div className="hidden lg:block">
+                      <div className="flex space-x-1">
+                        {[...Array(3)].map((_, j) => (
+                          <div key={j} className={`w-1 h-1 bg-blue-400 rounded-full animate-pulse`} style={{animationDelay: `${(i * 0.3) + (j * 0.1)}s`}}></div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* AI Brain Center */}
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-600 rounded-full flex items-center justify-center shadow-2xl">
+                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                      <div className="w-8 h-8 bg-white/30 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  {/* Orbiting elements */}
+                  {[...Array(6)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-60"
+                      style={{
+                        top: '50%',
+                        left: '50%',
+                        transform: `translate(-50%, -50%) rotate(${i * 60}deg) translateY(-40px)`,
+                        animation: 'spin 4s linear infinite'
+                      }}
+                    ></div>
+                  ))}
+                </div>
+                <div className="text-xs font-semibold text-center mt-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  AI Engine
+                </div>
+              </div>
+
+              {/* Output Channels */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="text-sm font-medium text-gray-600 mb-2">Output Channels</div>
+                {['Email', 'Social Posts', 'Ads', 'SMS'].map((channel, i) => (
+                  <div key={channel} className="flex items-center space-x-2">
+                    <div className="hidden lg:block">
+                      <div className="flex space-x-1">
+                        {[...Array(3)].map((_, j) => (
+                          <div key={j} className={`w-1 h-1 bg-green-400 rounded-full animate-pulse`} style={{animationDelay: `${(i * 0.3) + (j * 0.1)}s`}}></div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-200 text-sm font-medium text-gray-700">
+                      {channel}
+                    </div>
+                    <div className={`w-3 h-3 rounded-full bg-gradient-to-r from-green-400 to-emerald-400 animate-pulse`} style={{animationDelay: `${i * 0.3}s`}}></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Flowing particles animation */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-40"
+                  style={{
+                    left: `${20 + (i * 10)}%`,
+                    top: '50%',
+                    animation: `float 3s ease-in-out infinite ${i * 0.5}s`
+                  }}
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">
