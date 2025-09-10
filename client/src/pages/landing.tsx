@@ -244,106 +244,87 @@ export default function Landing() {
 
       {/* LeadBoost Introduction Section - Clean Style */}
       <section className="relative py-24 bg-white">
-        {/* Circular AI Process Flow */}
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 mb-16">
-          <div className="relative bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-3xl p-8 lg:p-16 overflow-hidden">
+        {/* Minimal Circular AI Process */}
+        <div className="max-w-5xl mx-auto px-6 sm:px-8 mb-16">
+          <div className="relative bg-white rounded-3xl p-12 lg:p-20 border border-gray-100">
             
-            {/* Central hub */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20">
-              <div className="text-center">
-                <div className="text-white font-bold text-sm">LeadBoost</div>
-                <div className="text-white/80 text-xs">AI Engine</div>
-              </div>
-              {/* Rotating ring */}
-              <div className="absolute inset-0 border-2 border-blue-300/30 rounded-full animate-spin" style={{animationDuration: '20s'}}></div>
+            {/* Central core */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center">
+              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
             </div>
 
-            {/* Circular connection lines */}
+            {/* Orbital ring */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-80 h-80 border-2 border-dashed border-gray-300/50 rounded-full"></div>
+              <div className="w-72 h-72 border border-gray-200 rounded-full"></div>
             </div>
 
-            {/* Step 1: Data Collection - Top */}
-            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-xl border border-blue-300/30">
-                <div className="text-2xl">📊</div>
+            {/* Step 1: Data - Top */}
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-center">
+              <div className="w-12 h-12 mx-auto mb-3 bg-gray-900 rounded-full flex items-center justify-center">
+                <div className="w-2 h-2 bg-white rounded-sm"></div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Recolección' : 'Data Collection'}
+              <div className="text-xs font-medium text-gray-500 mb-1">01</div>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {isSpanish ? 'Datos' : 'Data'}
               </h3>
-              <p className="text-gray-600 text-sm max-w-32">
-                {isSpanish ? 'Captura automática de datos' : 'Auto data capture'}
-              </p>
-              <div className="text-xs text-blue-600 font-mono mt-1">STEP 1</div>
             </div>
 
-            {/* Step 2: AI Processing - Top Right */}
-            <div className="absolute top-20 right-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl border border-purple-300/30">
-                <div className="text-2xl">🤖</div>
+            {/* Step 2: AI - Top Right */}
+            <div className="absolute top-16 right-4 text-center">
+              <div className="w-12 h-12 mx-auto mb-3 bg-gray-900 rounded-full flex items-center justify-center">
+                <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Procesamiento IA' : 'AI Processing'}
+              <div className="text-xs font-medium text-gray-500 mb-1">02</div>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {isSpanish ? 'IA' : 'AI'}
               </h3>
-              <p className="text-gray-600 text-sm max-w-32">
-                {isSpanish ? 'Análisis inteligente' : 'Intelligent analysis'}
-              </p>
-              <div className="text-xs text-purple-600 font-mono mt-1">STEP 2</div>
             </div>
 
-            {/* Step 3: Campaign Deploy - Bottom Right */}
-            <div className="absolute bottom-20 right-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-xl border border-green-300/30">
-                <div className="text-2xl">🚀</div>
+            {/* Step 3: Deploy - Bottom Right */}
+            <div className="absolute bottom-16 right-4 text-center">
+              <div className="w-12 h-12 mx-auto mb-3 bg-gray-900 rounded-full flex items-center justify-center">
+                <div className="w-2 h-1 bg-white rounded-sm"></div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Despliegue' : 'Campaign Deploy'}
+              <div className="text-xs font-medium text-gray-500 mb-1">03</div>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {isSpanish ? 'Despliegue' : 'Deploy'}
               </h3>
-              <p className="text-gray-600 text-sm max-w-32">
-                {isSpanish ? 'Campañas multi-canal' : 'Multi-channel campaigns'}
-              </p>
-              <div className="text-xs text-green-600 font-mono mt-1">STEP 3</div>
             </div>
 
-            {/* Step 4: Conversion - Bottom Left */}
-            <div className="absolute bottom-20 left-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-xl border border-orange-300/30">
-                <div className="text-2xl">💬</div>
+            {/* Step 4: Convert - Bottom Left */}
+            <div className="absolute bottom-16 left-4 text-center">
+              <div className="w-12 h-12 mx-auto mb-3 bg-gray-900 rounded-full flex items-center justify-center">
+                <div className="flex space-x-0.5">
+                  <div className="w-1 h-1 bg-white rounded-full"></div>
+                  <div className="w-1 h-1 bg-white rounded-full"></div>
+                </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Conversión' : 'Conversion'}
+              <div className="text-xs font-medium text-gray-500 mb-1">04</div>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {isSpanish ? 'Convierte' : 'Convert'}
               </h3>
-              <p className="text-gray-600 text-sm max-w-32">
-                {isSpanish ? 'Chat bot inteligente' : 'Smart chatbot'}
-              </p>
-              <div className="text-xs text-orange-600 font-mono mt-1">STEP 4</div>
             </div>
 
-            {/* Step 5: Retention - Top Left */}
-            <div className="absolute top-20 left-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl border border-indigo-300/30">
-                <div className="text-2xl">🔄</div>
+            {/* Step 5: Retain - Top Left */}
+            <div className="absolute top-16 left-4 text-center">
+              <div className="w-12 h-12 mx-auto mb-3 bg-gray-900 rounded-full flex items-center justify-center">
+                <div className="w-2 h-2 border border-white rounded-full"></div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Retención' : 'Retention'}
+              <div className="text-xs font-medium text-gray-500 mb-1">05</div>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {isSpanish ? 'Retiene' : 'Retain'}
               </h3>
-              <p className="text-gray-600 text-sm max-w-32">
-                {isSpanish ? 'Re-targeting automático' : 'Auto retargeting'}
-              </p>
-              <div className="text-xs text-indigo-600 font-mono mt-1">STEP 5</div>
             </div>
 
-            {/* Flowing arrows showing circular motion */}
+            {/* Subtle flow indicators */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className={`absolute w-6 h-6 text-blue-400 opacity-60`} style={{
+                <div key={i} className={`absolute w-1 h-1 bg-blue-400 rounded-full opacity-40`} style={{
                   top: '50%', 
                   left: '50%',
-                  transform: `translate(-50%, -50%) rotate(${i * 72}deg) translateY(-140px) rotate(-${i * 72}deg)`,
-                  animation: `spin 10s linear infinite ${i * 2}s`
-                }}>
-                  <div className="text-lg">→</div>
-                </div>
+                  transform: `translate(-50%, -50%) rotate(${i * 72}deg) translateY(-130px)`,
+                  animation: `pulse 3s ease-in-out infinite ${i * 0.6}s`
+                }}></div>
               ))}
             </div>
 
