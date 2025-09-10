@@ -239,25 +239,6 @@ export default function Landing() {
             </p>
           </div>
 
-          {/* Social Proof Numbers - Premium Grid */}
-          <div className={`grid grid-cols-2 md:grid-cols-4 gap-12 max-w-6xl mx-auto transition-all duration-1000 delay-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg">
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">Years</div>
-              <div className="text-gray-600 text-sm font-medium">{isSpanish ? 'Campañas automáticas' : 'Automated campaigns'}</div>
-            </div>
-            <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg">
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-3">0 Clicks</div>
-              <div className="text-gray-600 text-sm font-medium">{isSpanish ? 'Para generar contenido' : 'To generate content'}</div>
-            </div>
-            <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg">
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">Real-time</div>
-              <div className="text-gray-600 text-sm font-medium">{isSpanish ? 'Datos POS/Web/Social' : 'POS/Web/Social data'}</div>
-            </div>
-            <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg">
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-3">21+ Platforms</div>
-              <div className="text-gray-600 text-sm font-medium">{isSpanish ? 'Publicación automática' : 'Auto-posting'}</div>
-            </div>
-          </div>
         </div>
       </section>
 
