@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MessageSquare, Bot, BarChart3, ArrowRight, Star, Check, Play, Zap, TrendingUp, Users, Globe, Shield, Clock, ChevronDown } from "lucide-react";
+import { MessageSquare, Bot, BarChart3, ArrowRight, Star, Check, Play, Zap, TrendingUp, Users, Globe, Shield, Clock, ChevronDown, Instagram, Facebook, Linkedin, Twitter, Mail, Hash } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
@@ -182,6 +182,148 @@ export default function Landing() {
       {/* Hero Section - Apple/Squarespace Inspired */}
       <section className="relative py-12 sm:py-16 lg:py-20 pb-0 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
+        {/* Floating Social Media Cards */}
+        <div className="absolute inset-0 pointer-events-none opacity-10">
+          {/* Instagram Post - Square */}
+          <div 
+            className="absolute bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '100px',
+              height: '100px',
+              left: '10%',
+              top: '15%',
+              animation: 'float 6s ease-in-out infinite'
+            }}
+          >
+            <Instagram className="w-8 h-8 text-white" />
+          </div>
+          
+          {/* Instagram Story - Vertical */}
+          <div 
+            className="absolute bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '60px',
+              height: '110px',
+              right: '15%',
+              top: '20%',
+              animation: 'float 7s ease-in-out infinite 1s'
+            }}
+          >
+            <Instagram className="w-6 h-6 text-white" />
+          </div>
+          
+          {/* LinkedIn Article - Landscape */}
+          <div 
+            className="absolute bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '120px',
+              height: '62px',
+              left: '5%',
+              top: '60%',
+              animation: 'float 8s ease-in-out infinite 2s'
+            }}
+          >
+            <Linkedin className="w-6 h-6 text-white" />
+          </div>
+          
+          {/* TikTok Cover - Vertical */}
+          <div 
+            className="absolute bg-gradient-to-br from-black to-gray-800 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '60px',
+              height: '110px',
+              right: '8%',
+              top: '65%',
+              animation: 'float 6.5s ease-in-out infinite 0.5s'
+            }}
+          >
+            <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center text-black text-xs font-bold">T</div>
+          </div>
+          
+          {/* Facebook Post - Landscape */}
+          <div 
+            className="absolute bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '120px',
+              height: '62px',
+              left: '75%',
+              top: '10%',
+              animation: 'float 7.5s ease-in-out infinite 1.5s'
+            }}
+          >
+            <Facebook className="w-6 h-6 text-white" />
+          </div>
+          
+          {/* Twitter/X Post - Landscape */}
+          <div 
+            className="absolute bg-gradient-to-br from-black to-gray-800 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '110px',
+              height: '62px',
+              left: '12%',
+              top: '35%',
+              animation: 'float 8.5s ease-in-out infinite 3s'
+            }}
+          >
+            <Twitter className="w-6 h-6 text-white" />
+          </div>
+          
+          {/* YouTube Thumbnail - Landscape */}
+          <div 
+            className="absolute bg-gradient-to-br from-red-600 to-red-700 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '128px',
+              height: '72px',
+              right: '20%',
+              top: '45%',
+              animation: 'float 9s ease-in-out infinite 2.5s'
+            }}
+          >
+            <Play className="w-6 h-6 text-white" />
+          </div>
+          
+          {/* Pinterest Pin - Tall */}
+          <div 
+            className="absolute bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '80px',
+              height: '120px',
+              left: '85%',
+              top: '55%',
+              animation: 'float 6.8s ease-in-out infinite 1.8s'
+            }}
+          >
+            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-red-600 text-sm font-bold">P</div>
+          </div>
+          
+          {/* Email Banner - Wide */}
+          <div 
+            className="absolute bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '150px',
+              height: '50px',
+              left: '60%',
+              top: '80%',
+              animation: 'float 7.2s ease-in-out infinite 0.8s'
+            }}
+          >
+            <Mail className="w-6 h-6 text-white" />
+          </div>
+          
+          {/* Threads Post - Square */}
+          <div 
+            className="absolute bg-gradient-to-br from-black to-gray-800 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '90px',
+              height: '90px',
+              left: '25%',
+              top: '75%',
+              animation: 'float 8.8s ease-in-out infinite 2.2s'
+            }}
+          >
+            <Hash className="w-6 h-6 text-white" />
+          </div>
+        </div>
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8 text-center z-10">
           {/* Trust Badge - Slogan Style */}
