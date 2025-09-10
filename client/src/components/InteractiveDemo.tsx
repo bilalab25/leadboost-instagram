@@ -1426,8 +1426,10 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
       <div className="space-y-12">
         {/* Header Section - Apple-inspired */}
         <div className="text-center max-w-4xl mx-auto">
-          <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900 mb-4">
-            {isSpanish ? 'Prueba la IA Gratis Ahora Mismo' : 'Try AI Free Right on the Spot'}
+          <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+              {isSpanish ? 'DEMO GRATIS' : 'FREE DEMO'}
+            </span>
           </h3>
           <p className="text-lg text-neutral-500 leading-relaxed max-w-2xl mx-auto">
             {isSpanish 
