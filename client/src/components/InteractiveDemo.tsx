@@ -1423,38 +1423,32 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
 
   if (!demo.showResults) {
     return (
-      <div className="space-y-8">
-        {/* Header Section */}
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
-          <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
-            {isSpanish ? '¡Prueba Nuestro Demo Gratis!' : 'Try Our Free Demo!'}
+      <div className="space-y-12">
+        {/* Header Section - Apple-inspired */}
+        <div className="text-center max-w-4xl mx-auto">
+          <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900 mb-4">
+            {isSpanish ? 'Experimenta el Poder de la IA' : 'Experience the Power of AI'}
           </h3>
-          <p className="text-xl sm:text-2xl text-gray-600 font-light leading-relaxed max-w-3xl mx-auto">
+          <p className="text-lg text-neutral-500 leading-relaxed max-w-2xl mx-auto">
             {isSpanish 
-              ? 'Nuestra IA genera campañas inteligentes para cada plataforma en segundos basándose en los datos de tu negocio (sitio web, TPV, redes sociales)'
-              : 'Our AI generates smart campaigns for every platform in seconds based on your business data (website, POS, socials)'
+              ? 'Crea campañas inteligentes para todas las plataformas en segundos'
+              : 'Create intelligent campaigns for every platform in seconds'
             }
           </p>
         </div>
 
-        {/* Demo Input Container */}
-        <div className="bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl relative overflow-hidden">
-          {/* Subtle background elements matching landing page */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-500/15 to-blue-600/10 rounded-full blur-2xl"></div>
-          
-          <div className="space-y-8 relative z-10">
-            <div>
-              <label className="block text-lg font-semibold text-gray-800 mb-2">
-{isSpanish ? 'Selecciona tu Industria' : 'Select Your Industry'}
+        {/* Demo Container - Clean Apple aesthetic */}
+        <div className="max-w-5xl mx-auto rounded-3xl bg-white border border-neutral-200/70 px-6 py-8 sm:px-10 sm:py-12">
+          <div className="space-y-8">
+            {/* Industry Selection - Apple-inspired */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-neutral-700">
+                {isSpanish ? 'Selecciona tu Industria' : 'Select Your Industry'}
               </label>
               <select
                 value={demo.businessDescription}
                 onChange={(e) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
-                className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full h-12 px-4 text-base border border-neutral-300/80 rounded-2xl bg-white focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-200 ease-out"
                 data-testid="select-industry"
               >
                 <option value="">{isSpanish ? 'Selecciona una industria...' : 'Select an industry...'}</option>
@@ -1479,228 +1473,112 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                 <option value="Arts & Creative Services">{isSpanish ? 'Artes y Servicios Creativos' : 'Arts & Creative Services'}</option>
                 <option value="Other">{isSpanish ? 'Otro' : 'Other'}</option>
               </select>
-              
-              {/* Optional Photo Upload */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">
-{isSpanish ? 'Fotos de tu negocio (opcional)' : 'Your Business Photos (Optional)'}
-                </h4>
-                <p className="text-xs text-gray-600 mb-3">
-                  {isSpanish 
-                    ? '¿Tienes fotos de tus productos o servicios? ¡Súbelas! Si no, no te preocupes: generaremos imágenes perfectas para ti.'
-                    : 'Have photos of your products or services? Upload them! If not, no worries: we\'ll generate perfect images for you.'
-                  }
-                </p>
-                
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="photo-upload"
-                  data-testid="input-photo-upload"
-                />
-                
-                <label 
-                  htmlFor="photo-upload" 
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-{isSpanish ? 'Seleccionar fotos' : 'Choose photos'}
-                </label>
-                
-                {/* Display uploaded images */}
-                {demo.uploadedImages.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs text-gray-600 mb-2">
-                      {isSpanish ? `${demo.uploadedImages.length} foto(s) subida(s):` : `${demo.uploadedImages.length} photo(s) uploaded:`}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {demo.uploadedImages.map((file, index) => (
-                        <div key={index} className="relative group">
-                          <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-600 border">
-                            📷
-                            <br />
-                            {file.name.split('.')[0].substring(0, 6)}...
-                          </div>
-                          <button
-                            onClick={() => removeUploadedImage(index)}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            data-testid={`button-remove-image-${index}`}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                {isSpanish 
-                  ? 'La IA detectará tu industria y generará una campaña de demostración automáticamente'
-                  : 'AI will detect your industry and generate a demo campaign automatically'
-                }
-              </p>
             </div>
 
 
-            {/* Business Data Collection - Modern & Minimalist */}
-            <div className="space-y-6">
-              <div className="text-center">
-                <h4 className="text-lg font-medium text-gray-800 mb-2">
-                  {isSpanish ? 'Conecta tu Presencia Digital (Opcional)' : 'Connect Your Digital Presence (Optional)'}
+            {/* Separator */}
+            <div className="border-t border-neutral-200/70 my-8"></div>
+            
+            {/* Digital Presence - Apple-inspired */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-neutral-700 mb-1">
+                  {isSpanish ? 'Conecta tu Presencia Digital' : 'Connect Your Digital Presence'}
                 </h4>
-                <p className="text-sm text-gray-500">
-                  {isSpanish 
-                    ? 'Ayúdanos a personalizar tu campaña con tus datos existentes'
-                    : 'Help us personalize your campaign with your existing data'
-                  }
+                <p className="text-xs text-neutral-500">
+                  {isSpanish ? 'Opcional' : 'Optional'}
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Website Input */}
-                <div className="relative">
-                  <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 focus-within:border-blue-400 focus-within:bg-white">
-                    <Globe className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <Input
-                        placeholder={isSpanish ? "www.tu-sitio.com" : "www.yoursite.com"}
-                        className="border-0 bg-transparent p-0 text-sm placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        data-testid="input-website"
-                      />
-                    </div>
-                  </div>
-                  <label className="absolute -top-2 left-3 bg-white px-2 text-xs font-medium text-gray-600">
-                    {isSpanish ? 'Sitio Web' : 'Website'}
-                  </label>
+                <div>
+                  <Input
+                    placeholder={isSpanish ? "www.tu-sitio.com" : "www.yoursite.com"}
+                    className="h-12 px-4 text-base border border-neutral-300/80 rounded-2xl placeholder:text-neutral-400 focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-200 ease-out"
+                    data-testid="input-website"
+                  />
                 </div>
 
                 {/* Social Media Input */}
-                <div className="relative">
-                  <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 focus-within:border-blue-400 focus-within:bg-white">
-                    <Instagram className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <Input
-                        placeholder={isSpanish ? "@tu_negocio" : "@yourbusiness"}
-                        className="border-0 bg-transparent p-0 text-sm placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        data-testid="input-social"
-                      />
-                    </div>
-                  </div>
-                  <label className="absolute -top-2 left-3 bg-white px-2 text-xs font-medium text-gray-600">
-                    {isSpanish ? 'Redes Sociales' : 'Social Media'}
-                  </label>
+                <div>
+                  <Input
+                    placeholder={isSpanish ? "@tu_negocio" : "@yourbusiness"}
+                    className="h-12 px-4 text-base border border-neutral-300/80 rounded-2xl placeholder:text-neutral-400 focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-200 ease-out"
+                    data-testid="input-social"
+                  />
                 </div>
               </div>
               
-              <p className="text-xs text-gray-400 text-center">
+              <p className="text-xs text-neutral-400">
                 {isSpanish 
-                  ? 'Opcional - La IA analizará tu contenido existente para crear campañas más relevantes'
-                  : 'Optional - AI will analyze your existing content to create more intelligent campaigns'
+                  ? 'La IA analizará tu contenido existente para crear campañas más inteligentes'
+                  : 'AI will analyze your existing content to create more intelligent campaigns'
                 }
               </p>
             </div>
 
-            {/* Brand Style Selector - Now Last */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-{isSpanish ? 'Elige tu Estilo de Marca' : 'Choose Your Brand Style'}
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Separator */}
+            <div className="border-t border-neutral-200/70 my-8"></div>
+            
+            {/* Brand Style - Apple-inspired segmented control */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-neutral-700 mb-1">
+                  {isSpanish ? 'Estilo de Marca' : 'Brand Style'}
+                </h4>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {[
                   {
                     id: 'professional',
-                    name: isSpanish ? 'Profesional' : 'Professional',
-                    desc: isSpanish ? 'Elegante y confiable' : 'Elegant & trustworthy',
-                    displayText: isSpanish ? 'PROFESIONAL' : 'PROFESSIONAL',
-                    textStyle: 'font-light text-slate-800 text-lg tracking-[0.15em] uppercase border-b border-slate-300 pb-1'
+                    name: isSpanish ? 'Profesional' : 'Professional'
                   },
                   {
-                    id: 'creative',
-                    name: isSpanish ? 'Creativo' : 'Creative',
-                    desc: isSpanish ? 'Artístico y vibrante' : 'Artistic & vibrant',
-                    displayText: isSpanish ? 'Creativo' : 'Creative',
-                    textStyle: 'font-bold text-transparent bg-gradient-to-r from-violet-600 via-fuchsia-500 to-emerald-500 bg-clip-text text-2xl italic transform -rotate-2'
+                    id: 'bold',
+                    name: isSpanish ? 'Audaz' : 'Bold'
                   },
                   {
-                    id: 'playful',
-                    name: isSpanish ? 'Divertido' : 'Playful',
-                    desc: isSpanish ? 'Alegre y accesible' : 'Fun & approachable',
-                    displayText: isSpanish ? 'Divertido!' : 'Playful!',
-                    textStyle: 'font-black text-transparent bg-gradient-to-r from-lime-500 to-orange-400 bg-clip-text text-xl transform rotate-1 animate-bounce'
-                  },
-                  {
-                    id: 'luxury',
-                    name: isSpanish ? 'Lujo' : 'Luxury',
-                    desc: isSpanish ? 'Exclusivo y premium' : 'Exclusive & premium',
-                    displayText: isSpanish ? 'LUJO' : 'LUXURY',
-                    textStyle: 'font-extralight text-purple-900 text-xl tracking-[0.2em] uppercase'
+                    id: 'friendly',
+                    name: isSpanish ? 'Amigable' : 'Friendly'
                   }
                 ].map((style) => (
                   <button
                     key={style.id}
                     type="button"
                     onClick={() => {
-                      setSelectedBrandStyles(prev => 
-                        prev.includes(style.id)
-                          ? prev.filter(s => s !== style.id)
-                          : [...prev, style.id]
-                      );
+                      setSelectedBrandStyles([style.id]);
                     }}
-                    className={`relative p-4 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
+                    className={`px-4 py-2 h-10 text-sm font-medium rounded-2xl border transition-all duration-200 ease-out ${
                       selectedBrandStyles.includes(style.id)
-                        ? 'border-brand-500 bg-brand-50 shadow-lg'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'bg-neutral-900 text-white border-neutral-900'
+                        : 'bg-white text-neutral-700 border-neutral-300 hover:border-neutral-400'
                     }`}
                     data-testid={`brand-style-${style.id}`}
                   >
-                    <div className="text-center py-4">
-                      <div className="mb-3">
-                        <span className={style.textStyle}>
-                          {style.displayText}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {style.desc}
-                      </p>
-                    </div>
-                    {selectedBrandStyles.includes(style.id) && (
-                      <div className="absolute top-2 right-2 w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
+                    {style.name}
                   </button>
                 ))}
               </div>
-              <p className="text-sm text-gray-500 mt-2">
-                {isSpanish 
-                  ? 'Puedes elegir uno o más estilos. Estos influirán en los colores, tipografías y tono de tu campaña'
-                  : 'You can choose one or more styles. These will influence the colors, fonts, and tone of your campaign'
-                }
-              </p>
             </div>
 
-            <div className="text-center">
+            {/* Generate Button - Apple-inspired */}
+            <div className="flex sm:justify-end">
               <Button 
                 onClick={handleGenerateCampaign}
-                disabled={demo.isGenerating}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/30 transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1"
+                disabled={demo.isGenerating || !demo.businessDescription}
+                className="w-full sm:w-auto h-12 px-8 bg-neutral-900 hover:bg-black text-white font-medium rounded-2xl transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
                 data-testid="button-generate-campaign"
               >
                 {demo.isGenerating ? (
                   <>
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                    {isSpanish ? 'IA creando tu campaña...' : 'AI creating your campaign...'}
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {isSpanish ? 'Generando...' : 'Generating...'}
                   </>
                 ) : (
-                  <>
-                    <Sparkles className="mr-3 h-6 w-6" />
-                    {isSpanish ? 'Generar Campaña con IA' : 'Generate AI Campaign'}
-                  </>
+                  <span>
+                    {isSpanish ? 'Generar Campaña' : 'Generate Campaign'}
+                  </span>
                 )}
               </Button>
             </div>
