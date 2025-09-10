@@ -242,39 +242,20 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* LeadBoost Introduction Section - AI Style */}
-      <section className="relative py-20 bg-gradient-to-b from-slate-50/30 via-blue-50/20 to-blue-50/30">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 text-center">
-          <div className="relative">
-            {/* Animated background elements for AI feel */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-0 left-1/4 w-2 h-2 bg-blue-400 rounded-full opacity-60 animate-pulse"></div>
-              <div className="absolute top-8 right-1/3 w-1 h-1 bg-purple-400 rounded-full opacity-40 animate-ping" style={{animationDelay: '1s'}}></div>
-              <div className="absolute bottom-4 left-1/3 w-1.5 h-1.5 bg-cyan-400 rounded-full opacity-50 animate-pulse" style={{animationDelay: '2s'}}></div>
-              <div className="absolute bottom-0 right-1/4 w-1 h-1 bg-blue-500 rounded-full opacity-30 animate-ping" style={{animationDelay: '0.5s'}}></div>
-            </div>
-            
-            <div className="relative z-10">
-              <p className="text-2xl sm:text-3xl lg:text-4xl font-light leading-relaxed max-w-5xl mx-auto">
-                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">
-                  {isSpanish ? 'Conoce LeadBoost' : 'Meet LeadBoost'}
-                </span>
-                <span className="text-gray-700">
-                  {isSpanish 
-                    ? ', el primer motor de crecimiento IA integral del mundo: analizando, creando, publicando, convirtiendo y cerrando—todo por ti.'
-                    : ', the world\'s first end-to-end AI growth engine: analyzing, creating, posting, converting, and closing—all for you.'
-                  }
-                </span>
-              </p>
-              
-              {/* Subtle AI indicators */}
-              <div className="flex justify-center items-center mt-8 gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '0.3s'}}></div>
-                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
-              </div>
-            </div>
-          </div>
+      {/* LeadBoost Introduction Section - Clean Style */}
+      <section className="relative py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-normal leading-tight">
+            <span className="text-purple-600 font-medium">
+              {isSpanish ? 'Conoce LeadBoost' : 'Meet LeadBoost'}
+            </span>
+            <span className="text-gray-900">
+              {isSpanish 
+                ? ', el primer motor de crecimiento IA integral del mundo: analizando, creando, publicando, convirtiendo y cerrando—todo por ti.'
+                : ', the world\'s first end-to-end AI growth engine: analyzing, creating, posting, converting, and closing—all for you.'
+              }
+            </span>
+          </h2>
         </div>
       </section>
 
