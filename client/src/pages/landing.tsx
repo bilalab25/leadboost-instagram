@@ -143,9 +143,15 @@ export default function Landing() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                {isSpanish ? 'Precios' : 'Pricing'}
-              </a>
+              <Button 
+                variant="ghost" 
+                className="text-gray-600 hover:text-gray-900 font-medium transition-colors p-0 h-auto"
+                asChild
+              >
+                <a href="#pricing">
+                  {isSpanish ? 'Precios' : 'Pricing'}
+                </a>
+              </Button>
             </nav>
             
             <div className="flex items-center space-x-4">
