@@ -182,92 +182,146 @@ export default function Landing() {
       {/* Hero Section - Apple/Squarespace Inspired */}
       <section className="relative py-12 sm:py-16 lg:py-20 pb-0 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
-        {/* Futuristic Dynamic Background */}
-        <div className="absolute inset-0 pointer-events-none opacity-30">
-          {/* Animated Grid Pattern */}
+        {/* Floating Social Media Cards - Very Subtle */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.04] blur-lg">
+          {/* Instagram Post - Square */}
           <div 
-            className="absolute inset-0 opacity-20"
+            className="absolute bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center"
             style={{
-              backgroundImage: `
-                linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: '40px 40px',
-              animation: 'grid-move 20s linear infinite'
+              width: '80px',
+              height: '80px',
+              left: '8%',
+              top: '20%',
+              animation: 'float 8s ease-in-out infinite'
             }}
-          ></div>
-
-          {/* Floating Geometric Particles */}
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute opacity-20"
-              style={{
-                left: `${15 + (i * 12)}%`,
-                top: `${20 + (i * 8)}%`,
-                animation: `float-particle ${8 + i * 2}s ease-in-out infinite ${i * 0.5}s`
-              }}
-            >
-              <div 
-                className="w-2 h-2 bg-gradient-to-br from-blue-400 to-purple-500 rotate-45"
-                style={{
-                  clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'
-                }}
-              ></div>
-            </div>
-          ))}
-
-          {/* Glowing Nodes */}
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={`node-${i}`}
-              className="absolute"
-              style={{
-                left: `${25 + (i * 15)}%`,
-                top: `${30 + (i * 10)}%`,
-                animation: `glow-pulse ${6 + i}s ease-in-out infinite ${i * 1.2}s`
-              }}
-            >
-              <div className="w-1 h-1 bg-blue-400 rounded-full shadow-lg shadow-blue-400/50"></div>
-            </div>
-          ))}
-
-          {/* Subtle Circuit Lines */}
-          <div className="absolute inset-0 opacity-10">
-            <svg width="100%" height="100%" viewBox="0 0 800 600" className="w-full h-full">
-              <path
-                d="M50,100 Q200,50 350,100 T650,100"
-                stroke="rgba(59, 130, 246, 0.3)"
-                strokeWidth="1"
-                fill="none"
-                className="animate-pulse"
-                style={{
-                  strokeDasharray: '4 8',
-                  animation: 'circuit-flow 15s linear infinite'
-                }}
-              />
-              <path
-                d="M100,200 Q300,150 500,200 T700,250"
-                stroke="rgba(147, 51, 234, 0.3)"
-                strokeWidth="1"
-                fill="none"
-                className="animate-pulse"
-                style={{
-                  strokeDasharray: '6 10',
-                  animation: 'circuit-flow 18s linear infinite 2s'
-                }}
-              />
-            </svg>
+          >
+            <SiInstagram className="w-6 h-6 text-white" />
           </div>
-
-          {/* Subtle Wave Animation */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 opacity-5">
-            <div className="absolute inset-0 bg-gradient-to-t from-blue-500/20 to-transparent"
-                 style={{
-                   clipPath: 'polygon(0 100%, 0 80%, 10% 85%, 20% 75%, 30% 80%, 40% 70%, 50% 75%, 60% 65%, 70% 70%, 80% 60%, 90% 65%, 100% 55%, 100% 100%)',
-                   animation: 'wave-subtle 12s ease-in-out infinite'
-                 }}
-            ></div>
+          
+          {/* Instagram Story - Vertical */}
+          <div 
+            className="absolute bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '50px',
+              height: '90px',
+              right: '12%',
+              top: '25%',
+              animation: 'float 9s ease-in-out infinite 1s'
+            }}
+          >
+            <SiInstagram className="w-5 h-5 text-white" />
+          </div>
+          
+          {/* LinkedIn Article - Landscape */}
+          <div 
+            className="absolute bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '100px',
+              height: '50px',
+              left: '6%',
+              top: '65%',
+              animation: 'float 10s ease-in-out infinite 2s'
+            }}
+          >
+            <SiLinkedin className="w-5 h-5 text-white" />
+          </div>
+          
+          {/* TikTok Cover - Vertical */}
+          <div 
+            className="absolute bg-gradient-to-br from-black to-gray-800 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '50px',
+              height: '90px',
+              right: '10%',
+              top: '70%',
+              animation: 'float 7s ease-in-out infinite 0.5s'
+            }}
+          >
+            <SiTiktok className="w-5 h-5 text-white" />
+          </div>
+          
+          {/* Facebook Post - Landscape */}
+          <div 
+            className="absolute bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '100px',
+              height: '50px',
+              left: '78%',
+              top: '15%',
+              animation: 'float 11s ease-in-out infinite 1.5s'
+            }}
+          >
+            <SiFacebook className="w-5 h-5 text-white" />
+          </div>
+          
+          {/* Twitter/X Post - Landscape */}
+          <div 
+            className="absolute bg-gradient-to-br from-black to-gray-800 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '90px',
+              height: '50px',
+              left: '15%',
+              top: '40%',
+              animation: 'float 12s ease-in-out infinite 3s'
+            }}
+          >
+            <SiX className="w-5 h-5 text-white" />
+          </div>
+          
+          {/* YouTube Thumbnail - Landscape */}
+          <div 
+            className="absolute bg-gradient-to-br from-red-600 to-red-700 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '110px',
+              height: '60px',
+              right: '22%',
+              top: '50%',
+              animation: 'float 13s ease-in-out infinite 2.5s'
+            }}
+          >
+            <SiYoutube className="w-5 h-5 text-white" />
+          </div>
+          
+          {/* Pinterest Pin - Tall */}
+          <div 
+            className="absolute bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '65px',
+              height: '100px',
+              left: '88%',
+              top: '60%',
+              animation: 'float 8.5s ease-in-out infinite 1.8s'
+            }}
+          >
+            <SiPinterest className="w-5 h-5 text-white" />
+          </div>
+          
+          {/* Email Banner - Wide */}
+          <div 
+            className="absolute bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '120px',
+              height: '40px',
+              left: '65%',
+              top: '85%',
+              animation: 'float 9.5s ease-in-out infinite 0.8s'
+            }}
+          >
+            <Mail className="w-5 h-5 text-white" />
+          </div>
+          
+          {/* Threads Post - Square */}
+          <div 
+            className="absolute bg-gradient-to-br from-black to-gray-800 rounded-xl shadow-lg flex items-center justify-center"
+            style={{
+              width: '75px',
+              height: '75px',
+              left: '30%',
+              top: '80%',
+              animation: 'float 10.5s ease-in-out infinite 2.2s'
+            }}
+          >
+            <Hash className="w-5 h-5 text-white" />
           </div>
         </div>
 
