@@ -631,11 +631,11 @@ export default function Landing() {
             <div className="flex items-center mb-6 md:mb-0">
               <img 
                 src={leadBoostLogo} 
-                alt="CampAIgner" 
+                alt="LeadBoost" 
                 className="h-8 w-auto brightness-150 mr-4"
               />
               <span className="text-white/60 text-sm">
-                {isSpanish ? '© 2024 CampAIgner. Todos los derechos reservados.' : '© 2024 CampAIgner. All rights reserved.'}
+                {isSpanish ? '© 2025 LeadBoost. Todos los derechos reservados.' : '© 2025 LeadBoost. All rights reserved.'}
               </span>
             </div>
             <div className="flex items-center space-x-6">
