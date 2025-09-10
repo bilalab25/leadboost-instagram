@@ -202,7 +202,7 @@ export default function Landing() {
                 Haz Crecer Tus Ventas,
                 <br />
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                  Automáticamente
+                  Automáticamente.
                 </span>
               </>
             ) : (
@@ -210,7 +210,7 @@ export default function Landing() {
                 Grow Your Sales,
                 <br />
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                  Automatically
+                  Automatically.
                 </span>
               </>
             )}
