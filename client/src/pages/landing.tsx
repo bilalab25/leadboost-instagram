@@ -245,164 +245,264 @@ export default function Landing() {
       {/* LeadBoost Introduction Section - Clean Style */}
       <section className="relative py-24 bg-white">
         {/* AI Process Flow */}
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 mb-16">
-          <div className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 rounded-3xl p-8 lg:p-12 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 mb-16">
+          <div className="relative bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/10 rounded-3xl p-8 lg:p-16 overflow-hidden border border-cyan-500/20 shadow-2xl">
             
-            {/* Subtle tech grid background */}
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute inset-0" style={{backgroundImage: 'radial-gradient(circle at 25px 25px, #3b82f6 1px, transparent 1px)', backgroundSize: '50px 50px'}}></div>
+            {/* Advanced neural network background */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{
+                backgroundImage: `
+                  radial-gradient(circle at 20% 30%, #00d4ff 1px, transparent 1px),
+                  radial-gradient(circle at 80% 70%, #7c3aed 1px, transparent 1px),
+                  radial-gradient(circle at 40% 80%, #06b6d4 1px, transparent 1px),
+                  linear-gradient(45deg, transparent 48%, rgba(6, 182, 212, 0.1) 49%, rgba(6, 182, 212, 0.1) 51%, transparent 52%),
+                  linear-gradient(-45deg, transparent 48%, rgba(124, 58, 237, 0.1) 49%, rgba(124, 58, 237, 0.1) 51%, transparent 52%)
+                `,
+                backgroundSize: '60px 60px, 80px 80px, 100px 100px, 40px 40px, 40px 40px'
+              }}></div>
+            </div>
+            
+            {/* Floating holographic elements */}
+            <div className="absolute inset-0 pointer-events-none">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-1 h-1 bg-cyan-400 rounded-full opacity-30"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    animation: `float ${3 + Math.random() * 2}s ease-in-out infinite ${Math.random() * 2}s`,
+                    boxShadow: '0 0 10px currentColor'
+                  }}
+                ></div>
+              ))}
+            </div>
+            
+            {/* Scan lines effect */}
+            <div className="absolute inset-0 opacity-5 pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/20 to-transparent animate-pulse" style={{
+                backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(6, 182, 212, 0.1) 2px, rgba(6, 182, 212, 0.1) 4px)',
+                animation: 'float 4s ease-in-out infinite'
+              }}></div>
             </div>
             
             <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-center">
               
-              {/* Step 1: Data Input */}
+              {/* Step 1: Neural Data Aggregation */}
               <div className="text-center group">
                 <div className="relative">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 border border-blue-300/20">
-                    {/* Data streams icon */}
+                  <div className="w-28 h-28 mx-auto mb-6 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl group-hover:shadow-cyan-500/50 transition-all duration-700 border border-cyan-300/30 backdrop-blur-sm group-hover:scale-105">
+                    {/* Advanced data matrix */}
                     <div className="relative">
-                      <div className="flex flex-col space-y-1">
-                        {[...Array(4)].map((_, i) => (
-                          <div key={i} className="flex space-x-1">
-                            {[...Array(3)].map((_, j) => (
-                              <div key={j} className={`w-2 h-1 bg-white/80 rounded-sm animate-pulse`} style={{animationDelay: `${(i * 0.2) + (j * 0.1)}s`}}></div>
-                            ))}
-                          </div>
+                      <div className="grid grid-cols-3 gap-1">
+                        {[...Array(9)].map((_, i) => (
+                          <div key={i} className={`w-1.5 h-1.5 bg-white/90 rounded-sm animate-pulse`} style={{
+                            animationDelay: `${i * 0.1}s`,
+                            boxShadow: '0 0 4px currentColor'
+                          }}></div>
                         ))}
                       </div>
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping"></div>
-                    </div>
-                  </div>
-                  {/* Floating data points */}
-                  <div className="absolute -top-2 -right-2 w-3 h-3 bg-blue-400 rounded-full opacity-60 animate-bounce"></div>
-                  <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-cyan-400 rounded-full opacity-40 animate-pulse"></div>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {isSpanish ? 'Ingesta de Datos' : 'Data Ingestion'}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {isSpanish ? 'Captura automática desde todas tus fuentes' : 'Auto-capture from all your sources'}
-                </p>
-              </div>
-
-              {/* AI Flow Connector */}
-              <div className="hidden md:flex flex-col items-center justify-center">
-                <div className="flex items-center space-x-2">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className={`w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse`} style={{animationDelay: `${i * 0.2}s`}}></div>
-                  ))}
-                </div>
-                <div className="text-xs text-gray-500 mt-2 font-mono">AI PROCESSING</div>
-              </div>
-
-              {/* Step 2: AI Engine */}
-              <div className="text-center group">
-                <div className="relative">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 border border-purple-300/20">
-                    {/* AI brain with neural connections */}
-                    <div className="relative">
-                      <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                        <div className="w-6 h-6 bg-white/30 rounded animate-pulse"></div>
+                      {/* Holographic data streams */}
+                      <div className="absolute -inset-2">
+                        {[...Array(3)].map((_, i) => (
+                          <div key={i} className={`absolute w-6 h-px bg-gradient-to-r from-transparent via-cyan-300 to-transparent`} style={{
+                            top: `${i * 8 + 4}px`,
+                            left: '-4px',
+                            animation: `textShine 2s ease-in-out infinite ${i * 0.3}s`
+                          }}></div>
+                        ))}
                       </div>
-                      {/* Neural network lines */}
-                      <div className="absolute top-1/2 left-1/2 w-8 h-px bg-white/40 transform -translate-x-1/2 -translate-y-1/2 rotate-45"></div>
-                      <div className="absolute top-1/2 left-1/2 w-8 h-px bg-white/40 transform -translate-x-1/2 -translate-y-1/2 -rotate-45"></div>
-                      <div className="absolute top-1/2 left-1/2 w-8 h-px bg-white/40 transform -translate-x-1/2 -translate-y-1/2"></div>
-                      <div className="absolute top-1/2 left-1/2 w-px h-8 bg-white/40 transform -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                   </div>
-                  {/* Orbiting particles */}
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className={`absolute w-1.5 h-1.5 bg-purple-400 rounded-full opacity-60`} style={{
-                      top: '50%', left: '50%',
-                      transform: `translate(-50%, -50%) rotate(${i * 120}deg) translateY(-50px)`,
-                      animation: 'spin 3s linear infinite'
+                  {/* Quantum data particles */}
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className={`absolute w-2 h-2 bg-cyan-400 rounded-full opacity-60`} style={{
+                      top: `${20 + i * 15}%`,
+                      left: `${20 + i * 20}%`,
+                      animation: `slowDrift ${4 + i}s ease-in-out infinite`,
+                      boxShadow: '0 0 8px currentColor'
                     }}></div>
                   ))}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {isSpanish ? 'Motor de IA' : 'AI Engine'}
+                <h3 className="text-xl font-bold text-white mb-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  {isSpanish ? 'Agregación Neural' : 'Neural Aggregation'}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {isSpanish ? 'Análisis y generación de contenido inteligente' : 'Intelligent analysis & content generation'}
+                <p className="text-cyan-100/80 text-sm leading-relaxed font-mono">
+                  {isSpanish ? 'Captura omnidireccional de datos empresariales' : 'Omnidirectional enterprise data capture'}
                 </p>
               </div>
 
-              {/* AI Flow Connector */}
-              <div className="hidden md:flex flex-col items-center justify-center">
-                <div className="flex items-center space-x-2">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className={`w-2 h-2 bg-gradient-to-r from-purple-500 to-green-500 rounded-full animate-pulse`} style={{animationDelay: `${i * 0.2}s`}}></div>
-                  ))}
+              {/* Quantum Data Bridge */}
+              <div className="hidden lg:flex flex-col items-center justify-center">
+                <div className="relative">
+                  <div className="flex items-center space-x-1">
+                    {[...Array(8)].map((_, i) => (
+                      <div key={i} className={`w-1 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full animate-pulse`} style={{
+                        animationDelay: `${i * 0.1}s`,
+                        boxShadow: '0 0 4px currentColor'
+                      }}></div>
+                    ))}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-purple-500/20 blur-sm"></div>
                 </div>
-                <div className="text-xs text-gray-500 mt-2 font-mono">DEPLOYMENT</div>
+                <div className="text-xs text-cyan-300/80 mt-2 font-mono tracking-wider">QUANTUM.PROC</div>
               </div>
 
-              {/* Step 3: Multi-Channel Output */}
+              {/* Step 2: Cognitive Synthesis Core */}
               <div className="text-center group">
                 <div className="relative">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 border border-green-300/20">
-                    {/* Multi-channel broadcast icon */}
+                  <div className="w-28 h-28 mx-auto mb-6 bg-gradient-to-br from-purple-500 via-violet-600 to-fuchsia-600 rounded-3xl flex items-center justify-center shadow-2xl group-hover:shadow-purple-500/50 transition-all duration-700 border border-purple-300/30 backdrop-blur-sm group-hover:scale-105">
+                    {/* Advanced neural core */}
                     <div className="relative">
-                      <div className="w-4 h-4 bg-white/80 rounded-full"></div>
-                      {/* Radiating signals */}
-                      {[...Array(4)].map((_, i) => (
-                        <div key={i} className={`absolute top-1/2 left-1/2 w-6 h-px bg-white/60 transform -translate-x-1/2 -translate-y-1/2 rotate-${i * 45} animate-pulse`} style={{
+                      <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20">
+                        <div className="w-8 h-8 bg-gradient-to-br from-white/30 to-white/10 rounded-xl animate-pulse"></div>
+                      </div>
+                      {/* Complex neural pathways */}
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className={`absolute top-1/2 left-1/2 w-10 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent transform -translate-x-1/2 -translate-y-1/2`} style={{
                           transform: `translate(-50%, -50%) rotate(${i * 45}deg)`,
-                          animationDelay: `${i * 0.3}s`
+                          animation: `glow 2s ease-in-out infinite ${i * 0.25}s`
                         }}></div>
                       ))}
                     </div>
                   </div>
-                  {/* Signal waves */}
-                  <div className="absolute -top-1 -right-1 w-4 h-4 border-2 border-green-400 rounded-full opacity-40 animate-ping"></div>
-                  <div className="absolute -bottom-2 -left-2 w-3 h-3 border-2 border-emerald-400 rounded-full opacity-60 animate-ping" style={{animationDelay: '0.5s'}}></div>
+                  {/* Quantum neural network */}
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className={`absolute w-1 h-1 bg-purple-300 rounded-full opacity-70`} style={{
+                      top: '50%', left: '50%',
+                      transform: `translate(-50%, -50%) rotate(${i * 60}deg) translateY(-60px)`,
+                      animation: `spin ${3 + i * 0.5}s linear infinite`,
+                      boxShadow: '0 0 6px currentColor'
+                    }}></div>
+                  ))}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {isSpanish ? 'Distribución Multi-Canal' : 'Multi-Channel Deploy'}
+                <h3 className="text-xl font-bold text-white mb-3 bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">
+                  {isSpanish ? 'Síntesis Cognitiva' : 'Cognitive Synthesis'}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {isSpanish ? 'Campañas optimizadas en 21+ plataformas' : 'Optimized campaigns across 21+ platforms'}
+                <p className="text-purple-100/80 text-sm leading-relaxed font-mono">
+                  {isSpanish ? 'Procesamiento neurológico avanzado' : 'Advanced neurological processing'}
                 </p>
               </div>
 
-              {/* AI Flow Connector */}
+              {/* Quantum Deployment Bridge */}
               <div className="hidden lg:flex flex-col items-center justify-center">
-                <div className="flex items-center space-x-2">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className={`w-2 h-2 bg-gradient-to-r from-green-500 to-orange-500 rounded-full animate-pulse`} style={{animationDelay: `${i * 0.2}s`}}></div>
-                  ))}
+                <div className="relative">
+                  <div className="flex items-center space-x-1">
+                    {[...Array(8)].map((_, i) => (
+                      <div key={i} className={`w-1 h-1 bg-gradient-to-r from-purple-400 to-emerald-400 rounded-full animate-pulse`} style={{
+                        animationDelay: `${i * 0.1}s`,
+                        boxShadow: '0 0 4px currentColor'
+                      }}></div>
+                    ))}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-emerald-400/20 blur-sm"></div>
                 </div>
-                <div className="text-xs text-gray-500 mt-2 font-mono">CONVERSION</div>
+                <div className="text-xs text-emerald-300/80 mt-2 font-mono tracking-wider">DEPLOY.SYNC</div>
               </div>
 
-              {/* Step 4: ChatBot Conversion */}
+              {/* Step 3: Omnichannel Distribution Matrix */}
               <div className="text-center group">
                 <div className="relative">
-                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-orange-600 to-red-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 border border-orange-300/20">
-                    {/* Chatbot conversation icon */}
+                  <div className="w-28 h-28 mx-auto mb-6 bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-600 rounded-3xl flex items-center justify-center shadow-2xl group-hover:shadow-emerald-500/50 transition-all duration-700 border border-emerald-300/30 backdrop-blur-sm group-hover:scale-105">
+                    {/* Advanced broadcast matrix */}
                     <div className="relative">
-                      <div className="w-8 h-6 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                        <div className="flex space-x-0.5">
-                          <div className="w-1 h-1 bg-white/80 rounded-full animate-bounce"></div>
-                          <div className="w-1 h-1 bg-white/80 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                          <div className="w-1 h-1 bg-white/80 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-6 h-6 bg-white/20 rounded-full border border-white/30"></div>
+                      {/* Quantum signal arrays */}
+                      {[...Array(6)].map((_, i) => (
+                        <div key={i} className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2`} style={{
+                          transform: `translate(-50%, -50%) rotate(${i * 60}deg)`
+                        }}>
+                          <div className="flex items-center space-x-1">
+                            <div className={`w-8 h-px bg-gradient-to-r from-white/80 via-emerald-300 to-transparent animate-pulse`} style={{
+                              animationDelay: `${i * 0.2}s`
+                            }}></div>
+                            <div className={`w-2 h-2 bg-emerald-300 rounded-full animate-ping`} style={{
+                              animationDelay: `${i * 0.3}s`,
+                              boxShadow: '0 0 6px currentColor'
+                            }}></div>
+                          </div>
                         </div>
-                      </div>
-                      {/* Chat bubbles */}
-                      <div className="absolute -top-1 -right-2 w-3 h-2 bg-white/60 rounded-sm"></div>
-                      <div className="absolute -bottom-1 -left-2 w-4 h-2 bg-white/40 rounded-sm"></div>
+                      ))}
                     </div>
                   </div>
-                  {/* Conversation indicators */}
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full opacity-60 animate-ping"></div>
-                  <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-red-400 rounded-full opacity-40 animate-pulse"></div>
+                  {/* Holographic transmission rings */}
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-emerald-400/30 rounded-full animate-ping`} style={{
+                      width: `${80 + i * 20}px`,
+                      height: `${80 + i * 20}px`,
+                      animationDelay: `${i * 0.5}s`,
+                      animationDuration: '3s'
+                    }}></div>
+                  ))}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {isSpanish ? 'ChatBot Conversión' : 'ChatBot Conversion'}
+                <h3 className="text-xl font-bold text-white mb-3 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                  {isSpanish ? 'Matriz Omnicanal' : 'Omnichannel Matrix'}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {isSpanish ? 'IA convierte leads en ventas via chat multicanal' : 'AI converts leads to sales via multi-channel chat'}
+                <p className="text-emerald-100/80 text-sm leading-relaxed font-mono">
+                  {isSpanish ? 'Distribución cuántica multi-plataforma' : 'Quantum multi-platform distribution'}
+                </p>
+              </div>
+
+              {/* Neural Conversion Bridge */}
+              <div className="hidden lg:flex flex-col items-center justify-center">
+                <div className="relative">
+                  <div className="flex items-center space-x-1">
+                    {[...Array(8)].map((_, i) => (
+                      <div key={i} className={`w-1 h-1 bg-gradient-to-r from-emerald-400 to-orange-500 rounded-full animate-pulse`} style={{
+                        animationDelay: `${i * 0.1}s`,
+                        boxShadow: '0 0 4px currentColor'
+                      }}></div>
+                    ))}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-orange-500/20 blur-sm"></div>
+                </div>
+                <div className="text-xs text-orange-300/80 mt-2 font-mono tracking-wider">CONV.NEURAL</div>
+              </div>
+
+              {/* Step 4: Conversational Intelligence Engine */}
+              <div className="text-center group">
+                <div className="relative">
+                  <div className="w-28 h-28 mx-auto mb-6 bg-gradient-to-br from-orange-500 via-red-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl group-hover:shadow-orange-500/50 transition-all duration-700 border border-orange-300/30 backdrop-blur-sm group-hover:scale-105">
+                    {/* Advanced conversational AI */}
+                    <div className="relative">
+                      <div className="w-12 h-8 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20">
+                        <div className="flex space-x-1">
+                          {[...Array(4)].map((_, i) => (
+                            <div key={i} className={`w-1 h-1 bg-white/90 rounded-full animate-bounce`} style={{
+                              animationDelay: `${i * 0.15}s`,
+                              boxShadow: '0 0 4px currentColor'
+                            }}></div>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Holographic conversation bubbles */}
+                      <div className="absolute -top-2 -right-3 w-4 h-3 bg-gradient-to-br from-white/40 to-white/20 rounded-lg border border-white/30"></div>
+                      <div className="absolute -bottom-2 -left-3 w-5 h-3 bg-gradient-to-br from-white/30 to-white/10 rounded-lg border border-white/20"></div>
+                      {/* Neural conversation pathways */}
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className={`absolute w-8 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent`} style={{
+                          top: `${i * 4 + 8}px`,
+                          left: '-8px',
+                          animation: `textShine 1.5s ease-in-out infinite ${i * 0.4}s`
+                        }}></div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Quantum conversation network */}
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={`absolute w-1 h-1 bg-orange-300 rounded-full opacity-60`} style={{
+                      top: `${25 + i * 10}%`,
+                      left: `${15 + i * 15}%`,
+                      animation: `float ${2 + i * 0.5}s ease-in-out infinite ${i * 0.2}s`,
+                      boxShadow: '0 0 6px currentColor'
+                    }}></div>
+                  ))}
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3 bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
+                  {isSpanish ? 'IA Conversacional' : 'Conversational AI'}
+                </h3>
+                <p className="text-orange-100/80 text-sm leading-relaxed font-mono">
+                  {isSpanish ? 'Motor neurológico de conversión' : 'Neurological conversion engine'}
                 </p>
               </div>
 
