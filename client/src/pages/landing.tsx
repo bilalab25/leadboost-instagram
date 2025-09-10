@@ -15,10 +15,37 @@ import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
+  const [circleScale, setCircleScale] = useState(0.3);
   const [, navigate] = useLocation();
 
   useEffect(() => {
     setIsVisible(true);
+    
+    const handleScroll = () => {
+      const heroSection = document.querySelector('section');
+      const circleSection = document.getElementById('circle-section');
+      
+      if (heroSection && circleSection) {
+        const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+        const circleTop = circleSection.offsetTop;
+        const circleBottom = circleTop + circleSection.offsetHeight;
+        const scrollY = window.scrollY;
+        
+        // Calculate progress from end of hero to start of circle section
+        const totalDistance = circleBottom - heroBottom;
+        const currentProgress = Math.max(0, scrollY - heroBottom);
+        const progress = Math.min(1, currentProgress / totalDistance);
+        
+        // Scale from 0.3 to 1 based on scroll progress
+        const newScale = 0.3 + (progress * 0.7);
+        setCircleScale(newScale);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial calculation
+    
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
@@ -155,7 +182,7 @@ export default function Landing() {
       </header>
 
       {/* Hero Section - Apple/Squarespace Inspired */}
-      <section className="relative py-32 sm:py-40 lg:py-48 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 overflow-hidden">
+      <section className="relative py-32 sm:py-40 lg:py-48 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* AI Assistant Background Figure */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden lg:block">
@@ -243,7 +270,7 @@ export default function Landing() {
       </section>
 
       {/* AI Process Circle Section */}
-      <section className="relative py-16 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
+      <section id="circle-section" className="relative py-16 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* Background tech pattern */}
         <div className="absolute inset-0 opacity-5">
@@ -267,8 +294,12 @@ export default function Landing() {
 
         {/* Enhanced Circular AI Process */}
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8 h-[600px] flex items-center justify-center">
+          <div 
+            className="transform transition-transform duration-700 ease-out"
+            style={{ transform: `scale(${circleScale})` }}
+          >
           
-          {/* Center text with enhanced design */}
+            {/* Center text with enhanced design */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10">
             <div className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
               {isSpanish ? 'más ventas' : 'more sales'}
@@ -414,6 +445,7 @@ export default function Landing() {
                 </div>
               </div>
             ))}
+          </div>
           </div>
 
         </div>
