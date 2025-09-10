@@ -1401,7 +1401,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         {/* Header Section - Apple-inspired */}
         <div className="text-center max-w-4xl mx-auto">
           <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-800 bg-clip-text text-transparent">
               {isSpanish ? 'DEMO GRATIS' : 'FREE DEMO'}
             </span>
           </h3>
