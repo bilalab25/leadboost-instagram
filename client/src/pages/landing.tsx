@@ -242,7 +242,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* LeadBoost AI Process Section */}
+      {/* AI Process Circle Section */}
       <section className="relative py-32 bg-gradient-to-b from-gray-50 to-white overflow-hidden">
         
         {/* Background tech pattern */}
@@ -266,7 +266,7 @@ export default function Landing() {
         </div>
 
         {/* Enhanced Circular AI Process */}
-        <div className="relative max-w-6xl mx-auto px-6 sm:px-8 mb-20 h-96 flex items-center justify-center">
+        <div className="relative max-w-6xl mx-auto px-6 sm:px-8 h-96 flex items-center justify-center">
           
           {/* Center text with glow effect */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10">
@@ -363,7 +363,10 @@ export default function Landing() {
           </div>
 
         </div>
+      </section>
 
+      {/* Meet LeadBoost Section */}
+      <section className="relative py-24 bg-white">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">
