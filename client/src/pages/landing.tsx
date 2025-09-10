@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MessageSquare, Bot, BarChart3, ArrowRight, Star, Check, Play, Zap, TrendingUp, Users, Globe, Shield, Clock, ChevronDown, Instagram, Facebook, Linkedin, Twitter, Mail, Hash } from "lucide-react";
-import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX } from "react-icons/si";
+import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube, SiX, SiPinterest } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { HelpDropdown } from "@/components/HelpDropdown";
@@ -183,7 +183,7 @@ export default function Landing() {
       <section className="relative py-12 sm:py-16 lg:py-20 pb-0 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* Floating Social Media Cards */}
-        <div className="absolute inset-0 pointer-events-none opacity-10">
+        <div className="absolute inset-0 pointer-events-none opacity-6 blur-sm">
           {/* Instagram Post - Square */}
           <div 
             className="absolute bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center"
@@ -195,7 +195,7 @@ export default function Landing() {
               animation: 'float 6s ease-in-out infinite'
             }}
           >
-            <Instagram className="w-8 h-8 text-white" />
+            <SiInstagram className="w-8 h-8 text-white" />
           </div>
           
           {/* Instagram Story - Vertical */}
@@ -209,7 +209,7 @@ export default function Landing() {
               animation: 'float 7s ease-in-out infinite 1s'
             }}
           >
-            <Instagram className="w-6 h-6 text-white" />
+            <SiInstagram className="w-6 h-6 text-white" />
           </div>
           
           {/* LinkedIn Article - Landscape */}
@@ -223,7 +223,7 @@ export default function Landing() {
               animation: 'float 8s ease-in-out infinite 2s'
             }}
           >
-            <Linkedin className="w-6 h-6 text-white" />
+            <SiLinkedin className="w-6 h-6 text-white" />
           </div>
           
           {/* TikTok Cover - Vertical */}
@@ -237,7 +237,7 @@ export default function Landing() {
               animation: 'float 6.5s ease-in-out infinite 0.5s'
             }}
           >
-            <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center text-black text-xs font-bold">T</div>
+            <SiTiktok className="w-6 h-6 text-white" />
           </div>
           
           {/* Facebook Post - Landscape */}
@@ -251,7 +251,7 @@ export default function Landing() {
               animation: 'float 7.5s ease-in-out infinite 1.5s'
             }}
           >
-            <Facebook className="w-6 h-6 text-white" />
+            <SiFacebook className="w-6 h-6 text-white" />
           </div>
           
           {/* Twitter/X Post - Landscape */}
@@ -265,7 +265,7 @@ export default function Landing() {
               animation: 'float 8.5s ease-in-out infinite 3s'
             }}
           >
-            <Twitter className="w-6 h-6 text-white" />
+            <SiX className="w-6 h-6 text-white" />
           </div>
           
           {/* YouTube Thumbnail - Landscape */}
@@ -279,7 +279,7 @@ export default function Landing() {
               animation: 'float 9s ease-in-out infinite 2.5s'
             }}
           >
-            <Play className="w-6 h-6 text-white" />
+            <SiYoutube className="w-6 h-6 text-white" />
           </div>
           
           {/* Pinterest Pin - Tall */}
@@ -293,7 +293,7 @@ export default function Landing() {
               animation: 'float 6.8s ease-in-out infinite 1.8s'
             }}
           >
-            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-red-600 text-sm font-bold">P</div>
+            <SiPinterest className="w-6 h-6 text-white" />
           </div>
           
           {/* Email Banner - Wide */}
