@@ -516,24 +516,24 @@ export default function Landing() {
             </div>
 
             {/* High-Converting Chatbot Card - Top Right */}
-            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 via-emerald-900 to-green-900 rounded-2xl p-6 border border-emerald-500/20 hover:border-emerald-400/40 transition-all duration-500">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 via-rose-900 to-pink-900 rounded-2xl p-6 border border-rose-500/20 hover:border-rose-400/40 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-rose-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                    <div className="w-12 h-12 bg-gradient-to-br from-rose-400 to-rose-600 rounded-lg flex items-center justify-center shadow-lg shadow-rose-500/25">
                       <MessageSquare className="h-6 w-6 text-white" />
                     </div>
-                    <div className="px-3 py-1 bg-emerald-500/20 rounded-full border border-emerald-400/30">
-                      <span className="text-emerald-300 text-xs font-bold">HIGH-CONVERTING</span>
+                    <div className="px-3 py-1 bg-rose-500/20 rounded-full border border-rose-400/30">
+                      <span className="text-rose-300 text-xs font-bold">HIGH-CONVERTING</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <div className="text-emerald-300 text-xs font-mono">Online</div>
+                    <div className="w-2 h-2 bg-rose-400 rounded-full animate-pulse"></div>
+                    <div className="text-rose-300 text-xs font-mono">Online</div>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300">
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-rose-300 transition-colors duration-300">
                   {isSpanish ? 'ChatBot de Ventas IA' : 'AI Sales Chatbot'}
                 </h3>
                 <p className="text-gray-300 leading-relaxed text-sm mb-4">
@@ -543,11 +543,11 @@ export default function Landing() {
                   }
                 </p>
                 <div className="flex items-center gap-4 text-xs">
-                  <div className="flex items-center gap-1 text-emerald-300">
+                  <div className="flex items-center gap-1 text-rose-300">
                     <TrendingUp className="w-3 h-3" />
                     <span>{isSpanish ? '85% conversión' : '85% conversion'}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-emerald-300">
+                  <div className="flex items-center gap-1 text-rose-300">
                     <Clock className="w-3 h-3" />
                     <span>{isSpanish ? '24/7 activo' : '24/7 active'}</span>
                   </div>
