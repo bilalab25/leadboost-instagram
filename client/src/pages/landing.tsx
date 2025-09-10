@@ -532,7 +532,7 @@ export default function Landing() {
       </section>
 
       {/* Meet LeadBoost Section */}
-      <section className="relative py-24" style={{backgroundColor: '#F8F8FA'}}>
+      <section className="relative pt-40 pb-24" style={{backgroundColor: '#F8F8FA'}}>
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">
