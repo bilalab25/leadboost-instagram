@@ -15,7 +15,7 @@ import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
-  const [circleScale, setCircleScale] = useState(0.3);
+  const [circleScale, setCircleScale] = useState(0.1);
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -36,8 +36,8 @@ export default function Landing() {
         const currentProgress = Math.max(0, scrollY - heroBottom);
         const progress = Math.min(1, currentProgress / totalDistance);
         
-        // Scale from 0.3 to 1 based on scroll progress
-        const newScale = 0.3 + (progress * 0.7);
+        // Scale from 0.1 to 1.8 based on scroll progress (almost full screen)
+        const newScale = 0.1 + (progress * 1.7);
         setCircleScale(newScale);
       }
     };
@@ -182,7 +182,7 @@ export default function Landing() {
       </header>
 
       {/* Hero Section - Apple/Squarespace Inspired */}
-      <section className="relative py-32 sm:py-40 lg:py-48 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
+      <section className="relative py-20 sm:py-28 lg:py-32 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* AI Assistant Background Figure */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden lg:block">
@@ -270,7 +270,7 @@ export default function Landing() {
       </section>
 
       {/* AI Process Circle Section */}
-      <section id="circle-section" className="relative py-16 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
+      <section id="circle-section" className="relative py-8 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* Background tech pattern */}
         <div className="absolute inset-0 opacity-5">
