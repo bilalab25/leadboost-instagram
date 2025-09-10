@@ -183,7 +183,7 @@ export default function Landing() {
       <section className="relative py-12 sm:py-16 lg:py-20 pb-0 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* Floating Social Media Cards */}
-        <div className="absolute inset-0 pointer-events-none opacity-6 blur-sm">
+        <div className="absolute inset-0 pointer-events-none opacity-[0.02] blur-md">
           {/* Instagram Post - Square */}
           <div 
             className="absolute bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center"
