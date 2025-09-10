@@ -405,6 +405,42 @@ export default function Landing() {
             <div className="absolute inset-4 w-[464px] h-[464px] border border-purple-200/20 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
           </div>
 
+          {/* Subtle tech arrow tips */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            {[...Array(5)].map((_, i) => {
+              const midAngle = (i * 72 + 36) - 90; // Midpoint between steps
+              const tipRadius = 240; // On the circle line
+              const x = tipRadius * Math.cos(midAngle * Math.PI / 180);
+              const y = tipRadius * Math.sin(midAngle * Math.PI / 180);
+              
+              return (
+                <div
+                  key={i}
+                  className="absolute"
+                  style={{
+                    left: `${250 + x}px`,
+                    top: `${250 + y}px`,
+                    transform: `translate(-50%, -50%) rotate(${midAngle + 90}deg)`,
+                  }}
+                >
+                  <div className="relative">
+                    {/* Main arrow tip */}
+                    <div 
+                      className="w-0 h-0 border-l-[6px] border-r-0 border-t-[2px] border-b-[2px] border-l-gray-400/60 border-t-transparent border-b-transparent"
+                      style={{
+                        filter: 'drop-shadow(0 0 2px rgba(156, 163, 175, 0.3))'
+                      }}
+                    ></div>
+                    {/* Tech accent line */}
+                    <div className="absolute -left-1 top-1/2 w-2 h-px bg-gray-300/40 transform -translate-y-1/2"></div>
+                    {/* Subtle dot accent */}
+                    <div className="absolute -left-2 top-1/2 w-0.5 h-0.5 bg-blue-400/50 rounded-full transform -translate-y-1/2"></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           </div>
 
         </div>
