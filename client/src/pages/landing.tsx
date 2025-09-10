@@ -405,57 +405,34 @@ export default function Landing() {
             <div className="absolute inset-4 w-[464px] h-[464px] border border-purple-200/20 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
           </div>
 
-          {/* Curved process flow arrows inside circle */}
+          {/* Arrow tips between each step */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <svg width="500" height="500" className="absolute -translate-x-1/2 -translate-y-1/2">
-              <defs>
-                <marker id="arrowhead" markerWidth="12" markerHeight="8" 
-                 refX="11" refY="4" orient="auto" markerUnits="strokeWidth">
-                  <polygon points="0 0, 12 4, 0 8" fill="#3b82f6" opacity="0.8" />
-                </marker>
-                <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{stopColor: '#3b82f6', stopOpacity: 0.9}} />
-                  <stop offset="50%" style={{stopColor: '#8b5cf6', stopOpacity: 0.9}} />
-                  <stop offset="100%" style={{stopColor: '#06b6d4', stopOpacity: 0.9}} />
-                </linearGradient>
-              </defs>
+            {[...Array(5)].map((_, i) => {
+              const midAngle = (i * 72 + 36) - 90; // Midpoint between steps
+              const tipRadius = 200; // Inside the circle, above circle line
+              const x = tipRadius * Math.cos(midAngle * Math.PI / 180);
+              const y = tipRadius * Math.sin(midAngle * Math.PI / 180);
               
-              {/* Curved arrows between each step - positioned inside circle */}
-              {[...Array(5)].map((_, i) => {
-                const startAngle = i * 72 - 90; // Start from top (-90°)
-                const endAngle = (i + 1) * 72 - 90;
-                const radius = 200; // Smaller radius to be inside the circle
-                
-                // Calculate start and end points
-                const startX = 250 + radius * Math.cos(startAngle * Math.PI / 180);
-                const startY = 250 + radius * Math.sin(startAngle * Math.PI / 180);
-                const endX = 250 + radius * Math.cos(endAngle * Math.PI / 180);
-                const endY = 250 + radius * Math.sin(endAngle * Math.PI / 180);
-                
-                // Calculate control points for smooth curve (curve inward)
-                const midAngle = (startAngle + endAngle) / 2;
-                const controlRadius = radius - 30; // Curve inward for inside placement
-                const controlX = 250 + controlRadius * Math.cos(midAngle * Math.PI / 180);
-                const controlY = 250 + controlRadius * Math.sin(midAngle * Math.PI / 180);
-                
-                return (
-                  <path
-                    key={i}
-                    d={`M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`}
-                    fill="none"
-                    stroke="url(#arrowGradient)"
-                    strokeWidth="3"
-                    markerEnd="url(#arrowhead)"
-                    opacity="0.8"
-                    className="animate-pulse"
+              return (
+                <div
+                  key={i}
+                  className="absolute"
+                  style={{
+                    left: `${250 + x}px`,
+                    top: `${250 + y}px`,
+                    transform: `translate(-50%, -50%) rotate(${midAngle + 90}deg)`,
+                  }}
+                >
+                  <div 
+                    className="w-0 h-0 border-l-[8px] border-r-0 border-t-[4px] border-b-[4px] border-l-blue-500 border-t-transparent border-b-transparent animate-pulse"
                     style={{
                       animationDelay: `${i * 0.3}s`,
-                      filter: 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.4))'
+                      filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.6))'
                     }}
-                  />
-                );
-              })}
-            </svg>
+                  ></div>
+                </div>
+              );
+            })}
           </div>
           </div>
 
