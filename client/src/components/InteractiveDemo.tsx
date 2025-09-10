@@ -1549,7 +1549,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             <div className="space-y-6">
               <div className="text-center">
                 <h4 className="text-lg font-medium text-gray-800 mb-2">
-                  {isSpanish ? 'Conecta tu Presencia Digital' : 'Connect Your Digital Presence'}
+                  {isSpanish ? 'Conecta tu Presencia Digital (Opcional)' : 'Connect Your Digital Presence (Optional)'}
                 </h4>
                 <p className="text-sm text-gray-500">
                   {isSpanish 
