@@ -1427,12 +1427,12 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         {/* Header Section - Apple-inspired */}
         <div className="text-center max-w-4xl mx-auto">
           <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900 mb-4">
-            {isSpanish ? 'Experimenta el Poder de la IA' : 'Experience the Power of AI'}
+            {isSpanish ? 'Prueba la IA Gratis Ahora Mismo' : 'Try AI Free Right on the Spot'}
           </h3>
           <p className="text-lg text-neutral-500 leading-relaxed max-w-2xl mx-auto">
             {isSpanish 
-              ? 'Crea campañas inteligentes para todas las plataformas en segundos'
-              : 'Create intelligent campaigns for every platform in seconds'
+              ? 'Demo gratuito e inmediato - Crea una campaña inteligente para tu negocio'
+              : 'Free instant demo - Create an intelligent campaign for your business'
             }
           </p>
         </div>
