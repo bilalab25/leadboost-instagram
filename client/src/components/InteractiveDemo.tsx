@@ -64,7 +64,7 @@ const generatePlatformPosts = (businessDescription: string, brandStyles: string 
       tone: 'conversational'
     },
     {
-      platform: 'Email Newsletter',
+      platform: 'Email Banner',
       dimensions: '600×200',
       aspectRatio: 'banner',
       icon: <Mail className="w-4 h-4" />,
@@ -1329,32 +1329,6 @@ const generateCampaignIdea = (description: string, businessType: string): string
 };
 
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
-  // Platform-specific branded styling functions
-  const getPlatformHeaderStyle = (platform: string): string => {
-    return 'py-4 px-4';
-  };
-
-  const getPlatformGradient = (platform: string): string => {
-    switch (platform) {
-      case 'Instagram Post':
-      case 'Instagram Story':
-        return 'from-pink-500 via-purple-500 to-orange-400'; // Instagram gradient
-      case 'LinkedIn Post':
-        return 'from-blue-600 to-blue-700'; // LinkedIn blue
-      case 'Twitter/X Post':
-        return 'from-gray-800 to-black'; // X (Twitter) black
-      case 'Facebook Post':
-        return 'from-blue-500 to-blue-600'; // Facebook blue
-      case 'Threads Post':
-        return 'from-gray-700 to-gray-900'; // Threads dark
-      case 'TikTok Cover':
-        return 'from-red-500 to-pink-500'; // TikTok gradient
-      case 'Email Banner':
-        return 'from-green-500 to-green-600'; // Email green
-      default:
-        return 'from-gray-600 to-gray-700'; // Default gradient
-    }
-  };
 
   const [demo, setDemo] = useState<DemoState>({
     businessDescription: '',
@@ -1591,44 +1565,49 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
   }
 
   return (
-    <div className="space-y-12">
-      <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Star className="w-8 h-8 text-white fill-current" />
+    <div className="space-y-16">
+      {/* Campaign Results - Apple-inspired */}
+      <div className="text-center max-w-4xl mx-auto">
+        <div className="w-12 h-12 mx-auto mb-6 bg-neutral-900 rounded-2xl flex items-center justify-center">
+          <Star className="w-6 h-6 text-white fill-current" />
         </div>
-        <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
-          {isSpanish ? '¡Tu Campaña Está Lista!' : 'Your Campaign is Ready!'}
+        <h3 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 mb-4 leading-tight">
+          {isSpanish ? 'Tu Campaña Está Lista' : 'Your Campaign is Ready'}
         </h3>
-        <p className="text-xl sm:text-2xl text-gray-600 font-light leading-relaxed mb-8 max-w-4xl mx-auto">
-          <strong>"{generatedCampaign}"</strong><br />
-          <span className="text-lg">{isSpanish ? 'optimizada para 8 plataformas populares' : 'optimized for 8 popular platforms'}</span>
-        </p>
+        <div className="bg-white border border-neutral-200/70 rounded-2xl p-8 mb-8">
+          <p className="text-lg text-neutral-700 leading-relaxed">
+            <span className="font-semibold">"{generatedCampaign}"</span>
+          </p>
+          <p className="text-sm text-neutral-500 mt-2">
+            {isSpanish ? 'Optimizada para 8 plataformas populares' : 'Optimized for 8 popular platforms'}
+          </p>
+        </div>
         <Button 
           variant="outline" 
           onClick={resetDemo} 
-          className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300 px-8 py-3 text-lg rounded-2xl"
+          className="h-10 px-6 border-neutral-300 text-neutral-700 hover:bg-neutral-50 transition-all duration-200 ease-out text-sm font-medium rounded-2xl"
           data-testid="button-try-another"
         >
           {isSpanish ? 'Probar Otra Campaña' : 'Try Another Campaign'}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Platform Cards - Apple-inspired */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {platformPosts.map((post, index) => (
-          <Card key={index} className="overflow-hidden hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-white/40 bg-white/70 backdrop-blur-sm cursor-pointer rounded-3xl shadow-lg" data-testid={`platform-card-${index}`} onClick={() => handleCardClick(post)}>
-            <CardHeader className={`pb-3 relative ${getPlatformHeaderStyle(post.platform)}`}>
-              <div className={`absolute inset-0 bg-gradient-to-r opacity-90 ${getPlatformGradient(post.platform)}`}></div>
-              <CardTitle className="relative text-sm flex items-center gap-2 text-white font-semibold">
-                <span className="text-lg drop-shadow-sm">{post.icon}</span>
-                <span className="font-bold tracking-wide">{post.platform}</span>
-                <span className="ml-auto text-xs bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm font-medium">
+          <Card key={index} className="overflow-hidden bg-white border border-neutral-200/70 rounded-2xl hover:shadow-md transition-all duration-200 ease-out cursor-pointer" data-testid={`platform-card-${index}`} onClick={() => handleCardClick(post)}>
+            <CardHeader className="pb-3 border-b border-neutral-100">
+              <CardTitle className="text-sm flex items-center gap-2 text-neutral-700 font-medium">
+                <span className="text-base">{post.icon}</span>
+                <span className="font-semibold">{post.platform}</span>
+                <span className="ml-auto text-xs bg-neutral-100 px-2 py-1 rounded-full font-medium text-neutral-600">
                   {post.dimensions}
                 </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              {/* High-Impact Visual with Advanced Design */}
-              <div className={`relative mb-4 rounded-2xl overflow-hidden shadow-2xl transform hover:scale-105 transition-all duration-300 ${
+              {/* Clean Visual Design */}
+              <div className={`relative mb-4 rounded-xl overflow-hidden transition-all duration-200 ${
                 post.aspectRatio === 'story' ? 'aspect-[9/16] max-h-40' :
                 post.aspectRatio === 'banner' ? 'aspect-[3/1]' :
                 post.aspectRatio === 'landscape' ? 'aspect-[16/9]' :
@@ -1640,85 +1619,32 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
                   className="w-full h-full object-cover"
                 />
                 
-                {/* Dynamic brand style overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
-                
-                {/* High-Impact Text Design */}
-                <div className="absolute inset-0 p-4 flex flex-col justify-center items-center text-center">
-                  {post.platform.includes('Story') ? (
-                    // Story format - bold vertical design
-                    <div className="space-y-3">
-                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                        <h3 className="text-xl font-black text-white leading-tight drop-shadow-2xl tracking-tight">
-                          {generatedCampaign.split(' ').slice(0, 3).join(' ')}
-                        </h3>
-                        <div className="w-12 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 mx-auto mt-2 rounded-full"></div>
-                        <p className="text-sm font-bold text-white/90 drop-shadow-xl mt-2">
-                          {generatedCampaign.split(' ').slice(3).join(' ')}
-                        </p>
-                      </div>
-                    </div>
-                  ) : post.platform.includes('Email') ? (
-                    // Email banner - sleek horizontal design
-                    <div className="w-full">
-                      <div className="bg-gradient-to-r from-brand-600/70 to-brand-700/70 backdrop-blur-sm rounded-lg p-2 border border-white/20">
-                        <h3 className="text-lg font-black text-white drop-shadow-2xl">
-                          {generatedCampaign}
-                        </h3>
-                      </div>
-                    </div>
-                  ) : (
-                    // Standard posts - premium card design
-                    <div className="space-y-2 max-w-full">
-                      <div className="bg-white/8 backdrop-blur-sm rounded-xl p-3 border border-white/20 shadow-lg">
-                        <h3 className="text-lg font-black text-white leading-tight drop-shadow-2xl mb-2">
-                          {generatedCampaign.split(' ').slice(0, 4).join(' ')}
-                        </h3>
-                        <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto mb-2 rounded-full"></div>
-                        <p className="text-sm font-bold text-white/95 drop-shadow-xl">
-                          {generatedCampaign.split(' ').slice(4).join(' ')}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Premium platform badge */}
-                <div className="absolute top-3 right-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg border border-white/20">
-                  {post.dimensions}
-                </div>
-                
-                {/* AI-powered badge */}
-                <div className="absolute bottom-3 left-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  AI-Powered
-                </div>
-                
-                {/* Subtle corner decoration */}
-                <div className="absolute top-0 left-0 w-8 h-8">
-                  <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-white/40 rounded-tl-lg"></div>
-                </div>
-                <div className="absolute bottom-0 right-0 w-8 h-8">
-                  <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-white/40 rounded-br-lg"></div>
+                {/* Clean Text Overlay */}
+                <div className="absolute inset-0 p-3 flex flex-col justify-center items-center text-center">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-lg p-3 border border-neutral-200/50 max-w-[90%]">
+                    <h3 className="text-sm font-semibold text-neutral-900 leading-tight mb-1">
+                      {generatedCampaign.split(' ').slice(0, 3).join(' ')}
+                    </h3>
+                    <p className="text-xs text-neutral-600">
+                      {generatedCampaign.split(' ').slice(3, 6).join(' ')}
+                    </p>
+                  </div>
                 </div>
               </div>
               
-              {/* Premium caption preview */}
-              <div className="relative bg-gradient-to-r from-gray-50 to-brand-50/50 p-4 rounded-xl border border-gray-200 shadow-sm">
-                <div className="absolute top-2 right-2">
-                  {post.icon}
-                </div>
-                <div className="text-xs text-gray-700 leading-relaxed">
-                  <span className="inline-flex items-center gap-1 font-bold text-gray-800 mb-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    {post.platform} Caption
+              {/* Clean Caption Preview */}
+              <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200/50">
+                <div className="text-xs text-neutral-600 leading-relaxed">
+                  <span className="inline-flex items-center gap-1 font-medium text-neutral-800 mb-1">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    {post.platform}
                   </span>
-                  <div className="text-gray-600">
+                  <div className="text-neutral-600">
                     {post.caption.length > 85 ? (
                       <>
                         {post.caption.substring(0, 85)}...
-                        <button className="text-blue-600 ml-1 font-semibold hover:text-blue-800 transition-colors">
-                          {isSpanish ? 'expandir' : 'expand'}
+                        <button className="text-neutral-900 ml-1 font-medium hover:text-neutral-700 transition-colors">
+                          {isSpanish ? 'más' : 'more'}
                         </button>
                       </>
                     ) : (
@@ -1732,16 +1658,16 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         ))}
       </div>
 
-      {/* 30-Day Feed Previews */}
-      <div className="mt-16 mb-12">
-        <div className="text-center mb-8">
-          <h4 className="text-2xl font-bold text-gray-900 mb-4">
-            {isSpanish ? '📱 Planificador de 30 Días - Vista Previa' : '📱 30-Day Planner - Preview'}
+      {/* 30-Day Planner - Apple-inspired */}
+      <div className="space-y-8">
+        <div className="text-center max-w-3xl mx-auto">
+          <h4 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900 mb-3">
+            {isSpanish ? 'Planificador de 30 Días' : '30-Day Planner'}
           </h4>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base text-neutral-500 leading-relaxed">
             {isSpanish 
-              ? 'CampAIgner genera automáticamente 30 días de contenido específico para tu industria. Aquí una muestra:'
-              : 'CampAIgner automatically generates 30 days of industry-specific content. Here\'s a sample:'
+              ? 'Vista previa del contenido automatizado específico para tu industria'
+              : 'Preview of automated industry-specific content'
             }
           </p>
         </div>
@@ -1749,22 +1675,22 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
         {/* Platform Feed Previews */}
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
           
-          {/* Instagram Feed Grid */}
-          <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-200">
+          {/* Instagram Feed Grid - Apple-inspired */}
+          <div className="bg-white rounded-2xl border border-neutral-200/70 p-6">
             {/* Instagram Header */}
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-              <div className="w-10 h-10 bg-gradient-to-r from-brand-500 to-brand-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-neutral-100">
+              <div className="w-10 h-10 bg-neutral-900 rounded-full flex items-center justify-center">
+                <span className="text-white font-medium text-sm">
                   {demo.businessDescription.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
-                <h5 className="font-bold text-gray-900">
+                <h5 className="font-semibold text-neutral-900">
                   {demo.businessDescription.toLowerCase().replace(/\s+/g, '').substring(0, 15)}
                 </h5>
-                <p className="text-sm text-gray-500">{isSpanish ? '30 días planificados' : '30 days planned'}</p>
+                <p className="text-sm text-neutral-500">{isSpanish ? '30 días planificados' : '30 days planned'}</p>
               </div>
-              <Instagram className="w-6 h-6 text-pink-500 ml-auto" />
+              <Instagram className="w-5 h-5 text-neutral-400 ml-auto" />
             </div>
 
             {/* Modern Instagram Grid Layout */}
@@ -1889,22 +1815,22 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             </div>
           </div>
 
-          {/* TikTok Feed Grid */}
-          <div className="bg-black rounded-2xl shadow-xl p-6 border border-gray-800">
+          {/* TikTok Feed Grid - Apple-inspired */}
+          <div className="bg-neutral-900 rounded-2xl border border-neutral-700 p-6">
             {/* TikTok Header */}
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-700">
-              <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-neutral-600">
+              <div className="w-10 h-10 bg-neutral-700 rounded-full flex items-center justify-center">
+                <span className="text-white font-medium text-sm">
                   {demo.businessDescription.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
-                <h5 className="font-bold text-white">
+                <h5 className="font-semibold text-white">
                   @{demo.businessDescription.toLowerCase().replace(/\s+/g, '').substring(0, 12)}
                 </h5>
-                <p className="text-sm text-gray-400">{isSpanish ? '30 días planificados' : '30 days planned'}</p>
+                <p className="text-sm text-neutral-400">{isSpanish ? '30 días planificados' : '30 days planned'}</p>
               </div>
-              <SiTiktok className="w-6 h-6 text-red-500 ml-auto" />
+              <SiTiktok className="w-5 h-5 text-neutral-500 ml-auto" />
             </div>
 
             {/* 6-Video Grid (Vertical format) */}
@@ -1987,75 +1913,55 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
           </div>
         </div>
 
-        {/* Multi-Platform Preview */}
-        <div className="mt-8 relative max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-brand-50 via-white to-brand-50 rounded-2xl p-6 border border-brand-200">
-            <h5 className="text-lg font-bold text-center mb-4 text-gray-900">
-{isSpanish ? 'Planificación Completa para Todas las Plataformas' : 'Complete Planning for All Platforms'}
+        {/* Multi-Platform Preview - Apple-inspired */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl border border-neutral-200/70 p-6">
+            <h5 className="text-lg font-semibold text-center mb-6 text-neutral-900">
+              {isSpanish ? 'Todas las Plataformas' : 'All Platforms'}
             </h5>
             
-            {/* Platform previews with gradient transparency */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Platform Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { name: 'Pinterest', icon: '📌', color: 'from-red-500 to-red-600' },
-                { name: 'YouTube', icon: '▶', color: 'from-red-600 to-red-700' },
-                { name: 'Twitter/X', icon: '🐦', color: 'from-sky-400 to-sky-500' },
-                { name: 'LinkedIn', icon: 'LI', color: 'from-blue-600 to-blue-700' }
-              ].map((platform, index) => (
-                <div key={platform.name} className="relative group">
-                  <div className={`bg-gradient-to-br ${platform.color} rounded-xl p-4 text-white text-center transition-all duration-300 group-hover:scale-105`}>
-                    <div className="text-2xl mb-2">{platform.icon}</div>
-                    <p className="text-sm font-bold">{platform.name}</p>
-                    <p className="text-xs opacity-80 mt-1">
-                      {isSpanish ? '30 días' : '30 days'}
-                    </p>
-                  </div>
-                  
-                  {/* Gradient overlay to show "coming soon" effect */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-white/30 to-transparent rounded-xl flex items-end justify-center pb-2">
-                    <span className="text-xs font-bold text-gray-700 bg-white/80 px-2 py-1 rounded-full">
-                      {isSpanish ? 'Disponible' : 'Available'}
-                    </span>
-                  </div>
+                { name: 'Pinterest', icon: '📌' },
+                { name: 'YouTube', icon: '▶' },
+                { name: 'Twitter/X', icon: '🐦' },
+                { name: 'LinkedIn', icon: '💼' }
+              ].map((platform) => (
+                <div key={platform.name} className="bg-neutral-50 rounded-xl p-4 text-center border border-neutral-200/50 hover:bg-neutral-100 transition-colors duration-200">
+                  <div className="text-xl mb-2">{platform.icon}</div>
+                  <p className="text-sm font-medium text-neutral-700">{platform.name}</p>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    {isSpanish ? '30 días' : '30 days'}
+                  </p>
                 </div>
               ))}
             </div>
             
-            <p className="text-center text-sm text-gray-600 mt-4">
+            <p className="text-center text-sm text-neutral-500 mt-6">
               {isSpanish 
-                ? 'CampAIgner: Tu planificador inteligente de 30 días para todas las plataformas'
-                : 'CampAIgner: Your intelligent 30-day planner for all platforms'
+                ? 'Planificación inteligente automatizada'
+                : 'Automated intelligent planning'
               }
             </p>
           </div>
         </div>
       </div>
 
-      {/* Post Everywhere CTA */}
-      <div className="text-center mt-8">
-        <div className="bg-gradient-to-r from-brand-500 via-brand-600 to-brand-700 p-1 rounded-2xl shadow-2xl max-w-md mx-auto">
-          <Button 
-            size="lg" 
-            className="w-full bg-white hover:bg-gray-50 text-gray-900 font-black text-lg py-6 rounded-xl shadow-xl transition-all duration-300 hover:scale-105"
-            data-testid="button-post-everywhere"
-          >
-            <div className="flex items-center justify-center gap-3">
-              <div className="flex -space-x-2">
-                <Instagram className="w-6 h-6 text-pink-500" />
-                <Facebook className="w-6 h-6 text-blue-600" />
-                <Linkedin className="w-6 h-6 text-blue-700" />
-                <Twitter className="w-6 h-6 text-sky-500" />
-                <Mail className="w-6 h-6 text-gray-600" />
-              </div>
-              <span>{isSpanish ? 'Publicar en Todas Partes' : 'Post Everywhere'}</span>
-              <ArrowRight className="w-5 h-5 ml-1" />
-            </div>
-          </Button>
-        </div>
-        <p className="text-sm text-gray-500 mt-3 max-w-lg mx-auto">
+      {/* CTA Section - Apple-inspired */}
+      <div className="text-center max-w-md mx-auto">
+        <Button 
+          size="lg" 
+          className="w-full h-12 bg-neutral-900 hover:bg-black text-white font-medium rounded-2xl transition-all duration-200 ease-out"
+          data-testid="button-post-everywhere"
+        >
+          <span>{isSpanish ? 'Publicar en Todas Partes' : 'Post Everywhere'}</span>
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+        <p className="text-sm text-neutral-500 mt-4">
           {isSpanish 
-            ? 'Un clic para publicar tu campaña en todas las plataformas simultáneamente'
-            : 'One click to publish your campaign across all platforms simultaneously'
+            ? 'Un clic para publicar en todas las plataformas'
+            : 'One click to publish across all platforms'
           }
         </p>
       </div>

@@ -143,12 +143,6 @@ export default function Landing() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <a href="#testimonials" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                {isSpanish ? 'Testimonios' : 'Testimonials'}
-              </a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                {isSpanish ? 'Precios' : 'Pricing'}
-              </a>
             </nav>
             
             <div className="flex items-center space-x-4">
@@ -582,194 +576,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials Section - Premium Style */}
-      <section className="relative py-32 bg-gradient-to-b from-slate-100/50 via-white to-slate-50/30">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="text-center mb-24">
-            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
-              {isSpanish ? 'Lo Que Dicen Nuestros Clientes' : 'What Our Customers Say'}
-            </h2>
-            <p className="text-xl sm:text-2xl text-gray-600 font-light">
-              {isSpanish ? 'Miles de empresas ya están creciendo en piloto automático' : 'Thousands of businesses are already growing on autopilot'}
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12">
-            <div className="group backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 transition-all duration-500 hover:-translate-y-1" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
-              <div className="flex items-center gap-1 mb-6">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-800 mb-8 leading-relaxed text-lg font-medium">
-                {isSpanish 
-                  ? '"En 3 meses aumentamos nuestras ventas en un 300%. La plataforma literalmente funciona sola, es increíble."'
-                  : '"In 3 months we increased our sales by 300%. The platform literally works by itself, it\'s incredible."'
-                }
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                  M
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900 text-lg">Maria Rodriguez</p>
-                  <p className="text-gray-600 font-medium">{isSpanish ? 'Dueña, Boutique Luna' : 'Owner, Luna Boutique'}</p>
-                </div>
-              </div>
-            </div>
 
-            <div className="group backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 transition-all duration-500 hover:-translate-y-1" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
-              <div className="flex items-center gap-1 mb-6">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-800 mb-8 leading-relaxed text-lg font-medium">
-                {isSpanish 
-                  ? '"Antes pasaba 4 horas al día en marketing. Ahora tengo ese tiempo para mi negocio y las ventas siguen creciendo."'
-                  : '"I used to spend 4 hours a day on marketing. Now I have that time for my business and sales keep growing."'
-                }
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                  C
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">Carlos Mendez</p>
-                  <p className="text-sm text-gray-500">{isSpanish ? 'CEO, FitGym' : 'CEO, FitGym'}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="group backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 transition-all duration-500 hover:-translate-y-1" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
-              <div className="flex items-center gap-1 mb-6">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-800 mb-8 leading-relaxed text-lg font-medium">
-                {isSpanish 
-                  ? '"La IA conoce mi inventario mejor que yo. Crea campañas perfectas para cada producto automáticamente."'
-                  : '"The AI knows my inventory better than I do. It creates perfect campaigns for each product automatically."'
-                }
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                  A
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">Ana Torres</p>
-                  <p className="text-sm text-gray-500">{isSpanish ? 'Fundadora, TechStore' : 'Founder, TechStore'}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section - Premium Apple Style */}
-      <section className="relative py-32 bg-gradient-to-b from-white via-slate-50/20 to-white">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="text-center mb-24">
-            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
-              {isSpanish ? 'Planes Simples y Transparentes' : 'Simple, Transparent Pricing'}
-            </h2>
-            <p className="text-xl sm:text-2xl text-gray-600 font-light">
-              {isSpanish ? 'Empieza gratis. Crece con nosotros. Cancela cuando quieras.' : 'Start free. Grow with us. Cancel anytime.'}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="group backdrop-blur-sm border border-white/50 rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
-              <h3 className="text-3xl font-bold text-gray-900 mb-6">
-                {isSpanish ? 'Starter' : 'Starter'}
-              </h3>
-              <div className="mb-8">
-                <span className="text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">$29</span>
-                <span className="text-gray-600 ml-3 text-lg font-medium">{isSpanish ? '/mes' : '/month'}</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">{isSpanish ? 'Hasta 3 plataformas' : 'Up to 3 platforms'}</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">{isSpanish ? 'IA básica de campañas' : 'Basic AI campaigns'}</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">{isSpanish ? 'Analytics básicos' : 'Basic analytics'}</span>
-                </li>
-              </ul>
-              <Button 
-                className="w-full bg-gradient-to-r from-gray-100 to-gray-200 text-gray-900 hover:from-gray-200 hover:to-gray-300 font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-lg"
-                onClick={() => navigate("/login")}
-              >
-                {isSpanish ? 'Empezar Gratis' : 'Start Free'}
-              </Button>
-            </div>
-
-            <div className="group bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white rounded-3xl p-12 shadow-3xl transform scale-105 relative border border-blue-500/20">
-              <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-4 py-2 font-bold text-sm shadow-lg">
-                  {isSpanish ? 'MÁS POPULAR' : 'MOST POPULAR'}
-                </Badge>
-              </div>
-              <h3 className="text-3xl font-bold mb-6">Professional</h3>
-              <div className="mb-8">
-                <span className="text-5xl font-bold">$99</span>
-                <span className="text-blue-200 ml-3 text-lg font-medium">{isSpanish ? '/mes' : '/month'}</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-white" />
-                  <span>{isSpanish ? 'Todas las 21+ plataformas' : 'All 21+ platforms'}</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-white" />
-                  <span>{isSpanish ? 'IA avanzada + datos en tiempo real' : 'Advanced AI + real-time data'}</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-white" />
-                  <span>{isSpanish ? 'Bandeja unificada + ChatBot IA' : 'Unified inbox + AI ChatBot'}</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-white" />
-                  <span>{isSpanish ? 'Analytics avanzados' : 'Advanced analytics'}</span>
-                </li>
-              </ul>
-              <Button className="w-full text-blue-600 hover:opacity-80 font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 text-lg group-hover:scale-105" style={{backgroundColor: '#F8F8FA'}}>
-                {isSpanish ? 'Empezar Gratis 14 Días' : 'Start 14-Day Free Trial'}
-              </Button>
-            </div>
-
-            <div className="group backdrop-blur-sm border border-white/50 rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
-              <h3 className="text-3xl font-bold text-gray-900 mb-6">Enterprise</h3>
-              <div className="mb-8">
-                <span className="text-4xl font-bold text-gray-900">{isSpanish ? 'Personalizado' : 'Custom'}</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">{isSpanish ? 'Integraciones personalizadas' : 'Custom integrations'}</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">{isSpanish ? 'Soporte dedicado' : 'Dedicated support'}</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">{isSpanish ? 'SLA garantizado' : 'SLA guarantee'}</span>
-                </li>
-              </ul>
-              <Button className="w-full bg-gray-100 text-gray-900 hover:bg-gray-200 font-semibold py-3 rounded-lg">
-                {isSpanish ? 'Contactar Ventas' : 'Contact Sales'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Final CTA - Premium Style */}
       <section className="relative py-32 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
@@ -831,6 +639,21 @@ export default function Landing() {
               </span>
             </div>
             <div className="flex items-center space-x-6">
+              {/* Trustpilot Reviews */}
+              <div className="flex items-center gap-3 text-white/60">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 text-green-400 fill-current" />
+                  ))}
+                </div>
+                <span className="text-sm">
+                  {isSpanish ? '4.8/5 · 2,500+ reseñas' : '4.8/5 · 2,500+ reviews'}
+                </span>
+                <Button variant="ghost" className="text-white/60 hover:text-white text-xs p-0 underline">
+                  Trustpilot
+                </Button>
+              </div>
+              
               <Button variant="ghost" className="text-white/60 hover:text-white text-sm">
                 {isSpanish ? 'Privacidad' : 'Privacy'}
               </Button>
