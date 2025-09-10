@@ -22,9 +22,9 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen relative text-gray-900 overflow-hidden bg-white">
+    <div className="min-h-screen relative text-gray-900 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
       {/* Header */}
-      <header className="relative z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <header className="relative z-50 backdrop-blur-md border-b border-gray-200 shadow-sm" style={{backgroundColor: 'rgba(248, 248, 250, 0.95)'}}>
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
@@ -187,7 +187,7 @@ export default function Landing() {
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8 text-center z-10">
           {/* Trust Badge - Slogan Style */}
-          <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-white border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{backgroundColor: '#F8F8FA'}}>
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-sm font-medium text-gray-700">
 {isSpanish ? 'Tu Proceso Completo de Marketing, en IA' : 'Your Complete Marketing Process, on AI'}
@@ -243,7 +243,7 @@ export default function Landing() {
       </section>
 
       {/* AI Process Circle Section */}
-      <section className="relative py-16 bg-white overflow-hidden">
+      <section className="relative py-16 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* Background tech pattern */}
         <div className="absolute inset-0 opacity-5">
@@ -420,7 +420,7 @@ export default function Landing() {
       </section>
 
       {/* Meet LeadBoost Section */}
-      <section className="relative py-24 bg-white">
+      <section className="relative py-24" style={{backgroundColor: '#F8F8FA'}}>
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">
@@ -440,14 +440,14 @@ export default function Landing() {
       <section className="relative py-32 bg-gradient-to-b from-blue-50/30 via-white to-slate-50/30">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           {/* Demo Container with Premium Styling */}
-          <div className="bg-white/80 backdrop-blur-sm border border-white/50 rounded-3xl shadow-2xl p-8 lg:p-12">
+          <div className="backdrop-blur-sm border border-white/50 rounded-3xl shadow-2xl p-8 lg:p-12" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}}>
             <InteractiveDemo isSpanish={isSpanish} />
           </div>
         </div>
       </section>
 
       {/* Features Section - Squarespace Style */}
-      <section className="relative py-32 bg-gradient-to-b from-white via-slate-50/30 to-white">
+      <section className="relative py-32 bg-gradient-to-b via-slate-50/30" style={{backgroundColor: '#F8F8FA'}}>
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="text-center mb-24">
             <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
@@ -462,7 +462,7 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12">
-            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <Bot className="h-8 w-8 text-white" />
               </div>
@@ -477,7 +477,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <MessageSquare className="h-8 w-8 text-white" />
               </div>
@@ -492,7 +492,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <TrendingUp className="h-8 w-8 text-white" />
               </div>
@@ -507,7 +507,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
               <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <Globe className="h-8 w-8 text-white" />
               </div>
@@ -522,7 +522,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
               <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <Users className="h-8 w-8 text-white" />
               </div>
@@ -537,7 +537,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="group bg-white/70 backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl hover:bg-white/90 transition-all duration-500 hover:-translate-y-2">
+            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
               <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <Shield className="h-8 w-8 text-white" />
               </div>
@@ -568,7 +568,7 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12">
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 hover:bg-white/90 transition-all duration-500 hover:-translate-y-1">
+            <div className="group backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 transition-all duration-500 hover:-translate-y-1" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
               <div className="flex items-center gap-1 mb-6">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
@@ -591,7 +591,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 hover:bg-white/90 transition-all duration-500 hover:-translate-y-1">
+            <div className="group backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 transition-all duration-500 hover:-translate-y-1" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
               <div className="flex items-center gap-1 mb-6">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
@@ -614,7 +614,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="group bg-white/80 backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 hover:bg-white/90 transition-all duration-500 hover:-translate-y-1">
+            <div className="group backdrop-blur-sm rounded-3xl p-10 shadow-2xl hover:shadow-3xl border border-white/50 transition-all duration-500 hover:-translate-y-1" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
               <div className="flex items-center gap-1 mb-6">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
@@ -653,7 +653,7 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="group bg-white/80 backdrop-blur-sm border border-white/50 rounded-3xl p-10 shadow-2xl hover:shadow-3xl hover:bg-white/90 transition-all duration-500">
+            <div className="group backdrop-blur-sm border border-white/50 rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
               <h3 className="text-3xl font-bold text-gray-900 mb-6">
                 {isSpanish ? 'Starter' : 'Starter'}
               </h3>
@@ -712,12 +712,12 @@ export default function Landing() {
                   <span>{isSpanish ? 'Analytics avanzados' : 'Advanced analytics'}</span>
                 </li>
               </ul>
-              <Button className="w-full bg-white text-blue-600 hover:bg-gray-50 font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 text-lg group-hover:scale-105">
+              <Button className="w-full text-blue-600 hover:opacity-80 font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 text-lg group-hover:scale-105" style={{backgroundColor: '#F8F8FA'}}>
                 {isSpanish ? 'Empezar Gratis 14 Días' : 'Start 14-Day Free Trial'}
               </Button>
             </div>
 
-            <div className="group bg-white/80 backdrop-blur-sm border border-white/50 rounded-3xl p-10 shadow-2xl hover:shadow-3xl hover:bg-white/90 transition-all duration-500">
+            <div className="group backdrop-blur-sm border border-white/50 rounded-3xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-500" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.8)'}>
               <h3 className="text-3xl font-bold text-gray-900 mb-6">Enterprise</h3>
               <div className="mb-8">
                 <span className="text-4xl font-bold text-gray-900">{isSpanish ? 'Personalizado' : 'Custom'}</span>
@@ -759,7 +759,8 @@ export default function Landing() {
           
           <div className="flex flex-col items-center gap-6 mb-12">
             <Button 
-              className="bg-white text-gray-900 hover:bg-gray-50 font-bold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1"
+              className="text-gray-900 hover:opacity-80 font-bold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1"
+              style={{backgroundColor: '#F8F8FA'}}
               data-testid="button-start-free-trial-final"
               onClick={() => navigate("/login")}
             >
