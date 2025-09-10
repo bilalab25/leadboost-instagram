@@ -1598,7 +1598,7 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
               <p className="text-xs text-gray-400 text-center">
                 {isSpanish 
                   ? 'Opcional - La IA analizará tu contenido existente para crear campañas más relevantes'
-                  : 'Optional - AI will analyze your existing content to create more relevant campaigns'
+                  : 'Optional - AI will analyze your existing content to create more intelligent campaigns'
                 }
               </p>
             </div>
