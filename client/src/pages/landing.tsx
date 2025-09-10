@@ -253,7 +253,7 @@ export default function Landing() {
               <div className="absolute inset-0" style={{backgroundImage: 'radial-gradient(circle at 25px 25px, #3b82f6 1px, transparent 1px)', backgroundSize: '50px 50px'}}></div>
             </div>
             
-            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
+            <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-center">
               
               {/* Step 1: Data Input */}
               <div className="text-center group">
@@ -363,6 +363,46 @@ export default function Landing() {
                 </h3>
                 <p className="text-gray-600 text-sm leading-relaxed">
                   {isSpanish ? 'Campañas optimizadas en 21+ plataformas' : 'Optimized campaigns across 21+ platforms'}
+                </p>
+              </div>
+
+              {/* AI Flow Connector */}
+              <div className="hidden lg:flex flex-col items-center justify-center">
+                <div className="flex items-center space-x-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={`w-2 h-2 bg-gradient-to-r from-green-500 to-orange-500 rounded-full animate-pulse`} style={{animationDelay: `${i * 0.2}s`}}></div>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-500 mt-2 font-mono">CONVERSION</div>
+              </div>
+
+              {/* Step 4: ChatBot Conversion */}
+              <div className="text-center group">
+                <div className="relative">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-orange-600 to-red-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 border border-orange-300/20">
+                    {/* Chatbot conversation icon */}
+                    <div className="relative">
+                      <div className="w-8 h-6 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                        <div className="flex space-x-0.5">
+                          <div className="w-1 h-1 bg-white/80 rounded-full animate-bounce"></div>
+                          <div className="w-1 h-1 bg-white/80 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-1 h-1 bg-white/80 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
+                      </div>
+                      {/* Chat bubbles */}
+                      <div className="absolute -top-1 -right-2 w-3 h-2 bg-white/60 rounded-sm"></div>
+                      <div className="absolute -bottom-1 -left-2 w-4 h-2 bg-white/40 rounded-sm"></div>
+                    </div>
+                  </div>
+                  {/* Conversation indicators */}
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full opacity-60 animate-ping"></div>
+                  <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-red-400 rounded-full opacity-40 animate-pulse"></div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  {isSpanish ? 'ChatBot Conversión' : 'ChatBot Conversion'}
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {isSpanish ? 'IA convierte leads en ventas via chat multicanal' : 'AI converts leads to sales via multi-channel chat'}
                 </p>
               </div>
 
