@@ -648,8 +648,8 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Security Card - Bottom Right */}
-            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 to-cyan-900 rounded-2xl p-6 border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-500">
+            {/* Security Card - Next to Analytics */}
+            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-cyan-900 rounded-2xl p-6 border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
