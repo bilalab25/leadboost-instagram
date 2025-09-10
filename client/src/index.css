@@ -511,3 +511,29 @@
 .animate-radial-pulse {
   animation: radial-pulse 8s ease-in-out infinite;
 }
+
+/* Futuristic Background Animations */
+@keyframes grid-move {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(40px, 40px); }
+}
+
+@keyframes float-particle {
+  0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+  33% { transform: translateY(-15px) translateX(10px) rotate(120deg); }
+  66% { transform: translateY(-5px) translateX(-8px) rotate(240deg); }
+}
+
+@keyframes circuit-flow {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 50; }
+}
+
+@keyframes wave-subtle {
+  0%, 100% { 
+    clip-path: polygon(0 100%, 0 80%, 10% 85%, 20% 75%, 30% 80%, 40% 70%, 50% 75%, 60% 65%, 70% 70%, 80% 60%, 90% 65%, 100% 55%, 100% 100%);
+  }
+  50% { 
+    clip-path: polygon(0 100%, 0 85%, 10% 75%, 20% 85%, 30% 70%, 40% 80%, 50% 65%, 60% 75%, 70% 60%, 80% 70%, 90% 55%, 100% 65%, 100% 100%);
+  }
+}
