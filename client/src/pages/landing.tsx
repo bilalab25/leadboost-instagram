@@ -409,7 +409,7 @@ export default function Landing() {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             {[...Array(5)].map((_, i) => {
               const midAngle = (i * 72 + 36) - 90; // Midpoint between steps
-              const tipRadius = 200; // Inside the circle, above circle line
+              const tipRadius = 240; // Touching the circle line
               const x = tipRadius * Math.cos(midAngle * Math.PI / 180);
               const y = tipRadius * Math.sin(midAngle * Math.PI / 180);
               
