@@ -243,126 +243,125 @@ export default function Landing() {
       </section>
 
       {/* LeadBoost AI Process Section */}
-      <section className="relative py-32 bg-gradient-to-b from-gray-50 to-white">
+      <section className="relative py-32 bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+        
+        {/* Background tech pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{backgroundImage: 'radial-gradient(circle at 25px 25px, #3b82f6 1px, transparent 1px)', backgroundSize: '50px 50px'}}></div>
+        </div>
+
+        {/* Floating particles */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-30"
+              style={{
+                left: `${10 + Math.random() * 80}%`,
+                top: `${10 + Math.random() * 80}%`,
+                animation: `float ${4 + Math.random() * 2}s ease-in-out infinite ${Math.random() * 2}s`
+              }}
+            ></div>
+          ))}
+        </div>
+
         {/* Enhanced Circular AI Process */}
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 mb-20">
-          <div className="relative bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 rounded-3xl p-16 lg:p-24 overflow-hidden border border-blue-100/50 shadow-2xl">
-            
-            {/* Background tech pattern */}
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute inset-0" style={{backgroundImage: 'radial-gradient(circle at 25px 25px, #3b82f6 1px, transparent 1px)', backgroundSize: '50px 50px'}}></div>
+        <div className="relative max-w-6xl mx-auto px-6 sm:px-8 mb-20 h-96 flex items-center justify-center">
+          
+          {/* Center text with glow effect */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10">
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {isSpanish ? 'más ventas' : 'more sales'}
             </div>
-
-            {/* Floating particles */}
-            <div className="absolute inset-0 pointer-events-none">
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-40"
-                  style={{
-                    left: `${20 + Math.random() * 60}%`,
-                    top: `${20 + Math.random() * 60}%`,
-                    animation: `float ${4 + Math.random() * 2}s ease-in-out infinite ${Math.random() * 2}s`
-                  }}
-                ></div>
-              ))}
-            </div>
-            
-            {/* Center text with glow effect */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {isSpanish ? 'más ventas' : 'more sales'}
-              </div>
-              <div className="w-16 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent mt-2"></div>
-            </div>
-
-            {/* Step 1: Data - Top center of circle */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) translateY(-160px)'}}>
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-                <div className="w-3 h-3 bg-white rounded-sm shadow-inner"></div>
-              </div>
-              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-                <div className="text-xs font-mono text-blue-600 mb-1">01</div>
-                <h3 className="text-sm font-bold text-gray-900">
-                  {isSpanish ? 'Datos' : 'Data'}
-                </h3>
-              </div>
-            </div>
-
-            {/* Step 2: AI - Top right of circle */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(72deg) translateY(-160px) rotate(-72deg)'}}>
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse shadow-lg"></div>
-              </div>
-              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-                <div className="text-xs font-mono text-purple-600 mb-1">02</div>
-                <h3 className="text-sm font-bold text-gray-900">
-                  {isSpanish ? 'IA' : 'AI'}
-                </h3>
-              </div>
-            </div>
-
-            {/* Step 3: Deploy - Bottom right of circle */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(144deg) translateY(-160px) rotate(-144deg)'}}>
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-                <div className="w-3 h-1.5 bg-white rounded-sm shadow-inner"></div>
-              </div>
-              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-                <div className="text-xs font-mono text-emerald-600 mb-1">03</div>
-                <h3 className="text-sm font-bold text-gray-900">
-                  {isSpanish ? 'Despliegue' : 'Deploy'}
-                </h3>
-              </div>
-            </div>
-
-            {/* Step 4: Convert - Bottom left of circle */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(216deg) translateY(-160px) rotate(-216deg)'}}>
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-                <div className="flex space-x-1">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full shadow-inner"></div>
-                  <div className="w-1.5 h-1.5 bg-white rounded-full shadow-inner"></div>
-                </div>
-              </div>
-              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-                <div className="text-xs font-mono text-orange-600 mb-1">04</div>
-                <h3 className="text-sm font-bold text-gray-900">
-                  {isSpanish ? 'Convierte' : 'Convert'}
-                </h3>
-              </div>
-            </div>
-
-            {/* Step 5: Retain - Top left of circle */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(288deg) translateY(-160px) rotate(-288deg)'}}>
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-                <div className="w-3 h-3 border-2 border-white rounded-full shadow-inner"></div>
-              </div>
-              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-                <div className="text-xs font-mono text-indigo-600 mb-1">05</div>
-                <h3 className="text-sm font-bold text-gray-900">
-                  {isSpanish ? 'Retiene' : 'Retain'}
-                </h3>
-              </div>
-            </div>
-
-            {/* Enhanced circle path with gradient */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-80 h-80 border-2 border-gray-300/50 rounded-full"></div>
-              <div className="absolute inset-0 w-80 h-80 border border-blue-200/30 rounded-full animate-pulse"></div>
-            </div>
-
-            {/* Connecting flow lines */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className={`absolute w-2 h-2 bg-blue-400 rounded-full opacity-30`} style={{
-                  top: '50%', 
-                  left: '50%',
-                  transform: `translate(-50%, -50%) rotate(${i * 72 + 36}deg) translateY(-140px)`,
-                  animation: `pulse 2s ease-in-out infinite ${i * 0.4}s`
-                }}></div>
-              ))}
-            </div>
-
+            <div className="w-16 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent mt-2"></div>
           </div>
+
+          {/* Step 1: Data - Top center of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) translateY(-160px)'}}>
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
+              <div className="w-3 h-3 bg-white rounded-sm shadow-inner"></div>
+            </div>
+            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
+              <div className="text-xs font-mono text-blue-600 mb-1">01</div>
+              <h3 className="text-sm font-bold text-gray-900">
+                {isSpanish ? 'Datos' : 'Data'}
+              </h3>
+            </div>
+          </div>
+
+          {/* Step 2: AI - Top right of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(72deg) translateY(-160px) rotate(-72deg)'}}>
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse shadow-lg"></div>
+            </div>
+            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
+              <div className="text-xs font-mono text-purple-600 mb-1">02</div>
+              <h3 className="text-sm font-bold text-gray-900">
+                {isSpanish ? 'IA' : 'AI'}
+              </h3>
+            </div>
+          </div>
+
+          {/* Step 3: Deploy - Bottom right of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(144deg) translateY(-160px) rotate(-144deg)'}}>
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
+              <div className="w-3 h-1.5 bg-white rounded-sm shadow-inner"></div>
+            </div>
+            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
+              <div className="text-xs font-mono text-emerald-600 mb-1">03</div>
+              <h3 className="text-sm font-bold text-gray-900">
+                {isSpanish ? 'Despliegue' : 'Deploy'}
+              </h3>
+            </div>
+          </div>
+
+          {/* Step 4: Convert - Bottom left of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(216deg) translateY(-160px) rotate(-216deg)'}}>
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-1.5 bg-white rounded-full shadow-inner"></div>
+                <div className="w-1.5 h-1.5 bg-white rounded-full shadow-inner"></div>
+              </div>
+            </div>
+            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
+              <div className="text-xs font-mono text-orange-600 mb-1">04</div>
+              <h3 className="text-sm font-bold text-gray-900">
+                {isSpanish ? 'Convierte' : 'Convert'}
+              </h3>
+            </div>
+          </div>
+
+          {/* Step 5: Retain - Top left of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(288deg) translateY(-160px) rotate(-288deg)'}}>
+            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
+              <div className="w-3 h-3 border-2 border-white rounded-full shadow-inner"></div>
+            </div>
+            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
+              <div className="text-xs font-mono text-indigo-600 mb-1">05</div>
+              <h3 className="text-sm font-bold text-gray-900">
+                {isSpanish ? 'Retiene' : 'Retain'}
+              </h3>
+            </div>
+          </div>
+
+          {/* Enhanced circle path with gradient */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="w-80 h-80 border-2 border-gray-300/50 rounded-full"></div>
+            <div className="absolute inset-0 w-80 h-80 border border-blue-200/30 rounded-full animate-pulse"></div>
+          </div>
+
+          {/* Connecting flow lines */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className={`absolute w-2 h-2 bg-blue-400 rounded-full opacity-30`} style={{
+                top: '50%', 
+                left: '50%',
+                transform: `translate(-50%, -50%) rotate(${i * 72 + 36}deg) translateY(-140px)`,
+                animation: `pulse 2s ease-in-out infinite ${i * 0.4}s`
+              }}></div>
+            ))}
+          </div>
+
         </div>
 
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
