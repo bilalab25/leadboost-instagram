@@ -266,99 +266,153 @@ export default function Landing() {
         </div>
 
         {/* Enhanced Circular AI Process */}
-        <div className="relative max-w-6xl mx-auto px-6 sm:px-8 h-96 flex items-center justify-center">
+        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 h-[600px] flex items-center justify-center">
           
-          {/* Center text with glow effect */}
+          {/* Center text with enhanced design */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10">
-            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <div className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
               {isSpanish ? 'más ventas' : 'more sales'}
             </div>
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent mt-2"></div>
-          </div>
-
-          {/* Step 1: Data - Top center of circle */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) translateY(-160px)'}}>
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-              <div className="w-3 h-3 bg-white rounded-sm shadow-inner"></div>
-            </div>
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-              <div className="text-xs font-mono text-blue-600 mb-1">01</div>
-              <h3 className="text-sm font-bold text-gray-900">
-                {isSpanish ? 'Datos' : 'Data'}
-              </h3>
+            <div className="w-24 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent"></div>
+            <div className="text-sm text-gray-500 mt-3 font-medium">
+              {isSpanish ? 'Resultado Final' : 'End Result'}
             </div>
           </div>
 
-          {/* Step 2: AI - Top right of circle */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(72deg) translateY(-160px) rotate(-72deg)'}}>
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse shadow-lg"></div>
-            </div>
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-              <div className="text-xs font-mono text-purple-600 mb-1">02</div>
-              <h3 className="text-sm font-bold text-gray-900">
-                {isSpanish ? 'IA' : 'AI'}
-              </h3>
-            </div>
-          </div>
-
-          {/* Step 3: Deploy - Bottom right of circle */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(144deg) translateY(-160px) rotate(-144deg)'}}>
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-              <div className="w-3 h-1.5 bg-white rounded-sm shadow-inner"></div>
-            </div>
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-              <div className="text-xs font-mono text-emerald-600 mb-1">03</div>
-              <h3 className="text-sm font-bold text-gray-900">
-                {isSpanish ? 'Despliegue' : 'Deploy'}
-              </h3>
-            </div>
-          </div>
-
-          {/* Step 4: Convert - Bottom left of circle */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(216deg) translateY(-160px) rotate(-216deg)'}}>
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-              <div className="flex space-x-1">
-                <div className="w-1.5 h-1.5 bg-white rounded-full shadow-inner"></div>
-                <div className="w-1.5 h-1.5 bg-white rounded-full shadow-inner"></div>
+          {/* Step 1: Data Collection - Top center of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group" style={{transform: 'translate(-50%, -50%) translateY(-240px)'}}>
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-blue-500/50">
+              <div className="relative">
+                <div className="w-5 h-5 bg-white rounded-lg shadow-inner"></div>
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-300 rounded-full animate-ping"></div>
               </div>
             </div>
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-              <div className="text-xs font-mono text-orange-600 mb-1">04</div>
-              <h3 className="text-sm font-bold text-gray-900">
-                {isSpanish ? 'Convierte' : 'Convert'}
+            <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
+              <div className="text-sm font-mono text-blue-600 mb-2 font-bold">01</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                {isSpanish ? 'Recolección' : 'Data Collection'}
               </h3>
+              <p className="text-xs text-gray-600 leading-tight">
+                {isSpanish ? 'Captura automática de datos' : 'Auto capture business data'}
+              </p>
             </div>
+            {/* Glow effect */}
+            <div className="absolute inset-0 w-24 h-24 bg-blue-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
           </div>
 
-          {/* Step 5: Retain - Top left of circle */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{transform: 'translate(-50%, -50%) rotate(288deg) translateY(-160px) rotate(-288deg)'}}>
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center border-4 border-white shadow-xl hover:scale-110 transition-transform duration-300">
-              <div className="w-3 h-3 border-2 border-white rounded-full shadow-inner"></div>
+          {/* Step 2: AI Processing - Top right of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group" style={{transform: 'translate(-50%, -50%) rotate(72deg) translateY(-240px) rotate(-72deg)'}}>
+            <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-purple-500/50">
+              <div className="relative">
+                <div className="w-4 h-4 bg-white rounded-full animate-pulse shadow-lg"></div>
+                <div className="absolute inset-0 w-4 h-4 border-2 border-white/30 rounded-full animate-spin" style={{animationDuration: '3s'}}></div>
+              </div>
             </div>
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
-              <div className="text-xs font-mono text-indigo-600 mb-1">05</div>
-              <h3 className="text-sm font-bold text-gray-900">
-                {isSpanish ? 'Retiene' : 'Retain'}
+            <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
+              <div className="text-sm font-mono text-purple-600 mb-2 font-bold">02</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                {isSpanish ? 'Procesamiento IA' : 'AI Processing'}
               </h3>
+              <p className="text-xs text-gray-600 leading-tight">
+                {isSpanish ? 'Análisis inteligente' : 'Smart content creation'}
+              </p>
             </div>
+            <div className="absolute inset-0 w-24 h-24 bg-purple-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
           </div>
 
-          {/* Enhanced circle path with gradient */}
+          {/* Step 3: Campaign Deploy - Bottom right of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group" style={{transform: 'translate(-50%, -50%) rotate(144deg) translateY(-240px) rotate(-144deg)'}}>
+            <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-emerald-500/50">
+              <div className="relative">
+                <div className="w-5 h-3 bg-white rounded-lg shadow-inner"></div>
+                {/* Signal waves */}
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className={`absolute -top-1 -right-1 w-3 h-3 border border-white/60 rounded-full animate-ping`} style={{
+                    animationDelay: `${i * 0.3}s`,
+                    animationDuration: '2s'
+                  }}></div>
+                ))}
+              </div>
+            </div>
+            <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
+              <div className="text-sm font-mono text-emerald-600 mb-2 font-bold">03</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                {isSpanish ? 'Despliegue' : 'Campaign Deploy'}
+              </h3>
+              <p className="text-xs text-gray-600 leading-tight">
+                {isSpanish ? 'Publicación multicanal' : '21+ platform publishing'}
+              </p>
+            </div>
+            <div className="absolute inset-0 w-24 h-24 bg-emerald-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
+          </div>
+
+          {/* Step 4: Sales Conversion - Bottom left of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group" style={{transform: 'translate(-50%, -50%) rotate(216deg) translateY(-240px) rotate(-216deg)'}}>
+            <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-orange-500/50">
+              <div className="relative">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-white rounded-full shadow-inner animate-bounce"></div>
+                  <div className="w-2 h-2 bg-white rounded-full shadow-inner animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-white rounded-full shadow-inner animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+                <div className="absolute -top-2 -right-2 w-4 h-3 bg-white/80 rounded-lg"></div>
+              </div>
+            </div>
+            <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
+              <div className="text-sm font-mono text-orange-600 mb-2 font-bold">04</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                {isSpanish ? 'Conversión' : 'Sales Conversion'}
+              </h3>
+              <p className="text-xs text-gray-600 leading-tight">
+                {isSpanish ? 'Chat bot inteligente' : 'AI chatbot closes deals'}
+              </p>
+            </div>
+            <div className="absolute inset-0 w-24 h-24 bg-orange-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
+          </div>
+
+          {/* Step 5: Customer Retention - Top left of circle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group" style={{transform: 'translate(-50%, -50%) rotate(288deg) translateY(-240px) rotate(-288deg)'}}>
+            <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-indigo-500/50">
+              <div className="relative">
+                <div className="w-5 h-5 border-3 border-white rounded-full shadow-inner"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
+              <div className="text-sm font-mono text-indigo-600 mb-2 font-bold">05</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                {isSpanish ? 'Retención' : 'Customer Retention'}
+              </h3>
+              <p className="text-xs text-gray-600 leading-tight">
+                {isSpanish ? 'Re-targeting automático' : 'Smart retargeting campaigns'}
+              </p>
+            </div>
+            <div className="absolute inset-0 w-24 h-24 bg-indigo-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
+          </div>
+
+          {/* Enhanced circle paths with multiple rings */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-80 h-80 border-2 border-gray-300/50 rounded-full"></div>
-            <div className="absolute inset-0 w-80 h-80 border border-blue-200/30 rounded-full animate-pulse"></div>
+            <div className="w-[480px] h-[480px] border-2 border-gray-300/50 rounded-full"></div>
+            <div className="absolute inset-0 w-[480px] h-[480px] border border-blue-200/30 rounded-full animate-pulse"></div>
+            <div className="absolute inset-4 w-[464px] h-[464px] border border-purple-200/20 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
           </div>
 
-          {/* Connecting flow lines */}
+          {/* Enhanced connecting flow arrows */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className={`absolute w-2 h-2 bg-blue-400 rounded-full opacity-30`} style={{
+              <div key={i} className="absolute" style={{
                 top: '50%', 
                 left: '50%',
-                transform: `translate(-50%, -50%) rotate(${i * 72 + 36}deg) translateY(-140px)`,
-                animation: `pulse 2s ease-in-out infinite ${i * 0.4}s`
-              }}></div>
+                transform: `translate(-50%, -50%) rotate(${i * 72 + 36}deg) translateY(-210px) rotate(-${i * 72 + 36}deg)`
+              }}>
+                <div className="flex items-center">
+                  <div className="w-8 h-px bg-gradient-to-r from-blue-400 to-purple-400 animate-pulse" style={{animationDelay: `${i * 0.4}s`}}></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse ml-1" style={{
+                    animationDelay: `${i * 0.4}s`,
+                    boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)'
+                  }}></div>
+                </div>
+              </div>
             ))}
           </div>
 
