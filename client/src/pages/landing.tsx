@@ -26,14 +26,15 @@ export default function Landing() {
       const circleSection = document.getElementById('circle-section');
       
       if (heroSection && circleSection) {
-        const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
-        const circleTop = circleSection.offsetTop;
-        const circleBottom = circleTop + circleSection.offsetHeight;
+        const heroTop = heroSection.offsetTop;
+        const heroHeight = heroSection.offsetHeight;
+        const circleBottom = circleSection.offsetTop + circleSection.offsetHeight;
         const scrollY = window.scrollY;
         
-        // Calculate progress from end of hero to end of circle section (Meet LeadBoost area)
-        const totalDistance = circleBottom - heroBottom;
-        const currentProgress = Math.max(0, scrollY - heroBottom);
+        // Start growing when user scrolls halfway through hero section
+        const growthStartPoint = heroTop + (heroHeight * 0.5);
+        const totalDistance = circleBottom - growthStartPoint;
+        const currentProgress = Math.max(0, scrollY - growthStartPoint);
         const progress = Math.min(1, currentProgress / totalDistance);
         
         // Scale from 0.8 to 1.1 for subtle growth
