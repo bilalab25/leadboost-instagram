@@ -15,7 +15,7 @@ import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
-  const [circleScale, setCircleScale] = useState(0.1);
+  const [circleScale, setCircleScale] = useState(0.8);
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -36,8 +36,8 @@ export default function Landing() {
         const currentProgress = Math.max(0, scrollY - heroBottom);
         const progress = Math.min(1, currentProgress / totalDistance);
         
-        // Scale from 0.1 to 1.4 for perfect visibility without cutoff
-        const newScale = 0.1 + (progress * 1.3);
+        // Scale from 0.8 to 1.1 for subtle growth
+        const newScale = 0.8 + (progress * 0.3);
         setCircleScale(newScale);
       }
     };
@@ -270,7 +270,7 @@ export default function Landing() {
       </section>
 
       {/* AI Process Circle Section */}
-      <section id="circle-section" className="relative -mt-8 pt-0 pb-8 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
+      <section id="circle-section" className="relative -mt-16 pt-4 pb-8 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* Background tech pattern */}
         <div className="absolute inset-0 opacity-5">
