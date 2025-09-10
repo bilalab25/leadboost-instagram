@@ -500,7 +500,7 @@ export default function Landing() {
                   </div>
                 </div>
                 <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors duration-300">
-                  {isSpanish ? 'Campañas IA Automatizadas' : 'AI Automated Campaigns'}
+                  {isSpanish ? 'Generador de Contenido Inteligente' : 'Smart Content Generator'}
                 </h3>
                 <p className="text-gray-300 leading-relaxed text-lg mb-6">
                   {isSpanish 
@@ -515,30 +515,43 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Analytics Card - Top Right */}
-            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 to-purple-900 rounded-2xl p-6 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-500">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            {/* High-Converting Chatbot Card - Top Right */}
+            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 via-emerald-900 to-green-900 rounded-2xl p-6 border border-emerald-500/20 hover:border-emerald-400/40 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/25">
-                    <TrendingUp className="h-6 w-6 text-white" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                      <MessageSquare className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="px-3 py-1 bg-emerald-500/20 rounded-full border border-emerald-400/30">
+                      <span className="text-emerald-300 text-xs font-bold">HIGH-CONVERTING</span>
+                    </div>
                   </div>
-                  <div className="flex space-x-1">
-                    <div className="w-1 h-8 bg-purple-400 rounded animate-pulse" style={{animationDelay: '0s'}}></div>
-                    <div className="w-1 h-6 bg-purple-500 rounded animate-pulse" style={{animationDelay: '0.1s'}}></div>
-                    <div className="w-1 h-10 bg-purple-400 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                    <div className="w-1 h-4 bg-purple-500 rounded animate-pulse" style={{animationDelay: '0.3s'}}></div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <div className="text-emerald-300 text-xs font-mono">Online</div>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors duration-300">
-                  {isSpanish ? 'Análisis en Tiempo Real' : 'Real-Time Analytics'}
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300">
+                  {isSpanish ? 'ChatBot de Ventas IA' : 'AI Sales Chatbot'}
                 </h3>
-                <p className="text-gray-300 leading-relaxed text-sm">
+                <p className="text-gray-300 leading-relaxed text-sm mb-4">
                   {isSpanish 
-                    ? 'Dashboard con métricas de ventas, engagement y ROI para optimizar tu estrategia automáticamente.'
-                    : 'Dashboard with sales, engagement and ROI metrics to optimize your strategy automatically.'
+                    ? 'ChatBot inteligente que convierte visitantes en clientes con respuestas personalizadas y seguimiento automático de leads.'
+                    : 'Intelligent chatbot that converts visitors into customers with personalized responses and automatic lead follow-up.'
                   }
                 </p>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1 text-emerald-300">
+                    <TrendingUp className="w-3 h-3" />
+                    <span>{isSpanish ? '85% conversión' : '85% conversion'}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-emerald-300">
+                    <Clock className="w-3 h-3" />
+                    <span>{isSpanish ? '24/7 activo' : '24/7 active'}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -608,43 +621,30 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* High-Converting Chatbot Card - Featured */}
-            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 via-emerald-900 to-green-900 rounded-2xl p-6 border border-emerald-500/20 hover:border-emerald-400/40 transition-all duration-500">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            {/* Analytics Card - Bottom Featured */}
+            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 to-purple-900 rounded-2xl p-6 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/25">
-                      <MessageSquare className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="px-3 py-1 bg-emerald-500/20 rounded-full border border-emerald-400/30">
-                      <span className="text-emerald-300 text-xs font-bold">HIGH-CONVERTING</span>
-                    </div>
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/25">
+                    <TrendingUp className="h-6 w-6 text-white" />
                   </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <div className="text-emerald-300 text-xs font-mono">Online</div>
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-8 bg-purple-400 rounded animate-pulse" style={{animationDelay: '0s'}}></div>
+                    <div className="w-1 h-6 bg-purple-500 rounded animate-pulse" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-1 h-10 bg-purple-400 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-1 h-4 bg-purple-500 rounded animate-pulse" style={{animationDelay: '0.3s'}}></div>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300">
-                  {isSpanish ? 'ChatBot de Ventas IA' : 'AI Sales Chatbot'}
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors duration-300">
+                  {isSpanish ? 'Análisis en Tiempo Real' : 'Real-Time Analytics'}
                 </h3>
-                <p className="text-gray-300 leading-relaxed text-sm mb-4">
+                <p className="text-gray-300 leading-relaxed text-sm">
                   {isSpanish 
-                    ? 'ChatBot inteligente que convierte visitantes en clientes con respuestas personalizadas y seguimiento automático de leads.'
-                    : 'Intelligent chatbot that converts visitors into customers with personalized responses and automatic lead follow-up.'
+                    ? 'Dashboard con métricas de ventas, engagement y ROI para optimizar tu estrategia automáticamente.'
+                    : 'Dashboard with sales, engagement and ROI metrics to optimize your strategy automatically.'
                   }
                 </p>
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="flex items-center gap-1 text-emerald-300">
-                    <TrendingUp className="w-3 h-3" />
-                    <span>{isSpanish ? '85% conversión' : '85% conversion'}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-emerald-300">
-                    <Clock className="w-3 h-3" />
-                    <span>{isSpanish ? '24/7 activo' : '24/7 active'}</span>
-                  </div>
-                </div>
               </div>
             </div>
 
