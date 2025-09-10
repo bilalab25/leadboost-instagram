@@ -31,13 +31,13 @@ export default function Landing() {
         const circleBottom = circleTop + circleSection.offsetHeight;
         const scrollY = window.scrollY;
         
-        // Calculate progress from end of hero to start of circle section
+        // Calculate progress from end of hero to end of circle section (Meet LeadBoost area)
         const totalDistance = circleBottom - heroBottom;
         const currentProgress = Math.max(0, scrollY - heroBottom);
         const progress = Math.min(1, currentProgress / totalDistance);
         
-        // Scale from 0.1 to 1.8 based on scroll progress (almost full screen)
-        const newScale = 0.1 + (progress * 1.7);
+        // Scale from 0.1 to 1.4 for perfect visibility without cutoff
+        const newScale = 0.1 + (progress * 1.3);
         setCircleScale(newScale);
       }
     };
@@ -296,7 +296,10 @@ export default function Landing() {
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8 h-[600px] flex items-center justify-center">
           <div 
             className="transform transition-transform duration-700 ease-out"
-            style={{ transform: `scale(${circleScale})` }}
+            style={{ 
+              transform: `scale(${circleScale})`,
+              transformOrigin: 'center center'
+            }}
           >
           
             {/* Center text with enhanced design */}
