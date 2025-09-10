@@ -283,7 +283,7 @@ export default function Landing() {
             </div>
             <div className="w-24 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent"></div>
             <div className="text-sm text-gray-500 mt-3 font-medium">
-              {isSpanish ? 'Resultado Final' : 'End Result'}
+              {isSpanish ? 'Automáticamente' : 'Automatically'}
             </div>
           </div>
 
