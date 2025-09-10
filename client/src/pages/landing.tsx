@@ -405,35 +405,6 @@ export default function Landing() {
             <div className="absolute inset-4 w-[464px] h-[464px] border border-purple-200/20 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
           </div>
 
-          {/* Arrow tips between each step */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            {[...Array(5)].map((_, i) => {
-              const midAngle = (i * 72 + 36) - 90; // Midpoint between steps
-              const tipRadius = 240; // Touching the circle line
-              const x = tipRadius * Math.cos(midAngle * Math.PI / 180);
-              const y = tipRadius * Math.sin(midAngle * Math.PI / 180);
-              
-              return (
-                <div
-                  key={i}
-                  className="absolute"
-                  style={{
-                    left: `${250 + x}px`,
-                    top: `${250 + y}px`,
-                    transform: `translate(-50%, -50%) rotate(${midAngle + 90}deg)`,
-                  }}
-                >
-                  <div 
-                    className="w-0 h-0 border-l-[8px] border-r-0 border-t-[4px] border-b-[4px] border-l-blue-500 border-t-transparent border-b-transparent animate-pulse"
-                    style={{
-                      animationDelay: `${i * 0.3}s`,
-                      filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.6))'
-                    }}
-                  ></div>
-                </div>
-              );
-            })}
-          </div>
           </div>
 
         </div>
