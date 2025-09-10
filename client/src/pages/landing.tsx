@@ -461,7 +461,7 @@ export default function Landing() {
       </section>
 
       {/* Interactive Demo Section - Premium Style */}
-      <section className="relative py-32 bg-gradient-to-b from-blue-50/30 via-white to-slate-50/30">
+      <section className="relative py-32 bg-gradient-to-b from-slate-100 via-gray-50 to-slate-100">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           {/* Demo Container with Premium Styling */}
           <div className="backdrop-blur-sm border border-white/50 rounded-3xl shadow-2xl p-8 lg:p-12" style={{backgroundColor: 'rgba(248, 248, 250, 0.8)'}}>
