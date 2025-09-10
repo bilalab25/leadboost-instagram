@@ -223,21 +223,6 @@ export default function Landing() {
             }
           </p>
 
-          {/* Value Proposition */}
-          <div className={`flex justify-center items-center gap-8 mb-12 transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Check className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium">{isSpanish ? 'Sin configuración' : 'No setup required'}</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Check className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium">{isSpanish ? 'Resultados en 24h' : 'Results in 24h'}</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Check className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium">{isSpanish ? 'Cancela cuando quieras' : 'Cancel anytime'}</span>
-            </div>
-          </div>
           
           {/* Primary CTA - Apple Style */}
           <div className={`flex flex-col items-center gap-6 mb-20 transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
