@@ -190,8 +190,8 @@ export default function Landing() {
           {/* Subtitle - Enhanced */}
           <p className={`text-xl sm:text-2xl lg:text-3xl text-gray-600 mb-16 max-w-5xl mx-auto leading-relaxed font-light transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             {isSpanish 
-              ? 'La única plataforma que recopila todos tus datos empresariales, crea campañas de marketing inteligentes que se ejecutan automáticamente, y cierra ventas sin esfuerzo manual.' 
-              : 'The only platform that collects all your business data, creates intelligent marketing campaigns that run automatically, and closes sales without manual effort.'
+              ? 'La única plataforma que recopila tus datos empresariales, construye campañas inteligentes que se ejecutan automáticamente, y cierra ventas—todo sin esfuerzo manual.' 
+              : 'The only platform that collects your business data, builds intelligent campaigns that run automatically, and closes sales—all without manual effort.'
             }
           </p>
 
