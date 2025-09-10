@@ -1545,30 +1545,62 @@ export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {
             </div>
 
 
-            {/* Tell us about your business - Optional with smaller text box */}
-            <div className="space-y-4">
-              <label className="block text-lg font-semibold text-gray-700">
+            {/* Business Data Collection - Modern & Minimalist */}
+            <div className="space-y-6">
+              <div className="text-center">
+                <h4 className="text-lg font-medium text-gray-800 mb-2">
+                  {isSpanish ? 'Conecta tu Presencia Digital' : 'Connect Your Digital Presence'}
+                </h4>
+                <p className="text-sm text-gray-500">
+                  {isSpanish 
+                    ? 'Ayúdanos a personalizar tu campaña con tus datos existentes'
+                    : 'Help us personalize your campaign with your existing data'
+                  }
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Website Input */}
+                <div className="relative">
+                  <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 focus-within:border-blue-400 focus-within:bg-white">
+                    <Globe className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <Input
+                        placeholder={isSpanish ? "www.tu-sitio.com" : "www.yoursite.com"}
+                        className="border-0 bg-transparent p-0 text-sm placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        data-testid="input-website"
+                      />
+                    </div>
+                  </div>
+                  <label className="absolute -top-2 left-3 bg-white px-2 text-xs font-medium text-gray-600">
+                    {isSpanish ? 'Sitio Web' : 'Website'}
+                  </label>
+                </div>
+
+                {/* Social Media Input */}
+                <div className="relative">
+                  <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 focus-within:border-blue-400 focus-within:bg-white">
+                    <Instagram className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <Input
+                        placeholder={isSpanish ? "@tu_negocio" : "@yourbusiness"}
+                        className="border-0 bg-transparent p-0 text-sm placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        data-testid="input-social"
+                      />
+                    </div>
+                  </div>
+                  <label className="absolute -top-2 left-3 bg-white px-2 text-xs font-medium text-gray-600">
+                    {isSpanish ? 'Redes Sociales' : 'Social Media'}
+                  </label>
+                </div>
+              </div>
+              
+              <p className="text-xs text-gray-400 text-center">
                 {isSpanish 
-                  ? 'Cuéntanos sobre tu negocio (opcional)' 
-                  : 'Tell us about your business (optional)'
-                }
-              </label>
-              <p className="text-gray-600 leading-relaxed text-sm">
-                {isSpanish 
-                  ? 'Ejemplo: "Mi sitio web de negocio es: renuvederm.com mi instagram de negocio es @renuvederm"'
-                  : 'Example: "My business website is: renuvederm.com my business instagram is @renuvederm"'
+                  ? 'Opcional - La IA analizará tu contenido existente para crear campañas más relevantes'
+                  : 'Optional - AI will analyze your existing content to create more relevant campaigns'
                 }
               </p>
-              <Textarea
-                placeholder={isSpanish 
-                  ? "Describe tu negocio aquí..." 
-                  : "Describe your business here..."
-                }
-                value={demo.businessDescription}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDemo(prev => ({ ...prev, businessDescription: e.target.value }))}
-                className="min-h-[80px] text-base resize-none border border-gray-300 focus:border-blue-500 rounded-xl p-4 bg-white/50 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
-                data-testid="textarea-business-description"
-              />
             </div>
 
             {/* Brand Style Selector - Now Last */}
