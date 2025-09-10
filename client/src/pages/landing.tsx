@@ -244,59 +244,129 @@ export default function Landing() {
 
       {/* LeadBoost Introduction Section - Clean Style */}
       <section className="relative py-24 bg-white">
-        {/* Simple 3-Step Process */}
-        <div className="max-w-5xl mx-auto px-6 sm:px-8 mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+        {/* AI Process Flow */}
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 mb-16">
+          <div className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 rounded-3xl p-8 lg:p-12 overflow-hidden">
             
-            {/* Step 1: Your Business */}
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
-                <div className="text-3xl">📊</div>
+            {/* Subtle tech grid background */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0" style={{backgroundImage: 'radial-gradient(circle at 25px 25px, #3b82f6 1px, transparent 1px)', backgroundSize: '50px 50px'}}></div>
+            </div>
+            
+            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
+              
+              {/* Step 1: Data Input */}
+              <div className="text-center group">
+                <div className="relative">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 border border-blue-300/20">
+                    {/* Data streams icon */}
+                    <div className="relative">
+                      <div className="flex flex-col space-y-1">
+                        {[...Array(4)].map((_, i) => (
+                          <div key={i} className="flex space-x-1">
+                            {[...Array(3)].map((_, j) => (
+                              <div key={j} className={`w-2 h-1 bg-white/80 rounded-sm animate-pulse`} style={{animationDelay: `${(i * 0.2) + (j * 0.1)}s`}}></div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping"></div>
+                    </div>
+                  </div>
+                  {/* Floating data points */}
+                  <div className="absolute -top-2 -right-2 w-3 h-3 bg-blue-400 rounded-full opacity-60 animate-bounce"></div>
+                  <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-cyan-400 rounded-full opacity-40 animate-pulse"></div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  {isSpanish ? 'Ingesta de Datos' : 'Data Ingestion'}
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {isSpanish ? 'Captura automática desde todas tus fuentes' : 'Auto-capture from all your sources'}
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Tu Negocio' : 'Your Business'}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {isSpanish ? 'Ventas, inventario, clientes' : 'Sales, inventory, customers'}
-              </p>
-            </div>
 
-            {/* Arrow */}
-            <div className="hidden md:flex justify-center">
-              <div className="text-2xl text-blue-400 animate-pulse">→</div>
-            </div>
-
-            {/* Step 2: AI Processing */}
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center">
-                <div className="text-3xl">🤖</div>
+              {/* AI Flow Connector */}
+              <div className="hidden md:flex flex-col items-center justify-center">
+                <div className="flex items-center space-x-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={`w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse`} style={{animationDelay: `${i * 0.2}s`}}></div>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-500 mt-2 font-mono">AI PROCESSING</div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'IA Trabaja' : 'AI Works'}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {isSpanish ? 'Crea contenido automáticamente' : 'Creates content automatically'}
-              </p>
-            </div>
 
-            {/* Arrow */}
-            <div className="hidden md:flex justify-center">
-              <div className="text-2xl text-blue-400 animate-pulse">→</div>
-            </div>
-
-            {/* Step 3: Results */}
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center">
-                <div className="text-3xl">🎯</div>
+              {/* Step 2: AI Engine */}
+              <div className="text-center group">
+                <div className="relative">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 border border-purple-300/20">
+                    {/* AI brain with neural connections */}
+                    <div className="relative">
+                      <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                        <div className="w-6 h-6 bg-white/30 rounded animate-pulse"></div>
+                      </div>
+                      {/* Neural network lines */}
+                      <div className="absolute top-1/2 left-1/2 w-8 h-px bg-white/40 transform -translate-x-1/2 -translate-y-1/2 rotate-45"></div>
+                      <div className="absolute top-1/2 left-1/2 w-8 h-px bg-white/40 transform -translate-x-1/2 -translate-y-1/2 -rotate-45"></div>
+                      <div className="absolute top-1/2 left-1/2 w-8 h-px bg-white/40 transform -translate-x-1/2 -translate-y-1/2"></div>
+                      <div className="absolute top-1/2 left-1/2 w-px h-8 bg-white/40 transform -translate-x-1/2 -translate-y-1/2"></div>
+                    </div>
+                  </div>
+                  {/* Orbiting particles */}
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className={`absolute w-1.5 h-1.5 bg-purple-400 rounded-full opacity-60`} style={{
+                      top: '50%', left: '50%',
+                      transform: `translate(-50%, -50%) rotate(${i * 120}deg) translateY(-50px)`,
+                      animation: 'spin 3s linear infinite'
+                    }}></div>
+                  ))}
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  {isSpanish ? 'Motor de IA' : 'AI Engine'}
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {isSpanish ? 'Análisis y generación de contenido inteligente' : 'Intelligent analysis & content generation'}
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {isSpanish ? 'Más Ventas' : 'More Sales'}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {isSpanish ? 'Campañas que convierten' : 'Campaigns that convert'}
-              </p>
-            </div>
 
+              {/* AI Flow Connector */}
+              <div className="hidden md:flex flex-col items-center justify-center">
+                <div className="flex items-center space-x-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={`w-2 h-2 bg-gradient-to-r from-purple-500 to-green-500 rounded-full animate-pulse`} style={{animationDelay: `${i * 0.2}s`}}></div>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-500 mt-2 font-mono">DEPLOYMENT</div>
+              </div>
+
+              {/* Step 3: Multi-Channel Output */}
+              <div className="text-center group">
+                <div className="relative">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 border border-green-300/20">
+                    {/* Multi-channel broadcast icon */}
+                    <div className="relative">
+                      <div className="w-4 h-4 bg-white/80 rounded-full"></div>
+                      {/* Radiating signals */}
+                      {[...Array(4)].map((_, i) => (
+                        <div key={i} className={`absolute top-1/2 left-1/2 w-6 h-px bg-white/60 transform -translate-x-1/2 -translate-y-1/2 rotate-${i * 45} animate-pulse`} style={{
+                          transform: `translate(-50%, -50%) rotate(${i * 45}deg)`,
+                          animationDelay: `${i * 0.3}s`
+                        }}></div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Signal waves */}
+                  <div className="absolute -top-1 -right-1 w-4 h-4 border-2 border-green-400 rounded-full opacity-40 animate-ping"></div>
+                  <div className="absolute -bottom-2 -left-2 w-3 h-3 border-2 border-emerald-400 rounded-full opacity-60 animate-ping" style={{animationDelay: '0.5s'}}></div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  {isSpanish ? 'Distribución Multi-Canal' : 'Multi-Channel Deploy'}
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {isSpanish ? 'Campañas optimizadas en 21+ plataformas' : 'Optimized campaigns across 21+ platforms'}
+                </p>
+              </div>
+
+            </div>
           </div>
         </div>
 
