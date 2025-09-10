@@ -243,7 +243,7 @@ export default function Landing() {
       </section>
 
       {/* AI Process Circle Section */}
-      <section className="relative py-32 bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+      <section className="relative py-16 bg-white overflow-hidden">
         
         {/* Background tech pattern */}
         <div className="absolute inset-0 opacity-5">
