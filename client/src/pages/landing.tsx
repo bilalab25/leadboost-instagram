@@ -155,9 +155,37 @@ export default function Landing() {
       </header>
 
       {/* Hero Section - Apple/Squarespace Inspired */}
-      <section className="relative py-32 sm:py-40 lg:py-48 bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      <section className="relative py-32 sm:py-40 lg:py-48 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 overflow-hidden">
+        
+        {/* AI Assistant Background Figure */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden lg:block">
+          <div className="relative">
+            <img 
+              src={`/@assets/Gemini_Generated_Image_7mymyh7mymyh7mym_1757463993365.png`}
+              alt="AI Assistant"
+              className="w-96 h-96 object-contain"
+            />
+            {/* LeadBoost Arrows on the tablet */}
+            <div className="absolute top-[45%] left-[35%] transform -translate-x-1/2 -translate-y-1/2">
+              <div className="flex items-center justify-center space-x-1">
+                <div className="flex flex-col items-center">
+                  <div className="w-0 h-0 border-l-[3px] border-r-[3px] border-b-[8px] border-l-transparent border-r-transparent border-b-blue-600 animate-bounce"></div>
+                  <div className="w-0 h-0 border-l-[3px] border-r-[3px] border-b-[6px] border-l-transparent border-r-transparent border-b-blue-600 animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-0 h-0 border-l-[3px] border-r-[3px] border-b-[10px] border-l-transparent border-r-transparent border-b-green-600 animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  <div className="w-0 h-0 border-l-[3px] border-r-[3px] border-b-[8px] border-l-transparent border-r-transparent border-b-green-600 animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="w-0 h-0 border-l-[3px] border-r-[3px] border-b-[12px] border-l-transparent border-r-transparent border-b-blue-600 animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                  <div className="w-0 h-0 border-l-[3px] border-r-[3px] border-b-[10px] border-l-transparent border-r-transparent border-b-blue-600 animate-bounce" style={{animationDelay: '0.5s'}}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 text-center">
+        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 text-center z-10">
           {/* Trust Badge - Slogan Style */}
           <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-white border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
