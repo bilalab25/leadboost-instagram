@@ -182,7 +182,7 @@ export default function Landing() {
       </header>
 
       {/* Hero Section - Apple/Squarespace Inspired */}
-      <section className="relative py-16 sm:py-20 lg:py-24 pb-4 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
+      <section className="relative py-12 sm:py-16 lg:py-20 pb-0 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* AI Assistant Background Figure */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden lg:block">
@@ -270,7 +270,7 @@ export default function Landing() {
       </section>
 
       {/* AI Process Circle Section */}
-      <section id="circle-section" className="relative pt-0 pb-8 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
+      <section id="circle-section" className="relative -mt-8 pt-0 pb-8 overflow-hidden" style={{backgroundColor: '#F8F8FA'}}>
         
         {/* Background tech pattern */}
         <div className="absolute inset-0 opacity-5">
