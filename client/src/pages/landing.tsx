@@ -158,18 +158,12 @@ export default function Landing() {
       <section className="relative py-32 sm:py-40 lg:py-48 bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8 text-center">
-          {/* Trust Badge */}
+          {/* Trust Badge - Slogan Style */}
           <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-white border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-sm font-medium text-gray-700">
-{isSpanish ? 'Creador de Contenido IA de Nueva Generación' : 'Next-Generation AI Content Creator'}
+{isSpanish ? 'tu proceso completo de marketing, en IA' : 'your complete marketing process, on AI'}
             </span>
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
-              ))}
-              <span className="text-xs text-gray-500 ml-1">4.9</span>
-            </div>
           </div>
           
           {/* Main Headline - Premium Typography */}
