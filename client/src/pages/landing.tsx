@@ -405,54 +405,56 @@ export default function Landing() {
             <div className="absolute inset-4 w-[464px] h-[464px] border border-purple-200/20 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
           </div>
 
-          {/* Enhanced connecting flow arrows */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="absolute" style={{
-                top: '50%', 
-                left: '50%',
-                transform: `translate(-50%, -50%) rotate(${i * 72 + 36}deg) translateY(-210px) rotate(-${i * 72 + 36}deg)`
-              }}>
-                <div className="flex items-center">
-                  <div className="w-12 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse shadow-lg" style={{animationDelay: `${i * 0.4}s`}}></div>
-                  <div className="w-0 h-0 border-l-[8px] border-r-0 border-t-[4px] border-b-[4px] border-l-blue-500 border-t-transparent border-b-transparent ml-1 animate-pulse" style={{
-                    animationDelay: `${i * 0.4}s`,
-                    filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.6))'
-                  }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Curved process flow indicators */}
+          {/* Curved process flow arrows */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <svg width="500" height="500" className="absolute -translate-x-1/2 -translate-y-1/2">
               <defs>
-                <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                 refX="9" refY="3.5" orient="auto">
-                  <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" opacity="0.7" />
+                <marker id="arrowhead" markerWidth="12" markerHeight="8" 
+                 refX="11" refY="4" orient="auto" markerUnits="strokeWidth">
+                  <polygon points="0 0, 12 4, 0 8" fill="#3b82f6" opacity="0.8" />
                 </marker>
-              </defs>
-              <circle 
-                cx="250" 
-                cy="250" 
-                r="240" 
-                fill="none" 
-                stroke="url(#circleGradient)" 
-                strokeWidth="3" 
-                strokeDasharray="15,10"
-                strokeLinecap="round"
-                opacity="0.6"
-                className="animate-pulse"
-                markerEnd="url(#arrowhead)"
-              />
-              <defs>
-                <linearGradient id="circleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{stopColor: '#3b82f6', stopOpacity: 0.8}} />
-                  <stop offset="50%" style={{stopColor: '#8b5cf6', stopOpacity: 0.8}} />
-                  <stop offset="100%" style={{stopColor: '#06b6d4', stopOpacity: 0.8}} />
+                <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style={{stopColor: '#3b82f6', stopOpacity: 0.9}} />
+                  <stop offset="50%" style={{stopColor: '#8b5cf6', stopOpacity: 0.9}} />
+                  <stop offset="100%" style={{stopColor: '#06b6d4', stopOpacity: 0.9}} />
                 </linearGradient>
               </defs>
+              
+              {/* Curved arrows between each step */}
+              {[...Array(5)].map((_, i) => {
+                const startAngle = i * 72 - 90; // Start from top (-90°)
+                const endAngle = (i + 1) * 72 - 90;
+                const radius = 240;
+                
+                // Calculate start and end points
+                const startX = 250 + radius * Math.cos(startAngle * Math.PI / 180);
+                const startY = 250 + radius * Math.sin(startAngle * Math.PI / 180);
+                const endX = 250 + radius * Math.cos(endAngle * Math.PI / 180);
+                const endY = 250 + radius * Math.sin(endAngle * Math.PI / 180);
+                
+                // Calculate control points for smooth curve
+                const midAngle = (startAngle + endAngle) / 2;
+                const controlRadius = radius + 40; // Curve outward
+                const controlX = 250 + controlRadius * Math.cos(midAngle * Math.PI / 180);
+                const controlY = 250 + controlRadius * Math.sin(midAngle * Math.PI / 180);
+                
+                return (
+                  <path
+                    key={i}
+                    d={`M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`}
+                    fill="none"
+                    stroke="url(#arrowGradient)"
+                    strokeWidth="3"
+                    markerEnd="url(#arrowhead)"
+                    opacity="0.8"
+                    className="animate-pulse"
+                    style={{
+                      animationDelay: `${i * 0.3}s`,
+                      filter: 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.4))'
+                    }}
+                  />
+                );
+              })}
             </svg>
           </div>
           </div>
