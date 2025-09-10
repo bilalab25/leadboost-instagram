@@ -191,7 +191,7 @@ export default function Landing() {
           <div className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{backgroundColor: '#F8F8FA'}}>
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-base font-medium text-gray-700">
-{isSpanish ? 'Tu Proceso Completo de Marketing, en IA' : 'Your Complete Marketing Process, on AI'}
+{isSpanish ? 'Tu Proceso Completo de Marketing, en IA' : 'The Complete Marketing Process, on AI'}
             </span>
           </div>
           
