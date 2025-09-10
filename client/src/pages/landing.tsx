@@ -485,95 +485,153 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12">
-            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Bot className="h-8 w-8 text-white" />
+          {/* Modern Bento-Style Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {/* Primary Feature - Large Card */}
+            <div className="lg:col-span-2 lg:row-span-2 group relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 rounded-2xl p-8 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                    <Bot className="h-7 w-7 text-white" />
+                  </div>
+                  <div className="px-3 py-1 bg-blue-500/20 rounded-full border border-blue-400/30">
+                    <span className="text-blue-300 text-sm font-medium">AI-POWERED</span>
+                  </div>
+                </div>
+                <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors duration-300">
+                  {isSpanish ? 'Campañas IA Automatizadas' : 'AI Automated Campaigns'}
+                </h3>
+                <p className="text-gray-300 leading-relaxed text-lg mb-6">
+                  {isSpanish 
+                    ? 'IA crea y publica contenido de marketing basado en datos reales de tu negocio - inventario, ventas, eventos.'
+                    : 'AI creates and posts marketing content based on real business data - inventory, sales, events.'
+                  }
+                </p>
+                <div className="flex items-center gap-2 text-blue-300 text-sm">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <span>{isSpanish ? 'Generando contenido...' : 'Generating content...'}</span>
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-blue-600 transition-colors duration-300">
-                {isSpanish ? 'Campañas IA Automatizadas' : 'AI Automated Campaigns'}
-              </h3>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                {isSpanish 
-                  ? 'IA crea y publica contenido de marketing basado en datos reales de tu negocio - inventario, ventas, eventos.'
-                  : 'AI creates and posts marketing content based on real business data - inventory, sales, events.'
-                }
-              </p>
             </div>
 
-            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <MessageSquare className="h-8 w-8 text-white" />
+            {/* Analytics Card - Top Right */}
+            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 to-purple-900 rounded-2xl p-6 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/25">
+                    <TrendingUp className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-8 bg-purple-400 rounded animate-pulse" style={{animationDelay: '0s'}}></div>
+                    <div className="w-1 h-6 bg-purple-500 rounded animate-pulse" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-1 h-10 bg-purple-400 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-1 h-4 bg-purple-500 rounded animate-pulse" style={{animationDelay: '0.3s'}}></div>
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors duration-300">
+                  {isSpanish ? 'Análisis en Tiempo Real' : 'Real-Time Analytics'}
+                </h3>
+                <p className="text-gray-300 leading-relaxed text-sm">
+                  {isSpanish 
+                    ? 'Dashboard con métricas de ventas, engagement y ROI para optimizar tu estrategia automáticamente.'
+                    : 'Dashboard with sales, engagement and ROI metrics to optimize your strategy automatically.'
+                  }
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-green-600 transition-colors duration-300">
-                {isSpanish ? 'Bandeja de Entrada Unificada' : 'Unified Inbox'}
-              </h3>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                {isSpanish 
-                  ? 'Gestiona todos los mensajes de redes sociales desde un solo lugar con respuestas automáticas inteligentes.'
-                  : 'Manage all social media messages from one place with intelligent automatic responses.'
-                }
-              </p>
             </div>
 
-            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <TrendingUp className="h-8 w-8 text-white" />
+            {/* Inbox Card - Middle Left */}
+            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-green-900 rounded-2xl p-6 border border-green-500/20 hover:border-green-400/40 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 to-emerald-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center shadow-lg shadow-green-500/25">
+                    <MessageSquare className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-green-300 transition-colors duration-300">
+                  {isSpanish ? 'Bandeja Unificada' : 'Unified Inbox'}
+                </h3>
+                <p className="text-gray-300 leading-relaxed text-sm">
+                  {isSpanish 
+                    ? 'Gestiona todos los mensajes desde un solo lugar con respuestas automáticas.'
+                    : 'Manage all messages from one place with automatic responses.'
+                  }
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-purple-600 transition-colors duration-300">
-                {isSpanish ? 'Análisis en Tiempo Real' : 'Real-Time Analytics'}
-              </h3>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                {isSpanish 
-                  ? 'Dashboard con métricas de ventas, engagement y ROI para optimizar tu estrategia automáticamente.'
-                  : 'Dashboard with sales, engagement and ROI metrics to optimize your strategy automatically.'
-                }
-              </p>
             </div>
 
-            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Globe className="h-8 w-8 text-white" />
+            {/* Platforms Card - Middle Right */}
+            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-orange-900 rounded-2xl p-6 border border-orange-500/20 hover:border-orange-400/40 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 to-red-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/25">
+                    <Globe className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-orange-300 text-xs font-bold px-2 py-1 bg-orange-500/20 rounded-full border border-orange-400/30">21+</span>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-orange-300 transition-colors duration-300">
+                  {isSpanish ? 'Plataformas Conectadas' : 'Connected Platforms'}
+                </h3>
+                <p className="text-gray-300 leading-relaxed text-sm">
+                  {isSpanish 
+                    ? 'Publica automáticamente en Instagram, Facebook, TikTok, LinkedIn y más.'
+                    : 'Automatically post to Instagram, Facebook, TikTok, LinkedIn and more.'
+                  }
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-orange-600 transition-colors duration-300">
-                {isSpanish ? '21+ Plataformas Conectadas' : '21+ Connected Platforms'}
-              </h3>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                {isSpanish 
-                  ? 'Publica automáticamente en Instagram, Facebook, TikTok, LinkedIn y más plataformas simultáneamente.'
-                  : 'Automatically post to Instagram, Facebook, TikTok, LinkedIn and more platforms simultaneously.'
-                }
-              </p>
             </div>
 
-            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
-              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Users className="h-8 w-8 text-white" />
+            {/* CRM Card - Bottom Left */}
+            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-red-900 rounded-2xl p-6 border border-red-500/20 hover:border-red-400/40 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-500/25">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="text-red-300 text-xs font-mono">{'<CRM/>'}</div>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-red-300 transition-colors duration-300">
+                  {isSpanish ? 'CRM Inteligente' : 'Smart CRM'}
+                </h3>
+                <p className="text-gray-300 leading-relaxed text-sm">
+                  {isSpanish 
+                    ? 'Gestión automática de leads con seguimiento inteligente y nurturing personalizado.'
+                    : 'Automatic lead management with intelligent tracking and personalized nurturing.'
+                  }
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-red-600 transition-colors duration-300">
-                {isSpanish ? 'CRM Inteligente' : 'Smart CRM'}
-              </h3>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                {isSpanish 
-                  ? 'Gestión automática de leads y clientes con seguimiento inteligente y nurturing personalizado.'
-                  : 'Automatic lead and customer management with intelligent tracking and personalized nurturing.'
-                }
-              </p>
             </div>
 
-            <div className="group backdrop-blur-sm border border-white/40 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2" style={{backgroundColor: 'rgba(248, 248, 250, 0.7)'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.9)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(248, 248, 250, 0.7)'}>
-              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Shield className="h-8 w-8 text-white" />
+            {/* Security Card - Bottom Right */}
+            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-cyan-900 rounded-2xl p-6 border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/25">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-cyan-400 rounded-full animate-ping"></div>
+                    <div className="w-1 h-1 bg-cyan-400 rounded-full animate-ping" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-1 h-1 bg-cyan-400 rounded-full animate-ping" style={{animationDelay: '0.4s'}}></div>
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors duration-300">
+                  {isSpanish ? 'Seguridad Empresarial' : 'Enterprise Security'}
+                </h3>
+                <p className="text-gray-300 leading-relaxed text-sm">
+                  {isSpanish 
+                    ? 'Cifrado de extremo a extremo, cumplimiento GDPR y backups automáticos.'
+                    : 'End-to-end encryption, GDPR compliance and automatic backups.'
+                  }
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 group-hover:text-cyan-600 transition-colors duration-300">
-                {isSpanish ? 'Seguridad Empresarial' : 'Enterprise Security'}
-              </h3>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                {isSpanish 
-                  ? 'Cifrado de extremo a extremo, cumplimiento GDPR y backups automáticos de todos tus datos.'
-                  : 'End-to-end encryption, GDPR compliance and automatic backups of all your data.'
-                }
-              </p>
             </div>
           </div>
         </div>
