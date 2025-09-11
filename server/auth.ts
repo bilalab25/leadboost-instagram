@@ -13,8 +13,12 @@ if (process.env.DATABASE_URL) {
   }
 }
 
-// Site password protection - use environment variable
-const SITE_PASSWORD = process.env.WEBSITE_PASSWORD || "leadboost897";
+// Site password protection - require environment variable
+const SITE_PASSWORD = process.env.WEBSITE_PASSWORD;
+if (!SITE_PASSWORD) {
+  console.error("FATAL: WEBSITE_PASSWORD environment variable is required for site protection");
+  process.exit(1);
+}
 
 // Production-ready authentication setup without Replit dependencies
 export function getSession() {
@@ -62,19 +66,7 @@ export const checkSiteAccess: RequestHandler = (req, res, next) => {
   return res.status(401).json({ message: "Site access required" });
 };
 
-// Password check endpoint
-export const setupSiteAuth = (app: Express) => {
-  app.post("/api/site-auth", (req, res) => {
-    const { password } = req.body;
-    
-    if (password === SITE_PASSWORD) {
-      (req.session as any).siteAccess = true;
-      res.json({ success: true });
-    } else {
-      res.status(401).json({ success: false, message: "Invalid password" });
-    }
-  });
-};
+// Password check endpoint - removed duplicate implementation (handled in routes.ts)
 
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
@@ -565,7 +557,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
             if (result.success) {
               button.textContent = 'Access Granted ✓';
               button.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-              setTimeout(() => window.location.reload(), 800);
+              setTimeout(() => window.location.href = window.location.href, 800);
             } else {
               document.getElementById('error').style.display = 'block';
               button.textContent = originalText;
