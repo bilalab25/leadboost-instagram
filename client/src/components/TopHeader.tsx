@@ -94,6 +94,17 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
                 {/* Brand Switcher */}
                 <BrandSwitcher />
                 
+                {/* Language Toggle */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleLanguage}
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 font-medium transition-colors duration-150 min-w-[40px]"
+                  data-testid="button-language-toggle"
+                >
+                  {isSpanish ? 'EN' : 'ES'}
+                </Button>
+                
                 {/* Notifications with Badge */}
                 <div className="relative">
                   <Button 

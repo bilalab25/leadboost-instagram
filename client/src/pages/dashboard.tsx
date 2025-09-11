@@ -40,10 +40,12 @@ export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const { language, toggleLanguage, isSpanish } = useLanguage();
-  const t = translations['es']; // Force Spanish for demo
+  const t = translations[language]; // Use current language setting
   const [selectedPeriod, setSelectedPeriod] = useState<'weekly' | 'monthly' | 'daily'>('weekly');
   const [showDollarAmount, setShowDollarAmount] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
+
+
 
   // Authentication check disabled for direct dashboard access
   // useEffect(() => {
@@ -131,12 +133,12 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900">
-                      {t.dashboard.welcomeBack}, {user?.firstName || 'Usuario'}!
+                      {t.dashboard.welcomeBack}, {user?.firstName || (isSpanish ? 'Usuario' : 'User')}!
                     </h1>
                     <p className="text-gray-600 mt-1">
-                      Aquí tienes un resumen de tu {
-                        selectedPeriod === 'weekly' ? 'semana' :
-                        selectedPeriod === 'monthly' ? 'mes' : 'día'
+                      {isSpanish ? 'Aquí tienes un resumen de tu' : 'Here\'s a summary of your'} {
+                        selectedPeriod === 'weekly' ? (isSpanish ? 'semana' : 'week') :
+                        selectedPeriod === 'monthly' ? (isSpanish ? 'mes' : 'month') : (isSpanish ? 'día' : 'day')
                       }
                     </p>
                   </div>
@@ -175,7 +177,7 @@ export default function Dashboard() {
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    Esta semana
+                    {isSpanish ? 'Esta semana' : 'This week'}
                   </button>
                   <button 
                     onClick={() => setSelectedPeriod('monthly')}
@@ -185,7 +187,7 @@ export default function Dashboard() {
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    Este mes
+                    {isSpanish ? 'Este mes' : 'This month'}
                   </button>
                   <button 
                     onClick={() => setSelectedPeriod('daily')}
@@ -195,7 +197,7 @@ export default function Dashboard() {
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    Hoy
+                    {isSpanish ? 'Hoy' : 'Today'}
                   </button>
                 </div>
               </div>
@@ -212,7 +214,7 @@ export default function Dashboard() {
                           <div className="flex items-center mb-4">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 mr-3"></div>
                             <h3 className="text-lg font-medium text-gray-600">
-                              Tus Ventas
+                              {isSpanish ? 'Tus Ventas' : 'Your Sales'}
                             </h3>
                           </div>
                           <div className="space-y-2">
@@ -239,21 +241,21 @@ export default function Dashboard() {
                                 <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                               </svg>
                             </div>
-                            vs antes de LeadBoost
+                            {isSpanish ? 'vs antes de LeadBoost' : 'vs before LeadBoost'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            Datos del POS conectado • {(() => {
-                              if (selectedPeriod === 'weekly') return 'Última semana';
-                              if (selectedPeriod === 'monthly') return 'Último mes';
-                              if (selectedPeriod === 'daily') return 'Hoy';
-                              return 'Última semana';
+                            {isSpanish ? 'Datos del POS conectado' : 'Connected POS data'} • {(() => {
+                              if (selectedPeriod === 'weekly') return isSpanish ? 'Última semana' : 'Last week';
+                              if (selectedPeriod === 'monthly') return isSpanish ? 'Último mes' : 'Last month';
+                              if (selectedPeriod === 'daily') return isSpanish ? 'Hoy' : 'Today';
+                              return isSpanish ? 'Última semana' : 'Last week';
                             })()}
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm text-gray-500 mb-1">Objetivo mensual</div>
+                          <div className="text-sm text-gray-500 mb-1">{isSpanish ? 'Objetivo mensual' : 'Monthly target'}</div>
                           <div className="text-lg font-bold text-gray-700">$85,000</div>
-                          <div className="text-xs text-green-600 font-medium mt-1">62% completado</div>
+                          <div className="text-xs text-green-600 font-medium mt-1">{isSpanish ? '62% completado' : '62% complete'}</div>
                         </div>
                       </div>
                     </div>
@@ -268,7 +270,7 @@ export default function Dashboard() {
                       <div className="flex items-center mb-4">
                         <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-400 to-brand-500 mr-3"></div>
                         <h3 className="text-lg font-medium text-gray-600">
-                          Campañas
+                          {isSpanish ? 'Campañas' : 'Campaigns'}
                         </h3>
                       </div>
                       <div className="text-4xl font-bold text-gray-900 mb-4">
@@ -282,10 +284,11 @@ export default function Dashboard() {
                       <div className="space-y-3">
                         <div className="text-lg text-brand-600 font-bold">
                           {(() => {
-                            if (selectedPeriod === 'weekly') return '× 21 plataformas = 147 posts';
-                            if (selectedPeriod === 'monthly') return '× 21 plataformas = 588 posts';
-                            if (selectedPeriod === 'daily') return '× 21 plataformas = 21 posts';
-                            return '× 21 plataformas = 147 posts';
+                            const platformText = isSpanish ? '× 21 plataformas =' : '× 21 platforms =';
+                            if (selectedPeriod === 'weekly') return `${platformText} 147 posts`;
+                            if (selectedPeriod === 'monthly') return `${platformText} 588 posts`;
+                            if (selectedPeriod === 'daily') return `${platformText} 21 posts`;
+                            return `${platformText} 147 posts`;
                           })()}
                         </div>
                         <div className="flex items-center text-brand-600 text-sm font-medium">
@@ -295,10 +298,10 @@ export default function Dashboard() {
                             </svg>
                           </div>
                           {(() => {
-                            if (selectedPeriod === 'weekly') return '+4 esta semana';
-                            if (selectedPeriod === 'monthly') return '+4 este mes';
-                            if (selectedPeriod === 'daily') return '+1 hoy';
-                            return '+4 esta semana';
+                            if (selectedPeriod === 'weekly') return isSpanish ? '+4 esta semana' : '+4 this week';
+                            if (selectedPeriod === 'monthly') return isSpanish ? '+4 este mes' : '+4 this month';
+                            if (selectedPeriod === 'daily') return isSpanish ? '+1 hoy' : '+1 today';
+                            return isSpanish ? '+4 esta semana' : '+4 this week';
                           })()}
                         </div>
                       </div>

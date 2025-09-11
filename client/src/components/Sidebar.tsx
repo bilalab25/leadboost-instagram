@@ -26,6 +26,7 @@ import {
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
 import { translations } from "@/lib/translations";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface SocialAccount {
   id: string;
@@ -53,7 +54,9 @@ const platformColors = {
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
-  const t = translations['es']; // Force Spanish for demo
+  const { language } = useLanguage();
+  const t = translations[language]; // Use current language setting
+
 
   const navigation = [
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
