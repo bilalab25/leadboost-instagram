@@ -485,7 +485,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           <div class="logo-arrows">››</div>
           <div class="logo-text">Boost</div>
         </div>
-        <div class="logo-subtitle">AI-Powered Social Media</div>
+        <div class="logo-subtitle">AI-Powered Marketing</div>
         <div class="access-title">Access Required</div>
         <div class="access-subtitle">Enter site password to continue</div>
         <form id="passwordForm">
