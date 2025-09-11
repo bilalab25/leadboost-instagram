@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,23 +6,37 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
 import { useLocation } from "wouter";
+import { FcGoogle } from "react-icons/fc";
+import { FaApple, FaMicrosoft } from "react-icons/fa";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: z.string().email("Enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 const signupSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email address"),
+  email: z.string().email("Enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -35,7 +49,6 @@ export default function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       navigate("/");
@@ -44,43 +57,28 @@ export default function LoginPage() {
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
   const signupForm = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-    },
+    defaultValues: { firstName: "", lastName: "", email: "", password: "" },
   });
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginForm) => {
-      console.log("Logging in with data:", data);
       const response = await apiRequest("POST", "/api/login", data);
       return await response.json();
     },
     onSuccess: (data) => {
-      console.log("Login success data:", data);
-      // Set the user data in React Query cache
       queryClient.setQueryData(["/api/auth/user"], data.user);
-      toast({
-        title: "Welcome back!",
-        description: "You've been logged in successfully.",
-      });
+      toast({ title: "Welcome back!", description: "Login successful." });
       navigate("/");
     },
-    onError: (error) => {
-      console.error("Login error:", error);
+    onError: (error: any) => {
       toast({
         title: "Login failed",
-        description: error.message || "Invalid email or password",
+        description: error.message || "Invalid credentials",
         variant: "destructive",
       });
     },
@@ -88,37 +86,25 @@ export default function LoginPage() {
 
   const signupMutation = useMutation({
     mutationFn: async (data: SignupForm) => {
-      console.log("Signing up with data:", data);
       const response = await apiRequest("POST", "/api/signup", data);
       return await response.json();
     },
     onSuccess: (data) => {
-      console.log("Signup success data:", data);
-      // Set the user data in React Query cache
       queryClient.setQueryData(["/api/auth/user"], data.user);
-      toast({
-        title: "Account created!",
-        description: "Welcome to CampAIgner. You've been logged in automatically.",
-      });
+      toast({ title: "Account created!", description: "Welcome aboard 🎉" });
       navigate("/");
     },
-    onError: (error) => {
-      console.error("Signup error:", error);
+    onError: (error: any) => {
       toast({
-        title: "Signup failed", 
+        title: "Signup failed",
         description: error.message || "Failed to create account",
         variant: "destructive",
       });
     },
   });
 
-  const onLogin = (data: LoginForm) => {
-    loginMutation.mutate(data);
-  };
-
-  const onSignup = (data: SignupForm) => {
-    signupMutation.mutate(data);
-  };
+  const onLogin = (data: LoginForm) => loginMutation.mutate(data);
+  const onSignup = (data: SignupForm) => signupMutation.mutate(data);
 
   if (isLoading) {
     return (
@@ -129,14 +115,37 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">CampAIgner</h1>
-          <p className="text-gray-600">AI-Powered Social Media Management</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="max-w-md w-full shadow-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">
+            Your AI Workspace
+          </CardTitle>
+          <CardDescription>Sign in to your account</CardDescription>
+        </CardHeader>
 
-        <Card className="w-full">
+        <CardContent className="space-y-4">
+          {/* Social login buttons */}
+          <div className="flex flex-col space-y-2">
+            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+              <FcGoogle size={20} /> Continue with Google
+            </Button>
+            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+              <FaApple size={20} /> Continue with Apple
+            </Button>
+            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+              <FaMicrosoft size={20} /> Continue with Microsoft
+            </Button>
+          </div>
+
+          <div className="relative my-4">
+            <hr />
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2 text-sm text-gray-500">
+              or
+            </span>
+          </div>
+
+          {/* Tabs for login/signup */}
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
@@ -144,123 +153,53 @@ export default function LoginPage() {
             </TabsList>
 
             <TabsContent value="login">
-              <CardHeader>
-                <CardTitle>Welcome back</CardTitle>
-                <CardDescription>
-                  Sign in to your account to continue managing your campaigns.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="email"
-                              placeholder="Enter your email"
-                              data-testid="input-email"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="password"
-                              placeholder="Enter your password"
-                              data-testid="input-password"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={loginMutation.isPending}
-                      data-testid="button-login"
-                    >
-                      {loginMutation.isPending ? "Signing in..." : "Sign In"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-3">
+                  <FormField
+                    control={loginForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" placeholder="name@email.com" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="password" placeholder="******" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+                    {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                  </Button>
+                </form>
+              </Form>
             </TabsContent>
 
             <TabsContent value="signup">
-              <CardHeader>
-                <CardTitle>Create account</CardTitle>
-                <CardDescription>
-                  Start your free trial of CampAIgner today.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...signupForm}>
-                  <form onSubmit={signupForm.handleSubmit(onSignup)} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={signupForm.control}
-                        name="firstName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>First Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="First name"
-                                data-testid="input-firstname"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={signupForm.control}
-                        name="lastName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Last Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Last name"
-                                data-testid="input-lastname"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+              <Form {...signupForm}>
+                <form onSubmit={signupForm.handleSubmit(onSignup)} className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <FormField
                       control={signupForm.control}
-                      name="email"
+                      name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>First Name</FormLabel>
                           <FormControl>
-                            <Input
-                              {...field}
-                              type="email"
-                              placeholder="Enter your email"
-                              data-testid="input-signup-email"
-                            />
+                            <Input {...field} placeholder="John" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -268,41 +207,53 @@ export default function LoginPage() {
                     />
                     <FormField
                       control={signupForm.control}
-                      name="password"
+                      name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>Last Name</FormLabel>
                           <FormControl>
-                            <Input
-                              {...field}
-                              type="password"
-                              placeholder="Create a password (min 6 characters)"
-                              data-testid="input-signup-password"
-                            />
+                            <Input {...field} placeholder="Doe" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={signupMutation.isPending}
-                      data-testid="button-signup"
-                    >
-                      {signupMutation.isPending ? "Creating account..." : "Create Account"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
+                  </div>
+                  <FormField
+                    control={signupForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" placeholder="name@email.com" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={signupForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="password" placeholder="******" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full" disabled={signupMutation.isPending}>
+                    {signupMutation.isPending ? "Creating..." : "Create Account"}
+                  </Button>
+                </form>
+              </Form>
             </TabsContent>
           </Tabs>
-        </Card>
-
-        <div className="text-center text-sm text-gray-600">
-          <p>Start managing your social media campaigns with AI-powered automation.</p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
