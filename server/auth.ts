@@ -485,7 +485,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         </div>
         <div class="logo-subtitle">AI-Powered Social Media</div>
         <div class="access-title">Access Required</div>
-        <div class="access-subtitle">Enter authorization code to continue</div>
+        <div class="access-subtitle">Enter site password to continue</div>
         <form id="passwordForm">
           <input type="password" id="password" placeholder="Enter password" required>
           <button type="submit">Access Site</button>
@@ -530,7 +530,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         // Start typing effect after page load
         setTimeout(() => {
           const subtitle = document.querySelector('.access-subtitle');
-          typeEffect(subtitle, 'Enter authorization code to continue', 80);
+          typeEffect(subtitle, 'Enter site password to continue', 80);
         }, 500);
         
         document.getElementById('passwordForm').addEventListener('submit', async (e) => {
