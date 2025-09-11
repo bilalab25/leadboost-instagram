@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/site-auth", (req, res) => {
     const { password } = req.body;
     
-    if (password === "leadboost177$") {
+    if (password === process.env.WEBSITE_PASSWORD) {
       (req.session as any).siteAccess = true;
       res.json({ success: true });
     } else {
