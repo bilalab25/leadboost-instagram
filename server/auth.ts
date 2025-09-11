@@ -196,7 +196,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          background: #0a0a0a;
+          background: #F8F8FA;
           min-height: 100vh;
           min-height: -webkit-fill-available;
           display: flex;
@@ -208,7 +208,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           position: relative;
         }
         
-        /* Animated background */
+        /* Tech pattern background */
         body::before {
           content: '';
           position: absolute;
@@ -216,16 +216,9 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           left: 0;
           width: 100%;
           height: 100%;
-          background: radial-gradient(circle at 20% 80%, #3b82f6 0%, transparent 50%),
-                      radial-gradient(circle at 80% 20%, #8b5cf6 0%, transparent 50%),
-                      radial-gradient(circle at 40% 40%, #06b6d4 0%, transparent 50%);
-          animation: backgroundShift 8s ease-in-out infinite;
-          opacity: 0.1;
-        }
-        
-        @keyframes backgroundShift {
-          0%, 100% { transform: scale(1) rotate(0deg); }
-          50% { transform: scale(1.1) rotate(5deg); }
+          background-image: radial-gradient(circle at 25px 25px, #3b82f6 1px, transparent 1px);
+          background-size: 50px 50px;
+          opacity: 0.05;
         }
         
         /* Floating particles */
@@ -250,55 +243,53 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         }
         
         .container {
-          background: rgba(15, 15, 15, 0.95);
+          background: rgba(248, 248, 250, 0.95);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(59, 130, 246, 0.2);
+          border: 1px solid rgba(59, 130, 246, 0.1);
           padding: 3rem 2.5rem;
           border-radius: 24px;
           box-shadow: 
-            0 0 0 1px rgba(255, 255, 255, 0.05),
-            0 16px 32px rgba(0, 0, 0, 0.4),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            0 0 0 1px rgba(255, 255, 255, 0.1),
+            0 16px 32px rgba(0, 0, 0, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
           width: 100%;
           max-width: 450px;
           text-align: center;
           margin: 0 auto;
           position: relative;
           z-index: 10;
-          animation: containerGlow 3s ease-in-out infinite;
         }
         
-        @keyframes containerGlow {
-          0%, 100% { box-shadow: 
-            0 0 0 1px rgba(255, 255, 255, 0.05),
-            0 16px 32px rgba(0, 0, 0, 0.4),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1),
-            0 0 40px rgba(59, 130, 246, 0.1); }
-          50% { box-shadow: 
-            0 0 0 1px rgba(255, 255, 255, 0.05),
-            0 16px 32px rgba(0, 0, 0, 0.4),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1),
-            0 0 60px rgba(59, 130, 246, 0.3); }
-        }
-        
-        .container::before {
-          content: '';
+        /* Floating social media cards */
+        .social-cards {
           position: absolute;
-          top: -2px;
-          left: -2px;
-          right: -2px;
-          bottom: -2px;
-          background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4, #3b82f6);
-          border-radius: 26px;
-          z-index: -1;
-          animation: borderRotate 4s linear infinite;
-          opacity: 0.6;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          opacity: 0.04;
+          z-index: 1;
         }
         
-        @keyframes borderRotate {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+        .social-card {
+          position: absolute;
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: floatCard 8s ease-in-out infinite;
+        }
+        
+        .instagram { background: linear-gradient(135deg, #e91e63, #9c27b0); width: 80px; height: 80px; }
+        .linkedin { background: linear-gradient(135deg, #1976d2, #1565c0); width: 100px; height: 50px; }
+        .tiktok { background: linear-gradient(135deg, #000000, #424242); width: 50px; height: 90px; }
+        .facebook { background: linear-gradient(135deg, #1976d2, #1565c0); width: 100px; height: 50px; }
+        .twitter { background: linear-gradient(135deg, #000000, #424242); width: 90px; height: 50px; }
+        .youtube { background: linear-gradient(135deg, #d32f2f, #c62828); width: 110px; height: 60px; }
+        
+        @keyframes floatCard {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(2deg); }
         }
         
         @media (max-width: 480px) {
@@ -356,7 +347,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         .access-title {
           font-size: 1.5rem;
           font-weight: 600;
-          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
+          background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%);
           background-size: 200% 200%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -367,7 +358,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         }
         
         .access-subtitle {
-          color: #94a3b8;
+          color: #6b7280;
           font-size: 0.95rem;
           margin-bottom: 2rem;
           font-weight: 400;
@@ -375,11 +366,11 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         input {
           width: 100%;
           padding: 16px 20px;
-          background: rgba(15, 23, 42, 0.6);
-          border: 1px solid rgba(59, 130, 246, 0.3);
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(59, 130, 246, 0.2);
           border-radius: 12px;
           font-size: 16px;
-          color: #f1f5f9;
+          color: #1f2937;
           margin-bottom: 1.5rem;
           box-sizing: border-box;
           -webkit-appearance: none;
@@ -416,7 +407,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         button {
           width: 100%;
           padding: 16px 12px;
-          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
           color: white;
           border: none;
           border-radius: 12px;
@@ -429,6 +420,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           position: relative;
           overflow: hidden;
           font-family: 'Inter', sans-serif;
+          box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
           letter-spacing: 0.025em;
         }
         
@@ -476,6 +468,16 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
       </style>
     </head>
     <body>
+      <!-- Floating Social Media Cards -->
+      <div class="social-cards">
+        <div class="social-card instagram" style="left: 8%; top: 20%; animation-delay: 0s;"></div>
+        <div class="social-card tiktok" style="right: 12%; top: 25%; animation-delay: 1s;"></div>
+        <div class="social-card linkedin" style="left: 6%; top: 65%; animation-delay: 2s;"></div>
+        <div class="social-card facebook" style="right: 10%; top: 70%; animation-delay: 0.5s;"></div>
+        <div class="social-card twitter" style="left: 15%; top: 40%; animation-delay: 3s;"></div>
+        <div class="social-card youtube" style="right: 22%; top: 50%; animation-delay: 2.5s;"></div>
+      </div>
+      
       <div class="particles"></div>
       <div class="container">
         <div class="logo">
