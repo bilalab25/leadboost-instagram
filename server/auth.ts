@@ -13,8 +13,8 @@ if (process.env.DATABASE_URL) {
   }
 }
 
-// Site password protection
-const SITE_PASSWORD = "leadboost177$";
+// Site password protection - use environment variable
+const SITE_PASSWORD = process.env.WEBSITE_PASSWORD || "leadboost897";
 
 // Production-ready authentication setup without Replit dependencies
 export function getSession() {
