@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import BrandSwitcher from "@/components/BrandSwitcher";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,9 @@ import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
 import { translations } from "@/lib/translations";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useToast } from "@/hooks/use-toast";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebaseConfig"; // Asegúrate de que la ruta a firebaseConfig sea correcta
 
 interface SocialAccount {
   id: string;
@@ -56,7 +59,9 @@ export default function Sidebar() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const t = translations[language]; // Use current language setting
-
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
 
   const navigation = [
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
@@ -81,6 +86,62 @@ export default function Sidebar() {
     queryKey: ["/api/social-accounts"],
     retry: false,
   });
+
+  const handleLogout = async () => {
+    try {
+      // 1. Cerrar sesión en Firebase (lado del cliente)
+      await signOut(auth);
+      console.log("Logged out from Firebase client.");
+
+      // 2. Llamar a tu endpoint de logout del backend para destruir la sesión del servidor
+      const response = await fetch("/api/logout", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        console.log("Logged out from backend session.");
+        // Opcional: Invalidar o resetear los datos de react-query relacionados con el usuario
+        // Esto asegura que la UI refleje el estado de no autenticado
+        queryClient.setQueryData(["/api/auth/user"], null); // Establece el usuario a null
+        // O si quieres limpiar toda la caché de react-query:
+        // queryClient.clear();
+
+        toast({ title: "Logged out", description: "You have been successfully logged out." });
+        navigate("/login"); // Redirigir a la página de login o a la raíz
+      } else {
+        const errorData = await response.json();
+        console.error("Backend logout failed:", errorData.message);
+        toast({
+          title: "Logout Failed",
+          description: errorData.message || "An error occurred during backend logout.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Firebase logout error:", error);
+      let errorMessage = "An unexpected error occurred during logout.";
+      // Puedes añadir manejo de errores específicos de Firebase aquí si lo deseas
+      // if (error && typeof error === 'object' && 'code' in error) {
+      //   switch ((error as any).code) {
+      //     case "auth/no-current-user":
+      //       errorMessage = "No user is currently signed in.";
+      //       break;
+      //     default:
+      //       errorMessage = (error as any).message;
+      //       break;
+      //   }
+      // } else if (error.message) {
+      //   errorMessage = error.message;
+      // }
+
+      toast({
+        title: "Logout Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
 
   return (
     <div className="hidden md:flex md:w-64 md:flex-col">
@@ -173,7 +234,7 @@ export default function Sidebar() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.location.href = "/api/logout"}
+              onClick={handleLogout}
               data-testid="button-logout"
             >
               {t.common.logout}

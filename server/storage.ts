@@ -19,8 +19,9 @@ import {
   campaignTriggers,
   brandDesigns,
   campaignDesigns,
+  // Asegúrate de que estos tipos en @shared/schema incluyan firebaseUid y hagan password, email, firstName, lastName opcionales/nullable
   type User,
-  type UpsertUser,
+  type UpsertUser, // Asumo que UpsertUser es para operaciones de upsert, no para updateUser
   type InsertUser,
   type InsertBrand,
   type Brand,
@@ -66,11 +67,13 @@ import { eq, and, desc, asc, or, sql, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
-  getUser(id: string): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>; // Cambiado de getUserById a getUser
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>; // <-- ¡AÑADIDO/CORREGIDO AQUÍ!
+
   // Brand operations
   createBrand(brand: InsertBrand): Promise<Brand>;
   getBrandsByUserId(userId: string): Promise<Brand[]>;
@@ -212,6 +215,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
+    return user;
+  }
+
   async createUser(userData: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(userData).returning();
     return user;
@@ -231,6 +239,17 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
+
+  // <-- ¡AÑADIDO/CORREGIDO AQUÍ!
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return updated;
+  }
+  // FIN DE LA CORRECCIÓN
 
   // Brand operations
   async createBrand(brand: InsertBrand): Promise<Brand> {
@@ -467,9 +486,9 @@ export class DatabaseStorage implements IStorage {
 
   async updateCustomerTotalInvoiced(customerId: string, amount: number): Promise<void> {
     await db.update(customers)
-      .set({ 
+      .set({
         totalInvoiced: sql`${customers.totalInvoiced} + ${amount}`,
-        updatedAt: new Date() 
+        updatedAt: new Date()
       })
       .where(eq(customers.id, customerId));
   }
@@ -495,7 +514,7 @@ export class DatabaseStorage implements IStorage {
     .where(and(...whereConditions));
 
     const results = await query.orderBy(desc(invoices.createdAt));
-    
+
     return results.map(row => ({
       ...row.invoice,
       customer: row.customer || undefined,
@@ -510,7 +529,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updated;
   }
-  
+
   // Team task operations
   async createTeamTask(task: InsertTeamTask): Promise<TeamTask> {
     const [newTask] = await db.insert(teamTasks).values(task).returning();
@@ -551,7 +570,7 @@ export class DatabaseStorage implements IStorage {
     return tasks.map(row => ({
       ...row.task,
       assignedByUser: row.assignedByUser!,
-      assignedToUser: row.assignedToUser!,
+      assignedTo: row.assignedToUser!, // Corregido: assignedToUser
     }));
   }
 
@@ -560,7 +579,7 @@ export class DatabaseStorage implements IStorage {
       .set({ status, updatedAt: new Date() })
       .where(eq(teamTasks.id, id));
   }
-  
+
   // Task completion operations
   async createTaskCompletion(completion: InsertTaskCompletion): Promise<TaskCompletion> {
     const [newCompletion] = await db.insert(taskCompletions).values(completion).returning();
@@ -674,7 +693,7 @@ export class DatabaseStorage implements IStorage {
     if (unreadOnly) {
       whereConditions.push(eq(approvalNotifications.isRead, false));
     }
-    
+
     return db.select().from(approvalNotifications)
       .where(and(...whereConditions))
       .orderBy(desc(approvalNotifications.createdAt));
@@ -978,7 +997,7 @@ export class DatabaseStorage implements IStorage {
         notes: "Primera cita, consulta inicial incluida"
       },
       {
-        id: "apt-2", 
+        id: "apt-2",
         brandId,
         customerName: "Carmen López",
         customerPhone: "+1234567891",

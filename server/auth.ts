@@ -1,7 +1,40 @@
 import session from "express-session";
-import type { Express, RequestHandler } from "express";
-import bcrypt from "bcrypt";
-import { storage } from "./storage";
+import type { Express, Request, Response, NextFunction } from "express"; // Importar Request, Response, NextFunction
+import passport from "passport";
+import admin from 'firebase-admin'; // Importación corregida para firebase-admin
+import { storage } from "./storage"; // Asumiendo que storage maneja la persistencia de usuarios
+
+// --- INICIALIZACIÓN DE FIREBASE ADMIN SDK ---
+// Cargar credenciales de Firebase desde variables de entorno
+const firebaseConfig = {
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  // Reemplazar '\n' literales con saltos de línea reales para la clave privada
+  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+};
+
+// Verificar que las credenciales estén presentes
+if (!firebaseConfig.projectId || !firebaseConfig.privateKey || !firebaseConfig.clientEmail) {
+  console.error("FATAL: Firebase Admin SDK credentials are not fully set in environment variables.");
+  // En un entorno de producción, podrías considerar terminar el proceso aquí:
+  // process.exit(1);
+} else {
+  try {
+    // Solo inicializar si no ha sido inicializado ya
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(firebaseConfig),
+      });
+      console.log("Firebase Admin SDK initialized successfully.");
+    }
+  } catch (error) {
+    console.error("Error initializing Firebase Admin SDK:", error);
+    // En un entorno de producción, podrías considerar terminar el proceso aquí:
+    // process.exit(1);
+  }
+}
+// --- FIN INICIALIZACIÓN FIREBASE ADMIN SDK ---
+
 
 // Import connect-pg-simple only if DATABASE_URL is available
 let connectPg: any = null;
@@ -17,22 +50,21 @@ if (process.env.DATABASE_URL) {
 const SITE_PASSWORD = process.env.WEBSITE_PASSWORD;
 if (!SITE_PASSWORD) {
   console.error("FATAL: WEBSITE_PASSWORD environment variable is required for site protection");
-  process.exit(1);
+  // process.exit(1); // Descomentar en producción
 }
 
-// Production-ready authentication setup without Replit dependencies
+// Función para configurar la sesión de Express
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  
-  // Use PostgreSQL store if available, otherwise use memory store
+
   let sessionStore: any = undefined;
-  
+
   if (process.env.DATABASE_URL && connectPg) {
     try {
       const pgStore = connectPg(session);
       sessionStore = new pgStore({
         conString: process.env.DATABASE_URL,
-        createTableIfMissing: false,
+        createTableIfMissing: false, // Asegúrate de que tu tabla de sesiones exista o se cree por migración
         ttl: sessionTtl,
         tableName: "sessions",
       });
@@ -43,7 +75,7 @@ export function getSession() {
   } else {
     console.log("Using memory session store (not recommended for production)");
   }
-  
+
   return session({
     secret: process.env.SESSION_SECRET || 'demo-secret-' + Math.random().toString(36).substring(7),
     store: sessionStore,
@@ -57,7 +89,7 @@ export function getSession() {
   });
 }
 
-// Site access check middleware
+// Middleware para verificar el acceso al sitio (si tienes una contraseña general)
 export const checkSiteAccess: RequestHandler = (req, res, next) => {
   const session = req.session as any;
   if (session.siteAccess) {
@@ -66,118 +98,196 @@ export const checkSiteAccess: RequestHandler = (req, res, next) => {
   return res.status(401).json({ message: "Site access required" });
 };
 
-// Password check endpoint - removed duplicate implementation (handled in routes.ts)
-
+// Configuración principal de autenticación
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(getSession());
 
-  // Real authentication endpoints for production use
-  app.post("/api/signup", async (req, res) => {
+  // Configuración de Passport para manejar sesiones
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Passport serialize y deserialize user
+  passport.serializeUser((user: any, done) => {
+    // console.log("Passport serializeUser: Serializing user ID:", user.id); // Depuración
+    done(null, user.id); // Almacena el ID del usuario en la sesión
+  });
+
+  passport.deserializeUser(async (id: string, done) => {
     try {
-      const { email, password, firstName, lastName } = req.body;
-      
-      if (!email || !password || !firstName || !lastName) {
-        return res.status(400).json({ message: "All fields are required" });
+      // console.log("Passport deserializeUser: Deserializing user ID:", id); // Depuración
+      const user = await storage.getUser(id); // Recupera el objeto completo del usuario
+      if (!user) {
+        console.warn("Passport deserializeUser: User not found for ID:", id);
+      }
+      done(null, user); // Adjunta el objeto de usuario a req.user
+    } catch (error) {
+      console.error("Passport deserializeUser: Error during deserialization for ID:", id, error);
+      done(error, null);
+    }
+  });
+
+  // --- FUNCIÓN CENTRALIZADA PARA VERIFICAR TOKEN DE FIREBASE Y ESTABLECER SESIÓN ---
+  // Esta función es un middleware que se puede usar en múltiples rutas
+  const verifyFirebaseTokenAndLogin = async (req: Request, res: Response) => {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      console.error("verifyFirebaseTokenAndLogin: ID Token is missing in request body.");
+      return res.status(400).json({ message: "ID Token is required" });
+    }
+
+    try {
+      // 1. Verificar el ID Token con Firebase Admin SDK
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const firebaseUid = decodedToken.uid;
+      const email = decodedToken.email || null;
+      // Los campos 'name' y 'picture' pueden no estar siempre presentes o ser completos
+      const firstName = decodedToken.name?.split(' ')[0] || null;
+      const lastName = decodedToken.name?.split(' ').slice(1).join(' ') || null;
+      const profileImageUrl = decodedToken.picture || null;
+
+      console.log(`verifyFirebaseTokenAndLogin: Verifying Firebase Token for UID: ${firebaseUid}, Email: ${email}`);
+
+      // 2. Intentar encontrar al usuario en tu base de datos
+      let user = await storage.getUserByFirebaseUid(firebaseUid);
+
+      if (!user) {
+        console.log(`verifyFirebaseTokenAndLogin: User with firebaseUid ${firebaseUid} not found. Checking by email.`);
+        // Si no se encuentra por firebaseUid, intentar encontrarlo por email (para vincular cuentas)
+        if (email) {
+          user = await storage.getUserByEmail(email);
+          if (user) {
+            console.log(`verifyFirebaseTokenAndLogin: User with email ${email} found. Linking Firebase UID.`);
+            // Si se encuentra por email, actualizarlo para vincular el firebaseUid
+            // También actualizamos otros campos que Firebase pueda proporcionar
+            const updates: any = { firebaseUid: firebaseUid };
+            if (profileImageUrl) updates.profileImageUrl = profileImageUrl;
+            if (firstName && !user.firstName) updates.firstName = firstName; // Solo si no tiene ya un nombre
+            if (lastName && !user.lastName) updates.lastName = lastName; // Solo si no tiene ya un apellido
+            
+                // --- AÑADE ESTOS CONSOLE.LOGS AQUÍ ---
+                console.log("DEBUG: Tipo de 'storage':", typeof storage);
+                console.log("DEBUG: Objeto 'storage':", storage);
+                console.log("DEBUG: ¿'storage' tiene el método 'updateUser'?", typeof (storage as any).updateUser);
+                // --- FIN CONSOLE.LOGS ---
+
+                await storage.updateUser(user.id, updates); // Esta es la línea que falla
+                user = { ...user, ...updates};
+          }
+        }
       }
 
-      // Check if user already exists
-      let existingUser;
-      try {
-        existingUser = await storage.getUserByEmail(email);
-      } catch (error) {
-        console.error("Error checking existing user:", error);
-        return res.status(500).json({ message: "Database error" });
-      }
-      
-      if (existingUser) {
-        return res.status(400).json({ message: "User already exists with this email" });
+      if (!user) {
+        console.log(`verifyFirebaseTokenAndLogin: User not found by firebaseUid or email. Creating new user for ${email || firebaseUid}.`);
+        // Si aún no se encuentra, crear un nuevo usuario
+        user = await storage.createUser({
+          id: firebaseUid, // Usar firebaseUid como ID de la base de datos si es un nuevo usuario de Firebase
+          firebaseUid: firebaseUid,
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          profileImageUrl: profileImageUrl,
+          // password: null, // El campo password ya es nullable en el esquema
+          // Asegúrate de que otros campos requeridos por tu esquema tengan valores predeterminados
+          // o se proporcionen aquí (ej. role, hierarchyLevel, canApprove)
+          // role: "agency_owner", // Ejemplo
+        });
+        console.log(`verifyFirebaseTokenAndLogin: New user created with ID: ${user.id}, Firebase UID: ${user.firebaseUid}`);
+      } else {
+          console.log(`verifyFirebaseTokenAndLogin: User found/updated: ID ${user.id}, Firebase UID: ${user.firebaseUid}`);
+          // Si el usuario ya existía (encontrado por firebaseUid o actualizado por email),
+          // podemos asegurarnos de que la información de perfil esté actualizada.
+          const updates: any = {};
+          if (email && user.email !== email) updates.email = email;
+          if (profileImageUrl && user.profileImageUrl !== profileImageUrl) updates.profileImageUrl = profileImageUrl;
+          if (firstName && user.firstName !== firstName) updates.firstName = firstName;
+          if (lastName && user.lastName !== lastName) updates.lastName = lastName;
+        console.log("DEBUG (Existing User): Tipo de 'storage':", typeof storage);
+        console.log("DEBUG (Existing User): Objeto 'storage':", storage);
+        console.log("DEBUG (Existing User): ¿'storage' tiene el método 'updateUser'?", typeof (storage as any).updateUser);
+          if (Object.keys(updates).length > 0) {
+              await storage.updateUser(user.id, updates);
+              user = { ...user, ...updates }; // Actualiza el objeto user en memoria
+          }
       }
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // Validar que el objeto user sea válido antes de pasarlo a Passport
+      // Esto previene el error "Cannot read properties of undefined (reading 'id')" en serializeUser
+      if (!user || !user.id) {
+        console.error("verifyFirebaseTokenAndLogin: User object is invalid or missing ID after storage operations:", user);
+        return res.status(500).json({ message: "Failed to retrieve or create user in database." });
+      }
 
-      // Create user
-      const newUser = await storage.createUser({
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        profileImageUrl: null,
+      // 4. Establecer la sesión en Express usando Passport
+      req.login(user, (err) => {
+        if (err) {
+          console.error("verifyFirebaseTokenAndLogin: Error during Passport login after Firebase auth:", err);
+          return res.status(500).json({ message: "Failed to establish session" });
+        }
+        const { password: _, ...userWithoutPassword } = user; // Excluir la contraseña antes de enviar al frontend
+        res.status(200).json({ user: userWithoutPassword });
       });
 
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = newUser;
-
-      // Set session
-      (req.session as any).user = userWithoutPassword;
-      
-      res.status(201).json({ user: userWithoutPassword });
     } catch (error) {
-      console.error("Signup error:", error);
-      res.status(500).json({ message: "Failed to create account" });
+      console.error("verifyFirebaseTokenAndLogin: Firebase ID Token verification failed:", error);
+      res.status(401).json({ message: "Unauthorized: Invalid or expired ID Token" });
     }
-  });
+  };
+  // --- FIN FUNCIÓN CENTRALIZADA ---
 
-  app.post("/api/login", async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      
-      if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
-      }
+  // --- RUTAS DE AUTENTICACIÓN ---
+  // Ambas rutas (signup y login) ahora usan la función centralizada
+  app.post("/api/signup", verifyFirebaseTokenAndLogin);
+  app.post("/api/login", verifyFirebaseTokenAndLogin);
 
-      // Find user
-      const user = await storage.getUserByEmail(email);
-      if (!user) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-
-      // Verify password
-      const isValidPassword = await bcrypt.compare(password, user.password);
-      if (!isValidPassword) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-
-      // Remove password from user object
-      const { password: _, ...userWithoutPassword } = user;
-
-      // Set session
-      (req.session as any).user = userWithoutPassword;
-      
-      res.json({ user: userWithoutPassword });
-    } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({ message: "Login failed" });
-    }
-  });
-
-  app.post("/api/logout", (req, res) => {
-    req.session.destroy((err) => {
+  app.post("/api/logout", (req, res, next) => {
+    req.logout((err) => {
       if (err) {
-        console.error("Error destroying session:", err);
-        return res.status(500).json({ message: "Logout failed" });
+        console.error("Logout error:", err);
+        return next(err);
       }
-      res.json({ message: "Logged out successfully" });
+      req.session.destroy((err2) => {
+        if (err2) {
+          console.error("Error destroying session:", err2);
+          return res.status(500).json({ message: "Logout failed" });
+        }
+        // Redirigir o enviar una respuesta de éxito después de destruir la sesión
+        res.json({ message: "Logged out successfully" });
+      });
     });
   });
-}
 
-// Site-wide password protection middleware
+  // Endpoint para verificar el estado del usuario actual
+  app.get('/api/auth/user', (req, res) => {
+    if (req.isAuthenticated() && req.user) {
+      const user = req.user as any;
+      const { password: _, ...userWithoutPassword } = user; // Asegúrate de que la contraseña no se envíe
+      res.json({ user: userWithoutPassword });
+    } else {
+      res.status(401).json({ user: null });
+    }
+  });
+} // FIN DE setupAuth
+
+// --- MIDDLEWARE DE PROTECCIÓN DE SITIO Y AUTENTICACIÓN ---
+// ESTOS MIDDLEWARES DEBEN ESTAR FUERA DE `setupAuth` PARA SER EXPORTADOS CORRECTAMENTE
+
+// Middleware de protección de contraseña para todo el sitio
 export const requireSitePassword: RequestHandler = (req, res, next) => {
   const session = req.session as any;
-  
-  // Check if this is the password auth endpoint
+
+  // Si la ruta es para autenticar la contraseña del sitio, permite el paso
   if (req.path === '/api/site-auth') {
     return next();
   }
-  
-  // Check if user has already entered the correct password
+
+  // Si el usuario ya ha introducido la contraseña correcta del sitio
   if (session && session.siteAccess) {
     return next();
   }
-  
-  // Serve password protection page for all other requests
+
+  // Si no, muestra la página de protección de contraseña
   const passwordPage = `
     <!DOCTYPE html>
     <html lang="en">
@@ -187,13 +297,13 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
       <title>LeadBoost - Access Required</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
+
         * {
           margin: 0;
           padding: 0;
           box-sizing: border-box;
         }
-        
+
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
           background: #F8F8FA;
@@ -207,7 +317,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           overflow: hidden;
           position: relative;
         }
-        
+
         /* Tech pattern background */
         body::before {
           content: '';
@@ -220,7 +330,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           background-size: 50px 50px;
           opacity: 0.05;
         }
-        
+
         /* Floating particles */
         .particles {
           position: absolute;
@@ -228,7 +338,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           height: 100%;
           pointer-events: none;
         }
-        
+
         .particle {
           position: absolute;
           width: 2px;
@@ -241,14 +351,14 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
           50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
         }
-        
+
         .container {
           background: rgba(248, 248, 250, 0.95);
           backdrop-filter: blur(20px);
           border: 1px solid rgba(59, 130, 246, 0.1);
           padding: 3rem 2.5rem;
           border-radius: 24px;
-          box-shadow: 
+          box-shadow:
             0 0 0 1px rgba(255, 255, 255, 0.1),
             0 16px 32px rgba(0, 0, 0, 0.05),
             inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -259,7 +369,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           position: relative;
           z-index: 10;
         }
-        
+
         /* Floating social media cards */
         .social-cards {
           position: absolute;
@@ -269,7 +379,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           opacity: 0.04;
           z-index: 1;
         }
-        
+
         .social-card {
           position: absolute;
           border-radius: 12px;
@@ -279,19 +389,19 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           justify-content: center;
           animation: floatCard 8s ease-in-out infinite;
         }
-        
+
         .instagram { background: linear-gradient(135deg, #e91e63, #9c27b0); width: 80px; height: 80px; }
         .linkedin { background: linear-gradient(135deg, #1976d2, #1565c0); width: 100px; height: 50px; }
         .tiktok { background: linear-gradient(135deg, #000000, #424242); width: 50px; height: 90px; }
         .facebook { background: linear-gradient(135deg, #1976d2, #1565c0); width: 100px; height: 50px; }
         .twitter { background: linear-gradient(135deg, #000000, #424242); width: 90px; height: 50px; }
         .youtube { background: linear-gradient(135deg, #d32f2f, #c62828); width: 110px; height: 60px; }
-        
+
         @keyframes floatCard {
           0%, 100% { transform: translateY(0) rotate(0deg); }
           50% { transform: translateY(-20px) rotate(2deg); }
         }
-        
+
         @media (max-width: 480px) {
           .container {
             padding: 2rem 1.5rem;
@@ -306,7 +416,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           align-items: center;
           gap: 8px;
         }
-        
+
         .logo-text {
           font-size: 2.5rem;
           font-weight: 700;
@@ -318,7 +428,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           animation: textShine 3s ease-in-out infinite;
           letter-spacing: -0.02em;
         }
-        
+
         .logo-arrows {
           font-size: 2.5rem;
           font-weight: 700;
@@ -330,12 +440,12 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           animation: textShine 3s ease-in-out infinite;
           letter-spacing: -0.02em;
         }
-        
+
         @keyframes textShine {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
-        
+
         .logo-subtitle {
           color: #6b7280;
           font-size: 0.875rem;
@@ -343,7 +453,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           margin-bottom: 2rem;
           opacity: 0.8;
         }
-        
+
         .access-title {
           font-size: 1.5rem;
           font-weight: 600;
@@ -356,7 +466,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           animation: textShine 3s ease-in-out infinite;
           letter-spacing: -0.02em;
         }
-        
+
         .access-subtitle {
           color: #6b7280;
           font-size: 0.95rem;
@@ -379,21 +489,21 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           transition: all 0.3s ease;
           backdrop-filter: blur(10px);
         }
-        
+
         input::placeholder {
           color: #64748b;
           font-weight: 400;
         }
-        
+
         input:focus {
           outline: none;
           border-color: #3b82f6;
-          box-shadow: 
+          box-shadow:
             0 0 0 3px rgba(59, 130, 246, 0.1),
             0 0 20px rgba(59, 130, 246, 0.2);
           background: rgba(15, 23, 42, 0.8);
         }
-        
+
         @media (max-width: 480px) {
           input {
             font-size: 16px;
@@ -423,16 +533,16 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
           letter-spacing: 0.025em;
         }
-        
+
         button:hover {
           transform: translateY(-2px);
           box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
         }
-        
+
         button:active {
           transform: translateY(0);
         }
-        
+
         button::before {
           content: '';
           position: absolute;
@@ -443,11 +553,11 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
           background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
           transition: left 0.5s;
         }
-        
+
         button:hover::before {
           left: 100%;
         }
-        
+
         @media (max-width: 480px) {
           button {
             padding: 14px 12px;
@@ -477,7 +587,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         <div class="social-card twitter" style="left: 15%; top: 40%; animation-delay: 3s;"></div>
         <div class="social-card youtube" style="right: 22%; top: 50%; animation-delay: 2.5s;"></div>
       </div>
-      
+
       <div class="particles"></div>
       <div class="container">
         <div class="logo">
@@ -494,13 +604,13 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
         </form>
         <div id="error" class="error">Invalid password. Please try again.</div>
       </div>
-      
+
       <script>
         // Create floating particles
         function createParticles() {
           const particlesContainer = document.querySelector('.particles');
           const particleCount = 15;
-          
+
           for (let i = 0; i < particleCount; i++) {
             const particle = document.createElement('div');
             particle.className = 'particle';
@@ -511,10 +621,10 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
             particlesContainer.appendChild(particle);
           }
         }
-        
+
         // Initialize particles on load
         createParticles();
-        
+
         // Add typing effect to subtitle
         function typeEffect(element, text, speed = 100) {
           let i = 0;
@@ -528,23 +638,23 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
             }
           }, speed);
         }
-        
+
         // Start typing effect after page load
         setTimeout(() => {
           const subtitle = document.querySelector('.access-subtitle');
           typeEffect(subtitle, 'Enter site password to continue', 80);
         }, 500);
-        
+
         document.getElementById('passwordForm').addEventListener('submit', async (e) => {
           e.preventDefault();
           const password = document.getElementById('password').value;
           const button = e.target.querySelector('button');
           const originalText = button.textContent;
-          
+
           // Add loading state
           button.textContent = 'Authenticating...';
           button.disabled = true;
-          
+
           try {
             const response = await fetch('/api/site-auth', {
               method: 'POST',
@@ -553,9 +663,9 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
               },
               body: JSON.stringify({ password }),
             });
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
               button.textContent = 'Access Granted ✓';
               button.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
@@ -564,7 +674,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
               document.getElementById('error').style.display = 'block';
               button.textContent = originalText;
               button.disabled = false;
-              
+
               // Add shake animation
               const container = document.querySelector('.container');
               container.style.animation = 'shake 0.5s ease-in-out';
@@ -578,7 +688,7 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
             button.disabled = false;
           }
         });
-        
+
         // Add shake animation keyframes
         const shakeStyle = document.createElement('style');
         shakeStyle.textContent = '@keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }';
@@ -587,19 +697,28 @@ export const requireSitePassword: RequestHandler = (req, res, next) => {
     </body>
     </html>
   `;
-  
+
   res.send(passwordPage);
 };
 
+// Middleware para verificar si el usuario está autenticado
+// ESTA DECLARACIÓN DEBE ESTAR FUERA DE `setupAuth`
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  const session = req.session as any;
-  
-  // Check if user is in session
-  if (session && session.user) {
-    req.user = session.user;
+  if (req.isAuthenticated() && req.user) {
     return next();
   }
-  
-  // If not authenticated, return 401
   return res.status(401).json({ message: "Unauthorized" });
 };
+
+// Extender el tipo Request de Express para incluir user e isAuthenticated de Passport
+// Esto asegura que TypeScript reconozca las propiedades añadidas por Passport
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any; // Define la propiedad user (Passport la añade)
+      isAuthenticated(): boolean; // Define el método isAuthenticated (Passport lo añade)
+      login(user: any, done: (err: any) => void): void; // Define el método login (Passport lo añade)
+      logout(done: (err: any) => void): void; // Define el método logout (Passport lo añade)
+    }
+  }
+}

@@ -321,6 +321,17 @@ const getSmartVisual = (businessDescription: string, businessType: string, aspec
   
   // FOOD & RESTAURANTS
   if (desc.includes('restaurant') || desc.includes('bistro') || desc.includes('dining')) {
+    // For Instagram Stories and TikTok covers, prioritize food images over restaurant interiors
+    if (platform === 'Instagram Story' || platform === 'TikTok Cover') {
+      const foodImages = [
+        `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b`, // Delicious burger
+        `https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445`, // Gourmet pasta
+        `https://images.unsplash.com/photo-1546069901-ba9599a7e63c`, // Beautiful food plating
+        `https://images.unsplash.com/photo-1555939594-58d7cb561ad1`  // Appetizing dish
+      ];
+      return `${foodImages[imageVariation]}?w=${dimensions.width}&h=${dimensions.height}&fit=crop&crop=smart&auto=format,compress&q=80`;
+    }
+    
     if (desc.includes('italian') || desc.includes('pasta')) {
       const italianImages = [
         `https://images.unsplash.com/photo-1574894709920-11b28e7367e3`, // Pasta dish
@@ -1325,7 +1336,7 @@ const generateCampaignIdea = (description: string, businessType: string): string
   }
   
   // Default
-  return 'Discover Excellence: Premium Services Tailored for You';
+  return 'Savor the Flavors: Authentic Cuisine & Exceptional Dining';
 };
 
 export function InteractiveDemo({ isSpanish }: InteractiveDemoProps) {

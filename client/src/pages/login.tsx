@@ -28,6 +28,16 @@ import { useLocation } from "wouter";
 import { FcGoogle } from "react-icons/fc";
 import { FaApple, FaMicrosoft } from "react-icons/fa";
 
+// --- IMPORTACIONES DE FIREBASE CLIENT SDK ---
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  updateProfile, // <-- ¡NUEVA IMPORTACIÓN AQUÍ!
+} from "firebase/auth";
+import { auth, googleProvider, microsoftProvider } from "../firebaseConfig"; // Ajusta la ruta según sea necesario
+// --- FIN IMPORTACIONES DE FIREBASE CLIENT SDK ---
+
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -65,46 +75,157 @@ export default function LoginPage() {
     defaultValues: { firstName: "", lastName: "", email: "", password: "" },
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginForm) => {
-      const response = await apiRequest("POST", "/api/login", data);
+  // --- MUTACIÓN UNIFICADA PARA ENVIAR ID TOKEN AL BACKEND ---
+  const firebaseAuthMutation = useMutation({
+    mutationFn: async (idToken: string) => {
+      const response = await apiRequest("POST", "/api/login", { idToken });
       return await response.json();
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/user"], data.user);
-      toast({ title: "Welcome back!", description: "Login successful." });
-      navigate("/");
+      toast({ title: "Welcome!", description: "Login successful." });
+      navigate("/dashboard");
     },
     onError: (error: any) => {
+      console.error("Backend session establishment error:", error);
       toast({
-        title: "Login failed",
-        description: error.message || "Invalid credentials",
+        title: "Authentication Failed",
+        description: error.message || "An error occurred during session establishment with our server. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const signupMutation = useMutation({
-    mutationFn: async (data: SignupForm) => {
-      const response = await apiRequest("POST", "/api/signup", data);
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["/api/auth/user"], data.user);
-      toast({ title: "Account created!", description: "Welcome aboard 🎉" });
-      navigate("/");
-    },
-    onError: (error: any) => {
+  // --- FUNCIONES PARA LOGIN Y SIGNUP CON EMAIL/PASSWORD DE FIREBASE ---
+  const onLogin = async (data: LoginForm) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+      const idToken = await userCredential.user.getIdToken();
+      firebaseAuthMutation.mutate(idToken); // Enviar el ID Token al backend
+    } catch (error: any) {
+      console.error("Firebase Email Login Error:", error);
+      let errorMessage = "An unexpected error occurred. Please try again.";
+
+      if (error && typeof error === 'object' && 'code' in error) {
+        const firebaseErrorCode = (error as any).code;
+        switch (firebaseErrorCode) {
+          case "auth/invalid-email":
+          case "auth/user-not-found":
+          case "auth/wrong-password":
+            errorMessage = "Invalid email or password.";
+            break;
+          case "auth/user-disabled":
+            errorMessage = "Your account has been disabled.";
+            break;
+          case "auth/too-many-requests":
+            errorMessage = "Too many login attempts. Please try again later.";
+            break;
+          default:
+            errorMessage = (error as any).message;
+            break;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
-        title: "Signup failed",
-        description: error.message || "Failed to create account",
+        title: "Login Failed",
+        description: errorMessage,
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
-  const onLogin = (data: LoginForm) => loginMutation.mutate(data);
-  const onSignup = (data: SignupForm) => signupMutation.mutate(data);
+  const onSignup = async (data: SignupForm) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      // Actualizar el perfil del usuario con nombre y apellido en Firebase
+      if (userCredential.user) {
+        // --- CAMBIO AQUÍ: LLAMADA CORRECTA A updateProfile ---
+        await updateProfile(userCredential.user, {
+          displayName: `${data.firstName} ${data.lastName}`,
+        });
+        // --- FIN CAMBIO ---
+      }
+
+      const idToken = await userCredential.user.getIdToken();
+      firebaseAuthMutation.mutate(idToken); // Enviar el ID Token al backend
+    } catch (error: any) {
+      console.error("Firebase Email Signup Error:", error);
+      let errorMessage = "An unexpected error occurred. Please try again.";
+
+      if (error && typeof error === 'object' && 'code' in error) {
+        const firebaseErrorCode = (error as any).code;
+        switch (firebaseErrorCode) {
+          case "auth/email-already-in-use":
+            errorMessage = "This email is already registered. Please login or use a different email.";
+            break;
+          case "auth/invalid-email":
+            errorMessage = "Invalid email format.";
+            break;
+          case "auth/weak-password":
+            errorMessage = "Password is too weak. Please choose a stronger password.";
+            break;
+          default:
+            errorMessage = (error as any).message;
+            break;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        title: "Signup Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // --- FUNCIONES PARA LOGIN SOCIAL CON FIREBASE ---
+  const handleFirebaseSocialLogin = async (provider: any) => {
+    try {
+      const userCredential = await signInWithPopup(auth, provider);
+      const idToken = await userCredential.user.getIdToken();
+      firebaseAuthMutation.mutate(idToken); // Enviar el ID Token al backend
+    } catch (error: any) {
+      console.error("Firebase social login error:", error);
+      let errorMessage = "An unexpected error occurred during social login. Please try again.";
+
+      if (error && typeof error === 'object' && 'code' in error) {
+        const firebaseErrorCode = (error as any).code;
+        switch (firebaseErrorCode) {
+          case "auth/popup-closed-by-user":
+            errorMessage = "Login window closed. Please try again.";
+            break;
+          case "auth/cancelled-popup-request":
+            errorMessage = "Another login window is already open. Please complete or close it.";
+            break;
+          case "auth/account-exists-with-different-credential":
+            errorMessage = "An account with this email already exists using a different sign-in method. Please login with your existing method.";
+            break;
+          case "auth/auth-domain-config-required":
+            errorMessage = "Authentication domain not configured for this provider. Please contact support.";
+            break;
+          case "auth/operation-not-allowed":
+            errorMessage = "Sign-in with this provider is not enabled. Please contact support.";
+            break;
+          default:
+            errorMessage = (error as any).message;
+            break;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        title: "Social Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+  // --- FIN DE NUEVAS FUNCIONES ---
 
   if (isLoading) {
     return (
@@ -127,13 +248,28 @@ export default function LoginPage() {
         <CardContent className="space-y-4">
           {/* Social login buttons */}
           <div className="flex flex-col space-y-2">
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+              onClick={() => handleFirebaseSocialLogin(googleProvider)}
+              disabled={firebaseAuthMutation.isPending}
+            >
               <FcGoogle size={20} /> Continue with Google
             </Button>
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+           <Button
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+              //onClick={() => handleFirebaseSocialLogin(appleProvider)}
+              disabled={firebaseAuthMutation.isPending}
+            >
               <FaApple size={20} /> Continue with Apple
             </Button>
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+              onClick={() => handleFirebaseSocialLogin(microsoftProvider)}
+              disabled={firebaseAuthMutation.isPending}
+            >
               <FaMicrosoft size={20} /> Continue with Microsoft
             </Button>
           </div>
@@ -154,7 +290,10 @@ export default function LoginPage() {
 
             <TabsContent value="login">
               <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-3">
+                <form
+                  onSubmit={loginForm.handleSubmit(onLogin)}
+                  className="space-y-3"
+                >
                   <FormField
                     control={loginForm.control}
                     name="email"
@@ -162,7 +301,11 @@ export default function LoginPage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" placeholder="name@email.com" />
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="name@email.com"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -175,14 +318,23 @@ export default function LoginPage() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input {...field} type="password" placeholder="******" />
+                          <Input
+                            {...field}
+                            type="password"
+                            placeholder="******"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-                    {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={firebaseAuthMutation.isPending}
+                    style={{background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", padding: "16px 12px", color: "white", borderRadius: "12px"}}
+                  >
+                    {firebaseAuthMutation.isPending ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
               </Form>
@@ -190,7 +342,10 @@ export default function LoginPage() {
 
             <TabsContent value="signup">
               <Form {...signupForm}>
-                <form onSubmit={signupForm.handleSubmit(onSignup)} className="space-y-3">
+                <form
+                  onSubmit={signupForm.handleSubmit(onSignup)}
+                  className="space-y-3"
+                >
                   <div className="grid grid-cols-2 gap-3">
                     <FormField
                       control={signupForm.control}
@@ -226,7 +381,11 @@ export default function LoginPage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" placeholder="name@email.com" />
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="name@email.com"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -239,14 +398,25 @@ export default function LoginPage() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input {...field} type="password" placeholder="******" />
+                          <Input
+                            {...field}
+                            type="password"
+                            placeholder="******"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={signupMutation.isPending}>
-                    {signupMutation.isPending ? "Creating..." : "Create Account"}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={firebaseAuthMutation.isPending}
+                    style={{background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", padding: "16px 12px", color: "white", borderRadius: "12px"}}
+                  >
+                    {firebaseAuthMutation.isPending
+                      ? "Creating..."
+                      : "Create Account"}
                   </Button>
                 </form>
               </Form>

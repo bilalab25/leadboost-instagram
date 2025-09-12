@@ -1,4 +1,4 @@
-import { sql, relations } from 'drizzle-orm';
+import { sql, relations } from "drizzle-orm";
 import {
   index,
   jsonb,
@@ -25,13 +25,15 @@ export const sessions = pgTable(
 );
 
 // User storage table for Replit Auth
+// User storage table for Replit Auth
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique().notNull(),
-  password: varchar("password").notNull(),
+  id: varchar("id").primaryKey().notNull(), // Eliminar .default(sql`gen_random_uuid()`)
+  email: varchar("email").unique(),
+  password: varchar("password"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  firebaseUid: varchar("firebase_uid").unique(),
   role: varchar("role").default("agency_owner"), // agency_owner, agency_member, client_viewer
   hierarchyLevel: integer("hierarchy_level").default(1), // 1=CEO/Owner, 2=Manager, 3=Supervisor, 4=Employee
   canApprove: boolean("can_approve").default(false), // Can approve tasks from lower hierarchy
@@ -42,8 +44,12 @@ export const users = pgTable("users", {
 
 // Subscription plans for tiered pricing
 export const subscriptionPlans = pgTable("subscription_plans", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   planType: varchar("plan_type").notNull(), // starter, professional, enterprise, agency
   planTier: varchar("plan_tier"), // For agency: agency-5, agency-10, agency-20, agency-50+
   brandLimit: integer("brand_limit"), // Number of brands allowed
@@ -58,8 +64,12 @@ export const subscriptionPlans = pgTable("subscription_plans", {
 
 // Brands/Clients table for multi-tenant agency management
 export const brands = pgTable("brands", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }), // agency owner
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }), // agency owner
   name: varchar("name").notNull(),
   domain: varchar("domain"),
   industry: varchar("industry"),
@@ -74,9 +84,15 @@ export const brands = pgTable("brands", {
 
 // Social media accounts connected to users and brands
 export const socialAccounts = pgTable("social_accounts", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
   platform: varchar("platform").notNull(), // instagram, whatsapp, email, tiktok
   accountId: varchar("account_id").notNull(),
   accountName: varchar("account_name").notNull(),
@@ -88,8 +104,13 @@ export const socialAccounts = pgTable("social_accounts", {
 
 // Messages from all social platforms
 export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  socialAccountId: uuid("social_account_id").references(() => socialAccounts.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  socialAccountId: uuid("social_account_id").references(
+    () => socialAccounts.id,
+    { onDelete: "cascade" },
+  ),
   senderId: varchar("sender_id").notNull(),
   senderName: varchar("sender_name").notNull(),
   senderAvatar: varchar("sender_avatar"),
@@ -104,9 +125,15 @@ export const messages = pgTable("messages", {
 
 // AI-generated content plans per brand
 export const contentPlans = pgTable("content_plans", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
   title: varchar("title").notNull(),
   month: integer("month").notNull(),
   year: integer("year").notNull(),
@@ -120,9 +147,15 @@ export const contentPlans = pgTable("content_plans", {
 
 // Social media campaigns per brand
 export const campaigns = pgTable("campaigns", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
   title: varchar("title").notNull(),
   description: text("description"),
   platforms: text("platforms").array(), // which platforms to post to
@@ -141,9 +174,15 @@ export const campaigns = pgTable("campaigns", {
 
 // Business analytics data per brand
 export const analytics = pgTable("analytics", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
   platform: varchar("platform").notNull(),
   metric: varchar("metric").notNull(), // reach, engagement, clicks, etc
   value: integer("value").notNull(),
@@ -154,9 +193,15 @@ export const analytics = pgTable("analytics", {
 
 // Team activity logs per brand
 export const activityLogs = pgTable("activity_logs", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
   action: varchar("action").notNull(),
   description: text("description"),
   entityType: varchar("entity_type"), // message, campaign, content_plan, brand
@@ -166,9 +211,15 @@ export const activityLogs = pgTable("activity_logs", {
 
 // POS system integrations (Square, Shopify, etc.) per brand
 export const posIntegrations = pgTable("pos_integrations", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
   provider: varchar("provider").notNull(), // square, shopify, stripe, woocommerce, etc.
   storeName: varchar("store_name").notNull(),
   apiKey: text("api_key"), // encrypted
@@ -186,9 +237,16 @@ export const posIntegrations = pgTable("pos_integrations", {
 
 // Sales transactions from POS systems
 export const salesTransactions = pgTable("sales_transactions", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  posIntegrationId: uuid("pos_integration_id").references(() => posIntegrations.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  posIntegrationId: uuid("pos_integration_id").references(
+    () => posIntegrations.id,
+    { onDelete: "cascade" },
+  ),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   transactionId: varchar("transaction_id").notNull(), // external transaction ID
   customerId: varchar("customer_id"), // external customer ID
   customerEmail: varchar("customer_email"),
@@ -206,9 +264,16 @@ export const salesTransactions = pgTable("sales_transactions", {
 
 // Product catalog from POS systems
 export const products = pgTable("products", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  posIntegrationId: uuid("pos_integration_id").references(() => posIntegrations.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  posIntegrationId: uuid("pos_integration_id").references(
+    () => posIntegrations.id,
+    { onDelete: "cascade" },
+  ),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   externalProductId: varchar("external_product_id").notNull(),
   name: varchar("name").notNull(),
   description: text("description"),
@@ -226,8 +291,12 @@ export const products = pgTable("products", {
 
 // Automated campaign triggers based on POS data
 export const campaignTriggers = pgTable("campaign_triggers", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   name: varchar("name").notNull(),
   triggerType: varchar("trigger_type").notNull(), // purchase_milestone, low_stock, new_customer, abandoned_cart
   conditions: jsonb("conditions"), // trigger conditions
@@ -242,8 +311,12 @@ export const campaignTriggers = pgTable("campaign_triggers", {
 
 // Customers table for business customer management
 export const customers = pgTable("customers", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   name: varchar("name").notNull(),
   email: varchar("email"),
   phone: varchar("phone"),
@@ -258,9 +331,15 @@ export const customers = pgTable("customers", {
 
 // Invoices table for customer invoicing with file uploads
 export const invoices = pgTable("invoices", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  customerId: uuid("customer_id").references(() => customers.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   invoiceNumber: varchar("invoice_number").notNull().unique(),
   amount: integer("amount").notNull(), // amount in cents
   currency: varchar("currency").default("USD"),
@@ -275,9 +354,15 @@ export const invoices = pgTable("invoices", {
 
 // Team tasks for enhanced team management
 export const teamTasks = pgTable("team_tasks", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  assignedBy: varchar("assigned_by").references(() => users.id, { onDelete: "cascade" }),
-  assignedTo: varchar("assigned_to").references(() => users.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  assignedBy: varchar("assigned_by").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  assignedTo: varchar("assigned_to").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   title: varchar("title").notNull(),
   description: text("description"),
   priority: varchar("priority").default("medium"), // low, medium, high, urgent
@@ -297,9 +382,15 @@ export const teamTasks = pgTable("team_tasks", {
 
 // Task completions with proof file uploads
 export const taskCompletions = pgTable("task_completions", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  taskId: uuid("task_id").references(() => teamTasks.id, { onDelete: "cascade" }),
-  completedBy: varchar("completed_by").references(() => users.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  taskId: uuid("task_id").references(() => teamTasks.id, {
+    onDelete: "cascade",
+  }),
+  completedBy: varchar("completed_by").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   notes: text("notes"),
   proofFileUrl: varchar("proof_file_url"), // path to uploaded proof file
   completedAt: timestamp("completed_at").defaultNow(),
@@ -307,8 +398,12 @@ export const taskCompletions = pgTable("task_completions", {
 
 // Task approval workflow table
 export const taskApprovals = pgTable("task_approvals", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  taskId: uuid("task_id").references(() => teamTasks.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  taskId: uuid("task_id").references(() => teamTasks.id, {
+    onDelete: "cascade",
+  }),
   approverLevel: integer("approver_level").notNull(), // Hierarchy level required to approve
   approverId: varchar("approver_id").references(() => users.id),
   status: varchar("status").default("pending"), // pending, approved, rejected
@@ -319,9 +414,15 @@ export const taskApprovals = pgTable("task_approvals", {
 
 // Notification system for approvals
 export const approvalNotifications = pgTable("approval_notifications", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  taskId: uuid("task_id").references(() => teamTasks.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  taskId: uuid("task_id").references(() => teamTasks.id, {
+    onDelete: "cascade",
+  }),
   type: varchar("type").notNull(), // approval_request, task_approved, task_rejected, proof_submitted
   title: varchar("title").notNull(),
   message: text("message"),
@@ -351,7 +452,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   manager: one(users, {
     fields: [users.reportsTo],
     references: [users.id],
-    relationName: "manager"
+    relationName: "manager",
   }),
   subordinates: many(users, { relationName: "manager" }),
   // Approval relations
@@ -359,12 +460,15 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   notifications: many(approvalNotifications, { relationName: "user" }),
 }));
 
-export const subscriptionPlansRelations = relations(subscriptionPlans, ({ one }) => ({
-  user: one(users, {
-    fields: [subscriptionPlans.userId],
-    references: [users.id],
+export const subscriptionPlansRelations = relations(
+  subscriptionPlans,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [subscriptionPlans.userId],
+      references: [users.id],
+    }),
   }),
-}));
+);
 
 export const brandsRelations = relations(brands, ({ one, many }) => ({
   owner: one(users, {
@@ -379,17 +483,20 @@ export const brandsRelations = relations(brands, ({ one, many }) => ({
   posIntegrations: many(posIntegrations),
 }));
 
-export const socialAccountsRelations = relations(socialAccounts, ({ one, many }) => ({
-  user: one(users, {
-    fields: [socialAccounts.userId],
-    references: [users.id],
+export const socialAccountsRelations = relations(
+  socialAccounts,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [socialAccounts.userId],
+      references: [users.id],
+    }),
+    brand: one(brands, {
+      fields: [socialAccounts.brandId],
+      references: [brands.id],
+    }),
+    messages: many(messages),
   }),
-  brand: one(brands, {
-    fields: [socialAccounts.brandId],
-    references: [brands.id],
-  }),
-  messages: many(messages),
-}));
+);
 
 export const messagesRelations = relations(messages, ({ one }) => ({
   socialAccount: one(socialAccounts, {
@@ -467,54 +574,62 @@ export const teamTasksRelations = relations(teamTasks, ({ one, many }) => ({
   proofSubmitter: one(users, {
     fields: [teamTasks.proofSubmittedBy],
     references: [users.id],
-    relationName: "proofSubmissions"
+    relationName: "proofSubmissions",
   }),
   approver: one(users, {
     fields: [teamTasks.approvedBy],
     references: [users.id],
-    relationName: "taskApprovals"
+    relationName: "taskApprovals",
   }),
 }));
 
-export const taskCompletionsRelations = relations(taskCompletions, ({ one }) => ({
-  task: one(teamTasks, {
-    fields: [taskCompletions.taskId],
-    references: [teamTasks.id],
+export const taskCompletionsRelations = relations(
+  taskCompletions,
+  ({ one }) => ({
+    task: one(teamTasks, {
+      fields: [taskCompletions.taskId],
+      references: [teamTasks.id],
+    }),
+    completedByUser: one(users, {
+      fields: [taskCompletions.completedBy],
+      references: [users.id],
+    }),
   }),
-  completedByUser: one(users, {
-    fields: [taskCompletions.completedBy],
-    references: [users.id],
-  }),
-}));
+);
 
 export const taskApprovalsRelations = relations(taskApprovals, ({ one }) => ({
   task: one(teamTasks, {
     fields: [taskApprovals.taskId],
     references: [teamTasks.id],
-    relationName: "taskApprovals"
+    relationName: "taskApprovals",
   }),
   approver: one(users, {
     fields: [taskApprovals.approverId],
     references: [users.id],
-    relationName: "approver"
+    relationName: "approver",
   }),
 }));
 
-export const approvalNotificationsRelations = relations(approvalNotifications, ({ one }) => ({
-  user: one(users, {
-    fields: [approvalNotifications.userId],
-    references: [users.id],
-    relationName: "user"
+export const approvalNotificationsRelations = relations(
+  approvalNotifications,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [approvalNotifications.userId],
+      references: [users.id],
+      relationName: "user",
+    }),
+    task: one(teamTasks, {
+      fields: [approvalNotifications.taskId],
+      references: [teamTasks.id],
+      relationName: "task",
+    }),
   }),
-  task: one(teamTasks, {
-    fields: [approvalNotifications.taskId],
-    references: [teamTasks.id],
-    relationName: "task"
-  }),
-}));
+);
 
 // Insert schemas
-export const insertSocialAccountSchema = createInsertSchema(socialAccounts).omit({
+export const insertSocialAccountSchema = createInsertSchema(
+  socialAccounts,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -566,7 +681,9 @@ export const insertTeamTaskSchema = createInsertSchema(teamTasks).omit({
   approvedAt: true,
 });
 
-export const insertTaskCompletionSchema = createInsertSchema(taskCompletions).omit({
+export const insertTaskCompletionSchema = createInsertSchema(
+  taskCompletions,
+).omit({
   id: true,
   completedAt: true,
 });
@@ -577,7 +694,9 @@ export const insertTaskApprovalSchema = createInsertSchema(taskApprovals).omit({
   approvedAt: true,
 });
 
-export const insertApprovalNotificationSchema = createInsertSchema(approvalNotifications).omit({
+export const insertApprovalNotificationSchema = createInsertSchema(
+  approvalNotifications,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -588,12 +707,16 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // Brand types
-export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+export const insertSubscriptionPlanSchema = createInsertSchema(
+  subscriptionPlans,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
-export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+export type InsertSubscriptionPlan = z.infer<
+  typeof insertSubscriptionPlanSchema
+>;
 export type SelectSubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 
 export const insertBrandSchema = createInsertSchema(brands).omit({
@@ -638,17 +761,23 @@ export type InsertTaskCompletion = z.infer<typeof insertTaskCompletionSchema>;
 export type TaskCompletion = typeof taskCompletions.$inferSelect;
 export type InsertTaskApproval = z.infer<typeof insertTaskApprovalSchema>;
 export type TaskApproval = typeof taskApprovals.$inferSelect;
-export type InsertApprovalNotification = z.infer<typeof insertApprovalNotificationSchema>;
+export type InsertApprovalNotification = z.infer<
+  typeof insertApprovalNotificationSchema
+>;
 export type ApprovalNotification = typeof approvalNotifications.$inferSelect;
 
 // POS Integration schemas
-export const insertPosIntegrationSchema = createInsertSchema(posIntegrations).omit({
+export const insertPosIntegrationSchema = createInsertSchema(
+  posIntegrations,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertSalesTransactionSchema = createInsertSchema(salesTransactions).omit({
+export const insertSalesTransactionSchema = createInsertSchema(
+  salesTransactions,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -659,46 +788,60 @@ export const insertProductSchema = createInsertSchema(products).omit({
   updatedAt: true,
 });
 
-export const insertCampaignTriggerSchema = createInsertSchema(campaignTriggers).omit({
+export const insertCampaignTriggerSchema = createInsertSchema(
+  campaignTriggers,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export type InsertPosIntegrationType = z.infer<typeof insertPosIntegrationSchema>;
-export type InsertSalesTransactionType = z.infer<typeof insertSalesTransactionSchema>;
+export type InsertPosIntegrationType = z.infer<
+  typeof insertPosIntegrationSchema
+>;
+export type InsertSalesTransactionType = z.infer<
+  typeof insertSalesTransactionSchema
+>;
 export type InsertProductType = z.infer<typeof insertProductSchema>;
-export type InsertCampaignTriggerType = z.infer<typeof insertCampaignTriggerSchema>;
+export type InsertCampaignTriggerType = z.infer<
+  typeof insertCampaignTriggerSchema
+>;
 
 // Brand Design System tables
 export const brandDesigns = pgTable("brand_designs", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+
   // Canva Integration
   canvaAccessToken: text("canva_access_token"),
   canvaRefreshToken: text("canva_refresh_token"),
   canvaUserId: varchar("canva_user_id"),
   canvaTeamId: varchar("canva_team_id"),
   isCanvaConnected: boolean("is_canva_connected").default(false),
-  
+
   // Brand Identity
   brandStyle: varchar("brand_style"), // minimalist, luxury, fun, corporate, creative, bold
   colorPalette: jsonb("color_palette"), // {primary, secondary, accent, neutral}
   typography: jsonb("typography"), // {primary, secondary, weights, sizes}
   logoUrl: varchar("logo_url"),
   logoVariations: jsonb("logo_variations"), // different logo formats
-  
+
   // Design Assets
   brandAssets: jsonb("brand_assets"), // stored design elements
   templates: jsonb("templates"), // custom templates
   brandGuidelines: jsonb("brand_guidelines"), // spacing, rules, do's/don'ts
-  
+
   // Canva Imported Data
   canvaBrandKit: jsonb("canva_brand_kit"), // imported from Canva
   canvaTemplates: jsonb("canva_templates"), // templates from Canva
-  
+
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -706,17 +849,23 @@ export const brandDesigns = pgTable("brand_designs", {
 
 // Campaign Design Assets
 export const campaignDesigns = pgTable("campaign_designs", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  campaignId: uuid("campaign_id").references(() => campaigns.id, { onDelete: "cascade" }),
-  brandDesignId: uuid("brand_design_id").references(() => brandDesigns.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  campaignId: uuid("campaign_id").references(() => campaigns.id, {
+    onDelete: "cascade",
+  }),
+  brandDesignId: uuid("brand_design_id").references(() => brandDesigns.id, {
+    onDelete: "cascade",
+  }),
   platform: varchar("platform").notNull(), // instagram, tiktok, facebook, etc.
-  
+
   // Visual Content
   designUrl: varchar("design_url"), // generated design file
   canvaDesignId: varchar("canva_design_id"), // if created in Canva
   designData: jsonb("design_data"), // design specifications
   isCustomized: boolean("is_customized").default(false),
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -728,7 +877,9 @@ export const insertBrandDesignSchema = createInsertSchema(brandDesigns).omit({
   updatedAt: true,
 });
 
-export const insertCampaignDesignSchema = createInsertSchema(campaignDesigns).omit({
+export const insertCampaignDesignSchema = createInsertSchema(
+  campaignDesigns,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -741,32 +892,40 @@ export type CampaignDesign = typeof campaignDesigns.$inferSelect;
 
 // AI Chatbot Configuration
 export const chatbotConfigs = pgTable("chatbot_configs", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+
   // Chatbot Settings
   name: varchar("name").default("LeadBoost Assistant"),
-  welcomeMessage: text("welcome_message").default("Hi! I'm here to help you. How can I assist you today?"),
+  welcomeMessage: text("welcome_message").default(
+    "Hi! I'm here to help you. How can I assist you today?",
+  ),
   businessHours: jsonb("business_hours"), // {monday: {start: "09:00", end: "17:00"}, ...}
   timezone: varchar("timezone").default("America/New_York"),
   language: varchar("language").default("en"), // en, es, etc.
-  
+
   // Lead Qualification
   qualificationQuestions: jsonb("qualification_questions"), // [{question: "", type: "text|select|email|phone", required: true}]
   leadScoreRules: jsonb("lead_score_rules"), // rules for scoring leads
-  
+
   // AI Personality
   tone: varchar("tone").default("professional"), // professional, friendly, casual, formal
   industry: varchar("industry"), // for context-aware responses
   specialInstructions: text("special_instructions"), // custom AI instructions
-  
+
   // Features
   canScheduleAppointments: boolean("can_schedule_appointments").default(true),
   canQualifyLeads: boolean("can_qualify_leads").default(true),
   canHandoffToHuman: boolean("can_handoff_to_human").default(true),
   autoResponseEnabled: boolean("auto_response_enabled").default(true),
-  
+
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -774,26 +933,32 @@ export const chatbotConfigs = pgTable("chatbot_configs", {
 
 // Calendar Integrations
 export const calendarIntegrations = pgTable("calendar_integrations", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+
   // Integration Details
   provider: varchar("provider").notNull(), // calendly, google, outlook, acuity, square, setmore
   providerUserId: varchar("provider_user_id"),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   calendarId: varchar("calendar_id"),
-  
+
   // Settings
   defaultServiceDuration: integer("default_service_duration").default(30), // minutes
   bufferTime: integer("buffer_time").default(15), // minutes between appointments
   advanceBookingDays: integer("advance_booking_days").default(30), // how far ahead can book
-  
+
   // Business Hours
   businessHours: jsonb("business_hours"), // {monday: {start: "09:00", end: "17:00", enabled: true}}
   timezone: varchar("timezone").default("America/New_York"),
-  
+
   isActive: boolean("is_active").default(true),
   lastSyncAt: timestamp("last_sync_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -802,10 +967,17 @@ export const calendarIntegrations = pgTable("calendar_integrations", {
 
 // Services/Appointment Types
 export const appointmentServices = pgTable("appointment_services", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  calendarIntegrationId: uuid("calendar_integration_id").references(() => calendarIntegrations.id, { onDelete: "cascade" }),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
-  
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  calendarIntegrationId: uuid("calendar_integration_id").references(
+    () => calendarIntegrations.id,
+    { onDelete: "cascade" },
+  ),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
+
   // Service Details
   name: varchar("name").notNull(), // "Consultation", "Hair Cut", "Massage"
   description: text("description"),
@@ -813,98 +985,116 @@ export const appointmentServices = pgTable("appointment_services", {
   price: integer("price"), // in cents
   bufferTimeBefore: integer("buffer_time_before").default(0),
   bufferTimeAfter: integer("buffer_time_after").default(15),
-  
+
   // Availability
   isActive: boolean("is_active").default(true),
   maxAdvanceBookingDays: integer("max_advance_booking_days").default(30),
-  
+
   // Questions for this service
   intakeQuestions: jsonb("intake_questions"), // [{question: "", type: "text", required: true}]
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Scheduled Appointments
 export const appointments = pgTable("appointments", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  calendarIntegrationId: uuid("calendar_integration_id").references(() => calendarIntegrations.id, { onDelete: "cascade" }),
-  serviceId: uuid("service_id").references(() => appointmentServices.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  calendarIntegrationId: uuid("calendar_integration_id").references(
+    () => calendarIntegrations.id,
+    { onDelete: "cascade" },
+  ),
+  serviceId: uuid("service_id").references(() => appointmentServices.id, {
+    onDelete: "cascade",
+  }),
   messageId: uuid("message_id").references(() => messages.id), // original conversation
-  
+
   // Appointment Details
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time").notNull(),
   timezone: varchar("timezone").notNull(),
-  
+
   // Customer Details
   customerName: varchar("customer_name").notNull(),
   customerEmail: varchar("customer_email"),
   customerPhone: varchar("customer_phone"),
   customerNotes: text("customer_notes"),
-  
+
   // Status
   status: varchar("status").default("scheduled"), // scheduled, confirmed, cancelled, completed, no_show
   confirmationSentAt: timestamp("confirmation_sent_at"),
   reminderSentAt: timestamp("reminder_sent_at"),
-  
+
   // External IDs
   providerEventId: varchar("provider_event_id"), // ID from calendar provider
-  
+
   // Intake Data
   intakeResponses: jsonb("intake_responses"), // responses to service questions
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Chatbot Conversations for Analytics
 export const chatbotConversations = pgTable("chatbot_conversations", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  chatbotConfigId: uuid("chatbot_config_id").references(() => chatbotConfigs.id, { onDelete: "cascade" }),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  chatbotConfigId: uuid("chatbot_config_id").references(
+    () => chatbotConfigs.id,
+    { onDelete: "cascade" },
+  ),
   messageId: uuid("message_id").references(() => messages.id), // linked to original message
-  
+
   // Conversation Data
   customerIdentifier: varchar("customer_identifier"), // phone, email, or platform ID
   platform: varchar("platform").notNull(), // whatsapp, instagram, etc.
-  
+
   // Lead Data
   leadScore: integer("lead_score").default(0),
   qualificationData: jsonb("qualification_data"), // answers to qualification questions
   interestedServices: jsonb("interested_services"), // array of service names
-  
+
   // Conversation Status
   status: varchar("status").default("active"), // active, qualified, scheduled, converted, closed
   handedOffToHuman: boolean("handed_off_to_human").default(false),
   handoffReason: varchar("handoff_reason"),
-  
+
   // Outcomes
   appointmentScheduled: boolean("appointment_scheduled").default(false),
   appointmentId: uuid("appointment_id").references(() => appointments.id),
-  
+
   conversationStartedAt: timestamp("conversation_started_at").defaultNow(),
   lastActivityAt: timestamp("last_activity_at").defaultNow(),
   closedAt: timestamp("closed_at"),
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Chatbot schemas
-export const insertChatbotConfigSchema = createInsertSchema(chatbotConfigs).omit({
+export const insertChatbotConfigSchema = createInsertSchema(
+  chatbotConfigs,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertCalendarIntegrationSchema = createInsertSchema(calendarIntegrations).omit({
+export const insertCalendarIntegrationSchema = createInsertSchema(
+  calendarIntegrations,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
   lastSyncAt: true,
 });
 
-export const insertAppointmentServiceSchema = createInsertSchema(appointmentServices).omit({
+export const insertAppointmentServiceSchema = createInsertSchema(
+  appointmentServices,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -916,7 +1106,9 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
   updatedAt: true,
 });
 
-export const insertChatbotConversationSchema = createInsertSchema(chatbotConversations).omit({
+export const insertChatbotConversationSchema = createInsertSchema(
+  chatbotConversations,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -926,11 +1118,17 @@ export const insertChatbotConversationSchema = createInsertSchema(chatbotConvers
 
 export type InsertChatbotConfig = z.infer<typeof insertChatbotConfigSchema>;
 export type ChatbotConfig = typeof chatbotConfigs.$inferSelect;
-export type InsertCalendarIntegration = z.infer<typeof insertCalendarIntegrationSchema>;
+export type InsertCalendarIntegration = z.infer<
+  typeof insertCalendarIntegrationSchema
+>;
 export type CalendarIntegration = typeof calendarIntegrations.$inferSelect;
-export type InsertAppointmentService = z.infer<typeof insertAppointmentServiceSchema>;
+export type InsertAppointmentService = z.infer<
+  typeof insertAppointmentServiceSchema
+>;
 export type AppointmentService = typeof appointmentServices.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
 export type Appointment = typeof appointments.$inferSelect;
-export type InsertChatbotConversation = z.infer<typeof insertChatbotConversationSchema>;
+export type InsertChatbotConversation = z.infer<
+  typeof insertChatbotConversationSchema
+>;
 export type ChatbotConversation = typeof chatbotConversations.$inferSelect;
