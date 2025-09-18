@@ -19,7 +19,12 @@ export const auth = getAuth(app);
 // Inicializa los proveedores de autenticación social
 export const googleProvider = new GoogleAuthProvider();
 export const microsoftProvider = new OAuthProvider('microsoft.com');
+export const appleProvider = new OAuthProvider('apple.com');
+
 microsoftProvider.setCustomParameters({
   prompt: 'consent',
   tenant: 'common'
 });
+
+appleProvider.addScope('email');
+appleProvider.addScope('name');

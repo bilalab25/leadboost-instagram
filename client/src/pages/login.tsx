@@ -33,9 +33,11 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  updateProfile, // <-- ¡NUEVA IMPORTACIÓN AQUÍ!
+  updateProfile,
+  OAuthProvider, // ¡Importa OAuthProvider aquí!
 } from "firebase/auth";
-import { auth, googleProvider, microsoftProvider } from "../firebaseConfig"; // Ajusta la ruta según sea necesario
+// Asegúrate de que la ruta sea correcta y que appleProvider esté exportado
+import { auth, googleProvider, microsoftProvider, appleProvider } from "../firebaseConfig";
 // --- FIN IMPORTACIONES DE FIREBASE CLIENT SDK ---
 
 const loginSchema = z.object({
@@ -52,6 +54,14 @@ const signupSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 type SignupForm = z.infer<typeof signupSchema>;
+
+// Helper function to generate a cryptographically secure random string for nonce
+// This is crucial for Apple Sign-in security
+function generateRandomString(length: number): string {
+  const array = new Uint32Array(length / 2);
+  window.crypto.getRandomValues(array);
+  return Array.from(array, (dec) => ("0" + dec.toString(16)).substr(-2)).join("");
+}
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
@@ -141,11 +151,9 @@ export default function LoginPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       // Actualizar el perfil del usuario con nombre y apellido en Firebase
       if (userCredential.user) {
-        // --- CAMBIO AQUÍ: LLAMADA CORRECTA A updateProfile ---
         await updateProfile(userCredential.user, {
           displayName: `${data.firstName} ${data.lastName}`,
         });
-        // --- FIN CAMBIO ---
       }
 
       const idToken = await userCredential.user.getIdToken();
@@ -185,7 +193,24 @@ export default function LoginPage() {
   // --- FUNCIONES PARA LOGIN SOCIAL CON FIREBASE ---
   const handleFirebaseSocialLogin = async (provider: any) => {
     try {
-      const userCredential = await signInWithPopup(auth, provider);
+      let currentProvider = provider;
+      let nonce: string | undefined;
+
+      // Lógica específica para Apple Sign-in: generar y establecer el nonce
+      // Comprobamos si el proveedor es el de Apple por su providerId
+      if (provider.providerId === 'apple.com') { // <-- CAMBIO AQUÍ: Comprobar providerId
+        nonce = generateRandomString(32); // Genera un string hexadecimal de 32 caracteres (16 bytes)
+        currentProvider.setCustomParameters({ nonce }); // Establece el nonce en el proveedor
+        // Los scopes 'email' y 'name' ya se establecieron en firebaseConfig.js
+        // No es necesario volver a añadirlos aquí a menos que quieras anularlos
+      }
+
+      const userCredential = await signInWithPopup(auth, currentProvider);
+
+      // Si es un nuevo usuario de Apple y solicitaste 'name' y 'email',
+      // estos estarán disponibles en userCredential.user.displayName y userCredential.user.email
+      // o en userCredential.additionalUserInfo.profile por primera vez.
+
       const idToken = await userCredential.user.getIdToken();
       firebaseAuthMutation.mutate(idToken); // Enviar el ID Token al backend
     } catch (error: any) {
@@ -259,7 +284,7 @@ export default function LoginPage() {
            <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-2"
-              //onClick={() => handleFirebaseSocialLogin(appleProvider)}
+              onClick={() => handleFirebaseSocialLogin(appleProvider)}
               disabled={firebaseAuthMutation.isPending}
             >
               <FaApple size={20} /> Continue with Apple
