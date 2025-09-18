@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, requireSitePassword } from "./auth";
+import { setupAuth, isAuthenticated } from "./auth";
 import OpenAI from "openai";
 import chatRoutes from "./chatRoutes";
 import { generateMonthlyContentStrategy, generateCampaignContent, analyzeMessageSentiment, generateVisualContent } from "./services/openai";
@@ -39,7 +39,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
   
   // Add site-wide password protection middleware
-  app.use(requireSitePassword);
 
   // Site password endpoint (must come before other routes)
   app.post("/api/site-auth", (req, res) => {

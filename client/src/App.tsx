@@ -26,6 +26,7 @@ import CampAIgner from "@/pages/waterfall"; // Asumo que waterfall es CampAIgner
 import BrandStudio from "@/pages/brand-studio";
 import Pricing from "@/pages/pricing";
 import Approvals from "@/pages/approvals";
+import Settings from "./pages/settings";
 
 
 function Router() {
@@ -54,6 +55,8 @@ function Router() {
       <PrivateRoute path="/campaigner" component={CampAIgner} />
       <PrivateRoute path="/demo" component={CampAIgner} />
       <PrivateRoute path="/brand-studio" component={BrandStudio} />
+      <PrivateRoute path="/settings" component={Settings} />
+
 
       {/* Ruta 404 para cualquier otra ruta no definida */}
       <Route component={NotFound} />
