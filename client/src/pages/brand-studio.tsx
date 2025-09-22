@@ -679,14 +679,8 @@ export default function BrandStudio() {
                                 type="text"
                                 value={mainColor.toUpperCase()}
                                 onChange={(e) => {
-                                  const hex = e.target.value;
-                                  if (
-                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
-                                      hex,
-                                    )
-                                  ) {
-                                    setMainColor(hex);
-                                  }
+                                  // FIX: Remove validation on every keystroke
+                                  setMainColor(e.target.value);
                                 }}
                                 className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
                                 data-testid="input-main-color-hex"
@@ -717,14 +711,8 @@ export default function BrandStudio() {
                                 type="text"
                                 value={accentColor1.toUpperCase()}
                                 onChange={(e) => {
-                                  const hex = e.target.value;
-                                  if (
-                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
-                                      hex,
-                                    )
-                                  ) {
-                                    setAccentColor1(hex);
-                                  }
+                                  // FIX: Remove validation on every keystroke
+                                  setAccentColor1(e.target.value);
                                 }}
                                 className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
                                 data-testid="input-accent-color-1-hex"
@@ -755,14 +743,8 @@ export default function BrandStudio() {
                                 type="text"
                                 value={accentColor2.toUpperCase()}
                                 onChange={(e) => {
-                                  const hex = e.target.value;
-                                  if (
-                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
-                                      hex,
-                                    )
-                                  ) {
-                                    setAccentColor2(hex);
-                                  }
+                                  // FIX: Remove validation on every keystroke
+                                  setAccentColor2(e.target.value);
                                 }}
                                 className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
                                 data-testid="input-accent-color-2-hex"
@@ -791,14 +773,8 @@ export default function BrandStudio() {
                                 type="text"
                                 value={text1Color.toUpperCase()}
                                 onChange={(e) => {
-                                  const hex = e.target.value;
-                                  if (
-                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
-                                      hex,
-                                    )
-                                  ) {
-                                    setText1Color(hex);
-                                  }
+                                  // FIX: Remove validation on every keystroke
+                                  setText1Color(e.target.value);
                                 }}
                                 className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
                                 data-testid="input-text-color-1-hex"
@@ -827,14 +803,8 @@ export default function BrandStudio() {
                                 type="text"
                                 value={text2Color.toUpperCase()}
                                 onChange={(e) => {
-                                  const hex = e.target.value;
-                                  if (
-                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
-                                      hex,
-                                    )
-                                  ) {
-                                    setText2Color(hex);
-                                  }
+                                  // FIX: Remove validation on every keystroke
+                                  setText2Color(e.target.value);
                                 }}
                                 className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
                                 data-testid="input-text-color-2-hex"
