@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +33,7 @@ import {
   Plus,
   Link,
   Check,
-  FileText
+  FileText,
 } from "lucide-react";
 import { Brush } from "lucide-react";
 
@@ -48,11 +48,24 @@ interface BrandAsset {
 interface BrandDesign {
   id: string;
   brandStyle: string | null;
-  colorPalette: any;
-  typography: any;
+  colorPalette: {
+    primary: string;
+    accent1: string;
+    accent2: string;
+    text1: string;
+    text2: string;
+    [key: string]: string; // Allow other properties
+  };
+  typography: {
+    primary: string;
+    secondary: string;
+    customFonts?: { name: string; url: string }[];
+  };
   logoUrl: string | null;
   isDesignStudioEnabled: boolean;
-  brandKit: any;
+  brandKit: {
+    assets: BrandAsset[]; // Assuming assets are part of brandKit
+  };
 }
 
 // Predefined options for fonts, sectors, and purposes
@@ -67,6 +80,16 @@ const fontOptions = [
   "Oswald",
   "Source Sans Pro",
   "Nunito",
+  "Arial",
+  "Verdana",
+  "Georgia",
+  "Times New Roman",
+  "Courier New",
+  "Pacifico",
+  "Roboto Condensed",
+  "Ubuntu",
+  "Lora",
+  "Merriweather",
 ];
 
 const brandStyles = [
@@ -114,36 +137,48 @@ const colorPalettes = {
     secondary: "#666666",
     accent: "#ffffff",
     neutral: "#f5f5f5",
+    text1: "#333333", // Added
+    text2: "#999999", // Added
   },
   luxury: {
     primary: "#1a1a1a",
     secondary: "#d4af37",
     accent: "#ffffff",
     neutral: "#f8f8f8",
+    text1: "#000000", // Added
+    text2: "#aaaaaa", // Added
   },
   fun: {
     primary: "#ff6b6b",
     secondary: "#4ecdc4",
     accent: "#45b7d1",
     neutral: "#fff9e6",
+    text1: "#333333", // Added
+    text2: "#666666", // Added
   },
   corporate: {
     primary: "#2563eb",
     secondary: "#1e40af",
     accent: "#60a5fa",
     neutral: "#f1f5f9",
+    text1: "#222222", // Added
+    text2: "#555555", // Added
   },
   creative: {
     primary: "#8b5cf6",
     secondary: "#ec4899",
     accent: "#f59e0b",
     neutral: "#fdf4ff",
+    text1: "#111111", // Added
+    text2: "#444444", // Added
   },
   bold: {
     primary: "#dc2626",
     secondary: "#000000",
     accent: "#fbbf24",
     neutral: "#fef2f2",
+    text1: "#000000", // Added
+    text2: "#333333", // Added
   },
 };
 
@@ -155,7 +190,6 @@ const fontPairings = {
   creative: { primary: "Montserrat", secondary: "Nunito" },
   bold: { primary: "Oswald", secondary: "Roboto Condensed" },
 };
-
 
 const assetCategories = [
   { value: "product_images", label: "Product Images" },
@@ -183,13 +217,20 @@ export default function BrandStudio() {
   const queryClient = useQueryClient();
 
   const [selectedStyle, setSelectedStyle] = useState<string>("");
-  const [customColors, setCustomColors] = useState(colorPalettes.minimalist);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
+  // Replaced customColors with individual states for explicit control
   const [mainColor, setMainColor] = useState<string>("#2563eb"); // Default blue
   const [accentColor1, setAccentColor1] = useState<string>("#60a5fa"); // Default light blue
   const [accentColor2, setAccentColor2] = useState<string>("#1e40af"); // Default dark blue
+  const [text1Color, setText1Color] = useState<string>("#333333"); // Default text1
+  const [text2Color, setText2Color] = useState<string>("#666666"); // Default text2
+
   const [primaryFont, setPrimaryFont] = useState<string>("Roboto");
   const [secondaryFont, setSecondaryFont] = useState<string>("Open Sans");
+  const [customFontFiles, setCustomFontFiles] = useState<
+    { name: string; url: string; family: string }[]
+  >([]);
+  const [customFontOptions, setCustomFontOptions] = useState<string[]>([]); // To hold names of uploaded fonts
+
   // Logo states
   const [whiteLogoFile, setWhiteLogoFile] = useState<File | null>(null);
   const [whiteLogoPreviewUrl, setWhiteLogoPreviewUrl] = useState<string | null>(
@@ -212,12 +253,83 @@ export default function BrandStudio() {
 
   const [currentAssetUploadCategory, setCurrentAssetUploadCategory] =
     useState<string>(assetCategories[0].value); // Default category for new uploads
-  
+
   // Fetch brand design
   const { data: brandDesign, isLoading } = useQuery<BrandDesign>({
     queryKey: ["/api/brand-design"],
     retry: false,
   });
+
+  // Effect to initialize states when brandDesign data is loaded
+  useEffect(() => {
+    if (brandDesign) {
+      if (brandDesign.brandStyle) {
+        setSelectedStyle(brandDesign.brandStyle);
+      }
+      if (brandDesign.colorPalette) {
+        setMainColor(brandDesign.colorPalette.primary || "#2563eb");
+        setAccentColor1(brandDesign.colorPalette.accent1 || "#60a5fa");
+        setAccentColor2(brandDesign.colorPalette.accent2 || "#1e40af");
+        setText1Color(brandDesign.colorPalette.text1 || "#333333");
+        setText2Color(brandDesign.colorPalette.text2 || "#666666");
+      }
+      if (brandDesign.typography) {
+        setPrimaryFont(brandDesign.typography.primary || "Roboto");
+        setSecondaryFont(brandDesign.typography.secondary || "Open Sans");
+        if (
+          brandDesign.typography.customFonts &&
+          Array.isArray(brandDesign.typography.customFonts)
+        ) {
+          // For simplicity, we're just adding the names to the options here.
+          // A full solution would involve fetching these font files if their URLs are persistent.
+          const loadedCustomFontNames = brandDesign.typography.customFonts.map(
+            (f: any) => f.name,
+          );
+          setCustomFontOptions((prev) => [
+            ...new Set([...prev, ...loadedCustomFontNames]),
+          ]);
+        }
+      }
+      if (
+        brandDesign.brandKit &&
+        brandDesign.brandKit.assets &&
+        Array.isArray(brandDesign.brandKit.assets)
+      ) {
+        setBrandAssets(brandDesign.brandKit.assets);
+      }
+      // You might also want to load existing logo/favicon URLs here if they are part of brandDesign
+      // setWhiteLogoPreviewUrl(brandDesign.whiteLogoUrl || null);
+      // ... and so on for other logos/favicons
+    }
+  }, [brandDesign]);
+
+  // Effect to inject custom font styles
+  useEffect(() => {
+    let styleTag = document.getElementById("custom-fonts-style");
+    if (!styleTag) {
+      styleTag = document.createElement("style");
+      styleTag.id = "custom-fonts-style";
+      document.head.appendChild(styleTag);
+    }
+
+    let cssRules = "";
+    customFontFiles.forEach((font) => {
+      cssRules += `
+        @font-face {
+          font-family: "${font.family}";
+          src: url("${font.url}") format("woff2"), url("${font.url}") format("woff"), url("${font.url}") format("truetype");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+    });
+    styleTag.innerHTML = cssRules;
+
+    return () => {
+      // Clean up URLs when component unmounts or fonts change
+      customFontFiles.forEach((font) => URL.revokeObjectURL(font.url));
+    };
+  }, [customFontFiles]);
 
   // Design Studio activation
   const activateDesignStudioMutation = useMutation({
@@ -263,15 +375,56 @@ export default function BrandStudio() {
 
   const handleStyleSelect = (styleId: string) => {
     setSelectedStyle(styleId);
-    setCustomColors(colorPalettes[styleId as keyof typeof colorPalettes]);
+    const selectedPalette =
+      colorPalettes[styleId as keyof typeof colorPalettes];
+    if (selectedPalette) {
+      setMainColor(selectedPalette.primary);
+      setAccentColor1(selectedPalette.accent); // Using accent for accent1
+      setAccentColor2(selectedPalette.secondary); // Using secondary for accent2
+      setText1Color(selectedPalette.text1);
+      setText2Color(selectedPalette.text2);
+    }
+    const selectedFonts = fontPairings[styleId as keyof typeof fontPairings];
+    if (selectedFonts) {
+      setPrimaryFont(selectedFonts.primary);
+      setSecondaryFont(selectedFonts.secondary);
+    }
   };
 
   const handleSaveBrandDesign = () => {
     const designData = {
       brandStyle: selectedStyle,
-      colorPalette: customColors,
-      typography: fontPairings[selectedStyle as keyof typeof fontPairings],
-      logoUrl: logoFile ? URL.createObjectURL(logoFile) : null,
+      colorPalette: {
+        primary: mainColor,
+        accent1: accentColor1,
+        accent2: accentColor2,
+        text1: text1Color,
+        text2: text2Color,
+      },
+      typography: {
+        primary: primaryFont,
+        secondary: secondaryFont,
+        customFonts: customFontFiles.map((f) => ({
+          name: f.family,
+          url: f.url,
+        })), // Include custom fonts
+      },
+      logoUrl: whiteLogoPreviewUrl, // Using whiteLogoPreviewUrl as the main logo for saving
+      // You might want to save other logo URLs too:
+      // whiteLogoUrl: whiteLogoPreviewUrl,
+      // blackLogoUrl: blackLogoPreviewUrl,
+      // whiteFaviconUrl: whiteFaviconPreviewUrl,
+      // blackFaviconUrl: blackFaviconPreviewUrl,
+      brandKit: {
+        // Assuming brandKit is where assets are stored
+        assets: brandAssets.map((asset) => ({
+          id: asset.id,
+          url: asset.url,
+          name: asset.name,
+          category: asset.category,
+          assetType: asset.assetType,
+        })),
+      },
     };
     saveBrandDesignMutation.mutate(designData);
   };
@@ -306,6 +459,8 @@ export default function BrandStudio() {
     setMainColor(generateRandomHexColor());
     setAccentColor1(generateRandomHexColor());
     setAccentColor2(generateRandomHexColor());
+    setText1Color(generateRandomHexColor()); // Generate for text colors too
+    setText2Color(generateRandomHexColor()); // Generate for text colors too
     toast({
       title: "Palette Generated",
       description: "A new random color palette has been generated.",
@@ -326,7 +481,6 @@ export default function BrandStudio() {
     }
   };
 
-  
   const LogoUploadField = ({
     id,
     label,
@@ -408,6 +562,26 @@ export default function BrandStudio() {
     setBrandAssets((prev) => prev.filter((asset) => asset.id !== id));
   };
 
+  const handleFontUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const newFonts = files.map((file) => {
+      const fontName = file.name.split(".").slice(0, -1).join("."); // Get name without extension
+      const fontUrl = URL.createObjectURL(file);
+      return { name: file.name, url: fontUrl, family: fontName };
+    });
+
+    setCustomFontFiles((prev) => [...prev, ...newFonts]);
+    setCustomFontOptions((prev) => [...prev, ...newFonts.map((f) => f.family)]);
+    toast({
+      title: isSpanish ? "Fuente(s) Subida(s)" : "Font(s) Uploaded",
+      description: isSpanish
+        ? "Las fuentes se han añadido a tu selección."
+        : "Fonts have been added to your selection.",
+    });
+  };
+
+  const availableFontOptions = [...fontOptions, ...customFontOptions];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={isSpanish ? "Estudio de Marca" : "Brand Studio"} />
@@ -420,27 +594,15 @@ export default function BrandStudio() {
             <div className="py-6">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
                 <Tabs defaultValue="brand-identity" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger
                       value="brand-identity"
                       data-testid="tab-brand-identity"
                     >
                       {isSpanish ? "Identidad" : "Identity"}
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="design-editor"
-                      data-testid="tab-design-editor"
-                    >
-                      {isSpanish ? "Editor" : "Editor"}
-                    </TabsTrigger>
                     <TabsTrigger value="assets" data-testid="tab-assets">
                       {isSpanish ? "Recursos" : "Assets"}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="design-studio"
-                      data-testid="tab-design-studio"
-                    >
-                      Design Studio
                     </TabsTrigger>
                   </TabsList>
 
@@ -484,7 +646,7 @@ export default function BrandStudio() {
                       <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center">
                           <Palette className="mr-2 h-5 w-5" />
-                          Color Palette
+                          {isSpanish ? "Paleta de Colores" : "Color Palette"}
                         </CardTitle>
                         <Button
                           variant="outline"
@@ -493,28 +655,42 @@ export default function BrandStudio() {
                           data-testid="button-generate-random-palette"
                         >
                           <Sparkles className="mr-2 h-4 w-4" />
-                          Generate Random
+                          {isSpanish ? "Generar Aleatorio" : "Generate Random"}
                         </Button>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                           {/* Main Color */}
                           <div>
                             <Label htmlFor="main-color" className="mb-2 block">
-                              Main Color
+                              {isSpanish ? "Color Principal" : "Main Color"}
                             </Label>
                             <div className="flex items-center space-x-2 mt-2">
                               <Input
-                                id="main-color"
+                                id="main-color-picker"
                                 type="color"
                                 value={mainColor}
                                 onChange={(e) => setMainColor(e.target.value)}
-                                className="w-20 h-10 p-1 cursor-pointer"
-                                data-testid="input-main-color"
+                                className="w-12 h-10 p-1 cursor-pointer"
+                                data-testid="input-main-color-picker"
                               />
-                              <span className="text-sm font-medium text-gray-700">
-                                {mainColor.toUpperCase()}
-                              </span>
+                              <Input
+                                id="main-color-hex"
+                                type="text"
+                                value={mainColor.toUpperCase()}
+                                onChange={(e) => {
+                                  const hex = e.target.value;
+                                  if (
+                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
+                                      hex,
+                                    )
+                                  ) {
+                                    setMainColor(hex);
+                                  }
+                                }}
+                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
+                                data-testid="input-main-color-hex"
+                              />
                             </div>
                           </div>
                           {/* Accent Color 1 */}
@@ -523,22 +699,36 @@ export default function BrandStudio() {
                               htmlFor="accent-color-1"
                               className="mb-2 block"
                             >
-                              Accent Color 1
+                              {isSpanish ? "Color Acento 1" : "Accent Color 1"}
                             </Label>
                             <div className="flex items-center space-x-2 mt-2">
                               <Input
-                                id="accent-color-1"
+                                id="accent-color-1-picker"
                                 type="color"
                                 value={accentColor1}
                                 onChange={(e) =>
                                   setAccentColor1(e.target.value)
                                 }
-                                className="w-20 h-10 p-1 cursor-pointer"
-                                data-testid="input-accent-color-1"
+                                className="w-12 h-10 p-1 cursor-pointer"
+                                data-testid="input-accent-color-1-picker"
                               />
-                              <span className="text-sm font-medium text-gray-700">
-                                {accentColor1.toUpperCase()}
-                              </span>
+                              <Input
+                                id="accent-color-1-hex"
+                                type="text"
+                                value={accentColor1.toUpperCase()}
+                                onChange={(e) => {
+                                  const hex = e.target.value;
+                                  if (
+                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
+                                      hex,
+                                    )
+                                  ) {
+                                    setAccentColor1(hex);
+                                  }
+                                }}
+                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
+                                data-testid="input-accent-color-1-hex"
+                              />
                             </div>
                           </div>
                           {/* Accent Color 2 */}
@@ -547,22 +737,108 @@ export default function BrandStudio() {
                               htmlFor="accent-color-2"
                               className="mb-2 block"
                             >
-                              Accent Color 2
+                              {isSpanish ? "Color Acento 2" : "Accent Color 2"}
                             </Label>
                             <div className="flex items-center space-x-2 mt-2">
                               <Input
-                                id="accent-color-2"
+                                id="accent-color-2-picker"
                                 type="color"
                                 value={accentColor2}
                                 onChange={(e) =>
                                   setAccentColor2(e.target.value)
                                 }
-                                className="w-20 h-10 p-1 cursor-pointer"
-                                data-testid="input-accent-color-2"
+                                className="w-12 h-10 p-1 cursor-pointer"
+                                data-testid="input-accent-color-2-picker"
                               />
-                              <span className="text-sm font-medium text-gray-700">
-                                {accentColor2.toUpperCase()}
-                              </span>
+                              <Input
+                                id="accent-color-2-hex"
+                                type="text"
+                                value={accentColor2.toUpperCase()}
+                                onChange={(e) => {
+                                  const hex = e.target.value;
+                                  if (
+                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
+                                      hex,
+                                    )
+                                  ) {
+                                    setAccentColor2(hex);
+                                  }
+                                }}
+                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
+                                data-testid="input-accent-color-2-hex"
+                              />
+                            </div>
+                          </div>
+                          {/* Text Color 1 */}
+                          <div>
+                            <Label
+                              htmlFor="text-color-1"
+                              className="mb-2 block"
+                            >
+                              {isSpanish ? "Color Texto 1" : "Text Color 1"}
+                            </Label>
+                            <div className="flex items-center space-x-2 mt-2">
+                              <Input
+                                id="text-color-1-picker"
+                                type="color"
+                                value={text1Color}
+                                onChange={(e) => setText1Color(e.target.value)}
+                                className="w-12 h-10 p-1 cursor-pointer"
+                                data-testid="input-text-color-1-picker"
+                              />
+                              <Input
+                                id="text-color-1-hex"
+                                type="text"
+                                value={text1Color.toUpperCase()}
+                                onChange={(e) => {
+                                  const hex = e.target.value;
+                                  if (
+                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
+                                      hex,
+                                    )
+                                  ) {
+                                    setText1Color(hex);
+                                  }
+                                }}
+                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
+                                data-testid="input-text-color-1-hex"
+                              />
+                            </div>
+                          </div>
+                          {/* Text Color 2 */}
+                          <div>
+                            <Label
+                              htmlFor="text-color-2"
+                              className="mb-2 block"
+                            >
+                              {isSpanish ? "Color Texto 2" : "Text Color 2"}
+                            </Label>
+                            <div className="flex items-center space-x-2 mt-2">
+                              <Input
+                                id="text-color-2-picker"
+                                type="color"
+                                value={text2Color}
+                                onChange={(e) => setText2Color(e.target.value)}
+                                className="w-12 h-10 p-1 cursor-pointer"
+                                data-testid="input-text-color-2-picker"
+                              />
+                              <Input
+                                id="text-color-2-hex"
+                                type="text"
+                                value={text2Color.toUpperCase()}
+                                onChange={(e) => {
+                                  const hex = e.target.value;
+                                  if (
+                                    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(
+                                      hex,
+                                    )
+                                  ) {
+                                    setText2Color(hex);
+                                  }
+                                }}
+                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
+                                data-testid="input-text-color-2-hex"
+                              />
                             </div>
                           </div>
                         </div>
@@ -574,14 +850,14 @@ export default function BrandStudio() {
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <Type className="mr-2 h-5 w-5" />
-                          Typography
+                          {isSpanish ? "Tipografía" : "Typography"}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           <div>
                             <Label htmlFor="primary-font-select">
-                              Primary Font
+                              {isSpanish ? "Fuente Principal" : "Primary Font"}
                             </Label>
                             <Select
                               value={primaryFont}
@@ -595,7 +871,7 @@ export default function BrandStudio() {
                                 <SelectValue placeholder="Select a font" />
                               </SelectTrigger>
                               <SelectContent>
-                                {fontOptions.map((font) => (
+                                {availableFontOptions.map((font) => (
                                   <SelectItem
                                     key={font}
                                     value={font}
@@ -615,7 +891,9 @@ export default function BrandStudio() {
                           </div>
                           <div>
                             <Label htmlFor="secondary-font-select">
-                              Secondary Font
+                              {isSpanish
+                                ? "Fuente Secundaria"
+                                : "Secondary Font"}
                             </Label>
                             <Select
                               value={secondaryFont}
@@ -629,7 +907,7 @@ export default function BrandStudio() {
                                 <SelectValue placeholder="Select a font" />
                               </SelectTrigger>
                               <SelectContent>
-                                {fontOptions.map((font) => (
+                                {availableFontOptions.map((font) => (
                                   <SelectItem
                                     key={font}
                                     value={font}
@@ -651,528 +929,84 @@ export default function BrandStudio() {
                       </CardContent>
                     </Card>
 
-                    {/* Color Palette */}
-                    {selectedStyle && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Palette className="mr-2 h-5 w-5" />
-                            {isSpanish ? "Paleta de Colores" : "Color Palette"}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            {Object.entries(customColors).map(
-                              ([key, color]) => (
-                                <div key={key} className="space-y-2">
-                                  <Label className="capitalize">{key}</Label>
-                                  <div className="flex items-center space-x-2">
-                                    <div
-                                      className="w-12 h-12 rounded-lg border-2 border-gray-200"
-                                      style={{ backgroundColor: color }}
-                                    />
-                                    <Input
-                                      type="color"
-                                      value={color}
-                                      onChange={(e) =>
-                                        setCustomColors((prev) => ({
-                                          ...prev,
-                                          [key]: e.target.value,
-                                        }))
-                                      }
-                                      className="w-16 h-10 p-1"
-                                      data-testid={`color-${key}`}
-                                    />
-                                  </div>
-                                </div>
-                              ),
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Typography */}
-                    {selectedStyle && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center">
-                            <Type className="mr-2 h-5 w-5" />
-                            {isSpanish ? "Tipografía" : "Typography"}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div>
-                              <Label>
-                                {isSpanish
-                                  ? "Fuente Principal"
-                                  : "Primary Font"}
-                              </Label>
-                              <div
-                                className="mt-2 p-4 border rounded-lg text-2xl font-bold"
-                                style={{
-                                  fontFamily:
-                                    fontPairings[
-                                      selectedStyle as keyof typeof fontPairings
-                                    ]?.primary,
-                                }}
-                              >
-                                {
-                                  fontPairings[
-                                    selectedStyle as keyof typeof fontPairings
-                                  ]?.primary
-                                }
-                              </div>
-                            </div>
-                            <div>
-                              <Label>
-                                {isSpanish
-                                  ? "Fuente Secundaria"
-                                  : "Secondary Font"}
-                              </Label>
-                              <div
-                                className="mt-2 p-4 border rounded-lg text-lg"
-                                style={{
-                                  fontFamily:
-                                    fontPairings[
-                                      selectedStyle as keyof typeof fontPairings
-                                    ]?.secondary,
-                                }}
-                              >
-                                {
-                                  fontPairings[
-                                    selectedStyle as keyof typeof fontPairings
-                                  ]?.secondary
-                                }
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Logo Upload */}
+                    {/* Custom Font Uploads */}
                     <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center">
-                          <Image className="mr-2 h-5 w-5" />
-                          Logo
+                          <Upload className="mr-2 h-5 w-5" />
+                          {isSpanish
+                            ? "Subir Fuentes Personalizadas"
+                            : "Upload Custom Fonts"}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-4">
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                            <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                            <div className="mt-4">
-                              <Label
-                                htmlFor="logo-upload"
-                                className="cursor-pointer"
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                          <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                          <div className="mt-4">
+                            <Label
+                              htmlFor="font-upload"
+                              className="cursor-pointer"
+                            >
+                              <span className="font-medium text-brand-600 hover:text-brand-500">
+                                {isSpanish
+                                  ? "Subir archivo(s) de fuente"
+                                  : "Upload font file(s)"}
+                              </span>
+                              <input
+                                id="font-upload"
+                                type="file"
+                                accept=".ttf,.otf,.woff,.woff2" // Common font formats
+                                multiple
+                                className="sr-only"
+                                onChange={handleFontUpload}
+                                data-testid="input-font-upload"
+                              />
+                            </Label>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {isSpanish
+                                ? "Archivos .ttf, .otf, .woff, .woff2"
+                                : ".ttf, .otf, .woff, .woff2 files"}
+                            </p>
+                          </div>
+                        </div>
+                        {customFontFiles.length > 0 && (
+                          <div className="mt-4 space-y-2">
+                            <h4 className="font-semibold">
+                              {isSpanish
+                                ? "Fuentes Subidas:"
+                                : "Uploaded Fonts:"}
+                            </h4>
+                            {customFontFiles.map((font) => (
+                              <div
+                                key={font.name}
+                                className="flex items-center justify-between p-2 border rounded-md"
                               >
-                                <span className="font-medium text-brand-600 hover:text-brand-500">
-                                  {isSpanish ? "Subir logo" : "Upload logo"}
+                                <span
+                                  className="text-sm"
+                                  style={{ fontFamily: font.family }}
+                                >
+                                  {font.family} ({font.name})
                                 </span>
-                                <input
-                                  id="logo-upload"
-                                  type="file"
-                                  accept="image/*"
-                                  className="sr-only"
-                                  onChange={(e) =>
-                                    setLogoFile(e.target.files?.[0] || null)
-                                  }
-                                  data-testid="input-logo-upload"
-                                />
-                              </Label>
-                            </div>
-                            {logoFile && (
-                              <div className="mt-4">
-                                <Badge variant="secondary">
-                                  {logoFile.name}
-                                </Badge>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setCustomFontFiles((prev) =>
+                                      prev.filter((f) => f.name !== font.name),
+                                    );
+                                    setCustomFontOptions((prev) =>
+                                      prev.filter((f) => f !== font.family),
+                                    );
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
                               </div>
-                            )}
+                            ))}
                           </div>
-                        </div>
+                        )}
                       </CardContent>
                     </Card>
-
-                    {/* Save Button */}
-                    <div className="flex justify-end">
-                      <Button
-                        onClick={handleSaveBrandDesign}
-                        disabled={
-                          !selectedStyle || saveBrandDesignMutation.isPending
-                        }
-                        className="bg-gradient-to-r from-brand-500 to-purple-600 text-white"
-                        data-testid="button-save-brand-design"
-                      >
-                        {saveBrandDesignMutation.isPending
-                          ? isSpanish
-                            ? "Guardando..."
-                            : "Saving..."
-                          : isSpanish
-                            ? "Guardar Diseño"
-                            : "Save Design"}
-                      </Button>
-                    </div>
-                  </TabsContent>
-
-                  {/* Design Editor Tab */}
-                  <TabsContent value="design-editor" className="space-y-6">
-                    {/* Platform-Specific Templates */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Edit className="mr-2 h-5 w-5" />
-                          {isSpanish
-                            ? "Plantillas por Plataforma"
-                            : "Platform Templates"}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                          {[
-                            {
-                              platform: "Instagram Post",
-                              size: "1080×1080",
-                              color:
-                                "bg-gradient-to-br from-purple-500 to-pink-500",
-                            },
-                            {
-                              platform: "Instagram Story",
-                              size: "1080×1920",
-                              color:
-                                "bg-gradient-to-br from-orange-500 to-red-500",
-                            },
-                            {
-                              platform: "TikTok",
-                              size: "1080×1920",
-                              color: "bg-gradient-to-br from-black to-gray-800",
-                            },
-                            {
-                              platform: "Facebook Post",
-                              size: "1200×630",
-                              color:
-                                "bg-gradient-to-br from-blue-600 to-blue-800",
-                            },
-                            {
-                              platform: "LinkedIn",
-                              size: "1200×627",
-                              color:
-                                "bg-gradient-to-br from-blue-700 to-indigo-800",
-                            },
-                            {
-                              platform: "YouTube Thumb",
-                              size: "1280×720",
-                              color:
-                                "bg-gradient-to-br from-red-600 to-red-800",
-                            },
-                            {
-                              platform: "Email Header",
-                              size: "600×200",
-                              color:
-                                "bg-gradient-to-br from-green-600 to-emerald-700",
-                            },
-                            {
-                              platform: "Pinterest",
-                              size: "1000×1500",
-                              color:
-                                "bg-gradient-to-br from-red-500 to-pink-600",
-                            },
-                          ].map((template) => (
-                            <div
-                              key={template.platform}
-                              className="group cursor-pointer"
-                              data-testid={`template-${template.platform.toLowerCase().replace(" ", "-")}`}
-                            >
-                              <div
-                                className={`${template.color} rounded-lg p-6 mb-3 aspect-square flex items-center justify-center transition-transform group-hover:scale-105`}
-                              >
-                                <div className="text-white text-center">
-                                  <h4 className="font-semibold text-sm">
-                                    {template.platform}
-                                  </h4>
-                                  <p className="text-xs opacity-90 mt-1">
-                                    {template.size}
-                                  </p>
-                                </div>
-                              </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full"
-                              >
-                                <Plus className="mr-2 h-3 w-3" />
-                                {isSpanish ? "Crear" : "Create"}
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Design Tools */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>
-                          {isSpanish
-                            ? "Herramientas de Diseño"
-                            : "Design Tools"}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
-                            <Palette className="mx-auto h-8 w-8 text-brand-600 mb-3" />
-                            <h4 className="font-semibold mb-2">
-                              {isSpanish ? "Paletas Pro" : "Pro Palettes"}
-                            </h4>
-                            <p className="text-sm text-gray-600 mb-4">
-                              {isSpanish
-                                ? "Paletas profesionales para marcas de lujo"
-                                : "Professional palettes for luxury brands"}
-                            </p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              data-testid="button-pro-palettes"
-                            >
-                              {isSpanish ? "Explorar" : "Explore"}
-                            </Button>
-                          </div>
-
-                          <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
-                            <Type className="mx-auto h-8 w-8 text-brand-600 mb-3" />
-                            <h4 className="font-semibold mb-2">
-                              {isSpanish
-                                ? "Tipografías Premium"
-                                : "Premium Fonts"}
-                            </h4>
-                            <p className="text-sm text-gray-600 mb-4">
-                              {isSpanish
-                                ? "Fuentes de calidad para marcas exclusivas"
-                                : "Quality fonts for exclusive brands"}
-                            </p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              data-testid="button-premium-fonts"
-                            >
-                              {isSpanish ? "Ver Catálogo" : "View Catalog"}
-                            </Button>
-                          </div>
-
-                          <div className="text-center p-6 border rounded-lg hover:shadow-md transition-shadow">
-                            <Sparkles className="mx-auto h-8 w-8 text-brand-600 mb-3" />
-                            <h4 className="font-semibold mb-2">
-                              {isSpanish ? "IA Generativa" : "AI Generator"}
-                            </h4>
-                            <p className="text-sm text-gray-600 mb-4">
-                              {isSpanish
-                                ? "Genera logos y diseños con IA"
-                                : "Generate logos and designs with AI"}
-                            </p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              data-testid="button-ai-generator"
-                            >
-                              {isSpanish ? "Generar" : "Generate"}
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Assets Tab */}
-                  <TabsContent value="assets" className="space-y-6">
-                    {/* Logo Variations */}
-                    {/*<Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Image className="mr-2 h-5 w-5" />
-                          {isSpanish
-                            ? "Variaciones de Logo"
-                            : "Logo Variations"}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                          {[
-                            {
-                              name: "Primary Logo",
-                              usage: "Main usage",
-                              bg: "bg-white",
-                            },
-                            {
-                              name: "Logo Dark",
-                              usage: "Dark backgrounds",
-                              bg: "bg-gray-900",
-                            },
-                            {
-                              name: "Logo Mark",
-                              usage: "Small spaces",
-                              bg: "bg-gray-100",
-                            },
-                            {
-                              name: "Logo White",
-                              usage: "Light on dark",
-                              bg: "bg-brand-600",
-                            },
-                          ].map((logo, index) => (
-                            <div
-                              key={index}
-                              className="border rounded-lg overflow-hidden"
-                            >
-                              <div
-                                className={`${logo.bg} h-24 flex items-center justify-center`}
-                              >
-                                <div
-                                  className={`w-8 h-8 rounded ${logo.bg === "bg-white" || logo.bg === "bg-gray-100" ? "bg-gray-400" : "bg-white"}`}
-                                />
-                              </div>
-                              <div className="p-3">
-                                <h4 className="font-medium text-sm">
-                                  {logo.name}
-                                </h4>
-                                <p className="text-xs text-gray-500">
-                                  {logo.usage}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Button
-                            variant="outline"
-                            className="flex items-center justify-center"
-                            data-testid="button-upload-logo"
-                          >
-                            <Upload className="mr-2 h-4 w-4" />
-                            {isSpanish ? "Subir Nuevo Logo" : "Upload New Logo"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="flex items-center justify-center"
-                            data-testid="button-download-package"
-                          >
-                            <Download className="mr-2 h-4 w-4" />
-                            {isSpanish
-                              ? "Descargar Paquete"
-                              : "Download Package"}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>*/}
-
-                    
-
-                    {/* Brand Guidelines */}
-                    {/*<Card>
-                      <CardHeader>
-                        <CardTitle>
-                          {isSpanish ? "Guías de Marca" : "Brand Guidelines"}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <h4 className="font-semibold mb-3">
-                                {isSpanish
-                                  ? "Espaciado y Proporción"
-                                  : "Spacing & Proportion"}
-                              </h4>
-                              <div className="space-y-2">
-                                <div className="flex justify-between">
-                                  <span className="text-sm">
-                                    {isSpanish
-                                      ? "Margen mínimo del logo"
-                                      : "Logo minimum margin"}
-                                  </span>
-                                  <span className="text-sm font-medium">
-                                    2x height
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-sm">
-                                    {isSpanish
-                                      ? "Tamaño mínimo"
-                                      : "Minimum size"}
-                                  </span>
-                                  <span className="text-sm font-medium">
-                                    24px height
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div>
-                              <h4 className="font-semibold mb-3">
-                                {isSpanish ? "Uso de Color" : "Color Usage"}
-                              </h4>
-                              <div className="space-y-2">
-                                <div className="flex justify-between">
-                                  <span className="text-sm">
-                                    {isSpanish
-                                      ? "Color primario"
-                                      : "Primary color"}
-                                  </span>
-                                  <span className="text-sm font-medium">
-                                    60% uso
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-sm">
-                                    {isSpanish
-                                      ? "Color secundario"
-                                      : "Secondary color"}
-                                  </span>
-                                  <span className="text-sm font-medium">
-                                    30% uso
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-sm">
-                                    {isSpanish
-                                      ? "Color de acento"
-                                      : "Accent color"}
-                                  </span>
-                                  <span className="text-sm font-medium">
-                                    10% uso
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="pt-4 border-t">
-                            <h4 className="font-semibold mb-3">
-                              {isSpanish ? "Lo que NO hacer" : "Don'ts"}
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-sm text-red-800">
-                                  {isSpanish
-                                    ? "❌ No distorsionar el logo"
-                                    : "❌ Don't distort the logo"}
-                                </p>
-                              </div>
-                              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-sm text-red-800">
-                                  {isSpanish
-                                    ? "❌ No usar colores no aprobados"
-                                    : "❌ Don't use unapproved colors"}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>*/}
-
 
                     {/* Logo and Favicon Uploads */}
                     <Card>
@@ -1220,22 +1054,49 @@ export default function BrandStudio() {
                       </CardContent>
                     </Card>
 
-                    {/* Brand Assets (moved from Appearance) */}
+                    {/* Save Button */}
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={handleSaveBrandDesign}
+                        disabled={
+                          !selectedStyle || saveBrandDesignMutation.isPending
+                        }
+                        className="bg-gradient-to-r from-brand-500 to-purple-600 text-white"
+                        data-testid="button-save-brand-design"
+                      >
+                        {saveBrandDesignMutation.isPending
+                          ? isSpanish
+                            ? "Guardando..."
+                            : "Saving..."
+                          : isSpanish
+                            ? "Guardar Diseño"
+                            : "Save Design"}
+                      </Button>
+                    </div>
+                  </TabsContent>
+
+                  {/* Assets Tab */}
+                  <TabsContent value="assets" className="space-y-6">
+                    {/* Brand Assets Upload */}
                     <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center">
-                          <Image className="mr-2 h-5 w-5" />
-                          Brand Assets
+                          <Upload className="mr-2 h-5 w-5" />
+                          {isSpanish
+                            ? "Subir Recursos de Marca"
+                            : "Upload Brand Assets"}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          <div className="flex items-center space-x-2 mb-4">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mb-4">
                             <Label
                               htmlFor="asset-category-select"
                               className="shrink-0"
                             >
-                              Category for uploads:
+                              {isSpanish
+                                ? "Categoría para subidas:"
+                                : "Category for uploads:"}
                             </Label>
                             <Select
                               value={currentAssetUploadCategory}
@@ -1243,9 +1104,15 @@ export default function BrandStudio() {
                             >
                               <SelectTrigger
                                 id="asset-category-select"
-                                className="w-[200px]"
+                                className="w-full sm:w-[200px]"
                               >
-                                <SelectValue placeholder="Select category" />
+                                <SelectValue
+                                  placeholder={
+                                    isSpanish
+                                      ? "Seleccionar categoría"
+                                      : "Select category"
+                                  }
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 {assetCategories.map((cat) => (
@@ -1265,7 +1132,9 @@ export default function BrandStudio() {
                                 className="cursor-pointer"
                               >
                                 <span className="font-medium text-brand-600 hover:text-brand-500">
-                                  Upload assets
+                                  {isSpanish
+                                    ? "Subir recursos"
+                                    : "Upload assets"}
                                 </span>
                                 <input
                                   id="asset-upload"
@@ -1278,17 +1147,39 @@ export default function BrandStudio() {
                                 />
                               </Label>
                               <p className="text-sm text-gray-500 mt-1">
-                                Images, videos or PDFs. Unlimited files.
+                                {isSpanish
+                                  ? "Imágenes, videos o PDFs. Archivos ilimitados."
+                                  : "Images, videos or PDFs. Unlimited files."}
                               </p>
                             </div>
                           </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                          {brandAssets.length > 0 && (
-                            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                              {brandAssets.map((asset) => (
+                    {/* Categorized Brand Assets Display */}
+                    {assetCategories.map((category) => {
+                      const assetsInCategory = brandAssets.filter(
+                        (asset) => asset.category === category.value,
+                      );
+
+                      if (assetsInCategory.length === 0) {
+                        return null; // Don't show category if no assets
+                      }
+
+                      return (
+                        <Card key={category.value}>
+                          <CardHeader>
+                            <CardTitle className="flex items-center">
+                              {category.label} ({assetsInCategory.length})
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                              {assetsInCategory.map((asset) => (
                                 <div
                                   key={asset.id}
-                                  className="relative group border rounded-md p-2 flex flex-col items-center justify-center h-32"
+                                  className="relative group border rounded-md p-2 flex flex-col items-center justify-center h-32 overflow-hidden"
                                 >
                                   {asset.assetType === "image" ? (
                                     <img
@@ -1311,169 +1202,58 @@ export default function BrandStudio() {
                                       </span>
                                     </div>
                                   )}
+                                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      variant="destructive"
+                                      size="icon"
+                                      onClick={() =>
+                                        handleRemoveAsset(asset.id)
+                                      }
+                                      className="m-1"
+                                      aria-label={
+                                        isSpanish
+                                          ? "Eliminar recurso"
+                                          : "Remove asset"
+                                      }
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                    <a
+                                      href={asset.url}
+                                      download={asset.name}
+                                      className="m-1"
+                                      aria-label={
+                                        isSpanish
+                                          ? "Descargar recurso"
+                                          : "Download asset"
+                                      }
+                                    >
+                                      <Button variant="secondary" size="icon">
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                    </a>
+                                  </div>
                                   <Badge
                                     variant="secondary"
                                     className="absolute bottom-1 left-1 text-xs px-1 py-0.5 opacity-80"
                                   >
-                                    {assetCategories.find(
-                                      (cat) => cat.value === asset.category,
-                                    )?.label || asset.category}
+                                    {asset.name}
                                   </Badge>
-                                  <button
-                                    onClick={() => handleRemoveAsset(asset.id)}
-                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    aria-label="Remove asset"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </button>
                                 </div>
                               ))}
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
 
-                  {/* Canva Sync Tab */}
-                  <TabsContent value="design-studio">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Brush className="mr-2 h-5 w-5" />
-                          {isSpanish
-                            ? "LeadBoost Design Studio"
-                            : "LeadBoost Design Studio"}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {brandDesign?.isDesignStudioEnabled ? (
-                          <div className="space-y-6">
-                            <div className="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg">
-                              <Check className="h-5 w-5 text-green-500 mr-3" />
-                              <span className="text-green-800 font-medium">
-                                {isSpanish
-                                  ? "Design Studio activado exitosamente"
-                                  : "Design Studio activated successfully"}
-                              </span>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                              <Card className="border-brand-200 hover:border-brand-300 transition-colors">
-                                <CardHeader>
-                                  <CardTitle className="text-lg flex items-center">
-                                    <Image className="mr-2 h-5 w-5 text-brand-600" />
-                                    {isSpanish
-                                      ? "Editor Visual"
-                                      : "Visual Editor"}
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <p className="text-gray-600 mb-4">
-                                    {isSpanish
-                                      ? "Editor drag-and-drop profesional con IA integrada"
-                                      : "Professional drag-and-drop editor with integrated AI"}
-                                  </p>
-                                  <Button className="w-full bg-gradient-to-r from-brand-500 to-brand-600">
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    {isSpanish ? "Abrir Editor" : "Open Editor"}
-                                  </Button>
-                                </CardContent>
-                              </Card>
-
-                              <Card className="border-purple-200 hover:border-purple-300 transition-colors">
-                                <CardHeader>
-                                  <CardTitle className="text-lg flex items-center">
-                                    <Sparkles className="mr-2 h-5 w-5 text-purple-600" />
-                                    {isSpanish
-                                      ? "IA Generativa"
-                                      : "AI Generator"}
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <p className="text-gray-600 mb-4">
-                                    {isSpanish
-                                      ? "Genera imágenes y videos con IA para tus campañas"
-                                      : "Generate AI images and videos for your campaigns"}
-                                  </p>
-                                  <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600">
-                                    <Sparkles className="mr-2 h-4 w-4" />
-                                    {isSpanish ? "Generar IA" : "Generate AI"}
-                                  </Button>
-                                </CardContent>
-                              </Card>
-
-                              <Card className="border-cyan-200 hover:border-cyan-300 transition-colors">
-                                <CardHeader>
-                                  <CardTitle className="text-lg flex items-center">
-                                    <Type className="mr-2 h-5 w-5 text-cyan-600" />
-                                    {isSpanish
-                                      ? "Plantillas Pro"
-                                      : "Pro Templates"}
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <p className="text-gray-600 mb-4">
-                                    {isSpanish
-                                      ? "Miles de plantillas profesionales para cada plataforma"
-                                      : "Thousands of professional templates for every platform"}
-                                  </p>
-                                  <Button className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600">
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    {isSpanish
-                                      ? "Ver Plantillas"
-                                      : "View Templates"}
-                                  </Button>
-                                </CardContent>
-                              </Card>
-                            </div>
-
-                            <div className="bg-gradient-to-r from-brand-50 to-cyan-50 p-6 rounded-lg border border-brand-200">
-                              <h4 className="font-semibold text-brand-900 mb-2">
-                                {isSpanish
-                                  ? "🚀 Próximamente: Video IA"
-                                  : "🚀 Coming Soon: AI Video"}
-                              </h4>
-                              <p className="text-brand-700">
-                                {isSpanish
-                                  ? "Creación automática de videos profesionales con avatares IA y efectos avanzados"
-                                  : "Automatic professional video creation with AI avatars and advanced effects"}
-                              </p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-12">
-                            <Brush className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
-                              {isSpanish
-                                ? "Activa Design Studio"
-                                : "Activate Design Studio"}
-                            </h3>
-                            <p className="text-gray-500 mb-6">
-                              {isSpanish
-                                ? "Activa el estudio de diseño nativo de LeadBoost para crear contenido visual profesional sin depender de herramientas externas."
-                                : "Activate LeadBoost's native design studio to create professional visual content without relying on external tools."}
-                            </p>
-                            <Button
-                              onClick={() =>
-                                activateDesignStudioMutation.mutate()
-                              }
-                              disabled={activateDesignStudioMutation.isPending}
-                              className="bg-gradient-to-r from-brand-500 to-brand-600 text-white"
-                            >
-                              <Brush className="mr-2 h-4 w-4" />
-                              {activateDesignStudioMutation.isPending
-                                ? isSpanish
-                                  ? "Activando..."
-                                  : "Activating..."
-                                : isSpanish
-                                  ? "Activar Design Studio"
-                                  : "Activate Design Studio"}
-                            </Button>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                    {brandAssets.length === 0 && (
+                      <p className="text-center text-gray-500 mt-8">
+                        {isSpanish
+                          ? "No hay recursos subidos aún. ¡Sube algunos para empezar!"
+                          : "No assets uploaded yet. Upload some to get started!"}
+                      </p>
+                    )}
                   </TabsContent>
                 </Tabs>
               </div>

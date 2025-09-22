@@ -75,10 +75,10 @@ export default function Sidebar() {
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
     { name: t.sidebar.calendar, href: "/calendar", icon: Calendar },
     { name: t.sidebar.analytics, href: "/analytics", icon: BarChart3 },
-    { name: t.sidebar.campaigns, href: "/campaigns", icon: Megaphone },
+    /*{ name: t.sidebar.campaigns, href: "/campaigns", icon: Megaphone },*/
     { name: t.sidebar.customers, href: "/customers", icon: UserCheck },
     { name: t.sidebar.team, href: "/team", icon: Users },
-    { name: t.sidebar.integrations, href: "/integrations", icon: Link2 },
+    /*{ name: t.sidebar.integrations, href: "/integrations", icon: Link2 },*/
     { name: t.sidebar.settings, href: "/settings", icon: Settings },
   ];
 
