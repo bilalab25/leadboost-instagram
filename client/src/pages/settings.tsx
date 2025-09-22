@@ -52,6 +52,9 @@ import {
   BriefcaseBusiness, // For CRM
   Share2, // For TikTok
   RefreshCw, // ¡Añadido! Este era el que faltaba.
+  Twitter, // Para X (anteriormente Twitter)
+  MessageSquareText, // Para Threads (icono genérico)
+  Camera, // Para Snapchat (icono genérico)
 } from "lucide-react";
 
 import {
@@ -373,6 +376,35 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       },
     ],
   },
+  x: { // Nueva plataforma de redes sociales
+    name: "X (Twitter)",
+    icon: Twitter,
+    description: "Connect your X (formerly Twitter) account for posts and engagement.",
+    category: "social_media",
+    fields: [
+      { name: "accessToken", label: "Access Token", type: "password", required: true },
+      { name: "apiKey", label: "API Key", type: "text", required: true },
+      { name: "apiSecret", label: "API Secret", type: "password", required: true },
+    ],
+  },
+  threads: { // Nueva plataforma de redes sociales
+    name: "Threads",
+    icon: MessageSquareText, // Usando un icono genérico de lucide-react
+    description: "Connect your Threads account to share content.",
+    category: "social_media",
+    fields: [
+      { name: "accessToken", label: "Access Token", type: "password", required: true },
+    ],
+  },
+  snapchat: { // Nueva plataforma de redes sociales
+    name: "Snapchat",
+    icon: Camera, // Usando un icono genérico de lucide-react
+    description: "Connect your Snapchat account for campaigns and analytics.",
+    category: "social_media",
+    fields: [
+      { name: "accessToken", label: "Access Token", type: "password", required: true },
+    ],
+  },
 
   // CRM Integrations
   hubspot: {
@@ -538,6 +570,15 @@ const dummyIntegrations: Integration[] = [
     storeUrl: "myportfolio.wixsite.com",
     isActive: true,
     syncEnabled: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "int_x_1",
+    provider: "x",
+    category: "social_media",
+    storeName: "@MyBrandX",
+    isActive: true,
+    syncEnabled: true,
     createdAt: new Date().toISOString(),
   },
 ];
@@ -1781,57 +1822,96 @@ export default function Settings() {
                                         (integration) =>
                                           integration.category === categoryKey,
                                       );
-                                    return integrationsInCategory.length ===
-                                      0 ? (
-                                      <div className="text-center py-8 text-muted-foreground">
-                                        <categoryInfo.icon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        <p>
-                                          {isSpanish
-                                            ? `No hay integraciones de ${categoryInfo.name.toLowerCase()} conectadas aún.`
-                                            : `No ${categoryInfo.name.toLowerCase()} connected yet.`}
-                                        </p>
-                                        <p className="text-sm">
-                                          {isSpanish
-                                            ? `Añade tu primera integración de ${categoryInfo.name.toLowerCase().replace("integrations", "integration")} para empezar.`
-                                            : `Add your first ${categoryInfo.name.toLowerCase().replace("integrations", "integration")} to get started.`}
-                                        </p>
-                                        <Button
-                                          className="mt-4"
-                                          onClick={() => {
-                                            setDialogSelectedCategory(
-                                              categoryKey as Integration["category"],
-                                            );
-                                            setIsAddIntegrationDialogOpen(true);
-                                          }}
-                                        >
-                                          <Plus className="mr-2 h-4 w-4" />
-                                          {isSpanish
-                                            ? `Añadir Integración ${categoryInfo.name}`
-                                            : `Add ${categoryInfo.name} Integration`}
-                                        </Button>
-                                      </div>
-                                    ) : (
-                                      <div className="grid gap-4">
-                                        {integrationsInCategory.map(
-                                          renderIntegrationCard,
-                                        )}
-                                        <Button
-                                          variant="outline"
-                                          className="mt-4"
-                                          onClick={() => {
-                                            setDialogSelectedCategory(
-                                              categoryKey as Integration["category"],
-                                            );
-                                            setIsAddIntegrationDialogOpen(true);
-                                          }}
-                                        >
-                                          <Plus className="mr-2 h-4 w-4" />
-                                          {isSpanish
-                                            ? `Añadir otra Integración ${categoryInfo.name}`
-                                            : `Add another ${categoryInfo.name} Integration`}
-                                        </Button>
-                                      </div>
-                                    );
+
+                                    if (categoryKey === "social_media") {
+                                      return (
+                                        <>
+                                          <h3 className="text-lg font-semibold mb-4">
+                                            {isSpanish ? "Plataformas de Redes Sociales Disponibles" : "Available Social Media Platforms"}
+                                          </h3>
+                                          <div className="space-y-4 mb-8">
+                                            {Object.entries(INTEGRATION_PROVIDERS)
+                                              .filter(([, info]) => info.category === "social_media")
+                                              .map(([providerKey, providerInfo]) => {
+                                                const isConnected = integrations.some(
+                                                  (int) => int.provider === providerKey,
+                                                );
+                                                const IconComponent = providerInfo.icon;
+
+                                                return (
+                                                  <div
+                                                    key={providerKey}
+                                                    className="flex items-center justify-between p-4 border rounded-lg"
+                                                  >
+                                                    <div className="flex items-center gap-3">
+                                                      <IconComponent className="h-8 w-8 text-primary" />
+                                                      <div>
+                                                        <h3 className="font-semibold">{providerInfo.name}</h3>
+                                                        <p className="text-sm text-muted-foreground">
+                                                          {providerInfo.description}
+                                                        </p>
+                                                      </div>
+                                                    </div>
+                                                    <div>
+                                                      {isConnected ? (
+                                                        <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                                                          {isSpanish ? "Conectado" : "Connected"}
+                                                        </Badge>
+                                                      ) : (
+                                                        <Button
+                                                          size="sm"
+                                                          onClick={() => {
+                                                            setDialogSelectedCategory("social_media");
+                                                            setDialogSelectedProvider(providerKey);
+                                                            setIsAddIntegrationDialogOpen(true);
+                                                          }}
+                                                        >
+                                                          <Plus className="mr-2 h-4 w-4" />
+                                                          {isSpanish ? "Integrar" : "Integrate"}
+                                                        </Button>
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                          </div>
+
+                                          {integrationsInCategory.length > 0 && (
+                                            <div className="space-y-4">
+                                              <h3 className="text-lg font-semibold mb-4">
+                                                {isSpanish ? "Tus Integraciones Conectadas" : "Your Connected Integrations"}
+                                              </h3>
+                                              {integrationsInCategory.map(renderIntegrationCard)}
+                                            </div>
+                                          )}
+                                        </>
+                                      );
+                                    } else {
+                                      // Lógica existente para otras categorías
+                                      return integrationsInCategory.length === 0 ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                          <categoryInfo.icon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                          <p>
+                                            {isSpanish ? `No hay integraciones de ${categoryInfo.name.toLowerCase()} conectadas aún.` : `No ${categoryInfo.name.toLowerCase()} connected yet.`}
+                                          </p>
+                                          <p className="text-sm">
+                                            {isSpanish ? `Añade tu primera integración de ${categoryInfo.name.toLowerCase().replace("integrations", "integration")} para empezar.` : `Add your first ${categoryInfo.name.toLowerCase().replace("integrations", "integration")} to get started.`}
+                                          </p>
+                                          <Button className="mt-4" onClick={() => { setDialogSelectedCategory(categoryKey as Integration["category"]); setIsAddIntegrationDialogOpen(true); }}>
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            {isSpanish ? `Añadir Integración ${categoryInfo.name}` : `Add ${categoryInfo.name} Integration`}
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <div className="grid gap-4">
+                                          {integrationsInCategory.map(renderIntegrationCard)}
+                                          <Button variant="outline" className="mt-4" onClick={() => { setDialogSelectedCategory(categoryKey as Integration["category"]); setIsAddIntegrationDialogOpen(true); }}>
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            {isSpanish ? `Añadir otra Integración ${categoryInfo.name}` : `Add another ${categoryInfo.name} Integration`}
+                                          </Button>
+                                        </div>
+                                      );
+                                    }
                                   })()
                                 )}
                               </CardContent>
