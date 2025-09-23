@@ -31,6 +31,9 @@ import {
 } from "lucide-react";
 import ColorPicker from "@/components/brand-studio/ColorPicker";
 import ColorPreviewWithPicker from "@/components/brand-studio/ColorPreviewWithPicker";
+import FontSelector from "@/components/brand-studio/FontSelector";
+import { useGoogleFontLoader } from "@/hooks/useGoogleFontLoader";
+import FontPickerDrawer from "@/components/brand-studio/FontSelector";
 
 interface BrandAsset {
   id: string; // Unique ID for the asset
@@ -254,6 +257,8 @@ export default function BrandStudio() {
     queryKey: ["/api/brand-design"],
     retry: false,
   });
+
+  useGoogleFontLoader([primaryFont, secondaryFont]);
 
   // Effect to initialize states when brandDesign data is loaded
   useEffect(() => {
@@ -728,29 +733,10 @@ export default function BrandStudio() {
                             <Label htmlFor="primary-font-select">
                               {isSpanish ? "Fuente Principal" : "Primary Font"}
                             </Label>
-                            <Select
+                            <FontPickerDrawer
                               value={primaryFont}
-                              onValueChange={setPrimaryFont}
-                            >
-                              <SelectTrigger
-                                id="primary-font-select"
-                                className="w-full mt-2"
-                                data-testid="select-primary-font"
-                              >
-                                <SelectValue placeholder="Select a font" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {availableFontOptions.map((font) => (
-                                  <SelectItem
-                                    key={font}
-                                    value={font}
-                                    style={{ fontFamily: font }}
-                                  >
-                                    {font}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              onChange={setPrimaryFont}
+                            />
                             <div
                               className="mt-2 p-4 border rounded-lg text-2xl font-bold"
                               style={{ fontFamily: primaryFont }}
@@ -764,29 +750,10 @@ export default function BrandStudio() {
                                 ? "Fuente Secundaria"
                                 : "Secondary Font"}
                             </Label>
-                            <Select
+                            <FontSelector
                               value={secondaryFont}
-                              onValueChange={setSecondaryFont}
-                            >
-                              <SelectTrigger
-                                id="secondary-font-select"
-                                className="w-full mt-2"
-                                data-testid="select-secondary-font"
-                              >
-                                <SelectValue placeholder="Select a font" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {availableFontOptions.map((font) => (
-                                  <SelectItem
-                                    key={font}
-                                    value={font}
-                                    style={{ fontFamily: font }}
-                                  >
-                                    {font}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              onChange={setSecondaryFont}
+                            />
                             <div
                               className="mt-2 p-4 border rounded-lg text-lg"
                               style={{ fontFamily: secondaryFont }}
@@ -887,8 +854,10 @@ export default function BrandStudio() {
                       </CardHeader>
                       <CardContent>
                         <div className="rounded-md bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700 mb-4">
-                          💡 Please upload your logos and favicons in <strong>PNG format</strong> with a 
-                          <strong>transparent background</strong> for best results.
+                          💡 Please upload your logos and favicons in{" "}
+                          <strong>PNG format</strong> with a
+                          <strong>transparent background</strong> for best
+                          results.
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                           <LogoUploadField
@@ -926,7 +895,6 @@ export default function BrandStudio() {
                         </div>
                       </CardContent>
                     </Card>
-
 
                     {/* Save Button */}
                     <div className="flex justify-end">
