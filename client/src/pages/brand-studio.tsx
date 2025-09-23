@@ -191,7 +191,7 @@ const assetCategories = [
   { value: "marketing_banners", label: "Marketing Banners" },
   { value: "document_templates", label: "Document Templates" },
   { value: "videos", label: "Videos" },
-  { value: "logos", label: "Logos/Icons" },
+  { value: "logos", label: "Other Logos/Icons" },
   { value: "general", label: "General Assets" },
 ];
 
