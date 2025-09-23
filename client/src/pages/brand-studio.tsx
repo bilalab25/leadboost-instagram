@@ -26,16 +26,11 @@ import {
   Sparkles,
   Upload,
   Download,
-  Settings,
-  Eye,
-  Edit,
   Trash2,
-  Plus,
-  Link,
-  Check,
   FileText,
 } from "lucide-react";
-import { Brush } from "lucide-react";
+import ColorPicker from "@/components/brand-studio/ColorPicker";
+import ColorPreviewWithPicker from "@/components/brand-studio/ColorPreviewWithPicker";
 
 interface BrandAsset {
   id: string; // Unique ID for the asset
@@ -660,156 +655,60 @@ export default function BrandStudio() {
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                          {/* Main Color */}
                           <div>
-                            <Label htmlFor="main-color" className="mb-2 block">
-                              {isSpanish ? "Color Principal" : "Main Color"}
-                            </Label>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <Input
-                                id="main-color-picker"
-                                type="color"
-                                value={mainColor}
-                                onChange={(e) => setMainColor(e.target.value)}
-                                className="w-12 h-10 p-1 cursor-pointer"
-                                data-testid="input-main-color-picker"
-                              />
-                              <Input
-                                id="main-color-hex"
-                                type="text"
-                                value={mainColor.toUpperCase()}
-                                onChange={(e) => {
-                                  // FIX: Remove validation on every keystroke
-                                  setMainColor(e.target.value);
-                                }}
-                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
-                                data-testid="input-main-color-hex"
-                              />
-                            </div>
+                            <ColorPreviewWithPicker
+                              label={
+                                isSpanish ? "Color Principal" : "Main Color"
+                              }
+                              value={mainColor}
+                              onChange={setMainColor}
+                              allowGradient={true}
+                            />
                           </div>
+
                           {/* Accent Color 1 */}
                           <div>
-                            <Label
-                              htmlFor="accent-color-1"
-                              className="mb-2 block"
-                            >
-                              {isSpanish ? "Color Acento 1" : "Accent Color 1"}
-                            </Label>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <Input
-                                id="accent-color-1-picker"
-                                type="color"
-                                value={accentColor1}
-                                onChange={(e) =>
-                                  setAccentColor1(e.target.value)
-                                }
-                                className="w-12 h-10 p-1 cursor-pointer"
-                                data-testid="input-accent-color-1-picker"
-                              />
-                              <Input
-                                id="accent-color-1-hex"
-                                type="text"
-                                value={accentColor1.toUpperCase()}
-                                onChange={(e) => {
-                                  // FIX: Remove validation on every keystroke
-                                  setAccentColor1(e.target.value);
-                                }}
-                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
-                                data-testid="input-accent-color-1-hex"
-                              />
-                            </div>
+                            <ColorPreviewWithPicker
+                              label={
+                                isSpanish ? "Color Acento 1" : "Accent Color 1"
+                              }
+                              value={accentColor1}
+                              onChange={setAccentColor1}
+                              allowGradient={true}
+                            />
                           </div>
                           {/* Accent Color 2 */}
                           <div>
-                            <Label
-                              htmlFor="accent-color-2"
-                              className="mb-2 block"
-                            >
-                              {isSpanish ? "Color Acento 2" : "Accent Color 2"}
-                            </Label>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <Input
-                                id="accent-color-2-picker"
-                                type="color"
-                                value={accentColor2}
-                                onChange={(e) =>
-                                  setAccentColor2(e.target.value)
-                                }
-                                className="w-12 h-10 p-1 cursor-pointer"
-                                data-testid="input-accent-color-2-picker"
-                              />
-                              <Input
-                                id="accent-color-2-hex"
-                                type="text"
-                                value={accentColor2.toUpperCase()}
-                                onChange={(e) => {
-                                  // FIX: Remove validation on every keystroke
-                                  setAccentColor2(e.target.value);
-                                }}
-                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
-                                data-testid="input-accent-color-2-hex"
-                              />
-                            </div>
+                            <ColorPreviewWithPicker
+                              label={
+                                isSpanish ? "Color Acento 2" : "Accent Color 2"
+                              }
+                              value={accentColor2}
+                              onChange={setAccentColor2}
+                              allowGradient={true}
+                            />
                           </div>
                           {/* Text Color 1 */}
                           <div>
-                            <Label
-                              htmlFor="text-color-1"
-                              className="mb-2 block"
-                            >
-                              {isSpanish ? "Color Texto 1" : "Text Color 1"}
-                            </Label>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <Input
-                                id="text-color-1-picker"
-                                type="color"
-                                value={text1Color}
-                                onChange={(e) => setText1Color(e.target.value)}
-                                className="w-12 h-10 p-1 cursor-pointer"
-                                data-testid="input-text-color-1-picker"
-                              />
-                              <Input
-                                id="text-color-1-hex"
-                                type="text"
-                                value={text1Color.toUpperCase()}
-                                onChange={(e) => {
-                                  // FIX: Remove validation on every keystroke
-                                  setText1Color(e.target.value);
-                                }}
-                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
-                                data-testid="input-text-color-1-hex"
-                              />
-                            </div>
+                            <ColorPreviewWithPicker
+                              label={
+                                isSpanish ? "Color Texto 1" : "Text Color 1"
+                              }
+                              value={text1Color}
+                              onChange={setText1Color}
+                              allowGradient={false}
+                            />
                           </div>
                           {/* Text Color 2 */}
                           <div>
-                            <Label
-                              htmlFor="text-color-2"
-                              className="mb-2 block"
-                            >
-                              {isSpanish ? "Color Texto 2" : "Text Color 2"}
-                            </Label>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <Input
-                                id="text-color-2-picker"
-                                type="color"
-                                value={text2Color}
-                                onChange={(e) => setText2Color(e.target.value)}
-                                className="w-12 h-10 p-1 cursor-pointer"
-                                data-testid="input-text-color-2-picker"
-                              />
-                              <Input
-                                id="text-color-2-hex"
-                                type="text"
-                                value={text2Color.toUpperCase()}
-                                onChange={(e) => {
-                                  // FIX: Remove validation on every keystroke
-                                  setText2Color(e.target.value);
-                                }}
-                                className="w-24 h-10 p-2 text-sm font-medium border rounded-md"
-                                data-testid="input-text-color-2-hex"
-                              />
-                            </div>
+                            <ColorPreviewWithPicker
+                              label={
+                                isSpanish ? "Color Texto 2" : "Text Color 2"
+                              }
+                              value={text2Color}
+                              onChange={setText2Color}
+                              allowGradient={false}
+                            />
                           </div>
                         </div>
                       </CardContent>
