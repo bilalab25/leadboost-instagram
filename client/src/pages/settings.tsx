@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 // Re-introducidas para soporte de idioma y notificaciones
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
@@ -54,7 +54,8 @@ import {
   RefreshCw, // ¡Añadido! Este era el que faltaba.
   Twitter, // Para X (anteriormente Twitter)
   MessageSquareText, // Para Threads (icono genérico)
-  Camera, // Para Snapchat (icono genérico)
+  Camera,
+  Mailbox, // Para Snapchat (icono genérico)
 } from "lucide-react";
 
 import {
@@ -355,6 +356,49 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       },
     ],
   },
+  gmail: {
+    name: "Gmail",
+    icon: Mail,
+    description: "Connect and manage your Gmail account for sending and receiving emails.",
+    category: "social_media",
+    fields: [
+      {
+        name: "accessToken",
+        label: "Access Token",
+        type: "password",
+        required: true,
+      },
+      {
+        name: "channelId",
+        label: "Channel ID",
+        type: "text",
+        required: false,
+        placeholder: "Optional Channel ID",
+      },
+    ],
+  },
+  outlook: {
+    name: "Outlook",
+    icon: Mail,
+    description: "Integrate your Outlook account to handle emails directly from the platform.",
+    category: "social_media",
+    fields: [
+      {
+        name: "accessToken",
+        label: "Access Token",
+        type: "password",
+        required: true,
+      },
+      {
+        name: "channelId",
+        label: "Channel ID",
+        type: "text",
+        required: false,
+        placeholder: "Optional Channel ID",
+      },
+    ],
+  },
+
   youtube: {
     name: "YouTube",
     icon: Youtube,
@@ -1591,8 +1635,8 @@ export default function Settings() {
                       </h2>
                       <p className="text-muted-foreground">
                         {isSpanish
-                          ? "Conecta varias plataformas para centralizar tus datos y automatizar campañas."
-                          : "Connect various platforms to centralize your data and automate workflows."}
+                          ? "Conecta varias plataformas para activar campañas geniales y la creación de contenido."
+                          : "Connect various platforms to activate genius campaign and content creation."}
                       </p>
                     </div>
                     {/* The dialog is now triggered by category-specific buttons */}
