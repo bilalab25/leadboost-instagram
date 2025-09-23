@@ -886,10 +886,14 @@ export default function BrandStudio() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
+                        <div className="rounded-md bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700 mb-4">
+                          💡 Please upload your logos and favicons in <strong>PNG format</strong> with a 
+                          <strong>transparent background</strong> for best results.
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                           <LogoUploadField
                             id="white-logo-upload"
-                            label="White Logo"
+                            label="Light Logo"
                             file={whiteLogoFile}
                             previewUrl={whiteLogoPreviewUrl}
                             setFile={setWhiteLogoFile}
@@ -897,7 +901,7 @@ export default function BrandStudio() {
                           />
                           <LogoUploadField
                             id="black-logo-upload"
-                            label="Black Logo"
+                            label="Dark Logo"
                             file={blackLogoFile}
                             previewUrl={blackLogoPreviewUrl}
                             setFile={setBlackLogoFile}
@@ -905,7 +909,7 @@ export default function BrandStudio() {
                           />
                           <LogoUploadField
                             id="white-favicon-upload"
-                            label="White Favicon"
+                            label="Light Favicon"
                             file={whiteFaviconFile}
                             previewUrl={whiteFaviconPreviewUrl}
                             setFile={setWhiteFaviconFile}
@@ -913,7 +917,7 @@ export default function BrandStudio() {
                           />
                           <LogoUploadField
                             id="black-favicon-upload"
-                            label="Black Favicon"
+                            label="Dark Favicon"
                             file={blackFaviconFile}
                             previewUrl={blackFaviconPreviewUrl}
                             setFile={setBlackFaviconFile}
@@ -922,6 +926,7 @@ export default function BrandStudio() {
                         </div>
                       </CardContent>
                     </Card>
+
 
                     {/* Save Button */}
                     <div className="flex justify-end">
