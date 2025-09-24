@@ -181,16 +181,6 @@ export default function FontPickerDrawer({
               }}
             >
               {font.family}
-              <div
-                className="text-xs text-gray-500 truncate"
-                style={{
-                  fontFamily: loadedFonts.includes(font.family)
-                    ? font.family
-                    : "sans-serif",
-                }}
-              >
-                The quick brown fox jumps
-              </div>
             </button>
           ))}
 
