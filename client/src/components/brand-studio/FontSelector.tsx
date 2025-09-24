@@ -27,7 +27,7 @@ export default function FontPickerDrawer({
 }: FontPickerDrawerProps) {
   const [search, setSearch] = useState("");
   const [loadedFonts, setLoadedFonts] = useState<string[]>([]);
-  const [visibleCount, setVisibleCount] = useState(30);
+  const [visibleCount, setVisibleCount] = useState(30); // cantidad inicial
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 🔹 Query Google Fonts
@@ -41,6 +41,7 @@ export default function FontPickerDrawer({
       );
       const json = await res.json();
       if (!json.items) return [];
+      // normalizamos
       return json.items.map((f: any) => ({
         family: f.family ?? "Unknown",
         category: f.category ?? "other",
@@ -49,7 +50,7 @@ export default function FontPickerDrawer({
     staleTime: 1000 * 60 * 60 * 24,
   });
 
-  // 🔎 Filtrado por búsqueda
+  // 🔎 Filtrar por búsqueda
   const filteredFonts = useMemo(() => {
     if (!data) return [];
     return data.filter(
@@ -58,7 +59,7 @@ export default function FontPickerDrawer({
     );
   }, [data, search]);
 
-  // 📂 Agrupar por categoría (usa búsqueda si existe, si no toda la data)
+  // 📂 Agrupar por categoría (sin que search vacío bloquee)
   const groupedFonts = useMemo(() => {
     const source = search ? filteredFonts : data || [];
     return source.slice(0, visibleCount).reduce(
@@ -72,7 +73,6 @@ export default function FontPickerDrawer({
     );
   }, [data, filteredFonts, search, visibleCount]);
 
-  // 🔠 Cargar fuentes visibles
   useEffect(() => {
     const source = search ? filteredFonts : data || [];
     const toLoad = source.slice(0, visibleCount).map((f) => f.family);
@@ -93,7 +93,7 @@ export default function FontPickerDrawer({
 
     const handleScroll = () => {
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
-        setVisibleCount((prev) => prev + 20);
+        setVisibleCount((prev) => prev + 20); // cargar 20 más
       }
     };
 
@@ -121,7 +121,8 @@ export default function FontPickerDrawer({
               setSearch(e.target.value);
               setVisibleCount(30); // reinicia lazy-load al buscar
             }}
-            className="mb-6"
+            className="mb-10"
+            style={{ marginBottom: "2rem" }}
           />
         </SheetHeader>
 
