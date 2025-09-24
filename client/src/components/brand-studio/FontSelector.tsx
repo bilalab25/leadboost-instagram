@@ -27,7 +27,7 @@ export default function FontPickerDrawer({
 }: FontPickerDrawerProps) {
   const [search, setSearch] = useState("");
   const [loadedFonts, setLoadedFonts] = useState<string[]>([]);
-  const [visibleCount, setVisibleCount] = useState(30); // cantidad inicial
+  const [visibleCount, setVisibleCount] = useState(30);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 🔹 Query Google Fonts
@@ -36,12 +36,11 @@ export default function FontPickerDrawer({
     queryFn: async () => {
       const res = await fetch(
         `https://www.googleapis.com/webfonts/v1/webfonts?key=${
-          import.meta.env.VITE_GOOGLE_FONTS_KEY
+          import.meta.env.VITE_GOOGLE_FONTS_API_KEY
         }&sort=popularity`,
       );
       const json = await res.json();
       if (!json.items) return [];
-      // normalizamos
       return json.items.map((f: any) => ({
         family: f.family ?? "Unknown",
         category: f.category ?? "other",
@@ -50,7 +49,7 @@ export default function FontPickerDrawer({
     staleTime: 1000 * 60 * 60 * 24,
   });
 
-  // 🔎 Filtrar por búsqueda
+  // 🔎 Filtrado por búsqueda
   const filteredFonts = useMemo(() => {
     if (!data) return [];
     return data.filter(
@@ -59,24 +58,24 @@ export default function FontPickerDrawer({
     );
   }, [data, search]);
 
-  // 📂 Agrupar por categoría
+  // 📂 Agrupar por categoría (usa búsqueda si existe, si no toda la data)
   const groupedFonts = useMemo(() => {
-    return filteredFonts.slice(0, visibleCount).reduce(
+    const source = search ? filteredFonts : data || [];
+    return source.slice(0, visibleCount).reduce(
       (acc: any, font) => {
-        if (!font.family) return acc;
+        if (!font?.family) return acc;
         if (!acc[font.category]) acc[font.category] = [];
         acc[font.category].push(font);
         return acc;
       },
       {} as Record<string, Font[]>,
     );
-  }, [filteredFonts, visibleCount]);
+  }, [data, filteredFonts, search, visibleCount]);
 
   // 🔠 Cargar fuentes visibles
   useEffect(() => {
-    const toLoad = filteredFonts.length
-      ? filteredFonts.slice(0, visibleCount).map((f) => f.family)
-      : data?.slice(0, visibleCount).map((f) => f.family) || [];
+    const source = search ? filteredFonts : data || [];
+    const toLoad = source.slice(0, visibleCount).map((f) => f.family);
 
     if (toLoad.length > 0) {
       WebFont.load({
@@ -85,7 +84,7 @@ export default function FontPickerDrawer({
           setLoadedFonts((prev) => [...new Set([...prev, ...toLoad])]),
       });
     }
-  }, [filteredFonts, data, visibleCount]);
+  }, [data, filteredFonts, search, visibleCount]);
 
   // 📜 Lazy-load en scroll
   useEffect(() => {
@@ -94,7 +93,7 @@ export default function FontPickerDrawer({
 
     const handleScroll = () => {
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
-        setVisibleCount((prev) => prev + 20); // cargar 20 más
+        setVisibleCount((prev) => prev + 20);
       }
     };
 
@@ -122,8 +121,7 @@ export default function FontPickerDrawer({
               setSearch(e.target.value);
               setVisibleCount(30); // reinicia lazy-load al buscar
             }}
-            className="mb-10"
-            style={{marginBottom:'2rem'}}
+            className="mb-6"
           />
         </SheetHeader>
 
@@ -160,6 +158,16 @@ export default function FontPickerDrawer({
                     }}
                   >
                     {font.family}
+                    <div
+                      className="text-xs text-gray-500 truncate"
+                      style={{
+                        fontFamily: loadedFonts.includes(font.family)
+                          ? font.family
+                          : "sans-serif",
+                      }}
+                    >
+                      The quick brown fox jumps
+                    </div>
                   </button>
                 ))}
               </div>
