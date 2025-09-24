@@ -36,7 +36,7 @@ export default function FontPickerDrawer({
     queryFn: async () => {
       const res = await fetch(
         `https://www.googleapis.com/webfonts/v1/webfonts?key=${
-          import.meta.env.VITE_GOOGLE_FONTS_API_KEY
+          import.meta.env.VITE_GOOGLE_FONTS_KEY
         }&sort=popularity`,
       );
       const json = await res.json();
@@ -158,16 +158,6 @@ export default function FontPickerDrawer({
                     }}
                   >
                     {font.family}
-                    <div
-                      className="text-xs text-gray-500 truncate"
-                      style={{
-                        fontFamily: loadedFonts.includes(font.family)
-                          ? font.family
-                          : "sans-serif",
-                      }}
-                    >
-                      The quick brown fox jumps
-                    </div>
                   </button>
                 ))}
               </div>
