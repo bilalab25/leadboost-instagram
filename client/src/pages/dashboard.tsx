@@ -19,6 +19,7 @@ import { SiInstagram, SiTiktok, SiFacebook, SiWhatsapp, SiLinkedin, SiYoutube } 
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
+import boosty from "./boosty.png"
 
 interface DashboardStats {
   unreadMessages: number;
@@ -459,10 +460,14 @@ function HelpChatbot({ isSpanish, toggleLanguage }: { isSpanish: boolean; toggle
       <div className="fixed bottom-4 right-4 z-50">
         <button
           onClick={() => setIsOpen(true)}
-          className="group flex items-center justify-center w-8 h-8 rounded-full opacity-40 hover:opacity-80 transition-all duration-500 ease-out hover:scale-110"
+          className="group flex items-center justify-center w-36 h-48 hover:scale-110 transition-all duration-500 ease-out"
           data-testid="button-open-help-chatbot"
         >
-          <div className="text-lg font-light text-gray-500 group-hover:text-brand-500 transition-colors duration-300">?</div>
+          <img 
+            src={boosty} 
+            alt="LeadBoost Assistant" 
+            className="w-36 h-48 cursor-pointer hover:scale-105 transition-transform"
+          />
         </button>
       </div>
     );
