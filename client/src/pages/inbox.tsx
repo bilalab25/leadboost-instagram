@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, Filter, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import HelpChatbot from "@/components/HelpChatbot";
 
 export default function Inbox() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const { isSpanish } = useLanguage();
+  const { language, toggleLanguage, isSpanish } = useLanguage();
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -119,6 +120,8 @@ export default function Inbox() {
               
             </div>
           </div>
+           {/* Help AI Chatbot */}
+            <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
         </main>
       </div>
       </div>

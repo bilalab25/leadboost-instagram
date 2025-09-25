@@ -81,7 +81,7 @@ export default function CampAIgner() {
                   {/* Header */}
                   <div className="text-center p-6 border-b">
                     <h1 className="text-2xl font-bold text-gray-900">
-                      Mr.CampAIgner
+                      Boosty
                     </h1>
                     <p className="text-gray-700 mt-2">
                       Start creating campaigns with{" "}

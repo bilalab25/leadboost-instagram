@@ -37,6 +37,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { Plus, DollarSign, FileText, Upload, Eye } from "lucide-react";
 import type { Customer, Invoice } from "@shared/schema";
 import type { UploadResult } from "@uppy/core";
+import HelpChatbot from "@/components/HelpChatbot";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface CustomerWithInvoices extends Customer {
   invoices?: Invoice[];
@@ -52,6 +54,7 @@ export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [showAddInvoice, setShowAddInvoice] = useState(false);
+  const { language, isSpanish,toggleLanguage } = useLanguage();
 
   // Fetch customers
   const { data: customers = [], isLoading: customersLoading } = useQuery({
@@ -479,6 +482,8 @@ export default function CustomersPage() {
         </DialogContent>
       </Dialog>
           </div>
+          {/* Help AI Chatbot */}
+          <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
         </main>
         </div>
       </div>

@@ -66,6 +66,7 @@ import {
 } from "@/components/ui/accordion";
 import AccountTab from "@/components/settings/AccountTab";
 import PaymentMethodTab from "@/components/settings/PaymentMethodsTab";
+import HelpChatbot from "@/components/HelpChatbot";
 
 // --- Interfaces (solo para tipado de datos simulados) ---
 interface PaymentMethod {
@@ -717,7 +718,7 @@ const initialNotificationSettings: NotificationSettings = {
 };
 
 export default function Settings() {
-  const { isSpanish } = useLanguage(); // Assuming useLanguage hook is available
+  const { isSpanish, toggleLanguage } = useLanguage(); // Assuming useLanguage hook is available
   const { toast } = useToast(); // Assuming useToast hook is available
 
   // --- States para la UI (todos inicializados con dummy data) ---
@@ -2075,6 +2076,8 @@ export default function Settings() {
                 </div>
               </Tabs>
             </div>
+            {/* Help AI Chatbot */}
+            <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
           </main>
         </div>
       </div>

@@ -34,6 +34,7 @@ import ColorPreviewWithPicker from "@/components/brand-studio/ColorPreviewWithPi
 import FontSelector from "@/components/brand-studio/FontSelector";
 import { useGoogleFontLoader } from "@/hooks/useGoogleFontLoader";
 import FontPickerDrawer from "@/components/brand-studio/FontSelector";
+import HelpChatbot from "@/components/HelpChatbot";
 
 interface BrandAsset {
   id: string; // Unique ID for the asset
@@ -211,7 +212,7 @@ const getAssetType = (fileName: string): BrandAsset["assetType"] => {
 export default function BrandStudio() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { language, isSpanish } = useLanguage();
+  const { language, isSpanish,toggleLanguage } = useLanguage();
   const queryClient = useQueryClient();
 
   const [selectedStyle, setSelectedStyle] = useState<string>("");
@@ -1100,6 +1101,8 @@ export default function BrandStudio() {
                 </Tabs>
               </div>
             </div>
+            {/* Help AI Chatbot */}
+            <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
           </main>
         </div>
       </div>

@@ -15,6 +15,8 @@ import { Bell, Download, TrendingUp, TrendingDown, Eye, Heart, MessageCircle, Sh
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
+import HelpChatbot from "@/components/HelpChatbot";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface Analytics {
   id: string;
@@ -61,6 +63,7 @@ const timeRanges = [
 export default function Analytics() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const { language, isSpanish,toggleLanguage } = useLanguage();
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -628,9 +631,10 @@ export default function Analytics() {
                   </Card>
                 </TabsContent>
               </Tabs>
-              
             </div>
           </div>
+          {/* Help AI Chatbot */}
+          <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
         </main>
         </div>
       </div>

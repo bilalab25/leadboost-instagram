@@ -66,7 +66,7 @@ export default function Sidebar() {
   const navigation = [
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
     { 
-      name: "Mr.CampAIgner", 
+      name: "Boosty", 
       href: "/waterfall", 
       icon: Zap, 
       special: true 

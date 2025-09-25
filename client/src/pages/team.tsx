@@ -38,6 +38,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { Plus, CheckCircle, Clock, AlertTriangle, Upload, Eye } from "lucide-react";
 import type { TeamTask, User } from "@shared/schema";
 import type { UploadResult } from "@uppy/core";
+import HelpChatbot from "@/components/HelpChatbot";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface TaskWithUsers extends TeamTask {
   assignedByUser: User;
@@ -52,6 +54,7 @@ export default function TeamPage() {
   const [selectedTask, setSelectedTask] = useState<TaskWithUsers | null>(null);
   const [showCompleteTask, setShowCompleteTask] = useState(false);
   const [viewMode, setViewMode] = useState<'assigned' | 'created'>('assigned');
+  const { language, isSpanish,toggleLanguage } = useLanguage();
 
   // Fetch team tasks
   const { data: assignedTasks = [], isLoading: assignedLoading } = useQuery({
@@ -488,6 +491,8 @@ export default function TeamPage() {
         </DialogContent>
       </Dialog>
           </div>
+          {/* Help AI Chatbot */}
+          <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
         </main>
         </div>
       </div>
