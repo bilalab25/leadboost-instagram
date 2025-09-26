@@ -67,7 +67,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
                   data-testid="button-campaigner-header"
                 >
                   <Zap className="h-5 w-5 mr-2" />
-                  <span className="hidden sm:inline">Create with</span> CampAIgner
+                  <span className="hidden sm:inline">Create with</span> Boosty
                 </Button>
               </Link>
               
