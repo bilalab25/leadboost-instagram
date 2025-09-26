@@ -407,7 +407,7 @@ export default function Landing() {
             <span className="text-base font-medium text-gray-700">
               {isSpanish
                 ? "Tu Equipo de Ventas y Marketing con IA"
-                : "Your AI content Generator"}
+                : "Your AI Content Generator"}
             </span>
           </div>
 
@@ -440,7 +440,7 @@ export default function Landing() {
           >
             {isSpanish
               ? "La única plataforma que recopila tus datos empresariales, construye campañas inteligentes que se ejecutan automáticamente, y cierra ventas—todo sin esfuerzo manual."
-              : "The only platform that collects your business data, creates intelligent content that runs automatically, and closes sales—all without manual effort."}
+              : "The only platform that collects your business data, creates intelligent content that runs automatically, and closes sales—all on autopilot."}
           </p>
 
           {/* Primary CTA - Apple Style */}
