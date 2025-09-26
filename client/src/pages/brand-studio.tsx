@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -9,7 +9,6 @@ import TopHeader from "@/components/TopHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -29,12 +28,29 @@ import {
   Trash2,
   FileText,
 } from "lucide-react";
-import ColorPicker from "@/components/brand-studio/ColorPicker";
 import ColorPreviewWithPicker from "@/components/brand-studio/ColorPreviewWithPicker";
 import FontSelector from "@/components/brand-studio/FontSelector";
 import { useGoogleFontLoader } from "@/hooks/useGoogleFontLoader";
 import FontPickerDrawer from "@/components/brand-studio/FontSelector";
 import HelpChatbot from "@/components/HelpChatbot";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ZoomIn } from "lucide-react";
+import minimal from "./brand-images/minimalist.png";
+import luxury from "./brand-images/luxury.png";
+import fun from "./brand-images/fun.png";
+import corporate from "./brand-images/corporate.png";
+import creative from "./brand-images/creative.png";
+import bold from "./brand-images/bold.png";
+
+// Suponiendo que ya tienes las imágenes en /public/brand-styles o importadas
+const styleImages: Record<string, string> = {
+  minimalist: minimal,
+  luxury: luxury,
+  fun: fun,
+  corporate: corporate,
+  creative: creative,
+  bold: bold,
+};
 
 interface BrandAsset {
   id: string; // Unique ID for the asset
@@ -212,7 +228,7 @@ const getAssetType = (fileName: string): BrandAsset["assetType"] => {
 export default function BrandStudio() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { language, isSpanish,toggleLanguage } = useLanguage();
+  const { language, isSpanish, toggleLanguage } = useLanguage();
   const queryClient = useQueryClient();
 
   const [selectedStyle, setSelectedStyle] = useState<string>("");
@@ -633,9 +649,33 @@ export default function BrandStudio() {
                               <h3 className="font-semibold text-gray-900 mb-1">
                                 {style.name}
                               </h3>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 mb-2">
                                 {style.description}
                               </p>
+
+                              {styleImages[style.id] && (
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <div className="relative group">
+                                      <img
+                                        src={styleImages[style.id]}
+                                        alt={style.name}
+                                        className="w-full h-28 object-cover rounded-md shadow-md cursor-pointer"
+                                      />
+                                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ZoomIn className="text-white h-6 w-6" />
+                                      </div>
+                                    </div>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-3xl">
+                                    <img
+                                      src={styleImages[style.id]}
+                                      alt={`${style.name} Preview`}
+                                      className="w-full h-auto rounded-lg"
+                                    />
+                                  </DialogContent>
+                                </Dialog>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -1102,7 +1142,10 @@ export default function BrandStudio() {
               </div>
             </div>
             {/* Help AI Chatbot */}
-            <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
+            <HelpChatbot
+              isSpanish={isSpanish}
+              toggleLanguage={toggleLanguage}
+            />
           </main>
         </div>
       </div>

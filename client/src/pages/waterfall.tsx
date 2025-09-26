@@ -77,7 +77,7 @@ export default function CampAIgner() {
 
               {/* Campaign Editor */}
               <TabsContent value="campaigns" className="h-[calc(100%-48px)]">
-                <div className="flex flex-col min-h-screen bg-gray-50">
+                <div className="h-screen flex flex-col min-h-screen bg-gray-50">
                   {/* Header */}
                   <div className="text-center p-6 border-b bg-white shadow-sm">
                     <h1 className="text-2xl font-bold text-gray-900">Boosty</h1>
