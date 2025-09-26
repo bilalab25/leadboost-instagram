@@ -13,12 +13,7 @@ import {
   Image as ImageIcon,
   Wand2,
 } from "lucide-react";
-import {
-  SiWhatsapp,
-  SiTiktok,
-  SiFacebook,
-  SiLinkedin,
-} from "react-icons/si";
+import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Instagram } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -38,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { PauseCircle, PlayCircle } from "lucide-react";
 
 interface ContentPost {
   id: string;
@@ -79,7 +75,20 @@ export default function ContentCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const [editPost, setEditPost] = useState<ContentPost | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
+  const handleToggle = () => {
+    setIsPaused((prev) => {
+      const newState = !prev;
+      toast({
+        title: newState ? "Posting Paused" : "Posting Resumed",
+        description: newState
+          ? "Automatic posting has been paused."
+          : "Automatic posting has been resumed.",
+      });
+      return newState;
+    });
+  };
   // 🔹 Mock posts
   const mockContentPosts: ContentPost[] = [
     {
@@ -89,7 +98,8 @@ export default function ContentCalendar() {
       scheduledFor: "2025-09-27T14:00:00Z",
       status: "scheduled",
       content: "🎉 Our new product is finally here!",
-      imageUrl: "https://img.freepik.com/free-psd/male-grooming-template-design_23-2150195492.jpg?semt=ais_incoming&w=740&q=80",
+      imageUrl:
+        "https://img.freepik.com/free-psd/male-grooming-template-design_23-2150195492.jpg?semt=ais_incoming&w=740&q=80",
     },
     {
       id: "2",
@@ -98,7 +108,8 @@ export default function ContentCalendar() {
       scheduledFor: "2025-09-28T10:30:00Z",
       status: "draft",
       content: "Here is what our clients are saying ❤️",
-      imageUrl: "https://img.freepik.com/premium-psd/aesthetic-fashion-social-media-instagram-post-template-premium-psd_20692-42.jpg",
+      imageUrl:
+        "https://img.freepik.com/premium-psd/aesthetic-fashion-social-media-instagram-post-template-premium-psd_20692-42.jpg",
     },
     {
       id: "3",
@@ -107,7 +118,8 @@ export default function ContentCalendar() {
       scheduledFor: "2025-09-28T16:00:00Z",
       status: "scheduled",
       content: "🎬 A look behind our daily operations",
-      imageUrl: "https://img.freepik.com/premium-psd/minimalist-aesthetic-fashion-social-media-instagram-post-template_20692-45.jpg",
+      imageUrl:
+        "https://img.freepik.com/premium-psd/minimalist-aesthetic-fashion-social-media-instagram-post-template_20692-45.jpg",
     },
     {
       id: "4",
@@ -116,7 +128,8 @@ export default function ContentCalendar() {
       scheduledFor: "2025-09-29T09:00:00Z",
       status: "published",
       content: "🎄 Special offers for the holiday season!",
-      imageUrl: "https://img.freepik.com/premium-psd/new-year-mega-sale-women-fashion-product-minimalist-social-media-template_524105-401.jpg",
+      imageUrl:
+        "https://img.freepik.com/premium-psd/new-year-mega-sale-women-fashion-product-minimalist-social-media-template_524105-401.jpg",
     },
     {
       id: "5",
@@ -125,7 +138,8 @@ export default function ContentCalendar() {
       scheduledFor: "2025-09-30T11:00:00Z",
       status: "scheduled",
       content: "Key insights shaping our industry in 2025 📊",
-      imageUrl: "https://img.freepik.com/premium-psd/aesthetic-minimalist-instagram-posts-stories-quotes-templates-beige-neutral-colors-psd_878297-271.jpg",
+      imageUrl:
+        "https://img.freepik.com/premium-psd/aesthetic-minimalist-instagram-posts-stories-quotes-templates-beige-neutral-colors-psd_878297-271.jpg",
     },
   ];
 
@@ -157,12 +171,12 @@ export default function ContentCalendar() {
 
   const getPostsForDate = (date: Date) =>
     mockContentPosts.filter((post) =>
-      isSameDay(new Date(post.scheduledFor), date)
+      isSameDay(new Date(post.scheduledFor), date),
     );
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(
-      selectedDate && isSameDay(selectedDate, date) ? null : date
+      selectedDate && isSameDay(selectedDate, date) ? null : date,
     );
   };
 
@@ -186,7 +200,7 @@ export default function ContentCalendar() {
       title: "Approved all posts",
       description: `All posts scheduled for ${format(
         currentDate,
-        "MMMM yyyy"
+        "MMMM yyyy",
       )} have been approved.`,
     });
   };
@@ -224,8 +238,8 @@ export default function ContentCalendar() {
                                 setCurrentDate(
                                   new Date(
                                     currentDate.getFullYear(),
-                                    currentDate.getMonth() - 1
-                                  )
+                                    currentDate.getMonth() - 1,
+                                  ),
                                 )
                               }
                             >
@@ -238,8 +252,8 @@ export default function ContentCalendar() {
                                 setCurrentDate(
                                   new Date(
                                     currentDate.getFullYear(),
-                                    currentDate.getMonth() + 1
-                                  )
+                                    currentDate.getMonth() + 1,
+                                  ),
                                 )
                               }
                             >
@@ -254,22 +268,45 @@ export default function ContentCalendar() {
                               <CheckCircle className="w-4 h-4 mr-1" /> Approve
                               month
                             </Button>
+                            <Button
+                              size="sm"
+                              variant={isPaused ? "destructive" : "default"}
+                              onClick={handleToggle}
+                              className="flex items-center gap-1"
+                            >
+                              {isPaused ? (
+                                <>
+                                  <PlayCircle className="w-4 h-4" /> Resume
+                                </>
+                              ) : (
+                                <>
+                                  <PauseCircle className="w-4 h-4" /> Pause
+                                  Autopost
+                                </>
+                              )}
+                            </Button>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent>
                         {/* Week headers */}
                         <div className="grid grid-cols-7 gap-2 mb-4">
-                          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                            (day) => (
-                              <div
-                                key={day}
-                                className="text-center text-sm font-medium text-gray-500 py-2"
-                              >
-                                {day}
-                              </div>
-                            )
-                          )}
+                          {[
+                            "Sun",
+                            "Mon",
+                            "Tue",
+                            "Wed",
+                            "Thu",
+                            "Fri",
+                            "Sat",
+                          ].map((day) => (
+                            <div
+                              key={day}
+                              className="text-center text-sm font-medium text-gray-500 py-2"
+                            >
+                              {day}
+                            </div>
+                          ))}
                         </div>
 
                         {/* Days */}
@@ -345,9 +382,14 @@ export default function ContentCalendar() {
                           <div className="space-y-4">
                             {selectedDatePosts.map((post) => {
                               const PlatformIcon =
-                                platformIcons[post.platform as keyof typeof platformIcons];
+                                platformIcons[
+                                  post.platform as keyof typeof platformIcons
+                                ];
                               return (
-                                <div key={post.id} className="border rounded-lg p-4">
+                                <div
+                                  key={post.id}
+                                  className="border rounded-lg p-4"
+                                >
                                   <img
                                     src={post.imageUrl}
                                     alt={post.title}
@@ -365,7 +407,10 @@ export default function ContentCalendar() {
                                     </div>
                                   </div>
                                   <p className="text-xs text-gray-600 mb-2">
-                                    {format(new Date(post.scheduledFor), "h:mm a")}
+                                    {format(
+                                      new Date(post.scheduledFor),
+                                      "h:mm a",
+                                    )}
                                   </p>
                                   <p className="text-sm text-gray-700 line-clamp-2">
                                     {post.content}
@@ -392,7 +437,6 @@ export default function ContentCalendar() {
                       </CardContent>
                     </Card>
 
-
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-lg">This Week</CardTitle>
@@ -412,7 +456,9 @@ export default function ContentCalendar() {
                             <span className="font-medium">1</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Drafts</span>
+                            <span className="text-sm text-gray-600">
+                              Drafts
+                            </span>
                             <span className="font-medium">1</span>
                           </div>
                         </div>
@@ -456,7 +502,7 @@ export default function ContentCalendar() {
                   value={editPost.title}
                   onChange={(e) =>
                     setEditPost((prev) =>
-                      prev ? { ...prev, title: e.target.value } : prev
+                      prev ? { ...prev, title: e.target.value } : prev,
                     )
                   }
                   placeholder="Title"
@@ -465,7 +511,7 @@ export default function ContentCalendar() {
                   value={editPost.content}
                   onChange={(e) =>
                     setEditPost((prev) =>
-                      prev ? { ...prev, content: e.target.value } : prev
+                      prev ? { ...prev, content: e.target.value } : prev,
                     )
                   }
                   placeholder="Post text"
@@ -474,11 +520,11 @@ export default function ContentCalendar() {
                   type="datetime-local"
                   value={format(
                     new Date(editPost.scheduledFor),
-                    "yyyy-MM-dd'T'HH:mm"
+                    "yyyy-MM-dd'T'HH:mm",
                   )}
                   onChange={(e) =>
                     setEditPost((prev) =>
-                      prev ? { ...prev, scheduledFor: e.target.value } : prev
+                      prev ? { ...prev, scheduledFor: e.target.value } : prev,
                     )
                   }
                 />
