@@ -16,7 +16,7 @@ export default function CampAIgner() {
     {
       role: "assistant",
       content:
-        "Hi there! I’m Boosty, your marketing strategist and assistant 🚀. I’ll help you craft strategies, content, and posts to grow your brand. Would you like me to show you your first campaign for this month?",
+        "Welcome! I’m Boosty, your AI-powered marketing strategist 🚀. I’m here to help you design strategies, create content, and launch posts that grow your brand. Would you like me to walk you through your first campaign this month?",
     },
   ]);
   const [input, setInput] = useState("");

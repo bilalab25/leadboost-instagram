@@ -762,12 +762,100 @@ export default function BrandStudio() {
 
                     {/* Typography */}
                     <Card>
-                      <CardHeader>
+                      <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center">
                           <Type className="mr-2 h-5 w-5" />
                           {isSpanish ? "Tipografía" : "Typography"}
                         </CardTitle>
+
+                        {/* Botón para subir fuentes personalizadas */}
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              {isSpanish ? "Agregar fuente" : "Add Font"}
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-md">
+                            <div className="text-center">
+                              <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                              <h3 className="mt-2 font-semibold">
+                                {isSpanish
+                                  ? "Subir fuentes personalizadas"
+                                  : "Upload Custom Fonts"}
+                              </h3>
+                              <p className="text-sm text-gray-500 mb-4">
+                                {isSpanish
+                                  ? "Archivos .ttf, .otf, .woff, .woff2"
+                                  : ".ttf, .otf, .woff, .woff2 files"}
+                              </p>
+                              <Label
+                                htmlFor="font-upload"
+                                className="cursor-pointer"
+                              >
+                                <span className="font-medium text-brand-600 hover:text-brand-500">
+                                  {isSpanish
+                                    ? "Seleccionar archivo(s)"
+                                    : "Select font file(s)"}
+                                </span>
+                                <input
+                                  id="font-upload"
+                                  type="file"
+                                  accept=".ttf,.otf,.woff,.woff2"
+                                  multiple
+                                  className="sr-only"
+                                  onChange={handleFontUpload}
+                                  data-testid="input-font-upload"
+                                />
+                              </Label>
+                            </div>
+
+                            {customFontFiles.length > 0 && (
+                              <div className="mt-4 space-y-2">
+                                <h4 className="font-semibold text-left">
+                                  {isSpanish
+                                    ? "Fuentes Subidas:"
+                                    : "Uploaded Fonts:"}
+                                </h4>
+                                {customFontFiles.map((font) => (
+                                  <div
+                                    key={font.name}
+                                    className="flex items-center justify-between p-2 border rounded-md"
+                                  >
+                                    <span
+                                      className="text-sm"
+                                      style={{ fontFamily: font.family }}
+                                    >
+                                      {font.family} ({font.name})
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setCustomFontFiles((prev) =>
+                                          prev.filter(
+                                            (f) => f.name !== font.name,
+                                          ),
+                                        );
+                                        setCustomFontOptions((prev) =>
+                                          prev.filter((f) => f !== font.family),
+                                        );
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
                       </CardHeader>
+
                       <CardContent>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           <div>
@@ -803,85 +891,6 @@ export default function BrandStudio() {
                             </div>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Custom Font Uploads */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Upload className="mr-2 h-5 w-5" />
-                          {isSpanish
-                            ? "Subir Fuentes Personalizadas"
-                            : "Upload Custom Fonts"}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                          <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="mt-4">
-                            <Label
-                              htmlFor="font-upload"
-                              className="cursor-pointer"
-                            >
-                              <span className="font-medium text-brand-600 hover:text-brand-500">
-                                {isSpanish
-                                  ? "Subir archivo(s) de fuente"
-                                  : "Upload font file(s)"}
-                              </span>
-                              <input
-                                id="font-upload"
-                                type="file"
-                                accept=".ttf,.otf,.woff,.woff2" // Common font formats
-                                multiple
-                                className="sr-only"
-                                onChange={handleFontUpload}
-                                data-testid="input-font-upload"
-                              />
-                            </Label>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {isSpanish
-                                ? "Archivos .ttf, .otf, .woff, .woff2"
-                                : ".ttf, .otf, .woff, .woff2 files"}
-                            </p>
-                          </div>
-                        </div>
-                        {customFontFiles.length > 0 && (
-                          <div className="mt-4 space-y-2">
-                            <h4 className="font-semibold">
-                              {isSpanish
-                                ? "Fuentes Subidas:"
-                                : "Uploaded Fonts:"}
-                            </h4>
-                            {customFontFiles.map((font) => (
-                              <div
-                                key={font.name}
-                                className="flex items-center justify-between p-2 border rounded-md"
-                              >
-                                <span
-                                  className="text-sm"
-                                  style={{ fontFamily: font.family }}
-                                >
-                                  {font.family} ({font.name})
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setCustomFontFiles((prev) =>
-                                      prev.filter((f) => f.name !== font.name),
-                                    );
-                                    setCustomFontOptions((prev) =>
-                                      prev.filter((f) => f !== font.family),
-                                    );
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </CardContent>
                     </Card>
 

@@ -34,6 +34,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PauseCircle, PlayCircle } from "lucide-react";
+import { Switch } from "@/components/ui/switch"; // 🔹 Asegúrate de tener este componente en tu proyecto
+import { Pause, Play } from "lucide-react";
 
 interface ContentPost {
   id: string;
@@ -268,23 +270,41 @@ export default function ContentCalendar() {
                               <CheckCircle className="w-4 h-4 mr-1" /> Approve
                               month
                             </Button>
-                            <Button
-                              size="sm"
-                              variant={isPaused ? "destructive" : "default"}
+                            <div
                               onClick={handleToggle}
-                              className="flex items-center gap-1"
+                              className="relative flex w-40 rounded-full bg-gray-200 cursor-pointer p-1 transition-colors"
                             >
-                              {isPaused ? (
-                                <>
-                                  <PlayCircle className="w-4 h-4" /> Resume
-                                </>
-                              ) : (
-                                <>
-                                  <PauseCircle className="w-4 h-4" /> Pause
+                              {/* Knob dinámico */}
+                              <span
+                                className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-white shadow-md transition-transform duration-300 ${
+                                  isPaused
+                                    ? "translate-x-0"
+                                    : "translate-x-full"
+                                }`}
+                              ></span>
+
+                              {/* Labels */}
+                              <div className="absolute top-0 left-0 flex w-full h-full items-center justify-between px-2 text-xs sm:text-sm font-medium pointer-events-none">
+                                <span
+                                  className={`flex items-center gap-1 transition-colors ${
+                                    isPaused
+                                      ? "text-gray-900 font-semibold"
+                                      : "text-gray-400"
+                                  }`}
+                                >
+                                  Pause
+                                </span>
+                                <span
+                                  className={`flex items-center gap-1 transition-colors ${
+                                    !isPaused
+                                      ? "text-gray-900 font-semibold"
+                                      : "text-gray-400"
+                                  }`}
+                                >
                                   Autopost
-                                </>
-                              )}
-                            </Button>
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </CardHeader>

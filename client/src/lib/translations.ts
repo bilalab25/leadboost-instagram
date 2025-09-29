@@ -5,10 +5,12 @@ export const translations = {
     aiPlanner: {
       title: "30 Day Planner",
       heroTitle: "30-Day Multi-Platform Campaign Generator",
-      heroSubtitle: "Generate a complete month of campaigns for all 21+ platforms. Get 30 days of content, perfectly sized for each social network, ready to publish.",
+      heroSubtitle:
+        "Generate a complete month of campaigns for all 21+ platforms. Get 30 days of content, perfectly sized for each social network, ready to publish.",
       poweredByAI: "Powered by Advanced AI",
       businessDataInput: "Business Intelligence Input",
-      businessDataSubtitle: "Tell our AI about your business for personalized strategies",
+      businessDataSubtitle:
+        "Tell our AI about your business for personalized strategies",
       aiStrategyPreview: "AI Strategy Preview",
       aiStrategySubtitle: "Live preview of your content strategy",
       industry: "Industry",
@@ -30,7 +32,8 @@ export const translations = {
       optimization: "Optimization",
       peakEngagement: "Peak engagement times",
       noPreview: "AI Strategy Preview",
-      completeProfile: "Complete your business profile to see AI-generated insights",
+      completeProfile:
+        "Complete your business profile to see AI-generated insights",
       contentGenerator: "Content Generator",
       existingPlans: "Existing Plans",
       aiInsights: "AI Insights",
@@ -41,7 +44,8 @@ export const translations = {
       aiRecommendations: "AI Recommendations",
       generateContent: "Generate Content",
       smartContentTitle: "Smart Content for your Brands",
-      smartContentDescription: "Automatically generate optimized posts for all your social platforms with one click.",
+      smartContentDescription:
+        "Automatically generate optimized posts for all your social platforms with one click.",
       waterfallSystem: "LeadBoost",
       posIntegration: "POS Data Integration",
       posSubtitle: "Connect your Point of Sale system for intelligent insights",
@@ -59,24 +63,28 @@ export const translations = {
       peakSalesHours: "Peak Sales Hours",
       lowStockAlert: "Low Stock Items",
       aiPosInsights: "AI + POS Insights",
-      posDataHelp: "LeadBoost analyzes your POS data to create smarter campaigns based on actual sales performance",
+      posDataHelp:
+        "LeadBoost analyzes your POS data to create smarter campaigns based on actual sales performance",
       connectSquare: "Connect Square",
       connectShopify: "Connect Shopify",
       connectClover: "Connect Clover",
-      connectOther: "Other POS Systems"
+      connectOther: "Other POS Systems",
     },
     // Campaign Creator
     campaigns: {
       title: "Campaigns",
       heroTitle: "AI-Powered Campaign Creator",
-      heroSubtitle: "Create engaging campaigns across 21+ platforms with intelligent content optimization and automated scheduling.",
+      heroSubtitle:
+        "Create engaging campaigns across 21+ platforms with intelligent content optimization and automated scheduling.",
       multiPlatformPublishing: "Multi-Platform Publishing",
       aiGenerate: "AI Generate",
       newCampaign: "New Campaign",
       aiCampaignGenerator: "AI Campaign Generator",
-      aiCampaignSubtitle: "Describe your campaign idea and let AI create optimized content for all platforms",
+      aiCampaignSubtitle:
+        "Describe your campaign idea and let AI create optimized content for all platforms",
       campaignDescription: "Campaign Description",
-      campaignPlaceholder: "Describe what kind of campaign you want to create (e.g., 'Product launch for new fitness equipment targeting young professionals')",
+      campaignPlaceholder:
+        "Describe what kind of campaign you want to create (e.g., 'Product launch for new fitness equipment targeting young professionals')",
       targetPlatforms: "Target Platforms",
       platformsHint: "Select platforms for your AI-generated campaign",
       aiWillCreate: "AI will create platform-specific content variations",
@@ -88,7 +96,8 @@ export const translations = {
       description: "Description",
       descriptionPlaceholder: "Describe your campaign",
       content: "Content",
-      contentPlaceholder: "Campaign content (optional - will use description if empty)",
+      contentPlaceholder:
+        "Campaign content (optional - will use description if empty)",
       platforms: "Platforms",
       scheduleOptional: "Schedule (Optional)",
       pickDate: "Pick a date",
@@ -98,14 +107,16 @@ export const translations = {
       published: "Published",
       aiGenerated: "AI Generated",
       all: "All",
-      draft: "Draft"
+      draft: "Draft",
     },
     // Landing
     landing: {
       waterfallTitle: "CampAIgner",
-      waterfallSubtitle: "One idea → 21+ platforms → Perfect formats → Instant launch",
+      waterfallSubtitle:
+        "One idea → 21+ platforms → Perfect formats → Instant launch",
       heroTitle: "Turn ONE idea into campaigns across 21+ platforms",
-      heroSubtitle: "LeadBoost's CampAIgner takes your single campaign idea and instantly creates optimized content for Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube and 16+ more platforms — all in the correct format and size.",
+      heroSubtitle:
+        "LeadBoost's CampAIgner takes your single campaign idea and instantly creates optimized content for Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube and 16+ more platforms — all in the correct format and size.",
       oneIdea: "ONE IDEA",
       everywhere: "EVERYWHERE",
       instantly: "INSTANTLY",
@@ -115,11 +126,11 @@ export const translations = {
       platforms21: "21+ Platforms",
       perfectFormats: "Perfect Formats",
       instantLaunch: "Instant Launch",
-      uniqueDifferentiator: "This is what makes LeadBoost's CampAIgner unique"
+      uniqueDifferentiator: "This is what makes LeadBoost's CampAIgner unique",
     },
     // Dashboard
     dashboard: {
-      welcomeBack: "Welcome back",
+      welcomeBack: "Welcome",
       totalMessages: "Total Messages",
       unreadMessages: "Unread Messages",
       totalCampaigns: "Total Campaigns",
@@ -136,14 +147,15 @@ export const translations = {
       viewAnalytics: "View Analytics",
       waterfallSystem: "CampAIgner Tool",
       oneIdeaEverywhere: "One idea → Everywhere",
-      waterfallDescription: "Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.",
+      waterfallDescription:
+        "Turn one idea into optimized campaigns across 21+ platforms. All in the right format, perfect size, ready to launch.",
       createWaterfallCampaign: "Generate Campaign",
       regeneratePlan: "Regenerate Plan",
       overview: "Here's an overview of your week",
       requiresAttention: "Requires attention",
       thisMonth: "this month",
       noRecentActivity: "No recent activity",
-      monthlyRevenue: "Monthly Revenue"
+      monthlyRevenue: "Monthly Revenue",
     },
     // Sidebar
     sidebar: {
@@ -157,7 +169,7 @@ export const translations = {
       customers: "Customers",
       team: "Team",
       integrations: "Integrations",
-      settings: "Settings"
+      settings: "Settings",
     },
     // Messages and Inbox
     messages: {
@@ -175,7 +187,7 @@ export const translations = {
       noMessages: "No messages",
       loadMore: "Load More",
       connectedAccounts: "Connected Accounts",
-      noAccountsConnected: "No accounts connected"
+      noAccountsConnected: "No accounts connected",
     },
     // Analytics
     analytics: {
@@ -185,13 +197,13 @@ export const translations = {
       engagement: "Engagement",
       averageRate: "Average rate",
       conversions: "Conversions",
-      socialToPOS: "Social to POS"
+      socialToPOS: "Social to POS",
     },
     // Actions
     actions: {
       createNewPost: "Create New Post",
       generateContent: "Generate AI Content",
-      schedulePosts: "Schedule Posts"
+      schedulePosts: "Schedule Posts",
     },
     // Common
     common: {
@@ -212,12 +224,13 @@ export const translations = {
       noAccountsConnected: "No accounts connected",
       loadDemoData: "Load Demo Data",
       aiGeneratedPosts: "AI Generated Posts",
-      revenueImpact: "Revenue Impact"
+      revenueImpact: "Revenue Impact",
     },
     // Pricing
     pricing: {
       title: "Transform Your Marketing ROI Today",
-      subtitle: "Join 10,000+ businesses generating 300% more leads with AI-powered campaigns. Choose your growth plan below.",
+      subtitle:
+        "Join 10,000+ businesses generating 300% more leads with AI-powered campaigns. Choose your growth plan below.",
       starter: "Starter",
       professional: "Professional",
       enterprise: "Enterprise",
@@ -225,9 +238,11 @@ export const translations = {
       free: "FREE",
       perMonth: "/month",
       starterDesc: "Launch your first AI campaigns and see immediate results",
-      professionalDesc: "Scale faster with advanced automation that converts 40% better",
+      professionalDesc:
+        "Scale faster with advanced automation that converts 40% better",
       enterpriseDesc: "Enterprise-grade power for maximum marketing domination",
-      businessDesc: "Scalable solution for growing businesses managing multiple brands",
+      businessDesc:
+        "Scalable solution for growing businesses managing multiple brands",
       businessTiered: "Tiered pricing based on number of brands",
       business5Brands: "5 Brands - $199/month",
       business10Brands: "10 Brands - $349/month",
@@ -267,28 +282,35 @@ export const translations = {
       startFreeTrial: "🚀 Start FREE Trial - No Risk!",
       mostPopular: "🏆 CUSTOMER FAVORITE",
       freeTrialTitle: "⚡ Launch Your First AI Campaign in Under 5 Minutes",
-      freeTrialDesc: "Join the 10,000+ businesses already generating 300% more leads. Start your risk-free trial today - see results in 24 hours or get your money back!",
+      freeTrialDesc:
+        "Join the 10,000+ businesses already generating 300% more leads. Start your risk-free trial today - see results in 24 hours or get your money back!",
       startYourTrial: "Start Your Free Trial",
       faqTitle: "Frequently Asked Questions",
       faqQuestion1: "What's included in the free trial?",
-      faqAnswer1: "You get full access to all features of your chosen plan for 30 days. No credit card required.",
+      faqAnswer1:
+        "You get full access to all features of your chosen plan for 30 days. No credit card required.",
       faqQuestion2: "What platforms does CampAIgner support?",
-      faqAnswer2: "CampAIgner supports 21+ platforms including Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube, Twitter, Pinterest, and many more.",
+      faqAnswer2:
+        "CampAIgner supports 21+ platforms including Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube, Twitter, Pinterest, and many more.",
       faqQuestion3: "Can I change plans anytime?",
-      faqAnswer3: "Yes! Upgrade or downgrade your plan at any time. Changes take effect immediately.",
+      faqAnswer3:
+        "Yes! Upgrade or downgrade your plan at any time. Changes take effect immediately.",
       faqQuestion4: "Is there a setup fee?",
-      faqAnswer4: "No setup fees, no hidden costs. Just simple monthly pricing with everything included."
-    }
+      faqAnswer4:
+        "No setup fees, no hidden costs. Just simple monthly pricing with everything included.",
+    },
   },
   es: {
     // 30 Day Planner
     aiPlanner: {
       title: "Planificador 30 Días",
       heroTitle: "Generador de Campañas Multi-Plataforma de 30 Días",
-      heroSubtitle: "Genera un mes completo de campañas para las 21+ plataformas. Obtén 30 días de contenido, perfectamente dimensionado para cada red social, listo para publicar.",
+      heroSubtitle:
+        "Genera un mes completo de campañas para las 21+ plataformas. Obtén 30 días de contenido, perfectamente dimensionado para cada red social, listo para publicar.",
       poweredByAI: "Impulsado por IA Avanzada",
       businessDataInput: "Entrada de Inteligencia de Negocio",
-      businessDataSubtitle: "Cuéntale a nuestra IA sobre tu negocio para estrategias personalizadas",
+      businessDataSubtitle:
+        "Cuéntale a nuestra IA sobre tu negocio para estrategias personalizadas",
       aiStrategyPreview: "Vista Previa de Estrategia IA",
       aiStrategySubtitle: "Vista previa en vivo de tu estrategia de contenido",
       industry: "Industria",
@@ -303,28 +325,33 @@ export const translations = {
       readyToGenerate: "¿Listo para generar tu estrategia IA?",
       generateButton: "Generar Estrategia de Contenido IA",
       generatingText: "La IA está analizando tu negocio...",
-      selectIndustryHint: "Selecciona tu industria para habilitar la generación IA",
+      selectIndustryHint:
+        "Selecciona tu industria para habilitar la generación IA",
       aiStrategyGenerated: "¡Estrategia IA Generada!",
       postsPlanned: "publicaciones personalizadas planeadas para",
       platformMix: "Mezcla de Plataformas",
       optimization: "Optimización",
       peakEngagement: "Horarios de mayor engagement",
       noPreview: "Vista Previa de Estrategia IA",
-      completeProfile: "Completa tu perfil de negocio para ver insights generados por IA",
+      completeProfile:
+        "Completa tu perfil de negocio para ver insights generados por IA",
       contentGenerator: "Generador de Contenido",
       existingPlans: "Planes Existentes",
       aiInsights: "Insights IA",
       noPlanTitle: "Aún no hay planes de contenido",
-      noPlanText: "Genera tu primer plan de contenido impulsado por IA para comenzar.",
+      noPlanText:
+        "Genera tu primer plan de contenido impulsado por IA para comenzar.",
       createFirstPlan: "Crear Primer Plan",
       industryTrends: "Tendencias de la Industria",
       aiRecommendations: "Recomendaciones IA",
       generateContent: "Generar Contenido",
       smartContentTitle: "Contenido Inteligente para tus Marcas",
-      smartContentDescription: "Genera automáticamente posts optimizados para todas tus plataformas sociales con un solo clic.",
+      smartContentDescription:
+        "Genera automáticamente posts optimizados para todas tus plataformas sociales con un solo clic.",
       waterfallSystem: "LeadBoost",
       posIntegration: "Integración de Datos POS",
-      posSubtitle: "Conecta tu sistema de Punto de Venta para insights inteligentes",
+      posSubtitle:
+        "Conecta tu sistema de Punto de Venta para insights inteligentes",
       connectPos: "Conectar Sistema POS",
       posConnected: "POS Conectado",
       posDisconnected: "No Conectado",
@@ -339,27 +366,32 @@ export const translations = {
       peakSalesHours: "Horas Pico de Ventas",
       lowStockAlert: "Productos con Poco Stock",
       aiPosInsights: "IA + Insights POS",
-      posDataHelp: "LeadBoost analiza tus datos POS para crear campañas más inteligentes basadas en el rendimiento real de ventas",
+      posDataHelp:
+        "LeadBoost analiza tus datos POS para crear campañas más inteligentes basadas en el rendimiento real de ventas",
       connectSquare: "Conectar Square",
       connectShopify: "Conectar Shopify",
       connectClover: "Conectar Clover",
-      connectOther: "Otros Sistemas POS"
+      connectOther: "Otros Sistemas POS",
     },
     // Campaign Creator
     campaigns: {
       title: "Campañas",
       heroTitle: "Creador de Campañas Impulsado por IA",
-      heroSubtitle: "Crea campañas atractivas en más de 21 plataformas con optimización inteligente de contenido y programación automatizada.",
+      heroSubtitle:
+        "Crea campañas atractivas en más de 21 plataformas con optimización inteligente de contenido y programación automatizada.",
       multiPlatformPublishing: "Publicación Multi-Plataforma",
       aiGenerate: "Generar IA",
       newCampaign: "Nueva Campaña",
       aiCampaignGenerator: "Generador de Campañas IA",
-      aiCampaignSubtitle: "Describe tu idea de campaña y deja que la IA cree contenido optimizado para todas las plataformas",
+      aiCampaignSubtitle:
+        "Describe tu idea de campaña y deja que la IA cree contenido optimizado para todas las plataformas",
       campaignDescription: "Descripción de Campaña",
-      campaignPlaceholder: "Describe qué tipo de campaña quieres crear (ej: 'Lanzamiento de producto para equipos de fitness dirigido a jóvenes profesionales')",
+      campaignPlaceholder:
+        "Describe qué tipo de campaña quieres crear (ej: 'Lanzamiento de producto para equipos de fitness dirigido a jóvenes profesionales')",
       targetPlatforms: "Plataformas Objetivo",
       platformsHint: "Selecciona plataformas para tu campaña generada por IA",
-      aiWillCreate: "La IA creará variaciones de contenido específicas por plataforma",
+      aiWillCreate:
+        "La IA creará variaciones de contenido específicas por plataforma",
       generateAICampaign: "Generar Campaña IA",
       aiCreating: "La IA está creando tu campaña...",
       createCampaign: "Crear Nueva Campaña",
@@ -368,7 +400,8 @@ export const translations = {
       description: "Descripción",
       descriptionPlaceholder: "Describe tu campaña",
       content: "Contenido",
-      contentPlaceholder: "Contenido de campaña (opcional - usará la descripción si está vacío)",
+      contentPlaceholder:
+        "Contenido de campaña (opcional - usará la descripción si está vacío)",
       platforms: "Plataformas",
       scheduleOptional: "Programar (Opcional)",
       pickDate: "Selecciona una fecha",
@@ -378,14 +411,16 @@ export const translations = {
       published: "Publicadas",
       aiGenerated: "Generadas por IA",
       all: "Todas",
-      draft: "Borrador"
+      draft: "Borrador",
     },
     // Landing
     landing: {
       waterfallTitle: "CampAIgner",
-      waterfallSubtitle: "Una idea → 21+ plataformas → Formatos perfectos → Lanzamiento instantáneo",
+      waterfallSubtitle:
+        "Una idea → 21+ plataformas → Formatos perfectos → Lanzamiento instantáneo",
       heroTitle: "Convierte UNA idea en campañas para 21+ plataformas",
-      heroSubtitle: "Nuestro generador de campañas toma tu idea de campaña y crea instantáneamente contenido optimizado para Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube y 16+ plataformas más — todo en el formato y tamaño correcto.",
+      heroSubtitle:
+        "Nuestro generador de campañas toma tu idea de campaña y crea instantáneamente contenido optimizado para Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube y 16+ plataformas más — todo en el formato y tamaño correcto.",
       oneIdea: "UNA IDEA",
       everywhere: "TODOS LADOS",
       instantly: "INSTANTÁNEO",
@@ -398,7 +433,7 @@ export const translations = {
       uniqueDifferentiator: "Esto es lo que hace único a CampAIgner",
       launchNewProduct: "Lanzar producto nuevo",
       justDescribe: "Solo describe tu campaña",
-      perfectFormatSize: "Formato y tamaño perfecto para cada una"
+      perfectFormatSize: "Formato y tamaño perfecto para cada una",
     },
     // Dashboard
     dashboard: {
@@ -419,27 +454,31 @@ export const translations = {
       viewAnalytics: "Ver Analíticas",
       waterfallSystem: "Generador de Campañas",
       oneIdeaEverywhere: "Una idea → Todos lados",
-      waterfallDescription: "Convierte una sola idea en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.",
+      waterfallDescription:
+        "Convierte una sola idea en campañas optimizadas para 21+ plataformas. Todo en el formato correcto, al tamaño perfecto, listo para lanzar.",
       createWaterfallCampaign: "Generar Campaña",
       regeneratePlan: "Regenerar Plan",
       overview: "Aquí tienes un resumen de tu semana",
       requiresAttention: "Requieren atención",
       thisMonth: "este mes",
       noRecentActivity: "Sin actividad reciente",
-      monthlyRevenue: "Ingresos Mensuales"
+      monthlyRevenue: "Ingresos Mensuales",
     },
     // Pricing
     pricing: {
       title: "Precios Fáciles y Transparentes",
-      subtitle: "Únete a los negocios que están transformando su marketing. Elige el plan que se adapte a tu empresa.",
+      subtitle:
+        "Únete a los negocios que están transformando su marketing. Elige el plan que se adapte a tu empresa.",
       starter: "Inicial",
       professional: "Profesional",
       enterprise: "Empresarial",
       business: "Negocio",
       free: "GRATIS",
       perMonth: "/mes",
-      starterDesc: "Perfecto para pequeñas empresas y emprendedores individuales",
-      professionalDesc: "Ideal para empresas en crecimiento y equipos de marketing",
+      starterDesc:
+        "Perfecto para pequeñas empresas y emprendedores individuales",
+      professionalDesc:
+        "Ideal para empresas en crecimiento y equipos de marketing",
       enterpriseDesc: "Diseñado para empresas y equipos de marketing grandes",
       businessDesc: "Diseñado para negocios que gestionan múltiples marcas",
       businessTiered: "Precios escalonados basados en el número de marcas",
@@ -480,18 +519,24 @@ export const translations = {
       startTrial: "Empezar Ahora",
       startFreeTrial: "Prueba Gratis por 30 Días",
       mostPopular: "MÁS POPULAR",
-      freeTrialTitle: "Prueba los Planes Starter o Professional Gratis por 30 Días",
-      freeTrialDesc: "Sin tarjeta de crédito requerida para planes Starter y Professional. Cancela en cualquier momento. Experimenta todo el poder de nuestra plataforma.",
+      freeTrialTitle:
+        "Prueba los Planes Starter o Professional Gratis por 30 Días",
+      freeTrialDesc:
+        "Sin tarjeta de crédito requerida para planes Starter y Professional. Cancela en cualquier momento. Experimenta todo el poder de nuestra plataforma.",
       startYourTrial: "Comienza Tu Prueba Gratuita",
       faqTitle: "Preguntas Frecuentes",
       faqQuestion1: "¿Qué incluye la prueba gratuita?",
-      faqAnswer1: "Obtienes acceso completo a todas las características de tu plan elegido por 30 días. No se requiere tarjeta de crédito.",
+      faqAnswer1:
+        "Obtienes acceso completo a todas las características de tu plan elegido por 30 días. No se requiere tarjeta de crédito.",
       faqQuestion2: "¿Qué plataformas soporta CampAIgner?",
-      faqAnswer2: "CampAIgner soporta más de 21 plataformas incluyendo Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube, Twitter, Pinterest y muchas más.",
+      faqAnswer2:
+        "CampAIgner soporta más de 21 plataformas incluyendo Instagram, TikTok, Facebook, WhatsApp, LinkedIn, YouTube, Twitter, Pinterest y muchas más.",
       faqQuestion3: "¿Puedo cambiar de plan en cualquier momento?",
-      faqAnswer3: "¡Sí! Actualiza o rebaja tu plan en cualquier momento. Los cambios toman efecto inmediatamente.",
+      faqAnswer3:
+        "¡Sí! Actualiza o rebaja tu plan en cualquier momento. Los cambios toman efecto inmediatamente.",
       faqQuestion4: "¿Hay una tarifa de configuración?",
-      faqAnswer4: "Sin tarifas de configuración, sin costos ocultos. Solo precios mensuales simples con todo incluido."
+      faqAnswer4:
+        "Sin tarifas de configuración, sin costos ocultos. Solo precios mensuales simples con todo incluido.",
     },
     // Sidebar
     sidebar: {
@@ -505,7 +550,7 @@ export const translations = {
       customers: "Clientes",
       team: "Equipo",
       integrations: "Integraciones",
-      settings: "Configuración"
+      settings: "Configuración",
     },
     // Messages and Inbox
     messages: {
@@ -523,7 +568,7 @@ export const translations = {
       noMessages: "No hay mensajes",
       loadMore: "Cargar Más",
       connectedAccounts: "Cuentas Conectadas",
-      noAccountsConnected: "No hay cuentas conectadas"
+      noAccountsConnected: "No hay cuentas conectadas",
     },
     // Tools and Features
     tools: {
@@ -535,7 +580,7 @@ export const translations = {
       contentLibrary: "Biblioteca de Contenido",
       socialCalendar: "Calendario Social",
       brandManager: "Gestor de Marcas",
-      teamCollaboration: "Colaboración de Equipo"
+      teamCollaboration: "Colaboración de Equipo",
     },
     // Analytics
     analytics: {
@@ -545,13 +590,13 @@ export const translations = {
       engagement: "Engagement",
       averageRate: "Tasa promedio",
       conversions: "Conversiones",
-      socialToPOS: "Social a POS"
+      socialToPOS: "Social a POS",
     },
     // Actions
     actions: {
       createNewPost: "Crear Nueva Publicación",
       generateContent: "Generar Contenido IA",
-      schedulePosts: "Programar Publicaciones"
+      schedulePosts: "Programar Publicaciones",
     },
     // Common
     common: {
@@ -572,9 +617,9 @@ export const translations = {
       noAccountsConnected: "No hay cuentas conectadas",
       loadDemoData: "Cargar Datos Demo",
       aiGeneratedPosts: "Posts Generados por IA",
-      revenueImpact: "Impacto en Ingresos"
-    }
-  }
+      revenueImpact: "Impacto en Ingresos",
+    },
+  },
 };
 
 // Industries in Spanish
@@ -589,7 +634,7 @@ export const industriesSpanish = [
   "Bienes Raíces",
   "Viajes y Turismo",
   "Educación",
-  "Otro"
+  "Otro",
 ];
 
 // Seasons in Spanish
@@ -597,18 +642,34 @@ export const seasonsSpanish = [
   "T1 - Año Nuevo y Primavera",
   "T2 - Primavera y Verano",
   "T3 - Verano y Regreso a Clases",
-  "T4 - Otoño y Temporada Navideña"
+  "T4 - Otoño y Temporada Navideña",
 ];
 
 // Platform options in Spanish
 export const platformOptionsSpanish = [
-  { value: "instagram", label: "Publicaciones Instagram", color: "text-pink-500" },
-  { value: "instagram_story", label: "Historia Instagram", color: "text-purple-500" },
+  {
+    value: "instagram",
+    label: "Publicaciones Instagram",
+    color: "text-pink-500",
+  },
+  {
+    value: "instagram_story",
+    label: "Historia Instagram",
+    color: "text-purple-500",
+  },
   { value: "instagram_reels", label: "Reels Instagram", color: "text-red-500" },
   { value: "facebook", label: "Publicaciones Facebook", color: "text-primary" },
-  { value: "facebook_story", label: "Historias Facebook", color: "text-primary" },
+  {
+    value: "facebook_story",
+    label: "Historias Facebook",
+    color: "text-primary",
+  },
   { value: "linkedin", label: "Publicaciones LinkedIn", color: "text-primary" },
-  { value: "linkedin_newsletter", label: "Newsletter LinkedIn", color: "text-primary" },
+  {
+    value: "linkedin_newsletter",
+    label: "Newsletter LinkedIn",
+    color: "text-primary",
+  },
   { value: "linkedin_thread", label: "Hilo LinkedIn", color: "text-primary" },
   { value: "threads", label: "Threads", color: "text-gray-900" },
   { value: "x", label: "X (Twitter)", color: "text-gray-900" },
@@ -625,15 +686,15 @@ export const platformOptionsSpanish = [
   { value: "email", label: "Gmail/Email", color: "text-primary" },
 ];
 
-export type Language = 'en' | 'es';
+export type Language = "en" | "es";
 
-export const getTranslation = (key: string, lang: Language = 'en') => {
-  const keys = key.split('.');
+export const getTranslation = (key: string, lang: Language = "en") => {
+  const keys = key.split(".");
   let value: any = translations[lang];
-  
+
   for (const k of keys) {
     value = value?.[k];
   }
-  
+
   return value || key;
 };
