@@ -854,6 +854,21 @@ export const campaignDesigns = pgTable("campaign_designs", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Brand Assets table
+export const brandAssets = pgTable("brand_assets", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandDesignId: uuid("brand_design_id").references(() => brandDesigns.id, {
+    onDelete: "cascade",
+  }),
+  url: varchar("url").notNull(),
+  name: varchar("name").notNull(),
+  category: varchar("category"),
+  assetType: varchar("asset_type").notNull(), // image, video, document
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Brand Design schemas
 export const insertBrandDesignSchema = createInsertSchema(brandDesigns).omit({
   id: true,
@@ -869,10 +884,17 @@ export const insertCampaignDesignSchema = createInsertSchema(
   updatedAt: true,
 });
 
+export const insertBrandAssetSchema = createInsertSchema(brandAssets).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertBrandDesign = z.infer<typeof insertBrandDesignSchema>;
 export type BrandDesign = typeof brandDesigns.$inferSelect;
 export type InsertCampaignDesign = z.infer<typeof insertCampaignDesignSchema>;
 export type CampaignDesign = typeof campaignDesigns.$inferSelect;
+export type InsertBrandAsset = z.infer<typeof insertBrandAssetSchema>;
+export type BrandAsset = typeof brandAssets.$inferSelect;
 
 // AI Chatbot Configuration
 export const chatbotConfigs = pgTable("chatbot_configs", {
