@@ -98,8 +98,9 @@ export default function LoginPage() {
       const response = await apiRequest("POST", "/api/login", { idToken });
       return await response.json();
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["/api/auth/user"], data.user);
+    onSuccess: async (data) => {
+      queryClient.setQueryData(["/api/auth/user"], { user: data.user });
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({ title: "Welcome!", description: "Login successful." });
       navigate("/dashboard");
     },
