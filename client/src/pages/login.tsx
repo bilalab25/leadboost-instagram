@@ -37,7 +37,12 @@ import {
   OAuthProvider, // ¡Importa OAuthProvider aquí!
 } from "firebase/auth";
 // Asegúrate de que la ruta sea correcta y que appleProvider esté exportado
-import { auth, googleProvider, microsoftProvider, appleProvider } from "../firebaseConfig";
+import {
+  auth,
+  googleProvider,
+  microsoftProvider,
+  appleProvider,
+} from "../firebaseConfig";
 // --- FIN IMPORTACIONES DE FIREBASE CLIENT SDK ---
 
 const loginSchema = z.object({
@@ -60,7 +65,9 @@ type SignupForm = z.infer<typeof signupSchema>;
 function generateRandomString(length: number): string {
   const array = new Uint32Array(length / 2);
   window.crypto.getRandomValues(array);
-  return Array.from(array, (dec) => ("0" + dec.toString(16)).substr(-2)).join("");
+  return Array.from(array, (dec) => ("0" + dec.toString(16)).substr(-2)).join(
+    "",
+  );
 }
 
 export default function LoginPage() {
@@ -71,7 +78,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate("/");
+      navigate("/dashboard");
     }
   }, [isAuthenticated, isLoading, navigate]);
 
@@ -100,7 +107,9 @@ export default function LoginPage() {
       console.error("Backend session establishment error:", error);
       toast({
         title: "Authentication Failed",
-        description: error.message || "An error occurred during session establishment with our server. Please try again.",
+        description:
+          error.message ||
+          "An error occurred during session establishment with our server. Please try again.",
         variant: "destructive",
       });
     },
@@ -109,14 +118,18 @@ export default function LoginPage() {
   // --- FUNCIONES PARA LOGIN Y SIGNUP CON EMAIL/PASSWORD DE FIREBASE ---
   const onLogin = async (data: LoginForm) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password,
+      );
       const idToken = await userCredential.user.getIdToken();
       firebaseAuthMutation.mutate(idToken); // Enviar el ID Token al backend
     } catch (error: any) {
       console.error("Firebase Email Login Error:", error);
       let errorMessage = "An unexpected error occurred. Please try again.";
 
-      if (error && typeof error === 'object' && 'code' in error) {
+      if (error && typeof error === "object" && "code" in error) {
         const firebaseErrorCode = (error as any).code;
         switch (firebaseErrorCode) {
           case "auth/invalid-email":
@@ -148,7 +161,11 @@ export default function LoginPage() {
 
   const onSignup = async (data: SignupForm) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password,
+      );
       // Actualizar el perfil del usuario con nombre y apellido en Firebase
       if (userCredential.user) {
         await updateProfile(userCredential.user, {
@@ -162,17 +179,19 @@ export default function LoginPage() {
       console.error("Firebase Email Signup Error:", error);
       let errorMessage = "An unexpected error occurred. Please try again.";
 
-      if (error && typeof error === 'object' && 'code' in error) {
+      if (error && typeof error === "object" && "code" in error) {
         const firebaseErrorCode = (error as any).code;
         switch (firebaseErrorCode) {
           case "auth/email-already-in-use":
-            errorMessage = "This email is already registered. Please login or use a different email.";
+            errorMessage =
+              "This email is already registered. Please login or use a different email.";
             break;
           case "auth/invalid-email":
             errorMessage = "Invalid email format.";
             break;
           case "auth/weak-password":
-            errorMessage = "Password is too weak. Please choose a stronger password.";
+            errorMessage =
+              "Password is too weak. Please choose a stronger password.";
             break;
           default:
             errorMessage = (error as any).message;
@@ -198,7 +217,8 @@ export default function LoginPage() {
 
       // Lógica específica para Apple Sign-in: generar y establecer el nonce
       // Comprobamos si el proveedor es el de Apple por su providerId
-      if (provider.providerId === 'apple.com') { // <-- CAMBIO AQUÍ: Comprobar providerId
+      if (provider.providerId === "apple.com") {
+        // <-- CAMBIO AQUÍ: Comprobar providerId
         nonce = generateRandomString(32); // Genera un string hexadecimal de 32 caracteres (16 bytes)
         currentProvider.setCustomParameters({ nonce }); // Establece el nonce en el proveedor
         // Los scopes 'email' y 'name' ya se establecieron en firebaseConfig.js
@@ -215,25 +235,30 @@ export default function LoginPage() {
       firebaseAuthMutation.mutate(idToken); // Enviar el ID Token al backend
     } catch (error: any) {
       console.error("Firebase social login error:", error);
-      let errorMessage = "An unexpected error occurred during social login. Please try again.";
+      let errorMessage =
+        "An unexpected error occurred during social login. Please try again.";
 
-      if (error && typeof error === 'object' && 'code' in error) {
+      if (error && typeof error === "object" && "code" in error) {
         const firebaseErrorCode = (error as any).code;
         switch (firebaseErrorCode) {
           case "auth/popup-closed-by-user":
             errorMessage = "Login window closed. Please try again.";
             break;
           case "auth/cancelled-popup-request":
-            errorMessage = "Another login window is already open. Please complete or close it.";
+            errorMessage =
+              "Another login window is already open. Please complete or close it.";
             break;
           case "auth/account-exists-with-different-credential":
-            errorMessage = "An account with this email already exists using a different sign-in method. Please login with your existing method.";
+            errorMessage =
+              "An account with this email already exists using a different sign-in method. Please login with your existing method.";
             break;
           case "auth/auth-domain-config-required":
-            errorMessage = "Authentication domain not configured for this provider. Please contact support.";
+            errorMessage =
+              "Authentication domain not configured for this provider. Please contact support.";
             break;
           case "auth/operation-not-allowed":
-            errorMessage = "Sign-in with this provider is not enabled. Please contact support.";
+            errorMessage =
+              "Sign-in with this provider is not enabled. Please contact support.";
             break;
           default:
             errorMessage = (error as any).message;
@@ -281,7 +306,7 @@ export default function LoginPage() {
             >
               <FcGoogle size={20} /> Continue with Google
             </Button>
-           <Button
+            <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-2"
               onClick={() => handleFirebaseSocialLogin(appleProvider)}
@@ -357,9 +382,17 @@ export default function LoginPage() {
                     type="submit"
                     className="w-full"
                     disabled={firebaseAuthMutation.isPending}
-                    style={{background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", padding: "16px 12px", color: "white", borderRadius: "12px"}}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                      padding: "16px 12px",
+                      color: "white",
+                      borderRadius: "12px",
+                    }}
                   >
-                    {firebaseAuthMutation.isPending ? "Signing in..." : "Sign In"}
+                    {firebaseAuthMutation.isPending
+                      ? "Signing in..."
+                      : "Sign In"}
                   </Button>
                 </form>
               </Form>
@@ -437,7 +470,13 @@ export default function LoginPage() {
                     type="submit"
                     className="w-full"
                     disabled={firebaseAuthMutation.isPending}
-                    style={{background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)", padding: "16px 12px", color: "white", borderRadius: "12px"}}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                      padding: "16px 12px",
+                      color: "white",
+                      borderRadius: "12px",
+                    }}
                   >
                     {firebaseAuthMutation.isPending
                       ? "Creating..."
