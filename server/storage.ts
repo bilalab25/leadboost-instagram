@@ -64,6 +64,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, sql, gte, lte } from "drizzle-orm";
+import { mapFromDb, mapToDb } from "./mappers/brandDesign";
 
 export interface IStorage {
   // User operations
@@ -856,11 +857,20 @@ export class DatabaseStorage implements IStorage {
 
   // Brand design operations
   async createBrandDesign(design: InsertBrandDesign): Promise<BrandDesign> {
-    const [brandDesign] = await db
-      .insert(brandDesigns)
-      .values(design)
+    const mapped = mapToDb(design);
+    const [brandDesign] = await db.insert(brandDesigns).values(mapped).returning();
+    return mapFromDb(brandDesign);
+  }
+
+  async updateBrandDesign(id: string, userId: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined> {
+    const mapped = mapToDb({ ...updates, userId });
+    const [updated] = await db
+      .update(brandDesigns)
+      .set({ ...mapped, updatedAt: new Date() })
+      .where(and(eq(brandDesigns.id, id), eq(brandDesigns.userId, userId)))
       .returning();
-    return brandDesign;
+
+    return updated ? mapFromDb(updated) : undefined;
   }
 
   async getBrandDesignByUserId(userId: string): Promise<BrandDesign | undefined> {
@@ -870,16 +880,9 @@ export class DatabaseStorage implements IStorage {
       .where(eq(brandDesigns.userId, userId))
       .orderBy(desc(brandDesigns.createdAt))
       .limit(1);
-    return design;
-  }
 
-  async updateBrandDesign(id: string, userId: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined> {
-    const [updated] = await db
-      .update(brandDesigns)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(brandDesigns.id, id), eq(brandDesigns.userId, userId)))
-      .returning();
-    return updated;
+    if (!design) return undefined;
+    return mapFromDb(design);
   }
 
   async deleteBrandDesign(id: string, userId: string): Promise<boolean> {
