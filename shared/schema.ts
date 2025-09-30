@@ -812,37 +812,21 @@ export const brandDesigns = pgTable("brand_designs", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  brandId: uuid("brand_id").references(() => brands.id, {
-    onDelete: "cascade",
-  }),
   userId: varchar("user_id").references(() => users.id, {
     onDelete: "cascade",
   }),
-
-  // Canva Integration
-  canvaAccessToken: text("canva_access_token"),
-  canvaRefreshToken: text("canva_refresh_token"),
-  canvaUserId: varchar("canva_user_id"),
-  canvaTeamId: varchar("canva_team_id"),
-  isCanvaConnected: boolean("is_canva_connected").default(false),
-
-  // Brand Identity
-  brandStyle: varchar("brand_style"), // minimalist, luxury, fun, corporate, creative, bold
-  colorPalette: jsonb("color_palette"), // {primary, secondary, accent, neutral}
-  typography: jsonb("typography"), // {primary, secondary, weights, sizes}
-  logoUrl: varchar("logo_url"),
-  logoVariations: jsonb("logo_variations"), // different logo formats
-
-  // Design Assets
-  brandAssets: jsonb("brand_assets"), // stored design elements
-  templates: jsonb("templates"), // custom templates
-  brandGuidelines: jsonb("brand_guidelines"), // spacing, rules, do's/don'ts
-
-  // Canva Imported Data
-  canvaBrandKit: jsonb("canva_brand_kit"), // imported from Canva
-  canvaTemplates: jsonb("canva_templates"), // templates from Canva
-
-  isActive: boolean("is_active").default(true),
+  brandStyle: varchar("brand_style"), // minimalist, luxury, etc.
+  colorPrimary: varchar("color_primary"),
+  colorAccent1: varchar("color_accent1"),
+  colorAccent2: varchar("color_accent2"),
+  colorText1: varchar("color_text1"),
+  colorText2: varchar("color_text2"),
+  fontPrimary: varchar("font_primary"),
+  fontSecondary: varchar("font_secondary"),
+  customFonts: jsonb("custom_fonts"), // array with {name, url}
+  logoUrl: varchar("logo_url"), // or JSON if storing multiple versions: blanco, negro, favicon
+  assets: jsonb("assets"), // list of assets with {id, url, name, category, assetType}
+  isDesignStudioEnabled: boolean("is_design_studio_enabled").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
