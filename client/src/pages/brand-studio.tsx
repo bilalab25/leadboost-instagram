@@ -682,8 +682,8 @@ export default function BrandStudio() {
         toast({
           title: isSpanish ? "Asset Eliminado" : "Asset Deleted",
           description: isSpanish
-            ? "El asset se ha eliminado exitosamente de Cloudinary y la base de datos."
-            : "The asset has been successfully deleted from Cloudinary and the database.",
+            ? "El asset se ha eliminado exitosamente."
+            : "The asset has been successfully deleted.",
         });
 
         // Refresh the assets list
@@ -694,7 +694,11 @@ export default function BrandStudio() {
         const error = await res.json();
         toast({
           title: isSpanish ? "Error" : "Error",
-          description: error.message || (isSpanish ? "No se pudo eliminar el asset" : "Failed to delete asset"),
+          description:
+            error.message ||
+            (isSpanish
+              ? "No se pudo eliminar el asset"
+              : "Failed to delete asset"),
           variant: "destructive",
         });
       }
@@ -702,7 +706,9 @@ export default function BrandStudio() {
       console.error("Error deleting asset:", error);
       toast({
         title: isSpanish ? "Error" : "Error",
-        description: isSpanish ? "No se pudo eliminar el asset" : "Failed to delete asset",
+        description: isSpanish
+          ? "No se pudo eliminar el asset"
+          : "Failed to delete asset",
         variant: "destructive",
       });
     }
