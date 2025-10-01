@@ -41,6 +41,8 @@ import fun from "./brand-images/fun.png";
 import corporate from "./brand-images/corporate.png";
 import creative from "./brand-images/creative.png";
 import bold from "./brand-images/bold.png";
+const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
 // Suponiendo que ya tienes las imágenes en /public/brand-styles o importadas
 const styleImages: Record<string, string> = {
@@ -146,66 +148,6 @@ const brandStyles = [
   },
 ];
 
-const colorPalettes = {
-  minimalist: {
-    primary: "#000000",
-    secondary: "#666666",
-    accent: "#ffffff",
-    neutral: "#f5f5f5",
-    text1: "#333333", // Added
-    text2: "#999999", // Added
-  },
-  luxury: {
-    primary: "#1a1a1a",
-    secondary: "#d4af37",
-    accent: "#ffffff",
-    neutral: "#f8f8f8",
-    text1: "#000000", // Added
-    text2: "#aaaaaa", // Added
-  },
-  fun: {
-    primary: "#ff6b6b",
-    secondary: "#4ecdc4",
-    accent: "#45b7d1",
-    neutral: "#fff9e6",
-    text1: "#333333", // Added
-    text2: "#666666", // Added
-  },
-  corporate: {
-    primary: "#2563eb",
-    secondary: "#1e40af",
-    accent: "#60a5fa",
-    neutral: "#f1f5f9",
-    text1: "#222222", // Added
-    text2: "#555555", // Added
-  },
-  creative: {
-    primary: "#8b5cf6",
-    secondary: "#ec4899",
-    accent: "#f59e0b",
-    neutral: "#fdf4ff",
-    text1: "#111111", // Added
-    text2: "#444444", // Added
-  },
-  bold: {
-    primary: "#dc2626",
-    secondary: "#000000",
-    accent: "#fbbf24",
-    neutral: "#fef2f2",
-    text1: "#000000", // Added
-    text2: "#333333", // Added
-  },
-};
-
-const fontPairings = {
-  minimalist: { primary: "Inter", secondary: "Source Sans Pro" },
-  luxury: { primary: "Playfair Display", secondary: "Lato" },
-  fun: { primary: "Poppins", secondary: "Open Sans" },
-  corporate: { primary: "Roboto", secondary: "Arial" },
-  creative: { primary: "Montserrat", secondary: "Nunito" },
-  bold: { primary: "Oswald", secondary: "Roboto Condensed" },
-};
-
 const assetCategories = [
   { value: "product_images", label: "Product Images" },
   { value: "marketing_banners", label: "Marketing Banners" },
@@ -274,6 +216,48 @@ export default function BrandStudio() {
     queryKey: ["/api/brand-design"],
     retry: false,
   });
+
+  const {
+    data: assets = [],
+    isLoading: isAssetsLoading,
+    isFetching: isAssetsFetching,
+    error: assetsError,
+  } = useQuery<BrandAsset[]>({
+    queryKey: ["/api/brand-assets", brandDesign?.id],
+    enabled: !!brandDesign?.id, // 👈 si brandDesign.id es undefined, nunca corre
+    queryFn: async () => {
+      console.log("🔎 QueryFn brand-assets → brandDesign.id:", brandDesign?.id);
+      const url = `/api/brand-assets?brandDesignId=${brandDesign!.id}`;
+      console.log("🌐 GET", url);
+      const res = await apiRequest("GET", url);
+
+      // Lee texto crudo para ver si el server devuelve HTML/errores
+      const text = await res.text();
+      console.log("⬅️  RAW RESPONSE /api/brand-assets:", text);
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} - ${text}`);
+      }
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        console.error("❌ JSON.parse falló con:", text);
+        throw e;
+      }
+    },
+    retry: false,
+  });
+
+  useEffect(() => {
+    console.log("📦 assets (query data):", assets);
+    console.log(
+      "⏳ isAssetsLoading:",
+      isAssetsLoading,
+      "isAssetsFetching:",
+      isAssetsFetching,
+    );
+    if (assetsError) console.error("🧨 assetsError:", assetsError);
+  }, [assets, isAssetsLoading, isAssetsFetching, assetsError]);
 
   useGoogleFontLoader([primaryFont, secondaryFont]);
 
@@ -599,16 +583,68 @@ export default function BrandStudio() {
     </div>
   );
 
-  const handleAssetUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const saveAssetToDB = async (asset: BrandAsset, cloudinaryData: any) => {
+    const payload = {
+      brandDesignId: brandDesign?.id,
+      url: asset.url,
+      name: asset.name,
+      category: asset.category,
+      assetType: asset.assetType,
+      publicId: cloudinaryData.public_id,
+    };
+    const res = await apiRequest("POST", "/api/brands-assets", payload);
+    const data = await res.json();
+    return data;
+  };
+
+  const handleAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const newAssets: BrandAsset[] = files.map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Simple unique ID
-      url: URL.createObjectURL(file),
-      name: file.name,
-      category: currentAssetUploadCategory, // Use the currently selected category
-      assetType: getAssetType(file.name),
-    }));
-    setBrandAssets((prev) => [...prev, ...newAssets]);
+    const uploadedAssets: BrandAsset[] = [];
+
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", uploadPreset);
+
+      try {
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+          { method: "POST", body: formData },
+        );
+
+        const data = await res.json();
+        if (data.secure_url) {
+          const asset: BrandAsset = {
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            url: data.secure_url,
+            name: file.name,
+            category: currentAssetUploadCategory,
+            assetType: getAssetType(file.name),
+            publicId: data.public_id, // 🔹 viene de Cloudinary
+          };
+
+          const saved = await saveAssetToDB(asset, data);
+          uploadedAssets.push({ ...asset, id: saved.id });
+        }
+      } catch (error) {
+        console.error("Cloudinary upload error:", error);
+        toast({
+          title: isSpanish ? "Error" : "Upload Error",
+          description: isSpanish
+            ? "No se pudo subir el archivo a Cloudinary"
+            : "Failed to upload file to Cloudinary",
+          variant: "destructive",
+        });
+      }
+    }
+
+    setBrandAssets((prev) => [...prev, ...uploadedAssets]);
+    toast({
+      title: isSpanish ? "Subida exitosa" : "Upload Successful",
+      description: `${uploadedAssets.length} ${
+        isSpanish ? "archivo(s) guardado(s)" : "file(s) saved"
+      }`,
+    });
   };
 
   const handleRemoveAsset = (id: string) => {

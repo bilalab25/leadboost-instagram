@@ -2980,38 +2980,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "demo-user";
 
         // In a real implementation, this would handle Canva OAuth flow
-        // For now, we'll simulate the connection
+        // For now, we'll simulate the connection by returning the existing design
         const existingDesign = await storage.getBrandDesignByUserId(userId);
 
         if (existingDesign) {
-          const updated = await storage.updateBrandDesign(
-            existingDesign.id,
-            userId,
-            {
-              isCanvaConnected: true,
-              canvaUserId: "simulated_canva_user",
-              canvaTeamId: "simulated_team",
-              canvaBrandKit: {
-                colors: ["#6366f1", "#8b5cf6", "#ec4899"],
-                fonts: ["Inter", "Poppins"],
-                logos: ["logo_v1.png", "logo_v2.png"],
-              },
-            },
-          );
-          res.json(updated);
-        } else {
-          const newDesign = await storage.createBrandDesign({
-            userId,
+          res.json({
+            ...existingDesign,
             isCanvaConnected: true,
             canvaUserId: "simulated_canva_user",
             canvaTeamId: "simulated_team",
-            canvaBrandKit: {
-              colors: ["#6366f1", "#8b5cf6", "#ec4899"],
-              fonts: ["Inter", "Poppins"],
-              logos: ["logo_v1.png", "logo_v2.png"],
-            },
           });
-          res.json(newDesign);
+        } else {
+          res.json({
+            isCanvaConnected: true,
+            canvaUserId: "simulated_canva_user",
+            canvaTeamId: "simulated_team",
+          });
         }
       } catch (error) {
         console.error("Error connecting Canva:", error);
@@ -3021,38 +3005,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Upload de un asset
-  app.post("/upload-asset", upload.single("file"), async (req: any, res) => {
+  app.post("/api/brand-assets", isAuthenticated, async (req: any, res) => {
     try {
-      const { brand_design_id, category } = req.body;
-
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+      const { brandDesignId, url, name, category, assetType, publicId } =
+        req.body;
+      console.log("📥 BODY recibido:", req.body);
+      if (!brandDesignId || !url || !name) {
+        return res.status(400).json({ error: "Missing required fields" });
       }
-
-      // 1. Subir a Cloudinary
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "brand-assets",
+      const newAsset = await storage.createBrandAsset({
+        brandDesignId,
+        url,
+        name,
+        category,
+        assetType,
+        publicId,
       });
-
-      // 2. Determinar tipo de asset
-      const ext = req.file.originalname.split(".").pop()?.toLowerCase();
-      let assetType: "image" | "video" | "document" = "document";
-      if (["jpg", "jpeg", "png", "gif", "svg", "webp"].includes(ext!))
-        assetType = "image";
-      if (["mp4", "webm", "ogg", "mov", "avi"].includes(ext!))
-        assetType = "video";
-
-      // 3. Guardar en DB
-      const newAsset = await storage.insertBrandAsset({
-        brand_design_id,
-        url: result.secure_url,
-        name: req.file.originalname,
-        category: category || "general",
-        asset_type: assetType,
-        public_id: result.public_id, // 🔹 importante para poder borrarlo
-        created_at: new Date().toISOString(),
-      });
-
+      console.log("✅ Insertado en DB:", newAsset);
       res.json(newAsset);
     } catch (error) {
       console.error("Error uploading asset:", error);
@@ -3060,9 +3029,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
-}
+  // GET /api/brand-assets?brandDesignId=<uuid>
+  app.get("/api/brand-assets", isAuthenticated, async (req: any, res) => {
+    try {
+      console.log("🛣️  GET /api/brand-assets");
+      console.log("🧭  req.query:", req.query, "req.params:", req.params);
+      const { brandDesignId } = req.query;
+      if (!brandDesignId) {
+        return res.status(400).json({ message: "brandDesignId is required" });
+      }
+      const assets = await storage.getAssetsByBrandDesignId(String(brandDesignId));
+      console.log(`📦 ${assets.length} asset(s) encontrados para`, brandDesignId);
+      res.json(assets);
+    } catch (error) {
+      console.error("Error fetching brand assets:", error);
+      res.status(500).json({ message: "Failed to fetch brand assets" });
+    }
+  });
+
 
 // Demo data population function
 async function populateDemoData(userId: string) {
@@ -3776,4 +3760,8 @@ async function populateDemoData(userId: string) {
   }
 
   console.log("Demo data populated successfully for user:", userId);
+}
+
+  const server = createServer(app);
+  return server;
 }
