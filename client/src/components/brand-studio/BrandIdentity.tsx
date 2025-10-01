@@ -2,6 +2,7 @@ import { TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Palette, Type, Image, Sparkles, Upload, Trash2 } from "lucide-react";
 import { ZoomIn } from "lucide-react";
@@ -62,6 +63,7 @@ export default function BrandIdentity({
     previewUrl,
     setFile,
     setPreviewUrl,
+    uploadType,
   }: {
     id: string;
     label: string;
@@ -69,6 +71,7 @@ export default function BrandIdentity({
     previewUrl: string | null;
     setFile: React.Dispatch<React.SetStateAction<File | null>>;
     setPreviewUrl: React.Dispatch<React.SetStateAction<string | null>>;
+    uploadType?: 'logo' | 'favicon';
   }) => (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -84,7 +87,7 @@ export default function BrandIdentity({
               type="file"
               accept="image/*"
               className="sr-only"
-              onChange={(e) => handleFileUpload(e, setFile, setPreviewUrl)}
+              onChange={(e) => handleFileUpload(e, setFile, setPreviewUrl, uploadType)}
               data-testid={`input-${id}`}
             />
           </Label>
@@ -376,38 +379,24 @@ export default function BrandIdentity({
             <strong>PNG format</strong> with a
             <strong>transparent background</strong> for best results.
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <LogoUploadField
-              id="white-logo-upload"
-              label="Light Logo"
+              id="logo-upload"
+              label="Brand Logo"
               file={whiteLogoFile}
               previewUrl={whiteLogoPreviewUrl}
               setFile={setWhiteLogoFile}
               setPreviewUrl={setWhiteLogoPreviewUrl}
+              uploadType="logo"
             />
             <LogoUploadField
-              id="black-logo-upload"
-              label="Dark Logo"
-              file={blackLogoFile}
-              previewUrl={blackLogoPreviewUrl}
-              setFile={setBlackLogoFile}
-              setPreviewUrl={setBlackLogoPreviewUrl}
-            />
-            <LogoUploadField
-              id="white-favicon-upload"
-              label="Light Favicon"
+              id="favicon-upload"
+              label="Favicon"
               file={whiteFaviconFile}
               previewUrl={whiteFaviconPreviewUrl}
               setFile={setWhiteFaviconFile}
               setPreviewUrl={setWhiteFaviconPreviewUrl}
-            />
-            <LogoUploadField
-              id="black-favicon-upload"
-              label="Dark Favicon"
-              file={blackFaviconFile}
-              previewUrl={blackFaviconPreviewUrl}
-              setFile={setBlackFaviconFile}
-              setPreviewUrl={setBlackFaviconPreviewUrl}
+              uploadType="favicon"
             />
           </div>
         </CardContent>

@@ -59,6 +59,7 @@ interface BrandDesign {
     customFonts?: { name: string; url: string }[];
   };
   logoUrl: string | null;
+  faviconUrl: string | null;
   isDesignStudioEnabled: boolean;
   brandKit: {
     assets: BrandAsset[]; // Assuming assets are part of brandKit
@@ -531,15 +532,51 @@ export default function BrandStudio() {
     });
   };
 
-  const handleFileUpload = (
+  // Upload logo/favicon mutation
+  const uploadLogoMutation = useMutation({
+    mutationFn: async ({ file, type }: { file: File; type: 'logo' | 'favicon' }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+      
+      const response = await apiRequest('POST', '/api/brand-design/upload-logo', formData);
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/brand-design'] });
+      toast({
+        title: isSpanish ? '¡Subido!' : 'Uploaded!',
+        description: isSpanish 
+          ? `${variables.type === 'logo' ? 'Logo' : 'Favicon'} subido exitosamente`
+          : `${variables.type === 'logo' ? 'Logo' : 'Favicon'} uploaded successfully`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: isSpanish ? 'Error' : 'Error',
+        description: isSpanish 
+          ? 'No se pudo subir el archivo' 
+          : 'Failed to upload file',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     setFile: React.Dispatch<React.SetStateAction<File | null>>,
     setPreviewUrl: React.Dispatch<React.SetStateAction<string | null>>,
+    type?: 'logo' | 'favicon',
   ) => {
     const file = e.target.files?.[0] || null;
     setFile(file);
     if (file) {
       setPreviewUrl(URL.createObjectURL(file));
+      
+      // Auto-upload if type is provided
+      if (type) {
+        await uploadLogoMutation.mutateAsync({ file, type });
+      }
     } else {
       setPreviewUrl(null);
     }
