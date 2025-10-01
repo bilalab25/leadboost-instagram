@@ -856,13 +856,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Brand design operations
-  async createBrandDesign(design: InsertBrandDesign): Promise<BrandDesign> {
+  async createBrandDesign(design: any) {
     const mapped = mapToDb(design);
     const [brandDesign] = await db.insert(brandDesigns).values(mapped).returning();
     return mapFromDb(brandDesign);
   }
 
-  async updateBrandDesign(id: string, userId: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined> {
+  async updateBrandDesign(id: string, userId: string, updates: any) {
     const mapped = mapToDb({ ...updates, userId });
     const [updated] = await db
       .update(brandDesigns)
@@ -873,7 +873,7 @@ export class DatabaseStorage implements IStorage {
     return updated ? mapFromDb(updated) : undefined;
   }
 
-  async getBrandDesignByUserId(userId: string): Promise<BrandDesign | undefined> {
+  async getBrandDesignByUserId(userId: string) {
     const [design] = await db
       .select()
       .from(brandDesigns)

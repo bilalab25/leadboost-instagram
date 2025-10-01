@@ -279,7 +279,57 @@ export default function BrandStudio() {
 
   // Effect to initialize states when brandDesign data is loaded
   useEffect(() => {
+    console.log("Brand Design Data:", brandDesign);
     if (brandDesign) {
+      if (brandDesign.colorPalette || brandDesign.colorPrimary) {
+        setMainColor(
+          brandDesign.colorPalette?.primary ||
+            brandDesign.colorPrimary ||
+            "#2563eb",
+        );
+        setAccentColor1(
+          brandDesign.colorPalette?.accent1 ||
+            brandDesign.colorAccent1 ||
+            "#60a5fa",
+        );
+        setAccentColor2(
+          brandDesign.colorPalette?.accent2 ||
+            brandDesign.colorAccent2 ||
+            "#1e40af",
+        );
+        setText1Color(
+          brandDesign.colorPalette?.text1 ||
+            brandDesign.colorText1 ||
+            "#333333",
+        );
+        setText2Color(
+          brandDesign.colorPalette?.text2 ||
+            brandDesign.colorText2 ||
+            "#666666",
+        );
+      }
+
+      if (brandDesign.typography || brandDesign.fontPrimary) {
+        setPrimaryFont(
+          brandDesign.typography?.primary ||
+            brandDesign.fontPrimary ||
+            "Roboto",
+        );
+        setSecondaryFont(
+          brandDesign.typography?.secondary ||
+            brandDesign.fontSecondary ||
+            "Open Sans",
+        );
+        if (brandDesign.typography?.customFonts) {
+          const loadedCustomFontNames = brandDesign.typography.customFonts.map(
+            (f: any) => f.name,
+          );
+          setCustomFontOptions((prev) => [
+            ...new Set([...prev, ...loadedCustomFontNames]),
+          ]);
+        }
+      }
+
       if (brandDesign.brandStyle) {
         setSelectedStyle(brandDesign.brandStyle);
       }
