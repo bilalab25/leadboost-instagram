@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,6 +58,34 @@ export default function CanvaStyleColorPicker({
     onChange(grad);
   };
 
+  // Sincronizar con value que viene del padre
+  useEffect(() => {
+    if (value?.startsWith("linear") || value?.startsWith("radial")) {
+      // Es un gradiente → parsear colores
+      setTab("gradient");
+      setGradType(
+        value.includes("to bottom")
+          ? "linear-to-bottom"
+          : value.includes("45deg")
+            ? "linear-diagonal"
+            : value.includes("to left")
+              ? "linear-reverse"
+              : value.includes("radial")
+                ? "radial"
+                : "linear-to-right",
+      );
+
+      // Extraer colores del string
+      const matches = value.match(/#([0-9a-fA-F]{3,6})/g);
+      if (matches && matches.length > 0) {
+        setColors(matches);
+      }
+    } else if (value) {
+      // Es color sólido
+      setTab("solid");
+      setSolidColor(value);
+    }
+  }, [value]);
   return (
     <div className="w-full p-3 border rounded-lg bg-white shadow-sm">
       <p className="text-sm font-medium mb-2">{label}</p>

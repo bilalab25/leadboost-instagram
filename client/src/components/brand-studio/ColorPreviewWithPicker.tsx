@@ -32,19 +32,27 @@ export default function ColorPreviewWithPicker({
     <div className="space-y-2">
       <p className="text-sm font-medium">{label}</p>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (isOpen) {
+            setTempValue(value); // 🔹 sincroniza con el valor actual al abrir
+          }
+        }}
+      >
         <DialogTrigger asChild>
           <button
             className="w-12 h-12 rounded-md border shadow-sm"
             style={{ background: value }}
           />
         </DialogTrigger>
+
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{label}</DialogTitle>
           </DialogHeader>
 
-          {/* Pasamos allowGradient hacia abajo */}
           <CanvaStyleColorPicker
             label={label}
             value={tempValue}

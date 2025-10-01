@@ -442,20 +442,6 @@ export default function BrandStudio() {
 
   const handleStyleSelect = (styleId: string) => {
     setSelectedStyle(styleId);
-    const selectedPalette =
-      colorPalettes[styleId as keyof typeof colorPalettes];
-    if (selectedPalette) {
-      setMainColor(selectedPalette.primary);
-      setAccentColor1(selectedPalette.accent); // Using accent for accent1
-      setAccentColor2(selectedPalette.secondary); // Using secondary for accent2
-      setText1Color(selectedPalette.text1);
-      setText2Color(selectedPalette.text2);
-    }
-    const selectedFonts = fontPairings[styleId as keyof typeof fontPairings];
-    if (selectedFonts) {
-      setPrimaryFont(selectedFonts.primary);
-      setSecondaryFont(selectedFonts.secondary);
-    }
   };
 
   const handleSaveBrandDesign = () => {
@@ -1201,10 +1187,7 @@ export default function BrandStudio() {
               </div>
             </div>
             {/* Help AI Chatbot */}
-            <HelpChatbot
-              isSpanish={isSpanish}
-              toggleLanguage={toggleLanguage}
-            />
+            <HelpChatbot toggleLanguage={toggleLanguage} />
           </main>
         </div>
       </div>
