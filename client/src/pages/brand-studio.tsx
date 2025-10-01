@@ -671,8 +671,41 @@ export default function BrandStudio() {
     return data;
   };
 
-  const handleRemoveAsset = (id: string) => {
-    setBrandAssets((prev) => prev.filter((asset) => asset.id !== id));
+  const handleRemoveAsset = async (id: string) => {
+    try {
+      const res = await apiRequest(
+        "DELETE",
+        `/api/brand-assets/${id}?brandDesignId=${brandDesign?.id}`,
+      );
+
+      if (res.ok) {
+        toast({
+          title: isSpanish ? "Asset Eliminado" : "Asset Deleted",
+          description: isSpanish
+            ? "El asset se ha eliminado exitosamente de Cloudinary y la base de datos."
+            : "The asset has been successfully deleted from Cloudinary and the database.",
+        });
+
+        // Refresh the assets list
+        await queryClient.invalidateQueries({
+          queryKey: ["/api/brand-assets", brandDesign?.id],
+        });
+      } else {
+        const error = await res.json();
+        toast({
+          title: isSpanish ? "Error" : "Error",
+          description: error.message || (isSpanish ? "No se pudo eliminar el asset" : "Failed to delete asset"),
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting asset:", error);
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish ? "No se pudo eliminar el asset" : "Failed to delete asset",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleFontUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -3047,6 +3047,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DELETE /api/brand-assets/:id
+  app.delete("/api/brand-assets/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const assetId = req.params.id;
+      const { brandDesignId } = req.query;
+
+      if (!brandDesignId) {
+        return res.status(400).json({ message: "brandDesignId is required" });
+      }
+
+      // Verify ownership: check if the brandDesign belongs to the current user
+      const brandDesign = await storage.getBrandDesignByUserId(userId);
+      if (!brandDesign || brandDesign.id !== brandDesignId) {
+        return res.status(403).json({ message: "Unauthorized to delete this asset" });
+      }
+
+      // Get the asset to retrieve its publicId and assetType
+      const assets = await storage.getAssetsByBrandDesignId(String(brandDesignId));
+      const asset = assets.find(a => a.id === assetId);
+
+      if (!asset) {
+        return res.status(404).json({ message: "Asset not found" });
+      }
+
+      // Delete from Cloudinary with correct resource_type
+      if (asset.publicId) {
+        try {
+          // Map assetType to Cloudinary resource_type
+          const resourceType = asset.assetType === 'video' ? 'video' : 
+                             asset.assetType === 'image' ? 'image' : 'raw';
+          
+          const result = await cloudinary.uploader.destroy(asset.publicId, { 
+            resource_type: resourceType 
+          });
+          
+          console.log(`☁️ Deleted from Cloudinary: ${asset.publicId} (${resourceType})`, result);
+          
+          // Check if Cloudinary deletion was successful
+          if (result.result !== 'ok' && result.result !== 'not found') {
+            throw new Error(`Cloudinary deletion failed: ${result.result}`);
+          }
+        } catch (cloudinaryError) {
+          console.error("Error deleting from Cloudinary:", cloudinaryError);
+          return res.status(500).json({ 
+            message: "Failed to delete asset from Cloudinary",
+            error: cloudinaryError instanceof Error ? cloudinaryError.message : 'Unknown error'
+          });
+        }
+      }
+
+      // Delete from database only if Cloudinary deletion succeeded
+      const deleted = await storage.deleteBrandAsset(assetId, String(brandDesignId));
+      
+      if (deleted) {
+        console.log(`🗑️ Deleted asset from DB: ${assetId}`);
+        res.json({ message: "Asset deleted successfully", asset: deleted });
+      } else {
+        res.status(404).json({ message: "Asset not found in database" });
+      }
+    } catch (error) {
+      console.error("Error deleting asset:", error);
+      res.status(500).json({ message: "Failed to delete asset" });
+    }
+  });
+
 
 // Demo data population function
 async function populateDemoData(userId: string) {
