@@ -18,6 +18,7 @@ import {
   products,
   campaignTriggers,
   brandDesigns,
+  brandAssets,
   campaignDesigns,
   // Asegúrate de que estos tipos en @shared/schema incluyan firebaseUid y hagan password, email, firstName, lastName opcionales/nullable
   type User,
@@ -61,6 +62,8 @@ import {
   type BrandDesign,
   type InsertCampaignDesign,
   type CampaignDesign,
+  type BrandAsset,
+  type InsertBrandAsset,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, sql, gte, lte } from "drizzle-orm";
@@ -856,13 +859,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Brand design operations
-  async createBrandDesign(design: any) {
+  async createBrandDesign(design: InsertBrandDesign): Promise<BrandDesign> {
     const mapped = mapToDb(design);
     const [brandDesign] = await db.insert(brandDesigns).values(mapped).returning();
     return mapFromDb(brandDesign);
   }
 
-  async updateBrandDesign(id: string, userId: string, updates: any) {
+  async updateBrandDesign(id: string, userId: string, updates: Partial<BrandDesign>): Promise<BrandDesign | undefined> {
     const mapped = mapToDb({ ...updates, userId });
     const [updated] = await db
       .update(brandDesigns)
@@ -873,7 +876,7 @@ export class DatabaseStorage implements IStorage {
     return updated ? mapFromDb(updated) : undefined;
   }
 
-  async getBrandDesignByUserId(userId: string) {
+  async getBrandDesignByUserId(userId: string): Promise<BrandDesign | undefined> {
     const [design] = await db
       .select()
       .from(brandDesigns)
@@ -891,6 +894,32 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(brandDesigns.id, id), eq(brandDesigns.userId, userId)));
     return (result.rowCount ?? 0) > 0;
   }
+
+
+  // Crear asset
+  async createBrandAsset(asset: InsertBrandAsset): Promise<BrandAsset> {
+    const [newAsset] = await db.insert(brandAssets).values(asset).returning();
+    return newAsset;
+  }
+
+  // Obtener assets de un BrandDesign
+  async getAssetsByBrandDesignId(brandDesignId: string): Promise<BrandAsset[]> {
+    return db
+      .select()
+      .from(brandAssets)
+      .where(eq(brandAssets.brandDesignId, brandDesignId))
+      .orderBy(desc(brandAssets.createdAt));
+  }
+
+  // Eliminar asset
+  async deleteBrandAsset(id: string, brandDesignId: string): Promise<BrandAsset | undefined> {
+    const [deleted] = await db
+      .delete(brandAssets)
+      .where(and(eq(brandAssets.id, id), eq(brandAssets.brandDesignId, brandDesignId)))
+      .returning();
+    return deleted;
+  }
+  
 
   // Campaign design operations
   async createCampaignDesign(design: InsertCampaignDesign): Promise<CampaignDesign> {

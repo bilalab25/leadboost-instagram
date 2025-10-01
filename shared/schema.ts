@@ -866,6 +866,7 @@ export const brandAssets = pgTable("brand_assets", {
   name: varchar("name").notNull(),
   category: varchar("category"),
   assetType: varchar("asset_type").notNull(), // image, video, document
+  publicId: varchar("public_id").notNull(), // 🔹 para borrar en Cloudinary
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -31,10 +31,13 @@ import {
 } from "@shared/schema";
 import { posIntegrationService } from "./services/posIntegrations";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import multer from "multer";
+import cloudinary from "@/cloudinary";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+const upload = multer({ dest: "uploads/" });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -3016,6 +3019,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   );
+
+  // Upload de un asset
+  app.post("/upload-asset", upload.single("file"), async (req: any, res) => {
+    try {
+      const { brand_design_id, category } = req.body;
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // 1. Subir a Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "brand-assets",
+      });
+
+      // 2. Determinar tipo de asset
+      const ext = req.file.originalname.split(".").pop()?.toLowerCase();
+      let assetType: "image" | "video" | "document" = "document";
+      if (["jpg", "jpeg", "png", "gif", "svg", "webp"].includes(ext!))
+        assetType = "image";
+      if (["mp4", "webm", "ogg", "mov", "avi"].includes(ext!))
+        assetType = "video";
+
+      // 3. Guardar en DB
+      const newAsset = await storage.insertBrandAsset({
+        brand_design_id,
+        url: result.secure_url,
+        name: req.file.originalname,
+        category: category || "general",
+        asset_type: assetType,
+        public_id: result.public_id, // 🔹 importante para poder borrarlo
+        created_at: new Date().toISOString(),
+      });
+
+      res.json(newAsset);
+    } catch (error) {
+      console.error("Error uploading asset:", error);
+      res.status(500).json({ message: "Failed to upload asset" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
