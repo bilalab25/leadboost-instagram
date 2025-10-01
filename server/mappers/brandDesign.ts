@@ -19,6 +19,27 @@ export function mapToDb(data: any): InsertBrandDesign {
   };
 }
 
-export function mapFromDb(row: BrandDesign): BrandDesign {
-  return row;
+export function mapFromDb(row: BrandDesign) {
+  return {
+    brandStyle: row.brandStyle,
+    colorPalette: {
+      primary: row.colorPrimary,
+      accent1: row.colorAccent1,
+      accent2: row.colorAccent2,
+      text1: row.colorText1,
+      text2: row.colorText2,
+    },
+    typography: {
+      primary: row.fontPrimary,
+      secondary: row.fontSecondary,
+      customFonts: row.customFonts || [],
+    },
+    logoUrl: row.logoUrl,
+    brandKit: {
+      assets: row.assets || [],
+    },
+    isDesignStudioEnabled: row.isDesignStudioEnabled,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
 }
