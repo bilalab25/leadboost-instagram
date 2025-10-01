@@ -60,6 +60,7 @@ interface BrandAsset {
   name: string;
   category: string; // New: Category for the asset
   assetType: "image" | "video" | "document"; // New: Type for rendering
+  publicId: string;
 }
 
 interface BrandDesign {
@@ -207,6 +208,9 @@ export default function BrandStudio() {
   >(null);
 
   const [brandAssets, setBrandAssets] = useState<BrandAsset[]>([]);
+  type UploadItem = { id: string; name: string; percent: number };
+  const [uploads, setUploads] = useState<UploadItem[]>([]);
+  const isUploading = uploads.length > 0;
 
   const [currentAssetUploadCategory, setCurrentAssetUploadCategory] =
     useState<string>(assetCategories[0].value); // Default category for new uploads
@@ -247,6 +251,76 @@ export default function BrandStudio() {
     },
     retry: false,
   });
+
+  function uploadFileWithProgress(
+    file: File,
+    onProgress: (pct: number) => void,
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", uploadPreset);
+
+      xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/upload`);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
+        else reject(new Error(`Upload failed: ${xhr.status}`));
+      };
+
+      xhr.onerror = () => reject(new Error("Upload error"));
+      xhr.send(fd);
+    });
+  }
+
+  const handleAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!brandDesign?.id) return;
+
+    const inputEl = e.currentTarget; // ✅ capturado antes de awaits
+    const files = Array.from(inputEl.files || []); // lee los files desde el input capturado
+
+    for (const file of files) {
+      const id = crypto.randomUUID();
+      setUploads((prev) => [...prev, { id, name: file.name, percent: 0 }]);
+
+      try {
+        const data = await uploadFileWithProgress(file, (pct) => {
+          setUploads((prev) =>
+            prev.map((u) => (u.id === id ? { ...u, percent: pct } : u)),
+          );
+        });
+
+        if (data.secure_url) {
+          await saveAssetToDB(
+            {
+              id,
+              url: data.secure_url,
+              name: file.name,
+              category: currentAssetUploadCategory,
+              assetType: getAssetType(file.name),
+              publicId: data.public_id,
+            },
+            data,
+          );
+        }
+      } finally {
+        setUploads((prev) => prev.filter((u) => u.id !== id));
+      }
+    }
+
+    // ✅ usa la referencia capturada, no 'e'
+    inputEl.value = "";
+    await queryClient.invalidateQueries({
+      queryKey: ["/api/brand-assets", brandDesign.id],
+    });
+  };
 
   useEffect(() => {
     console.log("📦 assets (query data):", assets);
@@ -592,59 +666,9 @@ export default function BrandStudio() {
       assetType: asset.assetType,
       publicId: cloudinaryData.public_id,
     };
-    const res = await apiRequest("POST", "/api/brands-assets", payload);
+    const res = await apiRequest("POST", "/api/brand-assets", payload);
     const data = await res.json();
     return data;
-  };
-
-  const handleAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const uploadedAssets: BrandAsset[] = [];
-
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", uploadPreset);
-
-      try {
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
-          { method: "POST", body: formData },
-        );
-
-        const data = await res.json();
-        if (data.secure_url) {
-          const asset: BrandAsset = {
-            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            url: data.secure_url,
-            name: file.name,
-            category: currentAssetUploadCategory,
-            assetType: getAssetType(file.name),
-            publicId: data.public_id, // 🔹 viene de Cloudinary
-          };
-
-          const saved = await saveAssetToDB(asset, data);
-          uploadedAssets.push({ ...asset, id: saved.id });
-        }
-      } catch (error) {
-        console.error("Cloudinary upload error:", error);
-        toast({
-          title: isSpanish ? "Error" : "Upload Error",
-          description: isSpanish
-            ? "No se pudo subir el archivo a Cloudinary"
-            : "Failed to upload file to Cloudinary",
-          variant: "destructive",
-        });
-      }
-    }
-
-    setBrandAssets((prev) => [...prev, ...uploadedAssets]);
-    toast({
-      title: isSpanish ? "Subida exitosa" : "Upload Successful",
-      description: `${uploadedAssets.length} ${
-        isSpanish ? "archivo(s) guardado(s)" : "file(s) saved"
-      }`,
-    });
   };
 
   const handleRemoveAsset = (id: string) => {
@@ -1050,6 +1074,28 @@ export default function BrandStudio() {
                             ? "Subir Recursos de Marca"
                             : "Upload Brand Assets"}
                         </CardTitle>
+                        {uploads.length > 0 && (
+                          <div className="mt-4 space-y-3">
+                            {uploads.map((u) => (
+                              <div key={u.id} className="text-left">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm text-gray-700 truncate">
+                                    {u.name}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {u.percent}%
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                  <div
+                                    className="bg-brand-500 h-2.5 rounded-full transition-all"
+                                    style={{ width: `${u.percent}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
@@ -1123,7 +1169,7 @@ export default function BrandStudio() {
 
                     {/* Categorized Brand Assets Display */}
                     {assetCategories.map((category) => {
-                      const assetsInCategory = brandAssets.filter(
+                      const assetsInCategory = assets.filter(
                         (asset) => asset.category === category.value,
                       );
 
@@ -1211,7 +1257,7 @@ export default function BrandStudio() {
                       );
                     })}
 
-                    {brandAssets.length === 0 && (
+                    {assets.length === 0 && (
                       <p className="text-center text-gray-500 mt-8">
                         {isSpanish
                           ? "No hay recursos subidos aún. ¡Sube algunos para empezar!"
