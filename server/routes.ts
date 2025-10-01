@@ -3004,26 +3004,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.get("/api/brand-assets", isAuthenticated, async (req: any, res) => {
-    try {
-      const brandDesignId = String(req.query.brandDesignId || "");
-      if (!brandDesignId)
-        return res.status(400).json({ message: "brandDesignId is required" });
-
-      // (opcional) valida que el brandDesign pertenezca al user; NO borra brand_design.
-      const design = await storage.getBrandDesignById(brandDesignId);
-      if (!design || design.userId !== req.user.id) {
-        return res.status(403).json({ message: "Forbidden" });
-      }
-
-      const assets = await storage.getAssetsByBrandDesignId(brandDesignId);
-      res.json(assets); // <-- SOLO brand_assets
-    } catch (err) {
-      console.error("Error fetching brand assets:", err);
-      res.status(500).json({ message: "Failed to fetch brand assets" });
-    }
-  });
-
   // Upload de un asset
   app.post("/api/brand-assets", isAuthenticated, async (req: any, res) => {
     try {
@@ -3058,13 +3038,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!brandDesignId) {
         return res.status(400).json({ message: "brandDesignId is required" });
       }
-      const assets = await storage.getAssetsByBrandDesignId(
-        String(brandDesignId),
-      );
-      console.log(
-        `📦 ${assets.length} asset(s) encontrados para`,
-        brandDesignId,
-      );
+      const assets = await storage.getAssetsByBrandDesignId(String(brandDesignId));
+      console.log(`📦 ${assets.length} asset(s) encontrados para`, brandDesignId);
       res.json(assets);
     } catch (error) {
       console.error("Error fetching brand assets:", error);
@@ -3072,762 +3047,720 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete(
-    "/api/brand-assets/:id",
-    isAuthenticated,
-    async (req: any, res) => {
-      try {
-        const id = String(req.params.id);
 
-        // buscamos el asset
-        const asset = await storage.getBrandAssetById(id);
-        if (!asset) return res.status(404).json({ message: "Asset not found" });
-
-        // (opcional) valida que pertenezca al usuario; NO borra brand_design
-        const design = await storage.getBrandDesignById(asset.brandDesignId);
-        if (!design || design.userId !== req.user.id) {
-          return res.status(403).json({ message: "Forbidden" });
-        }
-
-        // 👉 opcional: si quieres limpiar Cloudinary del lado servidor:
-        // const resourceType = asset.assetType === "video" ? "video" : asset.assetType === "document" ? "raw" : "image";
-        // await cloudinary.uploader.destroy(asset.publicId, { resource_type: resourceType, invalidate: true }).catch(()=>{});
-
-        const deleted = await storage.deleteBrandAsset(id, asset.brandDesignId);
-        if (!deleted)
-          return res.status(404).json({ message: "Asset not found" });
-
-        res.json({ ok: true, id: deleted.id });
-      } catch (err) {
-        console.error("❌ Error deleting asset:", err);
-        res.status(500).json({ message: "Failed to delete asset" });
-      }
+// Demo data population function
+async function populateDemoData(userId: string) {
+  // Create social accounts
+  const socialAccountsData = [
+    {
+      platform: "instagram",
+      accountId: "ig_demo_123",
+      accountName: "@mybusiness",
+      isActive: true,
+      accessToken: "demo_token_ig",
     },
-  );
+    {
+      platform: "facebook",
+      accountId: "fb_demo_456",
+      accountName: "My Business Page",
+      isActive: true,
+      accessToken: "demo_token_fb",
+    },
+    {
+      platform: "linkedin",
+      accountId: "li_demo_789",
+      accountName: "My Business",
+      isActive: true,
+      accessToken: "demo_token_li",
+    },
+    {
+      platform: "tiktok",
+      accountId: "tt_demo_012",
+      accountName: "@mybiz",
+      isActive: true,
+      accessToken: "demo_token_tt",
+    },
+    {
+      platform: "x",
+      accountId: "x_demo_345",
+      accountName: "@MyBusiness",
+      isActive: true,
+      accessToken: "demo_token_x",
+    },
+    {
+      platform: "youtube",
+      accountId: "yt_demo_678",
+      accountName: "My Business Channel",
+      isActive: true,
+      accessToken: "demo_token_yt",
+    },
+  ];
 
-  // Demo data population function
-  async function populateDemoData(userId: string) {
-    // Create social accounts
-    const socialAccountsData = [
-      {
-        platform: "instagram",
-        accountId: "ig_demo_123",
-        accountName: "@mybusiness",
-        isActive: true,
-        accessToken: "demo_token_ig",
-      },
-      {
-        platform: "facebook",
-        accountId: "fb_demo_456",
-        accountName: "My Business Page",
-        isActive: true,
-        accessToken: "demo_token_fb",
-      },
-      {
-        platform: "linkedin",
-        accountId: "li_demo_789",
-        accountName: "My Business",
-        isActive: true,
-        accessToken: "demo_token_li",
-      },
-      {
-        platform: "tiktok",
-        accountId: "tt_demo_012",
-        accountName: "@mybiz",
-        isActive: true,
-        accessToken: "demo_token_tt",
-      },
-      {
-        platform: "x",
-        accountId: "x_demo_345",
-        accountName: "@MyBusiness",
-        isActive: true,
-        accessToken: "demo_token_x",
-      },
-      {
-        platform: "youtube",
-        accountId: "yt_demo_678",
-        accountName: "My Business Channel",
-        isActive: true,
-        accessToken: "demo_token_yt",
-      },
-    ];
-
-    const socialAccounts = [];
-    for (const accountData of socialAccountsData) {
-      try {
-        const account = await storage.createSocialAccount({
-          userId,
-          ...accountData,
-        });
-        socialAccounts.push(account);
-      } catch (error) {
-        console.log(
-          `Social account ${accountData.platform} might already exist`,
-        );
-      }
+  const socialAccounts = [];
+  for (const accountData of socialAccountsData) {
+    try {
+      const account = await storage.createSocialAccount({
+        userId,
+        ...accountData,
+      });
+      socialAccounts.push(account);
+    } catch (error) {
+      console.log(`Social account ${accountData.platform} might already exist`);
     }
-
-    // Create messages
-    const messagesData = [
-      {
-        platform: "instagram",
-        senderName: "Sarah Johnson",
-        content:
-          "Love your latest product! When will you restock the blue variant?",
-        type: "comment",
-        isRead: false,
-        sentiment: "positive",
-      },
-      {
-        platform: "facebook",
-        senderName: "Mike Chen",
-        content: "I'm having trouble with my order #12345. Can someone help?",
-        type: "message",
-        isRead: false,
-        sentiment: "negative",
-      },
-      {
-        platform: "linkedin",
-        senderName: "Emma Wilson",
-        content:
-          "Great insights in your latest post about social media trends!",
-        type: "comment",
-        isRead: true,
-        sentiment: "positive",
-      },
-      {
-        platform: "tiktok",
-        senderName: "Alex Rivera",
-        content: "This is amazing! Tutorial please? 🙏",
-        type: "comment",
-        isRead: true,
-        sentiment: "positive",
-      },
-      {
-        platform: "x",
-        senderName: "David Kim",
-        content:
-          "@MyBusiness Your customer service is terrible. Still waiting for a response after 3 days!",
-        type: "mention",
-        isRead: false,
-        sentiment: "negative",
-      },
-      {
-        platform: "instagram",
-        senderName: "Lisa Park",
-        content: "Can you share the recipe for this? It looks delicious! 😍",
-        type: "comment",
-        isRead: false,
-        sentiment: "positive",
-      },
-      {
-        platform: "facebook",
-        senderName: "John Smith",
-        content:
-          "Do you ship internationally? I'm interested in your services.",
-        type: "message",
-        isRead: true,
-        sentiment: "neutral",
-      },
-      {
-        platform: "linkedin",
-        senderName: "Rachel Brown",
-        content:
-          "Would love to collaborate on a project. Are you open to partnerships?",
-        type: "message",
-        isRead: false,
-        sentiment: "positive",
-      },
-    ];
-
-    for (const messageData of messagesData) {
-      try {
-        await storage.createMessage({
-          socialAccountId:
-            socialAccounts.find((acc) => acc.platform === messageData.platform)
-              ?.id || socialAccounts[0].id,
-          senderId: messageData.senderName,
-          senderName: messageData.senderName,
-          content: messageData.content,
-          priority:
-            messageData.sentiment === "negative"
-              ? "high"
-              : messageData.sentiment === "positive"
-                ? "normal"
-                : "low",
-        });
-      } catch (error) {
-        console.log(`Message might already exist`);
-      }
-    }
-
-    // Create campaigns
-    const campaignsData = [
-      {
-        title: "Summer Product Launch 2024",
-        description:
-          "Launch campaign for our new summer collection with cross-platform promotion",
-        platforms: ["instagram", "facebook", "tiktok"],
-        content: {
-          content:
-            "🌞 Summer vibes are here! Discover our brand new collection that's perfect for those sunny days ahead. From beachwear to casual summer outfits, we've got everything you need to make this summer unforgettable! ✨",
-          variations: {
-            instagram:
-              "🌞 Summer vibes are here! ✨ Discover our brand new collection perfect for sunny days ahead. From beachwear to casual outfits, we've got everything for an unforgettable summer! 🏖️ #SummerCollection #NewLaunch",
-            facebook:
-              "Summer is finally here! 🌞 We're thrilled to announce our brand new summer collection that's designed to make your sunny days even brighter. Whether you're heading to the beach or just enjoying the warm weather, our latest pieces combine comfort with style. Check out our new arrivals and get ready to embrace the season! What's your favorite summer style?",
-            tiktok:
-              "Summer collection drop! 🔥 New fits for those sunny day vibes ☀️ Which piece is your fave? #SummerVibes #NewDrop #OOTD",
-          },
-          suggestedHashtags: {
-            instagram: [
-              "#SummerCollection",
-              "#NewLaunch",
-              "#SummerFashion",
-              "#BeachWear",
-              "#SunnyDays",
-            ],
-            facebook: ["#SummerStyle", "#NewArrivals", "#FashionLaunch"],
-            tiktok: [
-              "#SummerVibes",
-              "#NewDrop",
-              "#OOTD",
-              "#FashionTok",
-              "#SummerFits",
-            ],
-          },
-          visualSuggestions: {
-            instagram: [
-              "bright summer product photos",
-              "lifestyle beach shots",
-              "carousel showing different pieces",
-            ],
-            facebook: [
-              "lifestyle imagery",
-              "behind-the-scenes design process",
-              "customer photos",
-            ],
-            tiktok: [
-              "quick try-on videos",
-              "styling transitions",
-              "summer mood board",
-            ],
-          },
-        },
-        status: "published",
-        aiGenerated: false,
-      },
-      {
-        title: "AI Generated: Weekly Motivation",
-        description:
-          "Motivational content to inspire our community and drive engagement",
-        platforms: ["linkedin", "x", "instagram"],
-        content: {
-          content:
-            "Success isn't just about reaching the destination—it's about who you become on the journey. Every challenge you face, every obstacle you overcome, shapes you into the person capable of achieving your dreams. 💪",
-          variations: {
-            linkedin:
-              "Success isn't just about reaching the destination—it's about who you become on the journey. In business and in life, every challenge we face and every obstacle we overcome shapes us into the leaders capable of achieving our greatest dreams. The skills you develop, the resilience you build, and the relationships you form along the way are often more valuable than the end goal itself. What lesson has your journey taught you recently?",
-            x: "Success isn't about the destination—it's about who you become on the journey. Every challenge shapes you into someone capable of achieving your dreams. 💪 #MondayMotivation #GrowthMindset #Success",
-            instagram:
-              "Success isn't just about reaching the destination—it's about who you become on the journey ✨ Every challenge you face shapes you into the person capable of achieving your dreams 💪 What's one challenge that made you stronger? Share below! 👇",
-          },
-          suggestedHashtags: {
-            linkedin: [
-              "#Leadership",
-              "#PersonalGrowth",
-              "#Success",
-              "#Motivation",
-            ],
-            x: [
-              "#MondayMotivation",
-              "#GrowthMindset",
-              "#Success",
-              "#Inspiration",
-            ],
-            instagram: [
-              "#MondayMotivation",
-              "#PersonalGrowth",
-              "#Inspiration",
-              "#Success",
-              "#Mindset",
-            ],
-          },
-          visualSuggestions: {
-            linkedin: [
-              "professional quote graphics",
-              "inspirational landscape",
-              "team success imagery",
-            ],
-            x: [
-              "motivational quote cards",
-              "success imagery",
-              "growth graphics",
-            ],
-            instagram: [
-              "inspirational quote overlay",
-              "motivational lifestyle photo",
-              "success story carousel",
-            ],
-          },
-        },
-        status: "scheduled",
-        aiGenerated: true,
-        scheduledFor: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-      },
-      {
-        title: "Behind the Scenes: Our Team",
-        description: "Showcase our amazing team and company culture",
-        platforms: ["instagram", "linkedin", "facebook"],
-        content: {
-          content:
-            "Meet the incredible team behind our success! 👥 From our creative designers to our dedicated customer service representatives, every person plays a vital role in delivering excellence to our customers every single day.",
-          variations: {
-            instagram:
-              "Meet the incredible team behind our success! 👥✨ From creative designers to amazing customer service reps, every person brings something special to deliver excellence daily 💙 #TeamSpotlight #BehindTheScenes",
-            linkedin:
-              "Today we want to spotlight the incredible team that makes our success possible. From our innovative designers who bring creative visions to life, to our dedicated customer service representatives who ensure every interaction exceeds expectations, each team member plays a vital role in our mission. We're grateful for their passion, expertise, and commitment to delivering excellence every single day. #TeamAppreciation #CompanyCulture",
-            facebook:
-              "We believe our team is our greatest asset! 💙 Today we're highlighting the amazing people behind our brand - from our creative designers who bring fresh ideas to life, to our customer service team who go above and beyond for every customer. Each person brings unique talents and passion that make our company special. What qualities do you value most in a great team?",
-          },
-          suggestedHashtags: {
-            instagram: [
-              "#TeamSpotlight",
-              "#BehindTheScenes",
-              "#CompanyCulture",
-              "#TeamWork",
-            ],
-            linkedin: [
-              "#TeamAppreciation",
-              "#CompanyCulture",
-              "#Leadership",
-              "#EmployeeSpotlight",
-            ],
-            facebook: [
-              "#TeamWork",
-              "#CompanyCulture",
-              "#BehindTheScenes",
-              "#GreatTeam",
-            ],
-          },
-          visualSuggestions: {
-            instagram: [
-              "team candid photos",
-              "office behind-the-scenes",
-              "individual team member spotlights",
-            ],
-            linkedin: [
-              "professional team photos",
-              "office culture shots",
-              "team collaboration imagery",
-            ],
-            facebook: [
-              "team group photos",
-              "workplace candids",
-              "team achievement celebrations",
-            ],
-          },
-        },
-        status: "draft",
-        aiGenerated: false,
-      },
-    ];
-
-    for (const campaignData of campaignsData) {
-      try {
-        await storage.createCampaign({
-          userId,
-          ...campaignData,
-        });
-      } catch (error) {
-        console.log(`Campaign might already exist`);
-      }
-    }
-
-    // Create content plans
-    const contentPlansData = [
-      {
-        title: "Q4 2024 Content Strategy",
-        description:
-          "Comprehensive content strategy for the fourth quarter focusing on holiday campaigns and year-end promotions",
-        month: 12,
-        year: 2024,
-        strategy: JSON.stringify({
-          insights: [
-            "Holiday shopping peaks in November and December, with Black Friday and Cyber Monday as key conversion periods",
-            "Instagram engagement rates increase 23% during holiday season with visual content",
-            "LinkedIn shows higher B2B engagement during Q4 planning season",
-            "TikTok holiday hashtags trend 300% higher in December",
-          ],
-          recommendations: [
-            "Focus on gift-guide content and holiday styling tips",
-            "Create behind-the-scenes content showing holiday preparation",
-            "Develop user-generated content campaigns with holiday hashtags",
-            "Plan early Black Friday and Cyber Monday promotional content",
-          ],
-          posts: [
-            {
-              date: "2024-12-01",
-              platform: "instagram",
-              contentType: "holiday_gift_guide",
-              title: "Ultimate Holiday Gift Guide 2024",
-              description:
-                "Curated selection of our best products perfect for holiday gifting",
-              hashtags: ["#HolidayGifts", "#GiftGuide2024", "#HolidayStyle"],
-              optimalTime: "6:00 PM",
-            },
-            {
-              date: "2024-12-15",
-              platform: "tiktok",
-              contentType: "behind_the_scenes",
-              title: "Holiday Package Prep Behind the Scenes",
-              description: "Show our team preparing beautiful holiday packages",
-              hashtags: ["#BehindTheScenes", "#HolidayPrep", "#PackagingASMR"],
-              optimalTime: "7:00 PM",
-            },
-          ],
-        }),
-        status: "active",
-      },
-    ];
-
-    for (const planData of contentPlansData) {
-      try {
-        await storage.createContentPlan({
-          userId,
-          ...planData,
-        });
-      } catch (error) {
-        console.log(`Content plan might already exist`);
-      }
-    }
-
-    // Create customers
-    const customersData = [
-      {
-        name: "Tech Solutions Inc",
-        email: "contact@techsolutions.com",
-        phone: "+1 (555) 123-4567",
-        status: "active",
-        totalInvoiced: 15750.0,
-      },
-      {
-        name: "Creative Agency LLC",
-        email: "hello@creativeagency.com",
-        phone: "+1 (555) 234-5678",
-        status: "active",
-        totalInvoiced: 8900.5,
-      },
-      {
-        name: "Startup Ventures",
-        email: "team@startupventures.com",
-        phone: "+1 (555) 345-6789",
-        status: "active",
-        totalInvoiced: 12300.0,
-      },
-      {
-        name: "Local Restaurant Group",
-        email: "manager@localeatery.com",
-        phone: "+1 (555) 456-7890",
-        status: "inactive",
-        totalInvoiced: 3200.0,
-      },
-    ];
-
-    for (const customerData of customersData) {
-      try {
-        await storage.createCustomer({
-          userId,
-          ...customerData,
-        });
-      } catch (error) {
-        console.log(`Customer might already exist`);
-      }
-    }
-
-    // Create analytics entries
-    const analyticsData = [
-      {
-        platform: "instagram",
-        metric: "reach",
-        value: 15420,
-        period: "weekly",
-        recordedAt: new Date(),
-      },
-      {
-        platform: "instagram",
-        metric: "engagement",
-        value: 1247,
-        period: "weekly",
-        recordedAt: new Date(),
-      },
-      {
-        platform: "facebook",
-        metric: "reach",
-        value: 8750,
-        period: "weekly",
-        recordedAt: new Date(),
-      },
-      {
-        platform: "facebook",
-        metric: "engagement",
-        value: 892,
-        period: "weekly",
-        recordedAt: new Date(),
-      },
-      {
-        platform: "tiktok",
-        metric: "reach",
-        value: 22100,
-        period: "weekly",
-        recordedAt: new Date(),
-      },
-      {
-        platform: "tiktok",
-        metric: "engagement",
-        value: 2847,
-        period: "weekly",
-        recordedAt: new Date(),
-      },
-    ];
-
-    for (const analyticsEntry of analyticsData) {
-      try {
-        await storage.createAnalyticsEntry({
-          userId,
-          ...analyticsEntry,
-        });
-      } catch (error) {
-        console.log(`Analytics entry might already exist`);
-      }
-    }
-
-    // Create activity logs
-    const activityLogsData = [
-      {
-        action: "connect_social_account",
-        description: "Connected Instagram account @mybusiness",
-        entityType: "social_account",
-        entityId: "1",
-      },
-      {
-        action: "create_campaign",
-        description: "Created Summer Product Launch 2024 campaign",
-        entityType: "campaign",
-        entityId: "1",
-      },
-      {
-        action: "generate_ai_campaign",
-        description: "Generated AI campaign: Weekly Motivation",
-        entityType: "campaign",
-        entityId: "2",
-      },
-      {
-        action: "publish_campaign",
-        description: "Published Summer Product Launch 2024 to 3 platforms",
-        entityType: "campaign",
-        entityId: "1",
-      },
-      {
-        action: "connect_social_account",
-        description: "Connected TikTok account @mybiz",
-        entityType: "social_account",
-        entityId: "2",
-      },
-      {
-        action: "create_content_plan",
-        description: "Created Q4 2024 Content Strategy",
-        entityType: "content_plan",
-        entityId: "1",
-      },
-    ];
-
-    for (const activityData of activityLogsData) {
-      try {
-        await storage.createActivityLog({
-          userId,
-          ...activityData,
-        });
-      } catch (error) {
-        console.log(`Activity log might already exist`);
-      }
-    }
-
-    // Create sample social accounts for different platforms
-    const demoSocialAccountsData = [
-      {
-        platform: "instagram",
-        accountId: "ig_demo_acc1",
-        accountName: "@mybusiness",
-        isActive: true,
-        accessToken: "demo_token_ig",
-        refreshToken: "demo_refresh_ig",
-      },
-      {
-        platform: "whatsapp",
-        accountId: "wa_demo_acc2",
-        accountName: "Business WhatsApp",
-        isActive: true,
-        accessToken: "demo_token_wa",
-        refreshToken: "demo_refresh_wa",
-      },
-      {
-        platform: "email",
-        accountId: "email_demo_acc3",
-        accountName: "info@mybusiness.com",
-        isActive: true,
-        accessToken: "demo_token_email",
-        refreshToken: "demo_refresh_email",
-      },
-      {
-        platform: "tiktok",
-        accountId: "tt_demo_acc4",
-        accountName: "@mybiz_official",
-        isActive: true,
-        accessToken: "demo_token_tt",
-        refreshToken: "demo_refresh_tt",
-      },
-    ];
-
-    const createdSocialAccounts: { [platform: string]: string } = {};
-    for (const accountData of demoSocialAccountsData) {
-      try {
-        const account = await storage.createSocialAccount({
-          userId,
-          ...accountData,
-        });
-        createdSocialAccounts[accountData.platform] = account.id;
-      } catch (error) {
-        console.log(
-          `Social account ${accountData.platform} might already exist`,
-        );
-      }
-    }
-
-    // Create sample conversations/messages for unified inbox
-    const demoConversationsData = [
-      // Instagram Messages
-      {
-        socialAccountId: createdSocialAccounts.instagram,
-        senderId: "sarah_lifestyle_23",
-        senderName: "Sarah Johnson",
-        senderAvatar:
-          "https://images.unsplash.com/photo-1494790108755-2616b73d5ba3?w=50&h=50&fit=crop&crop=face",
-        content:
-          "Hi! I absolutely love your latest product collection! 😍 Is the blue sweater available in medium size?",
-        messageType: "text",
-        priority: "normal",
-        tags: ["product_inquiry", "sizing"],
-        isRead: false,
-      },
-      {
-        socialAccountId: createdSocialAccounts.instagram,
-        senderId: "mike_runner_pro",
-        senderName: "Mike Rodriguez",
-        senderAvatar:
-          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
-        content:
-          "The running shoes I ordered last week are amazing! 🏃‍♂️ Can I get them in another color?",
-        messageType: "text",
-        priority: "normal",
-        tags: ["testimonial", "repeat_customer"],
-        isRead: true,
-      },
-
-      // WhatsApp Messages
-      {
-        socialAccountId: createdSocialAccounts.whatsapp,
-        senderId: "1234567890",
-        senderName: "Emma Chen",
-        senderAvatar:
-          "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=50&h=50&fit=crop&crop=face",
-        content:
-          "Hello! I saw your ad on Facebook. Do you have any winter jackets available? I'm interested in purchasing for my family.",
-        messageType: "text",
-        priority: "high",
-        tags: ["sales_inquiry", "family_purchase"],
-        isRead: false,
-      },
-      {
-        socialAccountId: createdSocialAccounts.whatsapp,
-        senderId: "9876543210",
-        senderName: "David Park",
-        senderAvatar:
-          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
-        content:
-          "Hi, I received my order yesterday but the item doesn't fit well. What's your return policy?",
-        messageType: "text",
-        priority: "urgent",
-        tags: ["support", "returns"],
-        isRead: false,
-      },
-
-      // Email Messages
-      {
-        socialAccountId: createdSocialAccounts.email,
-        senderId: "jessica.smith@email.com",
-        senderName: "Jessica Smith",
-        content:
-          "Subject: Bulk Order Inquiry\n\nHello, I represent a corporate client interested in placing a bulk order for employee gifts. Could you provide pricing for 50+ units? Thanks!",
-        messageType: "text",
-        priority: "high",
-        tags: ["bulk_order", "corporate"],
-        isRead: false,
-      },
-      {
-        socialAccountId: createdSocialAccounts.email,
-        senderId: "alex.taylor@company.com",
-        senderName: "Alex Taylor",
-        content:
-          "Subject: Collaboration Opportunity\n\nHi there! I'm a lifestyle blogger with 50K followers. Would you be interested in a product collaboration? I'd love to feature your brand!",
-        messageType: "text",
-        priority: "normal",
-        tags: ["influencer", "collaboration"],
-        isRead: true,
-      },
-
-      // TikTok Messages
-      {
-        socialAccountId: createdSocialAccounts.tiktok,
-        senderId: "trendy_teen_23",
-        senderName: "Maya Williams",
-        senderAvatar:
-          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=50&h=50&fit=crop&crop=face",
-        content:
-          "OMG your TikTok is so aesthetic! 💫 Where can I buy that pink hoodie from your last video?? It's perfect!",
-        messageType: "text",
-        priority: "normal",
-        tags: ["product_inquiry", "young_demographic"],
-        isRead: false,
-      },
-      {
-        socialAccountId: createdSocialAccounts.tiktok,
-        senderId: "fashion_lover_99",
-        senderName: "Isabella Garcia",
-        senderAvatar:
-          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face",
-        content:
-          "Your latest TikTok inspired my whole outfit today! 👗 Do you ship internationally? I'm in Canada 🇨🇦",
-        messageType: "text",
-        priority: "normal",
-        tags: ["inspiration", "international_shipping"],
-        isRead: true,
-      },
-    ];
-
-    for (const messageData of demoConversationsData) {
-      try {
-        if (messageData.socialAccountId) {
-          await storage.createMessage(messageData);
-        }
-      } catch (error) {
-        console.log(`Message might already exist or social account not found`);
-      }
-    }
-
-    console.log("Demo data populated successfully for user:", userId);
   }
+
+  // Create messages
+  const messagesData = [
+    {
+      platform: "instagram",
+      senderName: "Sarah Johnson",
+      content:
+        "Love your latest product! When will you restock the blue variant?",
+      type: "comment",
+      isRead: false,
+      sentiment: "positive",
+    },
+    {
+      platform: "facebook",
+      senderName: "Mike Chen",
+      content: "I'm having trouble with my order #12345. Can someone help?",
+      type: "message",
+      isRead: false,
+      sentiment: "negative",
+    },
+    {
+      platform: "linkedin",
+      senderName: "Emma Wilson",
+      content: "Great insights in your latest post about social media trends!",
+      type: "comment",
+      isRead: true,
+      sentiment: "positive",
+    },
+    {
+      platform: "tiktok",
+      senderName: "Alex Rivera",
+      content: "This is amazing! Tutorial please? 🙏",
+      type: "comment",
+      isRead: true,
+      sentiment: "positive",
+    },
+    {
+      platform: "x",
+      senderName: "David Kim",
+      content:
+        "@MyBusiness Your customer service is terrible. Still waiting for a response after 3 days!",
+      type: "mention",
+      isRead: false,
+      sentiment: "negative",
+    },
+    {
+      platform: "instagram",
+      senderName: "Lisa Park",
+      content: "Can you share the recipe for this? It looks delicious! 😍",
+      type: "comment",
+      isRead: false,
+      sentiment: "positive",
+    },
+    {
+      platform: "facebook",
+      senderName: "John Smith",
+      content: "Do you ship internationally? I'm interested in your services.",
+      type: "message",
+      isRead: true,
+      sentiment: "neutral",
+    },
+    {
+      platform: "linkedin",
+      senderName: "Rachel Brown",
+      content:
+        "Would love to collaborate on a project. Are you open to partnerships?",
+      type: "message",
+      isRead: false,
+      sentiment: "positive",
+    },
+  ];
+
+  for (const messageData of messagesData) {
+    try {
+      await storage.createMessage({
+        socialAccountId:
+          socialAccounts.find((acc) => acc.platform === messageData.platform)
+            ?.id || socialAccounts[0].id,
+        senderId: messageData.senderName,
+        senderName: messageData.senderName,
+        content: messageData.content,
+        priority:
+          messageData.sentiment === "negative"
+            ? "high"
+            : messageData.sentiment === "positive"
+              ? "normal"
+              : "low",
+      });
+    } catch (error) {
+      console.log(`Message might already exist`);
+    }
+  }
+
+  // Create campaigns
+  const campaignsData = [
+    {
+      title: "Summer Product Launch 2024",
+      description:
+        "Launch campaign for our new summer collection with cross-platform promotion",
+      platforms: ["instagram", "facebook", "tiktok"],
+      content: {
+        content:
+          "🌞 Summer vibes are here! Discover our brand new collection that's perfect for those sunny days ahead. From beachwear to casual summer outfits, we've got everything you need to make this summer unforgettable! ✨",
+        variations: {
+          instagram:
+            "🌞 Summer vibes are here! ✨ Discover our brand new collection perfect for sunny days ahead. From beachwear to casual outfits, we've got everything for an unforgettable summer! 🏖️ #SummerCollection #NewLaunch",
+          facebook:
+            "Summer is finally here! 🌞 We're thrilled to announce our brand new summer collection that's designed to make your sunny days even brighter. Whether you're heading to the beach or just enjoying the warm weather, our latest pieces combine comfort with style. Check out our new arrivals and get ready to embrace the season! What's your favorite summer style?",
+          tiktok:
+            "Summer collection drop! 🔥 New fits for those sunny day vibes ☀️ Which piece is your fave? #SummerVibes #NewDrop #OOTD",
+        },
+        suggestedHashtags: {
+          instagram: [
+            "#SummerCollection",
+            "#NewLaunch",
+            "#SummerFashion",
+            "#BeachWear",
+            "#SunnyDays",
+          ],
+          facebook: ["#SummerStyle", "#NewArrivals", "#FashionLaunch"],
+          tiktok: [
+            "#SummerVibes",
+            "#NewDrop",
+            "#OOTD",
+            "#FashionTok",
+            "#SummerFits",
+          ],
+        },
+        visualSuggestions: {
+          instagram: [
+            "bright summer product photos",
+            "lifestyle beach shots",
+            "carousel showing different pieces",
+          ],
+          facebook: [
+            "lifestyle imagery",
+            "behind-the-scenes design process",
+            "customer photos",
+          ],
+          tiktok: [
+            "quick try-on videos",
+            "styling transitions",
+            "summer mood board",
+          ],
+        },
+      },
+      status: "published",
+      aiGenerated: false,
+    },
+    {
+      title: "AI Generated: Weekly Motivation",
+      description:
+        "Motivational content to inspire our community and drive engagement",
+      platforms: ["linkedin", "x", "instagram"],
+      content: {
+        content:
+          "Success isn't just about reaching the destination—it's about who you become on the journey. Every challenge you face, every obstacle you overcome, shapes you into the person capable of achieving your dreams. 💪",
+        variations: {
+          linkedin:
+            "Success isn't just about reaching the destination—it's about who you become on the journey. In business and in life, every challenge we face and every obstacle we overcome shapes us into the leaders capable of achieving our greatest dreams. The skills you develop, the resilience you build, and the relationships you form along the way are often more valuable than the end goal itself. What lesson has your journey taught you recently?",
+          x: "Success isn't about the destination—it's about who you become on the journey. Every challenge shapes you into someone capable of achieving your dreams. 💪 #MondayMotivation #GrowthMindset #Success",
+          instagram:
+            "Success isn't just about reaching the destination—it's about who you become on the journey ✨ Every challenge you face shapes you into the person capable of achieving your dreams 💪 What's one challenge that made you stronger? Share below! 👇",
+        },
+        suggestedHashtags: {
+          linkedin: [
+            "#Leadership",
+            "#PersonalGrowth",
+            "#Success",
+            "#Motivation",
+          ],
+          x: [
+            "#MondayMotivation",
+            "#GrowthMindset",
+            "#Success",
+            "#Inspiration",
+          ],
+          instagram: [
+            "#MondayMotivation",
+            "#PersonalGrowth",
+            "#Inspiration",
+            "#Success",
+            "#Mindset",
+          ],
+        },
+        visualSuggestions: {
+          linkedin: [
+            "professional quote graphics",
+            "inspirational landscape",
+            "team success imagery",
+          ],
+          x: ["motivational quote cards", "success imagery", "growth graphics"],
+          instagram: [
+            "inspirational quote overlay",
+            "motivational lifestyle photo",
+            "success story carousel",
+          ],
+        },
+      },
+      status: "scheduled",
+      aiGenerated: true,
+      scheduledFor: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+    },
+    {
+      title: "Behind the Scenes: Our Team",
+      description: "Showcase our amazing team and company culture",
+      platforms: ["instagram", "linkedin", "facebook"],
+      content: {
+        content:
+          "Meet the incredible team behind our success! 👥 From our creative designers to our dedicated customer service representatives, every person plays a vital role in delivering excellence to our customers every single day.",
+        variations: {
+          instagram:
+            "Meet the incredible team behind our success! 👥✨ From creative designers to amazing customer service reps, every person brings something special to deliver excellence daily 💙 #TeamSpotlight #BehindTheScenes",
+          linkedin:
+            "Today we want to spotlight the incredible team that makes our success possible. From our innovative designers who bring creative visions to life, to our dedicated customer service representatives who ensure every interaction exceeds expectations, each team member plays a vital role in our mission. We're grateful for their passion, expertise, and commitment to delivering excellence every single day. #TeamAppreciation #CompanyCulture",
+          facebook:
+            "We believe our team is our greatest asset! 💙 Today we're highlighting the amazing people behind our brand - from our creative designers who bring fresh ideas to life, to our customer service team who go above and beyond for every customer. Each person brings unique talents and passion that make our company special. What qualities do you value most in a great team?",
+        },
+        suggestedHashtags: {
+          instagram: [
+            "#TeamSpotlight",
+            "#BehindTheScenes",
+            "#CompanyCulture",
+            "#TeamWork",
+          ],
+          linkedin: [
+            "#TeamAppreciation",
+            "#CompanyCulture",
+            "#Leadership",
+            "#EmployeeSpotlight",
+          ],
+          facebook: [
+            "#TeamWork",
+            "#CompanyCulture",
+            "#BehindTheScenes",
+            "#GreatTeam",
+          ],
+        },
+        visualSuggestions: {
+          instagram: [
+            "team candid photos",
+            "office behind-the-scenes",
+            "individual team member spotlights",
+          ],
+          linkedin: [
+            "professional team photos",
+            "office culture shots",
+            "team collaboration imagery",
+          ],
+          facebook: [
+            "team group photos",
+            "workplace candids",
+            "team achievement celebrations",
+          ],
+        },
+      },
+      status: "draft",
+      aiGenerated: false,
+    },
+  ];
+
+  for (const campaignData of campaignsData) {
+    try {
+      await storage.createCampaign({
+        userId,
+        ...campaignData,
+      });
+    } catch (error) {
+      console.log(`Campaign might already exist`);
+    }
+  }
+
+  // Create content plans
+  const contentPlansData = [
+    {
+      title: "Q4 2024 Content Strategy",
+      description:
+        "Comprehensive content strategy for the fourth quarter focusing on holiday campaigns and year-end promotions",
+      month: 12,
+      year: 2024,
+      strategy: JSON.stringify({
+        insights: [
+          "Holiday shopping peaks in November and December, with Black Friday and Cyber Monday as key conversion periods",
+          "Instagram engagement rates increase 23% during holiday season with visual content",
+          "LinkedIn shows higher B2B engagement during Q4 planning season",
+          "TikTok holiday hashtags trend 300% higher in December",
+        ],
+        recommendations: [
+          "Focus on gift-guide content and holiday styling tips",
+          "Create behind-the-scenes content showing holiday preparation",
+          "Develop user-generated content campaigns with holiday hashtags",
+          "Plan early Black Friday and Cyber Monday promotional content",
+        ],
+        posts: [
+          {
+            date: "2024-12-01",
+            platform: "instagram",
+            contentType: "holiday_gift_guide",
+            title: "Ultimate Holiday Gift Guide 2024",
+            description:
+              "Curated selection of our best products perfect for holiday gifting",
+            hashtags: ["#HolidayGifts", "#GiftGuide2024", "#HolidayStyle"],
+            optimalTime: "6:00 PM",
+          },
+          {
+            date: "2024-12-15",
+            platform: "tiktok",
+            contentType: "behind_the_scenes",
+            title: "Holiday Package Prep Behind the Scenes",
+            description: "Show our team preparing beautiful holiday packages",
+            hashtags: ["#BehindTheScenes", "#HolidayPrep", "#PackagingASMR"],
+            optimalTime: "7:00 PM",
+          },
+        ],
+      }),
+      status: "active",
+    },
+  ];
+
+  for (const planData of contentPlansData) {
+    try {
+      await storage.createContentPlan({
+        userId,
+        ...planData,
+      });
+    } catch (error) {
+      console.log(`Content plan might already exist`);
+    }
+  }
+
+  // Create customers
+  const customersData = [
+    {
+      name: "Tech Solutions Inc",
+      email: "contact@techsolutions.com",
+      phone: "+1 (555) 123-4567",
+      status: "active",
+      totalInvoiced: 15750.0,
+    },
+    {
+      name: "Creative Agency LLC",
+      email: "hello@creativeagency.com",
+      phone: "+1 (555) 234-5678",
+      status: "active",
+      totalInvoiced: 8900.5,
+    },
+    {
+      name: "Startup Ventures",
+      email: "team@startupventures.com",
+      phone: "+1 (555) 345-6789",
+      status: "active",
+      totalInvoiced: 12300.0,
+    },
+    {
+      name: "Local Restaurant Group",
+      email: "manager@localeatery.com",
+      phone: "+1 (555) 456-7890",
+      status: "inactive",
+      totalInvoiced: 3200.0,
+    },
+  ];
+
+  for (const customerData of customersData) {
+    try {
+      await storage.createCustomer({
+        userId,
+        ...customerData,
+      });
+    } catch (error) {
+      console.log(`Customer might already exist`);
+    }
+  }
+
+  // Create analytics entries
+  const analyticsData = [
+    {
+      platform: "instagram",
+      metric: "reach",
+      value: 15420,
+      period: "weekly",
+      recordedAt: new Date(),
+    },
+    {
+      platform: "instagram",
+      metric: "engagement",
+      value: 1247,
+      period: "weekly",
+      recordedAt: new Date(),
+    },
+    {
+      platform: "facebook",
+      metric: "reach",
+      value: 8750,
+      period: "weekly",
+      recordedAt: new Date(),
+    },
+    {
+      platform: "facebook",
+      metric: "engagement",
+      value: 892,
+      period: "weekly",
+      recordedAt: new Date(),
+    },
+    {
+      platform: "tiktok",
+      metric: "reach",
+      value: 22100,
+      period: "weekly",
+      recordedAt: new Date(),
+    },
+    {
+      platform: "tiktok",
+      metric: "engagement",
+      value: 2847,
+      period: "weekly",
+      recordedAt: new Date(),
+    },
+  ];
+
+  for (const analyticsEntry of analyticsData) {
+    try {
+      await storage.createAnalyticsEntry({
+        userId,
+        ...analyticsEntry,
+      });
+    } catch (error) {
+      console.log(`Analytics entry might already exist`);
+    }
+  }
+
+  // Create activity logs
+  const activityLogsData = [
+    {
+      action: "connect_social_account",
+      description: "Connected Instagram account @mybusiness",
+      entityType: "social_account",
+      entityId: "1",
+    },
+    {
+      action: "create_campaign",
+      description: "Created Summer Product Launch 2024 campaign",
+      entityType: "campaign",
+      entityId: "1",
+    },
+    {
+      action: "generate_ai_campaign",
+      description: "Generated AI campaign: Weekly Motivation",
+      entityType: "campaign",
+      entityId: "2",
+    },
+    {
+      action: "publish_campaign",
+      description: "Published Summer Product Launch 2024 to 3 platforms",
+      entityType: "campaign",
+      entityId: "1",
+    },
+    {
+      action: "connect_social_account",
+      description: "Connected TikTok account @mybiz",
+      entityType: "social_account",
+      entityId: "2",
+    },
+    {
+      action: "create_content_plan",
+      description: "Created Q4 2024 Content Strategy",
+      entityType: "content_plan",
+      entityId: "1",
+    },
+  ];
+
+  for (const activityData of activityLogsData) {
+    try {
+      await storage.createActivityLog({
+        userId,
+        ...activityData,
+      });
+    } catch (error) {
+      console.log(`Activity log might already exist`);
+    }
+  }
+
+  // Create sample social accounts for different platforms
+  const demoSocialAccountsData = [
+    {
+      platform: "instagram",
+      accountId: "ig_demo_acc1",
+      accountName: "@mybusiness",
+      isActive: true,
+      accessToken: "demo_token_ig",
+      refreshToken: "demo_refresh_ig",
+    },
+    {
+      platform: "whatsapp",
+      accountId: "wa_demo_acc2",
+      accountName: "Business WhatsApp",
+      isActive: true,
+      accessToken: "demo_token_wa",
+      refreshToken: "demo_refresh_wa",
+    },
+    {
+      platform: "email",
+      accountId: "email_demo_acc3",
+      accountName: "info@mybusiness.com",
+      isActive: true,
+      accessToken: "demo_token_email",
+      refreshToken: "demo_refresh_email",
+    },
+    {
+      platform: "tiktok",
+      accountId: "tt_demo_acc4",
+      accountName: "@mybiz_official",
+      isActive: true,
+      accessToken: "demo_token_tt",
+      refreshToken: "demo_refresh_tt",
+    },
+  ];
+
+  const createdSocialAccounts: { [platform: string]: string } = {};
+  for (const accountData of demoSocialAccountsData) {
+    try {
+      const account = await storage.createSocialAccount({
+        userId,
+        ...accountData,
+      });
+      createdSocialAccounts[accountData.platform] = account.id;
+    } catch (error) {
+      console.log(`Social account ${accountData.platform} might already exist`);
+    }
+  }
+
+  // Create sample conversations/messages for unified inbox
+  const demoConversationsData = [
+    // Instagram Messages
+    {
+      socialAccountId: createdSocialAccounts.instagram,
+      senderId: "sarah_lifestyle_23",
+      senderName: "Sarah Johnson",
+      senderAvatar:
+        "https://images.unsplash.com/photo-1494790108755-2616b73d5ba3?w=50&h=50&fit=crop&crop=face",
+      content:
+        "Hi! I absolutely love your latest product collection! 😍 Is the blue sweater available in medium size?",
+      messageType: "text",
+      priority: "normal",
+      tags: ["product_inquiry", "sizing"],
+      isRead: false,
+    },
+    {
+      socialAccountId: createdSocialAccounts.instagram,
+      senderId: "mike_runner_pro",
+      senderName: "Mike Rodriguez",
+      senderAvatar:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
+      content:
+        "The running shoes I ordered last week are amazing! 🏃‍♂️ Can I get them in another color?",
+      messageType: "text",
+      priority: "normal",
+      tags: ["testimonial", "repeat_customer"],
+      isRead: true,
+    },
+
+    // WhatsApp Messages
+    {
+      socialAccountId: createdSocialAccounts.whatsapp,
+      senderId: "1234567890",
+      senderName: "Emma Chen",
+      senderAvatar:
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=50&h=50&fit=crop&crop=face",
+      content:
+        "Hello! I saw your ad on Facebook. Do you have any winter jackets available? I'm interested in purchasing for my family.",
+      messageType: "text",
+      priority: "high",
+      tags: ["sales_inquiry", "family_purchase"],
+      isRead: false,
+    },
+    {
+      socialAccountId: createdSocialAccounts.whatsapp,
+      senderId: "9876543210",
+      senderName: "David Park",
+      senderAvatar:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
+      content:
+        "Hi, I received my order yesterday but the item doesn't fit well. What's your return policy?",
+      messageType: "text",
+      priority: "urgent",
+      tags: ["support", "returns"],
+      isRead: false,
+    },
+
+    // Email Messages
+    {
+      socialAccountId: createdSocialAccounts.email,
+      senderId: "jessica.smith@email.com",
+      senderName: "Jessica Smith",
+      content:
+        "Subject: Bulk Order Inquiry\n\nHello, I represent a corporate client interested in placing a bulk order for employee gifts. Could you provide pricing for 50+ units? Thanks!",
+      messageType: "text",
+      priority: "high",
+      tags: ["bulk_order", "corporate"],
+      isRead: false,
+    },
+    {
+      socialAccountId: createdSocialAccounts.email,
+      senderId: "alex.taylor@company.com",
+      senderName: "Alex Taylor",
+      content:
+        "Subject: Collaboration Opportunity\n\nHi there! I'm a lifestyle blogger with 50K followers. Would you be interested in a product collaboration? I'd love to feature your brand!",
+      messageType: "text",
+      priority: "normal",
+      tags: ["influencer", "collaboration"],
+      isRead: true,
+    },
+
+    // TikTok Messages
+    {
+      socialAccountId: createdSocialAccounts.tiktok,
+      senderId: "trendy_teen_23",
+      senderName: "Maya Williams",
+      senderAvatar:
+        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=50&h=50&fit=crop&crop=face",
+      content:
+        "OMG your TikTok is so aesthetic! 💫 Where can I buy that pink hoodie from your last video?? It's perfect!",
+      messageType: "text",
+      priority: "normal",
+      tags: ["product_inquiry", "young_demographic"],
+      isRead: false,
+    },
+    {
+      socialAccountId: createdSocialAccounts.tiktok,
+      senderId: "fashion_lover_99",
+      senderName: "Isabella Garcia",
+      senderAvatar:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face",
+      content:
+        "Your latest TikTok inspired my whole outfit today! 👗 Do you ship internationally? I'm in Canada 🇨🇦",
+      messageType: "text",
+      priority: "normal",
+      tags: ["inspiration", "international_shipping"],
+      isRead: true,
+    },
+  ];
+
+  for (const messageData of demoConversationsData) {
+    try {
+      if (messageData.socialAccountId) {
+        await storage.createMessage(messageData);
+      }
+    } catch (error) {
+      console.log(`Message might already exist or social account not found`);
+    }
+  }
+
+  console.log("Demo data populated successfully for user:", userId);
+}
 
   const server = createServer(app);
   return server;

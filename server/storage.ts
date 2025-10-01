@@ -1201,15 +1201,6 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(brandAssets.createdAt));
   }
 
-  async getBrandAssetById(id: string): Promise<BrandAsset | null> {
-    const [row] = await db
-      .select()
-      .from(brandAssets)
-      .where(eq(brandAssets.id, id))
-      .limit(1);
-    return row ?? null;
-  }
-
   // Eliminar asset
   async deleteBrandAsset(
     id: string,
