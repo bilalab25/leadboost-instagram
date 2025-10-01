@@ -1,46 +1,25 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  Palette,
-  Type,
-  Image,
-  Sparkles,
-  Upload,
-  Download,
-  Trash2,
-  FileText,
-} from "lucide-react";
-import ColorPreviewWithPicker from "@/components/brand-studio/ColorPreviewWithPicker";
-import FontSelector from "@/components/brand-studio/FontSelector";
+import { Upload, Trash2 } from "lucide-react";
 import { useGoogleFontLoader } from "@/hooks/useGoogleFontLoader";
-import FontPickerDrawer from "@/components/brand-studio/FontSelector";
 import HelpChatbot from "@/components/HelpChatbot";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ZoomIn } from "lucide-react";
 import minimal from "./brand-images/minimalist.png";
 import luxury from "./brand-images/luxury.png";
 import fun from "./brand-images/fun.png";
 import corporate from "./brand-images/corporate.png";
 import creative from "./brand-images/creative.png";
 import bold from "./brand-images/bold.png";
+import BrandAssets from "@/components/brand-studio/BrandAssests";
+import BrandIdentity from "@/components/brand-studio/BrandIdentity";
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
@@ -85,30 +64,6 @@ interface BrandDesign {
     assets: BrandAsset[]; // Assuming assets are part of brandKit
   };
 }
-
-// Predefined options for fonts, sectors, and purposes
-const fontOptions = [
-  "Inter",
-  "Roboto",
-  "Open Sans",
-  "Lato",
-  "Montserrat",
-  "Poppins",
-  "Playfair Display",
-  "Oswald",
-  "Source Sans Pro",
-  "Nunito",
-  "Arial",
-  "Verdana",
-  "Georgia",
-  "Times New Roman",
-  "Courier New",
-  "Pacifico",
-  "Roboto Condensed",
-  "Ubuntu",
-  "Lora",
-  "Merriweather",
-];
 
 const brandStyles = [
   {
@@ -169,9 +124,8 @@ const getAssetType = (fileName: string): BrandAsset["assetType"] => {
 };
 
 export default function BrandStudio() {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const { language, isSpanish, toggleLanguage } = useLanguage();
+  const { isSpanish } = useLanguage();
   const queryClient = useQueryClient();
 
   const [selectedStyle, setSelectedStyle] = useState<string>("");
@@ -210,7 +164,6 @@ export default function BrandStudio() {
   const [brandAssets, setBrandAssets] = useState<BrandAsset[]>([]);
   type UploadItem = { id: string; name: string; percent: number };
   const [uploads, setUploads] = useState<UploadItem[]>([]);
-  const isUploading = uploads.length > 0;
 
   const [currentAssetUploadCategory, setCurrentAssetUploadCategory] =
     useState<string>(assetCategories[0].value); // Default category for new uploads
@@ -732,8 +685,6 @@ export default function BrandStudio() {
     });
   };
 
-  const availableFontOptions = [...fontOptions, ...customFontOptions];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={isSpanish ? "Estudio de Marca" : "Brand Studio"} />
@@ -759,556 +710,68 @@ export default function BrandStudio() {
                   </TabsList>
 
                   {/* Brand Identity Tab */}
-                  <TabsContent value="brand-identity" className="space-y-6">
-                    {/* Brand Style Selection */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Sparkles className="mr-2 h-5 w-5" />
-                          {isSpanish ? "Estilo de Marca" : "Brand Style"}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                          {brandStyles.map((style) => (
-                            <div
-                              key={style.id}
-                              onClick={() => handleStyleSelect(style.id)}
-                              className={`p-4 border-2 rounded-xl cursor-pointer transition-all hover:scale-105 ${
-                                selectedStyle === style.id
-                                  ? "border-brand-500 ring-2 ring-brand-200"
-                                  : "border-gray-200"
-                              } ${style.color}`}
-                              data-testid={`style-${style.id}`}
-                            >
-                              <h3 className="font-semibold text-gray-900 mb-1">
-                                {style.name}
-                              </h3>
-                              <p className="text-sm text-gray-600 mb-2">
-                                {style.description}
-                              </p>
-
-                              {styleImages[style.id] && (
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <div className="relative group">
-                                      <img
-                                        src={styleImages[style.id]}
-                                        alt={style.name}
-                                        className="w-full h-28 object-cover rounded-md shadow-md cursor-pointer"
-                                      />
-                                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <ZoomIn className="text-white h-6 w-6" />
-                                      </div>
-                                    </div>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-3xl">
-                                    <img
-                                      src={styleImages[style.id]}
-                                      alt={`${style.name} Preview`}
-                                      className="w-full h-auto rounded-lg"
-                                    />
-                                  </DialogContent>
-                                </Dialog>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Color Palette */}
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle className="flex items-center">
-                          <Palette className="mr-2 h-5 w-5" />
-                          {isSpanish ? "Paleta de Colores" : "Color Palette"}
-                        </CardTitle>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleGenerateRandomPalette}
-                          data-testid="button-generate-random-palette"
-                        >
-                          <Sparkles className="mr-2 h-4 w-4" />
-                          {isSpanish ? "Generar Aleatorio" : "Generate Random"}
-                        </Button>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                          <div>
-                            <ColorPreviewWithPicker
-                              label={
-                                isSpanish ? "Color Principal" : "Main Color"
-                              }
-                              value={mainColor}
-                              onChange={setMainColor}
-                              allowGradient={true}
-                            />
-                          </div>
-
-                          {/* Accent Color 1 */}
-                          <div>
-                            <ColorPreviewWithPicker
-                              label={
-                                isSpanish ? "Color Acento 1" : "Accent Color 1"
-                              }
-                              value={accentColor1}
-                              onChange={setAccentColor1}
-                              allowGradient={true}
-                            />
-                          </div>
-                          {/* Accent Color 2 */}
-                          <div>
-                            <ColorPreviewWithPicker
-                              label={
-                                isSpanish ? "Color Acento 2" : "Accent Color 2"
-                              }
-                              value={accentColor2}
-                              onChange={setAccentColor2}
-                              allowGradient={true}
-                            />
-                          </div>
-                          {/* Text Color 1 */}
-                          <div>
-                            <ColorPreviewWithPicker
-                              label={
-                                isSpanish ? "Color Texto 1" : "Text Color 1"
-                              }
-                              value={text1Color}
-                              onChange={setText1Color}
-                              allowGradient={false}
-                            />
-                          </div>
-                          {/* Text Color 2 */}
-                          <div>
-                            <ColorPreviewWithPicker
-                              label={
-                                isSpanish ? "Color Texto 2" : "Text Color 2"
-                              }
-                              value={text2Color}
-                              onChange={setText2Color}
-                              allowGradient={false}
-                            />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Typography */}
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle className="flex items-center">
-                          <Type className="mr-2 h-5 w-5" />
-                          {isSpanish ? "Tipografía" : "Typography"}
-                        </CardTitle>
-
-                        {/* Botón para subir fuentes personalizadas */}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center"
-                            >
-                              <Upload className="h-4 w-4 mr-2" />
-                              {isSpanish ? "Agregar fuente" : "Add Font"}
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-md">
-                            <div className="text-center">
-                              <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                              <h3 className="mt-2 font-semibold">
-                                {isSpanish
-                                  ? "Subir fuentes personalizadas"
-                                  : "Upload Custom Fonts"}
-                              </h3>
-                              <p className="text-sm text-gray-500 mb-4">
-                                {isSpanish
-                                  ? "Archivos .ttf, .otf, .woff, .woff2"
-                                  : ".ttf, .otf, .woff, .woff2 files"}
-                              </p>
-                              <Label
-                                htmlFor="font-upload"
-                                className="cursor-pointer"
-                              >
-                                <span className="font-medium text-brand-600 hover:text-brand-500">
-                                  {isSpanish
-                                    ? "Seleccionar archivo(s)"
-                                    : "Select font file(s)"}
-                                </span>
-                                <input
-                                  id="font-upload"
-                                  type="file"
-                                  accept=".ttf,.otf,.woff,.woff2"
-                                  multiple
-                                  className="sr-only"
-                                  onChange={handleFontUpload}
-                                  data-testid="input-font-upload"
-                                />
-                              </Label>
-                            </div>
-
-                            {customFontFiles.length > 0 && (
-                              <div className="mt-4 space-y-2">
-                                <h4 className="font-semibold text-left">
-                                  {isSpanish
-                                    ? "Fuentes Subidas:"
-                                    : "Uploaded Fonts:"}
-                                </h4>
-                                {customFontFiles.map((font) => (
-                                  <div
-                                    key={font.name}
-                                    className="flex items-center justify-between p-2 border rounded-md"
-                                  >
-                                    <span
-                                      className="text-sm"
-                                      style={{ fontFamily: font.family }}
-                                    >
-                                      {font.family} ({font.name})
-                                    </span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        setCustomFontFiles((prev) =>
-                                          prev.filter(
-                                            (f) => f.name !== font.name,
-                                          ),
-                                        );
-                                        setCustomFontOptions((prev) =>
-                                          prev.filter((f) => f !== font.family),
-                                        );
-                                      }}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-red-500" />
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </CardHeader>
-
-                      <CardContent>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          <div>
-                            <Label htmlFor="primary-font-select">
-                              {isSpanish ? "Fuente Principal" : "Primary Font"}
-                            </Label>
-                            <FontPickerDrawer
-                              value={primaryFont}
-                              onChange={setPrimaryFont}
-                            />
-                            <div
-                              className="mt-2 p-4 border rounded-lg text-2xl font-bold"
-                              style={{ fontFamily: primaryFont }}
-                            >
-                              {primaryFont}
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="secondary-font-select">
-                              {isSpanish
-                                ? "Fuente Secundaria"
-                                : "Secondary Font"}
-                            </Label>
-                            <FontSelector
-                              value={secondaryFont}
-                              onChange={setSecondaryFont}
-                            />
-                            <div
-                              className="mt-2 p-4 border rounded-lg text-lg"
-                              style={{ fontFamily: secondaryFont }}
-                            >
-                              {secondaryFont}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Logo and Favicon Uploads */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Image className="mr-2 h-5 w-5" />
-                          Logos & Favicons
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="rounded-md bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700 mb-4">
-                          💡 Please upload your logos and favicons in{" "}
-                          <strong>PNG format</strong> with a
-                          <strong>transparent background</strong> for best
-                          results.
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                          <LogoUploadField
-                            id="white-logo-upload"
-                            label="Light Logo"
-                            file={whiteLogoFile}
-                            previewUrl={whiteLogoPreviewUrl}
-                            setFile={setWhiteLogoFile}
-                            setPreviewUrl={setWhiteLogoPreviewUrl}
-                          />
-                          <LogoUploadField
-                            id="black-logo-upload"
-                            label="Dark Logo"
-                            file={blackLogoFile}
-                            previewUrl={blackLogoPreviewUrl}
-                            setFile={setBlackLogoFile}
-                            setPreviewUrl={setBlackLogoPreviewUrl}
-                          />
-                          <LogoUploadField
-                            id="white-favicon-upload"
-                            label="Light Favicon"
-                            file={whiteFaviconFile}
-                            previewUrl={whiteFaviconPreviewUrl}
-                            setFile={setWhiteFaviconFile}
-                            setPreviewUrl={setWhiteFaviconPreviewUrl}
-                          />
-                          <LogoUploadField
-                            id="black-favicon-upload"
-                            label="Dark Favicon"
-                            file={blackFaviconFile}
-                            previewUrl={blackFaviconPreviewUrl}
-                            setFile={setBlackFaviconFile}
-                            setPreviewUrl={setBlackFaviconPreviewUrl}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Save Button */}
-                    <div className="flex justify-end">
-                      <Button
-                        onClick={handleSaveBrandDesign}
-                        disabled={
-                          !selectedStyle || saveBrandDesignMutation.isPending
-                        }
-                        className="bg-gradient-to-r from-brand-500 to-purple-600 text-white"
-                        data-testid="button-save-brand-design"
-                      >
-                        {saveBrandDesignMutation.isPending
-                          ? isSpanish
-                            ? "Guardando..."
-                            : "Saving..."
-                          : isSpanish
-                            ? "Guardar Diseño"
-                            : "Save Design"}
-                      </Button>
-                    </div>
-                  </TabsContent>
+                  <BrandIdentity
+                    brandStyles={brandStyles}
+                    selectedStyle={selectedStyle}
+                    handleStyleSelect={handleStyleSelect}
+                    styleImages={styleImages}
+                    mainColor={mainColor}
+                    setMainColor={setMainColor}
+                    accentColor1={accentColor1}
+                    setAccentColor1={setAccentColor1}
+                    accentColor2={accentColor2}
+                    setAccentColor2={setAccentColor2}
+                    text1Color={text1Color}
+                    setText1Color={setText1Color}
+                    text2Color={text2Color}
+                    setText2Color={setText2Color}
+                    handleGenerateRandomPalette={handleGenerateRandomPalette}
+                    primaryFont={primaryFont}
+                    setPrimaryFont={setPrimaryFont}
+                    secondaryFont={secondaryFont}
+                    setSecondaryFont={setSecondaryFont}
+                    customFontFiles={customFontFiles}
+                    setCustomFontFiles={setCustomFontFiles}
+                    handleFontUpload={handleFontUpload}
+                    setCustomFontOptions={setCustomFontOptions}
+                    handleSaveBrandDesign={handleSaveBrandDesign}
+                    saveBrandDesignMutation={saveBrandDesignMutation}
+                    handleFileUpload={handleFileUpload}
+                    whiteLogoFile={whiteLogoFile}
+                    setWhiteLogoFile={setWhiteLogoFile}
+                    whiteLogoPreviewUrl={whiteLogoPreviewUrl}
+                    setWhiteLogoPreviewUrl={setWhiteLogoPreviewUrl}
+                    blackLogoFile={blackLogoFile}
+                    setBlackLogoFile={setBlackLogoFile}
+                    blackLogoPreviewUrl={blackLogoPreviewUrl}
+                    setBlackLogoPreviewUrl={setBlackLogoPreviewUrl}
+                    whiteFaviconFile={whiteFaviconFile}
+                    setWhiteFaviconFile={setWhiteFaviconFile}
+                    whiteFaviconPreviewUrl={whiteFaviconPreviewUrl}
+                    setWhiteFaviconPreviewUrl={setWhiteFaviconPreviewUrl}
+                    blackFaviconFile={blackFaviconFile}
+                    setBlackFaviconFile={setBlackFaviconFile}
+                    blackFaviconPreviewUrl={blackFaviconPreviewUrl}
+                    setBlackFaviconPreviewUrl={setBlackFaviconPreviewUrl}
+                  />
 
                   {/* Assets Tab */}
-                  <TabsContent value="assets" className="space-y-6">
-                    {/* Brand Assets Upload */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Upload className="mr-2 h-5 w-5" />
-                          {isSpanish
-                            ? "Subir Recursos de Marca"
-                            : "Upload Brand Assets"}
-                        </CardTitle>
-                        {uploads.length > 0 && (
-                          <div className="mt-4 space-y-3">
-                            {uploads.map((u) => (
-                              <div key={u.id} className="text-left">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-sm text-gray-700 truncate">
-                                    {u.name}
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    {u.percent}%
-                                  </span>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                                  <div
-                                    className="bg-brand-500 h-2.5 rounded-full transition-all"
-                                    style={{ width: `${u.percent}%` }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mb-4">
-                            <Label
-                              htmlFor="asset-category-select"
-                              className="shrink-0"
-                            >
-                              {isSpanish
-                                ? "Categoría para subidas:"
-                                : "Category for uploads:"}
-                            </Label>
-                            <Select
-                              value={currentAssetUploadCategory}
-                              onValueChange={setCurrentAssetUploadCategory}
-                            >
-                              <SelectTrigger
-                                id="asset-category-select"
-                                className="w-full sm:w-[200px]"
-                              >
-                                <SelectValue
-                                  placeholder={
-                                    isSpanish
-                                      ? "Seleccionar categoría"
-                                      : "Select category"
-                                  }
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {assetCategories.map((cat) => (
-                                  <SelectItem key={cat.value} value={cat.value}>
-                                    {cat.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                            <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                            <div className="mt-4">
-                              <Label
-                                htmlFor="asset-upload"
-                                className="cursor-pointer"
-                              >
-                                <span className="font-medium text-brand-600 hover:text-brand-500">
-                                  {isSpanish
-                                    ? "Subir recursos"
-                                    : "Upload assets"}
-                                </span>
-                                <input
-                                  id="asset-upload"
-                                  type="file"
-                                  accept="image/*,video/*,application/pdf" // Allows images, videos, and PDFs
-                                  multiple
-                                  className="sr-only"
-                                  onChange={handleAssetUpload}
-                                  data-testid="input-asset-upload"
-                                />
-                              </Label>
-                              <p className="text-sm text-gray-500 mt-1">
-                                {isSpanish
-                                  ? "Imágenes, videos o PDFs. Archivos ilimitados."
-                                  : "Images, videos or PDFs. Unlimited files."}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Categorized Brand Assets Display */}
-                    {assetCategories.map((category) => {
-                      const assetsInCategory = assets.filter(
-                        (asset) => asset.category === category.value,
-                      );
-
-                      if (assetsInCategory.length === 0) {
-                        return null; // Don't show category if no assets
-                      }
-
-                      return (
-                        <Card key={category.value}>
-                          <CardHeader>
-                            <CardTitle className="flex items-center">
-                              {category.label} ({assetsInCategory.length})
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                              {assetsInCategory.map((asset) => (
-                                <div
-                                  key={asset.id}
-                                  className="relative group border rounded-md p-2 flex flex-col items-center justify-center h-32 overflow-hidden"
-                                >
-                                  {asset.assetType === "image" ? (
-                                    <img
-                                      src={asset.url}
-                                      alt={asset.name}
-                                      className="max-h-full max-w-full object-contain"
-                                    />
-                                  ) : asset.assetType === "video" ? (
-                                    <video
-                                      src={asset.url}
-                                      controls
-                                      className="max-h-full max-w-full object-contain"
-                                    />
-                                  ) : (
-                                    // document
-                                    <div className="flex flex-col items-center text-gray-500 text-sm p-1">
-                                      <FileText className="h-8 w-8 mb-1" />
-                                      <span className="truncate w-full text-center">
-                                        {asset.name}
-                                      </span>
-                                    </div>
-                                  )}
-                                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                      variant="destructive"
-                                      size="icon"
-                                      onClick={() =>
-                                        handleRemoveAsset(asset.id)
-                                      }
-                                      className="m-1"
-                                      aria-label={
-                                        isSpanish
-                                          ? "Eliminar recurso"
-                                          : "Remove asset"
-                                      }
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                    <a
-                                      href={asset.url}
-                                      download={asset.name}
-                                      className="m-1"
-                                      aria-label={
-                                        isSpanish
-                                          ? "Descargar recurso"
-                                          : "Download asset"
-                                      }
-                                    >
-                                      <Button variant="secondary" size="icon">
-                                        <Download className="h-4 w-4" />
-                                      </Button>
-                                    </a>
-                                  </div>
-                                  <Badge
-                                    variant="secondary"
-                                    className="absolute bottom-1 left-1 text-xs px-1 py-0.5 opacity-80"
-                                  >
-                                    {asset.name}
-                                  </Badge>
-                                </div>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-
-                    {assets.length === 0 && (
-                      <p className="text-center text-gray-500 mt-8">
-                        {isSpanish
-                          ? "No hay recursos subidos aún. ¡Sube algunos para empezar!"
-                          : "No assets uploaded yet. Upload some to get started!"}
-                      </p>
-                    )}
-                  </TabsContent>
+                  <BrandAssets
+                    assets={assets}
+                    assetCategories={assetCategories}
+                    currentAssetUploadCategory={currentAssetUploadCategory}
+                    setCurrentAssetUploadCategory={
+                      setCurrentAssetUploadCategory
+                    }
+                    handleAssetUpload={handleAssetUpload}
+                    handleRemoveAsset={handleRemoveAsset}
+                    uploads={uploads}
+                  />
                 </Tabs>
               </div>
             </div>
             {/* Help AI Chatbot */}
-            <HelpChatbot toggleLanguage={toggleLanguage} />
+            <HelpChatbot />
           </main>
         </div>
       </div>
