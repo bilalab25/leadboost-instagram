@@ -388,11 +388,6 @@ export default function BrandStudio() {
         setBrandAssets(brandDesign.brandKit.assets);
       }
       // Load existing logo/favicon URLs from brandDesign
-      console.log("🎨 Loading logo/favicon URLs from brandDesign:");
-      console.log("  whiteLogoUrl:", brandDesign.whiteLogoUrl);
-      console.log("  blackLogoUrl:", brandDesign.blackLogoUrl);
-      console.log("  whiteFaviconUrl:", brandDesign.whiteFaviconUrl);
-      console.log("  blackFaviconUrl:", brandDesign.blackFaviconUrl);
       setWhiteLogoPreviewUrl(brandDesign.whiteLogoUrl || null);
       setBlackLogoPreviewUrl(brandDesign.blackLogoUrl || null);
       setWhiteFaviconPreviewUrl(brandDesign.whiteFaviconUrl || null);
@@ -558,22 +553,15 @@ export default function BrandStudio() {
     setFile(file);
     if (file) {
       try {
-        console.log("📤 Uploading file to Cloudinary:", file.name);
-        // Upload to Cloudinary
         const data = await uploadFileWithProgress(file, () => {});
-        console.log("✅ Cloudinary response:", data);
-        console.log("🔗 secure_url:", data.secure_url);
         if (data.secure_url) {
           setPreviewUrl(data.secure_url);
-          console.log("✨ Preview URL set to:", data.secure_url);
           toast({
             title: isSpanish ? "Archivo subido" : "File uploaded",
             description: isSpanish
               ? "El archivo se ha subido exitosamente a Cloudinary"
               : "File has been successfully uploaded to Cloudinary",
           });
-        } else {
-          console.warn("⚠️ No secure_url in Cloudinary response");
         }
       } catch (error) {
         console.error("Error uploading file:", error);
