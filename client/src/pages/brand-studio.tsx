@@ -59,6 +59,10 @@ interface BrandDesign {
     customFonts?: { name: string; url: string }[];
   };
   logoUrl: string | null;
+  whiteLogoUrl?: string | null;
+  blackLogoUrl?: string | null;
+  whiteFaviconUrl?: string | null;
+  blackFaviconUrl?: string | null;
   isDesignStudioEnabled: boolean;
   brandKit: {
     assets: BrandAsset[]; // Assuming assets are part of brandKit
@@ -375,9 +379,11 @@ export default function BrandStudio() {
       ) {
         setBrandAssets(brandDesign.brandKit.assets);
       }
-      // You might also want to load existing logo/favicon URLs here if they are part of brandDesign
-      // setWhiteLogoPreviewUrl(brandDesign.whiteLogoUrl || null);
-      // ... and so on for other logos/favicons
+      // Load existing logo/favicon URLs from brandDesign
+      setWhiteLogoPreviewUrl(brandDesign.whiteLogoUrl || null);
+      setBlackLogoPreviewUrl(brandDesign.blackLogoUrl || null);
+      setWhiteFaviconPreviewUrl(brandDesign.whiteFaviconUrl || null);
+      setBlackFaviconPreviewUrl(brandDesign.blackFaviconUrl || null);
     }
   }, [brandDesign]);
 
@@ -473,12 +479,11 @@ export default function BrandStudio() {
           url: f.url,
         })), // Include custom fonts
       },
-      logoUrl: whiteLogoPreviewUrl, // Using whiteLogoPreviewUrl as the main logo for saving
-      // You might want to save other logo URLs too:
-      // whiteLogoUrl: whiteLogoPreviewUrl,
-      // blackLogoUrl: blackLogoPreviewUrl,
-      // whiteFaviconUrl: whiteFaviconPreviewUrl,
-      // blackFaviconUrl: blackFaviconPreviewUrl,
+      logoUrl: whiteLogoPreviewUrl, // Deprecated - use specific logo fields below
+      whiteLogoUrl: whiteLogoPreviewUrl,
+      blackLogoUrl: blackLogoPreviewUrl,
+      whiteFaviconUrl: whiteFaviconPreviewUrl,
+      blackFaviconUrl: blackFaviconPreviewUrl,
       brandKit: {
         // Assuming brandKit is where assets are stored
         assets: brandAssets.map((asset) => ({
@@ -531,7 +536,7 @@ export default function BrandStudio() {
     });
   };
 
-  const handleFileUpload = (
+  const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     setFile: React.Dispatch<React.SetStateAction<File | null>>,
     setPreviewUrl: React.Dispatch<React.SetStateAction<string | null>>,
@@ -539,7 +544,30 @@ export default function BrandStudio() {
     const file = e.target.files?.[0] || null;
     setFile(file);
     if (file) {
-      setPreviewUrl(URL.createObjectURL(file));
+      try {
+        // Upload to Cloudinary
+        const data = await uploadFileWithProgress(file, () => {});
+        if (data.secure_url) {
+          setPreviewUrl(data.secure_url);
+          toast({
+            title: isSpanish ? "Archivo subido" : "File uploaded",
+            description: isSpanish
+              ? "El archivo se ha subido exitosamente a Cloudinary"
+              : "File has been successfully uploaded to Cloudinary",
+          });
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        toast({
+          title: isSpanish ? "Error" : "Error",
+          description: isSpanish
+            ? "Error al subir el archivo"
+            : "Failed to upload file",
+          variant: "destructive",
+        });
+        setFile(null);
+        setPreviewUrl(null);
+      }
     } else {
       setPreviewUrl(null);
     }
