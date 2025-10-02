@@ -58,6 +58,14 @@ interface BrandDesign {
     secondary: string;
     customFonts?: { name: string; url: string }[];
   };
+  // Legacy flat fields for backward compatibility
+  colorPrimary?: string;
+  colorAccent1?: string;
+  colorAccent2?: string;
+  colorText1?: string;
+  colorText2?: string;
+  fontPrimary?: string;
+  fontSecondary?: string;
   logoUrl: string | null;
   whiteLogoUrl?: string | null;
   blackLogoUrl?: string | null;
