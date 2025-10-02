@@ -74,23 +74,7 @@ export default function BrandIdentity({
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-        <Upload className="mx-auto h-8 w-8 text-gray-400" />
-        <div className="mt-2">
-          <Label htmlFor={id} className="cursor-pointer">
-            <span className="font-medium text-brand-600 hover:text-brand-500">
-              Upload {label.toLowerCase()}
-            </span>
-            <input
-              id={id}
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) => handleFileUpload(e, setFile, setPreviewUrl)}
-              data-testid={`input-${id}`}
-            />
-          </Label>
-        </div>
-        {(file || previewUrl) && (
+        {file || previewUrl ? (
           <div className="mt-2 flex flex-col items-center">
             {file && (
               <Badge variant="secondary" className="mb-1">
@@ -116,7 +100,25 @@ export default function BrandIdentity({
               <Trash2 className="h-4 w-4 mr-1" /> Remove
             </Button>
           </div>
+        ) : (
+          <Upload className="mx-auto h-8 w-8 text-gray-400" />
         )}
+
+        <div className="mt-2">
+          <Label htmlFor={id} className="cursor-pointer">
+            <span className="font-medium text-brand-600 hover:text-brand-500">
+              Upload {label.toLowerCase()}
+            </span>
+            <input
+              id={id}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => handleFileUpload(e, setFile, setPreviewUrl)}
+              data-testid={`input-${id}`}
+            />
+          </Label>
+        </div>
       </div>
     </div>
   );
