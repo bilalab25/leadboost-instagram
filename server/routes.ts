@@ -32,7 +32,7 @@ import {
 import { posIntegrationService } from "./services/posIntegrations";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
-import cloudinary from "./cloudinary";
+import cloudinary from "@/cloudinary";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -40,6 +40,11 @@ const openai = new OpenAI({
 const upload = multer({ dest: "uploads/" });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint for deployment
+  app.get("/", (req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+
   // Auth middleware
   await setupAuth(app);
 
@@ -3003,56 +3008,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   );
-
-  // Upload logo or favicon to Cloudinary
-  app.post("/api/brand-design/upload-logo", isAuthenticated, upload.single('file'), async (req: any, res) => {
-    try {
-      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const { type } = req.body; // 'logo' or 'favicon'
-      
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      if (!type || (type !== 'logo' && type !== 'favicon')) {
-        return res.status(400).json({ message: "Type must be 'logo' or 'favicon'" });
-      }
-
-      // Upload to Cloudinary
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: `brand-${type}s`,
-        resource_type: 'image',
-      });
-
-      console.log(`☁️ Uploaded ${type} to Cloudinary:`, result.secure_url);
-
-      // Get or create brand design
-      let brandDesign = await storage.getBrandDesignByUserId(userId);
-      
-      const updateData = type === 'logo' 
-        ? { logoUrl: result.secure_url }
-        : { faviconUrl: result.secure_url };
-
-      if (brandDesign) {
-        brandDesign = await storage.updateBrandDesign(brandDesign.id, userId, updateData);
-      } else {
-        brandDesign = await storage.createBrandDesign({
-          userId,
-          ...updateData,
-        });
-      }
-
-      res.json({
-        url: result.secure_url,
-        publicId: result.public_id,
-        type,
-        brandDesign,
-      });
-    } catch (error) {
-      console.error("Error uploading logo/favicon:", error);
-      res.status(500).json({ message: "Failed to upload file" });
-    }
-  });
 
   // Upload de un asset
   app.post("/api/brand-assets", isAuthenticated, async (req: any, res) => {

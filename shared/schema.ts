@@ -824,8 +824,7 @@ export const brandDesigns = pgTable("brand_designs", {
   fontPrimary: varchar("font_primary"),
   fontSecondary: varchar("font_secondary"),
   customFonts: jsonb("custom_fonts"), // array with {name, url}
-  logoUrl: varchar("logo_url"),
-  faviconUrl: varchar("favicon_url"),
+  logoUrl: varchar("logo_url"), // or JSON if storing multiple versions: blanco, negro, favicon
   assets: jsonb("assets"), // list of assets with {id, url, name, category, assetType}
   isDesignStudioEnabled: boolean("is_design_studio_enabled").default(false),
   createdAt: timestamp("created_at").defaultNow(),
