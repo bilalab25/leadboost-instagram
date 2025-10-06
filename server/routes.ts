@@ -28,6 +28,7 @@ import {
   insertProductSchema,
   insertCampaignTriggerSchema,
   insertSubscriptionPlanSchema,
+  type BrandDesign,
 } from "@shared/schema";
 import { posIntegrationService } from "./services/posIntegrations";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
