@@ -406,8 +406,8 @@ export default function Landing() {
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-base font-medium text-gray-700">
               {isSpanish
-                ? "Tu Equipo de Ventas y Marketing con IA"
-                : "Your AI Content Generator"}
+                ? "Todo tu marketing, totalmente automatizado"
+                : "Your entire marketing, fully automated"}
             </span>
           </div>
 
