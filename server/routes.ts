@@ -33,7 +33,10 @@ import {
 import { posIntegrationService } from "./services/posIntegrations";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
-import cloudinary from "@/cloudinary";
+import cloudinary from "./cloudinary";
+import { db } from "./db";
+import { brandDesigns } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -2975,33 +2978,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // DELETE /api/brand-design/logo/:type
-  // DELETE /api/brand-design/logo/:type
+  // utils/cloudinaryPublicId.ts
+  function extractPublicIdFromUrl(url: string): string | null {
+    try {
+      // Formatos típicos:
+      // .../image/upload/v1727987227/folder/subfolder/filename.png
+      // .../image/upload/c_fill,w_200/v1727987227/folder/file.jpg
+      const afterUpload = url.split("/upload/")[1];
+      if (!afterUpload) return null;
+
+      // Si hay transformaciones, vendrán antes de /v12345/
+      const vIndex = afterUpload.lastIndexOf("/v");
+      const afterVersion =
+        vIndex !== -1 ? afterUpload.slice(vIndex + 2) : afterUpload; // quita el "/v"
+      const firstSlash = afterVersion.indexOf("/");
+      const rest =
+        firstSlash !== -1 ? afterVersion.slice(firstSlash + 1) : afterVersion;
+
+      // Quita la extensión (usa lastIndexOf por si hay puntos en carpetas)
+      const dot = rest.lastIndexOf(".");
+      const publicId = dot !== -1 ? rest.slice(0, dot) : rest;
+
+      console.log("[Server] 🔎 extractPublicIdFromUrl", {
+        url,
+        afterUpload,
+        afterVersion,
+        rest,
+        publicId,
+      });
+      return publicId || null;
+    } catch (e) {
+      console.log("[Server] ⚠️ extractPublicIdFromUrl error", e);
+      return null;
+    }
+  }
+
   app.delete(
     "/api/brand-design/logo/:type",
     isAuthenticated,
     async (req: any, res) => {
-      try {
-        const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
-        const { type } = req.params; // 'whiteLogo' | 'blackLogo' | 'whiteFavicon' | 'blackFavicon'
-        const { brandDesignId } = req.query;
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const { type } = req.params; // whiteLogo | blackLogo | whiteFavicon | blackFavicon
+      const { brandDesignId } = req.query;
 
+      console.log("[Server] ➡️ DELETE /api/brand-design/logo/:type", {
+        userId,
+        type,
+        brandDesignId,
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        apiKeyPresent: !!process.env.CLOUDINARY_API_KEY,
+      });
+
+      try {
         if (!brandDesignId) {
+          console.log("[Server] ❌ Missing brandDesignId");
           return res.status(400).json({ message: "brandDesignId is required" });
         }
 
-        // 1️⃣ Obtener diseño actual y validar propiedad
+        // Obtén por userId para validar ownership (o trae por id y valida userId)
         const brandDesign = await storage.getBrandDesignByUserId(userId);
+        console.log("[Server] 🔎 brandDesign", {
+          found: !!brandDesign,
+          id: brandDesign?.id,
+        });
+
         if (!brandDesign || brandDesign.id !== brandDesignId) {
+          console.log("[Server] ❌ Unauthorized to delete this logo", {
+            requested: brandDesignId,
+            actual: brandDesign?.id,
+          });
           return res
             .status(403)
             .json({ message: "Unauthorized to delete this logo" });
         }
 
-        // 2️⃣ Determinar el campo correspondiente
         const fieldMap: Record<string, keyof typeof brandDesign> = {
           whiteLogo: "whiteLogoUrl",
           blackLogo: "blackLogoUrl",
@@ -3009,67 +3060,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
           blackFavicon: "blackFaviconUrl",
         };
         const fieldName = fieldMap[type];
+
         if (!fieldName) {
+          console.log("[Server] ❌ Invalid logo type", { type });
           return res.status(400).json({ message: "Invalid logo type" });
         }
 
-        const logoUrl = brandDesign[fieldName] as string | null;
+        const logoUrl = brandDesign[fieldName];
+        console.log("[Server] 🔗 Current logo URL", { fieldName, logoUrl });
+
         if (!logoUrl) {
+          console.log("[Server] ⚠️ Logo not found in DB, nothing to delete");
           return res.status(404).json({ message: "Logo not found" });
         }
 
-        // 3️⃣ Eliminar de Cloudinary
-        const publicIdMatch = logoUrl.match(/\/upload\/(?:v\d+\/)?([^/.]+)/);
-        const publicId = publicIdMatch ? publicIdMatch[1] : null;
+        const publicId = extractPublicIdFromUrl(logoUrl as string);
+        console.log("[Server] 🧩 PublicId computed", { publicId });
 
         if (publicId) {
           try {
             const result = await cloudinary.uploader.destroy(publicId, {
               resource_type: "image",
             });
-            console.log(`☁️ Deleted logo from Cloudinary: ${publicId}`, result);
+            console.log("[Server] ☁️ Cloudinary destroy result", result);
 
             if (result.result !== "ok" && result.result !== "not found") {
               throw new Error(`Cloudinary deletion failed: ${result.result}`);
             }
-          } catch (cloudinaryError) {
+          } catch (cloudErr) {
             console.error(
-              "Error deleting logo from Cloudinary:",
-              cloudinaryError,
+              "[Server] ❌ Error deleting from Cloudinary:",
+              cloudErr,
             );
             return res.status(500).json({
               message: "Failed to delete logo from Cloudinary",
               error:
-                cloudinaryError instanceof Error
-                  ? cloudinaryError.message
-                  : "Unknown error",
+                cloudErr instanceof Error ? cloudErr.message : "Unknown error",
             });
           }
+        } else {
+          console.log(
+            "[Server] ⚠️ publicId is null — skipping Cloudinary destroy",
+          );
         }
 
-        // 4️⃣ Actualizar DB limpiando solo ese campo
-        const updates = { [fieldName]: null } as Partial<BrandDesign>;
-        const updated = await storage.updateBrandDesign(
+        // ⚠️ Aquí, evita mapToDb para updates parciales o usa mapPartialToDb
+        console.log("[Server] 🗃️ Updating DB: setting field to null", {
           brandDesignId,
-          userId,
-          updates,
-        );
+          fieldName,
+        });
+        const updated = await db
+          .update(brandDesigns)
+          .set({ [fieldName]: null, updatedAt: new Date() })
+          .where(
+            and(
+              eq(brandDesigns.id, brandDesignId),
+              eq(brandDesigns.userId, userId),
+            ),
+          )
+          .returning();
 
-        if (!updated) {
-          return res
-            .status(404)
-            .json({ message: "Design not found or not updated" });
-        }
+        console.log("[Server] ✅ DB update result", {
+          updatedCount: updated?.length || 0,
+          updatedRow: updated?.[0]?.id,
+        });
 
-        console.log(`🗑️ Cleared ${type} for user ${userId}`);
-        return res.json({ message: `${type} deleted successfully`, updated });
+        return res.json({ message: `${type} deleted successfully` });
       } catch (error) {
-        console.error("Error deleting logo:", error);
+        console.error("[Server] ❌ Unexpected error in delete logo:", error);
         return res.status(500).json({ message: "Failed to delete logo" });
       }
     },
   );
-
   app.post(
     "/api/brand-design/connect-canva",
     isAuthenticated,

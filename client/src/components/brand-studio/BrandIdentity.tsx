@@ -12,6 +12,7 @@ import FontSelector from "@/components/brand-studio/FontSelector";
 import { useLanguage } from "@/hooks/useLanguage";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function BrandIdentity({
   brandDesign,
@@ -59,6 +60,7 @@ export default function BrandIdentity({
   setBlackFaviconPreviewUrl,
 }) {
   const { isSpanish } = useLanguage();
+  const queryClient = useQueryClient(); // 👈 para invalidar cache tras borrar
 
   const LogoUploadField = ({
     id,
@@ -173,7 +175,7 @@ export default function BrandIdentity({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            {brandStyles.map((style) => (
+            {brandStyles.map((style: any) => (
               <div
                 key={style.id}
                 onClick={() => handleStyleSelect(style.id)}
@@ -340,7 +342,7 @@ export default function BrandIdentity({
                   <h4 className="font-semibold text-left">
                     {isSpanish ? "Fuentes Subidas:" : "Uploaded Fonts:"}
                   </h4>
-                  {customFontFiles.map((font) => (
+                  {customFontFiles.map((font: any) => (
                     <div
                       key={font.name}
                       className="flex items-center justify-between p-2 border rounded-md"

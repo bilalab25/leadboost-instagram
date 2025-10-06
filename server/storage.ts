@@ -67,7 +67,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, sql, gte, lte } from "drizzle-orm";
-import { mapFromDb, mapToDb } from "./mappers/brandDesign";
+import { mapFromDb, mapPartialToDb, mapToDb } from "./mappers/brandDesign";
 
 export interface IStorage {
   // User operations
@@ -1154,7 +1154,7 @@ export class DatabaseStorage implements IStorage {
     userId: string,
     updates: Partial<BrandDesign>,
   ): Promise<BrandDesign | undefined> {
-    const mapped = mapToDb({ ...updates, userId });
+    const mapped = mapPartialToDb({ ...updates, userId }); // ✅ nuevo mapper parcial
     const [updated] = await db
       .update(brandDesigns)
       .set({ ...mapped, updatedAt: new Date() })
