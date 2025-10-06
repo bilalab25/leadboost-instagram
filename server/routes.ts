@@ -3013,7 +3013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Invalid logo type" });
         }
 
-        const logoUrl = brandDesign[fieldName];
+        const logoUrl = brandDesign[fieldName] as string | null;
         if (!logoUrl) {
           return res.status(404).json({ message: "Logo not found" });
         }
