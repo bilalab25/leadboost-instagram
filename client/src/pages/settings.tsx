@@ -994,7 +994,7 @@ export default function Settings() {
   useEffect(() => {
     if (isAuthenticated && user) {
       console.log("User data:", user);
-      setUserName(`${user.first_name || ""} ${user.last_name || ""}`);
+      setUserName(`${user.firstName || ""} ${user.lastName || ""}`);
       setUserEmail(user.email || "");
       setUserPhone(user.phone || "");
       setUserAddress(user.address || "");

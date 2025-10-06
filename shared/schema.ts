@@ -39,6 +39,8 @@ export const users = pgTable("users", {
   hierarchyLevel: integer("hierarchy_level").default(1), // 1=CEO/Owner, 2=Manager, 3=Supervisor, 4=Employee
   canApprove: boolean("can_approve").default(false), // Can approve tasks from lower hierarchy
   reportsTo: varchar("reports_to"), // Direct manager/supervisor - will add reference in relations
+  phone: varchar("phone"),
+  address: varchar("address"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
