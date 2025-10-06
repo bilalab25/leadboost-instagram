@@ -1,7 +1,7 @@
 import session from "express-session";
 import type { Express, Request, Response, NextFunction } from "express"; // Importar Request, Response, NextFunction
 import passport from "passport";
-import admin from 'firebase-admin'; // Importación corregida para firebase-admin
+import admin from "firebase-admin"; // Importación corregida para firebase-admin
 import { storage } from "./storage"; // Asumiendo que storage maneja la persistencia de usuarios
 
 // --- INICIALIZACIÓN DE FIREBASE ADMIN SDK ---
@@ -9,13 +9,19 @@ import { storage } from "./storage"; // Asumiendo que storage maneja la persiste
 const firebaseConfig = {
   projectId: process.env.FIREBASE_PROJECT_ID,
   // Reemplazar '\n' literales con saltos de línea reales para la clave privada
-  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
   clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
 };
 
 // Verificar que las credenciales estén presentes
-if (!firebaseConfig.projectId || !firebaseConfig.privateKey || !firebaseConfig.clientEmail) {
-  console.error("FATAL: Firebase Admin SDK credentials are not fully set in environment variables.");
+if (
+  !firebaseConfig.projectId ||
+  !firebaseConfig.privateKey ||
+  !firebaseConfig.clientEmail
+) {
+  console.error(
+    "FATAL: Firebase Admin SDK credentials are not fully set in environment variables.",
+  );
   // En un entorno de producción, podrías considerar terminar el proceso aquí:
   // process.exit(1);
 } else {
@@ -34,7 +40,6 @@ if (!firebaseConfig.projectId || !firebaseConfig.privateKey || !firebaseConfig.c
   }
 }
 // --- FIN INICIALIZACIÓN FIREBASE ADMIN SDK ---
-
 
 // Import connect-pg-simple only if DATABASE_URL is available
 let connectPg: any = null;
@@ -72,14 +77,19 @@ export function getSession() {
       });
       console.log("Using PostgreSQL session store");
     } catch (error) {
-      console.log("Failed to setup PostgreSQL session store, using memory store:", (error as Error).message);
+      console.log(
+        "Failed to setup PostgreSQL session store, using memory store:",
+        (error as Error).message,
+      );
     }
   } else {
     console.log("Using memory session store (not recommended for production)");
   }
 
   return session({
-    secret: process.env.SESSION_SECRET || 'demo-secret-' + Math.random().toString(36).substring(7),
+    secret:
+      process.env.SESSION_SECRET ||
+      "demo-secret-" + Math.random().toString(36).substring(7),
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -126,7 +136,11 @@ export async function setupAuth(app: Express) {
       }
       done(null, user); // Adjunta el objeto de usuario a req.user
     } catch (error) {
-      console.error("Passport deserializeUser: Error during deserialization for ID:", id, error);
+      console.error(
+        "Passport deserializeUser: Error during deserialization for ID:",
+        id,
+        error,
+      );
       done(error, null);
     }
   });
@@ -137,107 +151,139 @@ export async function setupAuth(app: Express) {
     const { idToken } = req.body;
 
     if (!idToken) {
-      console.error("verifyFirebaseTokenAndLogin: ID Token is missing in request body.");
+      console.error(
+        "verifyFirebaseTokenAndLogin: ID Token is missing in request body.",
+      );
       return res.status(400).json({ message: "ID Token is required" });
     }
 
     try {
-      // 1. Verificar el ID Token con Firebase Admin SDK
+      // 1️⃣ Verificar el ID Token con Firebase Admin SDK
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       const firebaseUid = decodedToken.uid;
       const email = decodedToken.email || null;
-      // Los campos 'name' y 'picture' pueden no estar siempre presentes o ser completos
-      const firstName = decodedToken.name?.split(' ')[0] || null;
-      const lastName = decodedToken.name?.split(' ').slice(1).join(' ') || null;
+      const firstName = decodedToken.name?.split(" ")[0] || null;
+      const lastName = decodedToken.name?.split(" ").slice(1).join(" ") || null;
       const profileImageUrl = decodedToken.picture || null;
 
-      console.log(`verifyFirebaseTokenAndLogin: Verifying Firebase Token for UID: ${firebaseUid}, Email: ${email}`);
+      // ✅ NUEVO: detectar el proveedor de inicio de sesión
+      const provider = decodedToken.firebase?.sign_in_provider || "password";
+      console.log(
+        `verifyFirebaseTokenAndLogin: Provider detected -> ${provider}`,
+      );
 
-      // 2. Intentar encontrar al usuario en tu base de datos
+      console.log(
+        `verifyFirebaseTokenAndLogin: Verifying Firebase Token for UID: ${firebaseUid}, Email: ${email}`,
+      );
+
+      // 2️⃣ Intentar encontrar al usuario en tu base de datos
       let user = await storage.getUserByFirebaseUid(firebaseUid);
 
       if (!user) {
-        console.log(`verifyFirebaseTokenAndLogin: User with firebaseUid ${firebaseUid} not found. Checking by email.`);
+        console.log(
+          `verifyFirebaseTokenAndLogin: User with firebaseUid ${firebaseUid} not found. Checking by email.`,
+        );
+
         // Si no se encuentra por firebaseUid, intentar encontrarlo por email (para vincular cuentas)
         if (email) {
           user = await storage.getUserByEmail(email);
           if (user) {
-            console.log(`verifyFirebaseTokenAndLogin: User with email ${email} found. Linking Firebase UID.`);
-            // Si se encuentra por email, actualizarlo para vincular el firebaseUid
-            // También actualizamos otros campos que Firebase pueda proporcionar
-            const updates: any = { firebaseUid: firebaseUid };
+            console.log(
+              `verifyFirebaseTokenAndLogin: User with email ${email} found. Linking Firebase UID.`,
+            );
+
+            const updates: any = { firebaseUid, provider }; // ✅ incluye provider aquí
             if (profileImageUrl) updates.profileImageUrl = profileImageUrl;
-            if (firstName && !user.firstName) updates.firstName = firstName; // Solo si no tiene ya un nombre
-            if (lastName && !user.lastName) updates.lastName = lastName; // Solo si no tiene ya un apellido
+            if (firstName && !user.firstName) updates.firstName = firstName;
+            if (lastName && !user.lastName) updates.lastName = lastName;
 
-                // --- AÑADE ESTOS CONSOLE.LOGS AQUÍ ---
-                console.log("DEBUG: Tipo de 'storage':", typeof storage);
-                console.log("DEBUG: Objeto 'storage':", storage);
-                console.log("DEBUG: ¿'storage' tiene el método 'updateUser'?", typeof (storage as any).updateUser);
-                // --- FIN CONSOLE.LOGS ---
-
-                await storage.updateUser(user.id, updates); // Esta es la línea que falla
-                user = { ...user, ...updates};
+            await storage.updateUser(user.id, updates);
+            user = { ...user, ...updates };
           }
         }
       }
 
+      // 3️⃣ Crear usuario si no existe
       if (!user) {
-        console.log(`verifyFirebaseTokenAndLogin: User not found by firebaseUid or email. Creating new user for ${email || firebaseUid}.`);
-        // Si aún no se encuentra, crear un nuevo usuario
+        console.log(
+          `verifyFirebaseTokenAndLogin: User not found by firebaseUid or email. Creating new user for ${email || firebaseUid}.`,
+        );
+
         user = await storage.createUser({
-          id: firebaseUid, // Usar firebaseUid como ID de la base de datos si es un nuevo usuario de Firebase
-          firebaseUid: firebaseUid,
-          email: email,
-          firstName: firstName,
-          lastName: lastName,
-          profileImageUrl: profileImageUrl,
-          // password: null, // El campo password ya es nullable en el esquema
-          // Asegúrate de que otros campos requeridos por tu esquema tengan valores predeterminados
-          // o se proporcionen aquí (ej. role, hierarchyLevel, canApprove)
-          // role: "agency_owner", // Ejemplo
+          id: firebaseUid,
+          firebaseUid,
+          email,
+          firstName,
+          lastName,
+          profileImageUrl,
+          provider, // ✅ se guarda al crear
+          // otros campos opcionales:
+          // role: "agency_owner",
+          // hierarchyLevel: 1,
+          // canApprove: false,
         });
-        console.log(`verifyFirebaseTokenAndLogin: New user created with ID: ${user.id}, Firebase UID: ${user.firebaseUid}`);
+
+        console.log(
+          `verifyFirebaseTokenAndLogin: New user created with ID: ${user.id}, Firebase UID: ${user.firebaseUid}`,
+        );
       } else {
-          console.log(`verifyFirebaseTokenAndLogin: User found/updated: ID ${user.id}, Firebase UID: ${user.firebaseUid}`);
-          // Si el usuario ya existía (encontrado por firebaseUid o actualizado por email),
-          // podemos asegurarnos de que la información de perfil esté actualizada.
-          const updates: any = {};
-          if (email && user.email !== email) updates.email = email;
-          if (profileImageUrl && user.profileImageUrl !== profileImageUrl) updates.profileImageUrl = profileImageUrl;
-          if (firstName && user.firstName !== firstName) updates.firstName = firstName;
-          if (lastName && user.lastName !== lastName) updates.lastName = lastName;
-        console.log("DEBUG (Existing User): Tipo de 'storage':", typeof storage);
-        console.log("DEBUG (Existing User): Objeto 'storage':", storage);
-        console.log("DEBUG (Existing User): ¿'storage' tiene el método 'updateUser'?", typeof (storage as any).updateUser);
-          if (Object.keys(updates).length > 0) {
-              await storage.updateUser(user.id, updates);
-              user = { ...user, ...updates }; // Actualiza el objeto user en memoria
-          }
+        // 4️⃣ Usuario existente → actualizar info si cambió
+        console.log(
+          `verifyFirebaseTokenAndLogin: User found/updated: ID ${user.id}, Firebase UID: ${user.firebaseUid}`,
+        );
+
+        const updates: any = {};
+        if (email && user.email !== email) updates.email = email;
+        if (profileImageUrl && user.profileImageUrl !== profileImageUrl)
+          updates.profileImageUrl = profileImageUrl;
+        if (firstName && user.firstName !== firstName)
+          updates.firstName = firstName;
+        if (lastName && user.lastName !== lastName) updates.lastName = lastName;
+        if (user.provider !== provider) updates.provider = provider; // ✅ se actualiza si cambió
+
+        if (Object.keys(updates).length > 0) {
+          await storage.updateUser(user.id, updates);
+          user = { ...user, ...updates };
+        }
       }
 
-      // Validar que el objeto user sea válido antes de pasarlo a Passport
-      // Esto previene el error "Cannot read properties of undefined (reading 'id')" en serializeUser
+      // 5️⃣ Validar usuario antes de serializar
       if (!user || !user.id) {
-        console.error("verifyFirebaseTokenAndLogin: User object is invalid or missing ID after storage operations:", user);
-        return res.status(500).json({ message: "Failed to retrieve or create user in database." });
+        console.error(
+          "verifyFirebaseTokenAndLogin: User object is invalid or missing ID after storage operations:",
+          user,
+        );
+        return res
+          .status(500)
+          .json({ message: "Failed to retrieve or create user in database." });
       }
 
-      // 4. Establecer la sesión en Express usando Passport
+      // 6️⃣ Establecer la sesión con Passport
       req.login(user, (err) => {
         if (err) {
-          console.error("verifyFirebaseTokenAndLogin: Error during Passport login after Firebase auth:", err);
-          return res.status(500).json({ message: "Failed to establish session" });
+          console.error(
+            "verifyFirebaseTokenAndLogin: Error during Passport login after Firebase auth:",
+            err,
+          );
+          return res
+            .status(500)
+            .json({ message: "Failed to establish session" });
         }
-        const { password: _, ...userWithoutPassword } = user; // Excluir la contraseña antes de enviar al frontend
+
+        const { password: _, ...userWithoutPassword } = user;
         res.status(200).json({ user: userWithoutPassword });
       });
-
     } catch (error) {
-      console.error("verifyFirebaseTokenAndLogin: Firebase ID Token verification failed:", error);
-      res.status(401).json({ message: "Unauthorized: Invalid or expired ID Token" });
+      console.error(
+        "verifyFirebaseTokenAndLogin: Firebase ID Token verification failed:",
+        error,
+      );
+      res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid or expired ID Token" });
     }
   };
+
   // --- FIN FUNCIÓN CENTRALIZADA ---
 
   // --- RUTAS DE AUTENTICACIÓN ---
@@ -263,7 +309,7 @@ export async function setupAuth(app: Express) {
   });
 
   // Endpoint para verificar el estado del usuario actual
-  app.get('/api/auth/user', (req, res) => {
+  app.get("/api/auth/user", (req, res) => {
     if (req.isAuthenticated() && req.user) {
       const user = req.user as any;
       const { password: _, ...userWithoutPassword } = user; // Asegúrate de que la contraseña no se envíe

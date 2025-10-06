@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/Sidebar";
@@ -39,6 +39,7 @@ import AccountTab from "@/components/settings/AccountTab";
 import PaymentMethodTab from "@/components/settings/PaymentMethodsTab";
 import HelpChatbot from "@/components/HelpChatbot";
 import IntegrationsTab from "@/components/settings/IntegrationsTab";
+import { useAuth } from "@/hooks/useAuth";
 
 // --- Interfaces (solo para tipado de datos simulados) ---
 interface PaymentMethod {
@@ -692,8 +693,7 @@ const initialNotificationSettings: NotificationSettings = {
 export default function Settings() {
   const { isSpanish, toggleLanguage } = useLanguage(); // Assuming useLanguage hook is available
   const { toast } = useToast(); // Assuming useToast hook is available
-
-  // --- States para la UI (todos inicializados con dummy data) ---
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   // States para Payment Methods
   const [paymentMethods, setPaymentMethods] =
@@ -990,6 +990,16 @@ export default function Settings() {
         ([, info]) => info.category === dialogSelectedCategory,
       )
     : [];
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log("User data:", user);
+      setUserName(`${user.first_name || ""} ${user.last_name || ""}`);
+      setUserEmail(user.email || "");
+      setUserPhone(user.phone || "");
+      setUserAddress(user.address || "");
+    }
+  }, [isAuthenticated, user]);
 
   return (
     <div className="min-h-screen bg-gray-50">

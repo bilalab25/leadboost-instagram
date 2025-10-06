@@ -34,6 +34,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   firebaseUid: varchar("firebase_uid").unique(),
+  provider: varchar("provider"), // Auth provider: google.com, password, etc.
   role: varchar("role").default("agency_owner"), // agency_owner, agency_member, client_viewer
   hierarchyLevel: integer("hierarchy_level").default(1), // 1=CEO/Owner, 2=Manager, 3=Supervisor, 4=Employee
   canApprove: boolean("can_approve").default(false), // Can approve tasks from lower hierarchy
