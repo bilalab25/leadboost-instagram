@@ -469,41 +469,93 @@ export default function BrandStudio() {
     setSelectedStyle(styleId);
   };
 
-  const handleSaveBrandDesign = () => {
-    const designData = {
-      brandStyle: selectedStyle,
-      colorPalette: {
-        primary: mainColor,
-        accent1: accentColor1,
-        accent2: accentColor2,
-        text1: text1Color,
-        text2: text2Color,
-      },
-      typography: {
-        primary: primaryFont,
-        secondary: secondaryFont,
-        customFonts: customFontFiles.map((f) => ({
-          name: f.family,
-          url: f.url,
-        })), // Include custom fonts
-      },
-      logoUrl: whiteLogoPreviewUrl, // Deprecated - use specific logo fields below
-      whiteLogoUrl: whiteLogoPreviewUrl,
-      blackLogoUrl: blackLogoPreviewUrl,
-      whiteFaviconUrl: whiteFaviconPreviewUrl,
-      blackFaviconUrl: blackFaviconPreviewUrl,
-      brandKit: {
-        // Assuming brandKit is where assets are stored
-        assets: brandAssets.map((asset) => ({
-          id: asset.id,
-          url: asset.url,
-          name: asset.name,
-          category: asset.category,
-          assetType: asset.assetType,
-        })),
-      },
-    };
-    saveBrandDesignMutation.mutate(designData);
+  const handleSaveBrandDesign = async () => {
+    try {
+      const uploadIfNeeded = async (
+        file: File | null,
+        currentUrl: string | null,
+        setPreviewUrl: (url: string | null) => void,
+      ): Promise<string | null> => {
+        // Si hay file pero aún no está en Cloudinary, súbelo
+        if (file && (!currentUrl || !currentUrl.startsWith("http"))) {
+          const data = await uploadFileWithProgress(file, () => {});
+          if (data.secure_url) {
+            setPreviewUrl(data.secure_url);
+            return data.secure_url;
+          }
+        }
+        // Si ya hay URL, úsala
+        return currentUrl;
+      };
+
+      // Sube logos/favicons si son nuevos
+      const whiteLogoUrl = await uploadIfNeeded(
+        whiteLogoFile,
+        whiteLogoPreviewUrl,
+        setWhiteLogoPreviewUrl,
+      );
+      const blackLogoUrl = await uploadIfNeeded(
+        blackLogoFile,
+        blackLogoPreviewUrl,
+        setBlackLogoPreviewUrl,
+      );
+      const whiteFaviconUrl = await uploadIfNeeded(
+        whiteFaviconFile,
+        whiteFaviconPreviewUrl,
+        setWhiteFaviconPreviewUrl,
+      );
+      const blackFaviconUrl = await uploadIfNeeded(
+        blackFaviconFile,
+        blackFaviconPreviewUrl,
+        setBlackFaviconPreviewUrl,
+      );
+
+      // Arma el objeto final
+      const designData = {
+        brandStyle: selectedStyle,
+        colorPalette: {
+          primary: mainColor,
+          accent1: accentColor1,
+          accent2: accentColor2,
+          text1: text1Color,
+          text2: text2Color,
+        },
+        typography: {
+          primary: primaryFont,
+          secondary: secondaryFont,
+          customFonts: customFontFiles.map((f) => ({
+            name: f.family,
+            url: f.url,
+          })),
+        },
+        logoUrl: whiteLogoUrl, // compatibilidad con campo legacy
+        whiteLogoUrl,
+        blackLogoUrl,
+        whiteFaviconUrl,
+        blackFaviconUrl,
+        brandKit: {
+          assets: brandAssets.map((asset) => ({
+            id: asset.id,
+            url: asset.url,
+            name: asset.name,
+            category: asset.category,
+            assetType: asset.assetType,
+          })),
+        },
+      };
+
+      // Llama tu mutation
+      saveBrandDesignMutation.mutate(designData);
+    } catch (err) {
+      console.error("❌ Error saving design:", err);
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish
+          ? "No se pudo guardar el diseño"
+          : "Failed to save brand design",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -544,106 +596,27 @@ export default function BrandStudio() {
     });
   };
 
-  const handleFileUpload = async (
+  const handleFileUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFile: React.Dispatch<React.SetStateAction<File | null>>,
     setPreviewUrl: React.Dispatch<React.SetStateAction<string | null>>,
   ) => {
     const file = e.target.files?.[0] || null;
     setFile(file);
+
     if (file) {
-      try {
-        const data = await uploadFileWithProgress(file, () => {});
-        if (data.secure_url) {
-          setPreviewUrl(data.secure_url);
-          toast({
-            title: isSpanish ? "Archivo subido" : "File uploaded",
-            description: isSpanish
-              ? "El archivo se ha subido exitosamente a Cloudinary"
-              : "File has been successfully uploaded to Cloudinary",
-          });
-        }
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        toast({
-          title: isSpanish ? "Error" : "Error",
-          description: isSpanish
-            ? "Error al subir el archivo"
-            : "Failed to upload file",
-          variant: "destructive",
-        });
-        setFile(null);
-        setPreviewUrl(null);
-      }
+      const localPreview = URL.createObjectURL(file);
+      setPreviewUrl(localPreview);
+      toast({
+        title: isSpanish ? "Archivo cargado" : "File selected",
+        description: isSpanish
+          ? "El archivo está listo para subir al guardar"
+          : "The file will be uploaded when you save.",
+      });
     } else {
       setPreviewUrl(null);
     }
   };
-
-  const LogoUploadField = ({
-    id,
-    label,
-    file,
-    previewUrl,
-    setFile,
-    setPreviewUrl,
-  }: {
-    id: string;
-    label: string;
-    file: File | null;
-    previewUrl: string | null;
-    setFile: React.Dispatch<React.SetStateAction<File | null>>;
-    setPreviewUrl: React.Dispatch<React.SetStateAction<string | null>>;
-  }) => (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-        <Upload className="mx-auto h-8 w-8 text-gray-400" />
-        <div className="mt-2">
-          <Label htmlFor={id} className="cursor-pointer">
-            <span className="font-medium text-brand-600 hover:text-brand-500">
-              Upload {label.toLowerCase()}
-            </span>
-            <input
-              id={id}
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) => handleFileUpload(e, setFile, setPreviewUrl)}
-              data-testid={`input-${id}`}
-            />
-          </Label>
-        </div>
-        {(file || previewUrl) && (
-          <div className="mt-2 flex flex-col items-center">
-            {file && (
-              <Badge variant="secondary" className="mb-1">
-                {file.name}
-              </Badge>
-            )}
-            {previewUrl && (
-              <img
-                src={previewUrl}
-                alt={`${label} Preview`}
-                className="max-h-24 max-w-full object-contain mt-1 border rounded-md"
-              />
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setFile(null);
-                setPreviewUrl(null);
-              }}
-              className="mt-2 text-red-500 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4 mr-1" /> Remove
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 
   const saveAssetToDB = async (asset: BrandAsset, cloudinaryData: any) => {
     const payload = {
@@ -746,6 +719,7 @@ export default function BrandStudio() {
 
                   {/* Brand Identity Tab */}
                   <BrandIdentity
+                    brandDesign={brandDesign}
                     brandStyles={brandStyles}
                     selectedStyle={selectedStyle}
                     handleStyleSelect={handleStyleSelect}

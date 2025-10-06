@@ -10,8 +10,11 @@ import ColorPreviewWithPicker from "./ColorPreviewWithPicker";
 import FontPickerDrawer from "./FontSelector";
 import FontSelector from "@/components/brand-studio/FontSelector";
 import { useLanguage } from "@/hooks/useLanguage";
+import { apiRequest } from "@/lib/queryClient";
+import { toast } from "@/hooks/use-toast";
 
 export default function BrandIdentity({
+  brandDesign,
   brandStyles,
   selectedStyle,
   handleStyleSelect,
@@ -56,6 +59,7 @@ export default function BrandIdentity({
   setBlackFaviconPreviewUrl,
 }) {
   const { isSpanish } = useLanguage();
+
   const LogoUploadField = ({
     id,
     label,
@@ -63,6 +67,7 @@ export default function BrandIdentity({
     previewUrl,
     setFile,
     setPreviewUrl,
+    logoType,
   }: {
     id: string;
     label: string;
@@ -70,58 +75,91 @@ export default function BrandIdentity({
     previewUrl: string | null;
     setFile: React.Dispatch<React.SetStateAction<File | null>>;
     setPreviewUrl: React.Dispatch<React.SetStateAction<string | null>>;
-  }) => (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-        {file || previewUrl ? (
-          <div className="mt-2 flex flex-col items-center">
-            {file && (
-              <Badge variant="secondary" className="mb-1">
-                {file.name}
-              </Badge>
-            )}
-            {previewUrl && (
-              <img
-                src={previewUrl}
-                alt={`${label} Preview`}
-                className="max-h-24 max-w-full object-contain mt-1 border rounded-md"
-              />
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setFile(null);
-                setPreviewUrl(null);
-              }}
-              className="mt-2 text-red-500 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4 mr-1" /> Remove
-            </Button>
-          </div>
-        ) : (
-          <Upload className="mx-auto h-8 w-8 text-gray-400" />
-        )}
+    logoType: "whiteLogo" | "blackLogo" | "whiteFavicon" | "blackFavicon";
+  }) => {
+    const handleRemove = async () => {
+      try {
+        // Si ya está en Cloudinary
+        if (previewUrl && previewUrl.startsWith("http") && brandDesign?.id) {
+          const res = await apiRequest(
+            "DELETE",
+            `/api/brand-design/logo/${logoType}?brandDesignId=${brandDesign.id}`,
+          );
 
-        <div className="mt-2">
-          <Label htmlFor={id} className="cursor-pointer">
-            <span className="font-medium text-brand-600 hover:text-brand-500">
-              Upload {label.toLowerCase()}
-            </span>
-            <input
-              id={id}
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) => handleFileUpload(e, setFile, setPreviewUrl)}
-              data-testid={`input-${id}`}
-            />
-          </Label>
+          if (!res.ok) throw new Error("Failed to delete from Cloudinary");
+        }
+
+        // Limpia el estado local
+        setFile(null);
+        setPreviewUrl(null);
+
+        toast({
+          title: isSpanish ? "Eliminado" : "Deleted",
+          description: isSpanish
+            ? `${label} eliminado correctamente`
+            : `${label} deleted successfully`,
+        });
+      } catch (err) {
+        console.error("❌ Error deleting logo:", err);
+        toast({
+          title: isSpanish ? "Error" : "Error",
+          description: isSpanish
+            ? "No se pudo eliminar el archivo"
+            : "Failed to delete file",
+          variant: "destructive",
+        });
+      }
+    };
+
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={id}>{label}</Label>
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+          {file || previewUrl ? (
+            <div className="mt-2 flex flex-col items-center">
+              {file && (
+                <Badge variant="secondary" className="mb-1">
+                  {file.name}
+                </Badge>
+              )}
+              {previewUrl && (
+                <img
+                  src={previewUrl}
+                  alt={`${label} Preview`}
+                  className="max-h-24 max-w-full object-contain mt-1 border rounded-md"
+                />
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRemove}
+                className="mt-2 text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="h-4 w-4 mr-1" /> Remove
+              </Button>
+            </div>
+          ) : (
+            <Upload className="mx-auto h-8 w-8 text-gray-400" />
+          )}
+          <div className="mt-2">
+            <Label htmlFor={id} className="cursor-pointer">
+              <span className="font-medium text-brand-600 hover:text-brand-500">
+                Upload {label.toLowerCase()}
+              </span>
+              <input
+                id={id}
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => handleFileUpload(e, setFile, setPreviewUrl)}
+                data-testid={`input-${id}`}
+              />
+            </Label>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <TabsContent value="brand-identity" className="space-y-6">
@@ -387,6 +425,7 @@ export default function BrandIdentity({
               previewUrl={whiteLogoPreviewUrl}
               setFile={setWhiteLogoFile}
               setPreviewUrl={setWhiteLogoPreviewUrl}
+              logoType="whiteLogo"
             />
             <LogoUploadField
               id="black-logo-upload"
@@ -395,6 +434,7 @@ export default function BrandIdentity({
               previewUrl={blackLogoPreviewUrl}
               setFile={setBlackLogoFile}
               setPreviewUrl={setBlackLogoPreviewUrl}
+              logoType="blackLogo"
             />
             <LogoUploadField
               id="white-favicon-upload"
@@ -403,6 +443,7 @@ export default function BrandIdentity({
               previewUrl={whiteFaviconPreviewUrl}
               setFile={setWhiteFaviconFile}
               setPreviewUrl={setWhiteFaviconPreviewUrl}
+              logoType="whiteFavicon"
             />
             <LogoUploadField
               id="black-favicon-upload"
@@ -411,6 +452,7 @@ export default function BrandIdentity({
               previewUrl={blackFaviconPreviewUrl}
               setFile={setBlackFaviconFile}
               setPreviewUrl={setBlackFaviconPreviewUrl}
+              logoType="blackFavicon"
             />
           </div>
         </CardContent>

@@ -14,6 +14,10 @@ export function mapToDb(data: any): InsertBrandDesign {
     fontSecondary: data.typography?.secondary || null,
     customFonts: data.typography?.customFonts || [],
     logoUrl: data.logoUrl || null,
+    whiteLogoUrl: data.whiteLogoUrl || null,
+    blackLogoUrl: data.blackLogoUrl || null,
+    whiteFaviconUrl: data.whiteFaviconUrl || null,
+    blackFaviconUrl: data.blackFaviconUrl || null,
     assets: data.brandKit?.assets || [],
     isDesignStudioEnabled: data.isDesignStudioEnabled ?? false,
   };
