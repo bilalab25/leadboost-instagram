@@ -130,6 +130,17 @@ export default function AccountTab({
             )}
           </div>
           <div>
+            <Label htmlFor="user-address">
+              {isSpanish ? "Dirección" : "Address"}
+            </Label>
+            <Input
+              id="user-address"
+              value={userAddress}
+              onChange={(e) => setUserAddress(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <div>
             <AddressAutocomplete
               value={userAddress}
               onChange={setUserAddress}
