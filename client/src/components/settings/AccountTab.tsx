@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import { useAuth } from "@/hooks/useAuth";
+import AuthProviderBanner from "./AuthProviderBanner";
 
 interface Props {
   isSpanish: boolean;
@@ -134,6 +135,12 @@ export default function AccountTab({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* 🌈 Mostrar banner si el login es externo */}
+          <AuthProviderBanner
+            provider={provider}
+            email={userEmail}
+            isSpanish={isSpanish}
+          />
           {/* Sección de contraseña */}
           <div className="flex items-center justify-between">
             <div>
