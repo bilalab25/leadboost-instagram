@@ -38,6 +38,17 @@ export default function ChangePasswordDialog({
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast({
+        title: isSpanish ? "Campos incompletos" : "Missing fields",
+        description: isSpanish
+          ? "Por favor completa todos los campos antes de continuar."
+          : "Please fill in all fields before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const auth = getAuth();
     const user = auth.currentUser;
 

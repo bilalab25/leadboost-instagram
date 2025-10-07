@@ -1500,7 +1500,7 @@ export default function Settings() {
                 </TabsContent>
 
                 {/* Global Save Button - Moved outside TabsContent but inside Tabs */}
-                <div className="flex justify-end mt-6">
+                {/*    <div className="flex justify-end mt-6">
                   <Button
                     onClick={handleSaveSettings}
                     className="bg-gradient-to-r from-brand-500 to-purple-600 text-white"
@@ -1509,7 +1509,7 @@ export default function Settings() {
                     <Save className="mr-2 h-4 w-4" />
                     {isSpanish ? "Guardar Configuración" : "Save Settings"}
                   </Button>
-                </div>
+                </div> */}
               </Tabs>
             </div>
             {/* Help AI Chatbot */}
