@@ -848,14 +848,48 @@ export default function Settings() {
     });
   };
 
-  const handleUpdateAccountInfo = () => {
-    console.log("Simulating updating account information...");
-    toast({
-      title: isSpanish ? "Perfil Actualizado" : "Profile Updated",
-      description: isSpanish
-        ? "Tu información de perfil ha sido actualizada."
-        : "Your profile information has been updated.",
-    });
+  const handleUpdateAccountInfo = async () => {
+    try {
+      const [firstName, ...rest] = userName.split(" ");
+      const lastName = rest.join(" ");
+
+      const payload = {
+        firstName,
+        lastName,
+        email: userEmail,
+        phone: userPhone,
+        address: userAddress,
+      };
+
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include", // mantiene la sesión activa
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        toast({
+          title: "✅ Perfil actualizado",
+          description: "Tus cambios se guardaron correctamente.",
+        });
+      } else {
+        const err = await res.json();
+        toast({
+          title: "⚠️ Error al actualizar",
+          description: err.message || "No se pudo actualizar tu perfil.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error actualizando perfil:", error);
+      toast({
+        title: "⚠️ Error inesperado",
+        description: "Intenta de nuevo más tarde.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleChangePassword = () => {
@@ -1000,6 +1034,15 @@ export default function Settings() {
       setUserAddress(user.address || "");
     }
   }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    if (user) {
+      setUserName(`${user.firstName || ""} ${user.lastName || ""}`);
+      setUserEmail(user.email || "");
+      setUserPhone(user.phone || "");
+      setUserAddress(user.address || "");
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50">

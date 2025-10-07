@@ -78,6 +78,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/users/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const allowedFields = [
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "address",
+      ];
+      const updates: any = {};
+
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) updates[field] = req.body[field];
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+
+      const updatedUser = await storage.updateUser(id, updates);
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json({ success: true, user: userWithoutPassword });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+
+      // 👇 Esto es clave: siempre responde JSON
+      res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+
   // Chat routes
   app.use("/api", chatRoutes);
 
