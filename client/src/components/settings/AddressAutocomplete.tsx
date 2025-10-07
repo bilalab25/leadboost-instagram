@@ -11,6 +11,14 @@ export default function AddressAutocomplete({
   isSpanish?: boolean;
 }) {
   const autoRef = useRef<any>(null);
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  // Debug: Check if API key is loaded
+  useEffect(() => {
+    if (!apiKey) {
+      console.error('Google Maps API key is not set. Please add VITE_GOOGLE_MAPS_API_KEY to your environment variables.');
+    }
+  }, [apiKey]);
 
   // Manejar evento de selección
   useEffect(() => {
@@ -33,10 +41,22 @@ export default function AddressAutocomplete({
 
   // Mostrar valor actual si ya existe
   useEffect(() => {
-    if (autoRef.current && value) {
-      const input = autoRef.current.querySelector("input");
-      if (input) input.value = value;
-    }
+    const el = autoRef.current;
+    if (!el || !value) return;
+
+    // Wait for the component to be fully loaded
+    const setDefaultValue = () => {
+      const input = el.querySelector("input");
+      if (input && input.value !== value) {
+        input.value = value;
+      }
+    };
+
+    // Try immediately and also after a short delay to ensure component is ready
+    setDefaultValue();
+    const timeoutId = setTimeout(setDefaultValue, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [value]);
 
   return (
@@ -55,11 +75,10 @@ export default function AddressAutocomplete({
         <gmp-place-autocomplete
           ref={autoRef}
           id="address"
-          api-key={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+          api-key={apiKey}
           placeholder={
             isSpanish ? "Escribe tu dirección..." : "Type your address..."
           }
-          // Hereda tus estilos shadcn
           class="w-full pl-9 rounded-full border border-input bg-background px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary transition-all shadow-sm"
         ></gmp-place-autocomplete>
       </div>
