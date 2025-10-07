@@ -20,6 +20,7 @@ import ChangePasswordDialog from "./ChangePasswordDialog";
 import { useAuth } from "@/hooks/useAuth";
 import AuthProviderBanner from "./AuthProviderBanner";
 import { cn } from "@/lib/utils";
+import AddressAutocomplete from "./AddressAutocomplete";
 
 interface Props {
   isSpanish: boolean;
@@ -129,16 +130,13 @@ export default function AccountTab({
             )}
           </div>
           <div>
-            <Label htmlFor="user-address">
-              {isSpanish ? "Dirección" : "Address"}
-            </Label>
-            <Input
-              id="user-address"
+            <AddressAutocomplete
               value={userAddress}
-              onChange={(e) => setUserAddress(e.target.value)}
-              className="mt-2"
+              onChange={setUserAddress}
+              isSpanish={isSpanish}
             />
           </div>
+
           <Button onClick={handleUpdateAccountInfo}>
             {isSpanish ? "Actualizar Perfil" : "Update Profile"}
           </Button>
