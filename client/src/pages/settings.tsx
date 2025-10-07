@@ -859,6 +859,20 @@ export default function Settings() {
       const [firstName, ...rest] = userName.split(" ");
       const lastName = rest.join(" ");
 
+      const phoneRegex = /^\+?\d{7,15}$/;
+      // ✅ acepta +52 o sin +, y entre 7–15 dígitos
+
+      if (!phoneRegex.test(userPhone)) {
+        toast({
+          title: isSpanish ? "Número inválido" : "Invalid phone number",
+          description: isSpanish
+            ? "Por favor introduce un número de teléfono válido (solo dígitos y opcionalmente el prefijo +)."
+            : "Please enter a valid phone number (digits only, optional + prefix).",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const payload = {
         firstName,
         lastName,

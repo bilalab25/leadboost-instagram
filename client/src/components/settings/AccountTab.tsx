@@ -19,6 +19,7 @@ import {
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import { useAuth } from "@/hooks/useAuth";
 import AuthProviderBanner from "./AuthProviderBanner";
+import { cn } from "@/lib/utils";
 
 interface Props {
   isSpanish: boolean;
@@ -53,6 +54,7 @@ export default function AccountTab({
   const { user } = useAuth();
   const provider = user?.provider || "password";
   const userId = user?.id || "";
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // ✅ Estado del modal de cambio de contraseña
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
@@ -100,9 +102,31 @@ export default function AccountTab({
               id="user-phone"
               type="tel"
               value={userPhone}
-              onChange={(e) => setUserPhone(e.target.value)}
-              className="mt-2"
+              onChange={(e) => {
+                const value = e.target.value;
+                setUserPhone(value);
+
+                // Validación en tiempo real
+                const phoneRegex = /^\+?\d{7,15}$/;
+                if (!phoneRegex.test(value)) {
+                  setPhoneError(
+                    isSpanish
+                      ? "Formato inválido. Usa solo dígitos y opcionalmente el prefijo +."
+                      : "Invalid format. Use digits only, optional + prefix.",
+                  );
+                } else {
+                  setPhoneError(null);
+                }
+              }}
+              className={cn(
+                "mt-2",
+                phoneError ? "border-red-500 focus-visible:ring-red-500" : "",
+              )}
+              placeholder="+52 555 123 4567"
             />
+            {phoneError && (
+              <p className="text-xs text-red-500 mt-1">{phoneError}</p>
+            )}
           </div>
           <div>
             <Label htmlFor="user-address">
@@ -193,7 +217,7 @@ export default function AccountTab({
       </Card>
 
       {/* Gestión de Cuenta */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <SettingsIcon className="mr-2 h-5 w-5" />
@@ -222,7 +246,7 @@ export default function AccountTab({
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }
