@@ -114,10 +114,7 @@ export default function AccountTab({
               className="mt-2"
             />
           </div>
-          <Button
-            className="bg-gradient-to-r from-brand-500 to-purple-600 text-white"
-            onClick={handleUpdateAccountInfo}
-          >
+          <Button onClick={handleUpdateAccountInfo}>
             {isSpanish ? "Actualizar Perfil" : "Update Profile"}
           </Button>
         </CardContent>
