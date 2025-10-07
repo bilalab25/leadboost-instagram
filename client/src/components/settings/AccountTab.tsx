@@ -1,8 +1,23 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Lock, Settings as SettingsIcon } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  User,
+  Lock,
+  Settings as SettingsIcon,
+  AlertCircle,
+} from "lucide-react";
+import ChangePasswordDialog from "./ChangePasswordDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   isSpanish: boolean;
@@ -16,8 +31,6 @@ interface Props {
   setUserPhone: (value: string) => void;
   setUserAddress: (value: string) => void;
   handleUpdateAccountInfo: () => void;
-  handleChangePassword: () => void;
-  handleToggleTwoFactorAuth: () => void;
   handleDeleteAccount: () => void;
 }
 
@@ -33,13 +46,19 @@ export default function AccountTab({
   setUserPhone,
   setUserAddress,
   handleUpdateAccountInfo,
-  handleChangePassword,
-  handleToggleTwoFactorAuth,
   handleDeleteAccount,
 }: Props) {
+  // ✅ Hook de autenticación
+  const { user } = useAuth();
+  const provider = user?.provider || "password";
+  const userId = user?.id || "";
+
+  // ✅ Estado del modal de cambio de contraseña
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+
   return (
     <div className="space-y-6">
-      {/* Profile Information */}
+      {/* Información de Perfil */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -101,7 +120,7 @@ export default function AccountTab({
         </CardContent>
       </Card>
 
-      {/* Security */}
+      {/* Seguridad */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -115,6 +134,7 @@ export default function AccountTab({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Sección de contraseña */}
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-medium">
@@ -126,41 +146,46 @@ export default function AccountTab({
                   : "Change your password regularly to keep your account secure."}
               </p>
             </div>
-            <Button variant="outline" onClick={handleChangePassword}>
+            <Button
+              variant="outline"
+              onClick={() => setIsPasswordDialogOpen(true)}
+              disabled={provider !== "password"}
+              className={
+                provider !== "password" ? "opacity-60 cursor-not-allowed" : ""
+              }
+            >
               {isSpanish ? "Cambiar Contraseña" : "Change Password"}
             </Button>
           </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium">
+
+          {/* Mostrar alerta si el proveedor no es "password" */}
+          {provider !== "password" && (
+            <Alert className="mt-3 border-yellow-300 bg-yellow-50">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertTitle className="font-semibold text-yellow-700">
                 {isSpanish
-                  ? "Autenticación de Dos Factores"
-                  : "Two-Factor Authentication"}
-              </h4>
-              <p className="text-sm text-muted-foreground">
+                  ? "Cambio de contraseña no disponible"
+                  : "Password change not available"}
+              </AlertTitle>
+              <AlertDescription className="text-yellow-700">
                 {isSpanish
-                  ? "Añade una capa extra de seguridad a tu cuenta."
-                  : "Add an extra layer of security to your account."}
-              </p>
-            </div>
-            <Button
-              variant={twoFactorAuthEnabled ? "destructive" : "default"}
-              onClick={handleToggleTwoFactorAuth}
-            >
-              {twoFactorAuthEnabled
-                ? isSpanish
-                  ? "Desactivar"
-                  : "Disable"
-                : isSpanish
-                  ? "Activar"
-                  : "Enable"}{" "}
-              2FA
-            </Button>
-          </div>
+                  ? "Tu cuenta usa un proveedor externo (Google, Apple o Microsoft). Debes cambiar tu contraseña desde ese servicio."
+                  : "Your account uses an external provider (Google, Apple, or Microsoft). Please change your password from that service."}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Modal de cambio de contraseña */}
+          <ChangePasswordDialog
+            open={isPasswordDialogOpen}
+            onOpenChange={setIsPasswordDialogOpen}
+            userId={userId}
+            isSpanish={isSpanish}
+          />
         </CardContent>
       </Card>
 
-      {/* Account Management */}
+      {/* Gestión de Cuenta */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
