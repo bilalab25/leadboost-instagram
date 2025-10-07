@@ -40,6 +40,12 @@ import PaymentMethodTab from "@/components/settings/PaymentMethodsTab";
 import HelpChatbot from "@/components/HelpChatbot";
 import IntegrationsTab from "@/components/settings/IntegrationsTab";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  EmailAuthProvider,
+  getAuth,
+  reauthenticateWithCredential,
+  updatePassword,
+} from "firebase/auth";
 
 // --- Interfaces (solo para tipado de datos simulados) ---
 interface PaymentMethod {
@@ -892,15 +898,96 @@ export default function Settings() {
     }
   };
 
-  const handleChangePassword = () => {
-    console.log("Simulating changing password...");
-    toast({
-      title: isSpanish ? "Cambiar Contraseña" : "Change Password",
-      description: isSpanish
-        ? "Funcionalidad para cambiar contraseña."
-        : "Functionality to change password.",
-    });
-  };
+  async function handleChangePassword() {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        toast({
+          title: "No autenticado",
+          description: "Debes iniciar sesión para cambiar tu contraseña.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Verificar proveedor (para evitar el cambio si es Google/Apple/Microsoft)
+      const providerId = user.providerData[0]?.providerId;
+      if (providerId !== "password") {
+        toast({
+          title: "Cambio de contraseña no disponible",
+          description:
+            "Tu cuenta usa un proveedor externo (Google, Apple o Microsoft). Por favor cambia tu contraseña desde ese servicio.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // ✅ Pedir nueva contraseña
+      const newPassword = prompt("Introduce tu nueva contraseña:");
+      if (!newPassword) {
+        toast({
+          title: "Operación cancelada",
+          description: "No se cambió la contraseña.",
+        });
+        return;
+      }
+
+      // 🔑 Pedir contraseña actual para reautenticar (seguridad)
+      const currentPassword = prompt(
+        "Introduce tu contraseña actual para confirmar:",
+      );
+
+      if (!currentPassword) {
+        toast({
+          title: "Operación cancelada",
+          description: "Debes ingresar tu contraseña actual para continuar.",
+        });
+        return;
+      }
+
+      // 🔐 Reautenticar
+      const credential = EmailAuthProvider.credential(
+        user.email!,
+        currentPassword,
+      );
+      await reauthenticateWithCredential(user, credential);
+
+      // 🚀 Actualizar contraseña
+      await updatePassword(user, newPassword);
+
+      // (Opcional) — notificar al backend para actualizar updatedAt
+      await fetch(`/api/users/${user.uid}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updatedAt: new Date().toISOString() }),
+      });
+
+      toast({
+        title: "Contraseña actualizada",
+        description: "Tu contraseña ha sido cambiada correctamente.",
+      });
+    } catch (error: any) {
+      console.error("Error cambiando contraseña:", error);
+      let message = "Ocurrió un error inesperado.";
+
+      if (error.code === "auth/wrong-password") {
+        message = "La contraseña actual es incorrecta.";
+      } else if (error.code === "auth/weak-password") {
+        message = "La nueva contraseña es demasiado débil.";
+      } else if (error.code === "auth/requires-recent-login") {
+        message =
+          "Por seguridad, vuelve a iniciar sesión antes de cambiar tu contraseña.";
+      }
+
+      toast({
+        title: "Error al cambiar contraseña",
+        description: message,
+        variant: "destructive",
+      });
+    }
+  }
 
   const handleToggleTwoFactorAuth = () => {
     setTwoFactorAuthEnabled((prev) => !prev);
