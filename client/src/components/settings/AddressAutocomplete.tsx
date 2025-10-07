@@ -1,39 +1,48 @@
 import { useEffect, useRef } from "react";
 import { MapPin } from "lucide-react";
 
+interface AddressAutocompleteProps {
+  value: string;
+  onChange: (val: string) => void;
+  isSpanish?: boolean;
+}
+
 export default function AddressAutocomplete({
   value,
   onChange,
   isSpanish = true,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  isSpanish?: boolean;
-}) {
-  const autoRef = useRef<any>(null);
+}: AddressAutocompleteProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
-    const el = autoRef.current;
-    if (!el) return;
+    // Esperar a que Google Maps esté disponible
+    if (!window.google?.maps?.places || !inputRef.current) return;
 
-    const handleSelect = async (event: any) => {
-      event.preventDefault();
-      const place = await event.place?.fetchFields({
-        fields: ["formattedAddress"],
-      });
-      if (place?.formattedAddress) onChange(place.formattedAddress);
-    };
+    // Inicializar autocomplete
+    autocompleteRef.current = new google.maps.places.Autocomplete(
+      inputRef.current,
+      {
+        types: ["geocode"],
+        componentRestrictions: { country: "mx" },
+      },
+    );
 
-    el.addEventListener("gmp-placeselect", handleSelect);
+    // Manejar selección
+    autocompleteRef.current.addListener("place_changed", () => {
+      const place = autocompleteRef.current?.getPlace();
+      if (place?.formatted_address) {
+        onChange(place.formatted_address);
+      }
+    });
+  }, [onChange]);
 
-    // sincronizar valor si ya hay uno
-    if (value) {
-      const input = el.shadowRoot?.querySelector("input");
-      if (input) input.value = value;
+  // Mostrar dirección si ya existe
+  useEffect(() => {
+    if (inputRef.current && value) {
+      inputRef.current.value = value;
     }
-
-    return () => el.removeEventListener("gmp-placeselect", handleSelect);
-  }, [onChange, value]);
+  }, [value]);
 
   return (
     <div className="w-full">
@@ -47,17 +56,17 @@ export default function AddressAutocomplete({
       <div className="relative w-full">
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
 
-        <gmp-place-autocomplete
-          ref={autoRef}
+        <input
+          ref={inputRef}
           id="address"
-          api-key={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+          type="text"
+          defaultValue={value}
+          onChange={(e) => onChange(e.target.value)}
           placeholder={
             isSpanish ? "Escribe tu dirección..." : "Type your address..."
           }
-          // estilos clave para hacerlo editable
-          class="block w-full pl-9 rounded-full border border-input bg-background px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary transition-all shadow-sm min-h-[42px]"
-          style={{ zIndex: 1, display: "block", width: "100%" }}
-        ></gmp-place-autocomplete>
+          className="block w-full pl-9 rounded-full border border-input bg-background px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary transition-all shadow-sm min-h-[42px]"
+        />
       </div>
     </div>
   );

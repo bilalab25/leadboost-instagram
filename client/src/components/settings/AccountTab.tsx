@@ -129,7 +129,7 @@ export default function AccountTab({
               <p className="text-xs text-red-500 mt-1">{phoneError}</p>
             )}
           </div>
-          <div>
+          {/*   <div>
             <Label htmlFor="user-address">
               {isSpanish ? "Dirección" : "Address"}
             </Label>
@@ -139,7 +139,7 @@ export default function AccountTab({
               onChange={(e) => setUserAddress(e.target.value)}
               className="mt-2"
             />
-          </div>
+          </div> */}
           <div>
             <AddressAutocomplete
               value={userAddress}
