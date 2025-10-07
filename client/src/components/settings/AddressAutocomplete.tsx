@@ -1,47 +1,44 @@
 import { useEffect, useRef } from "react";
 import { MapPin } from "lucide-react";
-
-interface AddressAutocompleteProps {
-  value: string;
-  onChange: (val: string) => void;
-  isSpanish?: boolean;
-}
+import { loadGoogleMapsScript } from "@/utils/loadGoogleMaps";
 
 export default function AddressAutocomplete({
   value,
   onChange,
   isSpanish = true,
-}: AddressAutocompleteProps) {
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  isSpanish?: boolean;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
-    // Esperar a que Google Maps esté disponible
-    if (!window.google?.maps?.places || !inputRef.current) return;
+    loadGoogleMapsScript()
+      .then(() => {
+        if (!window.google?.maps?.places || !inputRef.current) return;
 
-    // Inicializar autocomplete
-    autocompleteRef.current = new google.maps.places.Autocomplete(
-      inputRef.current,
-      {
-        types: ["geocode"],
-        componentRestrictions: { country: "mx" },
-      },
-    );
+        autocompleteRef.current = new google.maps.places.Autocomplete(
+          inputRef.current,
+          {
+            types: ["geocode"],
+            componentRestrictions: { country: "mx" },
+          },
+        );
 
-    // Manejar selección
-    autocompleteRef.current.addListener("place_changed", () => {
-      const place = autocompleteRef.current?.getPlace();
-      if (place?.formatted_address) {
-        onChange(place.formatted_address);
-      }
-    });
+        autocompleteRef.current.addListener("place_changed", () => {
+          const place = autocompleteRef.current?.getPlace();
+          if (place?.formatted_address) {
+            onChange(place.formatted_address);
+          }
+        });
+      })
+      .catch((err) => console.error("Error loading Google Maps script:", err));
   }, [onChange]);
 
-  // Mostrar dirección si ya existe
   useEffect(() => {
-    if (inputRef.current && value) {
-      inputRef.current.value = value;
-    }
+    if (inputRef.current && value) inputRef.current.value = value;
   }, [value]);
 
   return (
@@ -60,8 +57,6 @@ export default function AddressAutocomplete({
           ref={inputRef}
           id="address"
           type="text"
-          defaultValue={value}
-          onChange={(e) => onChange(e.target.value)}
           placeholder={
             isSpanish ? "Escribe tu dirección..." : "Type your address..."
           }
