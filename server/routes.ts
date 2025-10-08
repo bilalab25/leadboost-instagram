@@ -1434,20 +1434,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/facebook/login", (req, res) => {
-    const redirect_uri = encodeURIComponent(
-      "https://leadboostinc.replit.app/api/facebook/callback",
-    );
-    const appId = process.env.FB_APP_ID_AUTH; // 👈 app de tipo "Facebook Login"
-    const scopes = ["public_profile", "email"].join(",");
-
-    const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirect_uri}&scope=${scopes}`;
-    res.redirect(authUrl);
-  });
-
-  /* 
-  app.get("/api/integrations/facebook/connect", isAuthenticated, (req, res) => {
-    const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
+  // Facebook Integration - Step 1: Initiate OAuth
+  app.get("/api/integrations/facebook/connect", isAuthenticated, (req: any, res) => {
+    const redirectUri = `${process.env.APP_URL || 'https://leadboostinc.replit.app'}/api/integrations/facebook/callback`;
     const clientId = process.env.FB_APP_ID;
 
     const scopes = [
@@ -1462,73 +1451,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri,
-    )}&scope=${scopes}&state=${req.user.id}`;
+    )}&scope=${scopes}&state=${req.user?.id}`;
 
     res.redirect(authUrl);
   });
- */
-  app.get("/api/facebook/callback", async (req, res) => {
-    const code = req.query.code as string;
-    const redirect_uri =
-      "https://leadboostinc.replit.app/api/facebook/callback";
 
-    const tokenResponse = await fetch(
-      `https://graph.facebook.com/v22.0/oauth/access_token?client_id=${process.env.FB_APP_ID_AUTH}&redirect_uri=${redirect_uri}&client_secret=${process.env.FB_APP_SECRET_AUTH}&code=${code}`,
-    );
-    const tokenData = await tokenResponse.json();
-
-    const userResponse = await fetch(
-      `https://graph.facebook.com/me?fields=id,name,email&access_token=${tokenData.access_token}`,
-    );
-    const userData = await userResponse.json();
-
-    // 👉 Guarda el user_access_token temporalmente en DB
-    // (este se usará en el paso 2)
-    await db.saveFacebookAuthToken({
-      userId: req.user.id,
-      accessToken: tokenData.access_token,
-      expiresIn: tokenData.expires_in,
-    });
-
-    res.redirect("/settings/integrations"); // o donde quieras enviar al usuario
-  });
-
-  // backend/routes/facebook-pages.ts
-  app.get("/api/facebook/pages", async (req, res) => {
+  // Facebook Integration - Step 2: Handle OAuth callback
+  app.get("/api/integrations/facebook/callback", async (req, res) => {
     try {
-      const userToken = await db.getFacebookAuthToken(req.user.id);
+      const code = req.query.code as string;
+      const userId = req.query.state as string;
+      const redirectUri = `${process.env.APP_URL || 'https://leadboostinc.replit.app'}/api/integrations/facebook/callback`;
 
-      const response = await fetch(
-        `https://graph.facebook.com/v22.0/me/accounts?access_token=${userToken}`,
+      if (!code || !userId) {
+        return res.redirect("/settings/integrations?error=missing_params");
+      }
+
+      // Exchange code for user access token
+      const tokenRes = await axios.get(
+        "https://graph.facebook.com/v22.0/oauth/access_token",
+        {
+          params: {
+            client_id: process.env.FB_APP_ID,
+            client_secret: process.env.FB_APP_SECRET,
+            redirect_uri: redirectUri,
+            code,
+          },
+        },
       );
-      const data = await response.json();
 
-      // Esto devuelve un array con las páginas y su page_access_token
-      // Ejemplo: data.data[0].access_token
-      await db.saveFacebookPages(req.user.id, data.data);
+      const userAccessToken = tokenRes.data.access_token;
 
-      res.json(data);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Error fetching Facebook pages" });
+      // Get user's Facebook pages
+      const pagesRes = await axios.get(
+        "https://graph.facebook.com/v22.0/me/accounts",
+        { params: { access_token: userAccessToken } },
+      );
+
+      const pages = pagesRes.data.data;
+
+      // Save each page as a separate integration
+      for (const page of pages) {
+        const { id: pageId, name, access_token } = page;
+
+        // Check if integration already exists
+        const existing = await storage.getIntegrationByPageId(pageId, userId);
+        
+        if (existing) {
+          // Update existing integration
+          await storage.updateIntegration(existing.id, {
+            accessToken: access_token,
+            isActive: true,
+            lastSyncAt: new Date(),
+          });
+        } else {
+          // Create new integration
+          await storage.createIntegration({
+            userId,
+            provider: "facebook",
+            category: "social_media",
+            storeName: name,
+            storeUrl: `https://facebook.com/${pageId}`,
+            pageId,
+            accessToken: access_token,
+            isActive: true,
+            syncEnabled: true,
+            settings: {},
+          });
+        }
+      }
+
+      res.redirect("/settings/integrations?success=facebook_connected");
+    } catch (error) {
+      console.error("Facebook callback error:", error);
+      res.redirect("/settings/integrations?error=facebook_failed");
     }
   });
 
-  app.post("/api/facebook/publish", async (req, res) => {
-    const { pageId, message } = req.body;
-    const pageToken = await db.getFacebookPageToken(pageId);
+  // Get all integrations for a user
+  app.get("/api/integrations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
 
-    const postResponse = await fetch(
-      `https://graph.facebook.com/${pageId}/feed`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, access_token: pageToken }),
-      },
-    );
+      const integrations = await storage.getIntegrationsByUserId(userId);
+      res.json(integrations);
+    } catch (error) {
+      console.error("Error fetching integrations:", error);
+      res.status(500).json({ error: "Failed to fetch integrations" });
+    }
+  });
 
-    const result = await postResponse.json();
-    res.json(result);
+  // Delete an integration
+  app.delete("/api/integrations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const deleted = await storage.deleteIntegration(id, userId);
+      if (deleted) {
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ error: "Integration not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting integration:", error);
+      res.status(500).json({ error: "Failed to delete integration" });
+    }
+  });
+
+  // Publish to Facebook page
+  app.post("/api/facebook/publish", isAuthenticated, async (req: any, res) => {
+    try {
+      const { pageId, message } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId || !pageId || !message) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Get the integration to access the page token
+      const integration = await storage.getIntegrationByPageId(pageId, userId);
+      
+      if (!integration || !integration.accessToken) {
+        return res.status(404).json({ error: "Facebook page integration not found" });
+      }
+
+      const postResponse = await fetch(
+        `https://graph.facebook.com/${pageId}/feed`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            message, 
+            access_token: integration.accessToken 
+          }),
+        },
+      );
+
+      const result = await postResponse.json();
+      
+      if (result.error) {
+        return res.status(400).json({ error: result.error.message });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Facebook publish error:", error);
+      res.status(500).json({ error: "Failed to publish to Facebook" });
+    }
   });
 
   // Calendar integration routes
