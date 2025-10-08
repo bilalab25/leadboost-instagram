@@ -1012,28 +1012,29 @@ export const appointmentServices = pgTable("appointment_services", {
 });
 
 // @shared/schema.ts
+// Integration table schema - matches PostgreSQL structure exactly
 export const integrations = pgTable("integrations", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
-  provider: varchar("provider").notNull(),
+  userId: varchar("user_id").notNull(), // Maps to: user_id
+  provider: varchar("provider").notNull(), // Maps to: provider
   category: varchar("category").notNull().default("social"),
-  storeName: varchar("store_name").notNull(),
-  storeUrl: varchar("store_url"),
-  pageId: varchar("page_id"),
-  accessToken: text("access_token"),
-  refreshToken: text("refresh_token"),
-  isActive: boolean("is_active").default(true),
-  syncEnabled: boolean("sync_enabled").default(true),
-  lastSyncAt: timestamp("last_sync_at"),
-  settings: jsonb("settings").default({}),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  accountName: text("account_name"),
-  accountId: text("account_id"),
-  expiresAt: timestamp("expires_at"),
-  metadata: text("metadata"),
+  storeName: varchar("store_name").notNull(), // Maps to: store_name
+  storeUrl: varchar("store_url"), // Maps to: store_url
+  pageId: varchar("page_id"), // Maps to: page_id
+  accessToken: text("access_token"), // Maps to: access_token (TEXT, nullable)
+  refreshToken: text("refresh_token"), // Maps to: refresh_token
+  isActive: boolean("is_active").default(true), // Maps to: is_active
+  syncEnabled: boolean("sync_enabled").default(true), // Maps to: sync_enabled
+  lastSyncAt: timestamp("last_sync_at"), // Maps to: last_sync_at
+  settings: jsonb("settings").default({}), // Maps to: settings
+  createdAt: timestamp("created_at").defaultNow(), // Maps to: created_at
+  updatedAt: timestamp("updated_at").defaultNow(), // Maps to: updated_at
+  accountName: text("account_name"), // Maps to: account_name
+  accountId: text("account_id"), // Maps to: account_id
+  expiresAt: timestamp("expires_at"), // Maps to: expires_at
+  metadata: text("metadata"), // Maps to: metadata
 });
 
 // Scheduled Appointments

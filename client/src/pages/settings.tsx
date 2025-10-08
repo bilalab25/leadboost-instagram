@@ -1169,6 +1169,28 @@ export default function Settings() {
     }
   }, [user]);
 
+  useEffect(() => {
+    const fetchIntegrations = async () => {
+      try {
+        const res = await fetch("/api/integrations");
+        if (!res.ok) throw new Error("Failed to fetch integrations");
+
+        const data = await res.json();
+        console.log("🔌 Integrations fetched:", data);
+
+        // ✅ Guardar en el estado que ya definiste con React Query
+        if (Array.isArray(data)) {
+          // Esto actualiza tu cache react-query automáticamente
+          setIntegrations(data);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching integrations:", error);
+      }
+    };
+
+    fetchIntegrations();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={isSpanish ? "Configuración" : "Settings"} />

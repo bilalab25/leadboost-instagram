@@ -1455,15 +1455,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/integrations/facebook/callback", async (req, res) => {
     try {
-      console.log("✅ Facebook callback hit:", req.query);
-
       const { code, state } = req.query;
       if (!code) return res.status(400).send("Missing code");
 
-      // 🔹 IMPORTANTE: Asegúrate que coincida EXACTAMENTE con el redirect_uri configurado en Facebook Developer
       const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
-
-      // 🔹 Paso 1: Intercambiar el code por el access_token del usuario
       const tokenResponse = await fetch(
         `https://graph.facebook.com/v22.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
           redirect_uri,
@@ -1471,28 +1466,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const tokenData = await tokenResponse.json();
-      console.log("📦 Token data:", tokenData);
 
       if (tokenData.error) {
         console.error("❌ Facebook token error:", tokenData.error);
         return res.status(500).json(tokenData.error);
       }
-
-      // 🔹 Paso 2: Obtener los datos básicos del usuario autenticado
       const userResponse = await fetch(
         `https://graph.facebook.com/me?fields=id,name,email&access_token=${tokenData.access_token}`,
       );
       const userData = await userResponse.json();
-      console.log("👤 User data:", userData);
-
-      // 🔹 Paso 3: Calcular la fecha de expiración del token
       const expiresAt = dayjs().add(tokenData.expires_in, "seconds").toDate();
 
-      // 🔹 Paso 4: Guardar o actualizar integración en la BD
       await storage.createOrUpdateIntegration({
         userId: state as string,
         provider: "facebook",
-        category: "social", // ✅ debe verse en consola
+        category: "social",
         storeName: "Facebook",
         accessToken: tokenData.access_token,
         accountName: userData.name,
@@ -1501,22 +1489,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fbUserId: userData.id,
           fbUserName: userData.name,
         },
+        expiresAt: expiresAt,
       });
 
-      console.log("📤 Integration payload enviado:", {
-        userId: state,
-        provider: "facebook",
-        category: "social",
-        storeName: "Facebook",
-      });
-
-      console.log("✅ Facebook integration saved/updated successfully");
-
-      // 🔹 Paso 5: Redirigir al usuario de nuevo al frontend
-      res.redirect("/settings/integrations?connected=facebook");
+      res.redirect("/settings");
     } catch (err) {
       console.error("❌ Callback error:", err);
       res.status(500).send("Error in Facebook callback");
+    }
+  });
+
+  app.get("/api/integrations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      // ✅ Usa el método del storage (más limpio y consistente)
+      const userIntegrations = await storage.getIntegrations(userId);
+      console.log(userIntegrations);
+      res.status(200).json(userIntegrations);
+    } catch (error) {
+      console.error("❌ Error fetching integrations:", error);
+      res.status(500).json({ error: "Failed to fetch integrations" });
     }
   });
 

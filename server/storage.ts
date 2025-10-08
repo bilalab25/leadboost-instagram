@@ -1328,51 +1328,63 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrUpdateIntegration(data: any) {
-    console.log("📥 createOrUpdateIntegration() recibió:", data);
     const existing = await db
       .select()
       .from(integrations)
       .where(
         and(
           eq(integrations.provider, data.provider),
-          eq(integrations.userId, data.userId)
-        )
+          eq(integrations.userId, data.userId),
+        ),
       );
 
     if (existing.length > 0) {
-      console.log("🔁 Updating existing integration...");
       await db
         .update(integrations)
         .set({
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-          accountName: data.accountName,
-          accountId: data.accountId,
-          settings: data.settings,
-          isActive: true,
-          updatedAt: new Date(),
+          accessToken: data.accessToken, // Drizzle maps to: access_token
+          refreshToken: data.refreshToken, // Drizzle maps to: refresh_token
+          accountName: data.accountName, // Drizzle maps to: account_name
+          accountId: data.accountId, // Drizzle maps to: account_id
+          settings: data.settings, // Drizzle maps to: settings
+          isActive: true, // Drizzle maps to: is_active
+          updatedAt: new Date(), // Drizzle maps to: updated_at
         })
         .where(
           and(
             eq(integrations.provider, data.provider),
-            eq(integrations.userId, data.userId)
-          )
+            eq(integrations.userId, data.userId),
+          ),
         );
     } else {
-      console.log("🆕 Creating new integration...");
       await db.insert(integrations).values({
-        userId: data.userId,
-        provider: data.provider,
-        category: data.category ?? "social",
-        storeName: data.storeName ?? "Facebook",
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken ?? null,
-        isActive: true,
-        syncEnabled: true,
-        accountName: data.accountName ?? null,
-        accountId: data.accountId ?? null,
-        settings: data.settings ?? {},
+        userId: data.userId, // Drizzle maps to: user_id
+        provider: data.provider, // Drizzle maps to: provider
+        category: data.category ?? "social", // Drizzle maps to: category
+        storeName: data.storeName ?? "Facebook", // Drizzle maps to: store_name
+        accessToken: data.accessToken, // Drizzle maps to: access_token
+        refreshToken: data.refreshToken ?? null, // Drizzle maps to: refresh_token
+        isActive: true, // Drizzle maps to: is_active
+        syncEnabled: true, // Drizzle maps to: sync_enabled
+        accountName: data.accountName ?? null, // Drizzle maps to: account_name
+        accountId: data.accountId ?? null, // Drizzle maps to: account_id
+        settings: data.settings ?? {}, // Drizzle maps to: settings
       });
+    }
+  }
+
+  async getIntegrations(userId: string) {
+    try {
+      const result = await db
+        .select()
+        .from(integrations)
+        .where(eq(integrations.userId, userId))
+        .orderBy(desc(integrations.createdAt));
+
+      return result;
+    } catch (error) {
+      console.error("❌ Error fetching integrations:", error);
+      throw new Error("Failed to fetch integrations");
     }
   }
 

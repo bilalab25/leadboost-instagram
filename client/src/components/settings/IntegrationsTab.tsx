@@ -73,7 +73,6 @@ export default function IntegrationsTab({
   integrationsLoading,
   handleSyncProducts,
   handleDeleteIntegration,
-  refetchIntegrations,
 }) {
   const { isSpanish } = useLanguage(); // Assuming useLanguage hook is available
 
@@ -87,8 +86,8 @@ export default function IntegrationsTab({
     const timer = setInterval(() => {
       if (popup?.closed) {
         clearInterval(timer);
-        // Refetch integrations after Facebook OAuth completes
-        refetchIntegrations();
+        // 🔄 Refresca la lista de integraciones (usa tu método actual)
+        window.location.reload(); // o usa un fetch de integraciones si ya tienes uno
       }
     }, 1000);
   };
@@ -456,18 +455,22 @@ export default function IntegrationsTab({
                                       info.category === "social_media",
                                   )
                                   .map(([providerKey, providerInfo]) => {
-                                    const isConnected = integrations.some(
-                                      (int) => int.provider === providerKey,
-                                    );
-                                    const IconComponent = providerInfo.icon;
+                                    const connectedIntegration =
+                                      integrations.find(
+                                        (int) =>
+                                          int.provider === providerKey &&
+                                          int.isActive,
+                                      );
+
+                                    const Icon = providerInfo.icon;
 
                                     return (
                                       <div
                                         key={providerKey}
-                                        className="flex items-center justify-between p-4 border rounded-lg"
+                                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition"
                                       >
                                         <div className="flex items-center gap-3">
-                                          <IconComponent className="h-8 w-8 text-primary" />
+                                          <Icon className="h-8 w-8 text-primary" />
                                           <div>
                                             <h3 className="font-semibold">
                                               {providerInfo.name}
@@ -475,51 +478,45 @@ export default function IntegrationsTab({
                                             <p className="text-sm text-muted-foreground">
                                               {providerInfo.description}
                                             </p>
+                                            {connectedIntegration && (
+                                              <p className="text-xs text-green-600 mt-1">
+                                                ✅{" "}
+                                                {isSpanish
+                                                  ? "Conectado como"
+                                                  : "Connected as"}{" "}
+                                                {connectedIntegration.accountName ||
+                                                  connectedIntegration.storeName}
+                                              </p>
+                                            )}
                                           </div>
                                         </div>
-                                        <div>
-                                          {isConnected ? (
-                                            <Badge
-                                              variant="default"
-                                              className="bg-green-500 hover:bg-green-600"
-                                            >
-                                              {isSpanish
-                                                ? "Conectado"
-                                                : "Connected"}
-                                            </Badge>
-                                          ) : providerKey === "facebook" ? (
-                                            <Button
-                                              size="sm"
-                                              onClick={handleConnectFacebook}
-                                              className="bg-[#1877F2] hover:bg-[#166FE0] text-white"
-                                            >
-                                              <IconComponent className="mr-2 h-4 w-4" />
-                                              {isSpanish
-                                                ? "Conectar con Facebook"
-                                                : "Connect Facebook"}
-                                            </Button>
-                                          ) : (
-                                            <Button
-                                              size="sm"
-                                              onClick={() => {
-                                                setDialogSelectedCategory(
-                                                  "social_media",
-                                                );
-                                                setDialogSelectedProvider(
-                                                  providerKey,
-                                                );
-                                                setIsAddIntegrationDialogOpen(
-                                                  true,
-                                                );
-                                              }}
-                                            >
-                                              <Plus className="mr-2 h-4 w-4" />
-                                              {isSpanish
-                                                ? "Integrar"
-                                                : "Integrate"}
-                                            </Button>
-                                          )}
-                                        </div>
+
+                                        {connectedIntegration ? (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleDeleteIntegration(
+                                                connectedIntegration.id,
+                                              )
+                                            }
+                                            className="text-red-600 border-red-400 hover:bg-red-50"
+                                          >
+                                            {isSpanish
+                                              ? "Desconectar"
+                                              : "Disconnect"}
+                                          </Button>
+                                        ) : (
+                                          <Button
+                                            size="sm"
+                                            onClick={() =>
+                                              (window.location.href =
+                                                "/api/integrations/facebook/connect")
+                                            }
+                                          >
+                                            Conectar
+                                          </Button>
+                                        )}
                                       </div>
                                     );
                                   })}
