@@ -1017,7 +1017,7 @@ export const integrations = pgTable("integrations", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   provider: varchar("provider", { length: 50 }).notNull(), // "facebook", "instagram"
-  accountName: varchar("account_name", { length: 255 }),
+  accountName: varchar("account_name"), // ← agrega esta línea
   accountId: varchar("account_id", { length: 255 }),
   accessToken: varchar("access_token", { length: 2048 }),
   refreshToken: varchar("refresh_token", { length: 2048 }),

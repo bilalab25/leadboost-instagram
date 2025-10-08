@@ -311,7 +311,10 @@ export interface IStorage {
   createIntegration(integration: InsertIntegration): Promise<Integration>;
   getIntegrationsByUserId(userId: string): Promise<Integration[]>;
   getIntegrationById(id: string): Promise<Integration | undefined>;
-  getIntegrationByPageId(pageId: string, userId: string): Promise<Integration | undefined>;
+  getIntegrationByPageId(
+    pageId: string,
+    userId: string,
+  ): Promise<Integration | undefined>;
   updateIntegration(
     id: string,
     updates: Partial<Integration>,
@@ -1328,9 +1331,11 @@ export class DatabaseStorage implements IStorage {
     const existing = await db
       .select()
       .from(integrations)
-      .where(eq(integrations.pageId, data.pageId));
+      .where(eq(integrations.provider, data.provider))
+      .where(eq(integrations.userId, data.userId));
 
     if (existing.length > 0) {
+      console.log("🔁 Updating existing integration...");
       await db
         .update(integrations)
         .set({
@@ -1338,9 +1343,27 @@ export class DatabaseStorage implements IStorage {
           isActive: true,
           updatedAt: new Date(),
         })
-        .where(eq(integrations.pageId, data.pageId));
+        .where(eq(integrations.provider, data.provider))
+        .where(eq(integrations.userId, data.userId));
     } else {
-      await db.insert(integrations).values(data);
+      console.log("🆕 Creating new integration...");
+      await db.insert(integrations).values({
+        userId: data.userId,
+        provider: data.provider,
+        category: data.category ?? "social", // ✅ default para Facebook
+        storeName: data.storeName ?? "Facebook", // ✅ default
+        storeUrl: data.storeUrl ?? null,
+        pageId: data.pageId ?? null,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken ?? null,
+        isActive: true,
+        syncEnabled: true,
+        settings: data.settings ?? {},
+        accountName: data.accountName ?? data.metadata?.fbUserName ?? null,
+        accountId: data.accountId ?? data.metadata?.fbUserId ?? null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
     }
   }
 

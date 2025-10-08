@@ -37,6 +37,7 @@ import cloudinary from "./cloudinary";
 import { db } from "./db";
 import { brandDesigns } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
+import dayjs from "dayjs";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -1452,31 +1453,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect(authUrl);
   });
 
-  app.get("/api/facebook/callback", async (req, res) => {
-    const code = req.query.code as string;
-    const redirect_uri =
-      "https://https://e2a6ecc1-e44e-4634-b2d3-3ca60908e27c-00-2cy2pxmnmgrpe.riker.replit.dev/api/facebook/callback";
+  app.get("/api/integrations/facebook/callback", async (req, res) => {
+    try {
+      console.log("✅ Facebook callback hit:", req.query);
 
-    const tokenResponse = await fetch(
-      `https://graph.facebook.com/v22.0/oauth/access_token?client_id=${process.env.FB_APP_ID_AUTH}&redirect_uri=${redirect_uri}&client_secret=${process.env.FB_APP_SECRET_AUTH}&code=${code}`,
-    );
-    const tokenData = await tokenResponse.json();
+      const { code, state } = req.query;
+      if (!code) return res.status(400).send("Missing code");
 
-    console.log(tokenData);
-    const userResponse = await fetch(
-      `https://graph.facebook.com/me?fields=id,name,email&access_token=${tokenData.access_token}`,
-    );
-    const userData = await userResponse.json();
+      // 🔹 IMPORTANTE: Asegúrate que coincida EXACTAMENTE con el redirect_uri configurado en Facebook Developer
+      const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
 
-    // 👉 Guarda el user_access_token temporalmente en DB
-    // (este se usará en el paso 2)
-    await db.saveFacebookAuthToken({
-      userId: req.user.id,
-      accessToken: tokenData.access_token,
-      expiresIn: tokenData.expires_in,
-    });
+      // 🔹 Paso 1: Intercambiar el code por el access_token del usuario
+      const tokenResponse = await fetch(
+        `https://graph.facebook.com/v22.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
+          redirect_uri,
+        )}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`,
+      );
 
-    res.redirect("/settings/integrations"); // o donde quieras enviar al usuario
+      const tokenData = await tokenResponse.json();
+      console.log("📦 Token data:", tokenData);
+
+      if (tokenData.error) {
+        console.error("❌ Facebook token error:", tokenData.error);
+        return res.status(500).json(tokenData.error);
+      }
+
+      // 🔹 Paso 2: Obtener los datos básicos del usuario autenticado
+      const userResponse = await fetch(
+        `https://graph.facebook.com/me?fields=id,name,email&access_token=${tokenData.access_token}`,
+      );
+      const userData = await userResponse.json();
+      console.log("👤 User data:", userData);
+
+      // 🔹 Paso 3: Calcular la fecha de expiración del token
+      const expiresAt = dayjs().add(tokenData.expires_in, "seconds").toDate();
+
+      // 🔹 Paso 4: Guardar o actualizar integración en la BD
+      await storage.createOrUpdateIntegration({
+        userId: state as string,
+        provider: "facebook",
+        category: "social", // ✅ agregado
+        storeName: "Facebook", // ✅ agregado
+        accessToken: tokenData.access_token,
+        accountName: userData.name,
+        accountId: userData.id,
+        settings: {
+          fbUserId: userData.id,
+          fbUserName: userData.name,
+        },
+      });
+
+      console.log("✅ Facebook integration saved/updated successfully");
+
+      // 🔹 Paso 5: Redirigir al usuario de nuevo al frontend
+      res.redirect("/settings/integrations?connected=facebook");
+    } catch (err) {
+      console.error("❌ Callback error:", err);
+      res.status(500).send("Error in Facebook callback");
+    }
   });
 
   // backend/routes/facebook-pages.ts
