@@ -1434,17 +1434,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/facebook/login", (req, res) => {
-    const redirect_uri = encodeURIComponent(
-      "https://leadboostinc.replit.app/api/facebook/callback",
-    );
-    const appId = process.env.FB_APP_ID_AUTH; // 👈 app de tipo "Facebook Login"
-    const scopes = ["public_profile", "email"].join(",");
-
-    const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirect_uri}&scope=${scopes}`;
-    res.redirect(authUrl);
-  });
-
   app.get("/api/integrations/facebook/connect", isAuthenticated, (req, res) => {
     const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
     const clientId = process.env.FB_APP_ID;
