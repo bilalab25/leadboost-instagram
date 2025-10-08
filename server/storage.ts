@@ -1327,13 +1327,17 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async createOrUpdateIntegration(data) {
+  async createOrUpdateIntegration(data: any) {
     console.log("📥 createOrUpdateIntegration() recibió:", data);
     const existing = await db
       .select()
       .from(integrations)
-      .where(eq(integrations.provider, data.provider))
-      .where(eq(integrations.userId, data.userId));
+      .where(
+        and(
+          eq(integrations.provider, data.provider),
+          eq(integrations.userId, data.userId)
+        )
+      );
 
     if (existing.length > 0) {
       console.log("🔁 Updating existing integration...");
@@ -1341,28 +1345,33 @@ export class DatabaseStorage implements IStorage {
         .update(integrations)
         .set({
           accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          accountName: data.accountName,
+          accountId: data.accountId,
+          settings: data.settings,
           isActive: true,
           updatedAt: new Date(),
         })
-        .where(eq(integrations.provider, data.provider))
-        .where(eq(integrations.userId, data.userId));
+        .where(
+          and(
+            eq(integrations.provider, data.provider),
+            eq(integrations.userId, data.userId)
+          )
+        );
     } else {
       console.log("🆕 Creating new integration...");
-      console.log("🧩 Columnas del schema:", Object.keys(integrations));
       await db.insert(integrations).values({
-        user_id: data.userId,
+        userId: data.userId,
         provider: data.provider,
         category: data.category ?? "social",
-        store_name: data.storeName ?? "Facebook",
-        access_token: data.accessToken,
-        refresh_token: data.refreshToken ?? null,
-        is_active: true,
-        sync_enabled: true,
-        account_name: data.accountName ?? null,
-        account_id: data.accountId ?? null,
+        storeName: data.storeName ?? "Facebook",
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken ?? null,
+        isActive: true,
+        syncEnabled: true,
+        accountName: data.accountName ?? null,
+        accountId: data.accountId ?? null,
         settings: data.settings ?? {},
-        created_at: new Date(),
-        updated_at: new Date(),
       });
     }
   }
