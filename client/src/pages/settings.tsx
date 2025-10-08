@@ -46,6 +46,7 @@ import {
   reauthenticateWithCredential,
   updatePassword,
 } from "firebase/auth";
+import { useQuery } from "@tanstack/react-query";
 
 // --- Interfaces (solo para tipado de datos simulados) ---
 interface PaymentMethod {
