@@ -1016,21 +1016,24 @@ export const integrations = pgTable("integrations", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(), // ✅ coincidir con columna real
+  userId: varchar("user_id").notNull(),
   provider: varchar("provider").notNull(),
   category: varchar("category").notNull().default("social"),
-  storeName: varchar("store_name"),
+  storeName: varchar("store_name").notNull(),
   storeUrl: varchar("store_url"),
   pageId: varchar("page_id"),
-  accessToken: varchar("access_token").notNull(),
-  refreshToken: varchar("refresh_token"),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
   isActive: boolean("is_active").default(true),
   syncEnabled: boolean("sync_enabled").default(true),
+  lastSyncAt: timestamp("last_sync_at"),
   settings: jsonb("settings").default({}),
-  accountName: varchar("account_name"),
-  accountId: varchar("account_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  accountName: text("account_name"),
+  accountId: text("account_id"),
+  expiresAt: timestamp("expires_at"),
+  metadata: text("metadata"),
 });
 
 // Scheduled Appointments
