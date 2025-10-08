@@ -73,6 +73,7 @@ export default function IntegrationsTab({
   integrationsLoading,
   handleSyncProducts,
   handleDeleteIntegration,
+  refetchIntegrations,
 }) {
   const { isSpanish } = useLanguage(); // Assuming useLanguage hook is available
 
@@ -86,8 +87,8 @@ export default function IntegrationsTab({
     const timer = setInterval(() => {
       if (popup?.closed) {
         clearInterval(timer);
-        // 🔄 Refresca la lista de integraciones (usa tu método actual)
-        window.location.reload(); // o usa un fetch de integraciones si ya tienes uno
+        // Refetch integrations after Facebook OAuth completes
+        refetchIntegrations();
       }
     }, 1000);
   };

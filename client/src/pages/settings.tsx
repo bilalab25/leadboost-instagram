@@ -726,8 +726,14 @@ export default function Settings() {
   );
 
   // States para Integrations
-  const [integrations, setIntegrations] =
-    useState<Integration[]>(dummyIntegrations);
+  const {
+    data: integrations = [],
+    isLoading: integrationsLoading,
+    refetch: refetchIntegrations,
+  } = useQuery<Integration[]>({
+    queryKey: ["/api/integrations"],
+  });
+
   const [isAddIntegrationDialogOpen, setIsAddIntegrationDialogOpen] =
     useState(false);
   const [dialogSelectedCategory, setDialogSelectedCategory] = useState<
@@ -739,8 +745,6 @@ export default function Settings() {
   const [newIntegrationFields, setNewIntegrationFields] = useState<{
     [key: string]: string;
   }>({});
-
-  const integrationsLoading = false; // Dummy loading state
   const productsLoading = false; // Dummy loading state
   const transactionsLoading = false; // Dummy loading state
 
@@ -1072,14 +1076,33 @@ export default function Settings() {
     });
   };
 
-  const handleDeleteIntegration = (id: string) => {
-    setIntegrations((prev) => prev.filter((int) => int.id !== id));
-    toast({
-      title: isSpanish ? "Integración Eliminada" : "Integration Deleted",
-      description: isSpanish
-        ? "La integración ha sido eliminada."
-        : "The integration has been deleted.",
-    });
+  const handleDeleteIntegration = async (id: string) => {
+    try {
+      const response = await fetch(`/api/integrations/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        // Refetch integrations after deletion
+        refetchIntegrations();
+        toast({
+          title: isSpanish ? "Integración Eliminada" : "Integration Deleted",
+          description: isSpanish
+            ? "La integración ha sido eliminada."
+            : "The integration has been deleted.",
+        });
+      } else {
+        throw new Error("Failed to delete integration");
+      }
+    } catch (error) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish
+          ? "No se pudo eliminar la integración."
+          : "Failed to delete integration.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSyncProducts = (integrationId: string) => {
@@ -1279,6 +1302,7 @@ export default function Settings() {
                     integrationsLoading={integrationsLoading}
                     handleDeleteIntegration={handleDeleteIntegration}
                     handleSyncProducts={handleSyncProducts}
+                    refetchIntegrations={refetchIntegrations}
                   />
                 </TabsContent>
 
