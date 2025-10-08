@@ -1328,6 +1328,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrUpdateIntegration(data) {
+    console.log("📥 createOrUpdateIntegration() recibió:", data);
     const existing = await db
       .select()
       .from(integrations)
@@ -1347,22 +1348,21 @@ export class DatabaseStorage implements IStorage {
         .where(eq(integrations.userId, data.userId));
     } else {
       console.log("🆕 Creating new integration...");
+      console.log("🧩 Columnas del schema:", Object.keys(integrations));
       await db.insert(integrations).values({
-        userId: data.userId,
+        user_id: data.userId,
         provider: data.provider,
-        category: data.category ?? "social", // ✅ default para Facebook
-        storeName: data.storeName ?? "Facebook", // ✅ default
-        storeUrl: data.storeUrl ?? null,
-        pageId: data.pageId ?? null,
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken ?? null,
-        isActive: true,
-        syncEnabled: true,
+        category: data.category ?? "social",
+        store_name: data.storeName ?? "Facebook",
+        access_token: data.accessToken,
+        refresh_token: data.refreshToken ?? null,
+        is_active: true,
+        sync_enabled: true,
+        account_name: data.accountName ?? null,
+        account_id: data.accountId ?? null,
         settings: data.settings ?? {},
-        accountName: data.accountName ?? data.metadata?.fbUserName ?? null,
-        accountId: data.accountId ?? data.metadata?.fbUserId ?? null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date(),
+        updated_at: new Date(),
       });
     }
   }

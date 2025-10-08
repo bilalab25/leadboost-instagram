@@ -1011,19 +1011,24 @@ export const appointmentServices = pgTable("appointment_services", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// @shared/schema.ts
 export const integrations = pgTable("integrations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: varchar("user_id", { length: 255 })
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  provider: varchar("provider", { length: 50 }).notNull(), // "facebook", "instagram"
-  accountName: varchar("account_name"), // ← agrega esta línea
-  accountId: varchar("account_id", { length: 255 }),
-  accessToken: varchar("access_token", { length: 2048 }),
-  refreshToken: varchar("refresh_token", { length: 2048 }),
-  expiresAt: timestamp("expires_at"),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(), // ✅ coincidir con columna real
+  provider: varchar("provider").notNull(),
+  category: varchar("category").notNull().default("social"),
+  storeName: varchar("store_name"),
+  storeUrl: varchar("store_url"),
+  pageId: varchar("page_id"),
+  accessToken: varchar("access_token").notNull(),
+  refreshToken: varchar("refresh_token"),
   isActive: boolean("is_active").default(true),
-  metadata: jsonb("metadata").default({}),
+  syncEnabled: boolean("sync_enabled").default(true),
+  settings: jsonb("settings").default({}),
+  accountName: varchar("account_name"),
+  accountId: varchar("account_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1147,6 +1152,12 @@ export const insertChatbotConversationSchema = createInsertSchema(
   lastActivityAt: true,
 });
 
+export const insertIntegrationSchema = createInsertSchema(integrations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertChatbotConfig = z.infer<typeof insertChatbotConfigSchema>;
 export type ChatbotConfig = typeof chatbotConfigs.$inferSelect;
 export type InsertCalendarIntegration = z.infer<
@@ -1163,3 +1174,5 @@ export type InsertChatbotConversation = z.infer<
   typeof insertChatbotConversationSchema
 >;
 export type ChatbotConversation = typeof chatbotConversations.$inferSelect;
+export type InsertIntegration = z.infer<typeof insertIntegrationSchema>;
+export type Integration = typeof integrations.$inferSelect;

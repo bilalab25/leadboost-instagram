@@ -1492,8 +1492,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createOrUpdateIntegration({
         userId: state as string,
         provider: "facebook",
-        category: "social", // ✅ agregado
-        storeName: "Facebook", // ✅ agregado
+        category: "social", // ✅ debe verse en consola
+        storeName: "Facebook",
         accessToken: tokenData.access_token,
         accountName: userData.name,
         accountId: userData.id,
@@ -1501,6 +1501,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fbUserId: userData.id,
           fbUserName: userData.name,
         },
+      });
+
+      console.log("📤 Integration payload enviado:", {
+        userId: state,
+        provider: "facebook",
+        category: "social",
+        storeName: "Facebook",
       });
 
       console.log("✅ Facebook integration saved/updated successfully");
