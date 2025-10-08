@@ -3,7 +3,6 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
 import OpenAI from "openai";
-import axios from "axios";
 import chatRoutes from "./chatRoutes";
 import {
   generateMonthlyContentStrategy,
@@ -1435,6 +1434,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/facebook/login", (req, res) => {
+    const redirect_uri = encodeURIComponent(
+      "https://leadboostinc.replit.app/api/facebook/callback",
+    );
+    const appId = process.env.FB_APP_ID_AUTH; // 👈 app de tipo "Facebook Login"
+    const scopes = ["public_profile", "email"].join(",");
+
+    const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirect_uri}&scope=${scopes}`;
+    res.redirect(authUrl);
+  });
+
+  /* 
   app.get("/api/integrations/facebook/connect", isAuthenticated, (req, res) => {
     const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
     const clientId = process.env.FB_APP_ID;
@@ -1455,60 +1466,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     res.redirect(authUrl);
   });
+ */
+  app.get("/api/facebook/callback", async (req, res) => {
+    const code = req.query.code as string;
+    const redirect_uri =
+      "https://leadboostinc.replit.app/api/facebook/callback";
 
-  app.get("/callback", async (req, res) => {
-    const { code, state: userId } = req.query;
-    const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
+    const tokenResponse = await fetch(
+      `https://graph.facebook.com/v22.0/oauth/access_token?client_id=${process.env.FB_APP_ID_AUTH}&redirect_uri=${redirect_uri}&client_secret=${process.env.FB_APP_SECRET_AUTH}&code=${code}`,
+    );
+    const tokenData = await tokenResponse.json();
 
+    const userResponse = await fetch(
+      `https://graph.facebook.com/me?fields=id,name,email&access_token=${tokenData.access_token}`,
+    );
+    const userData = await userResponse.json();
+
+    // 👉 Guarda el user_access_token temporalmente en DB
+    // (este se usará en el paso 2)
+    await db.saveFacebookAuthToken({
+      userId: req.user.id,
+      accessToken: tokenData.access_token,
+      expiresIn: tokenData.expires_in,
+    });
+
+    res.redirect("/settings/integrations"); // o donde quieras enviar al usuario
+  });
+
+  // backend/routes/facebook-pages.ts
+  app.get("/api/facebook/pages", async (req, res) => {
     try {
-      // Intercambiar el code por un user access token
-      const tokenRes = await axios.get(
-        "https://graph.facebook.com/v22.0/oauth/access_token",
-        {
-          params: {
-            client_id: process.env.FB_APP_ID,
-            client_secret: process.env.FB_APP_SECRET,
-            redirect_uri: redirectUri,
-            code,
-          },
-        },
+      const userToken = await db.getFacebookAuthToken(req.user.id);
+
+      const response = await fetch(
+        `https://graph.facebook.com/v22.0/me/accounts?access_token=${userToken}`,
       );
+      const data = await response.json();
 
-      const userAccessToken = tokenRes.data.access_token;
+      // Esto devuelve un array con las páginas y su page_access_token
+      // Ejemplo: data.data[0].access_token
+      await db.saveFacebookPages(req.user.id, data.data);
 
-      // Obtener las páginas empresariales del usuario
-      const pagesRes = await axios.get(
-        "https://graph.facebook.com/v22.0/me/accounts",
-        { params: { access_token: userAccessToken } },
-      );
-
-      const pages = pagesRes.data.data;
-
-      for (const page of pages) {
-        const { id: pageId, name, access_token } = page;
-
-        await storage.createOrUpdateIntegration({
-          userId,
-          provider: "facebook",
-          category: "social_media",
-          storeName: name,
-          storeUrl: `https://facebook.com/${pageId}`,
-          accessToken: access_token,
-          pageId,
-          isActive: true,
-          syncEnabled: true,
-        });
-      }
-
-      res.redirect(
-        `${process.env.APP_FRONTEND_URL}/settings?connected=facebook_success`,
-      );
-    } catch (error) {
-      console.error("❌ Facebook OAuth error:", error.response?.data || error);
-      res.redirect(
-        `${process.env.APP_FRONTEND_URL}/settings?fb_error=callback_failed`,
-      );
+      res.json(data);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error fetching Facebook pages" });
     }
+  });
+
+  app.post("/api/facebook/publish", async (req, res) => {
+    const { pageId, message } = req.body;
+    const pageToken = await db.getFacebookPageToken(pageId);
+
+    const postResponse = await fetch(
+      `https://graph.facebook.com/${pageId}/feed`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, access_token: pageToken }),
+      },
+    );
+
+    const result = await postResponse.json();
+    res.json(result);
   });
 
   // Calendar integration routes

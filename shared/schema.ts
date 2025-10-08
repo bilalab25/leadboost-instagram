@@ -1011,6 +1011,31 @@ export const appointmentServices = pgTable("appointment_services", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const integrations = pgTable("integrations", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+
+  userId: varchar("user_id").notNull(), // FK opcional si tienes tabla users
+  provider: varchar("provider").notNull(), // e.g. facebook, instagram, hubspot, etc.
+  category: varchar("category").notNull(), // social_media | ecommerce | pos | crm
+
+  storeName: varchar("store_name").notNull(), // Nombre visible de la cuenta o tienda
+  storeUrl: varchar("store_url"), // URL (ej. https://facebook.com/miempresa)
+  pageId: varchar("page_id"), // ID de página o canal (para redes sociales)
+  accessToken: text("access_token"), // Token API
+  refreshToken: text("refresh_token"), // En caso de que el proveedor use refresh token
+
+  isActive: boolean("is_active").default(true),
+  syncEnabled: boolean("sync_enabled").default(true),
+
+  lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+  settings: jsonb("settings").default({}), // configuración adicional (custom)
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Scheduled Appointments
 export const appointments = pgTable("appointments", {
   id: uuid("id")
@@ -1146,3 +1171,14 @@ export type InsertChatbotConversation = z.infer<
   typeof insertChatbotConversationSchema
 >;
 export type ChatbotConversation = typeof chatbotConversations.$inferSelect;
+
+// Integration schemas
+export const insertIntegrationSchema = createInsertSchema(integrations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastSyncAt: true,
+});
+
+export type InsertIntegration = z.infer<typeof insertIntegrationSchema>;
+export type Integration = typeof integrations.$inferSelect;

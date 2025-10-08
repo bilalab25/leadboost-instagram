@@ -20,6 +20,7 @@ import {
   brandDesigns,
   brandAssets,
   campaignDesigns,
+  integrations,
   // Asegúrate de que estos tipos en @shared/schema incluyan firebaseUid y hagan password, email, firstName, lastName opcionales/nullable
   type User,
   type UpsertUser, // Asumo que UpsertUser es para operaciones de upsert, no para updateUser
@@ -64,6 +65,8 @@ import {
   type CampaignDesign,
   type BrandAsset,
   type InsertBrandAsset,
+  type InsertIntegration,
+  type Integration,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, sql, gte, lte } from "drizzle-orm";
@@ -303,6 +306,17 @@ export interface IStorage {
     updates: Partial<CampaignDesign>,
   ): Promise<CampaignDesign | undefined>;
   deleteCampaignDesign(id: string, campaignId: string): Promise<boolean>;
+
+  // Integration operations
+  createIntegration(integration: InsertIntegration): Promise<Integration>;
+  getIntegrationsByUserId(userId: string): Promise<Integration[]>;
+  getIntegrationById(id: string): Promise<Integration | undefined>;
+  getIntegrationByPageId(pageId: string, userId: string): Promise<Integration | undefined>;
+  updateIntegration(
+    id: string,
+    updates: Partial<Integration>,
+  ): Promise<Integration | undefined>;
+  deleteIntegration(id: string, userId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1380,6 +1394,66 @@ export class DatabaseStorage implements IStorage {
         notes: "Cliente habitual, piel sensible",
       },
     ];
+  }
+
+  // Integration operations
+  async createIntegration(
+    integration: InsertIntegration,
+  ): Promise<Integration> {
+    const [created] = await db
+      .insert(integrations)
+      .values(integration)
+      .returning();
+    return created;
+  }
+
+  async getIntegrationsByUserId(userId: string): Promise<Integration[]> {
+    return await db
+      .select()
+      .from(integrations)
+      .where(eq(integrations.userId, userId))
+      .orderBy(desc(integrations.createdAt));
+  }
+
+  async getIntegrationById(id: string): Promise<Integration | undefined> {
+    const [integration] = await db
+      .select()
+      .from(integrations)
+      .where(eq(integrations.id, id));
+    return integration;
+  }
+
+  async getIntegrationByPageId(
+    pageId: string,
+    userId: string,
+  ): Promise<Integration | undefined> {
+    const [integration] = await db
+      .select()
+      .from(integrations)
+      .where(
+        and(eq(integrations.pageId, pageId), eq(integrations.userId, userId)),
+      );
+    return integration;
+  }
+
+  async updateIntegration(
+    id: string,
+    updates: Partial<Integration>,
+  ): Promise<Integration | undefined> {
+    const [updated] = await db
+      .update(integrations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(integrations.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteIntegration(id: string, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(integrations)
+      .where(and(eq(integrations.id, id), eq(integrations.userId, userId)))
+      .returning();
+    return result.length > 0;
   }
 }
 
