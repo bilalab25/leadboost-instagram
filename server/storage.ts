@@ -139,7 +139,7 @@ export interface IStorage {
     userId: string,
     limit?: number,
   ): Promise<ActivityLog[]>;
-  
+
   // Customer operations
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   getCustomersByUserId(userId: string): Promise<Customer[]>;
@@ -1308,6 +1308,26 @@ export class DatabaseStorage implements IStorage {
       ...config,
       createdAt: new Date().toISOString(),
     };
+  }
+
+  async createOrUpdateIntegration(data) {
+    const existing = await db
+      .select()
+      .from(integrations)
+      .where(eq(integrations.pageId, data.pageId));
+
+    if (existing.length > 0) {
+      await db
+        .update(integrations)
+        .set({
+          accessToken: data.accessToken,
+          isActive: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(integrations.pageId, data.pageId));
+    } else {
+      await db.insert(integrations).values(data);
+    }
   }
 
   async getCalendarIntegrations(brandId: string): Promise<any[]> {
