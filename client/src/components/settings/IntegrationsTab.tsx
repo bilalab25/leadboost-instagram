@@ -76,6 +76,22 @@ export default function IntegrationsTab({
 }) {
   const { isSpanish } = useLanguage(); // Assuming useLanguage hook is available
 
+  const handleConnectFacebook = () => {
+    const popup = window.open(
+      `/api/integrations/facebook/connect`,
+      "_blank",
+      "width=600,height=700",
+    );
+
+    const timer = setInterval(() => {
+      if (popup?.closed) {
+        clearInterval(timer);
+        // 🔄 Refresca la lista de integraciones (usa tu método actual)
+        window.location.reload(); // o usa un fetch de integraciones si ya tienes uno
+      }
+    }, 1000);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -470,6 +486,17 @@ export default function IntegrationsTab({
                                                 ? "Conectado"
                                                 : "Connected"}
                                             </Badge>
+                                          ) : providerKey === "facebook" ? (
+                                            <Button
+                                              size="sm"
+                                              onClick={handleConnectFacebook}
+                                              className="bg-[#1877F2] hover:bg-[#166FE0] text-white"
+                                            >
+                                              <IconComponent className="mr-2 h-4 w-4" />
+                                              {isSpanish
+                                                ? "Conectar con Facebook"
+                                                : "Connect Facebook"}
+                                            </Button>
                                           ) : (
                                             <Button
                                               size="sm"

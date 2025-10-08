@@ -139,7 +139,7 @@ export interface IStorage {
     userId: string,
     limit?: number,
   ): Promise<ActivityLog[]>;
-
+  
   // Customer operations
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   getCustomersByUserId(userId: string): Promise<Customer[]>;

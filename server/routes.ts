@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
 import OpenAI from "openai";
+import axios from "axios";
 import chatRoutes from "./chatRoutes";
 import {
   generateMonthlyContentStrategy,
@@ -1431,6 +1432,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message:
           "Sorry, there's a technical issue. You can check our FAQ or contact support.",
       });
+    }
+  });
+
+  app.get("/api/integrations/facebook/connect", isAuthenticated, (req, res) => {
+    const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
+    const clientId = process.env.FB_APP_ID;
+
+    const scopes = [
+      "pages_show_list",
+      "pages_read_engagement",
+      "pages_manage_metadata",
+      "pages_manage_posts",
+      "pages_messaging",
+      "instagram_basic",
+      "instagram_manage_messages",
+    ].join(",");
+
+    const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri,
+    )}&scope=${scopes}&state=${req.user.id}`;
+
+    res.redirect(authUrl);
+  });
+
+  app.get("/callback", async (req, res) => {
+    const { code, state: userId } = req.query;
+    const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
+
+    try {
+      // Intercambiar el code por un user access token
+      const tokenRes = await axios.get(
+        "https://graph.facebook.com/v22.0/oauth/access_token",
+        {
+          params: {
+            client_id: process.env.FB_APP_ID,
+            client_secret: process.env.FB_APP_SECRET,
+            redirect_uri: redirectUri,
+            code,
+          },
+        },
+      );
+
+      const userAccessToken = tokenRes.data.access_token;
+
+      // Obtener las páginas empresariales del usuario
+      const pagesRes = await axios.get(
+        "https://graph.facebook.com/v22.0/me/accounts",
+        { params: { access_token: userAccessToken } },
+      );
+
+      const pages = pagesRes.data.data;
+
+      for (const page of pages) {
+        const { id: pageId, name, access_token } = page;
+
+        await storage.createOrUpdateIntegration({
+          userId,
+          provider: "facebook",
+          category: "social_media",
+          storeName: name,
+          storeUrl: `https://facebook.com/${pageId}`,
+          accessToken: access_token,
+          pageId,
+          isActive: true,
+          syncEnabled: true,
+        });
+      }
+
+      res.redirect(
+        `${process.env.APP_FRONTEND_URL}/settings?connected=facebook_success`,
+      );
+    } catch (error) {
+      console.error("❌ Facebook OAuth error:", error.response?.data || error);
+      res.redirect(
+        `${process.env.APP_FRONTEND_URL}/settings?fb_error=callback_failed`,
+      );
     }
   });
 

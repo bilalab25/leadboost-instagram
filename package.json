@@ -50,6 +50,7 @@
     "@uppy/core": "^5.0.0",
     "@uppy/dashboard": "^5.0.0",
     "@uppy/react": "^5.0.0",
+    "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.7.0",
