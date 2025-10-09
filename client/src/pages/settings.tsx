@@ -316,7 +316,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       },
     ],
   },
-  tiktok: {
+  /*  tiktok: {
     name: "TikTok",
     icon: Share2, // Reemplazado por Share2
     description: "Connect your TikTok account for content scheduling",
@@ -329,8 +329,8 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
         required: true,
       },
     ],
-  },
-  email: {
+  }, */
+  /*   email: {
     name: "Email",
     icon: Mail,
     description: "Connect your email account (Gmail, Outlook, etc.)",
@@ -362,8 +362,8 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
         placeholder: "Optional Channel ID",
       },
     ],
-  },
-  youtube: {
+  }, */
+  /*  youtube: {
     name: "YouTube",
     icon: Youtube,
     description: "Connect your YouTube channel for video management",
@@ -383,8 +383,8 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
         placeholder: "Optional Channel ID",
       },
     ],
-  },
-  x: {
+  }, */
+  /*   x: {
     // Nueva plataforma de redes sociales
     name: "X (Twitter)",
     icon: Twitter,
@@ -406,8 +406,8 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
         required: true,
       },
     ],
-  },
-  threads: {
+  }, */
+  /*  threads: {
     // Nueva plataforma de redes sociales
     name: "Threads",
     icon: MessageSquareText, // Usando un icono genérico de lucide-react
@@ -421,8 +421,8 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
         required: true,
       },
     ],
-  },
-  snapchat: {
+  }, */
+  /* snapchat: {
     // Nueva plataforma de redes sociales
     name: "Snapchat",
     icon: Camera, // Usando un icono genérico de lucide-react
@@ -436,7 +436,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
         required: true,
       },
     ],
-  },
+  }, */
 
   // CRM Integrations
   hubspot: {
