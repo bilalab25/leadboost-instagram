@@ -509,12 +509,19 @@ export default function IntegrationsTab({
                                         ) : (
                                           <Button
                                             size="sm"
-                                            onClick={() =>
-                                              (window.location.href =
-                                                "/api/integrations/facebook/connect")
-                                            }
+                                            onClick={() => {
+                                              if (providerKey === "facebook") {
+                                                handleConnectFacebook();
+                                              } else {
+                                                alert(
+                                                  isSpanish
+                                                    ? `La conexión para ${providerInfo.name} aún no está disponible.`
+                                                    : `The connection for ${providerInfo.name} is not available yet.`,
+                                                );
+                                              }
+                                            }}
                                           >
-                                            Conectar
+                                            {isSpanish ? "Conectar" : "Connect"}
                                           </Button>
                                         )}
                                       </div>
