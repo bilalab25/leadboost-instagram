@@ -439,8 +439,9 @@ export default function Landing() {
       <section
         id="circle-section"
         className="relative py-32 overflow-hidden"
-        style={{ 
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+        style={{
+          background:
+            "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
         }}
       >
         {/* Animated background particles */}
@@ -461,7 +462,10 @@ export default function Landing() {
         {/* Purple glow orbs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+          <div
+            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: "1s" }}
+          ></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
@@ -470,18 +474,23 @@ export default function Landing() {
             {/* Center Content */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20 max-w-md">
               <h2 className="text-4xl xl:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {isSpanish ? "Cómo Funciona el Motor IA" : "How The AI Engine Works"}
+                {isSpanish
+                  ? "Cómo Funciona el Motor IA"
+                  : "How The AI Engine Works"}
               </h2>
               <p className="text-lg text-gray-300">
-                {isSpanish 
-                  ? "Cinco pasos automatizados que transforman datos en ventas reales" 
+                {isSpanish
+                  ? "Cinco pasos automatizados que transforman datos en ventas reales"
                   : "Five automated steps that turn data into real sales"}
               </p>
             </div>
 
             {/* Circular path */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <svg className="w-[600px] h-[600px]" style={{ transform: "rotate(-90deg)" }}>
+              <svg
+                className="w-[600px] h-[600px]"
+                style={{ transform: "rotate(-90deg)" }}
+              >
                 <circle
                   cx="300"
                   cy="300"
@@ -493,7 +502,13 @@ export default function Landing() {
                   opacity="0.3"
                 />
                 <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient
+                    id="gradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%"
+                  >
                     <stop offset="0%" stopColor="#3b82f6" />
                     <stop offset="25%" stopColor="#8b5cf6" />
                     <stop offset="50%" stopColor="#10b981" />
@@ -549,7 +564,8 @@ export default function Landing() {
               style={{
                 top: "50%",
                 left: "50%",
-                transform: "translate(-50%, -50%) rotate(72deg) translateY(-320px) rotate(-72deg)",
+                transform:
+                  "translate(-50%, -50%) rotate(72deg) translateY(-320px) rotate(-72deg)",
               }}
               data-testid="process-step-2"
             >
@@ -580,7 +596,8 @@ export default function Landing() {
               style={{
                 top: "50%",
                 left: "50%",
-                transform: "translate(-50%, -50%) rotate(144deg) translateY(-320px) rotate(-144deg)",
+                transform:
+                  "translate(-50%, -50%) rotate(144deg) translateY(-320px) rotate(-144deg)",
               }}
               data-testid="process-step-3"
             >
@@ -611,7 +628,8 @@ export default function Landing() {
               style={{
                 top: "50%",
                 left: "50%",
-                transform: "translate(-50%, -50%) rotate(216deg) translateY(-320px) rotate(-216deg)",
+                transform:
+                  "translate(-50%, -50%) rotate(216deg) translateY(-320px) rotate(-216deg)",
               }}
               data-testid="process-step-4"
             >
@@ -623,8 +641,14 @@ export default function Landing() {
                   <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                      <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                      <div
+                        className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
                     </div>
                   </div>
                   <div className="absolute inset-0 bg-orange-500/20 rounded-full animate-ping"></div>
@@ -646,7 +670,8 @@ export default function Landing() {
               style={{
                 top: "50%",
                 left: "50%",
-                transform: "translate(-50%, -50%) rotate(288deg) translateY(-320px) rotate(-288deg)",
+                transform:
+                  "translate(-50%, -50%) rotate(288deg) translateY(-320px) rotate(-288deg)",
               }}
               data-testid="process-step-5"
             >
@@ -676,32 +701,84 @@ export default function Landing() {
           <div className="lg:hidden space-y-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {isSpanish ? "Cómo Funciona el Motor IA" : "How The AI Engine Works"}
+                {isSpanish
+                  ? "Cómo Funciona el Motor IA"
+                  : "How The AI Engine Works"}
               </h2>
               <p className="text-gray-300">
-                {isSpanish 
-                  ? "Cinco pasos automatizados que transforman datos en ventas reales" 
+                {isSpanish
+                  ? "Cinco pasos automatizados que transforman datos en ventas reales"
                   : "Five automated steps that turn data into real sales"}
               </p>
             </div>
 
             {[
-              { num: "01", title: isSpanish ? "Recopilación" : "Data Collection", desc: isSpanish ? "Captura automática desde web, POS y redes" : "Auto-capture from website, POS & social", gradient: "from-blue-500 to-cyan-500", testId: "process-step-1" },
-              { num: "02", title: isSpanish ? "Procesamiento IA" : "AI Processing", desc: isSpanish ? "Análisis inteligente y creación" : "Intelligent analysis & creation", gradient: "from-purple-500 to-pink-500", testId: "process-step-2" },
-              { num: "03", title: isSpanish ? "Despliegue Auto" : "Auto Deploy", desc: isSpanish ? "Publicación en 21+ plataformas" : "Auto-publish to 21+ platforms", gradient: "from-emerald-500 to-teal-500", testId: "process-step-3" },
-              { num: "04", title: isSpanish ? "Conversión" : "Conversion", desc: isSpanish ? "Chatbot IA cierra ventas" : "AI chatbot closes sales", gradient: "from-orange-500 to-red-500", testId: "process-step-4" },
-              { num: "05", title: isSpanish ? "Retención" : "Retention", desc: isSpanish ? "Re-targeting inteligente" : "Smart auto-retargeting", gradient: "from-indigo-500 to-blue-600", testId: "process-step-5" },
+              {
+                num: "01",
+                title: isSpanish ? "Recopilación" : "Data Collection",
+                desc: isSpanish
+                  ? "Captura automática desde web, POS y redes"
+                  : "Auto-capture from website, POS & social",
+                gradient: "from-blue-500 to-cyan-500",
+                testId: "process-step-1",
+              },
+              {
+                num: "02",
+                title: isSpanish ? "Procesamiento IA" : "AI Processing",
+                desc: isSpanish
+                  ? "Análisis inteligente y creación"
+                  : "Intelligent analysis & creation",
+                gradient: "from-purple-500 to-pink-500",
+                testId: "process-step-2",
+              },
+              {
+                num: "03",
+                title: isSpanish ? "Despliegue Auto" : "Auto Deploy",
+                desc: isSpanish
+                  ? "Publicación en 21+ plataformas"
+                  : "Auto-publish to 21+ platforms",
+                gradient: "from-emerald-500 to-teal-500",
+                testId: "process-step-3",
+              },
+              {
+                num: "04",
+                title: isSpanish ? "Conversión" : "Conversion",
+                desc: isSpanish
+                  ? "Chatbot IA cierra ventas"
+                  : "AI chatbot closes sales",
+                gradient: "from-orange-500 to-red-500",
+                testId: "process-step-4",
+              },
+              {
+                num: "05",
+                title: isSpanish ? "Retención" : "Retention",
+                desc: isSpanish
+                  ? "Re-targeting inteligente"
+                  : "Smart auto-retargeting",
+                gradient: "from-indigo-500 to-blue-600",
+                testId: "process-step-5",
+              },
             ].map((step, index) => (
-              <div key={index} className="relative bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10" data-testid={step.testId}>
+              <div
+                key={index}
+                className="relative bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10"
+                data-testid={step.testId}
+              >
                 <div className="flex items-center gap-6">
-                  <div className={`w-24 h-24 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center shadow-xl relative flex-shrink-0`}>
+                  <div
+                    className={`w-24 h-24 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center shadow-xl relative flex-shrink-0`}
+                  >
                     <div className="absolute -top-2 -right-2 w-8 h-8 bg-gray-900/80 rounded-full flex items-center justify-center border-2 border-white/30">
-                      <span className="text-white font-bold text-xs">{step.num}</span>
+                      <span className="text-white font-bold text-xs">
+                        {step.num}
+                      </span>
                     </div>
                     <div className="w-10 h-10 bg-white rounded-xl"></div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      {step.title}
+                    </h3>
                     <p className="text-sm text-gray-300">{step.desc}</p>
                   </div>
                 </div>
@@ -713,16 +790,20 @@ export default function Landing() {
           <div className="mt-20">
             <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 rounded-3xl p-12 overflow-hidden">
               <div className="absolute inset-0 opacity-20">
-                <div className="absolute inset-0" style={{
-                  backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 1px)",
-                  backgroundSize: "40px 40px",
-                }}></div>
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(circle at 2px 2px, white 1px, transparent 1px)",
+                    backgroundSize: "40px 40px",
+                  }}
+                ></div>
               </div>
-              
+
               <div className="relative text-center">
                 <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-                  {isSpanish 
-                    ? "El Resultado: Más Ventas, Automáticamente" 
+                  {isSpanish
+                    ? "El Resultado: Más Ventas, Automáticamente"
                     : "The Result: More Sales, Automatically"}
                 </h3>
                 <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
@@ -752,7 +833,7 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">
-              {isSpanish ? "Conoce LeadBoost" : "Meet LeadBoost"}
+              {isSpanish ? "Conoce Lead Boost" : "Meet Lead Boost"}
             </span>
             <span className="text-gray-900">
               {isSpanish
