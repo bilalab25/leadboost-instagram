@@ -134,7 +134,7 @@ export default function Landing() {
                       <div className="text-sm text-gray-600">
                         {isSpanish
                           ? "IA crea contenido basado en datos reales"
-                          : "AI creates content based on real data"}
+                          : "AI Creates Content Based On Real Data"}
                       </div>
                     </div>
                   </DropdownMenuItem>
@@ -407,7 +407,7 @@ export default function Landing() {
             <span className="text-base font-medium text-gray-700">
               {isSpanish
                 ? "Todo tu marketing, totalmente automatizado"
-                : "Your entire marketing, fully automated"}
+                : "Your Entire Marketing, Fully Automated"}
             </span>
           </div>
 
