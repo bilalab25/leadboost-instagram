@@ -1159,8 +1159,8 @@ export default function Landing() {
               />
               <span className="text-white/60 text-sm">
                 {isSpanish
-                  ? "© 2025 LeadBoost. Todos los derechos reservados."
-                  : "© 2025 LeadBoost. All rights reserved."}
+                  ? "© 2025 Lead Boost. Todos los derechos reservados."
+                  : "© 2025 Lead Boost. All rights reserved."}
               </span>
             </div>
             <div className="flex items-center space-x-6">
