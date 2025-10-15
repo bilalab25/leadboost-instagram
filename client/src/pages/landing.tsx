@@ -56,39 +56,10 @@ import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
-  const [circleScale, setCircleScale] = useState(0.8);
   const [, navigate] = useLocation();
 
   useEffect(() => {
     setIsVisible(true);
-
-    const handleScroll = () => {
-      const heroSection = document.querySelector("section");
-      const circleSection = document.getElementById("circle-section");
-
-      if (heroSection && circleSection) {
-        const heroTop = heroSection.offsetTop;
-        const heroHeight = heroSection.offsetHeight;
-        const circleBottom =
-          circleSection.offsetTop + circleSection.offsetHeight;
-        const scrollY = window.scrollY;
-
-        // Start growing when user scrolls halfway through hero section
-        const growthStartPoint = heroTop + heroHeight * 0.5;
-        const totalDistance = circleBottom - growthStartPoint;
-        const currentProgress = Math.max(0, scrollY - growthStartPoint);
-        const progress = Math.min(1, currentProgress / totalDistance);
-
-        // Scale from 0.8 to 1.1 for subtle growth
-        const newScale = 0.8 + progress * 0.3;
-        setCircleScale(newScale);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    handleScroll(); // Initial calculation
-
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
@@ -464,278 +435,246 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* AI Process Circle Section */}
+      {/* Modern AI Process Flow Section */}
       <section
         id="circle-section"
-        className="relative -mt-16 pt-4 pb-8 overflow-hidden"
+        className="relative py-32 overflow-hidden"
         style={{ backgroundColor: "#F8F8FA" }}
       >
-        {/* Background tech pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at 25px 25px, #3b82f6 1px, transparent 1px)",
-              backgroundSize: "50px 50px",
-            }}
-          ></div>
+        {/* Gradient background orbs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
         </div>
 
-        {/* Floating particles */}
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(12)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-30"
-              style={{
-                left: `${10 + Math.random() * 80}%`,
-                top: `${10 + Math.random() * 80}%`,
-                animation: `float ${4 + Math.random() * 2}s ease-in-out infinite ${Math.random() * 2}s`,
-              }}
-            ></div>
-          ))}
-        </div>
+        <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
+          {/* Section Title */}
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
+              {isSpanish ? "Cómo Funciona el Motor IA" : "How The AI Engine Works"}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {isSpanish 
+                ? "Cinco pasos automatizados que transforman datos en ventas reales" 
+                : "Five automated steps that turn data into real sales"}
+            </p>
+          </div>
 
-        {/* Enhanced Circular AI Process */}
-        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 h-[600px] flex items-center justify-center">
-          <div
-            className="transform transition-transform duration-700 ease-out"
-            style={{
-              transform: `scale(${circleScale})`,
-              transformOrigin: "center center",
-            }}
-          >
-            {/* Center text with enhanced design */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10">
-              <div className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                {isSpanish ? "más ventas" : "more sales"}
-              </div>
-              <div className="w-24 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent"></div>
-              <div className="text-sm text-gray-500 mt-3 font-medium">
-                {isSpanish ? "Automáticamente" : "Automatically"}
-              </div>
+          {/* Process Flow Cards */}
+          <div className="relative">
+            {/* Connecting Line */}
+            <div className="hidden lg:block absolute top-32 left-0 right-0 h-0.5">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-300 to-transparent opacity-50"></div>
+              {/* Animated dots flowing through the line */}
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute top-1/2 w-2 h-2 bg-blue-500 rounded-full -translate-y-1/2"
+                  style={{
+                    left: `${i * 25}%`,
+                    animation: `flowDot 3s ease-in-out infinite ${i * 0.2}s`,
+                  }}
+                ></div>
+              ))}
             </div>
 
-            {/* Step 1: Data Collection - Top center of circle */}
-            <div
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group"
-              style={{ transform: "translate(-50%, -50%) translateY(-240px)" }}
-            >
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-blue-500/50">
-                <div className="relative">
-                  <div className="w-5 h-5 bg-white rounded-lg shadow-inner"></div>
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-300 rounded-full animate-ping"></div>
-                </div>
-              </div>
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
-                <div className="text-sm font-mono text-blue-600 mb-2 font-bold">
-                  01
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {isSpanish ? "Recolección" : "Data Collection"}
-                </h3>
-                <p className="text-xs text-gray-600 leading-tight">
-                  {isSpanish
-                    ? "Captura automática de datos"
-                    : "Auto-capture data from website, POS & social media"}
-                </p>
-              </div>
-              {/* Glow effect */}
-              <div className="absolute inset-0 w-24 h-24 bg-blue-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
-            </div>
-
-            {/* Step 2: AI Processing - Top right of circle */}
-            <div
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group"
-              style={{
-                transform:
-                  "translate(-50%, -50%) rotate(72deg) translateY(-240px) rotate(-72deg)",
-              }}
-            >
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-purple-500/50">
-                <div className="relative">
-                  <div className="w-4 h-4 bg-white rounded-full animate-pulse shadow-lg"></div>
-                  <div
-                    className="absolute inset-0 w-4 h-4 border-2 border-white/30 rounded-full animate-spin"
-                    style={{ animationDuration: "3s" }}
-                  ></div>
-                </div>
-              </div>
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
-                <div className="text-sm font-mono text-purple-600 mb-2 font-bold">
-                  02
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {isSpanish ? "Procesamiento IA" : "AI Processing"}
-                </h3>
-                <p className="text-xs text-gray-600 leading-tight">
-                  {isSpanish
-                    ? "Análisis inteligente"
-                    : "Smart content creation"}
-                </p>
-              </div>
-              <div className="absolute inset-0 w-24 h-24 bg-purple-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
-            </div>
-
-            {/* Step 3: Campaign Deploy - Bottom right of circle */}
-            <div
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group"
-              style={{
-                transform:
-                  "translate(-50%, -50%) rotate(144deg) translateY(-240px) rotate(-144deg)",
-              }}
-            >
-              <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-emerald-500/50">
-                <div className="relative">
-                  <div className="w-5 h-3 bg-white rounded-lg shadow-inner"></div>
-                  {/* Signal waves */}
-                  {[...Array(3)].map((_, i) => (
-                    <div
-                      key={i}
-                      className={`absolute -top-1 -right-1 w-3 h-3 border border-white/60 rounded-full animate-ping`}
-                      style={{
-                        animationDelay: `${i * 0.3}s`,
-                        animationDuration: "2s",
-                      }}
-                    ></div>
-                  ))}
-                </div>
-              </div>
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
-                <div className="text-sm font-mono text-emerald-600 mb-2 font-bold">
-                  03
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {isSpanish ? "Despliegue" : "Campaign Deploy"}
-                </h3>
-                <p className="text-xs text-gray-600 leading-tight">
-                  {isSpanish
-                    ? "Publicación multicanal"
-                    : "21+ platform publishing"}
-                </p>
-              </div>
-              <div className="absolute inset-0 w-24 h-24 bg-emerald-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
-            </div>
-
-            {/* Step 4: Sales Conversion - Bottom left of circle */}
-            <div
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group"
-              style={{
-                transform:
-                  "translate(-50%, -50%) rotate(216deg) translateY(-240px) rotate(-216deg)",
-              }}
-            >
-              <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-orange-500/50">
-                <div className="relative">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-white rounded-full shadow-inner animate-bounce"></div>
-                    <div
-                      className="w-2 h-2 bg-white rounded-full shadow-inner animate-bounce"
-                      style={{ animationDelay: "0.1s" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-white rounded-full shadow-inner animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    ></div>
+            {/* Process Steps Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
+              {/* Step 1: Data Collection */}
+              <div className="group relative" data-testid="process-step-1">
+                <div className="relative bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                  {/* Step Number Badge */}
+                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <span className="text-white font-bold text-lg">01</span>
                   </div>
-                  <div className="absolute -top-2 -right-2 w-4 h-3 bg-white/80 rounded-lg"></div>
-                </div>
-              </div>
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
-                <div className="text-sm font-mono text-orange-600 mb-2 font-bold">
-                  04
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {isSpanish ? "Conversión" : "Sales Conversion"}
-                </h3>
-                <p className="text-xs text-gray-600 leading-tight">
-                  {isSpanish
-                    ? "Chat bot inteligente"
-                    : "AI chatbot closes deals"}
-                </p>
-              </div>
-              <div className="absolute inset-0 w-24 h-24 bg-orange-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
-            </div>
-
-            {/* Step 5: Customer Retention - Top left of circle */}
-            <div
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 group"
-              style={{
-                transform:
-                  "translate(-50%, -50%) rotate(288deg) translateY(-240px) rotate(-288deg)",
-              }}
-            >
-              <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-all duration-500 group-hover:shadow-indigo-500/50">
-                <div className="relative">
-                  <div className="w-5 h-5 border-3 border-white rounded-full shadow-inner"></div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                </div>
-              </div>
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center w-32">
-                <div className="text-sm font-mono text-indigo-600 mb-2 font-bold">
-                  05
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {isSpanish ? "Retención" : "Customer Retention"}
-                </h3>
-                <p className="text-xs text-gray-600 leading-tight">
-                  {isSpanish
-                    ? "Re-targeting automático"
-                    : "Smart retargeting campaigns"}
-                </p>
-              </div>
-              <div className="absolute inset-0 w-24 h-24 bg-indigo-400 rounded-full opacity-20 animate-pulse group-hover:opacity-30 transition-opacity"></div>
-            </div>
-
-            {/* Enhanced circle paths with multiple rings */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-[480px] h-[480px] border-2 border-gray-300/50 rounded-full"></div>
-              <div className="absolute inset-0 w-[480px] h-[480px] border border-blue-200/30 rounded-full animate-pulse"></div>
-              <div
-                className="absolute inset-4 w-[464px] h-[464px] border border-purple-200/20 rounded-full animate-pulse"
-                style={{ animationDelay: "1s" }}
-              ></div>
-            </div>
-
-            {/* Subtle tech arrow tips */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              {[...Array(5)].map((_, i) => {
-                const midAngle = i * 72 + 36 - 90; // Midpoint between steps
-                const tipRadius = 240; // On the circle line
-                const x = tipRadius * Math.cos((midAngle * Math.PI) / 180);
-                const y = tipRadius * Math.sin((midAngle * Math.PI) / 180);
-
-                return (
-                  <div
-                    key={i}
-                    className="absolute"
-                    style={{
-                      left: `${250 + x}px`,
-                      top: `${250 + y}px`,
-                      transform: `translate(-50%, -50%) rotate(${midAngle + 90}deg)`,
-                    }}
-                  >
+                  
+                  {/* Icon */}
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
                     <div className="relative">
-                      {/* Main arrow tip */}
-                      <div
-                        className="w-0 h-0 border-l-[6px] border-r-0 border-t-[2px] border-b-[2px] border-l-gray-400/60 border-t-transparent border-b-transparent"
-                        style={{
-                          filter:
-                            "drop-shadow(0 0 2px rgba(156, 163, 175, 0.3))",
-                        }}
-                      ></div>
-                      {/* Tech accent line */}
-                      <div className="absolute -left-1 top-1/2 w-2 h-px bg-gray-300/40 transform -translate-y-1/2"></div>
-                      {/* Subtle dot accent */}
-                      <div className="absolute -left-2 top-1/2 w-0.5 h-0.5 bg-blue-400/50 rounded-full transform -translate-y-1/2"></div>
+                      <div className="w-8 h-8 bg-white rounded-lg"></div>
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-300 rounded-full animate-ping"></div>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Content */}
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    {isSpanish ? "Recopilación" : "Data Collection"}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {isSpanish
+                      ? "Captura automática desde tu web, POS y redes sociales"
+                      : "Auto-capture from website, POS & social media"}
+                  </p>
+
+                  {/* Glassmorphism effect on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-cyan-500/0 group-hover:from-blue-500/5 group-hover:to-cyan-500/5 rounded-3xl transition-all duration-500"></div>
+                </div>
+              </div>
+
+              {/* Step 2: AI Processing */}
+              <div className="group relative" data-testid="process-step-2">
+                <div className="relative bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <span className="text-white font-bold text-lg">02</span>
+                  </div>
+                  
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                    <div className="relative">
+                      <div className="w-6 h-6 bg-white rounded-full animate-pulse"></div>
+                      <div className="absolute inset-0 w-6 h-6 border-2 border-white/30 rounded-full animate-spin" style={{ animationDuration: "3s" }}></div>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    {isSpanish ? "Procesamiento IA" : "AI Processing"}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {isSpanish
+                      ? "Análisis inteligente y creación de contenido"
+                      : "Intelligent analysis & content creation"}
+                  </p>
+
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-pink-500/0 group-hover:from-purple-500/5 group-hover:to-pink-500/5 rounded-3xl transition-all duration-500"></div>
+                </div>
+              </div>
+
+              {/* Step 3: Campaign Deploy */}
+              <div className="group relative" data-testid="process-step-3">
+                <div className="relative bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <span className="text-white font-bold text-lg">03</span>
+                  </div>
+                  
+                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                    <div className="relative">
+                      <div className="w-8 h-5 bg-white rounded-lg"></div>
+                      {[...Array(3)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="absolute -top-1 -right-1 w-4 h-4 border border-white/60 rounded-full animate-ping"
+                          style={{
+                            animationDelay: `${i * 0.3}s`,
+                            animationDuration: "2s",
+                          }}
+                        ></div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    {isSpanish ? "Despliegue" : "Auto Deploy"}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {isSpanish
+                      ? "Publicación automática en 21+ plataformas"
+                      : "Auto-publish to 21+ platforms"}
+                  </p>
+
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-teal-500/0 group-hover:from-emerald-500/5 group-hover:to-teal-500/5 rounded-3xl transition-all duration-500"></div>
+                </div>
+              </div>
+
+              {/* Step 4: Sales Conversion */}
+              <div className="group relative" data-testid="process-step-4">
+                <div className="relative bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <span className="text-white font-bold text-lg">04</span>
+                  </div>
+                  
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                    <div className="relative">
+                      <div className="flex space-x-1">
+                        <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce"></div>
+                        <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                        <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    {isSpanish ? "Conversión" : "Conversion"}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {isSpanish
+                      ? "Chatbot IA cierra las ventas"
+                      : "AI chatbot closes the sales"}
+                  </p>
+
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 to-red-500/0 group-hover:from-orange-500/5 group-hover:to-red-500/5 rounded-3xl transition-all duration-500"></div>
+                </div>
+              </div>
+
+              {/* Step 5: Customer Retention */}
+              <div className="group relative" data-testid="process-step-5">
+                <div className="relative bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <span className="text-white font-bold text-lg">05</span>
+                  </div>
+                  
+                  <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                    <div className="relative">
+                      <div className="w-8 h-8 border-4 border-white rounded-full"></div>
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    {isSpanish ? "Retención" : "Retention"}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {isSpanish
+                      ? "Re-targeting inteligente automático"
+                      : "Smart auto-retargeting"}
+                  </p>
+
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/0 to-blue-600/0 group-hover:from-indigo-500/5 group-hover:to-blue-600/5 rounded-3xl transition-all duration-500"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom CTA Banner */}
+            <div className="mt-20 relative">
+              <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 rounded-3xl p-12 overflow-hidden">
+                {/* Animated background pattern */}
+                <div className="absolute inset-0 opacity-20">
+                  <div className="absolute inset-0" style={{
+                    backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 1px)",
+                    backgroundSize: "40px 40px",
+                  }}></div>
+                </div>
+                
+                <div className="relative text-center">
+                  <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                    {isSpanish 
+                      ? "El Resultado: Más Ventas, Automáticamente" 
+                      : "The Result: More Sales, Automatically"}
+                  </h3>
+                  <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+                    {isSpanish
+                      ? "Este proceso completo se ejecuta 24/7 sin intervención manual, convirtiendo datos en ingresos reales"
+                      : "This complete process runs 24/7 without manual work, turning data into real revenue"}
+                  </p>
+                  <Button
+                    className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-10 py-6 text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                    data-testid="button-process-cta"
+                    onClick={() => navigate("/login")}
+                  >
+                    {isSpanish ? "Ver en Acción" : "See It In Action"}
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Add custom animation keyframes */}
+        <style>{`
+          @keyframes flowDot {
+            0%, 100% { transform: translateX(0) translateY(-50%); opacity: 0; }
+            50% { opacity: 1; }
+          }
+        `}</style>
       </section>
 
       {/* Meet LeadBoost Section */}
