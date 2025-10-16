@@ -1499,6 +1499,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 📍 /api/integrations/instagram/connect
+  app.get("/api/integrations/instagram/connect", async (req, res) => {
+    try {
+      // ✅ 1. Obtener el ID del usuario autenticado
+      const state = encodeURIComponent(req.user?.id || "anonymous");
+
+      // ✅ 2. Usar variables de entorno, no hardcodear los IDs
+      const clientId = process.env.IG_APP_ID;
+      const redirectUri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
+
+      // ✅ 3. Construir la URL correctamente (con state incluido)
+      const authUrl = `https://www.instagram.com/oauth/authorize
+        ?force_reauth=true
+        &client_id=${clientId}
+        &redirect_uri=${encodeURIComponent(redirectUri)}
+        &response_type=code
+        &scope=instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish,instagram_business_manage_insights
+        &state=${state}`.replace(/\s+/g, ""); // quitar saltos de línea
+
+      console.log("🌐 Redirecting to Instagram Auth:", authUrl);
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error("❌ Error generating Instagram auth URL:", error);
+      res.status(500).send("Error starting Instagram OAuth");
+    }
+  });
+
+  // 📍 /api/integrations/instagram/callback
+  app.get("/api/integrations/instagram/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      const redirectUri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
+
+      console.log("📥 Instagram callback hit:", { code, state, redirectUri });
+
+      // 1️⃣ Intercambio de código por token
+      const tokenResponse = await fetch(
+        "https://api.instagram.com/oauth/access_token",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_id: process.env.IG_APP_ID!,
+            client_secret: process.env.IG_APP_SECRET!,
+            grant_type: "authorization_code",
+            redirect_uri: redirectUri,
+            code: code as string,
+          }),
+        },
+      );
+
+      const rawText = await tokenResponse.text();
+      console.log("📦 Raw Instagram Token Response:", rawText);
+
+      let tokenData;
+      try {
+        tokenData = JSON.parse(rawText);
+      } catch {
+        console.error(
+          "⚠️ Token response is not valid JSON. Likely a parameter mismatch.",
+        );
+        return res.status(400).send(rawText);
+      }
+
+      // 2️⃣ Verificar que sí recibimos un token
+      if (!tokenData.access_token) {
+        console.error("❌ Invalid token data:", tokenData);
+        return res.status(400).json(tokenData);
+      }
+
+      // 3️⃣ Obtener datos del usuario
+      const userResponse = await fetch(
+        `https://graph.instagram.com/me?fields=id,username,account_type&access_token=${tokenData.access_token}`,
+      );
+
+      const userData = await userResponse.json();
+      console.log("👤 Instagram User Data:", userData);
+
+      // 4️⃣ Guardar la integración en tu DB
+      await storage.createOrUpdateIntegration({
+        userId: state as string,
+        provider: "instagram",
+        category: "social_media",
+        storeName: userData.username,
+        accessToken: tokenData.access_token,
+        isActive: true,
+        syncEnabled: true,
+        metadata: {
+          igUserId: userData.id,
+          account_type: userData.account_type,
+        },
+      });
+
+      res.redirect("/settings");
+    } catch (error) {
+      console.error("❌ Instagram Callback Error:", error);
+      res.status(500).send("Error in Instagram callback");
+    }
+  });
+
   app.get("/api/integrations", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;

@@ -92,6 +92,21 @@ export default function IntegrationsTab({
     }, 1000);
   };
 
+  const handleConnectInstagram = () => {
+    const popup = window.open(
+      `/api/integrations/instagram/connect`,
+      "_blank",
+      "width=600,height=700",
+    );
+
+    const timer = setInterval(() => {
+      if (popup?.closed) {
+        clearInterval(timer);
+        window.location.reload();
+      }
+    }, 1000);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -512,6 +527,10 @@ export default function IntegrationsTab({
                                             onClick={() => {
                                               if (providerKey === "facebook") {
                                                 handleConnectFacebook();
+                                              } else if (
+                                                providerKey === "instagram"
+                                              ) {
+                                                handleConnectInstagram();
                                               } else {
                                                 alert(
                                                   isSpanish
