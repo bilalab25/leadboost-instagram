@@ -1190,6 +1190,8 @@ export default function Landing() {
               <Button
                 variant="ghost"
                 className="text-white/60 hover:text-white text-sm"
+                onClick={() => navigate("/privacy-policy")}
+                data-testid="link-privacy-policy"
               >
                 {isSpanish ? "Privacidad" : "Privacy"}
               </Button>

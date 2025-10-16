@@ -1542,7 +1542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             client_id: process.env.IG_APP_ID!,
-            client_secret: process.env.IG_APP_SECRET!,
+            client_secret: process.env.I_APP_SECRET!,
             grant_type: "authorization_code",
             redirect_uri: redirectUri,
             code: code as string,

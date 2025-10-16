@@ -27,6 +27,7 @@ import BrandStudio from "@/pages/brand-studio";
 import Pricing from "@/pages/pricing";
 import Approvals from "@/pages/approvals";
 import Settings from "./pages/settings";
+import PrivacyPolicy from "@/pages/privacy-policy";
 
 
 function Router() {
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/spanish-preview" component={SpanishPreview} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
 
       {/* Rutas de la aplicación - PROTEGIDAS por PrivateRoute */}
       {/* Si el usuario no está autenticado, PrivateRoute lo redirigirá a /login */}
