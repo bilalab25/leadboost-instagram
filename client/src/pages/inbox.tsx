@@ -121,7 +121,7 @@ export default function Inbox() {
             </div>
           </div>
            {/* Help AI Chatbot */}
-            <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
+            <HelpChatbot />
         </main>
       </div>
       </div>

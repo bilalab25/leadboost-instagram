@@ -105,11 +105,34 @@ export const socialAccounts = pgTable("social_accounts", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Conversation threads to group messages
+export const conversationThreads = pgTable("conversation_threads", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  socialAccountId: uuid("social_account_id").references(
+    () => socialAccounts.id,
+    { onDelete: "cascade" },
+  ),
+  participantId: varchar("participant_id").notNull(), // customer's ID on the platform
+  participantName: varchar("participant_name").notNull(),
+  participantAvatar: varchar("participant_avatar"),
+  platform: varchar("platform").notNull(), // instagram, whatsapp, etc.
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  lastMessagePreview: text("last_message_preview"),
+  isRead: boolean("is_read").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Messages from all social platforms
 export const messages = pgTable("messages", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
+  conversationId: uuid("conversation_id").references(
+    () => conversationThreads.id,
+    { onDelete: "cascade" },
+  ),
   socialAccountId: uuid("social_account_id").references(
     () => socialAccounts.id,
     { onDelete: "cascade" },
@@ -119,10 +142,28 @@ export const messages = pgTable("messages", {
   senderAvatar: varchar("sender_avatar"),
   content: text("content").notNull(),
   messageType: varchar("message_type").default("text"), // text, image, video, audio
+  direction: varchar("direction").default("inbound"), // inbound, outbound
+  status: varchar("status").default("sent"), // sent, delivered, read, failed
   isRead: boolean("is_read").default(false),
   priority: varchar("priority").default("normal"), // low, normal, high, urgent
   tags: text("tags").array(),
   assignedTo: varchar("assigned_to").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Message attachments (images, videos, files)
+export const messageAttachments = pgTable("message_attachments", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  messageId: uuid("message_id").references(() => messages.id, {
+    onDelete: "cascade",
+  }),
+  type: varchar("type").notNull(), // image, video, file, audio
+  url: text("url").notNull(),
+  fileName: varchar("file_name"),
+  fileSize: integer("file_size"), // in bytes
+  mimeType: varchar("mime_type"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -501,7 +542,22 @@ export const socialAccountsRelations = relations(
   }),
 );
 
-export const messagesRelations = relations(messages, ({ one }) => ({
+export const conversationThreadsRelations = relations(
+  conversationThreads,
+  ({ one, many }) => ({
+    socialAccount: one(socialAccounts, {
+      fields: [conversationThreads.socialAccountId],
+      references: [socialAccounts.id],
+    }),
+    messages: many(messages),
+  }),
+);
+
+export const messagesRelations = relations(messages, ({ one, many }) => ({
+  conversation: one(conversationThreads, {
+    fields: [messages.conversationId],
+    references: [conversationThreads.id],
+  }),
   socialAccount: one(socialAccounts, {
     fields: [messages.socialAccountId],
     references: [socialAccounts.id],
@@ -510,7 +566,18 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     fields: [messages.assignedTo],
     references: [users.id],
   }),
+  attachments: many(messageAttachments),
 }));
+
+export const messageAttachmentsRelations = relations(
+  messageAttachments,
+  ({ one }) => ({
+    message: one(messages, {
+      fields: [messageAttachments.messageId],
+      references: [messages.id],
+    }),
+  }),
+);
 
 export const contentPlansRelations = relations(contentPlans, ({ one }) => ({
   user: one(users, {
@@ -637,7 +704,22 @@ export const insertSocialAccountSchema = createInsertSchema(
   createdAt: true,
 });
 
+export const insertConversationThreadSchema = createInsertSchema(
+  conversationThreads,
+).omit({
+  id: true,
+  createdAt: true,
+  lastMessageAt: true,
+});
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMessageAttachmentSchema = createInsertSchema(
+  messageAttachments,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -744,8 +826,18 @@ export type InsertCampaignTrigger = typeof campaignTriggers.$inferInsert;
 export type CampaignTrigger = typeof campaignTriggers.$inferSelect;
 export type InsertSocialAccount = z.infer<typeof insertSocialAccountSchema>;
 export type SocialAccount = typeof socialAccounts.$inferSelect;
+export type InsertConversationThread = z.infer<
+  typeof insertConversationThreadSchema
+>;
+export type ConversationThread = typeof conversationThreads.$inferSelect;
+
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
+export type InsertMessageAttachment = z.infer<
+  typeof insertMessageAttachmentSchema
+>;
+export type MessageAttachment = typeof messageAttachments.$inferSelect;
 export type InsertContentPlan = z.infer<typeof insertContentPlanSchema>;
 export type ContentPlan = typeof contentPlans.$inferSelect;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
