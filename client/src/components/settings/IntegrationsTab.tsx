@@ -415,7 +415,7 @@ export default function IntegrationsTab({
       </Dialog>
 
       {/* Render Integrations by Category as Accordion */}
-      <Accordion type="multiple" defaultValue={["pos"]}>
+      <Accordion type="multiple" defaultValue={["social_media"]}>
         {" "}
         {/* 'multiple' allows several open, 'single' only one. DefaultValue opens one on load. */}
         {Object.entries(INTEGRATION_CATEGORIES_DISPLAY).map(

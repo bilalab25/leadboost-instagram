@@ -819,71 +819,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Conversation routes
-  app.post("/api/conversations/from-message/:messageId", isAuthenticated, async (req: any, res) => {
-    try {
-      const messageId = req.params.messageId;
-      
-      // For mock messages, create a mock conversation response
-      // In production, this would fetch the actual message and create/find a conversation
-      const mockConversation = {
-        id: messageId, // Use message ID as conversation ID for mock
-        participantName: messageId === "msg-1" ? "María González" : 
-                        messageId === "msg-2" ? "Carlos Rivera" :
-                        messageId === "msg-3" ? "Ana López" :
-                        messageId === "msg-4" ? "Diego Morales" :
-                        "Customer",
-        participantAvatar: null,
-        platform: messageId === "msg-1" ? "instagram" :
-                 messageId === "msg-2" ? "facebook" :
-                 messageId === "msg-3" ? "tiktok" :
-                 messageId === "msg-4" ? "whatsapp" :
-                 "email",
-        socialAccountId: "social-1",
-        lastMessageAt: new Date(),
-        lastMessagePreview: "Preview..."
-      };
-      
-      res.json(mockConversation);
-    } catch (error) {
-      console.error("Error creating conversation from message:", error);
-      res.status(500).json({ message: "Failed to create conversation" });
-    }
-  });
+  app.post(
+    "/api/conversations/from-message/:messageId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const messageId = req.params.messageId;
+
+        // For mock messages, create a mock conversation response
+        // In production, this would fetch the actual message and create/find a conversation
+        const mockConversation = {
+          id: messageId, // Use message ID as conversation ID for mock
+          participantName:
+            messageId === "msg-1"
+              ? "María González"
+              : messageId === "msg-2"
+                ? "Carlos Rivera"
+                : messageId === "msg-3"
+                  ? "Ana López"
+                  : messageId === "msg-4"
+                    ? "Diego Morales"
+                    : "Customer",
+          participantAvatar: null,
+          platform:
+            messageId === "msg-1"
+              ? "instagram"
+              : messageId === "msg-2"
+                ? "facebook"
+                : messageId === "msg-3"
+                  ? "tiktok"
+                  : messageId === "msg-4"
+                    ? "whatsapp"
+                    : "email",
+          socialAccountId: "social-1",
+          lastMessageAt: new Date(),
+          lastMessagePreview: "Preview...",
+        };
+
+        res.json(mockConversation);
+      } catch (error) {
+        console.error("Error creating conversation from message:", error);
+        res.status(500).json({ message: "Failed to create conversation" });
+      }
+    },
+  );
 
   app.get("/api/conversations/:id", isAuthenticated, async (req, res) => {
     try {
       const conversationId = req.params.id;
-      
+
       // For mock message IDs, return mock conversation
       if (conversationId.startsWith("msg-")) {
         const mockConversation = {
           id: conversationId,
-          participantName: conversationId === "msg-1" ? "María González" : 
-                          conversationId === "msg-2" ? "Carlos Rivera" :
-                          conversationId === "msg-3" ? "Ana López" :
-                          conversationId === "msg-4" ? "Diego Morales" :
-                          "Customer",
+          participantName:
+            conversationId === "msg-1"
+              ? "María González"
+              : conversationId === "msg-2"
+                ? "Carlos Rivera"
+                : conversationId === "msg-3"
+                  ? "Ana López"
+                  : conversationId === "msg-4"
+                    ? "Diego Morales"
+                    : "Customer",
           participantAvatar: null,
-          platform: conversationId === "msg-1" ? "instagram" :
-                   conversationId === "msg-2" ? "facebook" :
-                   conversationId === "msg-3" ? "tiktok" :
-                   conversationId === "msg-4" ? "whatsapp" :
-                   "email",
+          platform:
+            conversationId === "msg-1"
+              ? "instagram"
+              : conversationId === "msg-2"
+                ? "facebook"
+                : conversationId === "msg-3"
+                  ? "tiktok"
+                  : conversationId === "msg-4"
+                    ? "whatsapp"
+                    : "email",
           socialAccountId: "social-1",
           lastMessageAt: new Date(),
-          lastMessagePreview: "Preview..."
+          lastMessagePreview: "Preview...",
         };
-        
+
         return res.json(mockConversation);
       }
-      
+
       // For real conversation IDs, query the database
       const conversation = await storage.getConversationById(conversationId);
-      
+
       if (!conversation) {
         return res.status(404).json({ message: "Conversation not found" });
       }
-      
+
       res.json(conversation);
     } catch (error) {
       console.error("Error fetching conversation:", error);
@@ -891,100 +915,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/conversations/:id/messages", isAuthenticated, async (req, res) => {
-    try {
-      const conversationId = req.params.id;
-      
-      // For mock message IDs, return mock conversation messages
-      if (conversationId.startsWith("msg-")) {
-        const mockMessages = [
-          {
-            id: `${conversationId}-thread-1`,
+  app.get(
+    "/api/conversations/:id/messages",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const conversationId = req.params.id;
+
+        // For mock message IDs, return mock conversation messages
+        if (conversationId.startsWith("msg-")) {
+          const mockMessages = [
+            {
+              id: `${conversationId}-thread-1`,
+              conversationId,
+              senderId:
+                conversationId === "msg-1"
+                  ? "maria_gonzalez"
+                  : conversationId === "msg-2"
+                    ? "carlos_rivera"
+                    : conversationId === "msg-3"
+                      ? "ana_lopez"
+                      : conversationId === "msg-4"
+                        ? "diego_morales"
+                        : "customer",
+              senderName:
+                conversationId === "msg-1"
+                  ? "María González"
+                  : conversationId === "msg-2"
+                    ? "Carlos Rivera"
+                    : conversationId === "msg-3"
+                      ? "Ana López"
+                      : conversationId === "msg-4"
+                        ? "Diego Morales"
+                        : "Customer",
+              senderAvatar: null,
+              content:
+                conversationId === "msg-1"
+                  ? "¡Hola! ¡Me encanta los resultados de mi último tratamiento facial! ¿Cuándo pueden agendar mi próxima cita? 💆‍♀️"
+                  : conversationId === "msg-2"
+                    ? "¿Pueden ayudarme con mi cita de cirugía plástica? Necesito confirmar los detalles pre-operatorios para mi procedimiento de la próxima semana. Cita #12345"
+                    : conversationId === "msg-3"
+                      ? "¡Servicio al cliente increíble! Gracias por resolver mi problema tan rápido 🙌"
+                      : conversationId === "msg-4"
+                        ? "Hola, vi su anuncio en Facebook sobre el paquete de rejuvenecimiento facial. ¿Podrían enviarme más detalles e información de precios?"
+                        : "Hello, I have a question",
+              direction: "inbound" as const,
+              status: "read" as const,
+              messageType: "text" as const,
+              createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+            },
+          ];
+
+          return res.json(mockMessages);
+        }
+
+        // For real conversation IDs, query the database
+        const messages = await storage.getConversationMessages(conversationId);
+        res.json(messages);
+      } catch (error) {
+        console.error("Error fetching conversation messages:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch conversation messages" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/conversations/:id/messages",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const conversationId = req.params.id;
+        const { content } = req.body;
+
+        // For mock message IDs, return a mock outbound message
+        if (conversationId.startsWith("msg-")) {
+          const mockMessage = {
+            id: `${conversationId}-reply-${Date.now()}`,
             conversationId,
-            senderId: conversationId === "msg-1" ? "maria_gonzalez" :
-                     conversationId === "msg-2" ? "carlos_rivera" :
-                     conversationId === "msg-3" ? "ana_lopez" :
-                     conversationId === "msg-4" ? "diego_morales" :
-                     "customer",
-            senderName: conversationId === "msg-1" ? "María González" :
-                       conversationId === "msg-2" ? "Carlos Rivera" :
-                       conversationId === "msg-3" ? "Ana López" :
-                       conversationId === "msg-4" ? "Diego Morales" :
-                       "Customer",
-            senderAvatar: null,
-            content: conversationId === "msg-1" ? "¡Hola! ¡Me encanta los resultados de mi último tratamiento facial! ¿Cuándo pueden agendar mi próxima cita? 💆‍♀️" :
-                    conversationId === "msg-2" ? "¿Pueden ayudarme con mi cita de cirugía plástica? Necesito confirmar los detalles pre-operatorios para mi procedimiento de la próxima semana. Cita #12345" :
-                    conversationId === "msg-3" ? "¡Servicio al cliente increíble! Gracias por resolver mi problema tan rápido 🙌" :
-                    conversationId === "msg-4" ? "Hola, vi su anuncio en Facebook sobre el paquete de rejuvenecimiento facial. ¿Podrían enviarme más detalles e información de precios?" :
-                    "Hello, I have a question",
-            direction: "inbound" as const,
-            status: "read" as const,
+            senderId: req.user?.id || "agent-1",
+            senderName: req.user?.firstName || "Agent",
+            senderAvatar: req.user?.profilePicture || null,
+            content,
+            direction: "outbound" as const,
+            status: "sent" as const,
             messageType: "text" as const,
-            createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          }
-        ];
-        
-        return res.json(mockMessages);
-      }
-      
-      // For real conversation IDs, query the database
-      const messages = await storage.getConversationMessages(conversationId);
-      res.json(messages);
-    } catch (error) {
-      console.error("Error fetching conversation messages:", error);
-      res.status(500).json({ message: "Failed to fetch conversation messages" });
-    }
-  });
+            createdAt: new Date().toISOString(),
+          };
 
-  app.post("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
-    try {
-      const conversationId = req.params.id;
-      const { content } = req.body;
-      
-      // For mock message IDs, return a mock outbound message
-      if (conversationId.startsWith("msg-")) {
-        const mockMessage = {
-          id: `${conversationId}-reply-${Date.now()}`,
+          return res.json(mockMessage);
+        }
+
+        // For real conversation IDs, create in database
+        const conversation = await storage.getConversationById(conversationId);
+
+        if (!conversation) {
+          return res.status(404).json({ message: "Conversation not found" });
+        }
+
+        // Create the outbound message
+        const message = await storage.createConversationMessage({
           conversationId,
-          senderId: req.user?.id || "agent-1",
-          senderName: req.user?.firstName || "Agent",
-          senderAvatar: req.user?.profilePicture || null,
+          socialAccountId: conversation.socialAccountId,
+          senderId: req.user.id,
+          senderName: req.user.firstName || "Agent",
+          senderAvatar: req.user.profilePicture,
           content,
-          direction: "outbound" as const,
-          status: "sent" as const,
-          messageType: "text" as const,
-          createdAt: new Date().toISOString(),
-        };
-        
-        return res.json(mockMessage);
-      }
-      
-      // For real conversation IDs, create in database
-      const conversation = await storage.getConversationById(conversationId);
-      
-      if (!conversation) {
-        return res.status(404).json({ message: "Conversation not found" });
-      }
+          direction: "outbound",
+          status: "sent",
+          messageType: "text",
+        });
 
-      // Create the outbound message
-      const message = await storage.createConversationMessage({
-        conversationId,
-        socialAccountId: conversation.socialAccountId,
-        senderId: req.user.id,
-        senderName: req.user.firstName || "Agent",
-        senderAvatar: req.user.profilePicture,
-        content,
-        direction: "outbound",
-        status: "sent",
-        messageType: "text",
-      });
-
-      res.json(message);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      res.status(500).json({ message: "Failed to send message" });
-    }
-  });
+        res.json(message);
+      } catch (error) {
+        console.error("Error sending message:", error);
+        res.status(500).json({ message: "Failed to send message" });
+      }
+    },
+  );
 
   // Content plans routes
   app.get("/api/content-plans", async (req: any, res) => {
@@ -1612,7 +1661,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "pages_read_engagement",
       "pages_manage_metadata",
       "pages_manage_posts",
+      "pages_messaging",
     ].join(",");
+    console.log(scopes, "scopes");
 
     const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri,
@@ -1627,39 +1678,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!code) return res.status(400).send("Missing code");
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
+
+      // Step 1: Exchange code for a user access token
       const tokenResponse = await fetch(
         `https://graph.facebook.com/v22.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
           redirect_uri,
         )}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`,
       );
-
       const tokenData = await tokenResponse.json();
 
       if (tokenData.error) {
         console.error("❌ Facebook token error:", tokenData.error);
         return res.status(500).json(tokenData.error);
       }
-      const userResponse = await fetch(
-        `https://graph.facebook.com/me?fields=id,name,email&access_token=${tokenData.access_token}`,
+
+      // Step 2: Get list of Pages the user manages
+      const pagesResponse = await fetch(
+        `https://graph.facebook.com/v22.0/me/accounts?access_token=${tokenData.access_token}`,
       );
-      const userData = await userResponse.json();
-      const expiresAt = dayjs().add(tokenData.expires_in, "seconds").toDate();
+      const pagesData = await pagesResponse.json();
+
+      if (!pagesData.data || pagesData.data.length === 0) {
+        console.error("❌ No Facebook Pages found for this user");
+        return res.status(400).send("No Facebook Pages found");
+      }
+
+      // ✅ Take only the first Page (limit to one)
+      const page = pagesData.data[0];
+
+      // Step 3: Save Page info instead of User info
+      const expiresAt = tokenData.expires_in
+        ? dayjs().add(tokenData.expires_in, "seconds").toDate()
+        : null;
 
       await storage.createOrUpdateIntegration({
-        userId: state as string,
+        userId: state,
         provider: "facebook",
         category: "social",
         storeName: "Facebook",
-        accessToken: tokenData.access_token,
-        accountName: userData.name,
-        accountId: userData.id,
+        storeUrl: `https://facebook.com/${page.id}`,
+        pageId: page.id,
+        accessToken: page.access_token, // ✅ Page Token (not user)
+        accountName: page.name, // Page name
+        accountId: page.id, // same as page_id
         settings: {
-          fbUserId: userData.id,
-          fbUserName: userData.name,
+          fbUserId: page.id,
+          fbUserName: page.name,
         },
-        expiresAt: expiresAt,
+        expiresAt,
+        isActive: true,
+        syncEnabled: true,
+        lastSyncAt: null,
+        metadata: {
+          category: page.category,
+          permissions: page.tasks || [],
+        },
       });
 
+      console.log(`✅ Facebook Page connected: ${page.name} (${page.id})`);
       res.redirect("/settings");
     } catch (err) {
       console.error("❌ Callback error:", err);
