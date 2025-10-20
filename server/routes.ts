@@ -1826,6 +1826,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           igUserId: userData.id,
           account_type: userData.account_type,
         },
+        account_name: userData.username,
       });
 
       res.redirect("/settings");

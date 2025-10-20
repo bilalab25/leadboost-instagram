@@ -17,7 +17,7 @@ export default function HelpChatbot({ mascot }: HelpChatbotProps) {
         <img
           src={mascot || boosty}
           alt="LeadBoost Assistant"
-          className="w-36 h-48 rounded-full hover:scale-110 transition-transform cursor-pointer"
+          className="w-36 h-48 hover:scale-110 transition-transform cursor-pointer"
         />
       </Link>
     </div>

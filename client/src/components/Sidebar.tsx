@@ -64,11 +64,11 @@ export default function Sidebar() {
 
   const navigation = [
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
-    { 
-      name: "Boosty", 
-      href: "/waterfall", 
-      icon: Zap, 
-      special: true 
+    {
+      name: "Boosty",
+      href: "/waterfall",
+      icon: Zap,
+      special: true,
     },
     { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, badge: "12" },
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
@@ -81,10 +81,20 @@ export default function Sidebar() {
     { name: t.sidebar.settings, href: "/settings", icon: Settings },
   ];
 
-  const { data: socialAccounts } = useQuery<SocialAccount[]>({
-    queryKey: ["/api/social-accounts"],
+  const { data: integrations, isLoading } = useQuery({
+    queryKey: ["/api/integrations"],
+    queryFn: async () => {
+      const res = await fetch("/api/integrations");
+      if (!res.ok) throw new Error("Failed to fetch integrations");
+      return res.json();
+    },
     retry: false,
   });
+
+  // 🔍 Filtramos solo las sociales (Facebook, Instagram, TikTok, etc.)
+  const socialAccounts = (integrations || []).filter(
+    (intg) => intg.category === "social" || intg.category === "social_media",
+  );
 
   const handleLogout = async () => {
     try {
@@ -105,14 +115,18 @@ export default function Sidebar() {
         // O si quieres limpiar toda la caché de react-query:
         // queryClient.clear();
 
-        toast({ title: "Logged out", description: "You have been successfully logged out." });
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out.",
+        });
         navigate("/login"); // Redirigir a la página de login o a la raíz
       } else {
         const errorData = await response.json();
         console.error("Backend logout failed:", errorData.message);
         toast({
           title: "Logout Failed",
-          description: errorData.message || "An error occurred during backend logout.",
+          description:
+            errorData.message || "An error occurred during backend logout.",
           variant: "destructive",
         });
       }
@@ -141,19 +155,16 @@ export default function Sidebar() {
     }
   };
 
-
   return (
     <div className="hidden md:flex md:w-64 md:flex-col">
       <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white border-r border-gray-200">
-        
-        
         {/* Navigation */}
         <div className="mt-8 flex-grow flex flex-col">
           <nav className="flex-1 px-4 space-y-1">
             {navigation.map((item) => {
               const isActive = location === item.href;
               const Icon = item.icon;
-              
+
               return (
                 <Link key={item.name} href={item.href}>
                   <div
@@ -162,15 +173,17 @@ export default function Sidebar() {
                       item.special
                         ? "bg-gradient-to-r from-brand-600 to-cyan-500 text-white hover:from-brand-700 hover:to-cyan-600 shadow-md"
                         : isActive
-                        ? "bg-brand-50 text-brand-700"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          ? "bg-brand-50 text-brand-700"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                     )}
                     data-testid={`nav-${item.name.toLowerCase().replace(" ", "-")}`}
                   >
-                    <Icon className={cn(
-                      "w-5 h-5 mr-3",
-                      item.special ? "text-white" : ""
-                    )} />
+                    <Icon
+                      className={cn(
+                        "w-5 h-5 mr-3",
+                        item.special ? "text-white" : "",
+                      )}
+                    />
                     {item.name}
                     {item.badge && (
                       <span className="bg-red-100 text-red-800 ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium">
@@ -182,53 +195,89 @@ export default function Sidebar() {
               );
             })}
           </nav>
-          
+
           {/* Connected Accounts */}
           <div className="px-4 mt-8">
             <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {t.messages.connectedAccounts}
             </h3>
+
             <div className="mt-3 space-y-2">
-              {socialAccounts && socialAccounts.length > 0 ? (
+              {isLoading ? (
+                <div className="px-3 py-2 text-xs text-gray-400 animate-pulse">
+                  Loading accounts...
+                </div>
+              ) : socialAccounts.length > 0 ? (
                 socialAccounts.map((account) => {
-                  const Icon = platformIcons[account.platform as keyof typeof platformIcons];
-                  const colorClass = platformColors[account.platform as keyof typeof platformColors];
-                  
+                  const Icon =
+                    platformIcons[
+                      account.provider as keyof typeof platformIcons
+                    ] || Link2;
+                  const colorClass =
+                    platformColors[
+                      account.provider as keyof typeof platformColors
+                    ] || "text-gray-500";
+
                   return (
                     <div
                       key={account.id}
-                      className="flex items-center px-3 py-2 text-sm text-gray-600"
-                      data-testid={`social-account-${account.platform}`}
+                      className="flex items-center px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition"
+                      data-testid={`social-account-${account.provider}`}
                     >
-                      {Icon && <Icon className={cn("w-5 h-5 mr-3", colorClass)} />}
-                      <span className="flex-1">{account.accountName}</span>
-                      <div className={cn("w-2 h-2 rounded-full", account.isActive ? "bg-green-400" : "bg-gray-300")} />
+                      <Icon className={cn("w-5 h-5 mr-3", colorClass)} />
+                      <span className="flex-1 truncate">
+                        {account.store_name ||
+                          account.account_name ||
+                          "Unnamed"}
+                      </span>
+                      <div
+                        className={cn(
+                          "w-2 h-2 rounded-full",
+                          account.is_active ? "bg-green-400" : "bg-gray-300",
+                        )}
+                        title={account.is_active ? "Active" : "Inactive"}
+                      />
                     </div>
                   );
                 })
               ) : (
-                <div className="px-3 py-2 text-xs text-gray-500" data-testid="text-no-accounts">
+                <div
+                  className="px-3 py-2 text-xs text-gray-500"
+                  data-testid="text-no-accounts"
+                >
                   {t.common.noAccountsConnected}
                 </div>
               )}
             </div>
           </div>
         </div>
-        
+
         {/* User Profile */}
         <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
           <div className="flex items-center w-full">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.profileImageUrl || undefined} alt="User avatar" />
+              <AvatarImage
+                src={user?.profileImageUrl || undefined}
+                alt="User avatar"
+              />
               <AvatarFallback>
-                {user?.firstName?.[0] || ''}{user?.lastName?.[0] || ''}
+                {user?.firstName?.[0] || ""}
+                {user?.lastName?.[0] || ""}
               </AvatarFallback>
             </Avatar>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-700" data-testid="text-user-name">
+              <p
+                className="text-sm font-medium text-gray-700"
+                data-testid="text-user-name"
+              >
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs font-medium text-gray-500" data-testid="text-user-role">{user?.role || t.common.user}</p>
+              <p
+                className="text-xs font-medium text-gray-500"
+                data-testid="text-user-role"
+              >
+                {user?.role || t.common.user}
+              </p>
             </div>
             <Button
               variant="ghost"
