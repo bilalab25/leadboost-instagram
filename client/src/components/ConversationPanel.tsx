@@ -104,12 +104,22 @@ export default function ConversationPanel({
   const { data: conversation, isLoading: conversationLoading } =
     useQuery<ConversationThread>({
       queryKey: ["/api/conversations", conversationId],
+      queryFn: async () => {
+        const response = await fetch(`/api/conversations/${conversationId}`);
+        if (!response.ok) throw new Error("Failed to fetch conversation");
+        return response.json();
+      },
       retry: false,
     });
 
   // Fetch messages in conversation
   const { data: messages, isLoading: messagesLoading } = useQuery<Message[]>({
     queryKey: ["/api/conversations", conversationId, "messages"],
+    queryFn: async () => {
+      const response = await fetch(`/api/conversations/${conversationId}/messages`);
+      if (!response.ok) throw new Error("Failed to fetch messages");
+      return response.json();
+    },
     retry: false,
   });
 
