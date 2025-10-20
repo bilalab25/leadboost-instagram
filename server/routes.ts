@@ -1714,7 +1714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createOrUpdateIntegration({
         userId: state,
         provider: "facebook",
-        category: "social",
+        category: "social_media",
         storeName: "Facebook",
         storeUrl: `https://facebook.com/${page.id}`,
         pageId: page.id,
@@ -1776,9 +1776,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code, state } = req.query;
       const redirectUri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
 
+      if (!code) return res.status(400).send("Missing authorization code");
+
       console.log("📥 Instagram callback hit:", { code, state, redirectUri });
 
-      // 1️⃣ Intercambio de código por token
+      // ✅ Exchange code for access token
       const tokenResponse = await fetch(
         "https://api.instagram.com/oauth/access_token",
         {
@@ -1786,7 +1788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             client_id: process.env.IG_APP_ID!,
-            client_secret: process.env.I_APP_SECRET!,
+            client_secret: process.env.IG_APP_SECRET!, // ✅ corregido
             grant_type: "authorization_code",
             redirect_uri: redirectUri,
             code: code as string,
@@ -1797,31 +1799,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rawText = await tokenResponse.text();
       console.log("📦 Raw Instagram Token Response:", rawText);
 
-      let tokenData;
-      try {
-        tokenData = JSON.parse(rawText);
-      } catch {
-        console.error(
-          "⚠️ Token response is not valid JSON. Likely a parameter mismatch.",
-        );
-        return res.status(400).send(rawText);
-      }
+      const tokenData = JSON.parse(rawText);
 
-      // 2️⃣ Verificar que sí recibimos un token
       if (!tokenData.access_token) {
         console.error("❌ Invalid token data:", tokenData);
         return res.status(400).json(tokenData);
       }
 
-      // 3️⃣ Obtener datos del usuario
+      // ✅ Get user data
       const userResponse = await fetch(
         `https://graph.instagram.com/me?fields=id,username,account_type&access_token=${tokenData.access_token}`,
       );
-
       const userData = await userResponse.json();
       console.log("👤 Instagram User Data:", userData);
 
-      // 4️⃣ Guardar la integración en tu DB
+      // ✅ Save integration
       await storage.createOrUpdateIntegration({
         userId: state as string,
         provider: "instagram",

@@ -547,19 +547,6 @@ export default function IntegrationsTab({
                                     );
                                   })}
                               </div>
-
-                              {integrationsInCategory.length > 0 && (
-                                <div className="space-y-4">
-                                  <h3 className="text-lg font-semibold mb-4">
-                                    {isSpanish
-                                      ? "Tus Integraciones Conectadas"
-                                      : "Your Connected Integrations"}
-                                  </h3>
-                                  {integrationsInCategory.map(
-                                    renderIntegrationCard,
-                                  )}
-                                </div>
-                              )}
                             </>
                           );
                         } else {
