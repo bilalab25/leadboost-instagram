@@ -116,19 +116,12 @@ export default function ConversationPanel({
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string; attachments?: File[] }) => {
-      const formData = new FormData();
-      formData.append("content", data.content);
-      
-      if (data.attachments) {
-        data.attachments.forEach((file) => {
-          formData.append("attachments", file);
-        });
-      }
-
+      // For now, just send the text content
+      // File uploads can be implemented later with multipart/form-data
       return await apiRequest(
         "POST",
         `/api/conversations/${conversationId}/messages`,
-        formData
+        { content: data.content }
       );
     },
     onSuccess: () => {
@@ -187,7 +180,7 @@ export default function ConversationPanel({
     : "";
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white shadow-2xl z-50 flex flex-col">
+    <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white shadow-2xl z-[100] flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
         {conversationLoading ? (

@@ -819,9 +819,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Conversation routes
+  app.post("/api/conversations/from-message/:messageId", isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = req.params.messageId;
+      
+      // For mock messages, create a mock conversation response
+      // In production, this would fetch the actual message and create/find a conversation
+      const mockConversation = {
+        id: messageId, // Use message ID as conversation ID for mock
+        participantName: messageId === "msg-1" ? "María González" : 
+                        messageId === "msg-2" ? "Carlos Rivera" :
+                        messageId === "msg-3" ? "Ana López" :
+                        messageId === "msg-4" ? "Diego Morales" :
+                        "Customer",
+        participantAvatar: null,
+        platform: messageId === "msg-1" ? "instagram" :
+                 messageId === "msg-2" ? "facebook" :
+                 messageId === "msg-3" ? "tiktok" :
+                 messageId === "msg-4" ? "whatsapp" :
+                 "email",
+        socialAccountId: "social-1",
+        lastMessageAt: new Date(),
+        lastMessagePreview: "Preview..."
+      };
+      
+      res.json(mockConversation);
+    } catch (error) {
+      console.error("Error creating conversation from message:", error);
+      res.status(500).json({ message: "Failed to create conversation" });
+    }
+  });
+
   app.get("/api/conversations/:id", isAuthenticated, async (req, res) => {
     try {
       const conversationId = req.params.id;
+      
+      // For mock message IDs, return mock conversation
+      if (conversationId.startsWith("msg-")) {
+        const mockConversation = {
+          id: conversationId,
+          participantName: conversationId === "msg-1" ? "María González" : 
+                          conversationId === "msg-2" ? "Carlos Rivera" :
+                          conversationId === "msg-3" ? "Ana López" :
+                          conversationId === "msg-4" ? "Diego Morales" :
+                          "Customer",
+          participantAvatar: null,
+          platform: conversationId === "msg-1" ? "instagram" :
+                   conversationId === "msg-2" ? "facebook" :
+                   conversationId === "msg-3" ? "tiktok" :
+                   conversationId === "msg-4" ? "whatsapp" :
+                   "email",
+          socialAccountId: "social-1",
+          lastMessageAt: new Date(),
+          lastMessagePreview: "Preview..."
+        };
+        
+        return res.json(mockConversation);
+      }
+      
+      // For real conversation IDs, query the database
       const conversation = await storage.getConversationById(conversationId);
       
       if (!conversation) {
@@ -838,6 +894,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/conversations/:id/messages", isAuthenticated, async (req, res) => {
     try {
       const conversationId = req.params.id;
+      
+      // For mock message IDs, return mock conversation messages
+      if (conversationId.startsWith("msg-")) {
+        const mockMessages = [
+          {
+            id: `${conversationId}-thread-1`,
+            conversationId,
+            senderId: conversationId === "msg-1" ? "maria_gonzalez" :
+                     conversationId === "msg-2" ? "carlos_rivera" :
+                     conversationId === "msg-3" ? "ana_lopez" :
+                     conversationId === "msg-4" ? "diego_morales" :
+                     "customer",
+            senderName: conversationId === "msg-1" ? "María González" :
+                       conversationId === "msg-2" ? "Carlos Rivera" :
+                       conversationId === "msg-3" ? "Ana López" :
+                       conversationId === "msg-4" ? "Diego Morales" :
+                       "Customer",
+            senderAvatar: null,
+            content: conversationId === "msg-1" ? "¡Hola! ¡Me encanta los resultados de mi último tratamiento facial! ¿Cuándo pueden agendar mi próxima cita? 💆‍♀️" :
+                    conversationId === "msg-2" ? "¿Pueden ayudarme con mi cita de cirugía plástica? Necesito confirmar los detalles pre-operatorios para mi procedimiento de la próxima semana. Cita #12345" :
+                    conversationId === "msg-3" ? "¡Servicio al cliente increíble! Gracias por resolver mi problema tan rápido 🙌" :
+                    conversationId === "msg-4" ? "Hola, vi su anuncio en Facebook sobre el paquete de rejuvenecimiento facial. ¿Podrían enviarme más detalles e información de precios?" :
+                    "Hello, I have a question",
+            direction: "inbound" as const,
+            status: "read" as const,
+            messageType: "text" as const,
+            createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          }
+        ];
+        
+        return res.json(mockMessages);
+      }
+      
+      // For real conversation IDs, query the database
       const messages = await storage.getConversationMessages(conversationId);
       res.json(messages);
     } catch (error) {
@@ -851,7 +941,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversationId = req.params.id;
       const { content } = req.body;
       
-      // Get conversation to retrieve participant details
+      // For mock message IDs, return a mock outbound message
+      if (conversationId.startsWith("msg-")) {
+        const mockMessage = {
+          id: `${conversationId}-reply-${Date.now()}`,
+          conversationId,
+          senderId: req.user?.id || "agent-1",
+          senderName: req.user?.firstName || "Agent",
+          senderAvatar: req.user?.profilePicture || null,
+          content,
+          direction: "outbound" as const,
+          status: "sent" as const,
+          messageType: "text" as const,
+          createdAt: new Date().toISOString(),
+        };
+        
+        return res.json(mockMessage);
+      }
+      
+      // For real conversation IDs, create in database
       const conversation = await storage.getConversationById(conversationId);
       
       if (!conversation) {
