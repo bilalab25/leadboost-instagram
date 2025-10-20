@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,9 +11,11 @@ import { es } from "date-fns/locale";
 import { Instagram, Reply, Tag, Calendar, Handshake, Mail, MessageCircle, Linkedin, Youtube, Twitter } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiTelegram, SiDiscord } from "react-icons/si";
 import { cn } from "@/lib/utils";
+import ConversationPanel from "@/components/ConversationPanel";
 
 interface Message {
   id: string;
+  conversationId?: string;
   senderId: string;
   senderName: string;
   senderAvatar?: string;
@@ -68,6 +71,7 @@ const priorityColors = {
 export default function MessageList({ limit = 50, showHeader = true, platform }: MessageListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   const { data: messages, isLoading } = useQuery<Message[]>({
     queryKey: ["/api/messages", { limit, platform }],
@@ -240,7 +244,15 @@ export default function MessageList({ limit = 50, showHeader = true, platform }:
                 </p>
                 
                 <div className="mt-2 flex items-center space-x-2">
-                  <Button variant="outline" size="sm" data-testid={`button-reply-${message.id}`}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveConversationId(message.conversationId || message.id);
+                    }}
+                    data-testid={`button-reply-${message.id}`}
+                  >
                     <Reply className="mr-1 h-3 w-3" />
                     Responder
                   </Button>
@@ -273,6 +285,14 @@ export default function MessageList({ limit = 50, showHeader = true, platform }:
             Ver Todos los Mensajes ({filteredMessages.length})
           </Button>
         </div>
+      )}
+
+      {/* Conversation Panel Slide-over */}
+      {activeConversationId && (
+        <ConversationPanel
+          conversationId={activeConversationId}
+          onClose={() => setActiveConversationId(null)}
+        />
       )}
     </div>
   );

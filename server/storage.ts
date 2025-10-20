@@ -2,7 +2,9 @@ import {
   users,
   brands,
   socialAccounts,
+  conversationThreads,
   messages,
+  messageAttachments,
   contentPlans,
   campaigns,
   analytics,
@@ -29,8 +31,12 @@ import {
   type Brand,
   type InsertSocialAccount,
   type SocialAccount,
+  type InsertConversationThread,
+  type ConversationThread,
   type InsertMessage,
   type Message,
+  type InsertMessageAttachment,
+  type MessageAttachment,
   type InsertContentPlan,
   type ContentPlan,
   type InsertCampaign,
@@ -109,6 +115,20 @@ export interface IStorage {
   markMessageAsRead(id: string): Promise<void>;
   updateMessagePriority(id: string, priority: string): Promise<void>;
   assignMessage(id: string, assignedTo: string): Promise<void>;
+
+  // Conversation operations
+  createConversation(conversation: InsertConversationThread): Promise<ConversationThread>;
+  getConversationById(id: string): Promise<ConversationThread | undefined>;
+  getConversationsByUserId(userId: string): Promise<ConversationThread[]>;
+  updateConversationLastMessage(id: string, preview: string): Promise<void>;
+
+  // Conversation message operations
+  createConversationMessage(message: InsertMessage): Promise<Message>;
+  getConversationMessages(conversationId: string): Promise<Message[]>;
+
+  // Message attachment operations
+  createMessageAttachment(attachment: InsertMessageAttachment): Promise<MessageAttachment>;
+  getMessageAttachments(messageId: string): Promise<MessageAttachment[]>;
 
   // Content plan operations
   createContentPlan(plan: InsertContentPlan): Promise<ContentPlan>;
@@ -505,6 +525,94 @@ export class DatabaseStorage implements IStorage {
 
   async updateMessagePriority(id: string, priority: string): Promise<void> {
     await db.update(messages).set({ priority }).where(eq(messages.id, id));
+  }
+
+  // Conversation operations
+  async createConversation(
+    conversation: InsertConversationThread,
+  ): Promise<ConversationThread> {
+    const [newConversation] = await db
+      .insert(conversationThreads)
+      .values(conversation)
+      .returning();
+    return newConversation;
+  }
+
+  async getConversationById(
+    id: string,
+  ): Promise<ConversationThread | undefined> {
+    const [conversation] = await db
+      .select()
+      .from(conversationThreads)
+      .where(eq(conversationThreads.id, id));
+    return conversation;
+  }
+
+  async getConversationsByUserId(
+    userId: string,
+  ): Promise<ConversationThread[]> {
+    const query = db
+      .select()
+      .from(conversationThreads)
+      .innerJoin(
+        socialAccounts,
+        eq(conversationThreads.socialAccountId, socialAccounts.id),
+      )
+      .where(eq(socialAccounts.userId, userId));
+
+    const results = await query.orderBy(desc(conversationThreads.lastMessageAt));
+    return results.map((row) => row.conversation_threads);
+  }
+
+  async updateConversationLastMessage(
+    id: string,
+    preview: string,
+  ): Promise<void> {
+    await db
+      .update(conversationThreads)
+      .set({ lastMessagePreview: preview, lastMessageAt: new Date() })
+      .where(eq(conversationThreads.id, id));
+  }
+
+  // Conversation message operations
+  async createConversationMessage(message: InsertMessage): Promise<Message> {
+    const [newMessage] = await db.insert(messages).values(message).returning();
+
+    // Update conversation last message
+    if (message.conversationId) {
+      await this.updateConversationLastMessage(
+        message.conversationId,
+        message.content.substring(0, 100),
+      );
+    }
+
+    return newMessage;
+  }
+
+  async getConversationMessages(conversationId: string): Promise<Message[]> {
+    return db
+      .select()
+      .from(messages)
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(asc(messages.createdAt));
+  }
+
+  // Message attachment operations
+  async createMessageAttachment(
+    attachment: InsertMessageAttachment,
+  ): Promise<MessageAttachment> {
+    const [newAttachment] = await db
+      .insert(messageAttachments)
+      .values(attachment)
+      .returning();
+    return newAttachment;
+  }
+
+  async getMessageAttachments(messageId: string): Promise<MessageAttachment[]> {
+    return db
+      .select()
+      .from(messageAttachments)
+      .where(eq(messageAttachments.messageId, messageId));
   }
 
   // Content plan operations

@@ -818,6 +818,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Conversation routes
+  app.get("/api/conversations/:id", isAuthenticated, async (req, res) => {
+    try {
+      const conversationId = req.params.id;
+      const conversation = await storage.getConversationById(conversationId);
+      
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      
+      res.json(conversation);
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      res.status(500).json({ message: "Failed to fetch conversation" });
+    }
+  });
+
+  app.get("/api/conversations/:id/messages", isAuthenticated, async (req, res) => {
+    try {
+      const conversationId = req.params.id;
+      const messages = await storage.getConversationMessages(conversationId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching conversation messages:", error);
+      res.status(500).json({ message: "Failed to fetch conversation messages" });
+    }
+  });
+
+  app.post("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const conversationId = req.params.id;
+      const { content } = req.body;
+      
+      // Get conversation to retrieve participant details
+      const conversation = await storage.getConversationById(conversationId);
+      
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+
+      // Create the outbound message
+      const message = await storage.createConversationMessage({
+        conversationId,
+        socialAccountId: conversation.socialAccountId,
+        senderId: req.user.id,
+        senderName: req.user.firstName || "Agent",
+        senderAvatar: req.user.profilePicture,
+        content,
+        direction: "outbound",
+        status: "sent",
+        messageType: "text",
+      });
+
+      res.json(message);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
   // Content plans routes
   app.get("/api/content-plans", async (req: any, res) => {
     try {
