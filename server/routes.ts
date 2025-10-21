@@ -485,261 +485,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return mock conversations for demo in Spanish
       const mockMessages = [
         {
-          id: "msg-1",
-          senderId: "maria_gonzalez",
-          senderName: "María González",
-          senderAvatar: null,
-          content:
-            "¡Hola! ¡Me encanta los resultados de mi último tratamiento facial! ¿Cuándo pueden agendar mi próxima cita? 💆‍♀️",
-          priority: "high",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-          socialAccount: {
-            platform: "instagram",
-            accountName: "@renuveaesthetics",
-          },
-        },
-        {
-          id: "msg-2",
-          senderId: "carlos_rivera",
-          senderName: "Carlos Rivera",
-          senderAvatar: null,
-          content:
-            "¿Pueden ayudarme con mi cita de cirugía plástica? Necesito confirmar los detalles pre-operatorios para mi procedimiento de la próxima semana. Cita #12345",
-          priority: "urgent",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 32).toISOString(),
-          socialAccount: {
-            platform: "facebook",
-            accountName: "Renuve Aesthetics Bar",
-          },
-        },
-        {
-          id: "msg-3",
-          senderId: "ana_lopez",
-          senderName: "Ana López",
-          senderAvatar: null,
-          content:
-            "¡Servicio al cliente increíble! Gracias por resolver mi problema tan rápido 🙌",
-          priority: "normal",
-          isRead: true,
-          createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          socialAccount: {
-            platform: "tiktok",
-            accountName: "@renuvebeauty",
-          },
-        },
-        {
-          id: "msg-4",
-          senderId: "diego_morales",
-          senderName: "Diego Morales",
-          senderAvatar: null,
-          content:
-            "Hola, vi su anuncio en Facebook sobre el paquete de rejuvenecimiento facial. ¿Podrían enviarme más detalles e información de precios?",
-          priority: "high",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 58).toISOString(),
-          socialAccount: {
-            platform: "whatsapp",
-            accountName: "Mi Empresa WhatsApp",
-          },
-        },
-        {
-          id: "msg-5",
-          senderId: "sofia_herrera",
-          senderName: "Sofía Herrera",
-          senderAvatar: null,
-          content:
-            "¡Hola! Mi pedido #12345 debía llegar ayer pero aún no lo he recibido. ¿Pueden verificar el estado? ¡Es urgente!",
-          priority: "urgent",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 67).toISOString(),
-          socialAccount: {
-            platform: "twitter",
-            accountName: "@MiEmpresa",
-          },
-        },
-        {
-          id: "msg-6",
-          senderId: "ricardo_torres",
-          senderName: "Ricardo Torres",
-          senderAvatar: null,
-          content:
-            "¡Gracias por la respuesta rápida! El reemplazo llegó hoy y está perfecto. ¡Excelente servicio! 👍",
-          priority: "normal",
-          isRead: true,
-          createdAt: new Date(Date.now() - 1000 * 60 * 89).toISOString(),
-          socialAccount: {
-            platform: "linkedin",
-            accountName: "Mi Empresa",
-          },
-        },
-        {
-          id: "msg-7",
-          senderId: "laura_jimenez",
-          senderName: "Laura Jiménez",
-          senderAvatar: null,
-          content:
-            "Asunto: Pregunta sobre Facturación\n\nHola, noté un cargo en mi cuenta que no reconozco. ¿Podrían ayudarme a entender para qué es? Factura #INV-2024-001",
-          priority: "normal",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-          socialAccount: {
-            platform: "email",
-            accountName: "soporte@miempresa.com",
-          },
-        },
-        {
-          id: "msg-8",
-          senderId: "robert_taylor",
-          senderName: "Robert Taylor",
-          senderAvatar: null,
-          content:
-            "Subject: Partnership Opportunity\n\nHello! I represent a company that would like to explore partnership opportunities with your business. Would love to schedule a call this week.",
-          priority: "high",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 145).toISOString(),
-          socialAccount: {
-            platform: "youtube",
-            accountName: "Demo Company Channel",
-          },
-        },
-        {
-          id: "msg-9",
-          senderId: "zoe_creative",
-          senderName: "Zoe Wilson",
-          senderAvatar: null,
-          content:
-            "Love the behind-the-scenes content! 💕 Could you do a tutorial on how you make these? #tutorial #behindthescenes",
-          priority: "normal",
-          isRead: true,
-          createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-          socialAccount: {
-            platform: "tiktok",
-            accountName: "@democompany_official",
-          },
-        },
-        {
-          id: "msg-10",
-          senderId: "alex_fitness",
-          senderName: "Alex Rodriguez",
-          senderAvatar: null,
-          content:
-            "This product changed my daily routine! Can you share more about the science behind it? Planning to order more soon! 🔥",
-          priority: "normal",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 210).toISOString(),
-          socialAccount: {
-            platform: "tiktok",
-            accountName: "@democompany_official",
-          },
-        },
-        {
-          id: "msg-11",
-          senderId: "jennifer_lee",
-          senderName: "Jennifer Lee",
-          senderAvatar: null,
-          content:
-            "Hi there! Saw your TikTok video and I'm interested in bulk pricing for my small business. Do you offer wholesale rates?",
-          priority: "high",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
-          socialAccount: {
-            platform: "telegram",
-            accountName: "Demo Company Chat",
-          },
-        },
-        {
-          id: "msg-12",
-          senderId: "carlos_santos",
-          senderName: "Carlos Santos",
-          senderAvatar: null,
-          content:
-            "Could you schedule a delivery for next Tuesday? I'll be available between 2-5 PM. Also, do you have the green variant in stock?",
-          priority: "normal",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 275).toISOString(),
-          socialAccount: {
-            platform: "discord",
-            accountName: "Demo Company Server",
-          },
-        },
-        {
-          id: "msg-13",
-          senderId: "ana_maria",
-          senderName: "Ana Maria",
-          senderAvatar: null,
-          content:
-            "Your latest TikTok dance with the product was hilarious! 😂 Can you drop the link to buy it? My followers are asking!",
-          priority: "high",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
-          socialAccount: {
-            platform: "tiktok",
-            accountName: "@democompany_official",
-          },
-        },
-        {
-          id: "msg-14",
-          senderId: "marcus_tech",
-          senderName: "Marcus Johnson",
-          senderAvatar: null,
-          content:
-            "Duet with your product review! The tech specs you mentioned were spot on. Where can I get the enterprise version?",
-          priority: "high",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 330).toISOString(),
-          socialAccount: {
-            platform: "tiktok",
-            accountName: "@democompany_official",
-          },
-        },
-        {
-          id: "msg-15",
-          senderId: "sophie_lifestyle",
-          senderName: "Sophie Chen",
-          senderAvatar: null,
-          content:
-            "OMG this product is everything! 💖 Just made a TikTok about my morning routine with it. Can you repost it on your story?",
-          priority: "normal",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-          socialAccount: {
-            platform: "tiktok",
-            accountName: "@democompany_official",
-          },
-        },
-        {
-          id: "msg-16",
-          senderId: "fitness_guru_jay",
-          senderName: "Jay Thompson",
-          senderAvatar: null,
-          content:
-            "Your workout gear is fire! 🔥 Just posted a transformation video using your products. Let's collab on more content!",
-          priority: "high",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 390).toISOString(),
-          socialAccount: {
-            platform: "tiktok",
-            accountName: "@democompany_official",
-          },
-        },
-        {
-          id: "msg-17",
-          senderId: "creative_mom_lisa",
-          senderName: "Lisa Park",
-          senderAvatar: null,
-          content:
-            "Made a TikTok showing 10 ways to use your product! It's going viral 🚀 My kids love it too. Partnership opportunity?",
-          priority: "urgent",
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 420).toISOString(),
-          socialAccount: {
-            platform: "tiktok",
-            accountName: "@democompany_official",
-          },
-        },
-        {
           id: "msg-18",
           senderId: "food_blogger_alex",
           senderName: "Alex Rivera",
@@ -1842,11 +1587,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // ✅ Usa el método del storage (más limpio y consistente)
       const userIntegrations = await storage.getIntegrations(userId);
-      console.log(userIntegrations);
       res.status(200).json(userIntegrations);
     } catch (error) {
       console.error("❌ Error fetching integrations:", error);
       res.status(500).json({ error: "Failed to fetch integrations" });
+    }
+  });
+
+  // 1️⃣ Listar conversaciones (últimos chats)
+  app.get("/api/facebook/conversations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const integrations = await storage.getIntegrations(userId);
+      const fbIntegration = integrations.find((i) =>
+        i.provider.includes("facebook"),
+      );
+      console.log(fbIntegration, "fbIntegration");
+      if (!fbIntegration)
+        return res.status(404).json({ error: "No Facebook account connected" });
+
+      const { accountId: pageId, accessToken } = fbIntegration;
+      const url = `https://graph.facebook.com/v21.0/${pageId}/conversations?fields=senders,link,updated_time,snippet&access_token=${accessToken}`;
+      const r = await fetch(url);
+      const data = await r.json();
+
+      res.json({ conversations: data.data });
+    } catch (err) {
+      console.error("Facebook conversations error:", err);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  // 2️⃣ Obtener mensajes de una conversación
+  app.get(
+    "/api/facebook/conversations/:conversationId/messages",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const { conversationId } = req.params;
+
+        const integrations = await storage.getIntegrations(userId);
+        const fbIntegration = integrations.find((i) =>
+          i.provider.includes("facebook"),
+        );
+        if (!fbIntegration)
+          return res
+            .status(404)
+            .json({ error: "No Facebook account connected" });
+
+        const { accessToken } = fbIntegration;
+        const url = `https://graph.facebook.com/v21.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${accessToken}`;
+        const r = await fetch(url);
+        const data = await r.json();
+
+        // Formatear para el frontend (opcional)
+        const messages = (data.data || []).map((m) => ({
+          id: m.id,
+          text: m.message,
+          from: m.from?.name,
+          fromId: m.from?.id,
+          created_time: m.created_time,
+        }));
+
+        res.json({ messages });
+      } catch (err) {
+        console.error("Facebook messages error:", err);
+        res.status(500).json({ error: "Failed to fetch messages" });
+      }
+    },
+  );
+
+  // 3️⃣ Enviar mensaje (Messenger Send API)
+  app.post("/api/facebook/messages/send", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { recipientId, message } = req.body;
+
+      const integrations = await storage.getIntegrations(userId);
+      const fbIntegration = integrations.find((i) =>
+        i.platform.includes("facebook"),
+      );
+      if (!fbIntegration)
+        return res.status(404).json({ error: "No Facebook account connected" });
+
+      const { accountId: pageId, accessToken } = fbIntegration;
+
+      const url = `https://graph.facebook.com/v21.0/${pageId}/messages`;
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messaging_type: "RESPONSE",
+          recipient: { id: recipientId },
+          message: { text: message },
+          access_token: accessToken,
+        }),
+      });
+      const data = await r.json();
+
+      res.json(data);
+    } catch (err) {
+      console.error("Send message error:", err);
+      res.status(500).json({ error: "Failed to send message" });
     }
   });
 

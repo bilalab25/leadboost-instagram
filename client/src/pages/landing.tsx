@@ -378,7 +378,7 @@ export default function Landing() {
             <span className="text-base font-medium text-gray-700">
               {isSpanish
                 ? "Todo tu marketing, totalmente automatizado"
-                : "Your Entire Marketing, Fully Automated"}
+                : "Your Entire Marketing, Done by AI."}
             </span>
           </div>
 
