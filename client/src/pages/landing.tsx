@@ -548,12 +548,12 @@ export default function Landing() {
                   <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">
-                  {isSpanish ? "Recopilación" : "Data Collection"}
+                  {isSpanish ? "Análisis de Datos" : "Data Analysis"}
                 </h3>
                 <p className="text-sm text-gray-300 max-w-[200px]">
                   {isSpanish
-                    ? "Captura automática desde web, POS y redes"
-                    : "Auto-capture from website, POS & social"}
+                    ? "Conoce a tu audiencia."
+                    : "Understand your audience automatically."}
                 </p>
               </div>
             </div>
@@ -580,12 +580,12 @@ export default function Landing() {
                   <div className="absolute inset-0 bg-purple-500/20 rounded-full animate-ping"></div>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">
-                  {isSpanish ? "Procesamiento IA" : "AI Processing"}
+                  {isSpanish ? "Creación de Contenido" : "Content Creation"}
                 </h3>
                 <p className="text-sm text-gray-300 max-w-[200px]">
                   {isSpanish
-                    ? "Análisis inteligente y creación"
-                    : "Intelligent analysis & creation"}
+                    ? "Genera publicaciones, mensajes y campañas."
+                    : "Generate posts, messages, and campaigns."}
                 </p>
               </div>
             </div>
@@ -612,12 +612,12 @@ export default function Landing() {
                   <div className="absolute inset-0 bg-emerald-500/20 rounded-full animate-ping"></div>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">
-                  {isSpanish ? "Despliegue Auto" : "Auto Deploy"}
+                  {isSpanish ? "Publicación Automática" : "Automated Posting"}
                 </h3>
                 <p className="text-sm text-gray-300 max-w-[200px]">
                   {isSpanish
-                    ? "Publicación en 21+ plataformas"
-                    : "Auto-publish to 21+ platforms"}
+                    ? "Programa y publica tu contenido en múltiples plataformas."
+                    : "Publish your content across multiple platforms."}
                 </p>
               </div>
             </div>
@@ -654,12 +654,12 @@ export default function Landing() {
                   <div className="absolute inset-0 bg-orange-500/20 rounded-full animate-ping"></div>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">
-                  {isSpanish ? "Conversión" : "Conversion"}
+                  {isSpanish ? "Ventas con Chatbot" : "Chatbot Sales"}
                 </h3>
                 <p className="text-sm text-gray-300 max-w-[200px]">
                   {isSpanish
-                    ? "Chatbot IA cierra ventas"
-                    : "AI chatbot closes sales"}
+                    ? "Tu asistente virtual responde y cierra ventas las 24 horas."
+                    : "Let the AI chatbot answer questions and close sales 24/7."}
                 </p>
               </div>
             </div>
@@ -690,8 +690,8 @@ export default function Landing() {
                 </h3>
                 <p className="text-sm text-gray-300 max-w-[200px]">
                   {isSpanish
-                    ? "Re-targeting inteligente"
-                    : "Smart auto-retargeting"}
+                    ? "Mantén el contacto con tus clientes mediante seguimientos inteligentes."
+                    : "Stay connected with your customers."}
                 </p>
               </div>
             </div>

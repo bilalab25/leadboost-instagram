@@ -203,6 +203,7 @@ export default function Sidebar() {
             </h3>
 
             <div className="mt-3 space-y-2">
+              {console.log(socialAccounts, "social accounts")}
               {isLoading ? (
                 <div className="px-3 py-2 text-xs text-gray-400 animate-pulse">
                   Loading accounts...
@@ -226,16 +227,14 @@ export default function Sidebar() {
                     >
                       <Icon className={cn("w-5 h-5 mr-3", colorClass)} />
                       <span className="flex-1 truncate">
-                        {account.store_name ||
-                          account.account_name ||
-                          "Unnamed"}
+                        {account.accountName || "Unnamed"}
                       </span>
                       <div
                         className={cn(
                           "w-2 h-2 rounded-full",
-                          account.is_active ? "bg-green-400" : "bg-gray-300",
+                          account.isActive ? "bg-green-400" : "bg-gray-300",
                         )}
-                        title={account.is_active ? "Active" : "Inactive"}
+                        title={account.isActive ? "Active" : "Inactive"}
                       />
                     </div>
                   );
