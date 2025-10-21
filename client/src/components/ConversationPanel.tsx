@@ -13,16 +13,11 @@ import {
   X,
   Send,
   Paperclip,
-  Image as ImageIcon,
-  Smile,
-  Instagram,
-  Mail,
-  MessageCircle,
-  Linkedin,
-  Youtube,
-  Twitter,
   Check,
   CheckCheck,
+  Instagram,
+  Mail,
+  Twitter,
 } from "lucide-react";
 import {
   SiWhatsapp,
@@ -43,12 +38,6 @@ interface Message {
   direction: "inbound" | "outbound";
   status: "sent" | "delivered" | "read" | "failed";
   createdAt: string;
-  attachments?: {
-    id: string;
-    type: string;
-    url: string;
-    fileName?: string;
-  }[];
 }
 
 interface ConversationThread {
@@ -60,6 +49,8 @@ interface ConversationThread {
 
 interface ConversationPanelProps {
   conversationId: string;
+  participantName?: string;
+  platform?: string;
   onClose: () => void;
 }
 
@@ -70,8 +61,6 @@ const platformIcons = {
   tiktok: SiTiktok,
   facebook: SiFacebook,
   twitter: Twitter,
-  linkedin: Linkedin,
-  youtube: Youtube,
   telegram: SiTelegram,
   discord: SiDiscord,
 };
@@ -83,28 +72,42 @@ const platformColors = {
   tiktok: "bg-gray-800",
   facebook: "bg-primary",
   twitter: "bg-sky-500",
-  linkedin: "bg-primary",
-  youtube: "bg-red-600",
   telegram: "bg-primary",
   discord: "bg-indigo-600",
 };
 
 export default function ConversationPanel({
   conversationId,
+  participantName,
+  platform,
   onClose,
 }: ConversationPanelProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [messageText, setMessageText] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [facebookMessages, setFacebookMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [facebookLoading, setFacebookLoading] = useState(false);
 
-  // Fetch conversation details
+  // 🔹 Detectar si es conversación de Facebook
+  const isFacebookConversation = conversationId.startsWith("t_");
+
+  // 🔹 Fetch de conversación normal (no Facebook)
   const { data: conversation, isLoading: conversationLoading } =
     useQuery<ConversationThread>({
       queryKey: ["/api/conversations", conversationId],
       queryFn: async () => {
+        if (isFacebookConversation) {
+          // Si es de Facebook, construimos un "mock" básico
+          return {
+            id: conversationId,
+            participantName: "Facebook User",
+            platform: "facebook",
+          };
+        }
+
         const response = await fetch(`/api/conversations/${conversationId}`);
         if (!response.ok) throw new Error("Failed to fetch conversation");
         return response.json();
@@ -112,26 +115,76 @@ export default function ConversationPanel({
       retry: false,
     });
 
-  // Fetch messages in conversation
+  // 🔹 Fetch de mensajes normales (solo si NO es Facebook)
   const { data: messages, isLoading: messagesLoading } = useQuery<Message[]>({
     queryKey: ["/api/conversations", conversationId, "messages"],
     queryFn: async () => {
-      const response = await fetch(`/api/conversations/${conversationId}/messages`);
+      if (isFacebookConversation) return []; // evitamos llamadas duplicadas
+      const response = await fetch(
+        `/api/conversations/${conversationId}/messages`,
+      );
       if (!response.ok) throw new Error("Failed to fetch messages");
       return response.json();
     },
     retry: false,
   });
 
-  // Send message mutation
+  // 🔹 Fetch de mensajes de Facebook cuando se abre el panel
+  useEffect(() => {
+    async function loadFacebookConversationMessages() {
+      try {
+        setFacebookLoading(true);
+        const res = await fetch(
+          `/api/facebook/conversations/${conversationId}/messages`,
+        );
+        const data = await res.json();
+        const messagesArray = data.messages || data.data || [];
+
+        const formatted = messagesArray.map((msg: any) => ({
+          id: msg.id,
+          conversationId,
+          senderId: msg.fromId || msg.from?.id || "unknown",
+          senderName: msg.from || msg.from?.name || "Usuario",
+          senderAvatar: "",
+          content: msg.text || msg.message || "(sin mensaje)",
+          direction: msg.fromId === "1630307990514455" ? "outbound" : "inbound", // tu PAGE_ID aquí
+          status: "read",
+          createdAt: msg.created_time,
+        }));
+
+        setFacebookMessages(formatted.reverse());
+      } catch (err) {
+        console.error("❌ Error cargando mensajes de Facebook:", err);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los mensajes de Facebook.",
+          variant: "destructive",
+        });
+      } finally {
+        setFacebookLoading(false);
+      }
+    }
+
+    if (isFacebookConversation) loadFacebookConversationMessages();
+  }, [conversationId, isFacebookConversation, toast]);
+
+  // 🔹 Enviar mensajes
   const sendMessageMutation = useMutation({
-    mutationFn: async (data: { content: string; attachments?: File[] }) => {
-      // For now, just send the text content
-      // File uploads can be implemented later with multipart/form-data
+    mutationFn: async (data: { content: string }) => {
+      if (isFacebookConversation) {
+        // Aquí podrías implementar el POST a Graph API más adelante
+        return toast({
+          title: "Mensaje no enviado aún",
+          description: "Envío a Facebook pendiente de implementación",
+        });
+      }
+
       return await apiRequest(
         "POST",
         `/api/conversations/${conversationId}/messages`,
-        { content: data.content }
+        {
+          content: data.content,
+        },
       );
     },
     onSuccess: () => {
@@ -141,10 +194,6 @@ export default function ConversationPanel({
       queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
       setMessageText("");
       setAttachments([]);
-      toast({
-        title: "Message sent",
-        description: "Your message has been sent successfully",
-      });
     },
     onError: (error: Error) => {
       toast({
@@ -155,24 +204,14 @@ export default function ConversationPanel({
     },
   });
 
-  // Scroll to bottom when messages update
+  // 🔹 Scroll automático
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, facebookMessages]);
 
   const handleSendMessage = () => {
-    if (!messageText.trim() && attachments.length === 0) return;
-
-    sendMessageMutation.mutate({
-      content: messageText,
-      attachments: attachments.length > 0 ? attachments : undefined,
-    });
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setAttachments(Array.from(e.target.files));
-    }
+    if (!messageText.trim()) return;
+    sendMessageMutation.mutate({ content: messageText });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -182,13 +221,19 @@ export default function ConversationPanel({
     }
   };
 
+  const displayedMessages = isFacebookConversation
+    ? facebookMessages
+    : messages || [];
+
   const PlatformIcon = conversation
     ? platformIcons[conversation.platform as keyof typeof platformIcons]
     : null;
   const platformBg = conversation
     ? platformColors[conversation.platform as keyof typeof platformColors]
     : "";
-
+  const displayName =
+    participantName || conversation?.participantName || "Usuario";
+  const displayPlatform = platform || conversation?.platform || "facebook";
   return (
     <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white shadow-2xl z-[100] flex flex-col">
       {/* Header */}
@@ -207,17 +252,15 @@ export default function ConversationPanel({
               <Avatar className="h-10 w-10">
                 <AvatarImage
                   src={conversation?.participantAvatar}
-                  alt={conversation?.participantName}
+                  alt={displayName}
                 />
-                <AvatarFallback>
-                  {conversation?.participantName.charAt(0)}
-                </AvatarFallback>
+                <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
               </Avatar>
               {PlatformIcon && (
                 <div
                   className={cn(
                     "absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
-                    platformBg
+                    platformBg,
                   )}
                 >
                   <PlatformIcon className="text-white text-xs h-3 w-3" />
@@ -225,31 +268,22 @@ export default function ConversationPanel({
               )}
             </div>
             <div>
-              <h3
-                className="font-semibold text-gray-900"
-                data-testid="conversation-participant-name"
-              >
-                {conversation?.participantName}
-              </h3>
+              <h3 className="font-semibold text-gray-900">{displayName}</h3>
               <p className="text-xs text-gray-500 capitalize">
-                {conversation?.platform}
+                {displayPlatform}
               </p>
             </div>
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          data-testid="button-close-conversation"
-        >
+        <Button variant="ghost" size="sm" onClick={onClose}>
           <X className="h-5 w-5" />
         </Button>
       </div>
 
-      {/* Messages */}
+      {/* Mensajes */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-        {messagesLoading ? (
+        {/* 🔹 Loader de carga Facebook */}
+        {facebookLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-start space-x-2">
@@ -257,166 +291,91 @@ export default function ConversationPanel({
                 <Skeleton className="h-16 w-64 rounded-2xl" />
               </div>
             ))}
+            <div className="flex items-center justify-center pt-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-600"></div>
+            </div>
           </div>
-        ) : messages && messages.length > 0 ? (
-          <>
-            {messages.map((message) => (
+        ) : !displayedMessages?.length ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-gray-500 text-sm">No hay mensajes aún</p>
+          </div>
+        ) : (
+          displayedMessages.map((message) => (
+            <div
+              key={message.id}
+              className={cn(
+                "flex items-end space-x-2",
+                message.direction === "outbound" &&
+                  "flex-row-reverse space-x-reverse",
+              )}
+            >
+              {message.direction === "inbound" && (
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarImage
+                    src={message.senderAvatar}
+                    alt={message.senderName}
+                  />
+                  <AvatarFallback>
+                    {message.senderName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <div
-                key={message.id}
                 className={cn(
-                  "flex items-end space-x-2",
-                  message.direction === "outbound" && "flex-row-reverse space-x-reverse"
+                  "flex flex-col max-w-[70%]",
+                  message.direction === "outbound" && "items-end",
                 )}
-                data-testid={`message-${message.id}`}
               >
-                {message.direction === "inbound" && (
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarImage
-                      src={message.senderAvatar}
-                      alt={message.senderName}
-                    />
-                    <AvatarFallback>
-                      {message.senderName.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
                 <div
                   className={cn(
-                    "flex flex-col max-w-[70%]",
-                    message.direction === "outbound" && "items-end"
+                    "px-4 py-2 rounded-2xl",
+                    message.direction === "inbound"
+                      ? "bg-white text-gray-900"
+                      : "bg-primary text-white",
                   )}
                 >
-                  <div
-                    className={cn(
-                      "px-4 py-2 rounded-2xl",
-                      message.direction === "inbound"
-                        ? "bg-white text-gray-900"
-                        : "bg-primary text-white"
-                    )}
-                  >
-                    <p className="text-sm whitespace-pre-wrap break-words">
-                      {message.content}
-                    </p>
-                    {message.attachments && message.attachments.length > 0 && (
-                      <div className="mt-2 space-y-2">
-                        {message.attachments.map((attachment) => (
-                          <div
-                            key={attachment.id}
-                            className="rounded-lg overflow-hidden"
-                          >
-                            {attachment.type === "image" ? (
-                              <img
-                                src={attachment.url}
-                                alt={attachment.fileName || "Attachment"}
-                                className="max-w-full rounded-lg"
-                              />
-                            ) : (
-                              <a
-                                href={attachment.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center space-x-2 p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
-                              >
-                                <Paperclip className="h-4 w-4" />
-                                <span className="text-sm truncate">
-                                  {attachment.fileName || "File"}
-                                </span>
-                              </a>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-1 mt-1 px-2">
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {message.content}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-1 mt-1 px-2">
+                  <span className="text-xs text-gray-500">
+                    {formatDistanceToNow(new Date(message.createdAt), {
+                      addSuffix: true,
+                      locale: es,
+                    })}
+                  </span>
+                  {message.direction === "outbound" && (
                     <span className="text-xs text-gray-500">
-                      {formatDistanceToNow(new Date(message.createdAt), {
-                        addSuffix: true,
-                        locale: es,
-                      })}
+                      <CheckCheck className="h-3 w-3 text-primary" />
                     </span>
-                    {message.direction === "outbound" && (
-                      <span className="text-xs text-gray-500">
-                        {message.status === "read" ? (
-                          <CheckCheck className="h-3 w-3 text-primary" />
-                        ) : message.status === "delivered" ? (
-                          <CheckCheck className="h-3 w-3" />
-                        ) : (
-                          <Check className="h-3 w-3" />
-                        )}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-500 text-sm">No messages yet</p>
-          </div>
+            </div>
+          ))
         )}
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Attachments Preview */}
-      {attachments.length > 0 && (
-        <div className="px-4 py-2 bg-gray-100 border-t border-gray-200">
-          <div className="flex items-center space-x-2">
-            <Badge variant="secondary" className="flex items-center space-x-1">
-              <Paperclip className="h-3 w-3" />
-              <span>{attachments.length} file(s)</span>
-            </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setAttachments([])}
-              data-testid="button-clear-attachments"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Message Composer */}
+      {/* Composer */}
       <div className="bg-white border-t border-gray-200 p-4">
         <div className="flex items-end space-x-2">
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            multiple
-            onChange={handleFileSelect}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => fileInputRef.current?.click()}
-            data-testid="button-attach-file"
-          >
-            <Paperclip className="h-5 w-5 text-gray-500" />
-          </Button>
           <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
             <textarea
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               onKeyDown={handleKeyPress}
-              placeholder="Type a message..."
+              placeholder="Escribe un mensaje..."
               className="w-full bg-transparent border-none outline-none resize-none text-sm max-h-32"
               rows={1}
-              data-testid="input-message-text"
             />
           </div>
           <Button
             onClick={handleSendMessage}
-            disabled={
-              (!messageText.trim() && attachments.length === 0) ||
-              sendMessageMutation.isPending
-            }
+            disabled={!messageText.trim() || sendMessageMutation.isPending}
             className="rounded-full"
             size="icon"
-            data-testid="button-send-message"
           >
             <Send className="h-4 w-4" />
           </Button>

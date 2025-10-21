@@ -53,9 +53,11 @@ export default function MessageList({
 }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeConversationId, setActiveConversationId] = useState<
-    string | null
-  >(null);
+  const [activeConversation, setActiveConversation] = useState<{
+    id: string;
+    name: string;
+    platform: string;
+  } | null>(null);
   const [facebookMessages, setFacebookMessages] = useState<any[]>([]);
 
   // 🔹 Trae mensajes locales (por ejemplo del backend interno)
@@ -251,9 +253,11 @@ export default function MessageList({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setActiveConversationId(
-                        message.conversationId || message.id,
-                      );
+                      setActiveConversation({
+                        id: message.conversationId || message.id,
+                        name: message.senderName,
+                        platform: message.socialAccount.platform,
+                      });
                     }}
                   >
                     <Reply className="mr-1 h-3 w-3" />
@@ -276,10 +280,12 @@ export default function MessageList({
         );
       })}
 
-      {activeConversationId && (
+      {activeConversation && (
         <ConversationPanel
-          conversationId={activeConversationId}
-          onClose={() => setActiveConversationId(null)}
+          conversationId={activeConversation.id}
+          participantName={activeConversation.name}
+          platform={activeConversation.platform}
+          onClose={() => setActiveConversation(null)}
         />
       )}
     </div>

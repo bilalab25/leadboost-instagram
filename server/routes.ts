@@ -1410,7 +1410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ].join(",");
     console.log(scopes, "scopes");
 
-    const authUrl = `https://www.facebook.com/v22.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+    const authUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri,
     )}&scope=${scopes}&state=${req.user.id}`;
 
@@ -1426,7 +1426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Step 1: Exchange code for a user access token
       const tokenResponse = await fetch(
-        `https://graph.facebook.com/v22.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
+        `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
           redirect_uri,
         )}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`,
       );
@@ -1439,7 +1439,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Step 2: Get list of Pages the user manages
       const pagesResponse = await fetch(
-        `https://graph.facebook.com/v22.0/me/accounts?access_token=${tokenData.access_token}`,
+        `https://graph.facebook.com/v24.0/me/accounts?access_token=${tokenData.access_token}`,
       );
       const pagesData = await pagesResponse.json();
 
@@ -1607,7 +1607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "No Facebook account connected" });
 
       const { accountId: pageId, accessToken } = fbIntegration;
-      const url = `https://graph.facebook.com/v21.0/${pageId}/conversations?fields=senders,link,updated_time,snippet&access_token=${accessToken}`;
+      const url = `https://graph.facebook.com/v24.0/${pageId}/conversations?fields=senders,link,updated_time,snippet&access_token=${accessToken}`;
       const r = await fetch(url);
       const data = await r.json();
 
@@ -1637,7 +1637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ error: "No Facebook account connected" });
 
         const { accessToken } = fbIntegration;
-        const url = `https://graph.facebook.com/v21.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${accessToken}`;
+        const url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${accessToken}`;
         const r = await fetch(url);
         const data = await r.json();
 
