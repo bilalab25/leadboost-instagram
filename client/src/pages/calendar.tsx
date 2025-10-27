@@ -223,11 +223,13 @@ export default function ContentCalendar() {
     });
   };
 
-  const handleSavePostingSchedule = (schedule: Array<{
-    platform: string;
-    postsPerWeek: number;
-    selectedDays: string[];
-  }>) => {
+  const handleSavePostingSchedule = (
+    schedule: Array<{
+      platform: string;
+      postsPerWeek: number;
+      selectedDays: string[];
+    }>,
+  ) => {
     setPostingSchedule(schedule);
     // Here you could also save to backend API if needed
     console.log("Posting schedule saved:", schedule);
@@ -245,65 +247,78 @@ export default function ContentCalendar() {
                   <div className="lg:col-span-2">
                     <Card>
                       <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg font-semibold flex items-center">
-                            <CalendarIcon className="mr-2 h-5 w-5" />
-                            {format(currentDate, "MMMM yyyy")}
-                          </CardTitle>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCurrentDate(
-                                  new Date(
-                                    currentDate.getFullYear(),
-                                    currentDate.getMonth() - 1,
-                                  ),
-                                )
-                              }
-                            >
-                              ←
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCurrentDate(
-                                  new Date(
-                                    currentDate.getFullYear(),
-                                    currentDate.getMonth() + 1,
-                                  ),
-                                )
-                              }
-                            >
-                              →
-                            </Button>
-                            {/* 📊 Set Posting Frequency */}
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setIsFrequencyModalOpen(true)}
-                              data-testid="button-set-posting-frequency"
-                            >
-                              <Settings className="w-4 h-4 mr-1" /> Set Posting Frequency
-                            </Button>
-                            {/* ✅ Approve all posts in the month */}
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={handleApproveMonth}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" /> Approve
-                              month
-                            </Button>
+                        <div className="flex flex-col gap-3">
+                          {/* 🔹 Fila superior: título y navegación */}
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg font-semibold flex items-center">
+                              <CalendarIcon className="mr-2 h-5 w-5" />
+                              {format(currentDate, "MMMM yyyy")}
+                            </CardTitle>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setCurrentDate(
+                                    new Date(
+                                      currentDate.getFullYear(),
+                                      currentDate.getMonth() - 1,
+                                    ),
+                                  )
+                                }
+                              >
+                                ←
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setCurrentDate(
+                                    new Date(
+                                      currentDate.getFullYear(),
+                                      currentDate.getMonth() + 1,
+                                    ),
+                                  )
+                                }
+                              >
+                                →
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* 🔹 Fila inferior: botones de control */}
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setIsFrequencyModalOpen(true)}
+                                data-testid="button-set-posting-frequency"
+                              >
+                                <Settings className="w-4 h-4 mr-1" /> Set
+                                Posting Frequency
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={handleApproveMonth}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" /> Approve
+                                month
+                              </Button>
+                            </div>
+
+                            {/* 🔹 Switch Pause / Autopost */}
                             <div
                               onClick={handleToggle}
-                              className="relative flex w-40 rounded-full bg-gray-200 cursor-pointer p-1 transition-colors"
+                              className={`relative flex w-40 h-8 rounded-full cursor-pointer select-none transition-colors duration-300 ${
+                                isPaused ? "bg-gray-300" : "bg-gray-300"
+                              }`}
                             >
-                              {/* Knob dinámico */}
+                              {/* Knob */}
                               <span
-                                className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-white shadow-md transition-transform duration-300 ${
+                                className={`absolute top-1 left-1 h-6 w-[calc(50%-4px)] rounded-full bg-white shadow-md transform transition-transform duration-300 ${
                                   isPaused
                                     ? "translate-x-0"
                                     : "translate-x-full"
@@ -311,12 +326,10 @@ export default function ContentCalendar() {
                               ></span>
 
                               {/* Labels */}
-                              <div className="absolute top-0 left-0 flex w-full h-full items-center justify-between px-2 text-xs sm:text-sm font-medium pointer-events-none">
+                              <div className="absolute inset-0 flex items-center justify-between px-3 text-xs font-semibold text-gray-700">
                                 <span
                                   className={`flex items-center gap-1 transition-colors ${
-                                    isPaused
-                                      ? "text-gray-900 font-semibold"
-                                      : "text-gray-400"
+                                    isPaused ? "text-gray-900" : "text-gray-500"
                                   }`}
                                 >
                                   Pause
@@ -324,8 +337,8 @@ export default function ContentCalendar() {
                                 <span
                                   className={`flex items-center gap-1 transition-colors ${
                                     !isPaused
-                                      ? "text-gray-900 font-semibold"
-                                      : "text-gray-400"
+                                      ? "text-gray-900"
+                                      : "text-gray-500"
                                   }`}
                                 >
                                   Autopost
@@ -335,6 +348,7 @@ export default function ContentCalendar() {
                           </div>
                         </div>
                       </CardHeader>
+
                       <CardContent>
                         {/* Week headers */}
                         <div className="grid grid-cols-7 gap-2 mb-4">
