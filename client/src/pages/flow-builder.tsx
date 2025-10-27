@@ -24,6 +24,9 @@ import {
   ArrowLeft,
   Play,
   X,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -94,7 +97,7 @@ function FlowBuilderContent() {
   const runMode = searchParams.get("run") === "true";
 
   const { toast } = useToast();
-  const { getNodes, getEdges } = useReactFlow();
+  const { getNodes, getEdges, zoomIn, zoomOut, fitView } = useReactFlow();
   
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -368,7 +371,83 @@ function FlowBuilderContent() {
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={flowName} />
 
-      <div className="flex bg-gray-50 h-[calc(100vh-64px)]">
+      {/* Top Control Bar */}
+      <div className="sticky top-[64px] z-10 bg-white border-b border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Left Side - Flow Actions */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/flows-dashboard")}
+              data-testid="button-back-to-dashboard"
+              className="hover:bg-gray-100"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <div className="h-6 w-px bg-gray-300 mx-1" />
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleSaveFlow}
+              data-testid="button-save-flow"
+              className="hover:bg-primary/90"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save Flow
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRunFlow}
+              disabled={isRunning}
+              data-testid="button-run-flow"
+              className="hover:bg-gray-100"
+            >
+              <Play className="w-4 h-4 mr-2" />
+              {isRunning ? "Running..." : "Run Flow"}
+            </Button>
+          </div>
+
+          {/* Right Side - Zoom Controls */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600 mr-2">Zoom:</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => zoomIn()}
+              data-testid="button-zoom-in"
+              className="hover:bg-gray-100"
+            >
+              <ZoomIn className="w-4 h-4 mr-1" />
+              Zoom In
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => zoomOut()}
+              data-testid="button-zoom-out"
+              className="hover:bg-gray-100"
+            >
+              <ZoomOut className="w-4 h-4 mr-1" />
+              Zoom Out
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fitView()}
+              data-testid="button-fit-view"
+              className="hover:bg-gray-100"
+            >
+              <Maximize className="w-4 h-4 mr-1" />
+              Fit View
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex bg-gray-50 h-[calc(100vh-64px-57px)]">
         <Sidebar />
 
         {/* Left Sidebar - Block Types */}
@@ -405,43 +484,6 @@ function FlowBuilderContent() {
               </Card>
             );
           })}
-
-          <div className="pt-4 border-t border-gray-200 space-y-2">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">
-              Flow Actions
-            </h3>
-            <Button
-              variant="default"
-              size="sm"
-              className="w-full"
-              onClick={handleSaveFlow}
-              data-testid="button-save-flow"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Flow
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={handleRunFlow}
-              disabled={isRunning}
-              data-testid="button-run-flow"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              {isRunning ? "Running..." : "Run Flow"}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full"
-              onClick={() => navigate("/flows-dashboard")}
-              data-testid="button-back-to-dashboard"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </div>
         </div>
 
         {/* Main Canvas */}
