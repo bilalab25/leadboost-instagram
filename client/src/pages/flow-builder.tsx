@@ -135,13 +135,12 @@ export default function VisualFlowBuilder() {
       <Draggable
         key={node.id}
         position={node.position}
+        onDrag={(_, data) => updateNodePosition(node.id, data.x, data.y)}
         onStop={(_, data) => updateNodePosition(node.id, data.x, data.y)}
         handle=".drag-handle"
+        scale={zoom}
       >
-        <div
-          className="absolute cursor-move"
-          style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}
-        >
+        <div className="absolute cursor-move">
           <Card
             className={`w-64 ${nodeType.color} border-2 shadow-lg transition-all hover:shadow-xl drag-handle`}
             data-testid={`node-${node.id}`}
@@ -231,7 +230,7 @@ export default function VisualFlowBuilder() {
               Flow Blocks
             </h2>
             <p className="text-sm text-gray-600">
-              Drag and drop to add blocks
+              Click to add blocks to canvas
             </p>
           </div>
 
@@ -338,17 +337,30 @@ export default function VisualFlowBuilder() {
             }}
           >
             <div className="relative w-full h-full min-h-[1000px]">
-              {/* SVG for connections */}
-              <svg
-                className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                style={{ zIndex: 1 }}
+              {/* Container with zoom applied to both SVG and nodes */}
+              <div
+                style={{
+                  transform: `scale(${zoom})`,
+                  transformOrigin: "top left",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                }}
               >
-                {renderConnections()}
-              </svg>
+                {/* SVG for connections */}
+                <svg
+                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                  style={{ zIndex: 1 }}
+                >
+                  {renderConnections()}
+                </svg>
 
-              {/* Nodes */}
-              <div className="relative" style={{ zIndex: 2 }}>
-                {nodes.map((node) => renderNode(node))}
+                {/* Nodes */}
+                <div className="relative" style={{ zIndex: 2 }}>
+                  {nodes.map((node) => renderNode(node))}
+                </div>
               </div>
 
               {/* Empty state hint */}
