@@ -81,6 +81,11 @@ export default function ContentCalendar() {
   const [editPost, setEditPost] = useState<ContentPost | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isFrequencyModalOpen, setIsFrequencyModalOpen] = useState(false);
+  const [postingSchedule, setPostingSchedule] = useState<Array<{
+    platform: string;
+    postsPerWeek: number;
+    selectedDays: string[];
+  }> | null>(null);
 
   const handleToggle = () => {
     setIsPaused((prev) => {
@@ -216,6 +221,16 @@ export default function ContentCalendar() {
       title: "Approved all posts",
       description: `All posts for ${format(selectedDate, "MMMM d")} approved.`,
     });
+  };
+
+  const handleSavePostingSchedule = (schedule: Array<{
+    platform: string;
+    postsPerWeek: number;
+    selectedDays: string[];
+  }>) => {
+    setPostingSchedule(schedule);
+    // Here you could also save to backend API if needed
+    console.log("Posting schedule saved:", schedule);
   };
 
   return (
@@ -599,6 +614,8 @@ export default function ContentCalendar() {
       <PostingFrequencyModal
         isOpen={isFrequencyModalOpen}
         onClose={() => setIsFrequencyModalOpen(false)}
+        currentSchedule={postingSchedule}
+        onSaveSchedule={handleSavePostingSchedule}
       />
     </div>
   );

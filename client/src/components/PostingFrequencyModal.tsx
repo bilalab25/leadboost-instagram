@@ -29,15 +29,17 @@ import {
   SiPinterest,
 } from "react-icons/si";
 
-interface PostingFrequencyModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
 interface PlatformSchedule {
   platform: string;
   postsPerWeek: number;
   selectedDays: string[];
+}
+
+interface PostingFrequencyModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentSchedule: PlatformSchedule[] | null;
+  onSaveSchedule: (schedule: PlatformSchedule[]) => void;
 }
 
 const platforms = [
@@ -64,11 +66,11 @@ const daysOfWeek = [
 export default function PostingFrequencyModal({
   isOpen,
   onClose,
+  currentSchedule,
+  onSaveSchedule,
 }: PostingFrequencyModalProps) {
   const { toast } = useToast();
-  const [schedules, setSchedules] = useState<PlatformSchedule[]>([]);
-  const [useSuggested, setUseSuggested] = useState(true);
-
+  
   // Generate suggested schedule based on platform best practices
   const generateSuggestedSchedule = (): PlatformSchedule[] => {
     return [
@@ -100,14 +102,25 @@ export default function PostingFrequencyModal({
     ];
   };
 
+  const [schedules, setSchedules] = useState<PlatformSchedule[]>(
+    currentSchedule || generateSuggestedSchedule()
+  );
+  const [useSuggested, setUseSuggested] = useState(!currentSchedule);
+
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !currentSchedule) {
+      // Only reset to suggested if there's no saved schedule
       setSchedules(generateSuggestedSchedule());
       setUseSuggested(true);
+    } else if (isOpen && currentSchedule) {
+      // Load the saved schedule
+      setSchedules(currentSchedule);
+      setUseSuggested(false);
     }
-  }, [isOpen]);
+  }, [isOpen, currentSchedule]);
 
   const handleAcceptSuggestion = () => {
+    onSaveSchedule(schedules);
     toast({
       title: "Posting Schedule Applied",
       description: `AI-suggested posting schedule has been applied to your calendar.`,
@@ -157,6 +170,7 @@ export default function PostingFrequencyModal({
   };
 
   const handleSaveCustomSchedule = () => {
+    onSaveSchedule(schedules);
     toast({
       title: "Custom Schedule Saved",
       description: `Your custom posting schedule has been applied to the calendar.`,
