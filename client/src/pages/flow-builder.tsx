@@ -102,10 +102,10 @@ export default function VisualFlowBuilder() {
   }, [flowId]);
 
   useEffect(() => {
-    if (runMode && !isRunning) {
+    if (runMode && !isRunning && nodes.length > 0) {
       handleRunFlow();
     }
-  }, [runMode]);
+  }, [runMode, nodes.length]);
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.1, 2));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.1, 0.5));

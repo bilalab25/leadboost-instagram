@@ -12,7 +12,12 @@ Key features include:
 - Real-time sentiment analysis of customer messages
 - Professional Brand Studio with Canva integration
 - "Meet CampAIgner" for automated campaign creation across 21+ platforms
-- Visual Flow Builder for creating automation workflows with drag-and-drop interface
+- **Automation Flows System** with:
+  - Flows Dashboard for managing all workflows
+  - Visual Flow Builder with drag-and-drop interface
+  - Node editing panel for message/action/condition configuration
+  - Flow execution simulator with visual animation
+  - localStorage persistence (database-ready architecture)
 - 30-Day Planner with AI-suggested posting frequency scheduler
 
 ## User Preferences
