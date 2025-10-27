@@ -155,8 +155,9 @@ function FlowBuilderContent() {
   }, [runMode, nodes.length]);
 
   const addNode = (type: "message" | "action" | "condition") => {
+    const nodeId = `node-${nanoid(8)}`;
     const newNode: Node = {
-      id: `node-${nanoid(8)}`,
+      id: nodeId,
       type,
       position: { x: Math.random() * 300 + 100, y: Math.random() * 300 + 100 },
       data: {
@@ -164,7 +165,7 @@ function FlowBuilderContent() {
         content: type === "message" ? "Enter your message..." : undefined,
         actionType: type === "action" ? "wait" : undefined,
         conditionLogic: type === "condition" ? { logic: "AND", rules: [] } : undefined,
-        onDelete: () => handleDeleteNode(`node-${nanoid(8)}`),
+        onDelete: () => handleDeleteNode(nodeId),
         isRunning: false,
       },
     };

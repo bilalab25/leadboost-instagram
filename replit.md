@@ -14,7 +14,17 @@ Key features include:
 - "Meet CampAIgner" for automated campaign creation across 21+ platforms
 - **Automation Flows System** with:
   - Flows Dashboard for managing all workflows
-  - Visual Flow Builder with drag-and-drop interface
+  - Visual Flow Builder powered by React Flow with:
+    - Interactive drag-to-connect functionality between nodes
+    - Custom node types: Message, Action, and Condition nodes
+    - Multiple output handles for condition nodes (True/False paths)
+    - Connection validation (prevents duplicates and circular loops)
+    - Zoom, pan, and minimap controls
+  - Advanced Condition Logic Builder with:
+    - Multiple condition rules with AND/OR logic
+    - 12 operators (equals, contains, startsWith, greaterThan, etc.)
+    - Dynamic add/remove rules
+    - Variable/operator/value configuration per rule
   - Node editing panel for message/action/condition configuration
   - Flow execution simulator with visual animation
   - localStorage persistence (database-ready architecture)
@@ -80,12 +90,13 @@ The AI service is designed with flexible business data input and structured outp
 ### Frontend Dependencies
 - **UI Framework**: React 18 with TypeScript
 - **Build Tool**: Vite with React plugin
-- **Drag and Drop**: react-draggable for flow builder node manipulation
+- **Node-Based UI**: @xyflow/react (React Flow) for interactive flow builder with drag-to-connect
 - **Component Library**: Radix UI primitives via Shadcn/UI
 - **Styling**: Tailwind CSS with PostCSS
 - **Data Fetching**: TanStack React Query
 - **Form Handling**: React Hook Form with Zod validation
 - **Date Utilities**: date-fns for date formatting and manipulation
+- **Unique IDs**: nanoid for generating short unique identifiers
 
 ### Backend Dependencies
 - **Web Framework**: Express.js with middleware ecosystem

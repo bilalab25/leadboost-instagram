@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +52,21 @@ export function ConditionLogicBuilder({ value, onChange }: ConditionLogicBuilder
       },
     ]
   );
+
+  // Sync local state when value prop changes (e.g., switching between nodes)
+  useEffect(() => {
+    if (value) {
+      setLogic(value.logic);
+      setRules(value.rules.length > 0 ? value.rules : [
+        {
+          id: nanoid(6),
+          variable: "",
+          operator: "equals",
+          value: "",
+        },
+      ]);
+    }
+  }, [value]);
 
   const handleLogicChange = (newLogic: "AND" | "OR") => {
     setLogic(newLogic);
