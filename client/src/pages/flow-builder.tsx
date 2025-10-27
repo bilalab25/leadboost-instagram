@@ -134,13 +134,18 @@ export default function VisualFlowBuilder() {
     return (
       <Draggable
         key={node.id}
-        position={node.position}
+        defaultPosition={node.position}
         onDrag={(_, data) => updateNodePosition(node.id, data.x, data.y)}
         onStop={(_, data) => updateNodePosition(node.id, data.x, data.y)}
         handle=".drag-handle"
-        scale={zoom}
       >
-        <div className="absolute cursor-move">
+        <div
+          className="absolute cursor-move"
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: "top left",
+          }}
+        >
           <Card
             className={`w-64 ${nodeType.color} border-2 shadow-lg transition-all hover:shadow-xl drag-handle`}
             data-testid={`node-${node.id}`}
@@ -337,30 +342,21 @@ export default function VisualFlowBuilder() {
             }}
           >
             <div className="relative w-full h-full min-h-[1000px]">
-              {/* Container with zoom applied to both SVG and nodes */}
-              <div
+              {/* SVG for connections */}
+              <svg
+                className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 style={{
+                  zIndex: 1,
                   transform: `scale(${zoom})`,
                   transformOrigin: "top left",
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
                 }}
               >
-                {/* SVG for connections */}
-                <svg
-                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                  style={{ zIndex: 1 }}
-                >
-                  {renderConnections()}
-                </svg>
+                {renderConnections()}
+              </svg>
 
-                {/* Nodes */}
-                <div className="relative" style={{ zIndex: 2 }}>
-                  {nodes.map((node) => renderNode(node))}
-                </div>
+              {/* Nodes */}
+              <div className="relative" style={{ zIndex: 2 }}>
+                {nodes.map((node) => renderNode(node))}
               </div>
 
               {/* Empty state hint */}

@@ -12,6 +12,8 @@ Key features include:
 - Real-time sentiment analysis of customer messages
 - Professional Brand Studio with Canva integration
 - "Meet CampAIgner" for automated campaign creation across 21+ platforms
+- Visual Flow Builder for creating automation workflows with drag-and-drop interface
+- 30-Day Planner with AI-suggested posting frequency scheduler
 
 ## User Preferences
 
@@ -73,6 +75,7 @@ The AI service is designed with flexible business data input and structured outp
 ### Frontend Dependencies
 - **UI Framework**: React 18 with TypeScript
 - **Build Tool**: Vite with React plugin
+- **Drag and Drop**: react-draggable for flow builder node manipulation
 - **Component Library**: Radix UI primitives via Shadcn/UI
 - **Styling**: Tailwind CSS with PostCSS
 - **Data Fetching**: TanStack React Query
