@@ -1,17 +1,27 @@
-import { useState, useEffect } from "react";
-import { useLocation, useRoute, useParams } from "wouter";
-import Draggable from "react-draggable";
+import { useState, useEffect, useCallback } from "react";
+import { useLocation, useRoute } from "wouter";
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  MiniMap,
+  Node,
+  Edge,
+  Connection as RFConnection,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+  getOutgoers,
+  ReactFlowProvider,
+  useReactFlow,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 import {
   MessageSquare,
   Settings,
   GitBranch,
-  ZoomIn,
-  ZoomOut,
-  RefreshCw,
-  Plus,
   Save,
   ArrowLeft,
-  Trash2,
   Play,
   X,
 } from "lucide-react";
@@ -31,8 +41,17 @@ import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import { useToast } from "@/hooks/use-toast";
 import { FlowStorage, FlowNode, Connection, Flow } from "@/lib/flowStorage";
+import { MessageNode, ActionNode, ConditionNode } from "@/components/FlowNodes";
+import { ConditionLogicBuilder } from "@/components/ConditionLogicBuilder";
+import { nanoid } from "nanoid";
 
-const nodeTypes = [
+const nodeTypes = {
+  message: MessageNode,
+  action: ActionNode,
+  condition: ConditionNode,
+};
+
+const blockTypes = [
   {
     type: "message" as const,
     icon: MessageSquare,
@@ -66,7 +85,7 @@ const actionTypes = [
   { value: "webhook", label: "Call Webhook" },
 ];
 
-export default function VisualFlowBuilder() {
+function FlowBuilderContent() {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/flow-builder/:id");
   const flowId = params?.id;
@@ -75,21 +94,48 @@ export default function VisualFlowBuilder() {
   const runMode = searchParams.get("run") === "true";
 
   const { toast } = useToast();
-  const [zoom, setZoom] = useState(1);
-  const [nodes, setNodes] = useState<FlowNode[]>([]);
-  const [connections, setConnections] = useState<Connection[]>([]);
+  const { getNodes, getEdges } = useReactFlow();
+  
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [flowName, setFlowName] = useState("Untitled Flow");
   const [isRunning, setIsRunning] = useState(false);
   const [currentRunningNodeId, setCurrentRunningNodeId] = useState<string | null>(null);
 
+  // Load flow from storage
   useEffect(() => {
     if (flowId) {
       const flow = FlowStorage.getFlow(flowId);
       if (flow) {
         setFlowName(flow.name);
-        setNodes(flow.nodes);
-        setConnections(flow.connections);
+        
+        // Convert stored nodes to ReactFlow format
+        const rfNodes: Node[] = flow.nodes.map((node) => ({
+          id: node.id,
+          type: node.type,
+          position: node.position,
+          data: {
+            ...node.data,
+            onDelete: () => handleDeleteNode(node.id),
+            isRunning: false,
+          },
+        }));
+        
+        // Convert stored connections to ReactFlow edges
+        const rfEdges: Edge[] = flow.connections.map((conn) => ({
+          id: conn.id,
+          source: conn.source,
+          target: conn.target,
+          sourceHandle: conn.sourceHandle,
+          targetHandle: conn.targetHandle,
+          type: conn.type || "default",
+          animated: conn.animated || false,
+          label: conn.label,
+        }));
+        
+        setNodes(rfNodes);
+        setEdges(rfEdges);
       } else {
         toast({
           title: "Flow not found",
@@ -101,58 +147,115 @@ export default function VisualFlowBuilder() {
     }
   }, [flowId]);
 
+  // Auto-run flow if in run mode
   useEffect(() => {
     if (runMode && !isRunning && nodes.length > 0) {
       handleRunFlow();
     }
   }, [runMode, nodes.length]);
 
-  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.1, 2));
-  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.1, 0.5));
-  const handleResetZoom = () => setZoom(1);
-
   const addNode = (type: "message" | "action" | "condition") => {
-    const newNode: FlowNode = {
-      id: `node-${Date.now()}`,
+    const newNode: Node = {
+      id: `node-${nanoid(8)}`,
       type,
-      position: { x: 250, y: 100 },
+      position: { x: Math.random() * 300 + 100, y: Math.random() * 300 + 100 },
       data: {
         label: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
         content: type === "message" ? "Enter your message..." : undefined,
         actionType: type === "action" ? "wait" : undefined,
-        conditionLogic: type === "condition" ? "" : undefined,
+        conditionLogic: type === "condition" ? { logic: "AND", rules: [] } : undefined,
+        onDelete: () => handleDeleteNode(`node-${nanoid(8)}`),
+        isRunning: false,
       },
     };
-    setNodes([...nodes, newNode]);
+    
+    setNodes((nds) => [...nds, newNode]);
   };
 
-  const updateNodePosition = (id: string, x: number, y: number) => {
-    setNodes((prev) =>
-      prev.map((node) =>
-        node.id === id ? { ...node, position: { x, y } } : node
-      )
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+    setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+    if (selectedNodeId === nodeId) {
+      setSelectedNodeId(null);
+    }
+  }, [selectedNodeId]);
+
+  // Update onDelete callback when nodes change
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          onDelete: () => handleDeleteNode(node.id),
+        },
+      }))
     );
-  };
+  }, [handleDeleteNode]);
 
   const updateNodeData = (id: string, data: Partial<FlowNode["data"]>) => {
-    setNodes((prev) =>
-      prev.map((node) =>
+    setNodes((nds) =>
+      nds.map((node) =>
         node.id === id ? { ...node, data: { ...node.data, ...data } } : node
       )
     );
   };
 
-  const deleteNode = (id: string) => {
-    setNodes((prev) => prev.filter((node) => node.id !== id));
-    setConnections((prev) =>
-      prev.filter((conn) => conn.from !== id && conn.to !== id)
-    );
-    if (selectedNodeId === id) {
-      setSelectedNodeId(null);
-    }
-  };
+  // Connection validation: prevent duplicates and circular connections
+  const isValidConnection = useCallback(
+    (connection: Edge | RFConnection) => {
+      const nodes = getNodes();
+      const edges = getEdges();
 
-  const getNodeById = (id: string) => nodes.find((n) => n.id === id);
+      // Prevent self-loops
+      if (connection.source === connection.target) {
+        return false;
+      }
+
+      // Prevent duplicate connections
+      const isDuplicate = edges.some(
+        (edge) =>
+          edge.source === connection.source &&
+          edge.target === connection.target &&
+          edge.sourceHandle === connection.sourceHandle &&
+          edge.targetHandle === connection.targetHandle
+      );
+
+      if (isDuplicate) return false;
+
+      // Prevent circular connections
+      const target = nodes.find((node) => node.id === connection.target);
+      if (!target) return false;
+
+      const hasCycle = (node: Node, visited = new Set<string>()): boolean => {
+        if (visited.has(node.id)) return false;
+        visited.add(node.id);
+
+        const outgoers = getOutgoers(node, nodes, edges);
+        for (const outgoer of outgoers) {
+          if (outgoer.id === connection.source) return true;
+          if (hasCycle(outgoer, visited)) return true;
+        }
+        return false;
+      };
+
+      return !hasCycle(target);
+    },
+    [getNodes, getEdges]
+  );
+
+  const onConnect = useCallback(
+    (connection: RFConnection) => {
+      const newEdge: Edge = {
+        id: `edge-${nanoid(8)}`,
+        ...connection,
+        type: "default",
+        animated: false,
+      };
+      setEdges((eds) => addEdge(newEdge, eds));
+    },
+    [setEdges]
+  );
 
   const handleSaveFlow = () => {
     if (!flowId) {
@@ -173,11 +276,36 @@ export default function VisualFlowBuilder() {
       return;
     }
 
+    // Convert ReactFlow nodes back to storage format
+    const storageNodes: FlowNode[] = nodes.map((node) => ({
+      id: node.id,
+      type: node.type as "message" | "action" | "condition",
+      position: node.position,
+      data: {
+        label: node.data.label as string,
+        content: node.data.content as string | undefined,
+        actionType: node.data.actionType as string | undefined,
+        conditionLogic: node.data.conditionLogic as FlowNode["data"]["conditionLogic"],
+      },
+    }));
+
+    // Convert ReactFlow edges back to storage format
+    const storageConnections: Connection[] = edges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: edge.sourceHandle || undefined,
+      targetHandle: edge.targetHandle || undefined,
+      type: edge.type,
+      animated: edge.animated,
+      label: typeof edge.label === "string" ? edge.label : undefined,
+    }));
+
     const updatedFlow: Flow = {
       ...existingFlow,
       name: flowName,
-      nodes,
-      connections,
+      nodes: storageNodes,
+      connections: storageConnections,
       updatedAt: new Date().toISOString(),
     };
 
@@ -200,18 +328,31 @@ export default function VisualFlowBuilder() {
     }
 
     setIsRunning(true);
+    
+    // Sort nodes by incoming connections (start nodes first)
     const sortedNodes = [...nodes].sort((a, b) => {
-      const aConnections = connections.filter((c) => c.to === a.id).length;
-      const bConnections = connections.filter((c) => c.to === b.id).length;
+      const aConnections = edges.filter((e) => e.target === a.id).length;
+      const bConnections = edges.filter((e) => e.target === b.id).length;
       return aConnections - bConnections;
     });
 
     for (const node of sortedNodes) {
       setCurrentRunningNodeId(node.id);
+      
+      // Update node to show running state
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === node.id
+            ? { ...n, data: { ...n.data, isRunning: true } }
+            : { ...n, data: { ...n.data, isRunning: false } }
+        )
+      );
+      
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     setCurrentRunningNodeId(null);
+    setNodes((nds) => nds.map((n) => ({ ...n, data: { ...n.data, isRunning: false } })));
     setIsRunning(false);
 
     toast({
@@ -220,129 +361,7 @@ export default function VisualFlowBuilder() {
     });
   };
 
-  const renderNode = (node: FlowNode) => {
-    const nodeType = nodeTypes.find((nt) => nt.type === node.type);
-    if (!nodeType) return null;
-
-    const Icon = nodeType.icon;
-    const isSelected = selectedNodeId === node.id;
-    const isRunningNode = currentRunningNodeId === node.id;
-
-    return (
-      <Draggable
-        key={node.id}
-        defaultPosition={node.position}
-        onDrag={(_, data) => updateNodePosition(node.id, data.x, data.y)}
-        onStop={(_, data) => updateNodePosition(node.id, data.x, data.y)}
-        handle=".drag-handle"
-        disabled={isRunning}
-      >
-        <div
-          className="absolute cursor-move"
-          style={{
-            transform: `scale(${zoom})`,
-            transformOrigin: "top left",
-          }}
-        >
-          <Card
-            className={`w-64 ${nodeType.color} border-2 ${
-              isSelected ? "ring-2 ring-blue-500" : ""
-            } ${
-              isRunningNode ? "ring-4 ring-green-500 animate-pulse" : ""
-            } shadow-lg transition-all hover:shadow-xl drag-handle`}
-            data-testid={`node-${node.id}`}
-            onClick={() => !isRunning && setSelectedNodeId(node.id)}
-          >
-            <div className="p-4">
-              <div className="flex items-start gap-3">
-                <div
-                  className={`p-2 rounded-lg bg-white shadow-sm ${nodeType.iconColor}`}
-                >
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    {node.data.label}
-                  </h3>
-                  {node.data.content && (
-                    <p className="text-sm text-gray-600 line-clamp-2">
-                      {node.data.content}
-                    </p>
-                  )}
-                  {node.data.actionType && (
-                    <p className="text-sm text-gray-600">
-                      Action: {actionTypes.find((a) => a.value === node.data.actionType)?.label}
-                    </p>
-                  )}
-                  {node.data.conditionLogic && (
-                    <p className="text-sm text-gray-600 line-clamp-1">
-                      {node.data.conditionLogic}
-                    </p>
-                  )}
-                  <div className="mt-2 flex items-center gap-1">
-                    <div className={`w-2 h-2 rounded-full ${isRunningNode ? "bg-green-500 animate-ping" : "bg-gray-400"}`}></div>
-                    <span className="text-xs text-gray-500">
-                      {isRunningNode ? "Running" : "Ready"}
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 hover:bg-red-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteNode(node.id);
-                  }}
-                  disabled={isRunning}
-                  data-testid={`button-delete-node-${node.id}`}
-                >
-                  <Trash2 className="h-3 w-3 text-red-600" />
-                </Button>
-              </div>
-            </div>
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white border-2 border-gray-300"></div>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white border-2 border-gray-300"></div>
-          </Card>
-        </div>
-      </Draggable>
-    );
-  };
-
-  const renderConnections = () => {
-    return connections.map((conn, index) => {
-      const fromNode = getNodeById(conn.from);
-      const toNode = getNodeById(conn.to);
-
-      if (!fromNode || !toNode) return null;
-
-      const startX = fromNode.position.x + 128;
-      const startY = fromNode.position.y + 100;
-      const endX = toNode.position.x + 128;
-      const endY = toNode.position.y;
-
-      const midY = (startY + endY) / 2;
-
-      return (
-        <g key={index}>
-          <path
-            d={`M ${startX} ${startY} 
-                L ${startX} ${midY} 
-                L ${endX} ${midY} 
-                L ${endX} ${endY}`}
-            fill="none"
-            stroke="#94a3b8"
-            strokeWidth="2"
-            strokeDasharray="0"
-            className="transition-all"
-          />
-          <circle cx={endX} cy={endY} r="4" fill="#94a3b8" className="transition-all" />
-        </g>
-      );
-    });
-  };
-
-  const selectedNode = selectedNodeId ? getNodeById(selectedNodeId) : null;
+  const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -360,25 +379,25 @@ export default function VisualFlowBuilder() {
             <p className="text-sm text-gray-600">Click to add blocks to canvas</p>
           </div>
 
-          {nodeTypes.map((nodeType) => {
-            const Icon = nodeType.icon;
+          {blockTypes.map((blockType) => {
+            const Icon = blockType.icon;
             return (
               <Card
-                key={nodeType.type}
-                className={`${nodeType.color} border-2 cursor-pointer transition-all hover:scale-105`}
-                onClick={() => addNode(nodeType.type)}
-                data-testid={`add-node-${nodeType.type}`}
+                key={blockType.type}
+                className={`${blockType.color} border-2 cursor-pointer transition-all hover:scale-105`}
+                onClick={() => addNode(blockType.type)}
+                data-testid={`add-node-${blockType.type}`}
               >
                 <div className="p-3">
                   <div className="flex items-center gap-3">
-                    <div className={`${nodeType.iconColor}`}>
+                    <div className={`${blockType.iconColor}`}>
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm text-gray-900">
-                        {nodeType.label}
+                        {blockType.label}
                       </h3>
-                      <p className="text-xs text-gray-600">{nodeType.description}</p>
+                      <p className="text-xs text-gray-600">{blockType.description}</p>
                     </div>
                   </div>
                 </div>
@@ -386,254 +405,156 @@ export default function VisualFlowBuilder() {
             );
           })}
 
-          <div className="pt-4 border-t border-gray-200">
+          <div className="pt-4 border-t border-gray-200 space-y-2">
             <h3 className="text-sm font-semibold text-gray-900 mb-2">
-              Quick Actions
+              Flow Actions
             </h3>
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full"
+              onClick={handleSaveFlow}
+              data-testid="button-save-flow"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save Flow
+            </Button>
             <Button
               variant="outline"
               size="sm"
               className="w-full"
-              onClick={() => addNode("message")}
-              data-testid="button-quick-add-message"
+              onClick={handleRunFlow}
+              disabled={isRunning}
+              data-testid="button-run-flow"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Message
+              <Play className="w-4 h-4 mr-2" />
+              {isRunning ? "Running..." : "Run Flow"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full"
+              onClick={() => navigate("/flows-dashboard")}
+              data-testid="button-back-to-dashboard"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
             </Button>
           </div>
         </div>
 
-        {/* Main Canvas Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Top Bar */}
-          <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        {/* Main Canvas */}
+        <div className="flex-1 relative bg-gray-100">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={(_event, node) => !isRunning && setSelectedNodeId(node.id)}
+            onPaneClick={() => setSelectedNodeId(null)}
+            isValidConnection={isValidConnection}
+            nodeTypes={nodeTypes}
+            fitView
+            deleteKeyCode={["Backspace", "Delete"]}
+          >
+            <Background />
+            <Controls />
+            <MiniMap />
+          </ReactFlow>
+        </div>
+
+        {/* Right Sidebar - Node Editor */}
+        {selectedNode && (
+          <div
+            className="w-80 bg-white border-l border-gray-200 p-4 overflow-y-auto"
+            data-testid="panel-node-editor"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Edit Node</h2>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/flows-dashboard")}
-                data-testid="button-back-to-dashboard"
+                onClick={() => setSelectedNodeId(null)}
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                <X className="w-4 h-4" />
               </Button>
+            </div>
+
+            <div className="space-y-4">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{flowName}</h1>
-                <p className="text-sm text-gray-600">Design your conversation flow</p>
+                <Label>Node Label</Label>
+                <Input
+                  value={selectedNode.data.label as string}
+                  onChange={(e) =>
+                    updateNodeData(selectedNode.id, { label: e.target.value })
+                  }
+                  data-testid="input-node-label"
+                  placeholder="Enter label"
+                />
               </div>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRunFlow}
-                disabled={isRunning}
-                className="gap-2"
-                data-testid="button-run-flow"
-              >
-                <Play className="h-4 w-4" />
-                {isRunning ? "Running..." : "Run Flow"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleZoomOut}
-                data-testid="button-zoom-out"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-gray-600 px-2">{Math.round(zoom * 100)}%</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleZoomIn}
-                data-testid="button-zoom-in"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleResetZoom}
-                data-testid="button-reset-zoom"
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                Reset
-              </Button>
-              <Button
-                onClick={handleSaveFlow}
-                className="gap-2"
-                data-testid="button-save-flow"
-              >
-                <Save className="h-4 w-4" />
-                Save Flow
-              </Button>
-            </div>
-          </div>
-
-          {/* Canvas with Grid Background */}
-          <div className="flex-1 flex">
-            <div
-              className="flex-1 relative overflow-auto"
-              style={{
-                backgroundImage: `
-                  linear-gradient(0deg, transparent 24%, rgba(203, 213, 225, 0.3) 25%, rgba(203, 213, 225, 0.3) 26%, transparent 27%, transparent 74%, rgba(203, 213, 225, 0.3) 75%, rgba(203, 213, 225, 0.3) 76%, transparent 77%, transparent),
-                  linear-gradient(90deg, transparent 24%, rgba(203, 213, 225, 0.3) 25%, rgba(203, 213, 225, 0.3) 26%, transparent 27%, transparent 74%, rgba(203, 213, 225, 0.3) 75%, rgba(203, 213, 225, 0.3) 76%, transparent 77%, transparent)
-                `,
-                backgroundSize: "50px 50px",
-                backgroundColor: "#f8fafc",
-              }}
-            >
-              <div className="relative w-full h-full min-h-[1000px]">
-                <svg
-                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                  style={{
-                    zIndex: 1,
-                    transform: `scale(${zoom})`,
-                    transformOrigin: "top left",
-                  }}
-                >
-                  {renderConnections()}
-                </svg>
-
-                <div className="relative" style={{ zIndex: 2 }}>
-                  {nodes.map((node) => renderNode(node))}
+              {selectedNode.type === "message" && (
+                <div>
+                  <Label>Message Content</Label>
+                  <Textarea
+                    value={(selectedNode.data.content as string) || ""}
+                    onChange={(e) =>
+                      updateNodeData(selectedNode.id, { content: e.target.value })
+                    }
+                    data-testid="textarea-message-content"
+                    placeholder="Enter your message..."
+                    rows={6}
+                  />
                 </div>
+              )}
 
-                {nodes.length === 0 && (
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                    <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
-                      <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Start Building Your Flow
-                      </h3>
-                      <p className="text-gray-600 mb-4">
-                        Click on a block type in the sidebar to add it to your canvas
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Panel - Node Editor */}
-            {selectedNode && (
-              <div className="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto" data-testid="panel-node-editor">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Edit Node</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedNodeId(null)}
-                    data-testid="button-close-editor"
+              {selectedNode.type === "action" && (
+                <div>
+                  <Label>Action Type</Label>
+                  <Select
+                    value={selectedNode.data.actionType as string}
+                    onValueChange={(value) =>
+                      updateNodeData(selectedNode.id, { actionType: value })
+                    }
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
+                    <SelectTrigger data-testid="select-action-type">
+                      <SelectValue placeholder="Select action" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {actionTypes.map((action) => (
+                        <SelectItem key={action.value} value={action.value}>
+                          {action.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+              )}
 
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="node-label">Label</Label>
-                    <Input
-                      id="node-label"
-                      value={selectedNode.data.label}
-                      onChange={(e) =>
-                        updateNodeData(selectedNode.id, { label: e.target.value })
-                      }
-                      placeholder="Node label"
-                      data-testid="input-node-label"
-                    />
-                  </div>
-
-                  {selectedNode.type === "message" && (
-                    <div>
-                      <Label htmlFor="message-content">Message Content</Label>
-                      <Textarea
-                        id="message-content"
-                        value={selectedNode.data.content || ""}
-                        onChange={(e) =>
-                          updateNodeData(selectedNode.id, { content: e.target.value })
-                        }
-                        placeholder="Enter your message..."
-                        rows={5}
-                        data-testid="textarea-message-content"
-                      />
-                    </div>
-                  )}
-
-                  {selectedNode.type === "action" && (
-                    <div>
-                      <Label htmlFor="action-type">Action Type</Label>
-                      <Select
-                        value={selectedNode.data.actionType || "wait"}
-                        onValueChange={(value) =>
-                          updateNodeData(selectedNode.id, { actionType: value })
-                        }
-                      >
-                        <SelectTrigger id="action-type" data-testid="select-action-type">
-                          <SelectValue placeholder="Select action type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {actionTypes.map((action) => (
-                            <SelectItem key={action.value} value={action.value}>
-                              {action.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {selectedNode.type === "condition" && (
-                    <div>
-                      <Label htmlFor="condition-logic">Condition Logic</Label>
-                      <Textarea
-                        id="condition-logic"
-                        value={selectedNode.data.conditionLogic || ""}
-                        onChange={(e) =>
-                          updateNodeData(selectedNode.id, {
-                            conditionLogic: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., if user replied 'yes'"
-                        rows={4}
-                        data-testid="textarea-condition-logic"
-                      />
-                    </div>
-                  )}
-
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="text-sm text-gray-600 mb-2">Node Type</p>
-                    <div className="flex items-center gap-2">
-                      {nodeTypes.find((nt) => nt.type === selectedNode.type) && (
-                        <>
-                          {(() => {
-                            const nodeType = nodeTypes.find(
-                              (nt) => nt.type === selectedNode.type
-                            )!;
-                            const Icon = nodeType.icon;
-                            return (
-                              <>
-                                <div className={`p-2 rounded-lg ${nodeType.iconColor}`}>
-                                  <Icon className="h-5 w-5" />
-                                </div>
-                                <span className="font-medium text-gray-900">
-                                  {nodeType.label}
-                                </span>
-                              </>
-                            );
-                          })()}
-                        </>
-                      )}
-                    </div>
-                  </div>
+              {selectedNode.type === "condition" && (
+                <div>
+                  <Label className="mb-2 block">Condition Logic</Label>
+                  <ConditionLogicBuilder
+                    value={selectedNode.data.conditionLogic as any}
+                    onChange={(value) =>
+                      updateNodeData(selectedNode.id, { conditionLogic: value })
+                    }
+                  />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
+  );
+}
+
+export default function VisualFlowBuilder() {
+  return (
+    <ReactFlowProvider>
+      <FlowBuilderContent />
+    </ReactFlowProvider>
   );
 }
