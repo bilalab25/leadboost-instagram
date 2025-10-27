@@ -29,6 +29,7 @@ import Approvals from "@/pages/approvals";
 import Settings from "./pages/settings";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import FlowBuilder from "@/pages/flow-builder";
+import FlowsDashboard from "@/pages/flows-dashboard";
 
 
 function Router() {
@@ -59,7 +60,8 @@ function Router() {
       <PrivateRoute path="/demo" component={CampAIgner} />
       <PrivateRoute path="/brand-studio" component={BrandStudio} />
       <PrivateRoute path="/settings" component={Settings} />
-      <PrivateRoute path="/flow-builder" component={FlowBuilder} />
+      <PrivateRoute path="/flows-dashboard" component={FlowsDashboard} />
+      <PrivateRoute path="/flow-builder/:id" component={FlowBuilder} />
 
 
       {/* Ruta 404 para cualquier otra ruta no definida */}
