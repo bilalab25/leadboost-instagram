@@ -1,3 +1,29 @@
+export type ConditionOperator =
+  | "equals"
+  | "notEquals"
+  | "contains"
+  | "notContains"
+  | "startsWith"
+  | "endsWith"
+  | "greaterThan"
+  | "lessThan"
+  | "greaterOrEqual"
+  | "lessOrEqual"
+  | "isEmpty"
+  | "isNotEmpty";
+
+export interface ConditionRule {
+  id: string;
+  variable: string;
+  operator: ConditionOperator;
+  value: string;
+}
+
+export interface ConditionGroup {
+  logic: "AND" | "OR";
+  rules: ConditionRule[];
+}
+
 export interface FlowNode {
   id: string;
   type: "message" | "action" | "condition";
@@ -6,13 +32,19 @@ export interface FlowNode {
     label: string;
     content?: string;
     actionType?: string;
-    conditionLogic?: string;
+    conditionLogic?: ConditionGroup;
   };
 }
 
 export interface Connection {
-  from: string;
-  to: string;
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
+  type?: string;
+  animated?: boolean;
+  label?: string;
 }
 
 export interface Flow {
