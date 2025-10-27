@@ -12,6 +12,7 @@ import {
   XCircle,
   Image as ImageIcon,
   Wand2,
+  Settings,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Instagram } from "lucide-react";
@@ -34,8 +35,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PauseCircle, PlayCircle } from "lucide-react";
-import { Switch } from "@/components/ui/switch"; // 🔹 Asegúrate de tener este componente en tu proyecto
+import { Switch } from "@/components/ui/switch";
 import { Pause, Play } from "lucide-react";
+import PostingFrequencyModal from "@/components/PostingFrequencyModal";
 
 interface ContentPost {
   id: string;
@@ -78,6 +80,7 @@ export default function ContentCalendar() {
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const [editPost, setEditPost] = useState<ContentPost | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [isFrequencyModalOpen, setIsFrequencyModalOpen] = useState(false);
 
   const handleToggle = () => {
     setIsPaused((prev) => {
@@ -260,6 +263,15 @@ export default function ContentCalendar() {
                               }
                             >
                               →
+                            </Button>
+                            {/* 📊 Set Posting Frequency */}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setIsFrequencyModalOpen(true)}
+                              data-testid="button-set-posting-frequency"
+                            >
+                              <Settings className="w-4 h-4 mr-1" /> Set Posting Frequency
                             </Button>
                             {/* ✅ Approve all posts in the month */}
                             <Button
@@ -582,6 +594,12 @@ export default function ContentCalendar() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Posting Frequency Modal */}
+      <PostingFrequencyModal
+        isOpen={isFrequencyModalOpen}
+        onClose={() => setIsFrequencyModalOpen(false)}
+      />
     </div>
   );
 }

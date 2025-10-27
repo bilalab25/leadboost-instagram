@@ -1673,7 +1673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { accountId: pageId, accessToken } = fbIntegration;
 
-      const url = `https://graph.facebook.com/v21.0/${pageId}/messages`;
+      const url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
       const r = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
