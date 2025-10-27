@@ -21,6 +21,7 @@ import {
   Zap,
   Palette,
   Activity,
+  GitBranch,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
@@ -72,6 +73,7 @@ export default function Sidebar() {
     },
     { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, badge: "12" },
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
+    { name: "Flow Builder", href: "/flow-builder", icon: GitBranch },
     /*{ name: t.sidebar.calendar, href: "/calendar", icon: Calendar },*/
     { name: t.sidebar.analytics, href: "/analytics", icon: BarChart3 },
     /*{ name: t.sidebar.campaigns, href: "/campaigns", icon: Megaphone },*/
