@@ -148,7 +148,7 @@ export default function ConversationPanel({
         for (const msg of messagesArray) {
           const id = msg.fromId || msg.from?.id;
           if (!id) continue;
-          frequency[id] = (frequency[id] || 0) + 1;
+          frequency[id] = (frequencxy[id] || 0) + 1;
         }
         // ✅ 3. Formatear mensajes usando el pageId dinámico
 
@@ -183,13 +183,21 @@ export default function ConversationPanel({
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string }) => {
       if (isFacebookConversation) {
-        // Aquí podrías implementar el POST a Graph API más adelante
-        return toast({
-          title: "Mensaje no enviado aún",
-          description: "Envío a Facebook pendiente de implementación",
-        });
+        const res = await fetch(
+          `/api/facebook/conversations/${conversationId}/messages`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: data.content }),
+          },
+        );
+
+        if (!res.ok) throw new Error("Error al enviar mensaje de Facebook");
+        const result = await res.json();
+        return result;
       }
 
+      // Caso normal (mensajes internos)
       return await apiRequest(
         "POST",
         `/api/conversations/${conversationId}/messages`,
@@ -232,6 +240,24 @@ export default function ConversationPanel({
     }
   };
 
+  onMutate: async (data) => {
+    if (isFacebookConversation) {
+      setFacebookMessages((prev) => [
+        ...prev,
+        {
+          id: "temp_" + Date.now(),
+          conversationId,
+          senderId: "me",
+          senderName: "Tú",
+          content: data.content,
+          direction: "outbound",
+          status: "sent",
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+    }
+  },
+
   const displayedMessages = isFacebookConversation
     ? facebookMessages
     : messages || [];
@@ -246,10 +272,14 @@ export default function ConversationPanel({
     participantName || conversation?.participantName || "Usuario";
   const displayPlatform = platform || conversation?.platform || "facebook";
   return (
-    <div className={cn(
-      "bg-white flex flex-col",
-      isDrawer ? "fixed inset-y-0 right-0 w-full sm:w-[500px] shadow-2xl z-[100]" : "h-full"
-    )}>
+    <div
+      className={cn(
+        "bg-white flex flex-col",
+        isDrawer
+          ? "fixed inset-y-0 right-0 w-full sm:w-[500px] shadow-2xl z-[100]"
+          : "h-full",
+      )}
+    >
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
         {conversationLoading ? (

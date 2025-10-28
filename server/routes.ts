@@ -1704,6 +1704,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 3️⃣ Enviar mensaje a conversación de Facebook
+  app.post(
+    "/api/facebook/conversations/:conversationId/messages",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const { conversationId } = req.params;
+        const { content } = req.body;
+
+        if (!content)
+          return res.status(400).json({ error: "Message content required" });
+
+        // 🔹 Obtener la integración del usuario
+        const integrations = await storage.getIntegrations(userId);
+        const fbIntegration = integrations.find((i) =>
+          i.provider.includes("facebook"),
+        );
+        if (!fbIntegration)
+          return res
+            .status(404)
+            .json({ error: "No Facebook account connected" });
+
+        const { accessToken } = fbIntegration;
+
+        // 🔹 1. Obtener el page_id
+        const pageInfoRes = await fetch(
+          `https://graph.facebook.com/v24.0/me?access_token=${accessToken}`,
+        );
+        const pageInfo = await pageInfoRes.json();
+        const pageId = pageInfo.id;
+
+        // 🔹 2. Obtener el ID del receptor (PSID del usuario)
+        const conversationRes = await fetch(
+          `https://graph.facebook.com/v24.0/${conversationId}?fields=participants&access_token=${accessToken}`,
+        );
+        const convoData = await conversationRes.json();
+        const participants = convoData.participants?.data || [];
+        const recipient = participants.find((p) => p.id !== pageId);
+        if (!recipient)
+          return res
+            .status(400)
+            .json({ error: "No recipient found for this conversation" });
+
+        // 🔹 3. Enviar mensaje usando Graph API
+        const sendUrl = `https://graph.facebook.com/v24.0/${pageId}/messages?access_token=${accessToken}`;
+        const payload = {
+          recipient: { id: recipient.id },
+          message: { text: content },
+        };
+
+        const sendRes = await fetch(sendUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const result = await sendRes.json();
+
+        if (result.error) {
+          console.error("❌ Facebook send error:", result.error);
+          throw new Error(result.error.message || "Error sending message");
+        }
+
+        res.json({ success: true, result });
+      } catch (err) {
+        console.error("❌ Facebook send error:", err);
+        res.status(500).json({ error: "Failed to send message to Facebook" });
+      }
+    },
+  );
+
   // backend/routes/facebook-pages.ts
   app.get("/api/facebook/pages", async (req, res) => {
     try {
