@@ -1629,6 +1629,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🟩 WhatsApp Cloud API Connect
+  app.post("/api/integrations/whatsapp/connect", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const accessToken = process.env.WHATSAPP_TOKEN;
+      const wabaId = process.env.WABA_ID;
+
+      if (!accessToken || !wabaId) {
+        return res.status(400).json({ 
+          error: "WhatsApp credentials not configured. Please set WHATSAPP_TOKEN and WABA_ID environment variables." 
+        });
+      }
+
+      const response = await fetch(
+        `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?access_token=${accessToken}`
+      );
+      const data = await response.json();
+
+      const phone = data.data?.[0];
+      if (!phone) {
+        return res.status(400).json({ error: "No WhatsApp phone numbers found" });
+      }
+
+      await storage.createOrUpdateIntegration({
+        userId,
+        provider: "whatsapp",
+        category: "social_media",
+        storeName: "WhatsApp Business",
+        storeUrl: `https://wa.me/${phone.display_phone_number.replace(/\D/g, '')}`,
+        accountId: phone.id,
+        accessToken,
+        accountName: phone.display_phone_number,
+        metadata: { wabaId },
+        isActive: true,
+        syncEnabled: true,
+      });
+
+      console.log(`✅ WhatsApp connected: ${phone.display_phone_number}`);
+      res.json({ success: true, phone });
+    } catch (err) {
+      console.error("❌ WhatsApp connect error:", err);
+      res.status(500).json({ error: "Failed to connect WhatsApp" });
+    }
+  });
+
   app.get("/api/integrations", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
