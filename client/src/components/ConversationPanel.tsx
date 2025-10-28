@@ -129,7 +129,6 @@ export default function ConversationPanel({
     retry: false,
   });
 
-  // 🔹 Fetch de mensajes de Facebook cuando se abre el panel
   useEffect(() => {
     async function loadFacebookConversationMessages() {
       try {
@@ -138,18 +137,28 @@ export default function ConversationPanel({
           `/api/facebook/conversations/${conversationId}/messages`,
         );
         const data = await res.json();
-        const messagesArray = data.messages || data.data || [];
+
+        const pageId = data.pageId;
+        const messagesArray = data.messages || [];
+
+        // ✅ 1. Detectar dinámicamente el fromId más frecuente (probablemente el de la página)
+        const frequency: Record<string, number> = {};
+        for (const msg of messagesArray) {
+          const id = msg.fromId || msg.from?.id;
+          if (!id) continue;
+          frequency[id] = (frequency[id] || 0) + 1;
+        }
+        // ✅ 3. Formatear mensajes usando el pageId dinámico
 
         const formatted = messagesArray.map((msg: any) => ({
           id: msg.id,
           conversationId,
-          senderId: msg.fromId || msg.from?.id || "unknown",
-          senderName: msg.from || msg.from?.name || "Usuario",
-          senderAvatar: "",
-          content: msg.text || msg.message || "(sin mensaje)",
-          direction: msg.fromId === "1630307990514455" ? "outbound" : "inbound", // tu PAGE_ID aquí
-          status: "read",
+          senderId: msg.fromId,
+          senderName: msg.from,
+          content: msg.text || "(sin mensaje)",
+          direction: msg.fromId === pageId ? "outbound" : "inbound",
           createdAt: msg.created_time,
+          status: "read",
         }));
 
         setFacebookMessages(formatted.reverse());

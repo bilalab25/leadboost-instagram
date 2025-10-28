@@ -1627,6 +1627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = req.user.id;
         const { conversationId } = req.params;
 
+        // 🔹 Obtener integración del usuario
         const integrations = await storage.getIntegrations(userId);
         const fbIntegration = integrations.find((i) =>
           i.provider.includes("facebook"),
@@ -1637,11 +1638,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ error: "No Facebook account connected" });
 
         const { accessToken } = fbIntegration;
+
+        // 🔹 1. Obtener el page_id asociado al token
+        const pageInfoRes = await fetch(
+          `https://graph.facebook.com/v24.0/me?access_token=${accessToken}`,
+        );
+        const pageInfo = await pageInfoRes.json();
+        const pageId = pageInfo.id;
+
+        // 🔹 2. Obtener los mensajes de la conversación
         const url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${accessToken}`;
         const r = await fetch(url);
         const data = await r.json();
 
-        // Formatear para el frontend (opcional)
+        // 🔹 3. Formatear para el frontend
         const messages = (data.data || []).map((m) => ({
           id: m.id,
           text: m.message,
@@ -1650,9 +1660,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           created_time: m.created_time,
         }));
 
-        res.json({ messages });
+        // 🔹 4. Enviar también el pageId
+        res.json({ pageId, messages });
       } catch (err) {
-        console.error("Facebook messages error:", err);
+        console.error("❌ Facebook messages error:", err);
         res.status(500).json({ error: "Failed to fetch messages" });
       }
     },
@@ -3532,7 +3543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/brand-assets?brandDesignId=<uuid>
   app.get("/api/brand-assets", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("🛣️  GET /api/brand-assets");
+      console.log("🛣ch�  GET /api/brand-assets");
       console.log("🧭  req.query:", req.query, "req.params:", req.params);
       const { brandDesignId } = req.query;
       if (!brandDesignId) {
