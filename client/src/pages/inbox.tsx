@@ -114,7 +114,9 @@ export default function Inbox() {
                   All
                 </Button>
                 <Button
-                  variant={selectedPlatform === "facebook" ? "default" : "outline"}
+                  variant={
+                    selectedPlatform === "facebook" ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => handlePlatformSelect("facebook")}
                   data-testid="filter-facebook"
@@ -141,12 +143,8 @@ export default function Inbox() {
 
           {/* WhatsApp-style Split View */}
           <div className="flex-1 flex overflow-hidden">
-            <MessageList
-              showHeader={false}
-              platform={selectedPlatform}
-            />
+            <MessageList showHeader={false} platform={selectedPlatform} />
           </div>
-          <HelpChatbot />
         </div>
       </div>
     </div>

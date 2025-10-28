@@ -1,0 +1,241 @@
+🧠 PROMPT: Extiende mi archivo `routes.ts` para soportar todas las integraciones Meta (Facebook, Instagram, Threads y WhatsApp)
+
+Actualmente tengo un archivo `routes.ts` donde ya existen los endpoints para:
+- `/api/integrations/facebook/connect`
+- `/api/integrations/facebook/callback`
+- `/api/facebook/conversations`
+- `/api/facebook/conversations/:conversationId/messages`
+- `/api/facebook/messages/send`
+
+👉 Quiero que extiendas **el mismo archivo** (sin crear nuevos módulos) para incluir **Instagram**, **Threads** y **WhatsApp**, usando la misma estructura y el mismo `storage` y middleware `isAuthenticated`.
+
+---
+
+### 🧱 REGLAS DE IMPLEMENTACIÓN
+
+1. **No dupliques el flujo de Facebook.**  
+   Instagram y Threads se deben conectar automáticamente desde el **callback de Facebook**, aprovechando el mismo Page Token.
+
+2. **Mantén compatibilidad total con mi frontend.**  
+   El frontend actual usa un componente `IntegrationsTab.tsx` que abre los endpoints `/api/integrations/{provider}/connect` en una ventana emergente.  
+   Así que el backend debe proveer estos endpoints:
+   ```
+   GET  /api/integrations/facebook/connect
+   GET  /api/integrations/facebook/callback
+   POST /api/integrations/whatsapp/connect
+   GET  /api/integrations
+   GET  /api/:provider/conversations
+   GET  /api/:provider/conversations/:conversationId/messages
+   POST /api/:provider/messages/send
+   ```
+
+3. **Respeta el middleware existente**  
+   Todos los endpoints deben usar `isAuthenticated` y `req.user.id` igual que los actuales.
+
+4. **Usa la función `storage.createOrUpdateIntegration()` y `storage.getIntegrations(userId)`**  
+   para guardar y obtener las integraciones.
+
+---
+
+### ⚙️ DETALLES DE CADA INTEGRACIÓN
+
+#### 🟦 1️⃣ Facebook (ya funciona)
+✅ Déjalo igual, no modifiques el flujo.  
+Solo asegúrate de que en el callback también detecte si la página tiene una cuenta de Instagram asociada.
+
+---
+
+#### 🟪 2️⃣ Instagram (se conecta desde Facebook callback)
+
+Dentro del mismo callback de Facebook (`/api/integrations/facebook/callback`), agrega lo siguiente después de guardar la integración de Facebook:
+
+```ts
+// Detectar cuenta de Instagram vinculada
+const igResponse = await fetch(
+  `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account&access_token=${page.access_token}`
+);
+const igData = await igResponse.json();
+const igAccount = igData.connected_instagram_account;
+
+if (igAccount) {
+  await storage.createOrUpdateIntegration({
+    userId: state,
+    provider: "instagram",
+    category: "social_media",
+    storeName: "Instagram",
+    storeUrl: `https://instagram.com/${page.name}`,
+    accountId: igAccount.id,
+    accessToken: page.access_token,
+    accountName: page.name,
+    metadata: { fbPageId: page.id },
+    isActive: true,
+    syncEnabled: true,
+  });
+
+  // También crear integración para Threads
+  await storage.createOrUpdateIntegration({
+    userId: state,
+    provider: "threads",
+    category: "social_media",
+    storeName: "Threads",
+    storeUrl: `https://threads.net/${page.name}`,
+    accountId: igAccount.id,
+    accessToken: page.access_token,
+    accountName: page.name,
+    isActive: true,
+    syncEnabled: true,
+  });
+}
+```
+
+Esto permite que al conectar Facebook automáticamente se creen también las integraciones para **Instagram** y **Threads**.
+
+---
+
+#### 🟩 3️⃣ WhatsApp Cloud API
+
+Agrega este endpoint:
+
+```ts
+app.post("/api/integrations/whatsapp/connect", isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const accessToken = process.env.WHATSAPP_TOKEN;
+    const wabaId = process.env.WABA_ID;
+
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?access_token=${accessToken}`
+    );
+    const data = await response.json();
+
+    const phone = data.data?.[0];
+    if (!phone)
+      return res.status(400).json({ error: "No WhatsApp phone numbers found" });
+
+    await storage.createOrUpdateIntegration({
+      userId,
+      provider: "whatsapp",
+      category: "social_media",
+      storeName: "WhatsApp Business",
+      storeUrl: `https://wa.me/${phone.display_phone_number}`,
+      accountId: phone.id,
+      accessToken,
+      accountName: phone.display_phone_number,
+      metadata: { wabaId },
+      isActive: true,
+      syncEnabled: true,
+    });
+
+    res.json({ success: true, phone });
+  } catch (err) {
+    console.error("❌ WhatsApp connect error:", err);
+    res.status(500).json({ error: "Failed to connect WhatsApp" });
+  }
+});
+```
+
+---
+
+#### 💬 4️⃣ Conversaciones unificadas
+
+Agrega este endpoint genérico para obtener conversaciones desde cualquier canal:
+```ts
+app.get("/api/:provider/conversations", isAuthenticated, async (req, res) => {
+  try {
+    const { provider } = req.params;
+    const userId = req.user.id;
+    const integrations = await storage.getIntegrations(userId);
+    const integration = integrations.find((i) => i.provider === provider);
+
+    if (!integration)
+      return res.status(404).json({ error: "No integration found" });
+
+    let url = "";
+
+    if (provider === "facebook") {
+      url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=senders,snippet,updated_time&access_token=${integration.accessToken}`;
+    } else if (provider === "instagram") {
+      url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=id,participants,snippet,updated_time&access_token=${integration.accessToken}`;
+    } else if (provider === "whatsapp") {
+      url = `https://graph.facebook.com/v24.0/${integration.metadata.wabaId}/message_templates?access_token=${integration.accessToken}`;
+    } else {
+      return res.status(400).json({ error: "Invalid provider" });
+    }
+
+    const r = await fetch(url);
+    const data = await r.json();
+
+    res.json({ conversations: data.data });
+  } catch (err) {
+    console.error("Conversation fetch error:", err);
+    res.status(500).json({ error: "Failed to fetch conversations" });
+  }
+});
+```
+
+---
+
+#### 📩 5️⃣ Enviar mensajes desde cualquier canal
+```ts
+app.post("/api/:provider/messages/send", isAuthenticated, async (req, res) => {
+  try {
+    const { provider } = req.params;
+    const userId = req.user.id;
+    const { recipientId, message } = req.body;
+
+    const integrations = await storage.getIntegrations(userId);
+    const integration = integrations.find((i) => i.provider === provider);
+    if (!integration)
+      return res.status(404).json({ error: "Integration not found" });
+
+    let url, payload;
+
+    if (provider === "facebook" || provider === "instagram") {
+      url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+      payload = {
+        messaging_type: "RESPONSE",
+        recipient: { id: recipientId },
+        message: { text: message },
+      };
+    } else if (provider === "whatsapp") {
+      url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+      payload = {
+        messaging_product: "whatsapp",
+        to: recipientId,
+        type: "text",
+        text: { body: message },
+      };
+    } else {
+      return res.status(400).json({ error: "Invalid provider" });
+    }
+
+    const r = await fetch(`${url}?access_token=${integration.accessToken}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+
+    res.json(data);
+  } catch (err) {
+    console.error("Send message error:", err);
+    res.status(500).json({ error: "Failed to send message" });
+  }
+});
+```
+
+---
+
+### ✅ CONCLUSIÓN
+
+Con esto:
+- Facebook sigue funcionando como hasta ahora.  
+- Instagram y Threads se crean automáticamente al conectar Facebook.  
+- WhatsApp se conecta con un simple POST y su propio token.  
+- Todas las integraciones usan los mismos endpoints `/conversations` y `/messages/send`.  
+- Tu frontend (`IntegrationsTab.tsx`) seguirá funcionando exactamente igual, sin cambios.
+
+---
+🎯 **Instrucción final para Replit:**
+> Inserta este código en el archivo `routes.ts`, justo después del bloque actual de endpoints de Facebook.  
+> Mantén el estilo y funciones auxiliares (como `storage`, `dayjs`, y `isAuthenticated`).
