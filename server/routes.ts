@@ -1845,6 +1845,190 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(result);
   });
 
+  // 🔄 Unified Provider Endpoints
+  // Get conversations for any provider (facebook, instagram, threads, whatsapp)
+  app.get("/api/:provider/conversations", isAuthenticated, async (req, res) => {
+    try {
+      const { provider } = req.params;
+      const userId = req.user.id;
+      const integrations = await storage.getIntegrations(userId);
+      const integration = integrations.find((i) => i.provider === provider);
+
+      if (!integration) {
+        return res.status(404).json({ error: `No ${provider} integration found` });
+      }
+
+      let url = "";
+
+      if (provider === "facebook") {
+        url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=senders,snippet,updated_time&access_token=${integration.accessToken}`;
+      } else if (provider === "instagram") {
+        url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=id,participants,snippet,updated_time&access_token=${integration.accessToken}`;
+      } else if (provider === "threads") {
+        url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=id,participants,snippet,updated_time&access_token=${integration.accessToken}`;
+      } else if (provider === "whatsapp") {
+        // WhatsApp doesn't have a conversations list - you need webhook for incoming messages
+        // Here we return empty or fetch from your local database
+        const messages = await storage.getMessages(userId);
+        const whatsappMessages = messages.filter((m: any) => m.socialAccount?.provider === "whatsapp");
+        return res.json({ conversations: whatsappMessages });
+      } else {
+        return res.status(400).json({ error: "Invalid provider" });
+      }
+
+      const r = await fetch(url);
+      const data = await r.json();
+
+      if (data.error) {
+        console.error(`${provider} API error:`, data.error);
+        return res.status(400).json({ error: data.error.message });
+      }
+
+      res.json({ conversations: data.data || [] });
+    } catch (err) {
+      console.error("Conversation fetch error:", err);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  // Get messages for a specific conversation from any provider
+  app.get("/api/:provider/conversations/:conversationId/messages", isAuthenticated, async (req, res) => {
+    try {
+      const { provider, conversationId } = req.params;
+      const userId = req.user.id;
+
+      const integrations = await storage.getIntegrations(userId);
+      const integration = integrations.find((i) => i.provider === provider);
+
+      if (!integration) {
+        return res.status(404).json({ error: `No ${provider} integration found` });
+      }
+
+      let url = "";
+      let pageId = integration.accountId;
+
+      if (provider === "facebook" || provider === "instagram" || provider === "threads") {
+        // Get page ID for detecting inbound vs outbound
+        const pageInfoRes = await fetch(
+          `https://graph.facebook.com/v24.0/me?access_token=${integration.accessToken}`
+        );
+        const pageInfo = await pageInfoRes.json();
+        pageId = pageInfo.id || integration.accountId;
+
+        url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${integration.accessToken}`;
+      } else if (provider === "whatsapp") {
+        // For WhatsApp, fetch from local database or use webhook data
+        const messages = await storage.getMessages(userId);
+        const conversationMessages = messages.filter((m: any) => m.conversationId === conversationId);
+        return res.json({ 
+          pageId: integration.accountId,
+          messages: conversationMessages,
+          lastUserMessageTime: null 
+        });
+      } else {
+        return res.status(400).json({ error: "Invalid provider" });
+      }
+
+      const r = await fetch(url);
+      const data = await r.json();
+
+      if (data.error) {
+        console.error(`${provider} API error:`, data.error);
+        return res.status(400).json({ error: data.error.message });
+      }
+
+      const messages = (data.data || []).map((m: any) => ({
+        id: m.id,
+        text: m.message,
+        from: m.from?.name,
+        fromId: m.from?.id,
+        created_time: m.created_time,
+      }));
+
+      // Find last inbound message (from user, not from page)
+      const lastInbound = messages
+        .filter((m: any) => m.fromId !== pageId)
+        .sort(
+          (a: any, b: any) =>
+            new Date(b.created_time).getTime() -
+            new Date(a.created_time).getTime()
+        )[0];
+
+      res.json({
+        pageId,
+        messages,
+        lastUserMessageTime: lastInbound?.created_time || null,
+      });
+    } catch (err) {
+      console.error("Messages fetch error:", err);
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  // Send message to any provider
+  app.post("/api/:provider/messages/send", isAuthenticated, async (req, res) => {
+    try {
+      const { provider } = req.params;
+      const userId = req.user.id;
+      const { recipientId, message } = req.body;
+
+      if (!recipientId || !message) {
+        return res.status(400).json({ error: "recipientId and message are required" });
+      }
+
+      const integrations = await storage.getIntegrations(userId);
+      const integration = integrations.find((i) => i.provider === provider);
+      
+      if (!integration) {
+        return res.status(404).json({ error: `No ${provider} integration found` });
+      }
+
+      let url, payload;
+
+      if (provider === "facebook" || provider === "instagram") {
+        url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+        payload = {
+          messaging_type: "RESPONSE",
+          recipient: { id: recipientId },
+          message: { text: message },
+        };
+      } else if (provider === "threads") {
+        url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+        payload = {
+          recipient: { id: recipientId },
+          message: { text: message },
+        };
+      } else if (provider === "whatsapp") {
+        url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+        payload = {
+          messaging_product: "whatsapp",
+          to: recipientId,
+          type: "text",
+          text: { body: message },
+        };
+      } else {
+        return res.status(400).json({ error: "Invalid provider" });
+      }
+
+      const r = await fetch(`${url}?access_token=${integration.accessToken}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await r.json();
+
+      if (data.error) {
+        console.error(`${provider} send error:`, data.error);
+        return res.status(400).json({ error: data.error.message });
+      }
+
+      res.json(data);
+    } catch (err) {
+      console.error("Send message error:", err);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
   // Calendar integration routes
   app.get("/api/calendar/integrations/:brandId", async (req: any, res) => {
     try {
