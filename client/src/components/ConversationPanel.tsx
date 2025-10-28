@@ -27,6 +27,7 @@ import {
   SiDiscord,
 } from "react-icons/si";
 import { cn } from "@/lib/utils";
+import { differenceInHours } from "date-fns";
 
 interface Message {
   id: string;
@@ -92,6 +93,7 @@ export default function ConversationPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [facebookLoading, setFacebookLoading] = useState(false);
+  const [canSendFacebookMessage, setCanSendFacebookMessage] = useState(true);
 
   // 🔹 Detectar si es conversación de Facebook
   const isFacebookConversation = conversationId.startsWith("t_");
@@ -143,14 +145,14 @@ export default function ConversationPanel({
         const pageId = data.pageId;
         const messagesArray = data.messages || [];
 
-        // ✅ 1. Detectar dinámicamente el fromId más frecuente (probablemente el de la página)
-        const frequency: Record<string, number> = {};
-        for (const msg of messagesArray) {
-          const id = msg.fromId || msg.from?.id;
-          if (!id) continue;
-          frequency[id] = (frequency[id] || 0) + 1;
+        // 🔹 Detectar si han pasado más de 24 horas
+        if (data.lastUserMessageTime) {
+          const hours = differenceInHours(
+            new Date(),
+            new Date(data.lastUserMessageTime),
+          );
+          setCanSendFacebookMessage(hours <= 24);
         }
-        // ✅ 3. Formatear mensajes usando el pageId dinámico
 
         const formatted = messagesArray.map((msg: any) => ({
           id: msg.id,
@@ -407,6 +409,12 @@ export default function ConversationPanel({
       <div className="bg-white border-t border-gray-200 p-4">
         <div className="flex items-end space-x-2">
           <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
+            {isFacebookConversation && !canSendFacebookMessage && (
+              <p className="text-xs text-red-500 mb-2">
+                No puedes enviar mensajes porque han pasado más de 24 horas
+                desde el último mensaje del usuario.
+              </p>
+            )}
             <textarea
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
@@ -418,7 +426,11 @@ export default function ConversationPanel({
           </div>
           <Button
             onClick={handleSendMessage}
-            disabled={!messageText.trim() || sendMessageMutation.isPending}
+            disabled={
+              !messageText.trim() ||
+              sendMessageMutation.isPending ||
+              (isFacebookConversation && !canSendFacebookMessage)
+            }
             className="rounded-full"
             size="icon"
           >

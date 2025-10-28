@@ -1618,57 +1618,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 2️⃣ Obtener mensajes de una conversación
-  app.get(
-    "/api/facebook/conversations/:conversationId/messages",
-    isAuthenticated,
-    async (req, res) => {
-      try {
-        const userId = req.user.id;
-        const { conversationId } = req.params;
-
-        // 🔹 Obtener integración del usuario
-        const integrations = await storage.getIntegrations(userId);
-        const fbIntegration = integrations.find((i) =>
-          i.provider.includes("facebook"),
-        );
-        if (!fbIntegration)
-          return res
-            .status(404)
-            .json({ error: "No Facebook account connected" });
-
-        const { accessToken } = fbIntegration;
-
-        // 🔹 1. Obtener el page_id asociado al token
-        const pageInfoRes = await fetch(
-          `https://graph.facebook.com/v24.0/me?access_token=${accessToken}`,
-        );
-        const pageInfo = await pageInfoRes.json();
-        const pageId = pageInfo.id;
-
-        // 🔹 2. Obtener los mensajes de la conversación
-        const url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${accessToken}`;
-        const r = await fetch(url);
-        const data = await r.json();
-
-        // 🔹 3. Formatear para el frontend
-        const messages = (data.data || []).map((m) => ({
-          id: m.id,
-          text: m.message,
-          from: m.from?.name,
-          fromId: m.from?.id,
-          created_time: m.created_time,
-        }));
-
-        // 🔹 4. Enviar también el pageId
-        res.json({ pageId, messages });
-      } catch (err) {
-        console.error("❌ Facebook messages error:", err);
-        res.status(500).json({ error: "Failed to fetch messages" });
-      }
-    },
-  );
-
   // 3️⃣ Enviar mensaje (Messenger Send API)
   app.post("/api/facebook/messages/send", isAuthenticated, async (req, res) => {
     try {
@@ -1704,20 +1653,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 3️⃣ Enviar mensaje a conversación de Facebook
-  app.post(
+  // 2️⃣ Obtener mensajes de una conversación de Facebook
+  app.get(
     "/api/facebook/conversations/:conversationId/messages",
     isAuthenticated,
     async (req, res) => {
       try {
         const userId = req.user.id;
         const { conversationId } = req.params;
-        const { content } = req.body;
 
-        if (!content)
-          return res.status(400).json({ error: "Message content required" });
-
-        // 🔹 Obtener la integración del usuario
         const integrations = await storage.getIntegrations(userId);
         const fbIntegration = integrations.find((i) =>
           i.provider.includes("facebook"),
@@ -1729,48 +1673,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const { accessToken } = fbIntegration;
 
-        // 🔹 1. Obtener el page_id
+        // 🔹 Obtener page_id
         const pageInfoRes = await fetch(
           `https://graph.facebook.com/v24.0/me?access_token=${accessToken}`,
         );
         const pageInfo = await pageInfoRes.json();
         const pageId = pageInfo.id;
 
-        // 🔹 2. Obtener el ID del receptor (PSID del usuario)
-        const conversationRes = await fetch(
-          `https://graph.facebook.com/v24.0/${conversationId}?fields=participants&access_token=${accessToken}`,
-        );
-        const convoData = await conversationRes.json();
-        const participants = convoData.participants?.data || [];
-        const recipient = participants.find((p) => p.id !== pageId);
-        if (!recipient)
-          return res
-            .status(400)
-            .json({ error: "No recipient found for this conversation" });
+        // 🔹 Obtener mensajes
+        const url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${accessToken}`;
+        const r = await fetch(url);
+        const data = await r.json();
 
-        // 🔹 3. Enviar mensaje usando Graph API
-        const sendUrl = `https://graph.facebook.com/v24.0/${pageId}/messages?access_token=${accessToken}`;
-        const payload = {
-          recipient: { id: recipient.id },
-          message: { text: content },
-        };
+        const messages = (data.data || []).map((m) => ({
+          id: m.id,
+          text: m.message,
+          from: m.from?.name,
+          fromId: m.from?.id,
+          created_time: m.created_time,
+        }));
 
-        const sendRes = await fetch(sendUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        // 🔹 Encontrar el último mensaje inbound (del usuario)
+        const lastInbound = messages
+          .filter((m) => m.fromId !== pageId)
+          .sort(
+            (a, b) =>
+              new Date(b.created_time).getTime() -
+              new Date(a.created_time).getTime(),
+          )[0];
+
+        res.json({
+          pageId,
+          messages,
+          lastUserMessageTime: lastInbound?.created_time || null,
         });
-        const result = await sendRes.json();
-
-        if (result.error) {
-          console.error("❌ Facebook send error:", result.error);
-          throw new Error(result.error.message || "Error sending message");
-        }
-
-        res.json({ success: true, result });
       } catch (err) {
-        console.error("❌ Facebook send error:", err);
-        res.status(500).json({ error: "Failed to send message to Facebook" });
+        console.error("Facebook messages error:", err);
+        res.status(500).json({ error: "Failed to fetch messages" });
       }
     },
   );
