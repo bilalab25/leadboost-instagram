@@ -148,7 +148,7 @@ export default function ConversationPanel({
         for (const msg of messagesArray) {
           const id = msg.fromId || msg.from?.id;
           if (!id) continue;
-          frequency[id] = (frequencxy[id] || 0) + 1;
+          frequency[id] = (frequency[id] || 0) + 1;
         }
         // ✅ 3. Formatear mensajes usando el pageId dinámico
 
@@ -206,6 +206,23 @@ export default function ConversationPanel({
         },
       );
     },
+    onMutate: async (data) => {
+      if (isFacebookConversation) {
+        setFacebookMessages((prev) => [
+          ...prev,
+          {
+            id: "temp_" + Date.now(),
+            conversationId,
+            senderId: "me",
+            senderName: "Tú",
+            content: data.content,
+            direction: "outbound",
+            status: "sent",
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["/api/conversations", conversationId, "messages"],
@@ -239,24 +256,6 @@ export default function ConversationPanel({
       handleSendMessage();
     }
   };
-
-  onMutate: async (data) => {
-    if (isFacebookConversation) {
-      setFacebookMessages((prev) => [
-        ...prev,
-        {
-          id: "temp_" + Date.now(),
-          conversationId,
-          senderId: "me",
-          senderName: "Tú",
-          content: data.content,
-          direction: "outbound",
-          status: "sent",
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-    }
-  },
 
   const displayedMessages = isFacebookConversation
     ? facebookMessages
