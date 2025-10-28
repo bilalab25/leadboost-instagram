@@ -76,28 +76,44 @@ export default function IntegrationsTab({
 }) {
   const { isSpanish } = useLanguage(); // Assuming useLanguage hook is available
 
-  const handleConnectFacebook = () => {
-    const popup = window.open(
-      `/api/integrations/facebook/connect`,
-      "_blank",
-      "width=600,height=700",
-    );
+  // 🔄 Unified connection handler for all Meta integrations
+  const handleConnect = (provider: string) => {
+    let url = "";
 
-    const timer = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(timer);
-        // 🔄 Refresca la lista de integraciones (usa tu método actual)
-        window.location.reload(); // o usa un fetch de integraciones si ya tienes uno
-      }
-    }, 1000);
-  };
+    if (["facebook", "instagram", "threads"].includes(provider)) {
+      // 🔁 Facebook, Instagram, and Threads all use Facebook OAuth flow
+      url = "/api/integrations/facebook/connect";
+    } else if (provider === "whatsapp") {
+      // 🔁 WhatsApp uses a direct POST request
+      fetch("/api/integrations/whatsapp/connect", { 
+        method: "POST",
+        credentials: "include",
+      })
+        .then(res => {
+          if (!res.ok) throw new Error("WhatsApp connection failed");
+          return res.json();
+        })
+        .then(() => {
+          window.location.reload();
+        })
+        .catch(err => {
+          console.error("WhatsApp connect error:", err);
+          alert(isSpanish 
+            ? "Error al conectar WhatsApp. Verifica que las credenciales estén configuradas."
+            : "Error connecting WhatsApp. Please verify credentials are configured.");
+        });
+      return;
+    } else {
+      alert(
+        isSpanish
+          ? `La conexión para ${provider} aún no está disponible.`
+          : `Connection for ${provider} is not available yet.`
+      );
+      return;
+    }
 
-  const handleConnectInstagram = () => {
-    const popup = window.open(
-      `/api/integrations/instagram/connect`,
-      "_blank",
-      "width=600,height=700",
-    );
+    // 🔄 For OAuth providers (Facebook/Instagram/Threads)
+    const popup = window.open(url, "_blank", "width=600,height=700");
 
     const timer = setInterval(() => {
       if (popup?.closed) {
@@ -524,21 +540,8 @@ export default function IntegrationsTab({
                                         ) : (
                                           <Button
                                             size="sm"
-                                            onClick={() => {
-                                              if (providerKey === "facebook") {
-                                                handleConnectFacebook();
-                                              } else if (
-                                                providerKey === "instagram"
-                                              ) {
-                                                handleConnectInstagram();
-                                              } else {
-                                                alert(
-                                                  isSpanish
-                                                    ? `La conexión para ${providerInfo.name} aún no está disponible.`
-                                                    : `The connection for ${providerInfo.name} is not available yet.`,
-                                                );
-                                              }
-                                            }}
+                                            onClick={() => handleConnect(providerKey)}
+                                            data-testid={`connect-${providerKey}`}
                                           >
                                             {isSpanish ? "Conectar" : "Connect"}
                                           </Button>

@@ -1,0 +1,176 @@
+💡 PROMPT: Actualiza mi componente `IntegrationsTab.tsx` para que soporte conexiones a Facebook, Instagram, Threads y WhatsApp
+
+### 🎯 Contexto
+
+Actualmente mi componente `IntegrationsTab.tsx` ya maneja Facebook e Instagram manualmente con `handleConnectFacebook` y `handleConnectInstagram`.  
+Quiero simplificarlo para usar un **solo manejador genérico `handleConnect(provider)`** y agregar soporte para **Threads** y **WhatsApp** sin duplicar lógica.
+
+---
+
+### 🧱 REQUISITOS
+
+1. Mantén el mismo diseño y estructura del componente.  
+   (usa Tailwind, Dialog, Accordion, etc. como está en mi versión actual)
+
+2. Reemplaza los métodos:
+   ```ts
+   handleConnectFacebook()
+   handleConnectInstagram()
+   ```
+   por un único método:
+
+   ```ts
+   const handleConnect = (provider: string) => {
+     let url = "";
+
+     if (["facebook", "instagram", "threads"].includes(provider)) {
+       // 🔁 Todas usan el flujo OAuth de Facebook
+       url = "/api/integrations/facebook/connect";
+     } else if (provider === "whatsapp") {
+       // 🔁 WhatsApp usa un POST directo
+       fetch("/api/integrations/whatsapp/connect", { method: "POST" })
+         .then(res => res.json())
+         .then(() => window.location.reload())
+         .catch(err => console.error("WhatsApp connect error:", err));
+       return;
+     }
+
+     // 🔄 Para OAuth (Facebook/Instagram/Threads)
+     const popup = window.open(url, "_blank", "width=600,height=700");
+
+     const timer = setInterval(() => {
+       if (popup?.closed) {
+         clearInterval(timer);
+         window.location.reload();
+       }
+     }, 1000);
+   };
+   ```
+
+---
+
+### ⚙️ ACTUALIZA LA SECCIÓN DE RENDER
+
+En la parte donde renderizas las plataformas de redes sociales dentro del acordeón `social_media`,  
+actualiza el bloque:
+
+```tsx
+{Object.entries(INTEGRATION_PROVIDERS)
+  .filter(([, info]) => info.category === "social_media")
+  .map(([providerKey, providerInfo]) => {
+    const connectedIntegration = integrations.find(
+      (int) => int.provider === providerKey && int.isActive
+    );
+
+    const Icon = providerInfo.icon;
+
+    return (
+      <div
+        key={providerKey}
+        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition"
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="h-8 w-8 text-primary" />
+          <div>
+            <h3 className="font-semibold">{providerInfo.name}</h3>
+            <p className="text-sm text-muted-foreground">
+              {providerInfo.description}
+            </p>
+            {connectedIntegration && (
+              <p className="text-xs text-green-600 mt-1">
+                ✅ {isSpanish ? "Conectado como" : "Connected as"}{" "}
+                {connectedIntegration.accountName ||
+                  connectedIntegration.storeName}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {connectedIntegration ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              handleDeleteIntegration(connectedIntegration.id)
+            }
+            className="text-red-600 border-red-400 hover:bg-red-50"
+          >
+            {isSpanish ? "Desconectar" : "Disconnect"}
+          </Button>
+        ) : (
+          <Button size="sm" onClick={() => handleConnect(providerKey)}>
+            {isSpanish ? "Conectar" : "Connect"}
+          </Button>
+        )}
+      </div>
+    );
+  })}
+```
+
+---
+
+### 🧩 AGREGA LAS NUEVAS DEFINICIONES DE PROVEEDORES
+
+Asegúrate de que en tu archivo `INTEGRATION_PROVIDERS` (si lo defines dentro del mismo componente o lo importas),  
+estén incluidos estos cuatro proveedores con sus íconos:
+
+```ts
+import {
+  Facebook,
+  Instagram,
+  MessageCircle,
+  MessageSquareText,
+} from "lucide-react";
+
+export const INTEGRATION_PROVIDERS = {
+  facebook: {
+    name: "Facebook",
+    category: "social_media",
+    description: "Administra publicaciones y mensajes en tu página.",
+    icon: Facebook,
+  },
+  instagram: {
+    name: "Instagram",
+    category: "social_media",
+    description: "Conecta tu cuenta de Instagram Business.",
+    icon: Instagram,
+  },
+  threads: {
+    name: "Threads",
+    category: "social_media",
+    description: "Gestiona mensajes y posts en Threads (vinculado a IG).",
+    icon: MessageSquareText,
+  },
+  whatsapp: {
+    name: "WhatsApp Business",
+    category: "social_media",
+    description: "Envía y recibe mensajes usando WhatsApp Cloud API.",
+    icon: MessageCircle,
+  },
+};
+```
+
+---
+
+### 🧠 DETALLES ADICIONALES
+
+- **El botón “Conectar”** abrirá el flujo OAuth de Meta si es Facebook, Instagram o Threads.  
+- **WhatsApp** hace un POST directo y se conecta automáticamente usando las variables de entorno del servidor.  
+- Al cerrar la ventana emergente, se recargan las integraciones automáticamente.  
+- El resto del diseño (accordion, cards, etc.) permanece igual.  
+
+---
+
+### ✅ RESULTADO FINAL
+
+Después de implementar este cambio, el usuario podrá:
+- Conectar su cuenta de Facebook → automáticamente se agregarán Facebook + Instagram + Threads.  
+- Conectar su cuenta de WhatsApp → usando el token del backend.  
+- Desconectar cualquiera desde el mismo panel.  
+- Ver el estado de conexión en tiempo real (sin recargar manualmente).
+
+---
+
+🎯 **Instrucción final para Replit:**
+> Inserta este código actualizado dentro del archivo `IntegrationsTab.tsx`, manteniendo el resto del layout y estructura del componente.
+> Asegúrate de reemplazar los antiguos métodos `handleConnectFacebook` y `handleConnectInstagram` por el nuevo `handleConnect(provider)` y actualizar la sección de render como se indica.

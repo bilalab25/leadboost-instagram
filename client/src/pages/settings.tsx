@@ -34,6 +34,7 @@ import {
   Twitter, // Para X (anteriormente Twitter)
   MessageSquareText, // Para Threads (icono genérico)
   Camera,
+  MessageCircle, // Para WhatsApp
 } from "lucide-react";
 import AccountTab from "@/components/settings/AccountTab";
 import PaymentMethodTab from "@/components/settings/PaymentMethodsTab";
@@ -407,21 +408,20 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       },
     ],
   }, */
-  /*  threads: {
-    // Nueva plataforma de redes sociales
+  threads: {
     name: "Threads",
-    icon: MessageSquareText, // Usando un icono genérico de lucide-react
-    description: "Connect your Threads account to share content.",
+    icon: MessageSquareText,
+    description: "Manage messages and posts on Threads (linked to Instagram)",
     category: "social_media",
-    fields: [
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-    ],
-  }, */
+    fields: [],
+  },
+  whatsapp: {
+    name: "WhatsApp Business",
+    icon: MessageCircle,
+    description: "Send and receive messages using WhatsApp Cloud API",
+    category: "social_media",
+    fields: [],
+  },
   /* snapchat: {
     // Nueva plataforma de redes sociales
     name: "Snapchat",
