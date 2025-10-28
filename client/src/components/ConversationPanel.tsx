@@ -52,6 +52,7 @@ interface ConversationPanelProps {
   participantName?: string;
   platform?: string;
   onClose: () => void;
+  isDrawer?: boolean;
 }
 
 const platformIcons = {
@@ -81,6 +82,7 @@ export default function ConversationPanel({
   participantName,
   platform,
   onClose,
+  isDrawer = true,
 }: ConversationPanelProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -244,7 +246,10 @@ export default function ConversationPanel({
     participantName || conversation?.participantName || "Usuario";
   const displayPlatform = platform || conversation?.platform || "facebook";
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white shadow-2xl z-[100] flex flex-col">
+    <div className={cn(
+      "bg-white flex flex-col",
+      isDrawer ? "fixed inset-y-0 right-0 w-full sm:w-[500px] shadow-2xl z-[100]" : "h-full"
+    )}>
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
         {conversationLoading ? (
@@ -284,9 +289,11 @@ export default function ConversationPanel({
             </div>
           </div>
         )}
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          <X className="h-5 w-5" />
-        </Button>
+        {isDrawer && (
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        )}
       </div>
 
       {/* Mensajes */}

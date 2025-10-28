@@ -46,11 +46,17 @@ const priorityColors = {
   urgent: "bg-red-100 text-red-800",
 };
 
+interface MessageListProps {
+  limit?: number;
+  showHeader?: boolean;
+  platform?: string;
+}
+
 export default function MessageList({
   limit = 50,
   showHeader = true,
   platform,
-}) {
+}: MessageListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeConversation, setActiveConversation] = useState<{
@@ -107,7 +113,8 @@ export default function MessageList({
   }, [platform, toast]);
 
   // 🔹 Combinar mensajes locales + Facebook
-  const mergedMessages = [...(messages || []), ...(facebookMessages || [])];
+  const localMessages = Array.isArray(messages) ? messages : [];
+  const mergedMessages = [...localMessages, ...facebookMessages];
 
   const filteredMessages =
     mergedMessages.filter(
@@ -130,164 +137,163 @@ export default function MessageList({
     },
   });
 
-  if (isLoading) {
-    return (
-      <div className="divide-y divide-gray-200">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="p-6">
-            <div className="flex items-start space-x-3">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="flex-1 space-y-2">
-                <div className="flex justify-between">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-                <Skeleton className="h-4 w-full" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (!filteredMessages.length) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-gray-500">No se encontraron mensajes</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="divide-y divide-gray-200">
-      {filteredMessages.slice(0, limit).map((message) => {
-        const PlatformIcon =
-          platformIcons[
-            message.socialAccount.platform as keyof typeof platformIcons
-          ];
-        const platformBg =
-          platformColors[
-            message.socialAccount.platform as keyof typeof platformColors
-          ];
-        const priorityClass =
-          priorityColors[message.priority as keyof typeof priorityColors];
-
-        return (
-          <div
-            key={message.id}
-            className={cn(
-              "p-6 hover:bg-gray-50 cursor-pointer transition-colors",
-              !message.isRead && "bg-primary/5",
-            )}
-            onClick={() =>
-              !message.isRead && markAsReadMutation.mutate(message.id)
-            }
-          >
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 relative">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={message.senderAvatar}
-                    alt={message.senderName}
-                  />
-                  <AvatarFallback>
-                    {message.senderName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                {PlatformIcon && (
-                  <div
-                    className={cn(
-                      "absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center",
-                      platformBg,
-                    )}
-                  >
-                    <PlatformIcon className="text-white text-xs h-2.5 w-2.5" />
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p
-                    className={cn(
-                      "text-sm text-gray-900",
-                      !message.isRead && "font-semibold",
-                    )}
-                  >
-                    {message.senderName}
-                  </p>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <span>
-                      {formatDistanceToNow(new Date(message.createdAt), {
-                        addSuffix: true,
-                        locale: es,
-                      })}
-                    </span>
-                    {message.priority !== "normal" && (
-                      <Badge className={priorityClass}>
-                        {message.priority === "high"
-                          ? "Alta"
-                          : message.priority === "urgent"
-                            ? "Urgente"
-                            : message.priority === "low"
-                              ? "Baja"
-                              : "Normal"}
-                      </Badge>
-                    )}
+    <>
+      {/* Left Panel - Conversation List */}
+      <div className="w-[35%] bg-white border-r border-gray-200 flex flex-col">
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            // Loading State
+            <div className="divide-y divide-gray-100">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex justify-between">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-3/4" />
+                    </div>
                   </div>
                 </div>
-
-                <p
-                  className={cn(
-                    "mt-1 text-sm text-gray-600 line-clamp-2",
-                    !message.isRead && "font-medium",
-                  )}
-                >
-                  {message.content}
-                </p>
-
-                <div className="mt-2 flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveConversation({
-                        id: message.conversationId || message.id,
-                        name: message.senderName,
-                        platform: message.socialAccount.platform,
-                      });
-                    }}
-                  >
-                    <Reply className="mr-1 h-3 w-3" />
-                    Responder
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Tag className="mr-1 h-3 w-3" />
-                    Etiquetar
-                  </Button>
-                  {message.socialAccount.platform !== "email" && (
-                    <Button variant="outline" size="sm">
-                      <Handshake className="mr-1 h-3 w-3" />
-                      Convertir Lead
-                    </Button>
-                  )}
-                </div>
+              ))}
+            </div>
+          ) : !filteredMessages.length ? (
+            // Empty State
+            <div className="flex items-center justify-center h-full p-6">
+              <div className="text-center">
+                <Mail className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">No messages found</p>
               </div>
             </div>
-          </div>
-        );
-      })}
+          ) : (
+            // Conversations List
+            filteredMessages.slice(0, limit).map((message) => {
+            const PlatformIcon =
+              platformIcons[
+                message.socialAccount.platform as keyof typeof platformIcons
+              ];
+            const platformBg =
+              platformColors[
+                message.socialAccount.platform as keyof typeof platformColors
+              ];
 
-      {activeConversation && (
-        <ConversationPanel
-          conversationId={activeConversation.id}
-          participantName={activeConversation.name}
-          platform={activeConversation.platform}
-          onClose={() => setActiveConversation(null)}
-        />
-      )}
-    </div>
+            const isActive = activeConversation?.id === (message.conversationId || message.id);
+
+            return (
+              <div
+                key={message.id}
+                className={cn(
+                  "p-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100",
+                  !message.isRead && "bg-blue-50/50",
+                  isActive && "bg-gray-100 border-l-4 border-l-primary"
+                )}
+                onClick={() => {
+                  setActiveConversation({
+                    id: message.conversationId || message.id,
+                    name: message.senderName,
+                    platform: message.socialAccount.platform,
+                  });
+                  if (!message.isRead) {
+                    markAsReadMutation.mutate(message.id);
+                  }
+                }}
+                data-testid={`conversation-item-${message.id}`}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 relative">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage
+                        src={message.senderAvatar}
+                        alt={message.senderName}
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {message.senderName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {PlatformIcon && (
+                      <div
+                        className={cn(
+                          "absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
+                          platformBg,
+                        )}
+                      >
+                        <PlatformIcon className="text-white text-xs h-3 w-3" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <p
+                        className={cn(
+                          "text-sm text-gray-900 truncate",
+                          !message.isRead && "font-semibold",
+                        )}
+                      >
+                        {message.senderName}
+                      </p>
+                      <span className="text-xs text-gray-500">
+                        {formatDistanceToNow(new Date(message.createdAt), {
+                          addSuffix: false,
+                          locale: es,
+                        })}
+                      </span>
+                    </div>
+
+                    <p
+                      className={cn(
+                        "text-sm text-gray-600 line-clamp-2",
+                        !message.isRead && "font-medium text-gray-900",
+                      )}
+                    >
+                      {message.content}
+                    </p>
+
+                    {!message.isRead && (
+                      <div className="mt-1">
+                        <Badge className="bg-primary text-white text-xs">New</Badge>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+          )}
+        </div>
+      </div>
+
+      {/* Right Panel - Conversation or Empty State */}
+      <div className="flex-1 bg-gray-50 flex items-center justify-center">
+        {activeConversation ? (
+          <div className="w-full h-full">
+            <ConversationPanel
+              conversationId={activeConversation.id}
+              participantName={activeConversation.name}
+              platform={activeConversation.platform}
+              onClose={() => setActiveConversation(null)}
+              isDrawer={false}
+            />
+          </div>
+        ) : (
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-200 mb-4">
+              <Mail className="h-10 w-10 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Select a conversation
+            </h3>
+            <p className="text-sm text-gray-500">
+              Choose a conversation from the list to view messages
+            </p>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

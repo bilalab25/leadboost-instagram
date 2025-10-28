@@ -71,113 +71,82 @@ export default function Inbox() {
 
         {/* Main Content */}
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          {/* Search and Filter */}
-          <div className="px-6 py-4 bg-white border-b border-gray-200">
-            <div className="flex justify-end items-center space-x-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder={
-                    isSpanish ? "Buscar mensajes..." : "Search messages..."
-                  }
-                  className="pl-10 w-64"
-                />
+          {/* Summary Stats Banner */}
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-gray-900">24</div>
+                <div className="text-sm text-gray-500">
+                  {isSpanish ? "Mensajes Totales" : "Total Messages"}
+                </div>
               </div>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">12</div>
+                <div className="text-sm text-gray-500">
+                  {isSpanish ? "Sin Leer" : "Unread"}
+                </div>
+              </div>
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-600">3</div>
+                <div className="text-sm text-gray-500">
+                  {isSpanish ? "Urgente" : "Urgent"}
+                </div>
+              </div>
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">2.5h</div>
+                <div className="text-sm text-gray-500">
+                  {isSpanish ? "Respuesta Promedio" : "Avg Response"}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Inbox Content */}
-          <main className="flex-1 relative overflow-y-auto focus:outline-none">
-            <div className="py-6">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-                {/* Stats */}
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-8">
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-gray-900">24</div>
-                      <div className="text-sm text-gray-500">
-                        {isSpanish ? "Mensajes Totales" : "Total Messages"}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-red-600">12</div>
-                      <div className="text-sm text-gray-500">
-                        {isSpanish ? "Sin Leer" : "Unread"}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-yellow-600">
-                        3
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {isSpanish ? "Urgente" : "Urgent"}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        2.5h
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {isSpanish ? "Respuesta Promedio" : "Avg Response"}
-                      </div>
-                    </CardContent>
-                  </Card>
+          {/* Filter Bar */}
+          <div className="bg-white border-b border-gray-200 px-6 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant={!selectedPlatform ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePlatformSelect(undefined)}
+                  data-testid="filter-all"
+                >
+                  All
+                </Button>
+                <Button
+                  variant={selectedPlatform === "facebook" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePlatformSelect("facebook")}
+                  data-testid="filter-facebook"
+                >
+                  <SiFacebook className="mr-2 h-4 w-4 text-primary" />
+                  Facebook
+                </Button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder={isSpanish ? "Buscar..." : "Search..."}
+                    className="pl-10 w-64"
+                    data-testid="input-search-messages"
+                  />
                 </div>
-
-                {/* Message List */}
-                <Card>
-                  <CardHeader className="border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <CardTitle>
-                        {isSpanish ? "Todos los Mensajes" : "All Messages"}
-                      </CardTitle>
-
-                      <div className="flex space-x-2">
-                        <Button
-                          variant={!selectedPlatform ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handlePlatformSelect(undefined)}
-                        >
-                          All
-                        </Button>
-
-                        <Button
-                          variant={
-                            selectedPlatform === "facebook"
-                              ? "default"
-                              : "outline"
-                          }
-                          size="sm"
-                          onClick={() => handlePlatformSelect("facebook")}
-                          data-testid="filter-facebook"
-                        >
-                          {" "}
-                          <SiFacebook className="mr-2 h-4 w-4 text-primary" />{" "}
-                          Facebook{" "}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <MessageList
-                      showHeader={true}
-                      platform={selectedPlatform}
-                    />
-                  </CardContent>
-                </Card>
+                <Button variant="outline" size="icon">
+                  <Filter className="h-4 w-4" />
+                </Button>
               </div>
             </div>
-            <HelpChatbot />
-          </main>
+          </div>
+
+          {/* WhatsApp-style Split View */}
+          <div className="flex-1 flex overflow-hidden">
+            <MessageList
+              showHeader={false}
+              platform={selectedPlatform}
+            />
+          </div>
+          <HelpChatbot />
         </div>
       </div>
     </div>
