@@ -1424,9 +1424,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code, state } = req.query;
       if (!code) return res.status(400).send("Missing code");
 
+      const userId = state || req.user?.id;
+      if (!userId) return res.status(401).send("User not authenticated");
+
       const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
 
-      // Step 1: Exchange code for a user access token
+      // Step 1️⃣ Exchange code for user access token
       const tokenResponse = await fetch(
         `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
           redirect_uri,
@@ -1439,7 +1442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json(tokenData.error);
       }
 
-      // Step 2: Get list of Pages the user manages
+      // Step 2️⃣ Fetch the user's managed pages
       const pagesResponse = await fetch(
         `https://graph.facebook.com/v24.0/me/accounts?access_token=${tokenData.access_token}`,
       );
@@ -1450,24 +1453,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).send("No Facebook Pages found");
       }
 
-      // ✅ Take only the first Page (limit to one)
       const page = pagesData.data[0];
-
-      // Step 3: Save Page info instead of User info
       const expiresAt = tokenData.expires_in
         ? dayjs().add(tokenData.expires_in, "seconds").toDate()
         : null;
 
+      // Step 3️⃣ Save Facebook integration
       await storage.createOrUpdateIntegration({
-        userId: state,
+        userId,
         provider: "facebook",
         category: "social_media",
         storeName: "Facebook",
         storeUrl: `https://facebook.com/${page.id}`,
         pageId: page.id,
-        accessToken: page.access_token, // ✅ Page Token (not user)
-        accountName: page.name, // Page name
-        accountId: page.id, // same as page_id
+        accessToken: page.access_token,
+        accountName: page.name,
+        accountId: page.id,
         settings: {
           fbUserId: page.id,
           fbUserName: page.name,
@@ -1477,87 +1478,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
         syncEnabled: true,
         lastSyncAt: null,
         metadata: {
-          category: page.category,
-          permissions: page.tasks || [],
+          fbPageName: page.name,
+          fbCategory: page.category,
+          fbPermissions: page.tasks || [],
+          source: "facebook_callback",
         },
       });
 
       console.log(`✅ Facebook Page connected: ${page.name} (${page.id})`);
 
-      // Track which platforms were successfully connected
-      const connectedPlatforms: string[] = ["facebook"];
+      // Default redirect state
+      let connectedType = "facebook";
 
-      // 🟪 Auto-detect Instagram & Threads accounts
+      // Step 4️⃣ Attempt to detect connected Instagram account
       try {
-        const igLinkRes = await fetch(
-          `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account&access_token=${page.access_token}`
+        const igRes = await fetch(
+          `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account,instagram_business_account&access_token=${page.access_token}`,
         );
-        const igLinkData = await igLinkRes.json();
-        const igAccount = igLinkData.connected_instagram_account;
+        const igData = await igRes.json();
+        const igAccount =
+          igData.connected_instagram_account ||
+          igData.instagram_business_account;
 
-        if (!igAccount || !igAccount.id) {
-          console.log("⚠️ No Instagram account linked to this Facebook Page");
-          res.redirect(`/settings?connected=${connectedPlatforms.join(",")}`);
-          return;
+        if (igAccount && igAccount.id) {
+          // Step 5️⃣ Get Instagram account details
+          const igDetailsRes = await fetch(
+            `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${page.access_token}`,
+          );
+          const igDetails = await igDetailsRes.json();
+
+          // Create Instagram integration
+          await storage.createOrUpdateIntegration({
+            userId,
+            provider: "instagram",
+            category: "social_media",
+            storeName: "Instagram",
+            storeUrl: `https://instagram.com/${igDetails.username || page.name}`,
+            accountId: igAccount.id,
+            accessToken: page.access_token,
+            accountName: igDetails.username || page.name,
+            pageId: page.id,
+            metadata: {
+              fbPageId: page.id,
+              fbPageName: page.name,
+              igAccountId: igAccount.id,
+              igUsername: igDetails.username,
+              igProfilePic: igDetails.profile_picture_url,
+              source: "facebook_callback_auto",
+            },
+            isActive: true,
+            syncEnabled: true,
+          });
+
+          console.log(`✅ Instagram auto-connected: ${igDetails.username}`);
+          connectedType = "facebook,instagram";
+
+          // Step 6️⃣ Create Threads integration (linked to same IG)
+          await storage.createOrUpdateIntegration({
+            userId,
+            provider: "threads",
+            category: "social_media",
+            storeName: "Threads",
+            storeUrl: `https://threads.net/@${igDetails.username}`,
+            accountId: igAccount.id,
+            accessToken: page.access_token,
+            accountName: igDetails.username,
+            pageId: page.id,
+            metadata: {
+              fbPageId: page.id,
+              fbPageName: page.name,
+              igAccountId: igAccount.id,
+              igUsername: igDetails.username,
+              source: "facebook_callback_auto",
+            },
+            isActive: true,
+            syncEnabled: true,
+          });
+
+          console.log(`✅ Threads auto-connected: ${igDetails.username}`);
+          connectedType = "facebook,instagram,threads";
+        } else {
+          console.log("⚠️ No Instagram account linked to this page.");
         }
-
-        // Fetch Instagram Business profile details
-        const igDetailsRes = await fetch(
-          `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${page.access_token}`
-        );
-        const igDetails = await igDetailsRes.json();
-
-        // Create Instagram integration with actual profile details
-        await storage.createOrUpdateIntegration({
-          userId: state as string,
-          provider: "instagram",
-          category: "social_media",
-          storeName: "Instagram",
-          storeUrl: `https://instagram.com/${igDetails.username || page.name}`,
-          accountId: igAccount.id,
-          accessToken: page.access_token,
-          accountName: igDetails.username || page.name,
-          pageId: page.id,
-          metadata: {
-            fbPageId: page.id,
-            igUsername: igDetails.username,
-            igProfilePic: igDetails.profile_picture_url,
-          },
-          isActive: true,
-          syncEnabled: true,
-        });
-        console.log(`✅ Instagram auto-connected: ${igDetails.username}`);
-        connectedPlatforms.push("instagram");
-
-        // Create Threads integration (uses same Instagram account)
-        await storage.createOrUpdateIntegration({
-          userId: state as string,
-          provider: "threads",
-          category: "social_media",
-          storeName: "Threads",
-          storeUrl: `https://threads.net/@${igDetails.username}`,
-          accountId: igAccount.id,
-          accessToken: page.access_token,
-          accountName: igDetails.username,
-          pageId: page.id,
-          metadata: {
-            fbPageId: page.id,
-            igAccountId: igAccount.id,
-            igUsername: igDetails.username,
-          },
-          isActive: true,
-          syncEnabled: true,
-        });
-        console.log(`✅ Threads auto-connected: ${igDetails.username}`);
-        connectedPlatforms.push("threads");
       } catch (igErr) {
         console.warn("⚠️ Instagram/Threads auto-connect failed:", igErr);
       }
 
-      // Redirect with status of all connected platforms
-      res.redirect(`/settings?connected=${connectedPlatforms.join(",")}`);
+      // Step 7️⃣ Final redirect
+      res.redirect(`/settings?connected=${connectedType}`);
     } catch (err) {
-      console.error("❌ Callback error:", err);
+      console.error("❌ Facebook callback error:", err);
       res.status(500).send("Error in Facebook callback");
     }
   });
@@ -1656,49 +1666,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 🟩 WhatsApp Cloud API Connect
-  app.post("/api/integrations/whatsapp/connect", isAuthenticated, async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const accessToken = process.env.WHATSAPP_TOKEN;
-      const wabaId = process.env.WABA_ID;
+  app.post(
+    "/api/integrations/whatsapp/connect",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const accessToken = process.env.WHATSAPP_TOKEN;
+        const wabaId = process.env.WABA_ID;
 
-      if (!accessToken || !wabaId) {
-        return res.status(400).json({ 
-          error: "WhatsApp credentials not configured. Please set WHATSAPP_TOKEN and WABA_ID environment variables." 
+        if (!accessToken || !wabaId) {
+          return res.status(400).json({
+            error:
+              "WhatsApp credentials not configured. Please set WHATSAPP_TOKEN and WABA_ID environment variables.",
+          });
+        }
+
+        const response = await fetch(
+          `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?access_token=${accessToken}`,
+        );
+        const data = await response.json();
+
+        const phone = data.data?.[0];
+        if (!phone) {
+          return res
+            .status(400)
+            .json({ error: "No WhatsApp phone numbers found" });
+        }
+
+        await storage.createOrUpdateIntegration({
+          userId,
+          provider: "whatsapp",
+          category: "social_media",
+          storeName: "WhatsApp Business",
+          storeUrl: `https://wa.me/${phone.display_phone_number.replace(/\D/g, "")}`,
+          accountId: phone.id,
+          accessToken,
+          accountName: phone.display_phone_number,
+          metadata: { wabaId },
+          isActive: true,
+          syncEnabled: true,
         });
+
+        console.log(`✅ WhatsApp connected: ${phone.display_phone_number}`);
+        res.json({ success: true, phone });
+      } catch (err) {
+        console.error("❌ WhatsApp connect error:", err);
+        res.status(500).json({ error: "Failed to connect WhatsApp" });
       }
-
-      const response = await fetch(
-        `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?access_token=${accessToken}`
-      );
-      const data = await response.json();
-
-      const phone = data.data?.[0];
-      if (!phone) {
-        return res.status(400).json({ error: "No WhatsApp phone numbers found" });
-      }
-
-      await storage.createOrUpdateIntegration({
-        userId,
-        provider: "whatsapp",
-        category: "social_media",
-        storeName: "WhatsApp Business",
-        storeUrl: `https://wa.me/${phone.display_phone_number.replace(/\D/g, '')}`,
-        accountId: phone.id,
-        accessToken,
-        accountName: phone.display_phone_number,
-        metadata: { wabaId },
-        isActive: true,
-        syncEnabled: true,
-      });
-
-      console.log(`✅ WhatsApp connected: ${phone.display_phone_number}`);
-      res.json({ success: true, phone });
-    } catch (err) {
-      console.error("❌ WhatsApp connect error:", err);
-      res.status(500).json({ error: "Failed to connect WhatsApp" });
-    }
-  });
+    },
+  );
 
   app.get("/api/integrations", isAuthenticated, async (req, res) => {
     try {
@@ -1881,7 +1898,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const integration = integrations.find((i) => i.provider === provider);
 
       if (!integration) {
-        return res.status(404).json({ error: `No ${provider} integration found` });
+        return res
+          .status(404)
+          .json({ error: `No ${provider} integration found` });
       }
 
       let url = "";
@@ -1896,7 +1915,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // WhatsApp doesn't have a conversations list - you need webhook for incoming messages
         // Here we return empty or fetch from your local database
         const messages = await storage.getMessages(userId);
-        const whatsappMessages = messages.filter((m: any) => m.socialAccount?.provider === "whatsapp");
+        const whatsappMessages = messages.filter(
+          (m: any) => m.socialAccount?.provider === "whatsapp",
+        );
         return res.json({ conversations: whatsappMessages });
       } else {
         return res.status(400).json({ error: "Invalid provider" });
@@ -1918,142 +1939,165 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get messages for a specific conversation from any provider
-  app.get("/api/:provider/conversations/:conversationId/messages", isAuthenticated, async (req, res) => {
-    try {
-      const { provider, conversationId } = req.params;
-      const userId = req.user.id;
+  app.get(
+    "/api/:provider/conversations/:conversationId/messages",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { provider, conversationId } = req.params;
+        const userId = req.user.id;
 
-      const integrations = await storage.getIntegrations(userId);
-      const integration = integrations.find((i) => i.provider === provider);
+        const integrations = await storage.getIntegrations(userId);
+        const integration = integrations.find((i) => i.provider === provider);
 
-      if (!integration) {
-        return res.status(404).json({ error: `No ${provider} integration found` });
-      }
+        if (!integration) {
+          return res
+            .status(404)
+            .json({ error: `No ${provider} integration found` });
+        }
 
-      let url = "";
-      let pageId = integration.accountId;
+        let url = "";
+        let pageId = integration.accountId;
 
-      if (provider === "facebook" || provider === "instagram" || provider === "threads") {
-        // Get page ID for detecting inbound vs outbound
-        const pageInfoRes = await fetch(
-          `https://graph.facebook.com/v24.0/me?access_token=${integration.accessToken}`
-        );
-        const pageInfo = await pageInfoRes.json();
-        pageId = pageInfo.id || integration.accountId;
+        if (
+          provider === "facebook" ||
+          provider === "instagram" ||
+          provider === "threads"
+        ) {
+          // Get page ID for detecting inbound vs outbound
+          const pageInfoRes = await fetch(
+            `https://graph.facebook.com/v24.0/me?access_token=${integration.accessToken}`,
+          );
+          const pageInfo = await pageInfoRes.json();
+          pageId = pageInfo.id || integration.accountId;
 
-        url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${integration.accessToken}`;
-      } else if (provider === "whatsapp") {
-        // For WhatsApp, fetch from local database or use webhook data
-        const messages = await storage.getMessages(userId);
-        const conversationMessages = messages.filter((m: any) => m.conversationId === conversationId);
-        return res.json({ 
-          pageId: integration.accountId,
-          messages: conversationMessages,
-          lastUserMessageTime: null 
+          url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${integration.accessToken}`;
+        } else if (provider === "whatsapp") {
+          // For WhatsApp, fetch from local database or use webhook data
+          const messages = await storage.getMessages(userId);
+          const conversationMessages = messages.filter(
+            (m: any) => m.conversationId === conversationId,
+          );
+          return res.json({
+            pageId: integration.accountId,
+            messages: conversationMessages,
+            lastUserMessageTime: null,
+          });
+        } else {
+          return res.status(400).json({ error: "Invalid provider" });
+        }
+
+        const r = await fetch(url);
+        const data = await r.json();
+
+        if (data.error) {
+          console.error(`${provider} API error:`, data.error);
+          return res.status(400).json({ error: data.error.message });
+        }
+
+        const messages = (data.data || []).map((m: any) => ({
+          id: m.id,
+          text: m.message,
+          from: m.from?.name,
+          fromId: m.from?.id,
+          created_time: m.created_time,
+        }));
+
+        // Find last inbound message (from user, not from page)
+        const lastInbound = messages
+          .filter((m: any) => m.fromId !== pageId)
+          .sort(
+            (a: any, b: any) =>
+              new Date(b.created_time).getTime() -
+              new Date(a.created_time).getTime(),
+          )[0];
+
+        res.json({
+          pageId,
+          messages,
+          lastUserMessageTime: lastInbound?.created_time || null,
         });
-      } else {
-        return res.status(400).json({ error: "Invalid provider" });
+      } catch (err) {
+        console.error("Messages fetch error:", err);
+        res.status(500).json({ error: "Failed to fetch messages" });
       }
-
-      const r = await fetch(url);
-      const data = await r.json();
-
-      if (data.error) {
-        console.error(`${provider} API error:`, data.error);
-        return res.status(400).json({ error: data.error.message });
-      }
-
-      const messages = (data.data || []).map((m: any) => ({
-        id: m.id,
-        text: m.message,
-        from: m.from?.name,
-        fromId: m.from?.id,
-        created_time: m.created_time,
-      }));
-
-      // Find last inbound message (from user, not from page)
-      const lastInbound = messages
-        .filter((m: any) => m.fromId !== pageId)
-        .sort(
-          (a: any, b: any) =>
-            new Date(b.created_time).getTime() -
-            new Date(a.created_time).getTime()
-        )[0];
-
-      res.json({
-        pageId,
-        messages,
-        lastUserMessageTime: lastInbound?.created_time || null,
-      });
-    } catch (err) {
-      console.error("Messages fetch error:", err);
-      res.status(500).json({ error: "Failed to fetch messages" });
-    }
-  });
+    },
+  );
 
   // Send message to any provider
-  app.post("/api/:provider/messages/send", isAuthenticated, async (req, res) => {
-    try {
-      const { provider } = req.params;
-      const userId = req.user.id;
-      const { recipientId, message } = req.body;
+  app.post(
+    "/api/:provider/messages/send",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { provider } = req.params;
+        const userId = req.user.id;
+        const { recipientId, message } = req.body;
 
-      if (!recipientId || !message) {
-        return res.status(400).json({ error: "recipientId and message are required" });
+        if (!recipientId || !message) {
+          return res
+            .status(400)
+            .json({ error: "recipientId and message are required" });
+        }
+
+        const integrations = await storage.getIntegrations(userId);
+        const integration = integrations.find((i) => i.provider === provider);
+
+        if (!integration) {
+          return res
+            .status(404)
+            .json({ error: `No ${provider} integration found` });
+        }
+
+        let url, payload;
+
+        if (provider === "facebook" || provider === "instagram") {
+          url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+          payload = {
+            messaging_type: "RESPONSE",
+            recipient: { id: recipientId },
+            message: { text: message },
+          };
+        } else if (provider === "threads") {
+          url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+          payload = {
+            recipient: { id: recipientId },
+            message: { text: message },
+          };
+        } else if (provider === "whatsapp") {
+          url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+          payload = {
+            messaging_product: "whatsapp",
+            to: recipientId,
+            type: "text",
+            text: { body: message },
+          };
+        } else {
+          return res.status(400).json({ error: "Invalid provider" });
+        }
+
+        const r = await fetch(
+          `${url}?access_token=${integration.accessToken}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          },
+        );
+        const data = await r.json();
+
+        if (data.error) {
+          console.error(`${provider} send error:`, data.error);
+          return res.status(400).json({ error: data.error.message });
+        }
+
+        res.json(data);
+      } catch (err) {
+        console.error("Send message error:", err);
+        res.status(500).json({ error: "Failed to send message" });
       }
-
-      const integrations = await storage.getIntegrations(userId);
-      const integration = integrations.find((i) => i.provider === provider);
-      
-      if (!integration) {
-        return res.status(404).json({ error: `No ${provider} integration found` });
-      }
-
-      let url, payload;
-
-      if (provider === "facebook" || provider === "instagram") {
-        url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
-        payload = {
-          messaging_type: "RESPONSE",
-          recipient: { id: recipientId },
-          message: { text: message },
-        };
-      } else if (provider === "threads") {
-        url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
-        payload = {
-          recipient: { id: recipientId },
-          message: { text: message },
-        };
-      } else if (provider === "whatsapp") {
-        url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
-        payload = {
-          messaging_product: "whatsapp",
-          to: recipientId,
-          type: "text",
-          text: { body: message },
-        };
-      } else {
-        return res.status(400).json({ error: "Invalid provider" });
-      }
-
-      const r = await fetch(`${url}?access_token=${integration.accessToken}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await r.json();
-
-      if (data.error) {
-        console.error(`${provider} send error:`, data.error);
-        return res.status(400).json({ error: data.error.message });
-      }
-
-      res.json(data);
-    } catch (err) {
-      console.error("Send message error:", err);
-      res.status(500).json({ error: "Failed to send message" });
-    }
-  });
+    },
+  );
 
   // Calendar integration routes
   app.get("/api/calendar/integrations/:brandId", async (req: any, res) => {
