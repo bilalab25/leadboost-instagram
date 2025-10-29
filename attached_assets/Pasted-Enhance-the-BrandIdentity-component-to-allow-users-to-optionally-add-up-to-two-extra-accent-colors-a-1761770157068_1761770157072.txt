@@ -1,0 +1,62 @@
+Enhance the BrandIdentity component to allow users to optionally add up to two extra accent colors and up to two extra text colors, but without showing the inputs by default.
+
+Current state:
+
+There are already two accent colors (accentColor1, accentColor2) and two text colors (text1Color, text2Color).
+
+Requirements:
+
+Database update
+
+Update the brand_design table to include four new nullable columns:
+
+accent_color_3 (string)
+
+accent_color_4 (string)
+
+text_color_3 (string)
+
+text_color_4 (string)
+
+These fields should be optional and default to NULL.
+
+API update
+
+Update all relevant endpoints (especially /api/brand-design) to support reading and writing these new columns in both GET and POST/PUT operations.
+
+UI / React updates
+
+In the Color Palette section of BrandIdentity, add two new buttons:
+
+One labeled “+ Add Accent Color”
+
+One labeled “+ Add Text Color”
+
+Each button should let the user add up to two new color pickers dynamically.
+
+When clicked, display new <ColorPreviewWithPicker /> components for:
+
+Accent Color 3 and Accent Color 4 (with allowGradient = true)
+
+Text Color 3 and Text Color 4 (with allowGradient = false)
+
+These additional color inputs should not be visible initially — only appear when added through the button.
+
+Disable the button once the maximum (two) extra colors have been added.
+
+Add small helper text or badges like “🧩 Optional” next to these dynamic fields to clarify they’re not required.
+
+Saving logic
+
+Make sure handleSaveBrandDesign and related state management are updated to include these new values when present.
+
+If the user never adds them, keep them undefined/null — don’t send empty values to the API.
+
+Design consistency
+
+Follow the same grid layout, spacing, and visual hierarchy used for existing color pickers.
+
+Ensure the new buttons match the project’s design system (Button from @/components/ui/button).
+
+Goal:
+Provide a clean, expandable UI where users can optionally add more accent and text colors without cluttering the interface, keeping full database and API support for persistence.

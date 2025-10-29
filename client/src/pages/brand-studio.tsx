@@ -62,8 +62,12 @@ interface BrandDesign {
   colorPrimary?: string;
   colorAccent1?: string;
   colorAccent2?: string;
+  colorAccent3?: string;
+  colorAccent4?: string;
   colorText1?: string;
   colorText2?: string;
+  colorText3?: string;
+  colorText4?: string;
   fontPrimary?: string;
   fontSecondary?: string;
   logoUrl: string | null;
@@ -147,6 +151,18 @@ export default function BrandStudio() {
   const [accentColor2, setAccentColor2] = useState<string>("#1e40af"); // Default dark blue
   const [text1Color, setText1Color] = useState<string>("#333333"); // Default text1
   const [text2Color, setText2Color] = useState<string>("#666666"); // Default text2
+  
+  // Optional additional colors (can be dynamically added)
+  const [accentColor3, setAccentColor3] = useState<string | null>(null);
+  const [accentColor4, setAccentColor4] = useState<string | null>(null);
+  const [text3Color, setText3Color] = useState<string | null>(null);
+  const [text4Color, setText4Color] = useState<string | null>(null);
+  
+  // Control visibility of optional colors
+  const [showAccentColor3, setShowAccentColor3] = useState(false);
+  const [showAccentColor4, setShowAccentColor4] = useState(false);
+  const [showText3Color, setShowText3Color] = useState(false);
+  const [showText4Color, setShowText4Color] = useState(false);
 
   const [primaryFont, setPrimaryFont] = useState<string>("Roboto");
   const [secondaryFont, setSecondaryFont] = useState<string>("Open Sans");
@@ -330,6 +346,24 @@ export default function BrandStudio() {
             brandDesign.colorText2 ||
             "#666666",
         );
+        
+        // Initialize optional colors if they exist
+        if (brandDesign.colorAccent3) {
+          setAccentColor3(brandDesign.colorAccent3);
+          setShowAccentColor3(true);
+        }
+        if (brandDesign.colorAccent4) {
+          setAccentColor4(brandDesign.colorAccent4);
+          setShowAccentColor4(true);
+        }
+        if (brandDesign.colorText3) {
+          setText3Color(brandDesign.colorText3);
+          setShowText3Color(true);
+        }
+        if (brandDesign.colorText4) {
+          setText4Color(brandDesign.colorText4);
+          setShowText4Color(true);
+        }
       }
 
       if (brandDesign.typography || brandDesign.fontPrimary) {
@@ -511,7 +545,7 @@ export default function BrandStudio() {
       );
 
       // Arma el objeto final
-      const designData = {
+      const designData: Record<string, any> = {
         brandStyle: selectedStyle,
         colorPalette: {
           primary: mainColor,
@@ -543,6 +577,12 @@ export default function BrandStudio() {
           })),
         },
       };
+
+      // Add optional colors only if they have values
+      if (accentColor3) designData.colorAccent3 = accentColor3;
+      if (accentColor4) designData.colorAccent4 = accentColor4;
+      if (text3Color) designData.colorText3 = text3Color;
+      if (text4Color) designData.colorText4 = text4Color;
 
       // Llama tu mutation
       saveBrandDesignMutation.mutate(designData);
@@ -734,6 +774,22 @@ export default function BrandStudio() {
                     setText1Color={setText1Color}
                     text2Color={text2Color}
                     setText2Color={setText2Color}
+                    accentColor3={accentColor3}
+                    setAccentColor3={setAccentColor3}
+                    accentColor4={accentColor4}
+                    setAccentColor4={setAccentColor4}
+                    text3Color={text3Color}
+                    setText3Color={setText3Color}
+                    text4Color={text4Color}
+                    setText4Color={setText4Color}
+                    showAccentColor3={showAccentColor3}
+                    setShowAccentColor3={setShowAccentColor3}
+                    showAccentColor4={showAccentColor4}
+                    setShowAccentColor4={setShowAccentColor4}
+                    showText3Color={showText3Color}
+                    setShowText3Color={setShowText3Color}
+                    showText4Color={showText4Color}
+                    setShowText4Color={setShowText4Color}
                     handleGenerateRandomPalette={handleGenerateRandomPalette}
                     primaryFont={primaryFont}
                     setPrimaryFont={setPrimaryFont}

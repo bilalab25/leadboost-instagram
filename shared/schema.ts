@@ -915,8 +915,12 @@ export const brandDesigns = pgTable("brand_designs", {
   colorPrimary: varchar("color_primary"),
   colorAccent1: varchar("color_accent1"),
   colorAccent2: varchar("color_accent2"),
+  colorAccent3: varchar("color_accent3"),
+  colorAccent4: varchar("color_accent4"),
   colorText1: varchar("color_text1"),
   colorText2: varchar("color_text2"),
+  colorText3: varchar("color_text3"),
+  colorText4: varchar("color_text4"),
   fontPrimary: varchar("font_primary"),
   fontSecondary: varchar("font_secondary"),
   customFonts: jsonb("custom_fonts"), // array with {name, url}

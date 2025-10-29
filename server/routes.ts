@@ -669,6 +669,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/messages/latest", async (req, res) => {
+    try {
+      const { limit = 10 } = req.query;
+      const messagesUrl = `https://graph.facebook.com/v24.0/me/conversations?fields=messages.limit(${limit}){id,message,from,created_time,attachments{media,url}}&access_token=${process.env.FB_ACCESS_TOKEN}`;
+      const response = await fetch(messagesUrl);
+      const data = await response.json();
+
+      const messages = (data.data || []).flatMap(
+        (conv) =>
+          conv.messages?.data?.map((m) => ({
+            id: m.id,
+            conversationId: conv.id,
+            text: m.message || "",
+            from: m.from?.name,
+            created_time: m.created_time,
+            imageUrl: m.attachments?.data?.[0]?.media?.image?.src || null,
+            channel: "facebook",
+          })) || [],
+      );
+
+      res.json(messages.slice(0, limit));
+    } catch (err) {
+      console.error("❌ Error fetching latest messages:", err);
+      res.status(500).json({ error: "Failed to fetch latest messages" });
+    }
+  });
+
   app.get(
     "/api/conversations/:id/messages",
     isAuthenticated,

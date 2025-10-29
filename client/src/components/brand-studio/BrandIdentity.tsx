@@ -36,6 +36,22 @@ export default function BrandIdentity({
   setText1Color,
   text2Color,
   setText2Color,
+  accentColor3,
+  setAccentColor3,
+  accentColor4,
+  setAccentColor4,
+  text3Color,
+  setText3Color,
+  text4Color,
+  setText4Color,
+  showAccentColor3,
+  setShowAccentColor3,
+  showAccentColor4,
+  setShowAccentColor4,
+  showText3Color,
+  setShowText3Color,
+  showText4Color,
+  setShowText4Color,
   handleGenerateRandomPalette,
   primaryFont,
   setPrimaryFont,
@@ -321,6 +337,138 @@ export default function BrandIdentity({
                       allowGradient={false}
                     />
                   </div>
+
+                  {/* Optional Accent Color 3 */}
+                  {showAccentColor3 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="text-xs">
+                          🧩 {isSpanish ? "Opcional" : "Optional"}
+                        </Badge>
+                      </div>
+                      <ColorPreviewWithPicker
+                        label={isSpanish ? "Color Acento 3" : "Accent Color 3"}
+                        value={accentColor3 || "#9333ea"}
+                        onChange={setAccentColor3}
+                        allowGradient={true}
+                      />
+                    </div>
+                  )}
+
+                  {/* Optional Accent Color 4 */}
+                  {showAccentColor4 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="text-xs">
+                          🧩 {isSpanish ? "Opcional" : "Optional"}
+                        </Badge>
+                      </div>
+                      <ColorPreviewWithPicker
+                        label={isSpanish ? "Color Acento 4" : "Accent Color 4"}
+                        value={accentColor4 || "#db2777"}
+                        onChange={setAccentColor4}
+                        allowGradient={true}
+                      />
+                    </div>
+                  )}
+
+                  {/* Optional Text Color 3 */}
+                  {showText3Color && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="text-xs">
+                          🧩 {isSpanish ? "Opcional" : "Optional"}
+                        </Badge>
+                      </div>
+                      <ColorPreviewWithPicker
+                        label={isSpanish ? "Color Texto 3" : "Text Color 3"}
+                        value={text3Color || "#94a3b8"}
+                        onChange={setText3Color}
+                        allowGradient={false}
+                      />
+                    </div>
+                  )}
+
+                  {/* Optional Text Color 4 */}
+                  {showText4Color && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="text-xs">
+                          🧩 {isSpanish ? "Opcional" : "Optional"}
+                        </Badge>
+                      </div>
+                      <ColorPreviewWithPicker
+                        label={isSpanish ? "Color Texto 4" : "Text Color 4"}
+                        value={text4Color || "#475569"}
+                        onChange={setText4Color}
+                        allowGradient={false}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Add Color Buttons */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {!showAccentColor3 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowAccentColor3(true);
+                        if (!accentColor3) setAccentColor3("#9333ea");
+                      }}
+                      disabled={showAccentColor3}
+                      data-testid="button-add-accent-color"
+                    >
+                      <Palette className="h-4 w-4 mr-2" />
+                      + {isSpanish ? "Agregar Color Acento" : "Add Accent Color"}
+                    </Button>
+                  )}
+                  {showAccentColor3 && !showAccentColor4 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowAccentColor4(true);
+                        if (!accentColor4) setAccentColor4("#db2777");
+                      }}
+                      disabled={showAccentColor4}
+                      data-testid="button-add-accent-color-2"
+                    >
+                      <Palette className="h-4 w-4 mr-2" />
+                      + {isSpanish ? "Agregar Color Acento" : "Add Accent Color"}
+                    </Button>
+                  )}
+                  {!showText3Color && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowText3Color(true);
+                        if (!text3Color) setText3Color("#94a3b8");
+                      }}
+                      disabled={showText3Color}
+                      data-testid="button-add-text-color"
+                    >
+                      <Type className="h-4 w-4 mr-2" />
+                      + {isSpanish ? "Agregar Color Texto" : "Add Text Color"}
+                    </Button>
+                  )}
+                  {showText3Color && !showText4Color && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowText4Color(true);
+                        if (!text4Color) setText4Color("#475569");
+                      }}
+                      disabled={showText4Color}
+                      data-testid="button-add-text-color-2"
+                    >
+                      <Type className="h-4 w-4 mr-2" />
+                      + {isSpanish ? "Agregar Color Texto" : "Add Text Color"}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

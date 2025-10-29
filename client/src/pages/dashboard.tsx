@@ -156,6 +156,15 @@ export default function Dashboard() {
   //   );
   // }
 
+  // 🔹 Últimos mensajes unificados
+  const { data: latestMessages, isLoading: messagesLoading } = useQuery({
+    queryKey: ["/api/messages/latest"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/messages/latest?limit=10");
+      return res.json();
+    },
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={t.sidebar.dashboard} />
@@ -457,47 +466,82 @@ export default function Dashboard() {
                   <div className="space-y-8">
                     {/* Unified Inbox */}
                     <Card>
-                      <CardHeader className="border-b border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <CardTitle>{t.messages.unifiedInbox}</CardTitle>
-                          <div className="flex space-x-1">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs"
-                              data-testid="button-filter-all"
-                            >
-                              Todos
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs"
-                              data-testid="button-filter-unread"
-                            >
-                              No Leídos (12)
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs"
-                              data-testid="button-filter-important"
-                            >
-                              Importantes
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs"
-                              data-testid="button-filter-yesterday"
-                            >
-                              Ayer
-                            </Button>
-                          </div>
-                        </div>
+                      <CardHeader className="border-b border-gray-200 flex items-center justify-between">
+                        <CardTitle>
+                          {isSpanish ? "Últimos mensajes" : "Latest Messages"}
+                        </CardTitle>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-brand-600 hover:text-brand-700"
+                          onClick={() => (window.location.href = "/inbox")}
+                        >
+                          {isSpanish ? "Ver todos" : "View all"}
+                          <ArrowRight className="w-4 h-4 ml-1" />
+                        </Button>
                       </CardHeader>
-                      <CardContent className="p-0">
-                        <MessageList limit={5} showHeader={false} />
+
+                      <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {messagesLoading ? (
+                          <div className="col-span-full text-center py-6 text-gray-400">
+                            {isSpanish
+                              ? "Cargando mensajes..."
+                              : "Loading messages..."}
+                          </div>
+                        ) : latestMessages?.length ? (
+                          latestMessages.map((msg: any) => (
+                            <div
+                              key={msg.id}
+                              className="rounded-xl border border-gray-100 bg-white shadow-sm p-4 hover:shadow-md transition-all cursor-pointer"
+                              onClick={() =>
+                                (window.location.href = `/inbox?conversation=${msg.conversationId}`)
+                              }
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  {msg.channel === "facebook" && (
+                                    <SiFacebook className="text-[#1877F2] w-4 h-4" />
+                                  )}
+                                  {msg.channel === "instagram" && (
+                                    <SiInstagram className="text-pink-500 w-4 h-4" />
+                                  )}
+                                  {msg.channel === "whatsapp" && (
+                                    <SiWhatsapp className="text-green-500 w-4 h-4" />
+                                  )}
+                                  {msg.channel === "linkedin" && (
+                                    <SiLinkedin className="text-blue-600 w-4 h-4" />
+                                  )}
+                                  <span className="font-semibold text-gray-800 text-sm">
+                                    {msg.from || "Unknown"}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-400">
+                                  {new Date(
+                                    msg.created_time,
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+
+                              <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                                {msg.text || "(sin mensaje)"}
+                              </p>
+
+                              {msg.imageUrl && (
+                                <img
+                                  src={msg.imageUrl}
+                                  alt="Attachment"
+                                  className="rounded-lg w-full h-28 object-cover"
+                                />
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-span-full text-center py-6 text-gray-400">
+                            {isSpanish
+                              ? "No hay mensajes recientes"
+                              : "No recent messages"}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
