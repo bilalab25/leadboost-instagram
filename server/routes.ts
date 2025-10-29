@@ -1739,30 +1739,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 1️⃣ Listar conversaciones (últimos chats)
-  app.get("/api/facebook/conversations", isAuthenticated, async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const integrations = await storage.getIntegrations(userId);
-      const fbIntegration = integrations.find((i) =>
-        i.provider.includes("facebook"),
-      );
-      console.log(fbIntegration, "fbIntegration");
-      if (!fbIntegration)
-        return res.status(404).json({ error: "No Facebook account connected" });
-
-      const { accountId: pageId, accessToken } = fbIntegration;
-      const url = `https://graph.facebook.com/v24.0/${pageId}/conversations?fields=senders,link,updated_time,snippet&access_token=${accessToken}`;
-      const r = await fetch(url);
-      const data = await r.json();
-
-      res.json({ conversations: data.data });
-    } catch (err) {
-      console.error("Facebook conversations error:", err);
-      res.status(500).json({ error: "Failed to fetch conversations" });
-    }
-  });
-
   // 3️⃣ Enviar mensaje (Messenger Send API)
   app.post("/api/facebook/messages/send", isAuthenticated, async (req, res) => {
     try {
@@ -1854,7 +1830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let url = "";
 
       if (provider === "facebook") {
-        url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=senders,snippet,updated_time&access_token=${integration.accessToken}`;
+        url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=senders,link,snippet,updated_time&access_token=${integration.accessToken}`;
       } else if (provider === "instagram") {
         url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=id,participants,snippet,updated_time&access_token=${integration.accessToken}`;
       } else if (provider === "threads") {
