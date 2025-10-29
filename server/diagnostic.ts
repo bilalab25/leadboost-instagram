@@ -83,3 +83,35 @@ export function logAttachmentNotFound(messageId: string) {
 export function logAttachmentError(messageId: string, error: any) {
   logToFile(`  ⚠️  Attachment fetch failed for ${messageId}: ${error.message || error}`);
 }
+
+export function logUnifiedRequest(provider: string, conversationId: string, url: string) {
+  const timestamp = new Date().toISOString();
+  const providerEmojis: Record<string, string> = {
+    facebook: "🟦",
+    instagram: "🟪",
+    threads: "🧵",
+    whatsapp: "🟩"
+  };
+  
+  const emoji = providerEmojis[provider] || "📱";
+  
+  logToFile("---START UNIFIED FETCH---");
+  logToFile(`${emoji} Provider: ${provider.toUpperCase()}`);
+  logToFile(`⏰ Request Time: ${timestamp}`);
+  logToFile(`💬 Conversation ID: ${conversationId}`);
+  logToFile(`🔗 API URL: ${url}`);
+}
+
+export function logUnifiedResponse(provider: string, messageCount: number) {
+  const providerEmojis: Record<string, string> = {
+    facebook: "🟦",
+    instagram: "🟪",
+    threads: "🧵",
+    whatsapp: "🟩"
+  };
+  
+  const emoji = providerEmojis[provider] || "📱";
+  logToFile(`✅ ${emoji} ${provider.toUpperCase()}: Received ${messageCount} messages`);
+  logToFile("---END UNIFIED FETCH---");
+  logToFile("");
+}

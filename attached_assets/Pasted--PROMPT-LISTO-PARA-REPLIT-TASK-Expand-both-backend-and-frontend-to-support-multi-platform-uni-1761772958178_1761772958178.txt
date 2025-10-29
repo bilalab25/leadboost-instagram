@@ -1,0 +1,104 @@
+🧠 PROMPT LISTO PARA REPLIT
+
+🔧 TASK: Expand both backend and frontend to support multi-platform unified inbox (Facebook, Instagram, Threads, WhatsApp).
+
+-----------------------------------------------------
+🗄️ BACKEND CHANGES
+
+1️⃣ Create a unified message retrieval endpoint
+Replace the existing Facebook-only route:
+GET /api/facebook/conversations/:conversationId/messages
+with a universal one:
+GET /api/:provider/conversations/:conversationId/messages
+
+2️⃣ Supported providers
+- facebook
+- instagram
+- threads
+- whatsapp
+
+3️⃣ Logic
+- Retrieve user integrations via storage.getIntegrations(userId).
+- Validate that the selected provider exists for the user.
+- Depending on the provider, call the appropriate fetch helper:
+  • fetchFacebookMessages(conversationId, accessToken, accountId)
+  • fetchInstagramMessages(conversationId, accessToken, accountId)
+  • fetchThreadsMessages(conversationId, accessToken, accountId)
+  • fetchWhatsappMessages(conversationId, accessToken, accountId)
+- Each helper should:
+  - Call the correct Graph API endpoint for the provider.
+  - Retrieve id, message (or text), from, created_time, and attachments if any.
+  - Normalize all messages to this format:
+    {
+      "id": "m_123",
+      "text": "Hello there!",
+      "imageUrl": "https://...",
+      "from": "User Name",
+      "fromId": "123456",
+      "created_time": "2025-10-29T20:15:00+0000",
+      "provider": "facebook"
+    }
+
+4️⃣ Add a unified aggregation endpoint
+GET /api/conversations/messages/all
+- Fetch messages from all connected integrations (facebook, instagram, threads, whatsapp).
+- Use Promise.allSettled() to run each fetch helper concurrently.
+- Merge all arrays of messages into one unified list.
+- Sort all messages by created_time (descending).
+- Return:
+  {
+    "messages": [...],
+    "providers": ["facebook", "instagram", "whatsapp"],
+    "total": 247
+  }
+
+5️⃣ Logging and errors
+- Keep the existing diagnostic logs (logFacebookRequest, etc.).
+- Add a new logUnifiedRequest(provider, conversationId, url) helper.
+- Return descriptive errors like { error: "Integration not found for provider" }.
+
+6️⃣ Backward compatibility
+- Keep /api/facebook/conversations/:conversationId/messages working internally but make it call the unified handler with provider = facebook.
+
+-----------------------------------------------------
+💬 FRONTEND CHANGES (Inbox Component)
+
+1️⃣ Fetch all messages
+- Modify the Inbox component to call:
+  GET /api/conversations/messages/all
+- Use React Query or your current fetching hook to populate:
+  const [allMessages, setAllMessages] = useState([]);
+
+2️⃣ Show unified feed
+- Display all messages in one chronological list (newest first).
+- Each message should display:
+  - Sender name (from)
+  - Message text or attachment preview (text or imageUrl)
+  - Formatted timestamp (created_time)
+  - Provider badge or icon:
+    • 🟦 Facebook → SiFacebook
+    • 🟪 Instagram → Instagram icon
+    • 🟩 WhatsApp → SiWhatsapp
+    • 🧵 Threads → Threads icon (if available)
+
+3️⃣ Optional filters
+- Add a filter bar with chips or dropdown for:
+  “All”, “Facebook”, “Instagram”, “WhatsApp”, “Threads”
+- When active, filter the unified message list by provider.
+
+4️⃣ Empty state
+If no messages exist:
+  “No recent messages across your connected platforms.”
+
+5️⃣ Performance
+- Use pagination or infinite scroll if many messages exist.
+- Cache results via React Query or SWR.
+
+-----------------------------------------------------
+✅ FINAL EXPECTED RESULT
+
+- GET /api/conversations/messages/all returns a merged and sorted list of all messages from connected providers.
+- The Inbox component shows all conversations together in one feed.
+- Each message clearly indicates its source platform.
+- Sending still works individually per platform (POST /api/:provider/conversations/:conversationId/messages).
+- The interface now behaves as a true omnichannel inbox for Facebook, Instagram, Threads, and WhatsApp.

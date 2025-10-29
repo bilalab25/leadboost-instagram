@@ -10,6 +10,8 @@ import {
   logAttachmentFound,
   logAttachmentNotFound,
   logAttachmentError,
+  logUnifiedRequest,
+  logUnifiedResponse,
 } from "./diagnostic";
 import OpenAI from "openai";
 import chatRoutes from "./chatRoutes";
@@ -52,6 +54,219 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const upload = multer({ dest: "uploads/" });
+
+// ==================================================================================
+// MULTI-PLATFORM MESSAGE FETCH HELPERS
+// ==================================================================================
+
+interface NormalizedMessage {
+  id: string;
+  text: string;
+  imageUrl: string | null;
+  from: string;
+  fromId: string;
+  created_time: string;
+  provider: string;
+}
+
+async function fetchFacebookMessages(
+  conversationId: string,
+  accessToken: string,
+  accountId: string
+): Promise<NormalizedMessage[]> {
+  const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${accessToken}`;
+  
+  logUnifiedRequest("facebook", conversationId, messagesUrl);
+  
+  const r = await fetch(messagesUrl);
+  const data = await r.json();
+  
+  if (data.error) {
+    console.error("Facebook API error:", data.error);
+    throw new Error(data.error.message);
+  }
+  
+  const messages: NormalizedMessage[] = [];
+  
+  for (const m of data.data || []) {
+    let imageUrl = null;
+    const text = m.message || "";
+    
+    // Check for inline attachments
+    if (m.attachments?.data?.length) {
+      const att = m.attachments.data[0];
+      imageUrl = att.image_data?.url || att.file_url || att.media?.image?.src || null;
+    }
+    
+    // Fetch attachments manually if no text and no inline attachment
+    if (!m.message?.trim() && !imageUrl) {
+      const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
+      try {
+        const attachRes = await fetch(attachUrl);
+        const attachData = await attachRes.json();
+        
+        if (attachData?.data?.length) {
+          const att = attachData.data[0];
+          imageUrl = att.image_data?.url || att.file_url || att.media?.image?.src || null;
+        }
+      } catch (err) {
+        console.error(`Error fetching attachment for ${m.id}:`, err);
+      }
+    }
+    
+    messages.push({
+      id: m.id,
+      text,
+      imageUrl,
+      from: m.from?.name || "Unknown",
+      fromId: m.from?.id || "",
+      created_time: m.created_time,
+      provider: "facebook"
+    });
+  }
+  
+  logUnifiedResponse("facebook", messages.length);
+  return messages;
+}
+
+async function fetchInstagramMessages(
+  conversationId: string,
+  accessToken: string,
+  accountId: string
+): Promise<NormalizedMessage[]> {
+  const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${accessToken}`;
+  
+  logUnifiedRequest("instagram", conversationId, messagesUrl);
+  
+  const r = await fetch(messagesUrl);
+  const data = await r.json();
+  
+  if (data.error) {
+    console.error("Instagram API error:", data.error);
+    throw new Error(data.error.message);
+  }
+  
+  const messages: NormalizedMessage[] = [];
+  
+  for (const m of data.data || []) {
+    let imageUrl = null;
+    const text = m.message || "";
+    
+    // Check for inline attachments
+    if (m.attachments?.data?.length) {
+      const att = m.attachments.data[0];
+      imageUrl = att.image_data?.url || att.file_url || att.media?.image?.src || null;
+    }
+    
+    messages.push({
+      id: m.id,
+      text,
+      imageUrl,
+      from: m.from?.name || m.from?.username || "Unknown",
+      fromId: m.from?.id || "",
+      created_time: m.created_time,
+      provider: "instagram"
+    });
+  }
+  
+  logUnifiedResponse("instagram", messages.length);
+  return messages;
+}
+
+async function fetchThreadsMessages(
+  conversationId: string,
+  accessToken: string,
+  accountId: string
+): Promise<NormalizedMessage[]> {
+  const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,text,from,created_time,attachments&access_token=${accessToken}`;
+  
+  logUnifiedRequest("threads", conversationId, messagesUrl);
+  
+  const r = await fetch(messagesUrl);
+  const data = await r.json();
+  
+  if (data.error) {
+    console.error("Threads API error:", data.error);
+    throw new Error(data.error.message);
+  }
+  
+  const messages: NormalizedMessage[] = [];
+  
+  for (const m of data.data || []) {
+    let imageUrl = null;
+    const text = m.text || m.message || "";
+    
+    // Check for inline attachments
+    if (m.attachments?.data?.length) {
+      const att = m.attachments.data[0];
+      imageUrl = att.image_data?.url || att.file_url || att.media?.image?.src || null;
+    }
+    
+    messages.push({
+      id: m.id,
+      text,
+      imageUrl,
+      from: m.from?.name || m.from?.username || "Unknown",
+      fromId: m.from?.id || "",
+      created_time: m.created_time,
+      provider: "threads"
+    });
+  }
+  
+  logUnifiedResponse("threads", messages.length);
+  return messages;
+}
+
+async function fetchWhatsappMessages(
+  conversationId: string,
+  accessToken: string,
+  accountId: string
+): Promise<NormalizedMessage[]> {
+  // WhatsApp uses phone number as conversation ID
+  // We fetch messages from the business phone number ID
+  const messagesUrl = `https://graph.facebook.com/v24.0/${accountId}/messages?access_token=${accessToken}`;
+  
+  logUnifiedRequest("whatsapp", conversationId, messagesUrl);
+  
+  // Note: WhatsApp typically requires webhook setup for incoming messages
+  // This is a placeholder - in production you'd fetch from your database
+  // where webhook messages are stored
+  
+  try {
+    const r = await fetch(messagesUrl);
+    const data = await r.json();
+    
+    if (data.error) {
+      console.error("WhatsApp API error:", data.error);
+      throw new Error(data.error.message);
+    }
+    
+    const messages: NormalizedMessage[] = [];
+    
+    // WhatsApp messages would typically be stored in your DB via webhooks
+    // This is a simplified version
+    for (const m of data.data || []) {
+      messages.push({
+        id: m.id || "",
+        text: m.text?.body || "",
+        imageUrl: m.image?.link || null,
+        from: m.from || "Unknown",
+        fromId: m.from || "",
+        created_time: m.timestamp ? new Date(parseInt(m.timestamp) * 1000).toISOString() : new Date().toISOString(),
+        provider: "whatsapp"
+      });
+    }
+    
+    logUnifiedResponse("whatsapp", messages.length);
+    return messages;
+  } catch (err) {
+    console.error("WhatsApp fetch error:", err);
+    logUnifiedResponse("whatsapp", 0);
+    return [];
+  }
+}
+
+// ==================================================================================
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint for deployment
