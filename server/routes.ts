@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
 import OpenAI from "openai";
@@ -1940,87 +1941,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get messages for a specific conversation from any provider
   app.get(
-    "/api/:provider/conversations/:conversationId/messages",
-    isAuthenticated,
+    "/api/facebook/conversations/:conversationId/messages",
     async (req, res) => {
       try {
-        const { provider, conversationId } = req.params;
-        const userId = req.user.id;
+        const { conversationId } = req.params;
+        const { user } = req;
+        const userId = user.id;
 
         const integrations = await storage.getIntegrations(userId);
-        const integration = integrations.find((i) => i.provider === provider);
+        const integration = integrations.find((i) => i.provider === "facebook");
 
         if (!integration) {
           return res
             .status(404)
-            .json({ error: `No ${provider} integration found` });
+            .json({ error: "Facebook integration not found" });
         }
 
-        let url = "";
-        let pageId = integration.accountId;
+        const accessToken = integration.accessToken;
+        const pageId = integration.accountId;
 
-        if (
-          provider === "facebook" ||
-          provider === "instagram" ||
-          provider === "threads"
-        ) {
-          // Get page ID for detecting inbound vs outbound
-          const pageInfoRes = await fetch(
-            `https://graph.facebook.com/v24.0/me?access_token=${integration.accessToken}`,
-          );
-          const pageInfo = await pageInfoRes.json();
-          pageId = pageInfo.id || integration.accountId;
-
-          url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,attachments,created_time&access_token=${integration.accessToken}`;
-        } else if (provider === "whatsapp") {
-          // For WhatsApp, fetch from local database or use webhook data
-          const messages = await storage.getMessages(userId);
-          const conversationMessages = messages.filter(
-            (m: any) => m.conversationId === conversationId,
-          );
-          return res.json({
-            pageId: integration.accountId,
-            messages: conversationMessages,
-            lastUserMessageTime: null,
-          });
-        } else {
-          return res.status(400).json({ error: "Invalid provider" });
-        }
-
-        const r = await fetch(url);
+        const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time&access_token=${accessToken}`;
+        const r = await fetch(messagesUrl);
         const data = await r.json();
 
         if (data.error) {
-          console.error(`${provider} API error:`, data.error);
+          console.error("Facebook API error:", data.error);
           return res.status(400).json({ error: data.error.message });
         }
 
-        const messages = (data.data || []).map((m: any) => {
+        const messages = [];
+
+        for (const m of data.data || []) {
           let imageUrl = null;
-          if (m.attachments?.data?.length > 0) {
-            const attachment = m.attachments.data[0];
-            if (attachment.image_data?.url) {
-              imageUrl = attachment.image_data.url;
-            } else if (attachment.mime_type?.includes("image")) {
-              imageUrl = attachment?.file_url || null;
+          const text = m.message || "";
+
+          // ✅ Si el mensaje está vacío, buscar attachments
+          if (!m.message || m.message.trim() === "") {
+            const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
+            console.log("🔍 Fetching attachments for:", m.id);
+
+            try {
+              const attachRes = await fetch(attachUrl);
+              const attachData = await attachRes.json();
+
+              // Guardar respuesta completa para debug
+              fs.writeFileSync(
+                `facebook_attach_${m.id}.json`,
+                JSON.stringify(attachData, null, 2),
+              );
+
+              if (attachData?.data?.length) {
+                const att = attachData.data[0];
+                imageUrl =
+                  att.image_data?.url ||
+                  att.file_url ||
+                  att.media?.image?.src ||
+                  null;
+
+                console.log("📎 Attachment found for", m.id, "→", imageUrl);
+              } else {
+                console.log("❌ No attachment found for", m.id);
+              }
+            } catch (e) {
+              console.error("⚠️ Attachment fetch failed for", m.id, e);
             }
           }
 
-          return {
+          messages.push({
             id: m.id,
-            text: m.message || "(sin mensaje)",
+            text: text || "(sin mensaje)",
             imageUrl,
             from: m.from?.name,
             fromId: m.from?.id,
             created_time: m.created_time,
-          };
-        });
+          });
+        }
 
-        // Find last inbound message (from user, not from page)
         const lastInbound = messages
-          .filter((m: any) => m.fromId !== pageId)
+          .filter((m) => m.fromId !== pageId)
           .sort(
-            (a: any, b: any) =>
+            (a, b) =>
               new Date(b.created_time).getTime() -
               new Date(a.created_time).getTime(),
           )[0];

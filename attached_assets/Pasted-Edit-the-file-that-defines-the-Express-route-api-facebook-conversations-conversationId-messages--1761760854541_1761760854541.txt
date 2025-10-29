@@ -1,0 +1,118 @@
+Edit the file that defines the Express route `/api/facebook/conversations/:conversationId/messages` to make it support Facebook image attachments. Use the official Graph API pattern `GET /{message-id}/attachments` to retrieve media for messages that have an empty text field. Here are the full specifications:
+
+1. Keep the existing message-fetching logic with:
+   GET https://graph.facebook.com/v24.0/{conversationId}/messages?fields=id,message,from,created_time&access_token={token}
+
+2. For each message where `message` is missing or an empty string (`!m.message || m.message.trim() === ""`):
+   - Make a second request to:
+     GET https://graph.facebook.com/v24.0/{messageId}/attachments?access_token={token}
+   - If it returns attachments, extract the image URL from:
+     - `image_data.url`
+     - or `file_url`
+     - or `media.image.src`
+   - Save the full JSON response to a file `facebook_attach_<messageId>.json` for debugging (optional).
+
+3. Return messages in this format:
+   {
+     id,
+     text,
+     imageUrl,
+     from,
+     fromId,
+     created_time
+   }
+
+4. Include console logs:
+   - “🔍 Fetching attachments for {messageId}”
+   - “📎 Attachment found for {messageId} → {imageUrl}”
+   - “❌ No attachment found for {messageId}”
+   - “⚠️ Attachment fetch failed for {messageId}”
+
+5. Preserve existing behavior for `lastUserMessageTime`.
+
+6. Example final code (use this directly):
+
+import fetch from "node-fetch";
+import fs from "fs";
+
+app.get("/api/facebook/conversations/:conversationId/messages", async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const { user } = req;
+    const userId = user.id;
+
+    const integrations = await storage.getIntegrations(userId);
+    const integration = integrations.find((i) => i.provider === "facebook");
+
+    if (!integration) {
+      return res.status(404).json({ error: "Facebook integration not found" });
+    }
+
+    const accessToken = integration.accessToken;
+    const pageId = integration.accountId;
+
+    const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time&access_token=${accessToken}`;
+    const r = await fetch(messagesUrl);
+    const data = await r.json();
+
+    if (data.error) {
+      console.error("Facebook API error:", data.error);
+      return res.status(400).json({ error: data.error.message });
+    }
+
+    const messages = [];
+
+    for (const m of data.data || []) {
+      let imageUrl = null;
+      const text = m.message || "";
+
+      // If message is empty, fetch attachments
+      if (!m.message || m.message.trim() === "") {
+        const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
+        console.log("🔍 Fetching attachments for:", m.id);
+
+        try {
+          const attachRes = await fetch(attachUrl);
+          const attachData = await attachRes.json();
+          fs.writeFileSync(`facebook_attach_${m.id}.json`, JSON.stringify(attachData, null, 2));
+
+          if (attachData?.data?.length) {
+            const att = attachData.data[0];
+            imageUrl = att.image_data?.url || att.file_url || att.media?.image?.src || null;
+            console.log("📎 Attachment found for", m.id, "→", imageUrl);
+          } else {
+            console.log("❌ No attachment found for", m.id);
+          }
+        } catch (e) {
+          console.error("⚠️ Attachment fetch failed for", m.id, e);
+        }
+      }
+
+      messages.push({
+        id: m.id,
+        text: text || "(sin mensaje)",
+        imageUrl,
+        from: m.from?.name,
+        fromId: m.from?.id,
+        created_time: m.created_time,
+      });
+    }
+
+    const lastInbound = messages
+      .filter((m) => m.fromId !== pageId)
+      .sort(
+        (a, b) =>
+          new Date(b.created_time).getTime() -
+          new Date(a.created_time).getTime()
+      )[0];
+
+    res.json({
+      pageId,
+      messages,
+      lastUserMessageTime: lastInbound?.created_time || null,
+    });
+  } catch (err) {
+    console.error("Messages fetch error:", err);
+    res.status(500).json({ error: "Failed to fetch messages" });
+  }
+});
