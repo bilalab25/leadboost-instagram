@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { logStartup } from "./diagnostic";
 
 // 🔍 --- DEBUG SETTINGS FOR LARGE LOGS ---
 import util from "util";
@@ -100,6 +101,7 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+      logStartup();
     },
   );
 })();

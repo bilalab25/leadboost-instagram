@@ -1,7 +1,16 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
+import {
+  logFacebookRequest,
+  logFacebookResponse,
+  logAttachmentFetch,
+  logAttachmentFound,
+  logAttachmentNotFound,
+  logAttachmentError,
+} from "./diagnostic";
 import OpenAI from "openai";
 import chatRoutes from "./chatRoutes";
 import {
@@ -1961,6 +1970,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // 🟣 Pedimos attachments en el primer fetch también
         const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${accessToken}`;
+        
+        // 🔍 DIAGNOSTIC: Log the request start
+        logFacebookRequest(conversationId, messagesUrl);
+        
         const r = await fetch(messagesUrl);
         const data = await r.json();
 
@@ -1989,7 +2002,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // 🪣 Si no tiene texto ni attachments, buscar manualmente
           if (!m.message?.trim() && !imageUrl) {
             const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
-            console.log("🔍 Fetching attachments for:", m.id);
+            
+            // 🔍 DIAGNOSTIC: Log attachment fetch
+            logAttachmentFetch(m.id, attachUrl);
 
             try {
               const attachRes = await fetch(attachUrl);
@@ -2008,12 +2023,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   att.file_url ||
                   att.media?.image?.src ||
                   null;
-                console.log("📎 Attachment found for", m.id, "→", imageUrl);
+                
+                // 🔍 DIAGNOSTIC: Log attachment found
+                logAttachmentFound(m.id, imageUrl || "(no URL)");
               } else {
-                console.log("❌ No attachment found for", m.id);
+                // 🔍 DIAGNOSTIC: Log attachment not found
+                logAttachmentNotFound(m.id);
               }
             } catch (e) {
-              console.error("⚠️ Attachment fetch failed for", m.id, e);
+              // 🔍 DIAGNOSTIC: Log attachment error
+              logAttachmentError(m.id, e);
             }
           }
 
@@ -2035,6 +2054,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               new Date(b.created_time).getTime() -
               new Date(a.created_time).getTime(),
           )[0];
+
+        // 🔍 DIAGNOSTIC: Log successful response
+        logFacebookResponse(messages.length);
 
         res.json({
           pageId,
