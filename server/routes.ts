@@ -2024,6 +2024,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Send message to a specific conversation for any provider
+  app.post(
+    "/api/:provider/conversations/:conversationId/messages",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { provider, conversationId } = req.params;
+        const userId = req.user.id;
+        const { content } = req.body;
+
+        if (!content) {
+          return res.status(400).json({ error: "Message content is required" });
+        }
+
+        const integrations = await storage.getIntegrations(userId);
+        const integration = integrations.find((i) => i.provider === provider);
+
+        if (!integration) {
+          return res
+            .status(404)
+            .json({ error: `No ${provider} integration found` });
+        }
+
+        let url, payload;
+
+        if (
+          provider === "facebook" ||
+          provider === "instagram" ||
+          provider === "threads"
+        ) {
+          url = `https://graph.facebook.com/v24.0/${conversationId}/messages`;
+          payload = {
+            message: { text: content },
+          };
+        } else if (provider === "whatsapp") {
+          // For WhatsApp, we need the recipient phone number from conversationId
+          url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+          payload = {
+            messaging_product: "whatsapp",
+            to: conversationId,
+            type: "text",
+            text: { body: content },
+          };
+        } else {
+          return res.status(400).json({ error: "Invalid provider" });
+        }
+
+        const r = await fetch(
+          `${url}?access_token=${integration.accessToken}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          },
+        );
+        const data = await r.json();
+
+        if (data.error) {
+          console.error(`${provider} send error:`, data.error);
+          return res.status(400).json({ error: data.error.message });
+        }
+
+        res.json(data);
+      } catch (err) {
+        console.error("Send message error:", err);
+        res.status(500).json({ error: "Failed to send message" });
+      }
+    },
+  );
+
   // Send message to any provider
   app.post(
     "/api/:provider/messages/send",
