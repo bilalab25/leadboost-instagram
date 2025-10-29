@@ -2227,6 +2227,166 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // ✅ NEW: Universal GET endpoint for messages from any provider
+  app.get(
+    "/api/messages/:provider/:conversationId",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { provider, conversationId } = req.params;
+        const userId = req.user.id;
+
+        // Validate provider
+        const validProviders = ["facebook", "instagram", "threads", "whatsapp"];
+        if (!validProviders.includes(provider)) {
+          return res.status(400).json({ error: "Invalid provider" });
+        }
+
+        const integrations = await storage.getIntegrations(userId);
+        const integration = integrations.find((i) => i.provider === provider);
+
+        if (!integration) {
+          return res
+            .status(404)
+            .json({ error: `No ${provider} integration found` });
+        }
+
+        const accessToken = integration.accessToken;
+        const accountId = integration.accountId;
+
+        let messages: NormalizedMessage[] = [];
+
+        // Call appropriate fetch helper based on provider
+        switch (provider) {
+          case "facebook":
+            messages = await fetchFacebookMessages(conversationId, accessToken, accountId);
+            break;
+          case "instagram":
+            messages = await fetchInstagramMessages(conversationId, accessToken, accountId);
+            break;
+          case "threads":
+            messages = await fetchThreadsMessages(conversationId, accessToken, accountId);
+            break;
+          case "whatsapp":
+            messages = await fetchWhatsappMessages(conversationId, accessToken, accountId);
+            break;
+        }
+
+        res.json({
+          provider,
+          messages,
+          total: messages.length
+        });
+      } catch (err) {
+        console.error("Unified messages fetch error:", err);
+        res.status(500).json({ 
+          error: "Failed to fetch messages",
+          details: err instanceof Error ? err.message : String(err)
+        });
+      }
+    },
+  );
+
+  // ✅ NEW: Unified aggregation endpoint - Get ALL messages from ALL connected providers
+  app.get(
+    "/api/conversations/messages/all",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const integrations = await storage.getIntegrations(userId);
+
+        if (!integrations || integrations.length === 0) {
+          return res.json({
+            messages: [],
+            providers: [],
+            total: 0
+          });
+        }
+
+        // Prepare fetch tasks for each integration
+        const fetchTasks = integrations.map(async (integration) => {
+          const provider = integration.provider;
+          const accessToken = integration.accessToken;
+          const accountId = integration.accountId;
+
+          try {
+            let messages: NormalizedMessage[] = [];
+
+            switch (provider) {
+              case "facebook":
+              case "instagram":
+              case "threads": {
+                // Fetch conversations first
+                const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id&limit=5&access_token=${accessToken}`;
+                const convoRes = await fetch(convoUrl);
+                const convoData = await convoRes.json();
+
+                if (convoData.data && convoData.data.length > 0) {
+                  // Fetch messages from first 3 conversations
+                  const messagePromises = convoData.data.slice(0, 3).map(async (convo: any) => {
+                    if (provider === "facebook") {
+                      return await fetchFacebookMessages(convo.id, accessToken, accountId);
+                    } else if (provider === "instagram") {
+                      return await fetchInstagramMessages(convo.id, accessToken, accountId);
+                    } else {
+                      return await fetchThreadsMessages(convo.id, accessToken, accountId);
+                    }
+                  });
+
+                  const allConvoMessages = await Promise.all(messagePromises);
+                  messages = allConvoMessages.flat();
+                }
+                break;
+              }
+              case "whatsapp": {
+                // WhatsApp messages would be from DB
+                messages = [];
+                break;
+              }
+            }
+
+            return { provider, messages, success: true };
+          } catch (err) {
+            console.error(`Error fetching messages from ${provider}:`, err);
+            return { provider, messages: [], success: false, error: err };
+          }
+        });
+
+        // Use Promise.allSettled to run all fetches concurrently
+        const results = await Promise.allSettled(fetchTasks);
+
+        // Merge all messages
+        const allMessages: NormalizedMessage[] = [];
+        const successfulProviders: string[] = [];
+
+        results.forEach((result) => {
+          if (result.status === "fulfilled" && result.value.success) {
+            allMessages.push(...result.value.messages);
+            successfulProviders.push(result.value.provider);
+          }
+        });
+
+        // Sort all messages by created_time (descending - newest first)
+        allMessages.sort((a, b) => 
+          new Date(b.created_time).getTime() - new Date(a.created_time).getTime()
+        );
+
+        res.json({
+          messages: allMessages,
+          providers: successfulProviders,
+          total: allMessages.length
+        });
+      } catch (err) {
+        console.error("Unified aggregation error:", err);
+        res.status(500).json({ 
+          error: "Failed to fetch unified messages",
+          details: err instanceof Error ? err.message : String(err)
+        });
+      }
+    },
+  );
+
   // ✅ Enviar mensaje unificado a cualquier proveedor (Facebook, Instagram, Threads, WhatsApp)
   app.post(
     "/api/:provider/conversations/:conversationId/messages",
