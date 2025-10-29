@@ -10,6 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Palette, Type, Image, Sparkles, Upload, Trash2 } from "lucide-react";
 import { ZoomIn } from "lucide-react";
 import ColorPreviewWithPicker from "./ColorPreviewWithPicker";
@@ -341,10 +347,35 @@ export default function BrandIdentity({
                   {/* Optional Accent Color 3 */}
                   {showAccentColor3 && (
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center justify-between gap-2 mb-1">
                         <Badge variant="secondary" className="text-xs">
                           🧩 {isSpanish ? "Opcional" : "Optional"}
                         </Badge>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
+                                onClick={() => {
+                                  setShowAccentColor3(false);
+                                  setAccentColor3(null);
+                                  toast({
+                                    title: isSpanish ? "Color eliminado" : "Color removed",
+                                    description: isSpanish ? "Color Acento 3 eliminado" : "Accent Color 3 removed",
+                                  });
+                                }}
+                                data-testid="button-remove-accent-color-3"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{isSpanish ? "Eliminar este color" : "Remove this color"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       <ColorPreviewWithPicker
                         label={isSpanish ? "Color Acento 3" : "Accent Color 3"}
@@ -358,10 +389,35 @@ export default function BrandIdentity({
                   {/* Optional Accent Color 4 */}
                   {showAccentColor4 && (
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center justify-between gap-2 mb-1">
                         <Badge variant="secondary" className="text-xs">
                           🧩 {isSpanish ? "Opcional" : "Optional"}
                         </Badge>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
+                                onClick={() => {
+                                  setShowAccentColor4(false);
+                                  setAccentColor4(null);
+                                  toast({
+                                    title: isSpanish ? "Color eliminado" : "Color removed",
+                                    description: isSpanish ? "Color Acento 4 eliminado" : "Accent Color 4 removed",
+                                  });
+                                }}
+                                data-testid="button-remove-accent-color-4"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{isSpanish ? "Eliminar este color" : "Remove this color"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       <ColorPreviewWithPicker
                         label={isSpanish ? "Color Acento 4" : "Accent Color 4"}
@@ -375,10 +431,35 @@ export default function BrandIdentity({
                   {/* Optional Text Color 3 */}
                   {showText3Color && (
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center justify-between gap-2 mb-1">
                         <Badge variant="secondary" className="text-xs">
                           🧩 {isSpanish ? "Opcional" : "Optional"}
                         </Badge>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
+                                onClick={() => {
+                                  setShowText3Color(false);
+                                  setText3Color(null);
+                                  toast({
+                                    title: isSpanish ? "Color eliminado" : "Color removed",
+                                    description: isSpanish ? "Color Texto 3 eliminado" : "Text Color 3 removed",
+                                  });
+                                }}
+                                data-testid="button-remove-text-color-3"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{isSpanish ? "Eliminar este color" : "Remove this color"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       <ColorPreviewWithPicker
                         label={isSpanish ? "Color Texto 3" : "Text Color 3"}
@@ -392,10 +473,35 @@ export default function BrandIdentity({
                   {/* Optional Text Color 4 */}
                   {showText4Color && (
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center justify-between gap-2 mb-1">
                         <Badge variant="secondary" className="text-xs">
                           🧩 {isSpanish ? "Opcional" : "Optional"}
                         </Badge>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
+                                onClick={() => {
+                                  setShowText4Color(false);
+                                  setText4Color(null);
+                                  toast({
+                                    title: isSpanish ? "Color eliminado" : "Color removed",
+                                    description: isSpanish ? "Color Texto 4 eliminado" : "Text Color 4 removed",
+                                  });
+                                }}
+                                data-testid="button-remove-text-color-4"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{isSpanish ? "Eliminar este color" : "Remove this color"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       <ColorPreviewWithPicker
                         label={isSpanish ? "Color Texto 4" : "Text Color 4"}

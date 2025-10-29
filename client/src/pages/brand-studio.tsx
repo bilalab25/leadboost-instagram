@@ -578,11 +578,11 @@ export default function BrandStudio() {
         },
       };
 
-      // Add optional colors only if they have values
-      if (accentColor3) designData.colorAccent3 = accentColor3;
-      if (accentColor4) designData.colorAccent4 = accentColor4;
-      if (text3Color) designData.colorText3 = text3Color;
-      if (text4Color) designData.colorText4 = text4Color;
+      // Add optional colors (send null if removed to clear database)
+      designData.colorAccent3 = accentColor3;
+      designData.colorAccent4 = accentColor4;
+      designData.colorText3 = text3Color;
+      designData.colorText4 = text4Color;
 
       // Llama tu mutation
       saveBrandDesignMutation.mutate(designData);

@@ -1,0 +1,50 @@
+Improve the dynamic color management feature in the BrandIdentity component by allowing users to remove any of the optional accent or text colors they previously added.
+
+Current behavior:
+
+Users can click “+ Add Accent Color” or “+ Add Text Color” to add up to 2 extra colors of each type (Accent 3–4, Text 3–4).
+
+These fields appear dynamically but cannot yet be removed once added.
+
+New requirements:
+
+Add a small “Remove” button or icon (e.g. Trash2 or XCircle) next to each optional color field.
+
+The button should only appear on dynamically added colors (Accent Color 3–4, Text Color 3–4).
+
+When clicked, it should remove that color picker from the UI and clear its corresponding state (e.g. set accentColor3 or textColor4 to null).
+
+Make sure the user can re-add colors again if they remove one — i.e., the “+ Add” buttons should become enabled again if fewer than two extra colors exist.
+
+UI/UX details:
+
+The remove button should be small, subtle, and consistent with the design (for example, a Button variant="ghost" with a red Trash2 or X icon on hover).
+
+Add a brief toast or confirmation message such as:
+
+“Accent Color 3 removed”
+
+“Text Color 4 removed”
+
+Optional: include a tooltip saying “Remove this color” when hovering over the icon.
+
+State management:
+
+Ensure that removing a color properly updates the corresponding state variables (accentColor3, accentColor4, text3Color, text4Color) to null or an empty string.
+
+Make sure the deletion does not break the saving logic — when saving via handleSaveBrandDesign, these fields should only be sent if they contain a value.
+
+API and persistence:
+
+If a color is removed, the backend should receive that field as null so the database stays in sync.
+
+Verify that removing and then saving clears the column value in the database.
+
+Design consistency:
+
+Keep spacing, grid layout, and component hierarchy consistent with the existing ColorPreviewWithPicker cards.
+
+The remove button can appear aligned to the right of the color picker label or inside the same card.
+
+Goal:
+Allow users to easily manage their extended color palette by adding and removing up to two optional accent and text colors, keeping everything synchronized with both the frontend state and backend schema.
