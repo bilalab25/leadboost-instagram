@@ -96,7 +96,7 @@ export default function MessageList({
         // Transform unified messages to component format
         const formatted = messages.map((m: any) => ({
           id: m.id,
-          conversationId: m.id,
+          conversationId: m.conversationId, // CRITICAL: Use server-provided conversation ID, not message ID
           senderId: m.fromId,
           senderName: m.from,
           senderAvatar: "",

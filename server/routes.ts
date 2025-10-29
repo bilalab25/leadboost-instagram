@@ -61,6 +61,7 @@ const upload = multer({ dest: "uploads/" });
 
 interface NormalizedMessage {
   id: string;
+  conversationId: string; // CRITICAL: Separate conversation identifier for detail view
   text: string;
   imageUrl: string | null;
   from: string;
@@ -116,6 +117,7 @@ async function fetchFacebookMessages(
     
     messages.push({
       id: m.id,
+      conversationId: conversationId, // CRITICAL: Preserve conversation ID for detail view
       text,
       imageUrl,
       from: m.from?.name || "Unknown",
@@ -160,6 +162,7 @@ async function fetchInstagramMessages(
     
     messages.push({
       id: m.id,
+      conversationId: conversationId, // CRITICAL: Preserve conversation ID for detail view
       text,
       imageUrl,
       from: m.from?.name || m.from?.username || "Unknown",
@@ -204,6 +207,7 @@ async function fetchThreadsMessages(
     
     messages.push({
       id: m.id,
+      conversationId: conversationId, // CRITICAL: Preserve conversation ID for detail view
       text,
       imageUrl,
       from: m.from?.name || m.from?.username || "Unknown",
@@ -248,6 +252,7 @@ async function fetchWhatsappMessages(
     for (const m of data.data || []) {
       messages.push({
         id: m.id || "",
+        conversationId: conversationId, // CRITICAL: Use requested conversation ID (phone number)
         text: m.text?.body || "",
         imageUrl: m.image?.link || null,
         from: m.from || "Unknown",
