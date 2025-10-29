@@ -3,37 +3,6 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { logStartup } from "./diagnostic";
 
-// 🔍 --- DEBUG SETTINGS FOR LARGE LOGS ---
-import util from "util";
-import fs from "fs";
-
-// Muestra objetos completos (sin truncar) en los logs
-util.inspect.defaultOptions = {
-  depth: null, // muestra todos los niveles
-  maxArrayLength: null, // muestra todos los elementos
-  breakLength: 120, // menos saltos de línea
-  compact: false,
-};
-
-// 🧾 Sobrescribe console.log para guardar logs muy grandes en archivo también
-const originalLog = console.log;
-console.log = (...args) => {
-  const text = args
-    .map((a) =>
-      typeof a === "object" ? util.inspect(a, { colors: false }) : String(a),
-    )
-    .join(" ");
-
-  // Si el texto supera cierto tamaño, guarda en un archivo
-  if (text.length > 2000) {
-    const fileName = `logs_${new Date().toISOString().replace(/[:.]/g, "-")}.txt`;
-    fs.writeFileSync(fileName, text);
-    originalLog(`📄 Log guardado en archivo: ${fileName}`);
-  } else {
-    originalLog(...args);
-  }
-};
-
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -57,9 +26,9 @@ app.use((req, res, next) => {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
-      //if (logLine.length > 80) {
-      //logLine = logLine.slice(0, 79) + "…";
-      //}
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
 
       log(logLine);
     }

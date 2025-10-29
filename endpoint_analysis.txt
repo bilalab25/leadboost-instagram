@@ -1,0 +1,39 @@
+🔍 ANÁLISIS DE ENDPOINTS DUPLICADOS EN routes.ts
+================================================
+
+❌ ENDPOINT DUPLICADO ENCONTRADO:
+
+1. GET /api/facebook/conversations (línea 1743)
+   - Función: Listar conversaciones de Facebook
+   - Autenticación: isAuthenticated
+   - Implementación: Busca integración con i.provider.includes("facebook")
+   - Campos: senders,link,updated_time,snippet
+
+2. GET /api/:provider/conversations (línea 1841)
+   - Función: Listar conversaciones de cualquier proveedor (facebook, instagram, threads, whatsapp)
+   - Autenticación: isAuthenticated
+   - Implementación: Busca integración con i.provider === provider
+   - Campos para Facebook: senders,snippet,updated_time
+
+⚠️ CONFLICTO:
+   - Ambos endpoints pueden manejar conversaciones de Facebook
+   - El endpoint genérico (línea 1841) puede reemplazar al específico
+   - DIFERENCIA: El específico pide "link" en los campos, el genérico no
+
+📊 RECOMENDACIÓN:
+   - ELIMINAR: Línea 1743 - GET /api/facebook/conversations (específico)
+   - MANTENER: Línea 1841 - GET /api/:provider/conversations (genérico)
+   - ACCIÓN: Actualizar el endpoint genérico para incluir "link" en los campos de Facebook
+
+✅ ENDPOINTS NO DUPLICADOS (similares pero diferentes):
+
+3. GET /api/facebook/conversations/:conversationId/messages (línea 1891)
+   - Función: Obtener mensajes de una conversación específica
+   - Método: GET
+   - Con diagnóstico completo de attachments
+
+4. POST /api/:provider/conversations/:conversationId/messages (línea 2014)
+   - Función: Enviar mensaje a una conversación
+   - Método: POST
+   - Diferente del anterior (GET vs POST)
+

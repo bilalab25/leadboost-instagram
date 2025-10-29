@@ -1798,67 +1798,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 2️⃣ Obtener mensajes de una conversación de Facebook
-  app.get(
-    "/api/facebook/conversations/:conversationId/messages",
-    isAuthenticated,
-    async (req, res) => {
-      try {
-        const userId = req.user.id;
-        const { conversationId } = req.params;
-
-        const integrations = await storage.getIntegrations(userId);
-        const fbIntegration = integrations.find((i) =>
-          i.provider.includes("facebook"),
-        );
-        if (!fbIntegration)
-          return res
-            .status(404)
-            .json({ error: "No Facebook account connected" });
-
-        const { accessToken } = fbIntegration;
-
-        // 🔹 Obtener page_id
-        const pageInfoRes = await fetch(
-          `https://graph.facebook.com/v24.0/me?access_token=${accessToken}`,
-        );
-        const pageInfo = await pageInfoRes.json();
-        const pageId = pageInfo.id;
-
-        // 🔹 Obtener mensajes
-        const url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${accessToken}`;
-        const r = await fetch(url);
-        const data = await r.json();
-
-        const messages = (data.data || []).map((m) => ({
-          id: m.id,
-          text: m.message,
-          from: m.from?.name,
-          fromId: m.from?.id,
-          created_time: m.created_time,
-        }));
-
-        // 🔹 Encontrar el último mensaje inbound (del usuario)
-        const lastInbound = messages
-          .filter((m) => m.fromId !== pageId)
-          .sort(
-            (a, b) =>
-              new Date(b.created_time).getTime() -
-              new Date(a.created_time).getTime(),
-          )[0];
-
-        res.json({
-          pageId,
-          messages,
-          lastUserMessageTime: lastInbound?.created_time || null,
-        });
-      } catch (err) {
-        console.error("Facebook messages error:", err);
-        res.status(500).json({ error: "Failed to fetch messages" });
-      }
-    },
-  );
-
   // backend/routes/facebook-pages.ts
   app.get("/api/facebook/pages", async (req, res) => {
     try {
@@ -1970,10 +1909,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // 🟣 Pedimos attachments en el primer fetch también
         const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${accessToken}`;
-        
+
         // 🔍 DIAGNOSTIC: Log the request start
         logFacebookRequest(conversationId, messagesUrl);
-        
+
         const r = await fetch(messagesUrl);
         const data = await r.json();
 
@@ -2002,7 +1941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // 🪣 Si no tiene texto ni attachments, buscar manualmente
           if (!m.message?.trim() && !imageUrl) {
             const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
-            
+
             // 🔍 DIAGNOSTIC: Log attachment fetch
             logAttachmentFetch(m.id, attachUrl);
 
@@ -2023,7 +1962,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   att.file_url ||
                   att.media?.image?.src ||
                   null;
-                
+
                 // 🔍 DIAGNOSTIC: Log attachment found
                 logAttachmentFound(m.id, imageUrl || "(no URL)");
               } else {
