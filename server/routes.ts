@@ -1484,52 +1484,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 🟪 Auto-detect Instagram & Threads accounts
       try {
-        const igResponse = await fetch(
+        const igLinkRes = await fetch(
           `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account&access_token=${page.access_token}`
         );
-        const igData = await igResponse.json();
-        const igAccount = igData.connected_instagram_account;
+        const igLinkData = await igLinkRes.json();
+        const igAccount = igLinkData.connected_instagram_account;
 
-        if (igAccount && igAccount.id) {
-          // Create Instagram integration
-          await storage.createOrUpdateIntegration({
-            userId: state as string,
-            provider: "instagram",
-            category: "social_media",
-            storeName: "Instagram",
-            storeUrl: `https://instagram.com/${page.name}`,
-            accountId: igAccount.id,
-            accessToken: page.access_token,
-            accountName: page.name,
-            pageId: page.id,
-            metadata: { fbPageId: page.id },
-            isActive: true,
-            syncEnabled: true,
-          });
-          console.log(`✅ Instagram auto-connected: ${page.name}`);
-
-          // Create Threads integration (uses same Instagram account)
-          await storage.createOrUpdateIntegration({
-            userId: state as string,
-            provider: "threads",
-            category: "social_media",
-            storeName: "Threads",
-            storeUrl: `https://threads.net/@${page.name}`,
-            accountId: igAccount.id,
-            accessToken: page.access_token,
-            accountName: page.name,
-            pageId: page.id,
-            metadata: { fbPageId: page.id, igAccountId: igAccount.id },
-            isActive: true,
-            syncEnabled: true,
-          });
-          console.log(`✅ Threads auto-connected: ${page.name}`);
+        if (!igAccount || !igAccount.id) {
+          console.log("⚠️ No Instagram account linked to this Facebook Page");
+          res.redirect("/settings?connected=facebook-only");
+          return;
         }
+
+        // Fetch Instagram Business profile details
+        const igDetailsRes = await fetch(
+          `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${page.access_token}`
+        );
+        const igDetails = await igDetailsRes.json();
+
+        // Create Instagram integration with actual profile details
+        await storage.createOrUpdateIntegration({
+          userId: state as string,
+          provider: "instagram",
+          category: "social_media",
+          storeName: "Instagram",
+          storeUrl: `https://instagram.com/${igDetails.username || page.name}`,
+          accountId: igAccount.id,
+          accessToken: page.access_token,
+          accountName: igDetails.username || page.name,
+          pageId: page.id,
+          metadata: {
+            fbPageId: page.id,
+            igUsername: igDetails.username,
+            igProfilePic: igDetails.profile_picture_url,
+          },
+          isActive: true,
+          syncEnabled: true,
+        });
+        console.log(`✅ Instagram auto-connected: ${igDetails.username}`);
+
+        // Create Threads integration (uses same Instagram account)
+        await storage.createOrUpdateIntegration({
+          userId: state as string,
+          provider: "threads",
+          category: "social_media",
+          storeName: "Threads",
+          storeUrl: `https://threads.net/@${igDetails.username}`,
+          accountId: igAccount.id,
+          accessToken: page.access_token,
+          accountName: igDetails.username,
+          pageId: page.id,
+          metadata: {
+            fbPageId: page.id,
+            igAccountId: igAccount.id,
+            igUsername: igDetails.username,
+          },
+          isActive: true,
+          syncEnabled: true,
+        });
+        console.log(`✅ Threads auto-connected: ${igDetails.username}`);
       } catch (igErr) {
-        console.warn("⚠️ Could not auto-detect Instagram/Threads:", igErr);
+        console.warn("⚠️ Instagram/Threads auto-connect failed:", igErr);
       }
 
-      res.redirect("/settings");
+      res.redirect("/settings?connected=ok");
     } catch (err) {
       console.error("❌ Callback error:", err);
       res.status(500).send("Error in Facebook callback");

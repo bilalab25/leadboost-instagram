@@ -1,0 +1,186 @@
+💡 PROMPT: Mejora el endpoint `/api/integrations/facebook/callback` en mi archivo `routes.ts`
+
+### 🎯 Objetivo
+Quiero que este callback, además de conectar Facebook como ya lo hace,  
+verifique si la página tiene una **cuenta de Instagram Business vinculada**,  
+y si la tiene, cree automáticamente las integraciones de **Instagram** y **Threads** usando el mismo `page.access_token`.
+
+---
+
+### ⚙️ Cambios a realizar en el archivo `routes.ts`
+
+1. **Localiza** el bloque existente:
+   ```ts
+   app.get("/api/integrations/facebook/callback", async (req, res) => {
+     ...
+   });
+   ```
+
+2. **Reemplázalo completamente** por este código mejorado:
+
+```ts
+app.get("/api/integrations/facebook/callback", async (req, res) => {
+  try {
+    const { code, state } = req.query;
+    if (!code) return res.status(400).send("Missing code");
+
+    const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
+
+    // 1️⃣ Intercambiar code por token de usuario
+    const tokenResponse = await fetch(
+      `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
+        redirect_uri,
+      )}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`,
+    );
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.error) {
+      console.error("❌ Facebook token error:", tokenData.error);
+      return res.status(500).json(tokenData.error);
+    }
+
+    // 2️⃣ Obtener páginas que administra el usuario
+    const pagesResponse = await fetch(
+      `https://graph.facebook.com/v24.0/me/accounts?access_token=${tokenData.access_token}`,
+    );
+    const pagesData = await pagesResponse.json();
+
+    if (!pagesData.data || pagesData.data.length === 0) {
+      console.error("❌ No Facebook Pages found for this user");
+      return res.status(400).send("No Facebook Pages found");
+    }
+
+    // ✅ Toma la primera página
+    const page = pagesData.data[0];
+
+    const expiresAt = tokenData.expires_in
+      ? dayjs().add(tokenData.expires_in, "seconds").toDate()
+      : null;
+
+    // 3️⃣ Guardar integración de Facebook
+    await storage.createOrUpdateIntegration({
+      userId: state,
+      provider: "facebook",
+      category: "social_media",
+      storeName: "Facebook",
+      storeUrl: `https://facebook.com/${page.id}`,
+      pageId: page.id,
+      accessToken: page.access_token,
+      accountName: page.name,
+      accountId: page.id,
+      settings: {
+        fbUserId: page.id,
+        fbUserName: page.name,
+      },
+      expiresAt,
+      isActive: true,
+      syncEnabled: true,
+      lastSyncAt: null,
+      metadata: {
+        category: page.category,
+        permissions: page.tasks || [],
+      },
+    });
+
+    console.log(`✅ Facebook Page connected: ${page.name} (${page.id})`);
+
+    // 🟣 4️⃣ Verificar si la página tiene cuenta de Instagram vinculada
+    try {
+      const igLinkRes = await fetch(
+        `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account&access_token=${page.access_token}`,
+      );
+      const igLinkData = await igLinkRes.json();
+      const igAccount = igLinkData.connected_instagram_account;
+
+      if (!igAccount || !igAccount.id) {
+        console.log("⚠️ No Instagram account linked to this Facebook Page");
+        res.redirect("/settings?connected=facebook-only");
+        return;
+      }
+
+      // 5️⃣ Obtener detalles del perfil de Instagram Business
+      const igDetailsRes = await fetch(
+        `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${page.access_token}`,
+      );
+      const igDetails = await igDetailsRes.json();
+
+      // 6️⃣ Crear integración de Instagram
+      await storage.createOrUpdateIntegration({
+        userId: state,
+        provider: "instagram",
+        category: "social_media",
+        storeName: "Instagram",
+        storeUrl: `https://instagram.com/${igDetails.username || page.name}`,
+        accountId: igAccount.id,
+        accessToken: page.access_token,
+        accountName: igDetails.username || page.name,
+        pageId: page.id,
+        metadata: {
+          fbPageId: page.id,
+          igUsername: igDetails.username,
+          igProfilePic: igDetails.profile_picture_url,
+        },
+        isActive: true,
+        syncEnabled: true,
+      });
+
+      console.log(`✅ Instagram auto-connected: ${igDetails.username}`);
+
+      // 7️⃣ Crear integración de Threads (usa misma cuenta de IG)
+      await storage.createOrUpdateIntegration({
+        userId: state,
+        provider: "threads",
+        category: "social_media",
+        storeName: "Threads",
+        storeUrl: `https://threads.net/@${igDetails.username}`,
+        accountId: igAccount.id,
+        accessToken: page.access_token,
+        accountName: igDetails.username,
+        pageId: page.id,
+        metadata: {
+          fbPageId: page.id,
+          igAccountId: igAccount.id,
+          igUsername: igDetails.username,
+        },
+        isActive: true,
+        syncEnabled: true,
+      });
+
+      console.log(`✅ Threads auto-connected: ${igDetails.username}`);
+    } catch (igErr) {
+      console.warn("⚠️ Instagram/Threads auto-connect failed:", igErr);
+    }
+
+    res.redirect("/settings?connected=ok");
+  } catch (err) {
+    console.error("❌ Facebook callback error:", err);
+    res.status(500).send("Error in Facebook callback");
+  }
+});
+```
+
+---
+
+### ✅ Comportamiento esperado
+
+- Si el usuario conecta Facebook y **no tiene IG asociado**, se redirige con `?connected=facebook-only`.
+- Si tiene **una cuenta de Instagram Business vinculada**, crea automáticamente:
+  - una integración `facebook`
+  - una integración `instagram`
+  - una integración `threads`
+- Usa el mismo `page.access_token` (válido para Graph API de Meta).
+- Se guardan metadatos útiles (`igUsername`, `igProfilePic`, `fbPageId`).
+- Si algo falla con IG, no se interrumpe la conexión de Facebook.
+
+---
+
+### 🧠 Instrucción final para Replit:
+
+> Inserta este código dentro del archivo `routes.ts`, reemplazando por completo el bloque `/api/integrations/facebook/callback`.  
+> Mantén las importaciones actuales (`fetch`, `dayjs`, `storage`, `isAuthenticated`) sin duplicarlas.  
+> Asegúrate de conservar el endpoint `/api/integrations/facebook/connect` tal como está.
+
+---
+
+¿Quieres que te prepare **la versión de prueba** para que puedas verificar que esto realmente detecta la cuenta de IG y Threads (te devuelve los logs en consola)?  
+Puedo generarte un mini prompt con `console.log` ampliados para depurar la conexión y ver el JSON de respuesta del Graph API.
