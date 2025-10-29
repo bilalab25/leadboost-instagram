@@ -1407,8 +1407,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "pages_manage_metadata",
       "pages_manage_posts",
       "pages_messaging",
+      "instagram_basic",
+      "instagram_manage_messages",
     ].join(",");
-    console.log(scopes, "scopes");
+    console.log("🔐 Facebook OAuth scopes:", scopes);
 
     const authUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri,
@@ -1482,6 +1484,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`✅ Facebook Page connected: ${page.name} (${page.id})`);
 
+      // Track which platforms were successfully connected
+      const connectedPlatforms: string[] = ["facebook"];
+
       // 🟪 Auto-detect Instagram & Threads accounts
       try {
         const igLinkRes = await fetch(
@@ -1492,7 +1497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (!igAccount || !igAccount.id) {
           console.log("⚠️ No Instagram account linked to this Facebook Page");
-          res.redirect("/settings?connected=facebook-only");
+          res.redirect(`/settings?connected=${connectedPlatforms.join(",")}`);
           return;
         }
 
@@ -1522,6 +1527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           syncEnabled: true,
         });
         console.log(`✅ Instagram auto-connected: ${igDetails.username}`);
+        connectedPlatforms.push("instagram");
 
         // Create Threads integration (uses same Instagram account)
         await storage.createOrUpdateIntegration({
@@ -1543,11 +1549,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           syncEnabled: true,
         });
         console.log(`✅ Threads auto-connected: ${igDetails.username}`);
+        connectedPlatforms.push("threads");
       } catch (igErr) {
         console.warn("⚠️ Instagram/Threads auto-connect failed:", igErr);
       }
 
-      res.redirect("/settings?connected=ok");
+      // Redirect with status of all connected platforms
+      res.redirect(`/settings?connected=${connectedPlatforms.join(",")}`);
     } catch (err) {
       console.error("❌ Callback error:", err);
       res.status(500).send("Error in Facebook callback");
