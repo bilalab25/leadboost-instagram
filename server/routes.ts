@@ -1,6 +1,5 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
 import OpenAI from "openai";
@@ -1960,7 +1959,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const accessToken = integration.accessToken;
         const pageId = integration.accountId;
 
-        const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time&access_token=${accessToken}`;
+        // 🟣 Pedimos attachments en el primer fetch también
+        const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${accessToken}`;
         const r = await fetch(messagesUrl);
         const data = await r.json();
 
@@ -1975,8 +1975,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let imageUrl = null;
           const text = m.message || "";
 
-          // ✅ Si el mensaje está vacío, buscar attachments
-          if (!m.message || m.message.trim() === "") {
+          // 🖼️ Si ya vienen attachments en el mensaje
+          if (m.attachments?.data?.length) {
+            const att = m.attachments.data[0];
+            imageUrl =
+              att.image_data?.url ||
+              att.file_url ||
+              att.media?.image?.src ||
+              null;
+            console.log("📸 Inline attachment found:", imageUrl);
+          }
+
+          // 🪣 Si no tiene texto ni attachments, buscar manualmente
+          if (!m.message?.trim() && !imageUrl) {
             const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
             console.log("🔍 Fetching attachments for:", m.id);
 
@@ -1984,7 +1995,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const attachRes = await fetch(attachUrl);
               const attachData = await attachRes.json();
 
-              // Guardar respuesta completa para debug
+              // 🔎 Guardar la respuesta completa para depurar
               fs.writeFileSync(
                 `facebook_attach_${m.id}.json`,
                 JSON.stringify(attachData, null, 2),
@@ -1997,7 +2008,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   att.file_url ||
                   att.media?.image?.src ||
                   null;
-
                 console.log("📎 Attachment found for", m.id, "→", imageUrl);
               } else {
                 console.log("❌ No attachment found for", m.id);
@@ -2017,6 +2027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
+        // 📆 Encontrar el último mensaje recibido del usuario
         const lastInbound = messages
           .filter((m) => m.fromId !== pageId)
           .sort(
