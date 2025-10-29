@@ -51,40 +51,71 @@ export default function MessageList({
     platform: string;
   } | null>(null);
 
-  const [facebookMessages, setFacebookMessages] = useState<any[]>([]);
+  const [unifiedMessages, setUnifiedMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Cargar mensajes desde Facebook Graph API
+  // ✅ NEW: Cargar mensajes de TODAS las plataformas conectadas usando endpoint unificado
   useEffect(() => {
-    async function loadFacebookMessages() {
+    async function loadAllMessages() {
       try {
         setLoading(true);
-        const res = await fetch("/api/facebook/conversations");
-        const data = await res.json();
-        const conversations = data.conversations || data.data || [];
+        
+        // Try unified aggregation endpoint first
+        const res = await fetch("/api/conversations/messages/all");
+        
+        if (!res.ok) {
+          console.error("❌ Unified endpoint failed, falling back to Facebook only");
+          // Fallback to Facebook only
+          const fbRes = await fetch("/api/facebook/conversations");
+          const fbData = await fbRes.json();
+          const conversations = fbData.conversations || fbData.data || [];
 
-        const formatted = conversations.map((c: any) => ({
-          id: c.id,
-          conversationId: c.id,
-          senderId: c.senders?.data?.[0]?.id || "fb_user",
-          senderName: c.senders?.data?.[0]?.name || "Facebook User",
+          const formatted = conversations.map((c: any) => ({
+            id: c.id,
+            conversationId: c.id,
+            senderId: c.senders?.data?.[0]?.id || "fb_user",
+            senderName: c.senders?.data?.[0]?.name || "Facebook User",
+            senderAvatar: "",
+            content: c.snippet || "(sin mensaje)",
+            priority: "normal",
+            isRead: true,
+            createdAt: c.updated_time,
+            socialAccount: {
+              platform: "facebook",
+              accountName: "Facebook Page",
+            },
+          }));
+
+          setUnifiedMessages(formatted);
+          return;
+        }
+
+        const data = await res.json();
+        const messages = data.messages || [];
+        
+        // Transform unified messages to component format
+        const formatted = messages.map((m: any) => ({
+          id: m.id,
+          conversationId: m.id,
+          senderId: m.fromId,
+          senderName: m.from,
           senderAvatar: "",
-          content: c.snippet || "(sin mensaje)",
+          content: m.text || "(sin mensaje)",
           priority: "normal",
           isRead: true,
-          createdAt: c.updated_time,
+          createdAt: m.created_time,
           socialAccount: {
-            platform: "facebook",
-            accountName: "Facebook Page",
+            platform: m.provider,
+            accountName: `${m.provider.charAt(0).toUpperCase() + m.provider.slice(1)}`,
           },
         }));
 
-        setFacebookMessages(formatted);
+        setUnifiedMessages(formatted);
       } catch (err) {
-        console.error("❌ Error cargando mensajes de Facebook:", err);
+        console.error("❌ Error loading unified messages:", err);
         toast({
           title: "Error",
-          description: "No se pudieron cargar los mensajes de Facebook.",
+          description: "Could not load messages from connected platforms.",
           variant: "destructive",
         });
       } finally {
@@ -92,15 +123,12 @@ export default function MessageList({
       }
     }
 
-    // Cargar solo si no hay filtro o es facebook
-    if (!platform || platform === "facebook") {
-      loadFacebookMessages();
-    }
-  }, [platform, toast]);
+    loadAllMessages();
+  }, [toast]); // Removed platform dependency to load all on mount
 
-  // 🔹 Solo usamos mensajes de Facebook (por ahora)
+  // ✅ Filter messages by selected platform
   const filteredMessages =
-    facebookMessages.filter(
+    unifiedMessages.filter(
       (m) => !platform || m.socialAccount?.platform === platform,
     ) || [];
 
