@@ -1971,7 +1971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const pageInfo = await pageInfoRes.json();
           pageId = pageInfo.id || integration.accountId;
 
-          url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,created_time&access_token=${integration.accessToken}`;
+          url = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,attachments,created_time&access_token=${integration.accessToken}`;
         } else if (provider === "whatsapp") {
           // For WhatsApp, fetch from local database or use webhook data
           const messages = await storage.getMessages(userId);
@@ -1995,13 +1995,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: data.error.message });
         }
 
-        const messages = (data.data || []).map((m: any) => ({
-          id: m.id,
-          text: m.message,
-          from: m.from?.name,
-          fromId: m.from?.id,
-          created_time: m.created_time,
-        }));
+        const messages = (data.data || []).map((m: any) => {
+          let imageUrl = null;
+          if (m.attachments?.data?.length > 0) {
+            const attachment = m.attachments.data[0];
+            if (attachment.image_data?.url) {
+              imageUrl = attachment.image_data.url;
+            } else if (attachment.mime_type?.includes("image")) {
+              imageUrl = attachment?.file_url || null;
+            }
+          }
+
+          return {
+            id: m.id,
+            text: m.message || "(sin mensaje)",
+            imageUrl,
+            from: m.from?.name,
+            fromId: m.from?.id,
+            created_time: m.created_time,
+          };
+        });
 
         // Find last inbound message (from user, not from page)
         const lastInbound = messages
@@ -2024,7 +2037,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // Send message to a specific conversation for any provider
+  // ✅ Enviar mensaje unificado a cualquier proveedor (Facebook, Instagram, Threads, WhatsApp)
   app.post(
     "/api/:provider/conversations/:conversationId/messages",
     isAuthenticated,
@@ -2034,7 +2047,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = req.user.id;
         const { content } = req.body;
 
-        if (!content) {
+        if (!content?.trim()) {
           return res.status(400).json({ error: "Message content is required" });
         }
 
@@ -2049,17 +2062,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         let url, payload;
 
+        // 🟦 FACEBOOK / INSTAGRAM / THREADS
         if (
           provider === "facebook" ||
           provider === "instagram" ||
           provider === "threads"
         ) {
-          url = `https://graph.facebook.com/v24.0/${conversationId}/messages`;
+          console.log(
+            `💬 Sending ${provider} message to conversation ${conversationId}`,
+          );
+
+          // 1️⃣ Obtener Page ID
+          const pageInfoRes = await fetch(
+            `https://graph.facebook.com/v24.0/me?access_token=${integration.accessToken}`,
+          );
+          const pageInfo = await pageInfoRes.json();
+          const pageId = pageInfo.id;
+
+          if (!pageId) {
+            console.error("❌ No se pudo obtener el page_id:", pageInfo);
+            return res
+              .status(400)
+              .json({ error: "No se pudo obtener el page_id del token" });
+          }
+
+          // 2️⃣ Obtener participantes de la conversación
+          const convoRes = await fetch(
+            `https://graph.facebook.com/v24.0/${conversationId}?fields=participants&access_token=${integration.accessToken}`,
+          );
+          const convoData = await convoRes.json();
+
+          const recipient = convoData.participants?.data?.find(
+            (p) => p.id !== pageId,
+          );
+
+          if (!recipient) {
+            console.error("❌ No se pudo obtener el destinatario:", convoData);
+            return res
+              .status(400)
+              .json({ error: "No se pudo determinar el destinatario" });
+          }
+
+          // 3️⃣ Enviar mensaje usando el Page ID y el recipient ID
+          url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
           payload = {
+            messaging_type: "RESPONSE",
+            recipient: { id: recipient.id },
             message: { text: content },
           };
-        } else if (provider === "whatsapp") {
-          // For WhatsApp, we need the recipient phone number from conversationId
+
+          console.log(`📤 Enviando mensaje a recipient ${recipient.id}`);
+        }
+
+        // 🟩 WHATSAPP
+        else if (provider === "whatsapp") {
+          console.log(`💬 Sending WhatsApp message to ${conversationId}`);
           url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
           payload = {
             messaging_product: "whatsapp",
@@ -2067,11 +2124,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: "text",
             text: { body: content },
           };
-        } else {
+        }
+
+        // 🟥 Proveedor no válido
+        else {
           return res.status(400).json({ error: "Invalid provider" });
         }
 
-        const r = await fetch(
+        // 🚀 Enviar mensaje
+        const response = await fetch(
           `${url}?access_token=${integration.accessToken}`,
           {
             method: "POST",
@@ -2079,91 +2140,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             body: JSON.stringify(payload),
           },
         );
-        const data = await r.json();
+
+        const data = await response.json();
 
         if (data.error) {
           console.error(`${provider} send error:`, data.error);
           return res.status(400).json({ error: data.error.message });
         }
 
-        res.json(data);
+        console.log(`✅ ${provider} message sent successfully`);
+        res.json({
+          success: true,
+          provider,
+          content,
+          timestamp: new Date().toISOString(),
+          apiResponse: data,
+        });
       } catch (err) {
-        console.error("Send message error:", err);
-        res.status(500).json({ error: "Failed to send message" });
-      }
-    },
-  );
-
-  // Send message to any provider
-  app.post(
-    "/api/:provider/messages/send",
-    isAuthenticated,
-    async (req, res) => {
-      try {
-        const { provider } = req.params;
-        const userId = req.user.id;
-        const { recipientId, message } = req.body;
-
-        if (!recipientId || !message) {
-          return res
-            .status(400)
-            .json({ error: "recipientId and message are required" });
-        }
-
-        const integrations = await storage.getIntegrations(userId);
-        const integration = integrations.find((i) => i.provider === provider);
-
-        if (!integration) {
-          return res
-            .status(404)
-            .json({ error: `No ${provider} integration found` });
-        }
-
-        let url, payload;
-
-        if (provider === "facebook" || provider === "instagram") {
-          url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
-          payload = {
-            messaging_type: "RESPONSE",
-            recipient: { id: recipientId },
-            message: { text: message },
-          };
-        } else if (provider === "threads") {
-          url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
-          payload = {
-            recipient: { id: recipientId },
-            message: { text: message },
-          };
-        } else if (provider === "whatsapp") {
-          url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
-          payload = {
-            messaging_product: "whatsapp",
-            to: recipientId,
-            type: "text",
-            text: { body: message },
-          };
-        } else {
-          return res.status(400).json({ error: "Invalid provider" });
-        }
-
-        const r = await fetch(
-          `${url}?access_token=${integration.accessToken}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          },
-        );
-        const data = await r.json();
-
-        if (data.error) {
-          console.error(`${provider} send error:`, data.error);
-          return res.status(400).json({ error: data.error.message });
-        }
-
-        res.json(data);
-      } catch (err) {
-        console.error("Send message error:", err);
+        console.error("❌ Send message error:", err);
         res.status(500).json({ error: "Failed to send message" });
       }
     },

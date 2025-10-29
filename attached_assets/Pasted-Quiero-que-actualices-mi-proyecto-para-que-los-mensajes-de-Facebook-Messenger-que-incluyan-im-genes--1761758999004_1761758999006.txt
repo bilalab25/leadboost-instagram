@@ -1,0 +1,110 @@
+Quiero que actualices mi proyecto para que los mensajes de Facebook Messenger que incluyan imágenes también se muestren en el frontend.
+
+Actualmente tengo:
+
+Backend con Express en el archivo routes.ts
+
+Frontend en React con el componente ConversationPanel.tsx
+
+Un schema compartido llamado Message (en shared/schema.ts o similar)
+
+Sigue las siguientes instrucciones paso a paso 👇
+
+🧩 BACKEND — archivo routes.ts
+
+Ubica el endpoint existente:
+/api/facebook/conversations/:conversationId/messages
+
+Dentro de ese endpoint, reemplaza la parte que obtiene los mensajes por este nuevo código:
+
+const url = https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,message,attachments,created_time&access_token=${accessToken};
+const r = await fetch(url);
+const data = await r.json();
+
+const messages = (data.data || []).map((m) => {
+let imageUrl = null;
+if (m.attachments?.data?.length > 0) {
+const attachment = m.attachments.data[0];
+if (attachment.image_data?.url) {
+imageUrl = attachment.image_data.url;
+} else if (attachment.mime_type?.includes("image")) {
+imageUrl = attachment?.file_url || null;
+}
+}
+
+return {
+id: m.id,
+text: m.message || "(sin mensaje)",
+imageUrl, // nuevo campo
+from: m.from?.name,
+fromId: m.from?.id,
+created_time: m.created_time,
+};
+});
+
+Asegúrate de que el res.json() final devuelva el campo imageUrl junto con los demás datos.
+
+🧱 SCHEMA — archivo shared/schema.ts (o donde definas tus tipos)
+
+En la definición de tu tipo o interfaz Message, agrega este campo:
+
+imageUrl?: string | null;
+
+Si usas una base de datos (por ejemplo Drizzle o Prisma), agrega también el campo en tu modelo:
+
+En Drizzle:
+imageUrl: text("image_url").nullable(),
+
+En Prisma:
+imageUrl String?
+
+Si tienes interfaces de tipo InsertMessage o DbMessage, agrega también este campo opcional para mantener consistencia de tipos.
+
+🧠 FRONTEND — archivo ConversationPanel.tsx
+
+Dentro del useEffect donde se formatean los mensajes de Facebook antes de llamar a setFacebookMessages, asegúrate de incluir la propiedad:
+
+content: msg.text || "(sin mensaje)",
+imageUrl: msg.imageUrl || null,
+
+Luego, en el bloque donde se renderizan los mensajes (dentro del displayedMessages.map(...)), busca la línea que actualmente muestra solo el texto:
+
+<p className="text-sm whitespace-pre-wrap break-words"> {message.content} </p>
+
+y reemplázala por esto:
+
+<div className="space-y-2"> {message.content && ( <p className="text-sm whitespace-pre-wrap break-words"> {message.content} </p> )} {message.imageUrl && ( <img src={message.imageUrl} alt="Imagen adjunta" className="rounded-lg max-w-xs border border-gray-200 cursor-pointer transition-transform hover:scale-[1.02]" loading="lazy" onClick={() => setPreviewImage(message.imageUrl)} /> )} </div>
+
+Justo arriba del return del componente, agrega este estado nuevo para manejar el preview de imágenes:
+
+const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+Y al final del componente, justo antes de cerrar la etiqueta principal, agrega este bloque JSX que crea el modal de preview:
+
+{previewImage && (
+
+<div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[999]" onClick={() => setPreviewImage(null)} > <img src={previewImage} alt="Vista previa" className="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl border border-white" /> </div> )}
+
+Esto permitirá que al hacer clic sobre cualquier imagen adjunta, se abra una vista previa a pantalla completa.
+
+✅ CRITERIOS DE ÉXITO
+
+El endpoint /api/facebook/conversations/:conversationId/messages ahora devuelve imageUrl cuando hay imágenes adjuntas.
+
+El componente ConversationPanel muestra las imágenes debajo del texto.
+
+Si solo hay una imagen y no texto, solo se ve la imagen.
+
+Las imágenes se pueden ampliar haciendo clic (preview modal).
+
+Los tipos del schema (Message, InsertMessage, etc.) incluyen imageUrl como campo opcional.
+
+💡 RESUMEN DEL COMMIT ESPERADO
+
+feat(messaging): soporte para mensajes con imágenes en Facebook Messenger
+
+Backend: agrega campo imageUrl en /facebook/conversations/:id/messages
+
+Frontend: muestra imágenes adjuntas y vista previa modal en ConversationPanel
+
+Schema: agrega imageUrl como campo opcional en Message

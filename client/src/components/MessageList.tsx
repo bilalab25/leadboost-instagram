@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,15 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  Instagram,
-  Reply,
-  Tag,
-  Calendar,
-  Handshake,
-  Mail,
-  Twitter,
-} from "lucide-react";
+import { Instagram, Mail, Twitter } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import ConversationPanel from "@/components/ConversationPanel";
@@ -39,13 +31,6 @@ const platformColors = {
   twitter: "bg-sky-500",
 };
 
-const priorityColors = {
-  low: "bg-gray-100 text-gray-800",
-  normal: "",
-  high: "bg-yellow-100 text-yellow-800",
-  urgent: "bg-red-100 text-red-800",
-};
-
 interface MessageListProps {
   limit?: number;
   showHeader?: boolean;
@@ -59,23 +44,21 @@ export default function MessageList({
 }: MessageListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const [activeConversation, setActiveConversation] = useState<{
     id: string;
     name: string;
     platform: string;
   } | null>(null);
+
   const [facebookMessages, setFacebookMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 🔹 Trae mensajes locales (por ejemplo del backend interno)
-  const { data: messages, isLoading } = useQuery({
-    queryKey: ["/api/messages", { limit, platform }],
-    retry: false,
-  });
-
-  // 🔹 Cargar mensajes desde el Graph API (Facebook)
+  // 🔹 Cargar mensajes desde Facebook Graph API
   useEffect(() => {
     async function loadFacebookMessages() {
       try {
+        setLoading(true);
         const res = await fetch("/api/facebook/conversations");
         const data = await res.json();
         const conversations = data.conversations || data.data || [];
@@ -104,20 +87,20 @@ export default function MessageList({
           description: "No se pudieron cargar los mensajes de Facebook.",
           variant: "destructive",
         });
+      } finally {
+        setLoading(false);
       }
     }
 
+    // Cargar solo si no hay filtro o es facebook
     if (!platform || platform === "facebook") {
       loadFacebookMessages();
     }
   }, [platform, toast]);
 
-  // 🔹 Combinar mensajes locales + Facebook
-  const localMessages = Array.isArray(messages) ? messages : [];
-  const mergedMessages = [...localMessages, ...facebookMessages];
-
+  // 🔹 Solo usamos mensajes de Facebook (por ahora)
   const filteredMessages =
-    mergedMessages.filter(
+    facebookMessages.filter(
       (m) => !platform || m.socialAccount?.platform === platform,
     ) || [];
 
@@ -137,33 +120,26 @@ export default function MessageList({
     },
   });
 
-
   return (
     <>
       {/* Left Panel - Conversation List */}
       <div className="w-[35%] bg-white border-r border-gray-200 flex flex-col">
         <div className="flex-1 overflow-y-auto">
-          {isLoading ? (
-            // Loading State
-            <div className="divide-y divide-gray-100">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="p-4">
-                  <div className="flex items-start space-x-3">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <div className="flex justify-between">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-3 w-16" />
-                      </div>
-                      <Skeleton className="h-3 w-full" />
-                      <Skeleton className="h-3 w-3/4" />
-                    </div>
+          {loading ? (
+            // 🔹 Loader mientras se cargan las conversaciones
+            <div className="divide-y divide-gray-100 animate-pulse">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="p-4 flex items-start space-x-3">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-48" />
                   </div>
                 </div>
               ))}
             </div>
           ) : !filteredMessages.length ? (
-            // Empty State
+            // 🔹 Empty State
             <div className="flex items-center justify-center h-full p-6">
               <div className="text-center">
                 <Mail className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -171,99 +147,101 @@ export default function MessageList({
               </div>
             </div>
           ) : (
-            // Conversations List
+            // 🔹 Lista de conversaciones
             filteredMessages.slice(0, limit).map((message) => {
-            const PlatformIcon =
-              platformIcons[
-                message.socialAccount.platform as keyof typeof platformIcons
-              ];
-            const platformBg =
-              platformColors[
-                message.socialAccount.platform as keyof typeof platformColors
-              ];
+              const PlatformIcon =
+                platformIcons[
+                  message.socialAccount.platform as keyof typeof platformIcons
+                ];
+              const platformBg =
+                platformColors[
+                  message.socialAccount.platform as keyof typeof platformColors
+                ];
+              const isActive =
+                activeConversation?.id ===
+                (message.conversationId || message.id);
 
-            const isActive = activeConversation?.id === (message.conversationId || message.id);
-
-            return (
-              <div
-                key={message.id}
-                className={cn(
-                  "p-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100",
-                  !message.isRead && "bg-blue-50/50",
-                  isActive && "bg-gray-100 border-l-4 border-l-primary"
-                )}
-                onClick={() => {
-                  setActiveConversation({
-                    id: message.conversationId || message.id,
-                    name: message.senderName,
-                    platform: message.socialAccount.platform,
-                  });
-                  if (!message.isRead) {
-                    markAsReadMutation.mutate(message.id);
-                  }
-                }}
-                data-testid={`conversation-item-${message.id}`}
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 relative">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage
-                        src={message.senderAvatar}
-                        alt={message.senderName}
-                      />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {message.senderName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    {PlatformIcon && (
-                      <div
-                        className={cn(
-                          "absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
-                          platformBg,
-                        )}
-                      >
-                        <PlatformIcon className="text-white text-xs h-3 w-3" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p
-                        className={cn(
-                          "text-sm text-gray-900 truncate",
-                          !message.isRead && "font-semibold",
-                        )}
-                      >
-                        {message.senderName}
-                      </p>
-                      <span className="text-xs text-gray-500">
-                        {formatDistanceToNow(new Date(message.createdAt), {
-                          addSuffix: false,
-                          locale: es,
-                        })}
-                      </span>
+              return (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "p-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100",
+                    !message.isRead && "bg-blue-50/50",
+                    isActive && "bg-gray-100 border-l-4 border-l-primary",
+                  )}
+                  onClick={() => {
+                    setActiveConversation({
+                      id: message.conversationId || message.id,
+                      name: message.senderName,
+                      platform: message.socialAccount.platform,
+                    });
+                    if (!message.isRead) {
+                      markAsReadMutation.mutate(message.id);
+                    }
+                  }}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 relative">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage
+                          src={message.senderAvatar}
+                          alt={message.senderName}
+                        />
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {message.senderName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {PlatformIcon && (
+                        <div
+                          className={cn(
+                            "absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
+                            platformBg,
+                          )}
+                        >
+                          <PlatformIcon className="text-white text-xs h-3 w-3" />
+                        </div>
+                      )}
                     </div>
 
-                    <p
-                      className={cn(
-                        "text-sm text-gray-600 line-clamp-2",
-                        !message.isRead && "font-medium text-gray-900",
-                      )}
-                    >
-                      {message.content}
-                    </p>
-
-                    {!message.isRead && (
-                      <div className="mt-1">
-                        <Badge className="bg-primary text-white text-xs">New</Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p
+                          className={cn(
+                            "text-sm text-gray-900 truncate",
+                            !message.isRead && "font-semibold",
+                          )}
+                        >
+                          {message.senderName}
+                        </p>
+                        <span className="text-xs text-gray-500">
+                          {formatDistanceToNow(new Date(message.createdAt), {
+                            addSuffix: false,
+                            locale: es,
+                          })}
+                        </span>
                       </div>
-                    )}
+
+                      <p
+                        className={cn(
+                          "text-sm text-gray-600 line-clamp-2",
+                          !message.isRead && "font-medium text-gray-900",
+                        )}
+                      >
+                        {message.content}
+                      </p>
+
+                      {!message.isRead && (
+                        <div className="mt-1">
+                          <Badge className="bg-primary text-white text-xs">
+                            New
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })
           )}
         </div>
       </div>

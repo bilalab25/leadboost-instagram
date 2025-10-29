@@ -36,6 +36,7 @@ interface Message {
   senderName: string;
   senderAvatar?: string;
   content: string;
+  imageUrl?: string | null;
   direction: "inbound" | "outbound";
   status: "sent" | "delivered" | "read" | "failed";
   createdAt: string;
@@ -94,6 +95,7 @@ export default function ConversationPanel({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [facebookLoading, setFacebookLoading] = useState(false);
   const [canSendFacebookMessage, setCanSendFacebookMessage] = useState(true);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // 🔹 Detectar si es conversación de Facebook
   const isFacebookConversation = conversationId.startsWith("t_");
@@ -160,6 +162,7 @@ export default function ConversationPanel({
           senderId: msg.fromId,
           senderName: msg.from,
           content: msg.text || "(sin mensaje)",
+          imageUrl: msg.imageUrl || null,
           direction: msg.fromId === pageId ? "outbound" : "inbound",
           createdAt: msg.created_time,
           status: "read",
@@ -381,9 +384,22 @@ export default function ConversationPanel({
                       : "bg-primary text-white",
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">
-                    {message.content}
-                  </p>
+                  <div className="space-y-2">
+                    {message.content && (
+                      <p className="text-sm whitespace-pre-wrap break-words">
+                        {message.content}
+                      </p>
+                    )}
+                    {message.imageUrl && (
+                      <img
+                        src={message.imageUrl}
+                        alt="Imagen adjunta"
+                        className="rounded-lg max-w-xs border border-gray-200 cursor-pointer transition-transform hover:scale-[1.02]"
+                        loading="lazy"
+                        onClick={() => setPreviewImage(message.imageUrl!)}
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center space-x-1 mt-1 px-2">
                   <span className="text-xs text-gray-500">
@@ -438,6 +454,20 @@ export default function ConversationPanel({
           </Button>
         </div>
       </div>
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[999]"
+          onClick={() => setPreviewImage(null)}
+        >
+          <img
+            src={previewImage}
+            alt="Vista previa"
+            className="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl border border-white"
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -141,6 +141,7 @@ export const messages = pgTable("messages", {
   senderName: varchar("sender_name").notNull(),
   senderAvatar: varchar("sender_avatar"),
   content: text("content").notNull(),
+  imageUrl: text("image_url"), // URL of attached image from Facebook/Instagram/etc
   messageType: varchar("message_type").default("text"), // text, image, video, audio
   direction: varchar("direction").default("inbound"), // inbound, outbound
   status: varchar("status").default("sent"), // sent, delivered, read, failed
