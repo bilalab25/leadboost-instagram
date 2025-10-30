@@ -110,6 +110,7 @@ export default function MessageList({
             platform: m.provider,
             accountName: `${m.provider.charAt(0).toUpperCase() + m.provider.slice(1)}`,
           },
+          accountId: m.accountId, // ✅ Preserve accountId for direction detection
         }));
 
         setUnifiedMessages(formatted);
