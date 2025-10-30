@@ -115,7 +115,10 @@ export default function ConversationPanel({
         }
 
         const formatted = msgs.map((msg: any) => {
-          const isOutbound = msg.fromId === data.accountId; // ✅ dinámico
+          const pageId = msg.accountId || data.accountId || data.pageId;
+          const isOutbound =
+            pageId && msg.fromId && msg.fromId.toString() === pageId.toString();
+
           return {
             id: msg.id,
             conversationId,
@@ -128,6 +131,8 @@ export default function ConversationPanel({
             status: "read",
           };
         });
+
+        console.log("✅ message.direction check sample:", formatted[0]);
 
         // 🔹 Orden cronológico
         setMessages(formatted.reverse());
