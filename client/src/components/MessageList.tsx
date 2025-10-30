@@ -59,12 +59,14 @@ export default function MessageList({
     async function loadAllMessages() {
       try {
         setLoading(true);
-        
+
         // Try unified aggregation endpoint first
         const res = await fetch("/api/conversations/messages/all");
-        
+
         if (!res.ok) {
-          console.error("❌ Unified endpoint failed, falling back to Facebook only");
+          console.error(
+            "❌ Unified endpoint failed, falling back to Facebook only",
+          );
           // Fallback to Facebook only
           const fbRes = await fetch("/api/facebook/conversations");
           const fbData = await fbRes.json();
@@ -92,7 +94,7 @@ export default function MessageList({
 
         const data = await res.json();
         const messages = data.messages || [];
-        
+
         // Transform unified messages to component format
         const formatted = messages.map((m: any) => ({
           id: m.id,
@@ -148,6 +150,26 @@ export default function MessageList({
     },
   });
 
+  // ✅ Agrupar mensajes por conversaciónId
+  const groupedConversations = Object.values(
+    filteredMessages.reduce((acc: any, msg: any) => {
+      const convoId = msg.conversationId || msg.id;
+      if (!acc[convoId]) {
+        acc[convoId] = {
+          ...msg,
+          messages: [msg],
+        };
+      } else {
+        acc[convoId].messages.push(msg);
+        // si este mensaje es más reciente, actualiza los datos principales
+        if (new Date(msg.createdAt) > new Date(acc[convoId].createdAt)) {
+          acc[convoId] = { ...acc[convoId], ...msg };
+        }
+      }
+      return acc;
+    }, {}),
+  );
+
   return (
     <>
       {/* Left Panel - Conversation List */}
@@ -176,100 +198,108 @@ export default function MessageList({
             </div>
           ) : (
             // 🔹 Lista de conversaciones
-            filteredMessages.slice(0, limit).map((message) => {
-              const PlatformIcon =
-                platformIcons[
-                  message.socialAccount.platform as keyof typeof platformIcons
-                ];
-              const platformBg =
-                platformColors[
-                  message.socialAccount.platform as keyof typeof platformColors
-                ];
-              const isActive =
-                activeConversation?.id ===
-                (message.conversationId || message.id);
+            groupedConversations
+              .sort(
+                (a, b) =>
+                  new Date(b.createdAt).getTime() -
+                  new Date(a.createdAt).getTime(),
+              )
+              .slice(0, limit)
+              .map((message) => {
+                const PlatformIcon =
+                  platformIcons[
+                    message.socialAccount.platform as keyof typeof platformIcons
+                  ];
+                const platformBg =
+                  platformColors[
+                    message.socialAccount
+                      .platform as keyof typeof platformColors
+                  ];
+                const isActive =
+                  activeConversation?.id ===
+                  (message.conversationId || message.id);
 
-              return (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "p-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100",
-                    !message.isRead && "bg-blue-50/50",
-                    isActive && "bg-gray-100 border-l-4 border-l-primary",
-                  )}
-                  onClick={() => {
-                    setActiveConversation({
-                      id: message.conversationId || message.id,
-                      name: message.senderName,
-                      platform: message.socialAccount.platform,
-                    });
-                    if (!message.isRead) {
-                      markAsReadMutation.mutate(message.id);
-                    }
-                  }}
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 relative">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage
-                          src={message.senderAvatar}
-                          alt={message.senderName}
-                        />
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {message.senderName.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      {PlatformIcon && (
-                        <div
-                          className={cn(
-                            "absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
-                            platformBg,
-                          )}
-                        >
-                          <PlatformIcon className="text-white text-xs h-3 w-3" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p
-                          className={cn(
-                            "text-sm text-gray-900 truncate",
-                            !message.isRead && "font-semibold",
-                          )}
-                        >
-                          {message.senderName}
-                        </p>
-                        <span className="text-xs text-gray-500">
-                          {formatDistanceToNow(new Date(message.createdAt), {
-                            addSuffix: false,
-                            locale: es,
-                          })}
-                        </span>
+                return (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      "p-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100",
+                      !message.isRead && "bg-blue-50/50",
+                      isActive && "bg-gray-100 border-l-4 border-l-primary",
+                    )}
+                    onClick={() => {
+                      setActiveConversation({
+                        id: message.conversationId || message.id,
+                        name: message.senderName,
+                        platform: message.socialAccount.platform,
+                      });
+                      if (!message.isRead) {
+                        markAsReadMutation.mutate(message.id);
+                      }
+                    }}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 relative">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage
+                            src={message.senderAvatar}
+                            alt={message.senderName}
+                          />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {message.senderName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {PlatformIcon && (
+                          <div
+                            className={cn(
+                              "absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
+                              platformBg,
+                            )}
+                          >
+                            <PlatformIcon className="text-white text-xs h-3 w-3" />
+                          </div>
+                        )}
                       </div>
 
-                      <p
-                        className={cn(
-                          "text-sm text-gray-600 line-clamp-2",
-                          !message.isRead && "font-medium text-gray-900",
-                        )}
-                      >
-                        {message.content}
-                      </p>
-
-                      {!message.isRead && (
-                        <div className="mt-1">
-                          <Badge className="bg-primary text-white text-xs">
-                            New
-                          </Badge>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <p
+                            className={cn(
+                              "text-sm text-gray-900 truncate",
+                              !message.isRead && "font-semibold",
+                            )}
+                          >
+                            {message.senderName}
+                          </p>
+                          <span className="text-xs text-gray-500">
+                            {formatDistanceToNow(new Date(message.createdAt), {
+                              addSuffix: false,
+                              locale: es,
+                            })}
+                          </span>
                         </div>
-                      )}
+
+                        <p
+                          className={cn(
+                            "text-sm text-gray-600 line-clamp-2",
+                            !message.isRead && "font-medium text-gray-900",
+                          )}
+                        >
+                          {message.content}
+                        </p>
+
+                        {!message.isRead && (
+                          <div className="mt-1">
+                            <Badge className="bg-primary text-white text-xs">
+                              New
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })
           )}
         </div>
       </div>

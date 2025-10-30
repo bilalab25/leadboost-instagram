@@ -1,0 +1,141 @@
+Please update both the backend and frontend of my LeadBoost app to fully fix message direction (so inbound and outbound messages are displayed correctly in the chat).  
+
+### 🧩 BACKEND CHANGES
+
+Update the following two endpoints in my Express server:
+
+**1️⃣ `/api/conversations/messages/all`**
+
+- When fetching messages for each provider (`facebook`, `instagram`, `threads`, `whatsapp`), include the `accountId` (or `pageId` for Facebook) in the provider result:
+  ```js
+  { provider, accountId, messages, success: true }
+  ```
+- When aggregating all messages, attach that `accountId` to each message:
+  ```js
+  const providerMessages = result.value.messages.map((msg) => ({
+    ...msg,
+    accountId: result.value.accountId,
+  }));
+  allMessages.push(...providerMessages);
+  ```
+- Keep existing authentication, logging, and sorting.
+- Add a log:
+  ```js
+  console.log("✅ Attached accountId for provider:", provider, accountId);
+  ```
+- Return this structure at the end:
+  ```js
+  res.json({
+    messages: allMessages,
+    providers: successfulProviders,
+    total: allMessages.length,
+  });
+  ```
+
+**2️⃣ `/api/messages/:provider/:conversationId`**
+
+- After fetching messages from the provider, make sure the response JSON includes the `accountId` (the Page ID or business account ID) like this:
+  ```js
+  res.json({
+    provider,
+    accountId,
+    messages,
+    total: messages.length,
+  });
+  ```
+- For Facebook: use the Page ID from the integration (`integration.accountId`).  
+  For Instagram and Threads: use the business account ID from the integration record.
+- Add:
+  ```js
+  console.log("📤 Returning messages for provider:", provider, "accountId:", accountId);
+  ```
+
+✅ **Purpose:** these two updates make sure the frontend can determine who sent each message (`msg.fromId === msg.accountId` → outbound).
+
+---
+
+### 💻 FRONTEND CHANGES
+
+Update the **`ConversationPanel.tsx`** component to use `msg.accountId` instead of `data.pageId` or `data.accountId` directly.
+
+Inside the `loadMessages()` function, replace the message formatting block with this:
+
+```ts
+const formatted = msgs.map((msg: any) => {
+  const pageId = msg.accountId || data.accountId || data.pageId;
+  const isOutbound =
+    pageId && msg.fromId && msg.fromId.toString() === pageId.toString();
+
+  return {
+    id: msg.id,
+    conversationId,
+    senderId: msg.fromId,
+    senderName: msg.from,
+    content: msg.text || "(sin mensaje)",
+    imageUrl: msg.imageUrl || null,
+    direction: isOutbound ? "outbound" : "inbound",
+    createdAt: msg.created_time,
+    status: "read",
+  };
+});
+```
+
+Add a debug log before setting state:
+```ts
+console.log("✅ message.direction check sample:", formatted[0]);
+```
+
+Keep the rest of the component logic the same (loading, scrolling, sendMessageMutation, etc.).
+
+---
+
+### 🧱 OPTIONAL (for better consistency)
+
+In `MessageList.tsx`, when fetching unified messages from `/api/conversations/messages/all`, preserve the `accountId` returned for each message:
+
+```ts
+const formatted = messages.map((m: any) => ({
+  id: m.id,
+  conversationId: m.conversationId,
+  senderId: m.fromId,
+  senderName: m.from,
+  senderAvatar: "",
+  content: m.text || "(sin mensaje)",
+  createdAt: m.created_time,
+  socialAccount: {
+    platform: m.provider,
+    accountName:
+      m.provider.charAt(0).toUpperCase() + m.provider.slice(1),
+  },
+  accountId: m.accountId, // 👈 added
+}));
+```
+
+---
+
+### ✅ AFTER THESE CHANGES:
+
+- Messages sent by the business page/account will now appear **on the right** (`outbound`).  
+- Messages received from customers will appear **on the left** (`inbound`).  
+- Works dynamically for any connected Meta provider.  
+- Both endpoints return the same structure for consistency:
+
+```json
+{
+  "provider": "facebook",
+  "accountId": "109576484091921",
+  "messages": [
+    {
+      "id": "m_123",
+      "text": "Hola",
+      "fromId": "109576484091921",
+      "from": "EduCards",
+      "created_time": "2025-10-30T18:00:00Z",
+      "accountId": "109576484091921",
+      "direction": "outbound"
+    }
+  ]
+}
+```
+
+Please implement all these changes consistently across backend and frontend files (`ConversationPanel.tsx`, `MessageList.tsx`, and the Express routes) so the chat UI correctly reflects message direction for any provider.

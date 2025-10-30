@@ -1,24 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  X,
-  Send,
-  Paperclip,
-  Check,
-  CheckCheck,
-  Instagram,
-  Mail,
-  Twitter,
-} from "lucide-react";
+import { X, Send, CheckCheck, Instagram, Mail, Twitter } from "lucide-react";
 import {
   SiWhatsapp,
   SiTiktok,
@@ -27,7 +15,6 @@ import {
   SiDiscord,
 } from "react-icons/si";
 import { cn } from "@/lib/utils";
-import { differenceInHours } from "date-fns";
 
 interface Message {
   id: string;
@@ -40,13 +27,6 @@ interface Message {
   direction: "inbound" | "outbound";
   status: "sent" | "delivered" | "read" | "failed";
   createdAt: string;
-}
-
-interface ConversationThread {
-  id: string;
-  participantName: string;
-  participantAvatar?: string;
-  platform: string;
 }
 
 interface ConversationPanelProps {
@@ -88,153 +68,117 @@ export default function ConversationPanel({
 }: ConversationPanelProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const [messageText, setMessageText] = useState("");
-  const [attachments, setAttachments] = useState<File[]>([]);
-  const [facebookMessages, setFacebookMessages] = useState<Message[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [facebookLoading, setFacebookLoading] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
   const [canSendFacebookMessage, setCanSendFacebookMessage] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 🔹 Detectar si es conversación de Facebook
-  const isFacebookConversation = conversationId.startsWith("t_");
+  const isFacebookConversation = platform === "facebook";
 
-  // 🔹 Fetch de conversación normal (no Facebook)
-  const { data: conversation, isLoading: conversationLoading } =
-    useQuery<ConversationThread>({
-      queryKey: ["/api/conversations", conversationId],
-      queryFn: async () => {
-        if (isFacebookConversation) {
-          // Si es de Facebook, construimos un "mock" básico
-          return {
-            id: conversationId,
-            participantName: "Facebook User",
-            platform: "facebook",
-          };
-        }
-
-        const response = await fetch(`/api/conversations/${conversationId}`);
-        if (!response.ok) throw new Error("Failed to fetch conversation");
-        return response.json();
-      },
-      retry: false,
-    });
-
-  // 🔹 Fetch de mensajes normales (solo si NO es Facebook)
-  const { data: messages, isLoading: messagesLoading } = useQuery<Message[]>({
-    queryKey: ["/api/conversations", conversationId, "messages"],
-    queryFn: async () => {
-      if (isFacebookConversation) return []; // evitamos llamadas duplicadas
-      const response = await fetch(
-        `/api/conversations/${conversationId}/messages`,
-      );
-      if (!response.ok) throw new Error("Failed to fetch messages");
-      return response.json();
-    },
-    retry: false,
-  });
-
+  // 🔹 Load messages from unified endpoint
   useEffect(() => {
-    async function loadFacebookConversationMessages() {
+    async function loadMessages() {
       try {
-        setFacebookLoading(true);
-        const res = await fetch(
-          `/api/facebook/conversations/${conversationId}/messages`,
-        );
+        setLoading(true);
+        if (!platform) return;
+
+        const res = await fetch(`/api/messages/${platform}/${conversationId}`);
         const data = await res.json();
 
-        const pageId = data.pageId;
-        const messagesArray = data.messages || [];
+        console.log("📩 pageId:", data.pageId);
+        console.log("📬 first message:", data.messages?.[0]);
 
-        // 🔹 Detectar si han pasado más de 24 horas
-        if (data.lastUserMessageTime) {
-          const hours = differenceInHours(
-            new Date(),
-            new Date(data.lastUserMessageTime),
-          );
-          setCanSendFacebookMessage(hours <= 24);
+        if (!res.ok) throw new Error(data.error || "Error loading messages");
+
+        const msgs = data.messages || [];
+
+        // 🔹 Detectar ventana de 24 h solo para Facebook
+        if (platform === "facebook" && msgs.length > 0) {
+          const lastInbound = msgs
+            .filter((m: any) => m.fromId !== data.pageId)
+            .sort(
+              (a: any, b: any) =>
+                new Date(b.created_time).getTime() -
+                new Date(a.created_time).getTime(),
+            )[0];
+
+          if (lastInbound?.created_time) {
+            const hours = differenceInHours(
+              new Date(),
+              new Date(lastInbound.created_time),
+            );
+            setCanSendFacebookMessage(hours <= 24);
+          }
         }
 
-        const formatted = messagesArray.map((msg: any) => ({
-          id: msg.id,
-          conversationId,
-          senderId: msg.fromId,
-          senderName: msg.from,
-          content: msg.text || "(sin mensaje)",
-          imageUrl: msg.imageUrl || null,
-          direction: msg.fromId === pageId ? "outbound" : "inbound",
-          createdAt: msg.created_time,
-          status: "read",
-        }));
+        const formatted = msgs.map((msg: any) => {
+          const isOutbound = msg.fromId === data.accountId; // ✅ dinámico
+          return {
+            id: msg.id,
+            conversationId,
+            senderId: msg.fromId,
+            senderName: msg.from,
+            content: msg.text || "(sin mensaje)",
+            imageUrl: msg.imageUrl || null,
+            direction: isOutbound ? "outbound" : "inbound",
+            createdAt: msg.created_time,
+            status: "read",
+          };
+        });
 
-        setFacebookMessages(formatted.reverse());
+        // 🔹 Orden cronológico
+        setMessages(formatted.reverse());
       } catch (err) {
-        console.error("❌ Error cargando mensajes de Facebook:", err);
+        console.error(`❌ Error loading ${platform} messages:`, err);
         toast({
           title: "Error",
-          description: "No se pudieron cargar los mensajes de Facebook.",
+          description: `No se pudieron cargar los mensajes de ${platform}.`,
           variant: "destructive",
         });
       } finally {
-        setFacebookLoading(false);
+        setLoading(false);
       }
     }
 
-    if (isFacebookConversation) loadFacebookConversationMessages();
-  }, [conversationId, isFacebookConversation, toast]);
+    loadMessages();
+  }, [conversationId, platform, toast]);
 
-  // 🔹 Enviar mensajes
+  // 🔹 Enviar mensaje
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string }) => {
-      if (isFacebookConversation) {
-        const res = await fetch(
-          `/api/facebook/conversations/${conversationId}/messages`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: data.content }),
-          },
-        );
-
-        if (!res.ok) throw new Error("Error al enviar mensaje de Facebook");
-        const result = await res.json();
-        return result;
-      }
-
-      // Caso normal (mensajes internos)
-      return await apiRequest(
-        "POST",
-        `/api/conversations/${conversationId}/messages`,
+      const res = await fetch(
+        `/api/${platform}/conversations/${conversationId}/messages`,
         {
-          content: data.content,
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: data.content }),
         },
       );
+
+      if (!res.ok) throw new Error("Error al enviar mensaje");
+      return res.json();
     },
     onMutate: async (data) => {
-      if (isFacebookConversation) {
-        setFacebookMessages((prev) => [
-          ...prev,
-          {
-            id: "temp_" + Date.now(),
-            conversationId,
-            senderId: "me",
-            senderName: "Tú",
-            content: data.content,
-            direction: "outbound",
-            status: "sent",
-            createdAt: new Date().toISOString(),
-          },
-        ]);
-      }
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: "temp_" + Date.now(),
+          conversationId,
+          senderId: "me",
+          senderName: "Tú",
+          content: data.content,
+          direction: "outbound",
+          status: "sent",
+          createdAt: new Date().toISOString(),
+        },
+      ]);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/conversations", conversationId, "messages"],
-      });
       queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
       setMessageText("");
-      setAttachments([]);
     },
     onError: (error: Error) => {
       toast({
@@ -248,10 +192,19 @@ export default function ConversationPanel({
   // 🔹 Scroll automático
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, facebookMessages]);
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (!messageText.trim()) return;
+    if (isFacebookConversation && !canSendFacebookMessage) {
+      toast({
+        title: "Restricción de 24 h",
+        description:
+          "No puedes enviar mensajes porque han pasado más de 24 horas desde el último mensaje del usuario.",
+        variant: "destructive",
+      });
+      return;
+    }
     sendMessageMutation.mutate({ content: messageText });
   };
 
@@ -262,19 +215,13 @@ export default function ConversationPanel({
     }
   };
 
-  const displayedMessages = isFacebookConversation
-    ? facebookMessages
-    : messages || [];
+  const PlatformIcon =
+    platform && platformIcons[platform as keyof typeof platformIcons];
+  const platformBg =
+    platform && platformColors[platform as keyof typeof platformColors];
+  const displayName = participantName || "Usuario";
+  const displayPlatform = platform || "facebook";
 
-  const PlatformIcon = conversation
-    ? platformIcons[conversation.platform as keyof typeof platformIcons]
-    : null;
-  const platformBg = conversation
-    ? platformColors[conversation.platform as keyof typeof platformColors]
-    : "";
-  const displayName =
-    participantName || conversation?.participantName || "Usuario";
-  const displayPlatform = platform || conversation?.platform || "facebook";
   return (
     <div
       className={cn(
@@ -286,43 +233,30 @@ export default function ConversationPanel({
     >
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-        {conversationLoading ? (
-          <div className="flex items-center space-x-3 flex-1">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-20" />
-            </div>
+        <div className="flex items-center space-x-3 flex-1">
+          <div className="relative">
+            <Avatar className="h-10 w-10">
+              <AvatarImage alt={displayName} />
+              <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            {PlatformIcon && (
+              <div
+                className={cn(
+                  "absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
+                  platformBg,
+                )}
+              >
+                <PlatformIcon className="text-white text-xs h-3 w-3" />
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="flex items-center space-x-3 flex-1">
-            <div className="relative">
-              <Avatar className="h-10 w-10">
-                <AvatarImage
-                  src={conversation?.participantAvatar}
-                  alt={displayName}
-                />
-                <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-              </Avatar>
-              {PlatformIcon && (
-                <div
-                  className={cn(
-                    "absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
-                    platformBg,
-                  )}
-                >
-                  <PlatformIcon className="text-white text-xs h-3 w-3" />
-                </div>
-              )}
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{displayName}</h3>
-              <p className="text-xs text-gray-500 capitalize">
-                {displayPlatform}
-              </p>
-            </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{displayName}</h3>
+            <p className="text-xs text-gray-500 capitalize">
+              {displayPlatform}
+            </p>
           </div>
-        )}
+        </div>
         {isDrawer && (
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-5 w-5" />
@@ -332,8 +266,7 @@ export default function ConversationPanel({
 
       {/* Mensajes */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-        {/* 🔹 Loader de carga Facebook */}
-        {facebookLoading ? (
+        {loading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-start space-x-2">
@@ -345,12 +278,12 @@ export default function ConversationPanel({
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-600"></div>
             </div>
           </div>
-        ) : !displayedMessages?.length ? (
+        ) : !messages.length ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-500 text-sm">No hay mensajes aún</p>
           </div>
         ) : (
-          displayedMessages.map((message) => (
+          messages.map((message) => (
             <div
               key={message.id}
               className={cn(
@@ -361,10 +294,6 @@ export default function ConversationPanel({
             >
               {message.direction === "inbound" && (
                 <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage
-                    src={message.senderAvatar}
-                    alt={message.senderName}
-                  />
                   <AvatarFallback>
                     {message.senderName.charAt(0)}
                   </AvatarFallback>
@@ -425,12 +354,6 @@ export default function ConversationPanel({
       <div className="bg-white border-t border-gray-200 p-4">
         <div className="flex items-end space-x-2">
           <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
-            {isFacebookConversation && !canSendFacebookMessage && (
-              <p className="text-xs text-red-500 mb-2">
-                No puedes enviar mensajes porque han pasado más de 24 horas
-                desde el último mensaje del usuario.
-              </p>
-            )}
             <textarea
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}

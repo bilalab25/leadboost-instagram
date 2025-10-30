@@ -69,142 +69,186 @@ interface NormalizedMessage {
   created_time: string;
   provider: string;
 }
+function logSection(title: string, data?: any) {
+  console.log(`\n🟨 === ${title} ===`);
+  if (data) console.dir(data, { depth: 2, colors: true });
+}
 
-async function fetchFacebookMessages(
-  conversationId: string,
-  accessToken: string,
-  accountId: string
-): Promise<NormalizedMessage[]> {
+function logMessageSummary(provider: string, m: any, idx: number) {
+  console.log(
+    `   • [${provider}] #${idx + 1} → id:${m.id || "?"} | from:${m.from?.name || m.from?.username || m.from || "?"} | text:"${m.message || m.text || ""}" | attachments:${
+      m.attachments?.data?.length || 0
+    } | created:${m.created_time || "?"}`,
+  );
+}
+
+async function fetchFacebookMessages(conversationId, accessToken, accountId) {
   const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${accessToken}`;
-  
-  logUnifiedRequest("facebook", conversationId, messagesUrl);
-  
+  logSection(`📩 Fetching Facebook Messages for ${conversationId}`, {
+    url: messagesUrl,
+  });
+
   const r = await fetch(messagesUrl);
   const data = await r.json();
-  
+
   if (data.error) {
-    console.error("Facebook API error:", data.error);
+    console.error("❌ Facebook API error:", data.error);
     throw new Error(data.error.message);
   }
-  
-  const messages: NormalizedMessage[] = [];
-  
-  for (const m of data.data || []) {
+
+  if (!data.data?.length) {
+    console.warn("⚠️ No messages returned from Facebook for", conversationId);
+  }
+
+  const messages = [];
+
+  for (const [i, m] of (data.data || []).entries()) {
+    logMessageSummary("facebook", m, i);
+
     let imageUrl = null;
     const text = m.message || "";
-    
-    // Check for inline attachments
+
     if (m.attachments?.data?.length) {
       const att = m.attachments.data[0];
-      imageUrl = att.image_data?.url || att.file_url || att.media?.image?.src || null;
+      imageUrl =
+        att.image_data?.url || att.file_url || att.media?.image?.src || null;
+      console.log(`     📎 Attachment found: ${imageUrl}`);
     }
-    
-    // Fetch attachments manually if no text and no inline attachment
-    if (!m.message?.trim() && !imageUrl) {
+
+    if (!text?.trim() && !imageUrl) {
+      console.log(`     🔍 Fetching attachments manually for message ${m.id}`);
       const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
-      try {
-        const attachRes = await fetch(attachUrl);
-        const attachData = await attachRes.json();
-        
-        if (attachData?.data?.length) {
-          const att = attachData.data[0];
-          imageUrl = att.image_data?.url || att.file_url || att.media?.image?.src || null;
-        }
-      } catch (err) {
-        console.error(`Error fetching attachment for ${m.id}:`, err);
-      }
+      const attachRes = await fetch(attachUrl);
+      const attachData = await attachRes.json();
+      const att = attachData?.data?.[0];
+      if (att)
+        imageUrl =
+          att.image_data?.url || att.file_url || att.media?.image?.src || null;
     }
-    
+
     messages.push({
       id: m.id,
-      conversationId: conversationId, // CRITICAL: Preserve conversation ID for detail view
+      conversationId,
       text,
       imageUrl,
       from: m.from?.name || "Unknown",
       fromId: m.from?.id || "",
       created_time: m.created_time,
-      provider: "facebook"
+      provider: "facebook",
     });
   }
-  
-  logUnifiedResponse("facebook", messages.length);
+
+  console.log(`✅ FACEBOOK done. Total valid messages: ${messages.length}`);
   return messages;
 }
 
-async function fetchInstagramMessages(
-  conversationId: string,
-  accessToken: string,
-  accountId: string
-): Promise<NormalizedMessage[]> {
-  const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${accessToken}`;
-  
-  logUnifiedRequest("instagram", conversationId, messagesUrl);
-  
-  const r = await fetch(messagesUrl);
-  const data = await r.json();
-  
+async function fetchInstagramMessages(conversationId, accessToken, accountId) {
+  const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?platform=instagram&fields=id,message,text,from,created_time,attachments,media&access_token=${accessToken}`;
+  logSection(`📩 Fetching Instagram Messages for ${conversationId}`, {
+    url: messagesUrl,
+  });
+
+  const response = await fetch(messagesUrl);
+  const data = await response.json();
+
   if (data.error) {
-    console.error("Instagram API error:", data.error);
+    console.error("❌ Instagram API error:", data.error);
     throw new Error(data.error.message);
   }
-  
-  const messages: NormalizedMessage[] = [];
-  
-  for (const m of data.data || []) {
+
+  if (!data.data?.length) {
+    console.warn("⚠️ No messages returned from Instagram for", conversationId);
+  }
+
+  const messages = [];
+
+  for (const [i, m] of (data.data || []).entries()) {
+    logMessageSummary("instagram", m, i);
+
     let imageUrl = null;
-    const text = m.message || "";
-    
-    // Check for inline attachments
+    let text = m.message || m.text || "";
+
     if (m.attachments?.data?.length) {
       const att = m.attachments.data[0];
-      imageUrl = att.image_data?.url || att.file_url || att.media?.image?.src || null;
+      imageUrl =
+        att.image_data?.url ||
+        att.file_url ||
+        att.media?.image?.src ||
+        att.media?.image_url ||
+        null;
+      console.log(`     📎 Inline attachment: ${imageUrl}`);
     }
-    
+
+    if (!imageUrl && m.media?.image_url) {
+      imageUrl = m.media.image_url;
+      console.log(`     🖼️ Media field: ${imageUrl}`);
+    }
+
+    if (!text && !imageUrl) {
+      console.log(
+        `     ⚙️ No text/media — checking attachments manually for ${m.id}`,
+      );
+      const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
+      const attachRes = await fetch(attachUrl);
+      const attachData = await attachRes.json();
+      if (attachData?.data?.[0]) {
+        const att = attachData.data[0];
+        imageUrl =
+          att.image_data?.url ||
+          att.file_url ||
+          att.media?.image?.src ||
+          att.media?.image_url ||
+          null;
+        console.log(`     ✅ Manual attachment found: ${imageUrl}`);
+      }
+    }
+
     messages.push({
       id: m.id,
-      conversationId: conversationId, // CRITICAL: Preserve conversation ID for detail view
-      text,
+      conversationId,
+      text: text || "(sin mensaje)",
       imageUrl,
       from: m.from?.name || m.from?.username || "Unknown",
       fromId: m.from?.id || "",
       created_time: m.created_time,
-      provider: "instagram"
+      provider: "instagram",
     });
   }
-  
-  logUnifiedResponse("instagram", messages.length);
+
+  console.log(`✅ INSTAGRAM done. Total valid messages: ${messages.length}`);
   return messages;
 }
 
 async function fetchThreadsMessages(
   conversationId: string,
   accessToken: string,
-  accountId: string
+  accountId: string,
 ): Promise<NormalizedMessage[]> {
   const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,text,from,created_time,attachments&access_token=${accessToken}`;
-  
+
   logUnifiedRequest("threads", conversationId, messagesUrl);
-  
+
   const r = await fetch(messagesUrl);
   const data = await r.json();
-  
+
   if (data.error) {
     console.error("Threads API error:", data.error);
     throw new Error(data.error.message);
   }
-  
+
   const messages: NormalizedMessage[] = [];
-  
+
   for (const m of data.data || []) {
     let imageUrl = null;
     const text = m.text || m.message || "";
-    
+
     // Check for inline attachments
     if (m.attachments?.data?.length) {
       const att = m.attachments.data[0];
-      imageUrl = att.image_data?.url || att.file_url || att.media?.image?.src || null;
+      imageUrl =
+        att.image_data?.url || att.file_url || att.media?.image?.src || null;
     }
-    
+
     messages.push({
       id: m.id,
       conversationId: conversationId, // CRITICAL: Preserve conversation ID for detail view
@@ -213,10 +257,10 @@ async function fetchThreadsMessages(
       from: m.from?.name || m.from?.username || "Unknown",
       fromId: m.from?.id || "",
       created_time: m.created_time,
-      provider: "threads"
+      provider: "threads",
     });
   }
-  
+
   logUnifiedResponse("threads", messages.length);
   return messages;
 }
@@ -224,29 +268,29 @@ async function fetchThreadsMessages(
 async function fetchWhatsappMessages(
   conversationId: string,
   accessToken: string,
-  accountId: string
+  accountId: string,
 ): Promise<NormalizedMessage[]> {
   // WhatsApp uses phone number as conversation ID
   // We fetch messages from the business phone number ID
   const messagesUrl = `https://graph.facebook.com/v24.0/${accountId}/messages?access_token=${accessToken}`;
-  
+
   logUnifiedRequest("whatsapp", conversationId, messagesUrl);
-  
+
   // Note: WhatsApp typically requires webhook setup for incoming messages
   // This is a placeholder - in production you'd fetch from your database
   // where webhook messages are stored
-  
+
   try {
     const r = await fetch(messagesUrl);
     const data = await r.json();
-    
+
     if (data.error) {
       console.error("WhatsApp API error:", data.error);
       throw new Error(data.error.message);
     }
-    
+
     const messages: NormalizedMessage[] = [];
-    
+
     // WhatsApp messages would typically be stored in your DB via webhooks
     // This is a simplified version
     for (const m of data.data || []) {
@@ -257,11 +301,13 @@ async function fetchWhatsappMessages(
         imageUrl: m.image?.link || null,
         from: m.from || "Unknown",
         fromId: m.from || "",
-        created_time: m.timestamp ? new Date(parseInt(m.timestamp) * 1000).toISOString() : new Date().toISOString(),
-        provider: "whatsapp"
+        created_time: m.timestamp
+          ? new Date(parseInt(m.timestamp) * 1000).toISOString()
+          : new Date().toISOString(),
+        provider: "whatsapp",
       });
     }
-    
+
     logUnifiedResponse("whatsapp", messages.length);
     return messages;
   } catch (err) {
@@ -792,103 +838,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Conversation routes
-  app.post(
-    "/api/conversations/from-message/:messageId",
-    isAuthenticated,
-    async (req: any, res) => {
-      try {
-        const messageId = req.params.messageId;
-
-        // For mock messages, create a mock conversation response
-        // In production, this would fetch the actual message and create/find a conversation
-        const mockConversation = {
-          id: messageId, // Use message ID as conversation ID for mock
-          participantName:
-            messageId === "msg-1"
-              ? "María González"
-              : messageId === "msg-2"
-                ? "Carlos Rivera"
-                : messageId === "msg-3"
-                  ? "Ana López"
-                  : messageId === "msg-4"
-                    ? "Diego Morales"
-                    : "Customer",
-          participantAvatar: null,
-          platform:
-            messageId === "msg-1"
-              ? "instagram"
-              : messageId === "msg-2"
-                ? "facebook"
-                : messageId === "msg-3"
-                  ? "tiktok"
-                  : messageId === "msg-4"
-                    ? "whatsapp"
-                    : "email",
-          socialAccountId: "social-1",
-          lastMessageAt: new Date(),
-          lastMessagePreview: "Preview...",
-        };
-
-        res.json(mockConversation);
-      } catch (error) {
-        console.error("Error creating conversation from message:", error);
-        res.status(500).json({ message: "Failed to create conversation" });
-      }
-    },
-  );
-
-  app.get("/api/conversations/:id", isAuthenticated, async (req, res) => {
-    try {
-      const conversationId = req.params.id;
-
-      // For mock message IDs, return mock conversation
-      if (conversationId.startsWith("msg-")) {
-        const mockConversation = {
-          id: conversationId,
-          participantName:
-            conversationId === "msg-1"
-              ? "María González"
-              : conversationId === "msg-2"
-                ? "Carlos Rivera"
-                : conversationId === "msg-3"
-                  ? "Ana López"
-                  : conversationId === "msg-4"
-                    ? "Diego Morales"
-                    : "Customer",
-          participantAvatar: null,
-          platform:
-            conversationId === "msg-1"
-              ? "instagram"
-              : conversationId === "msg-2"
-                ? "facebook"
-                : conversationId === "msg-3"
-                  ? "tiktok"
-                  : conversationId === "msg-4"
-                    ? "whatsapp"
-                    : "email",
-          socialAccountId: "social-1",
-          lastMessageAt: new Date(),
-          lastMessagePreview: "Preview...",
-        };
-
-        return res.json(mockConversation);
-      }
-
-      // For real conversation IDs, query the database
-      const conversation = await storage.getConversationById(conversationId);
-
-      if (!conversation) {
-        return res.status(404).json({ message: "Conversation not found" });
-      }
-
-      res.json(conversation);
-    } catch (error) {
-      console.error("Error fetching conversation:", error);
-      res.status(500).json({ message: "Failed to fetch conversation" });
-    }
-  });
-
   app.get("/api/messages/latest", async (req, res) => {
     try {
       const { limit = 10 } = req.query;
@@ -915,126 +864,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch latest messages" });
     }
   });
-
-  app.get(
-    "/api/conversations/:id/messages",
-    isAuthenticated,
-    async (req, res) => {
-      try {
-        const conversationId = req.params.id;
-
-        // For mock message IDs, return mock conversation messages
-        if (conversationId.startsWith("msg-")) {
-          const mockMessages = [
-            {
-              id: `${conversationId}-thread-1`,
-              conversationId,
-              senderId:
-                conversationId === "msg-1"
-                  ? "maria_gonzalez"
-                  : conversationId === "msg-2"
-                    ? "carlos_rivera"
-                    : conversationId === "msg-3"
-                      ? "ana_lopez"
-                      : conversationId === "msg-4"
-                        ? "diego_morales"
-                        : "customer",
-              senderName:
-                conversationId === "msg-1"
-                  ? "María González"
-                  : conversationId === "msg-2"
-                    ? "Carlos Rivera"
-                    : conversationId === "msg-3"
-                      ? "Ana López"
-                      : conversationId === "msg-4"
-                        ? "Diego Morales"
-                        : "Customer",
-              senderAvatar: null,
-              content:
-                conversationId === "msg-1"
-                  ? "¡Hola! ¡Me encanta los resultados de mi último tratamiento facial! ¿Cuándo pueden agendar mi próxima cita? 💆‍♀️"
-                  : conversationId === "msg-2"
-                    ? "¿Pueden ayudarme con mi cita de cirugía plástica? Necesito confirmar los detalles pre-operatorios para mi procedimiento de la próxima semana. Cita #12345"
-                    : conversationId === "msg-3"
-                      ? "¡Servicio al cliente increíble! Gracias por resolver mi problema tan rápido 🙌"
-                      : conversationId === "msg-4"
-                        ? "Hola, vi su anuncio en Facebook sobre el paquete de rejuvenecimiento facial. ¿Podrían enviarme más detalles e información de precios?"
-                        : "Hello, I have a question",
-              direction: "inbound" as const,
-              status: "read" as const,
-              messageType: "text" as const,
-              createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-            },
-          ];
-
-          return res.json(mockMessages);
-        }
-
-        // For real conversation IDs, query the database
-        const messages = await storage.getConversationMessages(conversationId);
-        res.json(messages);
-      } catch (error) {
-        console.error("Error fetching conversation messages:", error);
-        res
-          .status(500)
-          .json({ message: "Failed to fetch conversation messages" });
-      }
-    },
-  );
-
-  app.post(
-    "/api/conversations/:id/messages",
-    isAuthenticated,
-    async (req: any, res) => {
-      try {
-        const conversationId = req.params.id;
-        const { content } = req.body;
-
-        // For mock message IDs, return a mock outbound message
-        if (conversationId.startsWith("msg-")) {
-          const mockMessage = {
-            id: `${conversationId}-reply-${Date.now()}`,
-            conversationId,
-            senderId: req.user?.id || "agent-1",
-            senderName: req.user?.firstName || "Agent",
-            senderAvatar: req.user?.profilePicture || null,
-            content,
-            direction: "outbound" as const,
-            status: "sent" as const,
-            messageType: "text" as const,
-            createdAt: new Date().toISOString(),
-          };
-
-          return res.json(mockMessage);
-        }
-
-        // For real conversation IDs, create in database
-        const conversation = await storage.getConversationById(conversationId);
-
-        if (!conversation) {
-          return res.status(404).json({ message: "Conversation not found" });
-        }
-
-        // Create the outbound message
-        const message = await storage.createConversationMessage({
-          conversationId,
-          socialAccountId: conversation.socialAccountId,
-          senderId: req.user.id,
-          senderName: req.user.firstName || "Agent",
-          senderAvatar: req.user.profilePicture,
-          content,
-          direction: "outbound",
-          status: "sent",
-          messageType: "text",
-        });
-
-        res.json(message);
-      } catch (error) {
-        console.error("Error sending message:", error);
-        res.status(500).json({ message: "Failed to send message" });
-      }
-    },
-  );
 
   // Content plans routes
   app.get("/api/content-plans", async (req: any, res) => {
@@ -1685,6 +1514,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
 
+      console.log("🔐 [OAuth] Starting Facebook callback...");
+      console.log("📦 Received code:", code.slice(0, 8) + "...");
+
       // Step 1️⃣ Exchange code for user access token
       const tokenResponse = await fetch(
         `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
@@ -1698,11 +1530,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json(tokenData.error);
       }
 
-      // Step 2️⃣ Fetch the user's managed pages
+      // =========================================================================
+      // 🧩 PASO DE DEBUGGING AÑADIDO: Inspeccionar los permisos del token de usuario
+      // =========================================================================
+      const debugUrl = `https://graph.facebook.com/debug_token?input_token=${tokenData.access_token}&access_token=${process.env.FB_APP_ID}|${process.env.FB_APP_SECRET}`;
+      const debugResponse = await fetch(debugUrl);
+      const debugData = await debugResponse.json();
+
+      console.log("🔍 [DEBUG] Token info:", {
+        type: debugData.data?.type,
+        scopes: debugData.data?.scopes,
+        app_id: debugData.data?.app_id,
+        is_valid: debugData.data?.is_valid,
+      });
+
+      const grantedScopes = debugData.data?.scopes || [];
+      console.log(
+        `🔍 [DEBUG] Permisos GRANTED por el usuario: ${grantedScopes.join(", ")}`,
+      );
+
+      if (!grantedScopes.includes("instagram_manage_messages")) {
+        console.error(
+          "❌ [FATAL SCOPE MISSING] instagram_manage_messages NO FUE OTORGADO.",
+        );
+        return res
+          .status(403)
+          .send(
+            "Error de permisos: El usuario no autorizó 'instagram_manage_messages' o no es un tester válido.",
+          );
+      }
+      // =========================================================================
+
+      console.log("🧩 [Step 1] User token obtained:", {
+        token_start: tokenData.access_token?.slice(0, 15),
+        expires_in: tokenData.expires_in,
+      });
+
+      // Step 2️⃣ Fetch user's managed pages
       const pagesResponse = await fetch(
         `https://graph.facebook.com/v24.0/me/accounts?access_token=${tokenData.access_token}`,
       );
       const pagesData = await pagesResponse.json();
+
+      console.log(
+        "🧩 [Step 2] /me/accounts result:",
+        JSON.stringify(pagesData, null, 2),
+      );
 
       if (!pagesData.data || pagesData.data.length === 0) {
         console.error("❌ No Facebook Pages found for this user");
@@ -1710,11 +1583,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const page = pagesData.data[0];
+      let pageAccessToken = page.access_token;
       const expiresAt = tokenData.expires_in
         ? dayjs().add(tokenData.expires_in, "seconds").toDate()
         : null;
+      console.log(
+        "🧩 [DEBUG] Using pageAccessToken:",
+        pageAccessToken?.slice(0, 20),
+      );
 
-      // Step 3️⃣ Save Facebook integration
+      console.log("✅ [PAGE FOUND]", {
+        page_name: page.name,
+        page_id: page.id,
+        token_start: page.access_token?.slice(0, 15),
+      });
+
+      // Step 3️⃣ Refresh token to ensure full IG Messaging capability
+      try {
+        const tokenExchangeUrl = `https://graph.facebook.com/v24.0/${page.id}?fields=access_token&access_token=${pageAccessToken}`;
+        const tokenRes = await fetch(tokenExchangeUrl);
+        const tokenJson = await tokenRes.json();
+
+        console.log("🧩 [Step 3] Token refresh response:", tokenJson);
+
+        if (tokenJson.access_token) {
+          console.log(`🔁 [REFRESHED] Page token updated for IG Messaging`);
+          pageAccessToken = tokenJson.access_token;
+        } else {
+          console.warn(
+            "⚠️ Could not refresh token for IG Messaging:",
+            tokenJson,
+          );
+        }
+      } catch (refreshErr) {
+        console.warn("⚠️ Token refresh failed:", refreshErr);
+      }
+
+      // Step 4️⃣ Save Facebook integration
       await storage.createOrUpdateIntegration({
         userId,
         provider: "facebook",
@@ -1722,7 +1627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storeName: "Facebook",
         storeUrl: `https://facebook.com/${page.id}`,
         pageId: page.id,
-        accessToken: page.access_token,
+        accessToken: pageAccessToken,
         accountName: page.name,
         accountId: page.id,
         settings: {
@@ -1741,29 +1646,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-      console.log(`✅ Facebook Page connected: ${page.name} (${page.id})`);
+      console.log(`✅ [FACEBOOK CONNECTED] Page: ${page.name} (${page.id})`);
 
-      // Default redirect state
       let connectedType = "facebook";
 
-      // Step 4️⃣ Attempt to detect connected Instagram account
+      // Step 5️⃣ Detect connected Instagram Business Account
       try {
+        console.log("🔍 [Step 5] Checking IG connection for Page:", page.id);
+
         const igRes = await fetch(
-          `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account,instagram_business_account&access_token=${page.access_token}`,
+          `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account,instagram_business_account&access_token=${pageAccessToken}`,
         );
         const igData = await igRes.json();
+
+        console.log("🧩 [IG LINK RESPONSE]", JSON.stringify(igData, null, 2));
+
         const igAccount =
           igData.connected_instagram_account ||
           igData.instagram_business_account;
 
         if (igAccount && igAccount.id) {
-          // Step 5️⃣ Get Instagram account details
+          console.log("🟢 [IG FOUND]", igAccount);
+
+          // Step 6️⃣ Get Instagram account details
           const igDetailsRes = await fetch(
-            `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${page.access_token}`,
+            `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${pageAccessToken}`,
           );
           const igDetails = await igDetailsRes.json();
 
-          // Create Instagram integration
+          console.log("🧩 [IG DETAILS]", JSON.stringify(igDetails, null, 2));
+
+          // Step 7️⃣ Test if token is valid for messaging
+          console.log(
+            "🧩 [TEST IG] Using token to test IG Messaging:",
+            pageAccessToken?.slice(0, 20),
+          );
+
+          const testUrl = `https://graph.facebook.com/v24.0/${igAccount.id}/conversations?fields=id,participants,platform,updated_time&limit=1&access_token=${pageAccessToken}`;
+          const testRes = await fetch(testUrl);
+          const testData = await testRes.json();
+
+          if (testData.error) {
+            console.error("🚨 [IG MESSAGING TEST ERROR]", testData.error);
+          } else {
+            console.log("✅ [IG MESSAGING TEST OK]", testData.data);
+          }
+          if (testData.data) {
+            console.log(
+              `✅ [IG MESSAGING TEST PASSED] for ${igDetails.username}`,
+            );
+          } else {
+            console.warn("⚠️ [IG MESSAGING TEST FAILED]", testData.error);
+          }
+
+          // Step 8️⃣ Save Instagram integration (with Page ID fix)
           await storage.createOrUpdateIntegration({
             userId,
             provider: "instagram",
@@ -1771,9 +1707,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             storeName: "Instagram",
             storeUrl: `https://instagram.com/${igDetails.username || page.name}`,
             accountId: igAccount.id,
-            accessToken: page.access_token,
+            accessToken: pageAccessToken,
             accountName: igDetails.username || page.name,
-            pageId: page.id,
+            pageId: page.id, // ✅ CRITICAL FIX
             metadata: {
               fbPageId: page.id,
               fbPageName: page.name,
@@ -1786,10 +1722,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             syncEnabled: true,
           });
 
-          console.log(`✅ Instagram auto-connected: ${igDetails.username}`);
+          console.log(
+            `✅ [INSTAGRAM CONNECTED] ${igDetails.username} (IG ID: ${igAccount.id})`,
+          );
           connectedType = "facebook,instagram";
 
-          // Step 6️⃣ Create Threads integration (linked to same IG)
+          // Step 9️⃣ Threads integration
           await storage.createOrUpdateIntegration({
             userId,
             provider: "threads",
@@ -1797,7 +1735,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             storeName: "Threads",
             storeUrl: `https://threads.net/@${igDetails.username}`,
             accountId: igAccount.id,
-            accessToken: page.access_token,
+            accessToken: pageAccessToken,
             accountName: igDetails.username,
             pageId: page.id,
             metadata: {
@@ -1811,7 +1749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             syncEnabled: true,
           });
 
-          console.log(`✅ Threads auto-connected: ${igDetails.username}`);
+          console.log(`✅ [THREADS CONNECTED] @${igDetails.username}`);
           connectedType = "facebook,instagram,threads";
         } else {
           console.log("⚠️ No Instagram account linked to this page.");
@@ -1820,104 +1758,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("⚠️ Instagram/Threads auto-connect failed:", igErr);
       }
 
-      // Step 7️⃣ Final redirect
+      console.log("🏁 [FINAL] Redirecting user to settings...");
       res.redirect(`/settings?connected=${connectedType}`);
     } catch (err) {
       console.error("❌ Facebook callback error:", err);
       res.status(500).send("Error in Facebook callback");
-    }
-  });
-
-  // 📍 /api/integrations/instagram/connect
-  app.get("/api/integrations/instagram/connect", async (req, res) => {
-    try {
-      // ✅ 1. Obtener el ID del usuario autenticado
-      const state = encodeURIComponent(req.user?.id || "anonymous");
-
-      // ✅ 2. Usar variables de entorno, no hardcodear los IDs
-      const clientId = process.env.IG_APP_ID;
-      const redirectUri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
-
-      // ✅ 3. Construir la URL correctamente (con state incluido)
-      const authUrl = `https://www.instagram.com/oauth/authorize
-        ?force_reauth=true
-        &client_id=${clientId}
-        &redirect_uri=${encodeURIComponent(redirectUri)}
-        &response_type=code
-        &scope=instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish,instagram_business_manage_insights
-        &state=${state}`.replace(/\s+/g, ""); // quitar saltos de línea
-
-      console.log("🌐 Redirecting to Instagram Auth:", authUrl);
-      res.redirect(authUrl);
-    } catch (error) {
-      console.error("❌ Error generating Instagram auth URL:", error);
-      res.status(500).send("Error starting Instagram OAuth");
-    }
-  });
-
-  // 📍 /api/integrations/instagram/callback
-  app.get("/api/integrations/instagram/callback", async (req, res) => {
-    try {
-      const { code, state } = req.query;
-      const redirectUri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
-
-      if (!code) return res.status(400).send("Missing authorization code");
-
-      console.log("📥 Instagram callback hit:", { code, state, redirectUri });
-
-      // ✅ Exchange code for access token
-      const tokenResponse = await fetch(
-        "https://api.instagram.com/oauth/access_token",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            client_id: process.env.IG_APP_ID!,
-            client_secret: process.env.IG_APP_SECRET!, // ✅ corregido
-            grant_type: "authorization_code",
-            redirect_uri: redirectUri,
-            code: code as string,
-          }),
-        },
-      );
-
-      const rawText = await tokenResponse.text();
-      console.log("📦 Raw Instagram Token Response:", rawText);
-
-      const tokenData = JSON.parse(rawText);
-
-      if (!tokenData.access_token) {
-        console.error("❌ Invalid token data:", tokenData);
-        return res.status(400).json(tokenData);
-      }
-
-      // ✅ Get user data
-      const userResponse = await fetch(
-        `https://graph.instagram.com/me?fields=id,username,account_type&access_token=${tokenData.access_token}`,
-      );
-      const userData = await userResponse.json();
-      console.log("👤 Instagram User Data:", userData);
-
-      // ✅ Save integration
-      await storage.createOrUpdateIntegration({
-        userId: state as string,
-        provider: "instagram",
-        category: "social_media",
-        storeName: userData.username,
-        accessToken: tokenData.access_token,
-        isActive: true,
-        syncEnabled: true,
-        metadata: {
-          igUserId: userData.id,
-          account_type: userData.account_type,
-        },
-        accountName: userData.username,
-      });
-
-      res.redirect("/settings");
-    } catch (error) {
-      console.error("❌ Instagram Callback Error:", error);
-      res.status(500).send("Error in Instagram callback");
     }
   });
 
@@ -1986,38 +1831,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 3️⃣ Enviar mensaje (Messenger Send API)
-  app.post("/api/facebook/messages/send", isAuthenticated, async (req, res) => {
+  // 🟪 META WEBHOOK (Facebook & Instagram Messages)
+  app.get("/api/webhooks/meta", async (req, res) => {
     try {
-      const userId = req.user.id;
-      const { recipientId, message } = req.body;
+      const VERIFY_TOKEN =
+        process.env.META_VERIFY_TOKEN || "leadboost_meta_webhook";
+      const mode = req.query["hub.mode"];
+      const token = req.query["hub.verify_token"];
+      const challenge = req.query["hub.challenge"];
 
-      const integrations = await storage.getIntegrations(userId);
-      const fbIntegration = integrations.find((i) =>
-        i.platform.includes("facebook"),
-      );
-      if (!fbIntegration)
-        return res.status(404).json({ error: "No Facebook account connected" });
-
-      const { accountId: pageId, accessToken } = fbIntegration;
-
-      const url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
-      const r = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messaging_type: "RESPONSE",
-          recipient: { id: recipientId },
-          message: { text: message },
-          access_token: accessToken,
-        }),
-      });
-      const data = await r.json();
-
-      res.json(data);
+      if (mode && token && mode === "subscribe" && token === VERIFY_TOKEN) {
+        console.log("✅ Webhook verificado correctamente con Meta");
+        return res.status(200).send(challenge);
+      } else {
+        console.warn("❌ Webhook verification failed");
+        return res.sendStatus(403);
+      }
     } catch (err) {
-      console.error("Send message error:", err);
-      res.status(500).json({ error: "Failed to send message" });
+      console.error("❌ Error en verificación de webhook Meta:", err);
+      res.status(500).json({ error: "Meta webhook verification failed" });
+    }
+  });
+
+  app.post("/api/webhooks/meta", async (req, res) => {
+    try {
+      const body = req.body;
+
+      if (body.object === "page" || body.object === "instagram") {
+        console.log("📩 Nuevo evento recibido desde Meta");
+        console.dir(body, { depth: null });
+
+        // 🔹 Procesar cada entrada del evento
+        for (const entry of body.entry || []) {
+          const messagingEvents = entry.messaging || entry.changes || [];
+
+          for (const event of messagingEvents) {
+            // 📬 Evento de Messenger
+            if (event.message) {
+              const text = event.message.text;
+              const senderId = event.sender?.id;
+              const recipientId = event.recipient?.id;
+
+              console.log("💬 [Messenger] Mensaje recibido:", {
+                senderId,
+                recipientId,
+                text,
+              });
+            }
+
+            // 📬 Evento de Instagram Messaging
+            if (event.value && event.value.messaging_product === "instagram") {
+              const igMessage = event.value;
+              console.log("💬 [Instagram] Mensaje recibido:", igMessage);
+            }
+          }
+        }
+
+        res.status(200).send("EVENT_RECEIVED");
+      } else {
+        res.sendStatus(404);
+      }
+    } catch (err) {
+      console.error("❌ Error procesando evento Meta:", err);
+      res.status(500).json({ error: "Meta webhook processing failed" });
     }
   });
 
@@ -2059,7 +1935,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(result);
   });
 
-  // 🔄 Unified Provider Endpoints
   // Get conversations for any provider (facebook, instagram, threads, whatsapp)
   app.get("/api/:provider/conversations", isAuthenticated, async (req, res) => {
     try {
@@ -2109,129 +1984,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get messages for a specific conversation from any provider
-  app.get(
-    "/api/facebook/conversations/:conversationId/messages",
-    async (req, res) => {
-      try {
-        const { conversationId } = req.params;
-        const { user } = req;
-        const userId = user.id;
-
-        const integrations = await storage.getIntegrations(userId);
-        const integration = integrations.find((i) => i.provider === "facebook");
-
-        if (!integration) {
-          return res
-            .status(404)
-            .json({ error: "Facebook integration not found" });
-        }
-
-        const accessToken = integration.accessToken;
-        const pageId = integration.accountId;
-
-        // 🟣 Pedimos attachments en el primer fetch también
-        const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${accessToken}`;
-
-        // 🔍 DIAGNOSTIC: Log the request start
-        logFacebookRequest(conversationId, messagesUrl);
-
-        const r = await fetch(messagesUrl);
-        const data = await r.json();
-
-        if (data.error) {
-          console.error("Facebook API error:", data.error);
-          return res.status(400).json({ error: data.error.message });
-        }
-
-        const messages = [];
-
-        for (const m of data.data || []) {
-          let imageUrl = null;
-          const text = m.message || "";
-
-          // 🖼️ Si ya vienen attachments en el mensaje
-          if (m.attachments?.data?.length) {
-            const att = m.attachments.data[0];
-            imageUrl =
-              att.image_data?.url ||
-              att.file_url ||
-              att.media?.image?.src ||
-              null;
-            console.log("📸 Inline attachment found:", imageUrl);
-          }
-
-          // 🪣 Si no tiene texto ni attachments, buscar manualmente
-          if (!m.message?.trim() && !imageUrl) {
-            const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
-
-            // 🔍 DIAGNOSTIC: Log attachment fetch
-            logAttachmentFetch(m.id, attachUrl);
-
-            try {
-              const attachRes = await fetch(attachUrl);
-              const attachData = await attachRes.json();
-
-              // 🔎 Guardar la respuesta completa para depurar
-              fs.writeFileSync(
-                `facebook_attach_${m.id}.json`,
-                JSON.stringify(attachData, null, 2),
-              );
-
-              if (attachData?.data?.length) {
-                const att = attachData.data[0];
-                imageUrl =
-                  att.image_data?.url ||
-                  att.file_url ||
-                  att.media?.image?.src ||
-                  null;
-
-                // 🔍 DIAGNOSTIC: Log attachment found
-                logAttachmentFound(m.id, imageUrl || "(no URL)");
-              } else {
-                // 🔍 DIAGNOSTIC: Log attachment not found
-                logAttachmentNotFound(m.id);
-              }
-            } catch (e) {
-              // 🔍 DIAGNOSTIC: Log attachment error
-              logAttachmentError(m.id, e);
-            }
-          }
-
-          messages.push({
-            id: m.id,
-            text: text || "(sin mensaje)",
-            imageUrl,
-            from: m.from?.name,
-            fromId: m.from?.id,
-            created_time: m.created_time,
-          });
-        }
-
-        // 📆 Encontrar el último mensaje recibido del usuario
-        const lastInbound = messages
-          .filter((m) => m.fromId !== pageId)
-          .sort(
-            (a, b) =>
-              new Date(b.created_time).getTime() -
-              new Date(a.created_time).getTime(),
-          )[0];
-
-        // 🔍 DIAGNOSTIC: Log successful response
-        logFacebookResponse(messages.length);
-
-        res.json({
-          pageId,
-          messages,
-          lastUserMessageTime: lastInbound?.created_time || null,
-        });
-      } catch (err) {
-        console.error("Messages fetch error:", err);
-        res.status(500).json({ error: "Failed to fetch messages" });
-      }
-    },
-  );
-
   // ✅ NEW: Universal GET endpoint for messages from any provider
   app.get(
     "/api/messages/:provider/:conversationId",
@@ -2241,9 +1993,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { provider, conversationId } = req.params;
         const userId = req.user.id;
 
-        // Validate provider
+        console.log("\n🟦 [START MESSAGE FETCH]");
+        console.log("🔹 Provider:", provider);
+        console.log("🔹 Conversation ID:", conversationId);
+        console.log("� User ID:", userId);
+
         const validProviders = ["facebook", "instagram", "threads", "whatsapp"];
         if (!validProviders.includes(provider)) {
+          console.warn("⚠️ Invalid provider requested:", provider);
           return res.status(400).json({ error: "Invalid provider" });
         }
 
@@ -2251,6 +2008,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const integration = integrations.find((i) => i.provider === provider);
 
         if (!integration) {
+          console.warn(
+            `⚠️ No ${provider} integration found for user ${userId}`,
+          );
           return res
             .status(404)
             .json({ error: `No ${provider} integration found` });
@@ -2259,34 +2019,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const accessToken = integration.accessToken;
         const accountId = integration.accountId;
 
+        console.log("🧩 Integration found:", {
+          provider,
+          accountId,
+          accessToken_start: accessToken?.slice(0, 10),
+        });
+
         let messages: NormalizedMessage[] = [];
 
-        // Call appropriate fetch helper based on provider
+        // Fetch by provider
         switch (provider) {
           case "facebook":
-            messages = await fetchFacebookMessages(conversationId, accessToken, accountId);
+            messages = await fetchFacebookMessages(
+              conversationId,
+              accessToken,
+              accountId,
+            );
             break;
           case "instagram":
-            messages = await fetchInstagramMessages(conversationId, accessToken, accountId);
+            messages = await fetchInstagramMessages(
+              conversationId,
+              accessToken,
+              accountId,
+            );
             break;
           case "threads":
-            messages = await fetchThreadsMessages(conversationId, accessToken, accountId);
+            messages = await fetchThreadsMessages(
+              conversationId,
+              accessToken,
+              accountId,
+            );
             break;
           case "whatsapp":
-            messages = await fetchWhatsappMessages(conversationId, accessToken, accountId);
+            messages = await fetchWhatsappMessages(
+              conversationId,
+              accessToken,
+              accountId,
+            );
             break;
         }
 
+        console.log(
+          `✅ [${provider.toUpperCase()}] Retrieved ${messages.length} messages`,
+        );
+
         res.json({
           provider,
+          accountId, // ✅ este es el ID de tu cuenta/página conectada
           messages,
-          total: messages.length
+          total: messages.length,
         });
       } catch (err) {
-        console.error("Unified messages fetch error:", err);
-        res.status(500).json({ 
+        console.error("❌ Unified messages fetch error:", err);
+        res.status(500).json({
           error: "Failed to fetch messages",
-          details: err instanceof Error ? err.message : String(err)
+          details: err instanceof Error ? err.message : String(err),
         });
       }
     },
@@ -2299,21 +2086,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const userId = req.user.id;
+        console.log("\n🟪 [START UNIFIED MESSAGE AGGREGATION]");
+        console.log("👤 User:", userId);
+
         const integrations = await storage.getIntegrations(userId);
+        console.log("🧩 Found integrations:", integrations.length);
 
         if (!integrations || integrations.length === 0) {
-          return res.json({
-            messages: [],
-            providers: [],
-            total: 0
-          });
+          console.warn("⚠️ No integrations found");
+          return res.json({ messages: [], providers: [], total: 0 });
         }
 
-        // Prepare fetch tasks for each integration
         const fetchTasks = integrations.map(async (integration) => {
           const provider = integration.provider;
           const accessToken = integration.accessToken;
           const accountId = integration.accountId;
+
+          console.log(
+            `\n🚀 [FETCH START] Provider: ${provider} | Account: ${accountId}`,
+          );
 
           try {
             let messages: NormalizedMessage[] = [];
@@ -2322,71 +2113,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
               case "facebook":
               case "instagram":
               case "threads": {
-                // Fetch conversations first
-                const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id&limit=5&access_token=${accessToken}`;
+                const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time&limit=5${provider !== "facebook" ? `&platform=${provider}` : ""}&access_token=${accessToken}`;
+
+                console.log(
+                  `🔗 [${provider.toUpperCase()}] Fetching conversations from:`,
+                  convoUrl,
+                );
+
                 const convoRes = await fetch(convoUrl);
                 const convoData = await convoRes.json();
 
+                if (convoData.error) {
+                  console.error(
+                    `❌ [${provider.toUpperCase()}] Conversation API error:`,
+                    convoData.error,
+                  );
+                  throw new Error(convoData.error.message);
+                }
+
+                console.log(
+                  `📦 [${provider.toUpperCase()}] Found ${convoData.data?.length || 0} conversations`,
+                );
+
                 if (convoData.data && convoData.data.length > 0) {
-                  // Fetch messages from first 3 conversations
-                  const messagePromises = convoData.data.slice(0, 3).map(async (convo: any) => {
-                    if (provider === "facebook") {
-                      return await fetchFacebookMessages(convo.id, accessToken, accountId);
-                    } else if (provider === "instagram") {
-                      return await fetchInstagramMessages(convo.id, accessToken, accountId);
-                    } else {
-                      return await fetchThreadsMessages(convo.id, accessToken, accountId);
-                    }
-                  });
+                  const messagePromises = convoData.data
+                    .slice(0, 3)
+                    .map(async (convo: any) => {
+                      console.log(
+                        `🗨️ Fetching messages from convo ${convo.id} (platform: ${convo.platform || "unknown"})`,
+                      );
+                      try {
+                        if (provider === "facebook") {
+                          return await fetchFacebookMessages(
+                            convo.id,
+                            accessToken,
+                            accountId,
+                          );
+                        } else if (provider === "instagram") {
+                          return await fetchInstagramMessages(
+                            convo.id,
+                            accessToken,
+                            accountId,
+                          );
+                        } else {
+                          return await fetchThreadsMessages(
+                            convo.id,
+                            accessToken,
+                            accountId,
+                          );
+                        }
+                      } catch (innerErr) {
+                        console.error(
+                          `⚠️ Error fetching messages for convo ${convo.id} (${provider}):`,
+                          innerErr,
+                        );
+                        return [];
+                      }
+                    });
 
                   const allConvoMessages = await Promise.all(messagePromises);
                   messages = allConvoMessages.flat();
                 }
                 break;
               }
-              case "whatsapp": {
-                // WhatsApp messages would be from DB
+              case "whatsapp":
+                console.log("💬 [WHATSAPP] Currently using DB messages only");
                 messages = [];
                 break;
-              }
             }
 
-            return { provider, messages, success: true };
+            console.log(
+              `✅ [${provider.toUpperCase()}] Total messages: ${messages.length}`,
+            );
+            return { provider, accountId, messages, success: true };
           } catch (err) {
-            console.error(`Error fetching messages from ${provider}:`, err);
+            console.error(`❌ [${provider.toUpperCase()}] Error:`, err);
             return { provider, messages: [], success: false, error: err };
           }
         });
 
-        // Use Promise.allSettled to run all fetches concurrently
         const results = await Promise.allSettled(fetchTasks);
+        console.log(
+          "\n📊 [UNIFIED RESULTS]",
+          results.length,
+          "providers processed",
+        );
 
-        // Merge all messages
         const allMessages: NormalizedMessage[] = [];
         const successfulProviders: string[] = [];
 
         results.forEach((result) => {
           if (result.status === "fulfilled" && result.value.success) {
-            allMessages.push(...result.value.messages);
-            successfulProviders.push(result.value.provider);
+            const provider = result.value.provider;
+            const accountId = result.value.accountId;
+
+            // Adjunta el accountId a cada mensaje
+            const providerMessages = result.value.messages.map((msg) => ({
+              ...msg,
+              accountId, // 👈 agregado aquí
+            }));
+
+            allMessages.push(...providerMessages);
+            successfulProviders.push(provider);
+          } else if (result.status === "rejected") {
+            console.error("🚫 Task rejected:", result.reason);
           }
         });
 
-        // Sort all messages by created_time (descending - newest first)
-        allMessages.sort((a, b) => 
-          new Date(b.created_time).getTime() - new Date(a.created_time).getTime()
+        allMessages.sort(
+          (a, b) =>
+            new Date(b.created_time).getTime() -
+            new Date(a.created_time).getTime(),
+        );
+
+        console.log(
+          `🏁 Aggregation complete: ${allMessages.length} messages total from ${successfulProviders.join(", ")}`,
         );
 
         res.json({
           messages: allMessages,
           providers: successfulProviders,
-          total: allMessages.length
+          total: allMessages.length,
         });
       } catch (err) {
-        console.error("Unified aggregation error:", err);
-        res.status(500).json({ 
+        console.error("❌ Unified aggregation error:", err);
+        res.status(500).json({
           error: "Failed to fetch unified messages",
-          details: err instanceof Error ? err.message : String(err)
+          details: err instanceof Error ? err.message : String(err),
         });
       }
     },
