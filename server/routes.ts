@@ -68,6 +68,7 @@ interface NormalizedMessage {
   fromId: string;
   created_time: string;
   provider: string;
+  accountId?: string; // ✅ Account ID for message direction detection
 }
 function logSection(title: string, data?: any) {
   console.log(`\n🟨 === ${title} ===`);
@@ -135,6 +136,7 @@ async function fetchFacebookMessages(conversationId, accessToken, accountId) {
       fromId: m.from?.id || "",
       created_time: m.created_time,
       provider: "facebook",
+      accountId,
     });
   }
 
@@ -212,6 +214,7 @@ async function fetchInstagramMessages(conversationId, accessToken, accountId) {
       fromId: m.from?.id || "",
       created_time: m.created_time,
       provider: "instagram",
+      accountId,
     });
   }
 
@@ -258,6 +261,7 @@ async function fetchThreadsMessages(
       fromId: m.from?.id || "",
       created_time: m.created_time,
       provider: "threads",
+      accountId,
     });
   }
 
@@ -305,6 +309,7 @@ async function fetchWhatsappMessages(
           ? new Date(parseInt(m.timestamp) * 1000).toISOString()
           : new Date().toISOString(),
         provider: "whatsapp",
+        accountId,
       });
     }
 
