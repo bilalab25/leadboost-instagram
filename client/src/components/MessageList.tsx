@@ -129,6 +129,7 @@ export default function MessageList({
   }, [toast]); // Removed platform dependency to load all on mount
 
   // ✅ Filter messages by selected platform
+  console.log(unifiedMessages, "mensajes");
   const filteredMessages =
     unifiedMessages.filter(
       (m) => !platform || m.socialAccount?.platform === platform,
@@ -172,6 +173,7 @@ export default function MessageList({
 
   return (
     <>
+      {console.log(groupedConversations, "conversaciones")}
       {/* Left Panel - Conversation List */}
       <div className="w-[35%] bg-white border-r border-gray-200 flex flex-col">
         <div className="flex-1 overflow-y-auto">

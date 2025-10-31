@@ -84,7 +84,7 @@ function logMessageSummary(provider: string, m: any, idx: number) {
 }
 
 async function fetchFacebookMessages(conversationId, accessToken, accountId) {
-  const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${accessToken}`;
+  const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,to,created_time,attachments&access_token=${accessToken}`;
   logSection(`📩 Fetching Facebook Messages for ${conversationId}`, {
     url: messagesUrl,
   });
@@ -109,6 +109,7 @@ async function fetchFacebookMessages(conversationId, accessToken, accountId) {
     let imageUrl = null;
     const text = m.message || "";
 
+    // 📎 Detect attachment
     if (m.attachments?.data?.length) {
       const att = m.attachments.data[0];
       imageUrl =
@@ -116,6 +117,7 @@ async function fetchFacebookMessages(conversationId, accessToken, accountId) {
       console.log(`     📎 Attachment found: ${imageUrl}`);
     }
 
+    // 📎 Manual attachment fallback
     if (!text?.trim() && !imageUrl) {
       console.log(`     🔍 Fetching attachments manually for message ${m.id}`);
       const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
@@ -127,12 +129,18 @@ async function fetchFacebookMessages(conversationId, accessToken, accountId) {
           att.image_data?.url || att.file_url || att.media?.image?.src || null;
     }
 
+    // 🧠 Detect direction and assign readable name
+    const isOutbound = m.from?.id === accountId;
+    const userName = isOutbound
+      ? m.to?.data?.[0]?.name || "Usuario"
+      : m.from?.name || "Usuario";
+
     messages.push({
       id: m.id,
       conversationId,
       text,
       imageUrl,
-      from: m.from?.name || "Unknown",
+      from: userName, // ✅ Correct user name
       fromId: m.from?.id || "",
       created_time: m.created_time,
       provider: "facebook",
@@ -145,11 +153,28 @@ async function fetchFacebookMessages(conversationId, accessToken, accountId) {
 }
 
 async function fetchInstagramMessages(conversationId, accessToken, accountId) {
-  const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?platform=instagram&fields=id,message,text,from,created_time,attachments,media&access_token=${accessToken}`;
-  logSection(`📩 Fetching Instagram Messages for ${conversationId}`, {
-    url: messagesUrl,
-  });
+  // Primero, obtenemos los participantes
+  const convoUrl = `https://graph.facebook.com/v24.0/${conversationId}?fields=participants&access_token=${accessToken}`;
+  const convoRes = await fetch(convoUrl);
+  const convoData = await convoRes.json();
 
+  if (convoData.error) {
+    console.error(
+      "❌ Error fetching Instagram conversation info:",
+      convoData.error,
+    );
+    throw new Error(convoData.error.message);
+  }
+
+  const participants = convoData.participants?.data || [];
+  const businessParticipant = participants.find((p) => p.id.includes("178414")); // ⚡ ID típico de IG Business
+  const userParticipant = participants.find((p) => !p.id.includes("178414"));
+  const userName =
+    userParticipant?.username || userParticipant?.name || "Usuario";
+  const businessId = businessParticipant?.id || accountId;
+
+  // Luego, traemos los mensajes
+  const messagesUrl = `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,text,from,to,created_time,attachments,media&access_token=${accessToken}`;
   const response = await fetch(messagesUrl);
   const data = await response.json();
 
@@ -158,18 +183,13 @@ async function fetchInstagramMessages(conversationId, accessToken, accountId) {
     throw new Error(data.error.message);
   }
 
-  if (!data.data?.length) {
-    console.warn("⚠️ No messages returned from Instagram for", conversationId);
-  }
-
   const messages = [];
 
   for (const [i, m] of (data.data || []).entries()) {
-    logMessageSummary("instagram", m, i);
-
     let imageUrl = null;
     let text = m.message || m.text || "";
 
+    // Detect attachments
     if (m.attachments?.data?.length) {
       const att = m.attachments.data[0];
       imageUrl =
@@ -178,43 +198,26 @@ async function fetchInstagramMessages(conversationId, accessToken, accountId) {
         att.media?.image?.src ||
         att.media?.image_url ||
         null;
-      console.log(`     📎 Inline attachment: ${imageUrl}`);
     }
 
-    if (!imageUrl && m.media?.image_url) {
-      imageUrl = m.media.image_url;
-      console.log(`     🖼️ Media field: ${imageUrl}`);
-    }
+    if (!imageUrl && m.media?.image_url) imageUrl = m.media.image_url;
 
-    if (!text && !imageUrl) {
-      console.log(
-        `     ⚙️ No text/media — checking attachments manually for ${m.id}`,
-      );
-      const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
-      const attachRes = await fetch(attachUrl);
-      const attachData = await attachRes.json();
-      if (attachData?.data?.[0]) {
-        const att = attachData.data[0];
-        imageUrl =
-          att.image_data?.url ||
-          att.file_url ||
-          att.media?.image?.src ||
-          att.media?.image_url ||
-          null;
-        console.log(`     ✅ Manual attachment found: ${imageUrl}`);
-      }
-    }
+    // Detect direction: compara con businessId (no con accountId)
+    const isOutbound = m.from?.id === businessId;
 
     messages.push({
       id: m.id,
       conversationId,
       text: text || "(sin mensaje)",
       imageUrl,
-      from: m.from?.name || m.from?.username || "Unknown",
+      from: isOutbound
+        ? userName
+        : m.from?.username || m.from?.name || "Usuario",
       fromId: m.from?.id || "",
       created_time: m.created_time,
       provider: "instagram",
       accountId,
+      direction: isOutbound ? "outbound" : "inbound",
     });
   }
 
@@ -756,55 +759,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating social account:", error);
       res.status(500).json({ message: "Failed to create social account" });
-    }
-  });
-
-  // Messages routes (Demo mode without auth)
-  app.get("/api/messages", async (req: any, res) => {
-    try {
-      // Return mock conversations for demo in Spanish
-      const mockMessages = [
-        {
-          id: "msg-18",
-          senderId: "food_blogger_alex",
-          senderName: "Alex Rivera",
-          senderAvatar: null,
-          content:
-            "Your kitchen gadget changed my cooking game! 👨‍🍳 Posted a recipe TikTok featuring it. Mind if I tag you in more content?",
-          priority: "normal",
-          isRead: true,
-          createdAt: new Date(Date.now() - 1000 * 60 * 450).toISOString(),
-          socialAccount: {
-            platform: "tiktok",
-            accountName: "@democompany_official",
-          },
-        },
-      ];
-
-      const limit = req.query.limit ? parseInt(req.query.limit) : 50;
-      res.json(mockMessages.slice(0, limit));
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      res.status(500).json({ message: "Failed to fetch messages" });
-    }
-  });
-
-  app.post("/api/messages", isAuthenticated, async (req: any, res) => {
-    try {
-      const messageData = insertMessageSchema.parse(req.body);
-
-      // Analyze message sentiment and priority
-      const analysis = await analyzeMessageSentiment(messageData.content);
-
-      const message = await storage.createMessage({
-        ...messageData,
-        priority: analysis.priority,
-      });
-
-      res.json({ message, analysis });
-    } catch (error) {
-      console.error("Error creating message:", error);
-      res.status(500).json({ message: "Failed to create message" });
     }
   });
 
@@ -2118,7 +2072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               case "facebook":
               case "instagram":
               case "threads": {
-                const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time&limit=5${provider !== "facebook" ? `&platform=${provider}` : ""}&access_token=${accessToken}`;
+                const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&access_token=${accessToken}`;
 
                 console.log(
                   `🔗 [${provider.toUpperCase()}] Fetching conversations from:`,
@@ -2141,9 +2095,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 );
 
                 if (convoData.data && convoData.data.length > 0) {
-                  const messagePromises = convoData.data
-                    .slice(0, 3)
-                    .map(async (convo: any) => {
+                  const messagePromises = convoData.data.map(
+                    async (convo: any) => {
                       console.log(
                         `🗨️ Fetching messages from convo ${convo.id} (platform: ${convo.platform || "unknown"})`,
                       );
@@ -2174,7 +2127,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         );
                         return [];
                       }
-                    });
+                    },
+                  );
 
                   const allConvoMessages = await Promise.all(messagePromises);
                   messages = allConvoMessages.flat();
@@ -2275,17 +2229,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         let url, payload;
 
-        // 🟦 FACEBOOK / INSTAGRAM / THREADS
-        if (
-          provider === "facebook" ||
-          provider === "instagram" ||
-          provider === "threads"
-        ) {
+        // 🟦 FACEBOOK
+        if (provider === "facebook") {
           console.log(
-            `💬 Sending ${provider} message to conversation ${conversationId}`,
+            `💬 Sending Facebook message to conversation ${conversationId}`,
           );
 
-          // 1️⃣ Obtener Page ID
           const pageInfoRes = await fetch(
             `https://graph.facebook.com/v24.0/me?access_token=${integration.accessToken}`,
           );
@@ -2299,7 +2248,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .json({ error: "No se pudo obtener el page_id del token" });
           }
 
-          // 2️⃣ Obtener participantes de la conversación
           const convoRes = await fetch(
             `https://graph.facebook.com/v24.0/${conversationId}?fields=participants&access_token=${integration.accessToken}`,
           );
@@ -2316,7 +2264,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .json({ error: "No se pudo determinar el destinatario" });
           }
 
-          // 3️⃣ Enviar mensaje usando el Page ID y el recipient ID
           url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
           payload = {
             messaging_type: "RESPONSE",
@@ -2324,7 +2271,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: { text: content },
           };
 
-          console.log(`📤 Enviando mensaje a recipient ${recipient.id}`);
+          console.log(
+            `📤 Enviando mensaje Facebook a recipient ${recipient.id}`,
+          );
+        } else if (provider === "instagram" || provider === "threads") {
+          console.log(
+            `💬 Sending Instagram message to conversation ${conversationId}`,
+          );
+
+          // 1️⃣ Obtener el IG Business ID (cuenta conectada)
+          const igRes = await fetch(
+            `https://graph.facebook.com/v24.0/${integration.accountId}?fields=connected_instagram_account{id,username}&access_token=${integration.accessToken}`,
+          );
+          const igData = await igRes.json();
+          const igBusinessId =
+            igData?.connected_instagram_account?.id || integration.accountId;
+
+          if (!igBusinessId) {
+            console.error("❌ No se encontró el IG Business ID:", igData);
+            return res.status(400).json({
+              error: "No se encontró la cuenta de Instagram conectada",
+            });
+          }
+
+          // 2️⃣ Obtener los últimos mensajes de la conversación
+          const msgsRes = await fetch(
+            `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=id,message,from,to,created_time&access_token=${integration.accessToken}`,
+          );
+          const msgsData = await msgsRes.json();
+          const lastMessages = msgsData.data || [];
+
+          console.log(lastMessages, "Ultimos mensajes desde api");
+          if (!lastMessages.length) {
+            return res
+              .status(400)
+              .json({ error: "No se encontraron mensajes en la conversación" });
+          }
+          // 3️⃣ Encontrar el usuario humano (NO el negocio)
+
+          let recipientId = null;
+          for (const msg of lastMessages) {
+            // Caso: el negocio envió (entonces el receptor es el usuario)
+            if (msg.from?.id === igBusinessId && msg.to?.data?.[0]?.id) {
+              recipientId = msg.to.data[0].id;
+              break;
+            }
+            // Caso: el usuario envió (entonces el receptor será el negocio)
+            if (msg.from?.id && msg.from.id !== igBusinessId) {
+              recipientId = msg.from.id;
+              break;
+            }
+          }
+          console.log(recipientId, "recipientId");
+          if (!recipientId) {
+            console.error(
+              "❌ No se pudo determinar el destinatario a partir de los mensajes",
+            );
+            return res
+              .status(400)
+              .json({ error: "No se pudo determinar el destinatario de IG" });
+          }
+          // 4️⃣ Enviar el mensaje al usuario
+
+          const url = `https://graph.facebook.com/v24.0/${integration.accountId}/messages`;
+          const payload = {
+            recipient: { id: recipientId },
+            message: { text: content },
+          };
+
+          console.log(
+            `📤 Enviando mensaje Instagram a recipient ${recipientId}`,
+          );
+          const response = await fetch(
+            `${url}?access_token=${integration.accessToken}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            },
+          );
+          const data = await response.json();
+
+          if (data.error) {
+            console.error("❌ Instagram send error:", data.error);
+            return res.status(400).json({ error: data.error.message });
+          }
+          console.log("✅ Instagram message sent successfully");
+          return res.json({
+            success: true,
+            provider,
+            content,
+            timestamp: new Date().toISOString(),
+            apiResponse: data,
+          });
         }
 
         // 🟩 WHATSAPP

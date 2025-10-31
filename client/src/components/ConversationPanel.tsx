@@ -114,25 +114,19 @@ export default function ConversationPanel({
           }
         }
 
-        const formatted = msgs.map((msg: any) => {
-          const pageId = msg.accountId || data.accountId || data.pageId;
-          const isOutbound =
-            pageId && msg.fromId && msg.fromId.toString() === pageId.toString();
-
-          return {
-            id: msg.id,
-            conversationId,
-            senderId: msg.fromId,
-            senderName: msg.from,
-            content: msg.text || "(sin mensaje)",
-            imageUrl: msg.imageUrl || null,
-            direction: isOutbound ? "outbound" : "inbound",
-            createdAt: msg.created_time,
-            status: "read",
-          };
-        });
-
-        console.log("✅ message.direction check sample:", formatted[0]);
+        const formatted = msgs.map((msg: any) => ({
+          id: msg.id,
+          conversationId,
+          senderId: msg.fromId,
+          senderName: msg.from,
+          content: msg.text || "(sin mensaje)",
+          imageUrl: msg.imageUrl || null,
+          direction:
+            msg.direction ||
+            (msg.fromId === data.accountId ? "outbound" : "inbound"), // ✅ usa el backend si existe
+          createdAt: msg.created_time,
+          status: "read",
+        }));
 
         // 🔹 Orden cronológico
         setMessages(formatted.reverse());
