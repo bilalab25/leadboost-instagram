@@ -1453,6 +1453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "pages_messaging",
       "instagram_basic",
       "instagram_manage_messages",
+      "read_insights",
     ].join(",");
     console.log("🔐 Facebook OAuth scopes:", scopes);
 
@@ -1658,23 +1659,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.warn("⚠️ [IG MESSAGING TEST FAILED]", testData.error);
           }
 
-          // Step 8️⃣ Save Instagram integration (with Page ID fix)
+          // Step 8️⃣ Save Instagram integration (store PAGE_ID in account_id)
           await storage.createOrUpdateIntegration({
             userId,
             provider: "instagram",
             category: "social_media",
             storeName: "Instagram",
             storeUrl: `https://instagram.com/${igDetails.username || page.name}`,
-            accountId: igAccount.id,
+            // ⚠️ IMPORTANT CHANGE:
+            // Use page.id (Facebook Page ID) instead of igAccount.id
+            // because since Graph API v24.0, message/conversation endpoints use the PAGE_ID
+            accountId: page.id,
             accessToken: pageAccessToken,
             accountName: igDetails.username || page.name,
-            pageId: page.id, // ✅ CRITICAL FIX
+            pageId: page.id,
             metadata: {
               fbPageId: page.id,
               fbPageName: page.name,
-              igAccountId: igAccount.id,
+              igAccountId: igAccount.id, // keep IG id here for reference
               igUsername: igDetails.username,
               igProfilePic: igDetails.profile_picture_url,
+              note: "accountId intentionally set to PAGE_ID (Graph API v24.0 change)",
               source: "facebook_callback_auto",
             },
             isActive: true,

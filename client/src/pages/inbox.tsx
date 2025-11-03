@@ -10,7 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Filter, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import HelpChatbot from "@/components/HelpChatbot";
-import { SiFacebook } from "react-icons/si";
+import { Instagram, Mail, Twitter } from "lucide-react";
+import { SiWhatsapp, SiTiktok, SiFacebook } from "react-icons/si";
+import { cn } from "@/lib/utils";
 
 export default function Inbox() {
   const { toast } = useToast();
@@ -113,18 +115,43 @@ export default function Inbox() {
                 >
                   All
                 </Button>
-                <Button
-                  variant={
-                    selectedPlatform === "facebook" ? "default" : "outline"
-                  }
-                  size="sm"
-                  onClick={() => handlePlatformSelect("facebook")}
-                  data-testid="filter-facebook"
-                >
-                  <SiFacebook className="mr-2 h-4 w-4 text-primary" />
-                  Facebook
-                </Button>
+
+                {integrations.map((integration) => {
+                  const provider = integration.provider;
+                  const isActive = selectedPlatform === provider;
+
+                  const icons: Record<string, any> = {
+                    facebook: SiFacebook,
+                    instagram: Instagram,
+                    whatsapp: SiWhatsapp,
+                    tiktok: SiTiktok,
+                    twitter: Twitter,
+                  };
+
+                  const Icon = icons[provider] || Mail;
+                  const label =
+                    provider.charAt(0).toUpperCase() + provider.slice(1);
+
+                  return (
+                    <Button
+                      key={provider}
+                      variant={isActive ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePlatformSelect(provider)}
+                      data-testid={`filter-${provider}`}
+                    >
+                      <Icon
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          isActive ? "text-white" : "text-primary",
+                        )}
+                      />
+                      {label}
+                    </Button>
+                  );
+                })}
               </div>
+
               <div className="flex items-center space-x-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
