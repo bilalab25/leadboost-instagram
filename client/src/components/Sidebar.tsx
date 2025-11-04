@@ -22,6 +22,8 @@ import {
   Palette,
   Activity,
   GitBranch,
+  Facebook,
+  FacebookIcon,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok } from "react-icons/si";
 import { Mail } from "lucide-react";
@@ -45,6 +47,7 @@ const platformIcons = {
   whatsapp: SiWhatsapp,
   email: Mail,
   tiktok: SiTiktok,
+  facebook: FacebookIcon,
 };
 
 const platformColors = {
@@ -93,9 +96,12 @@ export default function Sidebar() {
     retry: false,
   });
 
-  // 🔍 Filtramos solo las sociales (Facebook, Instagram, TikTok, etc.)
+  // 🔍 Filtramos las cuentas sociales y de mensajería (WhatsApp, Instagram, TikTok, etc.)
   const socialAccounts = (integrations || []).filter(
-    (intg) => intg.category === "social" || intg.category === "social_media",
+    (intg) =>
+      intg.category === "social" ||
+      intg.category === "social_media" ||
+      intg.category === "messaging", // <--- ¡AÑADIR ESTA LÍNEA!
   );
 
   const handleLogout = async () => {
