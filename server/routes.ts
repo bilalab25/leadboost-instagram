@@ -1454,6 +1454,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "instagram_basic",
       "instagram_manage_messages",
       "read_insights",
+      "instagram_manage_insights",
+      "pages_read_user_content",
     ].join(",");
     console.log("🔐 Facebook OAuth scopes:", scopes);
 
@@ -1731,56 +1733,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 🟩 WhatsApp Cloud API Connect
-  app.post(
-    "/api/integrations/whatsapp/connect",
-    isAuthenticated,
-    async (req, res) => {
-      try {
-        const userId = req.user.id;
-        const accessToken = process.env.WHATSAPP_TOKEN;
-        const wabaId = process.env.WABA_ID;
+  app.get("/api/integrations/whatsapp/connect", isAuthenticated, (req, res) => {
+    // ⚠️ NOTA: El 'redirect_uri' debe coincidir con el configurado en su App de Facebook.
+    const redirectUri = `${process.env.APP_URL}/api/integrations/whatsapp/callback`;
+    const clientId = process.env.FB_APP_ID;
 
-        if (!accessToken || !wabaId) {
-          return res.status(400).json({
-            error:
-              "WhatsApp credentials not configured. Please set WHATSAPP_TOKEN and WABA_ID environment variables.",
-          });
-        }
+    // **Los scopes necesarios para gestionar WhatsApp Business (WABA)**
+    const whatsapp_scopes = [
+      "whatsapp_business_management", // Para crear y gestionar WABA
+      "whatsapp_business_messaging", // Para enviar y recibir mensajes
+      "business_management", // Para interactuar con Meta Business Accounts
+      "pages_show_list",
+    ].join(",");
 
-        const response = await fetch(
-          `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?access_token=${accessToken}`,
-        );
-        const data = await response.json();
+    // URL base del Embedded Signup
+    const embeddedSignupUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri,
+    )}&scope=${whatsapp_scopes}&state=${req.user.id}&response_type=code&config_id=${process.env.WHATSAPP_CONFIG_ID}`;
+    // ^^^ El 'config_id' es CRUCIAL.
 
-        const phone = data.data?.[0];
-        if (!phone) {
-          return res
-            .status(400)
-            .json({ error: "No WhatsApp phone numbers found" });
-        }
+    console.log("🟢 WhatsApp Embedded Signup URL:", embeddedSignupUrl);
+    res.redirect(embeddedSignupUrl);
+  });
 
-        await storage.createOrUpdateIntegration({
-          userId,
-          provider: "whatsapp",
-          category: "social_media",
-          storeName: "WhatsApp Business",
-          storeUrl: `https://wa.me/${phone.display_phone_number.replace(/\D/g, "")}`,
-          accountId: phone.id,
-          accessToken,
-          accountName: phone.display_phone_number,
-          metadata: { wabaId },
-          isActive: true,
-          syncEnabled: true,
-        });
+  app.get("/api/integrations/whatsapp/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      if (!code) return res.status(400).send("Missing code");
 
-        console.log(`✅ WhatsApp connected: ${phone.display_phone_number}`);
-        res.json({ success: true, phone });
-      } catch (err) {
-        console.error("❌ WhatsApp connect error:", err);
-        res.status(500).json({ error: "Failed to connect WhatsApp" });
+      const userId = state || req.user?.id;
+      if (!userId) return res.status(401).send("User not authenticated");
+
+      const redirect_uri = `${process.env.APP_URL}/api/integrations/whatsapp/callback`;
+
+      // 1️⃣ Intercambiar el código por el Token de Usuario
+      const tokenResponse = await fetch(
+        `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
+          redirect_uri,
+        )}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`,
+      );
+      const tokenData = await tokenResponse.json();
+
+      if (tokenData.error) throw new Error(tokenData.error.message);
+
+      const userAccessToken = tokenData.access_token;
+
+      // 2️⃣ Obtener el ID de la cuenta de negocio de WhatsApp (WABA ID)
+      // La información del WABA se obtiene del user ID si el usuario ha completado el Embedded Signup.
+      const businessAccountResponse = await fetch(
+        `https://graph.facebook.com/v24.0/me?fields=whatsapp_business_account&access_token=${userAccessToken}`,
+      );
+      const businessAccountData = await businessAccountResponse.json();
+
+      const wabaId = businessAccountData.whatsapp_business_account?.id;
+
+      if (!wabaId) {
+        console.error("❌ WABA ID not found after Embedded Signup.");
+        return res
+          .status(400)
+          .send("WhatsApp Business Account not linked or created.");
       }
-    },
-  );
+
+      console.log(`🟢 WABA ID successfully linked: ${wabaId}`);
+
+      // 3️⃣ (Opcional pero recomendado) Obtener el número de teléfono asociado
+      const phoneNumbersRes = await fetch(
+        `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?access_token=${userAccessToken}`,
+      );
+      const phoneData = await phoneNumbersRes.json();
+      const phoneNumber = phoneData.data?.[0]; // Obtener el primer número de teléfono
+
+      // 4️⃣ Guardar la integración
+      await storage.createOrUpdateIntegration({
+        userId,
+        provider: "whatsapp",
+        category: "messaging",
+        storeName: "WhatsApp Business",
+        storeUrl: phoneNumber
+          ? `https://wa.me/${phoneNumber.display_phone_number.replace(/\D/g, "")}`
+          : null,
+        accountId: wabaId,
+        accessToken: userAccessToken, // Guardar el token de usuario (o mejor, intercambiarlo por uno de larga duración si es necesario)
+        accountName: phoneNumber?.display_phone_number || `WABA ${wabaId}`,
+        metadata: {
+          wabaId: wabaId,
+          phoneNumberId: phoneNumber?.id,
+          phoneNumber: phoneNumber?.display_phone_number,
+        },
+        isActive: true,
+        syncEnabled: true,
+      });
+
+      console.log(`✅ WhatsApp connected: ${wabaId}`);
+      res.redirect(`/settings?connected=whatsapp`);
+    } catch (err) {
+      console.error("❌ WhatsApp callback error:", err.message);
+      res.status(500).send("Error in WhatsApp callback");
+    }
+  });
 
   app.get("/api/integrations", isAuthenticated, async (req, res) => {
     try {

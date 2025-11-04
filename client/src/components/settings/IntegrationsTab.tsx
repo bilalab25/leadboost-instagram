@@ -84,35 +84,19 @@ export default function IntegrationsTab({
       // 🔁 Facebook, Instagram, and Threads all use Facebook OAuth flow
       url = "/api/integrations/facebook/connect";
     } else if (provider === "whatsapp") {
-      // 🔁 WhatsApp uses a direct POST request
-      fetch("/api/integrations/whatsapp/connect", { 
-        method: "POST",
-        credentials: "include",
-      })
-        .then(res => {
-          if (!res.ok) throw new Error("WhatsApp connection failed");
-          return res.json();
-        })
-        .then(() => {
-          window.location.reload();
-        })
-        .catch(err => {
-          console.error("WhatsApp connect error:", err);
-          alert(isSpanish 
-            ? "Error al conectar WhatsApp. Verifica que las credenciales estén configuradas."
-            : "Error connecting WhatsApp. Please verify credentials are configured.");
-        });
-      return;
+      // ✅ WhatsApp AHORA usa el flujo OAuth/Embedded Signup (GET redirect)
+      url = "/api/integrations/whatsapp/connect"; // <-- Cambiado a GET
     } else {
       alert(
         isSpanish
           ? `La conexión para ${provider} aún no está disponible.`
-          : `Connection for ${provider} is not available yet.`
+          : `Connection for ${provider} is not available yet.`,
       );
       return;
     }
 
-    // 🔄 For OAuth providers (Facebook/Instagram/Threads)
+    // 🔄 Para TODOS los proveedores OAuth (incluyendo WhatsApp Embedded Signup)
+    // Se usa una ventana emergente que redirige a la URL de inicio (url)
     const popup = window.open(url, "_blank", "width=600,height=700");
 
     const timer = setInterval(() => {
@@ -540,7 +524,9 @@ export default function IntegrationsTab({
                                         ) : (
                                           <Button
                                             size="sm"
-                                            onClick={() => handleConnect(providerKey)}
+                                            onClick={() =>
+                                              handleConnect(providerKey)
+                                            }
                                             data-testid={`connect-${providerKey}`}
                                           >
                                             {isSpanish ? "Conectar" : "Connect"}
