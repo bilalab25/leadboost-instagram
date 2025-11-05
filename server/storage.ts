@@ -113,8 +113,10 @@ export interface IStorage {
   getMessagesByAccountId(accountId: string): Promise<Message[]>;
   getMessagesByIntegration(integrationId: string): Promise<Message[]>;
   getMessagesByIntegrationAndConversation(integrationId: string, conversationId: string): Promise<Message[]>;
+  getUnreadCountByConversation(integrationId: string, conversationId: string): Promise<number>;
   updateMessageStatus(id: string, isRead: boolean): Promise<void>;
   markMessageAsRead(id: string): Promise<void>;
+  markConversationMessagesAsRead(integrationId: string, conversationId: string): Promise<void>;
   updateMessagePriority(id: string, priority: string): Promise<void>;
   assignMessage(id: string, assignedTo: string): Promise<void>;
 
@@ -538,6 +540,25 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(messages.timestamp));
   }
 
+  async getUnreadCountByConversation(integrationId: string, conversationId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.integrationId, integrationId),
+          or(
+            eq(messages.senderId, conversationId),
+            eq(messages.recipientId, conversationId)
+          ),
+          eq(messages.isRead, false),
+          eq(messages.direction, "inbound") // Only count unread inbound messages
+        )
+      );
+    
+    return Number(result[0]?.count || 0);
+  }
+
   async updateMessageStatus(id: string, isRead: boolean): Promise<void> {
     await db.update(messages).set({ isRead }).where(eq(messages.id, id));
   }
@@ -548,6 +569,22 @@ export class DatabaseStorage implements IStorage {
 
   async markMessageAsRead(id: string): Promise<void> {
     await db.update(messages).set({ isRead: true }).where(eq(messages.id, id));
+  }
+
+  async markConversationMessagesAsRead(integrationId: string, conversationId: string): Promise<void> {
+    await db
+      .update(messages)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(messages.integrationId, integrationId),
+          or(
+            eq(messages.senderId, conversationId),
+            eq(messages.recipientId, conversationId)
+          ),
+          eq(messages.isRead, false) // Only update unread messages
+        )
+      );
   }
 
   async updateMessagePriority(id: string, priority: string): Promise<void> {

@@ -145,6 +145,24 @@ export default function ConversationPanel({
     loadMessages();
   }, [conversationId, platform, toast]);
 
+  // 🔹 Mark messages as read when conversation is opened
+  useEffect(() => {
+    async function markAsRead() {
+      if (!platform || !conversationId) return;
+      
+      try {
+        await fetch(`/api/messages/${platform}/${conversationId}/mark-read`, {
+          method: "POST",
+        });
+        console.log("✅ Messages marked as read");
+      } catch (err) {
+        console.error("❌ Error marking messages as read:", err);
+      }
+    }
+
+    markAsRead();
+  }, [conversationId, platform]);
+
   // 🔹 Enviar mensaje
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string }) => {

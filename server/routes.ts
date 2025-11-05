@@ -300,7 +300,8 @@ async function fetchWhatsappMessages(
     const messages: NormalizedMessage[] = dbMessages.map((m) => {
       // Determine sender name based on direction
       const isOutbound = m.direction === "outbound";
-      const from = isOutbound ? "You" : conversationId;
+      // Use contact name if available, otherwise fall back to conversation ID (phone number)
+      const from = isOutbound ? "You" : (m.contactName || conversationId);
 
       return {
         id: m.metaMessageId,
@@ -1899,6 +1900,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const phoneNumberId = metadata?.phone_number_id;
                 const displayPhoneNumber = metadata?.display_phone_number;
 
+                // Extract contact information
+                const contacts = change.value.contacts || [];
+                const contactName = contacts[0]?.profile?.name || null;
+
                 // Find the integration based on phone_number_id
                 let integration = null;
                 if (phoneNumberId) {
@@ -1995,8 +2000,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         metaMessageId: messageId,
                         senderId: senderId,
                         recipientId: phoneNumberId || displayPhoneNumber || "",
+                        contactName: contactName, // Save contact name from WhatsApp
                         textContent: textContent,
                         direction: "inbound", // Messages from webhook are always inbound
+                        isRead: false, // New inbound messages are unread by default
                         timestamp: new Date(parseInt(timestamp) * 1000), // Convert Unix to Date
                         rawPayload: body, // Store entire webhook payload
                       };
@@ -2251,6 +2258,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // ✅ Mark messages as read for a conversation
+  app.post(
+    "/api/messages/:provider/:conversationId/mark-read",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { provider, conversationId } = req.params;
+        const userId = req.user.id;
+
+        const integrations = await storage.getIntegrations(userId);
+        const integration = integrations.find((i) => i.provider === provider);
+
+        if (!integration) {
+          return res.status(404).json({ error: `No ${provider} integration found` });
+        }
+
+        await storage.markConversationMessagesAsRead(integration.id, conversationId);
+        
+        console.log(`✅ Marked messages as read for ${provider} conversation: ${conversationId}`);
+        res.json({ success: true });
+      } catch (err) {
+        console.error("❌ Error marking messages as read:", err);
+        res.status(500).json({ error: "Failed to mark messages as read" });
+      }
+    }
+  );
+
   // ✅ NEW: Unified aggregation endpoint - Get ALL messages from ALL connected providers
   app.get(
     "/api/conversations/messages/all",
@@ -2444,14 +2478,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
             new Date(a.created_time).getTime(),
         );
 
+        // Calculate unread counts per conversation for WhatsApp
+        const unreadCounts: Record<string, number> = {};
+        
+        for (const integration of integrations) {
+          if (integration.provider === "whatsapp") {
+            // Get unique conversation IDs from WhatsApp messages
+            const whatsappMessages = allMessages.filter(m => m.provider === "whatsapp");
+            const conversationIds = [...new Set(whatsappMessages.map(m => m.conversationId))];
+            
+            // Get unread count for each conversation
+            for (const convoId of conversationIds) {
+              const count = await storage.getUnreadCountByConversation(integration.id, convoId);
+              if (count > 0) {
+                unreadCounts[`${integration.provider}-${convoId}`] = count;
+              }
+            }
+          }
+        }
+
         console.log(
           `🏁 Aggregation complete: ${allMessages.length} messages total from ${successfulProviders.join(", ")}`,
         );
+        console.log(`📬 Unread counts:`, unreadCounts);
 
         res.json({
           messages: allMessages,
           providers: successfulProviders,
           total: allMessages.length,
+          unreadCounts, // Add unread counts to response
         });
       } catch (err) {
         console.error("❌ Unified aggregation error:", err);
@@ -2708,6 +2763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             recipientId: recipientId, // El ID del cliente
             textContent: content,
             direction: "outbound",
+            isRead: true, // Outbound messages are already "read" by sender
             timestamp: new Date(),
             rawPayload: apiResponse, // Guardamos la respuesta de Meta
           };

@@ -52,7 +52,20 @@ export default function MessageList({
   } | null>(null);
 
   const [unifiedMessages, setUnifiedMessages] = useState<any[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Callback to refresh messages list (called when conversation is opened)
+  const handleConversationOpened = (platform: string, conversationId: string) => {
+    // Optimistically clear the unread count for this conversation
+    const unreadKey = `${platform}-${conversationId}`;
+    setUnreadCounts(prev => {
+      const updated = { ...prev };
+      delete updated[unreadKey];
+      return updated;
+    });
+  };
 
   // ✅ NEW: Cargar mensajes de TODAS las plataformas conectadas usando endpoint unificado
   useEffect(() => {
@@ -94,6 +107,7 @@ export default function MessageList({
 
         const data = await res.json();
         const messages = data.messages || [];
+        const counts = data.unreadCounts || {};
 
         // Transform unified messages to component format
         const formatted = messages.map((m: any) => ({
@@ -113,6 +127,7 @@ export default function MessageList({
         }));
 
         setUnifiedMessages(formatted);
+        setUnreadCounts(counts);
       } catch (err) {
         console.error("❌ Error loading unified messages:", err);
         toast({
@@ -230,11 +245,18 @@ export default function MessageList({
                       isActive && "bg-gray-100 border-l-4 border-l-primary",
                     )}
                     onClick={() => {
+                      const convoId = message.conversationId || message.id;
+                      const platform = message.socialAccount.platform;
+                      
                       setActiveConversation({
-                        id: message.conversationId || message.id,
+                        id: convoId,
                         name: message.senderName,
-                        platform: message.socialAccount.platform,
+                        platform: platform,
                       });
+                      
+                      // Clear unread badge immediately
+                      handleConversationOpened(platform, convoId);
+                      
                       if (!message.isRead) {
                         markAsReadMutation.mutate(message.id);
                       }
@@ -273,12 +295,26 @@ export default function MessageList({
                           >
                             {message.senderName}
                           </p>
-                          <span className="text-xs text-gray-500">
-                            {formatDistanceToNow(new Date(message.createdAt), {
-                              addSuffix: false,
-                              locale: es,
-                            })}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const unreadKey = `${message.socialAccount.platform}-${message.conversationId || message.id}`;
+                              const unreadCount = unreadCounts[unreadKey] || 0;
+                              return unreadCount > 0 ? (
+                                <Badge 
+                                  className="bg-primary text-white text-xs h-5 min-w-5 flex items-center justify-center rounded-full px-1.5"
+                                  data-testid={`badge-unread-${message.conversationId}`}
+                                >
+                                  {unreadCount}
+                                </Badge>
+                              ) : null;
+                            })()}
+                            <span className="text-xs text-gray-500">
+                              {formatDistanceToNow(new Date(message.createdAt), {
+                                addSuffix: false,
+                                locale: es,
+                              })}
+                            </span>
+                          </div>
                         </div>
 
                         <p
@@ -290,7 +326,7 @@ export default function MessageList({
                           {message.content}
                         </p>
 
-                        {!message.isRead && (
+                        {!message.isRead && false && (
                           <div className="mt-1">
                             <Badge className="bg-primary text-white text-xs">
                               New

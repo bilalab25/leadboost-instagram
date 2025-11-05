@@ -139,8 +139,10 @@ export const messages = pgTable("messages", {
   metaMessageId: varchar("meta_message_id").notNull(), // Unique Meta ID (wamid... or mid...)
   senderId: varchar("sender_id").notNull(), // ID of the end user who sent the message
   recipientId: varchar("recipient_id").notNull(), // ID of the page/number that received the message
+  contactName: varchar("contact_name"), // Contact profile name from WhatsApp
   textContent: text("text_content"), // Message content
   direction: varchar("direction").notNull(), // inbound (Incoming) or outbound (Outgoing/Echo)
+  isRead: boolean("is_read").default(false), // Read status for message
   timestamp: timestamp("timestamp").notNull(), // When the event occurred
   rawPayload: jsonb("raw_payload"), // Complete webhook payload for reference
   createdAt: timestamp("created_at").defaultNow(),
