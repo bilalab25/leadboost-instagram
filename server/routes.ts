@@ -1905,6 +1905,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   try {
                     // Get all integrations and find the one with matching phone_number_id
                     const allIntegrations = await storage.getAllIntegrations();
+                    
+                    console.log("🔍 Searching for integration with phoneNumberId:", phoneNumberId);
+                    console.log("📋 Total integrations found:", allIntegrations.length);
+                    
+                    // Debug: Log all WhatsApp integrations with their metadata
+                    const whatsappIntegrations = allIntegrations.filter((int: any) => int.provider === 'whatsapp');
+                    console.log("📱 WhatsApp integrations:", whatsappIntegrations.map((int: any) => ({
+                      id: int.id,
+                      accountId: int.accountId,
+                      metadata: int.metadata
+                    })));
+                    
                     integration = allIntegrations.find(
                       (int: any) =>
                         int.metadata?.phoneNumberId === phoneNumberId ||
@@ -1915,6 +1927,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       console.warn(
                         `⚠️ No integration found for phone_number_id: ${phoneNumberId}`,
                       );
+                    } else {
+                      console.log("✅ Integration found:", {
+                        id: integration.id,
+                        userId: integration.userId,
+                        metadata: integration.metadata
+                      });
                     }
                   } catch (error) {
                     console.error("Error finding integration:", error);
