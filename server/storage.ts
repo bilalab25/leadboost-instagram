@@ -329,6 +329,7 @@ export interface IStorage {
 
   // Integration operations
   createIntegration(integration: InsertIntegration): Promise<Integration>;
+  getAllIntegrations(): Promise<Integration[]>;
   getIntegrationsByUserId(userId: string): Promise<Integration[]>;
   getIntegrationById(id: string): Promise<Integration | undefined>;
   getIntegrationByPageId(
@@ -1557,6 +1558,13 @@ export class DatabaseStorage implements IStorage {
       .values(integration)
       .returning();
     return created;
+  }
+
+  async getAllIntegrations(): Promise<Integration[]> {
+    return await db
+      .select()
+      .from(integrations)
+      .orderBy(desc(integrations.createdAt));
   }
 
   async getIntegrationsByUserId(userId: string): Promise<Integration[]> {

@@ -1895,20 +1895,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (body.object === "whatsapp_business_account") {
             for (const change of entry.changes || []) {
               if (change.field === "messages" && change.value.messages) {
+                const metadata = change.value.metadata;
+                const phoneNumberId = metadata?.phone_number_id;
+                const displayPhoneNumber = metadata?.display_phone_number;
+
+                // Find the integration based on phone_number_id
+                let integration = null;
+                if (phoneNumberId) {
+                  try {
+                    // Get all integrations and find the one with matching phone_number_id
+                    const allIntegrations = await storage.getAllIntegrations();
+                    integration = allIntegrations.find(
+                      (int: any) =>
+                        int.metadata?.phoneNumberId === phoneNumberId ||
+                        int.accountId === phoneNumberId,
+                    );
+
+                    if (!integration) {
+                      console.warn(
+                        `⚠️ No integration found for phone_number_id: ${phoneNumberId}`,
+                      );
+                    }
+                  } catch (error) {
+                    console.error("Error finding integration:", error);
+                  }
+                }
+
                 // Ahora iteramos los mensajes reales de WhatsApp
                 for (const waMessage of change.value.messages) {
-                  // Ejemplo: Procesar un mensaje de texto
-                  if (waMessage.type === "text") {
-                    const text = waMessage.text.body;
-                    const senderId = waMessage.from; // El ID del usuario de WhatsApp
+                  try {
+                    const messageId = waMessage.id; // wamid...
+                    const senderId = waMessage.from; // Phone number of sender
+                    const timestamp = waMessage.timestamp; // Unix timestamp
+                    const messageType = waMessage.type; // text, image, video, etc.
 
-                    console.log("🟢 [WhatsApp Real] Mensaje recibido:", {
+                    let textContent = null;
+                    if (messageType === "text" && waMessage.text?.body) {
+                      textContent = waMessage.text.body;
+                    }
+
+                    console.log("🟢 [WhatsApp] Mensaje recibido:", {
+                      messageId,
                       senderId,
-                      text,
+                      textContent,
+                      phoneNumberId,
                     });
-                    // Aquí pondrías la lógica para responder o procesar el mensaje
+
+                    // Save message to database if we found the integration
+                    if (integration) {
+                      const messageData = {
+                        userId: integration.userId,
+                        integrationId: integration.id,
+                        platform: "whatsapp",
+                        metaMessageId: messageId,
+                        senderId: senderId,
+                        recipientId: phoneNumberId || displayPhoneNumber || "",
+                        textContent: textContent,
+                        direction: "inbound", // Messages from webhook are always inbound
+                        timestamp: new Date(parseInt(timestamp) * 1000), // Convert Unix to Date
+                        rawPayload: body, // Store entire webhook payload
+                      };
+
+                      const savedMessage = await storage.createMessage(
+                        messageData,
+                      );
+                      console.log(
+                        `✅ Message saved to database: ${savedMessage.id}`,
+                      );
+                    } else {
+                      console.warn(
+                        `⚠️ Skipping message save - no integration found`,
+                      );
+                    }
+                  } catch (error) {
+                    console.error(
+                      "❌ Error processing WhatsApp message:",
+                      error,
+                    );
                   }
-                  // Puedes agregar más lógica para 'image', 'video', etc.
                 }
               }
             }
