@@ -2650,6 +2650,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(url, payload);
           console.log("URL and Payload");
+          
+          // Set recipientId for database storage
+          recipientId = conversationId; // Use the original conversation ID (customer's phone number)
         } else {
           return res.status(400).json({ error: "Invalid provider" });
         }
