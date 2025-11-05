@@ -1917,11 +1917,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       metadata: int.metadata
                     })));
                     
-                    integration = allIntegrations.find(
-                      (int: any) =>
-                        int.metadata?.phoneNumberId === phoneNumberId ||
-                        int.accountId === phoneNumberId,
-                    );
+                    integration = allIntegrations.find((int: any) => {
+                      // Parse metadata if it's a string
+                      let metadata = int.metadata;
+                      if (typeof metadata === 'string') {
+                        try {
+                          // Fix the malformed JSON string (has single quotes instead of double quotes)
+                          const fixedMetadata = metadata.replace(/(\w+):/g, '"$1":').replace(/'/g, '"');
+                          metadata = JSON.parse(fixedMetadata);
+                        } catch (e) {
+                          console.error("Failed to parse metadata:", metadata);
+                          metadata = null;
+                        }
+                      }
+                      
+                      return (
+                        metadata?.phoneNumberId === phoneNumberId ||
+                        int.accountId === phoneNumberId
+                      );
+                    });
 
                     if (!integration) {
                       console.warn(
