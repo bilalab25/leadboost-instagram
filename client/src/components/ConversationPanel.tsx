@@ -128,8 +128,8 @@ export default function ConversationPanel({
           status: "read",
         }));
 
-        // 🔹 Orden cronológico
-        setMessages(formatted.reverse());
+        // 🔹 Backend now returns messages in chronological order (oldest first)
+        setMessages(formatted);
       } catch (err) {
         console.error(`❌ Error loading ${platform} messages:`, err);
         toast({

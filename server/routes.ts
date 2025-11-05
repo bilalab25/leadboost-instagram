@@ -2228,6 +2228,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `✅ [${provider.toUpperCase()}] Retrieved ${messages.length} messages`,
         );
 
+        // Sort messages in chronological order (oldest first) for consistent display
+        messages.sort(
+          (a, b) =>
+            new Date(a.created_time).getTime() -
+            new Date(b.created_time).getTime(),
+        );
+
         res.json({
           provider,
           accountId, // ✅ este es el ID de tu cuenta/página conectada
