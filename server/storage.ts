@@ -111,6 +111,8 @@ export interface IStorage {
   createMessage(message: InsertMessage): Promise<Message>;
   getMessagesByUserId(userId: string, unreadOnly?: boolean): Promise<Message[]>;
   getMessagesByAccountId(accountId: string): Promise<Message[]>;
+  getMessagesByIntegration(integrationId: string): Promise<Message[]>;
+  getMessagesByIntegrationAndConversation(integrationId: string, conversationId: string): Promise<Message[]>;
   updateMessageStatus(id: string, isRead: boolean): Promise<void>;
   markMessageAsRead(id: string): Promise<void>;
   updateMessagePriority(id: string, priority: string): Promise<void>;
@@ -510,6 +512,30 @@ export class DatabaseStorage implements IStorage {
       .from(messages)
       .where(eq(messages.socialAccountId, accountId))
       .orderBy(desc(messages.createdAt));
+  }
+
+  async getMessagesByIntegration(integrationId: string): Promise<Message[]> {
+    return db
+      .select()
+      .from(messages)
+      .where(eq(messages.integrationId, integrationId))
+      .orderBy(asc(messages.timestamp));
+  }
+
+  async getMessagesByIntegrationAndConversation(integrationId: string, conversationId: string): Promise<Message[]> {
+    return db
+      .select()
+      .from(messages)
+      .where(
+        and(
+          eq(messages.integrationId, integrationId),
+          or(
+            eq(messages.senderId, conversationId),
+            eq(messages.recipientId, conversationId)
+          )
+        )
+      )
+      .orderBy(asc(messages.timestamp));
   }
 
   async updateMessageStatus(id: string, isRead: boolean): Promise<void> {

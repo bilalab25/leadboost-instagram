@@ -275,53 +275,44 @@ async function fetchThreadsMessages(
 
 async function fetchWhatsappMessages(
   conversationId: string,
-  accessToken: string,
+  integrationId: string,
   accountId: string,
 ): Promise<NormalizedMessage[]> {
-  // WhatsApp uses phone number as conversation ID
-  // We fetch messages from the business phone number ID
-  const messagesUrl = `https://graph.facebook.com/v24.0/${accountId}/messages?access_token=${accessToken}`;
-
-  logUnifiedRequest("whatsapp", conversationId, messagesUrl);
-
-  // Note: WhatsApp typically requires webhook setup for incoming messages
-  // This is a placeholder - in production you'd fetch from your database
-  // where webhook messages are stored
+  // WhatsApp messages are stored in the database via webhooks
+  // conversationId = phone number of the customer
+  
+  console.log(`📱 [WhatsApp] Fetching messages from database for conversation: ${conversationId}`);
+  console.log(`🔑 Integration ID: ${integrationId}, Account ID: ${accountId}`);
 
   try {
-    const r = await fetch(messagesUrl);
-    const data = await r.json();
+    // Fetch messages from database
+    const dbMessages = await storage.getMessagesByIntegrationAndConversation(integrationId, conversationId);
+    
+    console.log(`📦 [WhatsApp] Found ${dbMessages.length} messages in database`);
 
-    if (data.error) {
-      console.error("WhatsApp API error:", data.error);
-      throw new Error(data.error.message);
-    }
-
-    const messages: NormalizedMessage[] = [];
-
-    // WhatsApp messages would typically be stored in your DB via webhooks
-    // This is a simplified version
-    for (const m of data.data || []) {
-      messages.push({
-        id: m.id || "",
-        conversationId: conversationId, // CRITICAL: Use requested conversation ID (phone number)
-        text: m.text?.body || "",
-        imageUrl: m.image?.link || null,
-        from: m.from || "Unknown",
-        fromId: m.from || "",
-        created_time: m.timestamp
-          ? new Date(parseInt(m.timestamp) * 1000).toISOString()
-          : new Date().toISOString(),
+    const messages: NormalizedMessage[] = dbMessages.map((m) => {
+      // Determine sender name based on direction
+      const isOutbound = m.direction === 'outbound';
+      const from = isOutbound ? 'You' : conversationId;
+      
+      return {
+        id: m.metaMessageId,
+        conversationId: conversationId,
+        text: m.textContent || "",
+        imageUrl: null, // TODO: Add image support from attachments
+        from: from,
+        fromId: m.senderId,
+        created_time: m.timestamp.toISOString(),
         provider: "whatsapp",
         accountId,
-      });
-    }
+        direction: m.direction,
+      };
+    });
 
-    logUnifiedResponse("whatsapp", messages.length);
+    console.log(`✅ [WhatsApp] Returning ${messages.length} normalized messages`);
     return messages;
   } catch (err) {
-    console.error("WhatsApp fetch error:", err);
-    logUnifiedResponse("whatsapp", 0);
+    console.error("❌ WhatsApp DB fetch error:", err);
     return [];
   }
 }
@@ -2206,7 +2197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           case "whatsapp":
             messages = await fetchWhatsappMessages(
               conversationId,
-              accessToken,
+              integration.id,
               accountId,
             );
             break;
@@ -2329,10 +2320,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
                 break;
               }
-              case "whatsapp":
-                console.log("💬 [WHATSAPP] Currently using DB messages only");
-                messages = [];
+              case "whatsapp": {
+                console.log("💬 [WHATSAPP] Fetching from database");
+                
+                // For WhatsApp, we need to get all unique conversations from the database
+                const allWhatsAppMessages = await storage.getMessagesByIntegration(integration.id);
+                
+                console.log(`📦 [WHATSAPP] Found ${allWhatsAppMessages.length} total messages in DB`);
+                
+                // Group messages by conversation (sender/recipient)
+                const conversationMap = new Map<string, any[]>();
+                
+                for (const msg of allWhatsAppMessages) {
+                  // Use senderId as conversation identifier (customer's phone number)
+                  const convoId = msg.direction === 'inbound' ? msg.senderId : msg.recipientId;
+                  
+                  if (!conversationMap.has(convoId)) {
+                    conversationMap.set(convoId, []);
+                  }
+                  conversationMap.get(convoId)!.push(msg);
+                }
+                
+                console.log(`📋 [WHATSAPP] Found ${conversationMap.size} unique conversations`);
+                
+                // Fetch messages for each conversation
+                const whatsappPromises = Array.from(conversationMap.keys()).map(async (convoId) => {
+                  return await fetchWhatsappMessages(convoId, integration.id, accountId);
+                });
+                
+                const allConvoMessages = await Promise.all(whatsappPromises);
+                messages = allConvoMessages.flat();
+                
+                console.log(`✅ [WHATSAPP] Total normalized messages: ${messages.length}`);
                 break;
+              }
             }
 
             console.log(
