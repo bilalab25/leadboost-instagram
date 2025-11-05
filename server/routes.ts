@@ -301,7 +301,7 @@ async function fetchWhatsappMessages(
       // Determine sender name based on direction
       const isOutbound = m.direction === "outbound";
       // Use contact name if available, otherwise fall back to conversation ID (phone number)
-      const from = isOutbound ? "You" : (m.contactName || conversationId);
+      const from = isOutbound ? "You" : m.contactName || conversationId;
 
       return {
         id: m.metaMessageId,
@@ -2271,18 +2271,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const integration = integrations.find((i) => i.provider === provider);
 
         if (!integration) {
-          return res.status(404).json({ error: `No ${provider} integration found` });
+          return res
+            .status(404)
+            .json({ error: `No ${provider} integration found` });
         }
 
-        await storage.markConversationMessagesAsRead(integration.id, conversationId);
-        
-        console.log(`✅ Marked messages as read for ${provider} conversation: ${conversationId}`);
+        await storage.markConversationMessagesAsRead(
+          integration.id,
+          conversationId,
+        );
+
+        console.log(
+          `✅ Marked messages as read for ${provider} conversation: ${conversationId}`,
+        );
         res.json({ success: true });
       } catch (err) {
         console.error("❌ Error marking messages as read:", err);
         res.status(500).json({ error: "Failed to mark messages as read" });
       }
-    }
+    },
   );
 
   // ✅ NEW: Unified aggregation endpoint - Get ALL messages from ALL connected providers
@@ -2480,16 +2487,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Calculate unread counts per conversation for WhatsApp
         const unreadCounts: Record<string, number> = {};
-        
+
         for (const integration of integrations) {
           if (integration.provider === "whatsapp") {
             // Get unique conversation IDs from WhatsApp messages
-            const whatsappMessages = allMessages.filter(m => m.provider === "whatsapp");
-            const conversationIds = [...new Set(whatsappMessages.map(m => m.conversationId))];
-            
+            const whatsappMessages = allMessages.filter(
+              (m) => m.provider === "whatsapp",
+            );
+            const conversationIds = [
+              ...new Set(whatsappMessages.map((m) => m.conversationId)),
+            ];
+
             // Get unread count for each conversation
             for (const convoId of conversationIds) {
-              const count = await storage.getUnreadCountByConversation(integration.id, convoId);
+              const count = await storage.getUnreadCountByConversation(
+                integration.id,
+                convoId,
+              );
               if (count > 0) {
                 unreadCounts[`${integration.provider}-${convoId}`] = count;
               }
@@ -2677,28 +2691,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // 🛑 USO DE FUNCTION: SOLO SEGURO SI ESTÁS ABSOLUTAMENTE SEGURO DEL ORIGEN DE ESTOS DATOS.
               metadata = new Function(`return ${jsObjectString}`)();
               console.log("⚠️ Metadata parseada como JS Object Literal.");
+              console.log(metadata);
             } catch (evalError) {
               console.error(
                 "❌ ERROR CRÍTICO: Metadata no es JSON válido ni JS Object Literal:",
                 evalError,
               );
-              return res
-                .status(500)
-                .json({
-                  error: "Configuration Error: Invalid metadata format",
-                });
+              return res.status(500).json({
+                error: "Configuration Error: Invalid metadata format",
+              });
             }
           }
 
-          const phoneNumberId = metadata.phoneNumberId;
+          const phoneNumberId = metadata.phone_number_id;
 
           if (!phoneNumberId) {
-            return res
-              .status(400)
-              .json({
-                error:
-                  "Missing WhatsApp Phone Number ID in integration settings",
-              });
+            return res.status(400).json({
+              error: "Missing WhatsApp Phone Number ID in integration settings",
+            });
           }
 
           // 3. CONSTRUCCIÓN DEL PAYLOAD
@@ -2712,7 +2722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(url, payload);
           console.log("URL and Payload");
-          
+
           // Set recipientId for database storage
           recipientId = conversationId; // Use the original conversation ID (customer's phone number)
         } else {
