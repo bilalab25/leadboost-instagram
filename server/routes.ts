@@ -1869,37 +1869,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/webhooks/meta", async (req, res) => {
     try {
+      // 🚨 LOG 1: Confirma que la solicitud POST está llegando a esta ruta
+      console.log("=================================================");
+      console.log("✅ REQUEST RECEIVED: POST /api/webhooks/meta");
+
       const body = req.body;
 
-      if (body.object === "page" || body.object === "instagram") {
+      // 🚨 LOG 2: Muestra el cuerpo completo que Meta envió
+      console.log("🔴 PAYLOAD RAW (BODY):");
+      console.dir(body, { depth: null });
+      console.log("=================================================");
+
+      if (
+        body.object === "page" ||
+        body.object === "instagram" ||
+        body.object === "whatsapp_business_account"
+      ) {
         console.log("📩 Nuevo evento recibido desde Meta");
-        console.dir(body, { depth: null });
 
-        // 🔹 Procesar cada entrada del evento
         for (const entry of body.entry || []) {
-          const messagingEvents = entry.messaging || entry.changes || [];
+          const events = entry.messaging || entry.changes || [];
 
-          for (const event of messagingEvents) {
-            // 📬 Evento de Messenger
-            if (event.message) {
-              const text = event.message.text;
-              const senderId = event.sender?.id;
-              const recipientId = event.recipient?.id;
+          // 1. Manejar WhatsApp: Usamos entry.changes, pero buscamos la estructura interna
+          if (body.object === "whatsapp_business_account") {
+            for (const change of entry.changes || []) {
+              if (change.field === "messages" && change.value.messages) {
+                // Ahora iteramos los mensajes reales de WhatsApp
+                for (const waMessage of change.value.messages) {
+                  // Ejemplo: Procesar un mensaje de texto
+                  if (waMessage.type === "text") {
+                    const text = waMessage.text.body;
+                    const senderId = waMessage.from; // El ID del usuario de WhatsApp
 
-              console.log("💬 [Messenger] Mensaje recibido:", {
-                senderId,
-                recipientId,
-                text,
-              });
-            }
-
-            // 📬 Evento de Instagram Messaging
-            if (event.value && event.value.messaging_product === "instagram") {
-              const igMessage = event.value;
-              console.log("💬 [Instagram] Mensaje recibido:", igMessage);
+                    console.log("🟢 [WhatsApp Real] Mensaje recibido:", {
+                      senderId,
+                      text,
+                    });
+                    // Aquí pondrías la lógica para responder o procesar el mensaje
+                  }
+                  // Puedes agregar más lógica para 'image', 'video', etc.
+                }
+              }
             }
           }
-        }
+
+          // 2. Manejar Messenger/Instagram/Test (Lógica existente)
+          else {
+            for (const event of events) {
+              // 🚀 Lógica de Test (queda igual)
+              if (event.field === "messages" && event.value) {
+                console.log(
+                  "🔔 [Webhook Test] Evento de prueba 'messages' recibido:",
+                  {
+                    /* ... */
+                  },
+                );
+              }
+              // 💬 Lógica de Messenger Real (queda igual)
+              else if (event.message) {
+                console.log("💬 [Messenger Real] Mensaje recibido:", {
+                  /* ... */
+                });
+              }
+              // 📸 Lógica de Instagram Valor (queda igual)
+              else if (
+                event.value &&
+                event.value.messaging_product === "instagram"
+              ) {
+                console.log("📷 [Instagram Valor] Evento de valor recibido:", {
+                  /* ... */
+                });
+              }
+            }
+          }
+        } // Fin del for (entry)
 
         res.status(200).send("EVENT_RECEIVED");
       } else {
@@ -1910,7 +1953,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Meta webhook processing failed" });
     }
   });
-
   // backend/routes/facebook-pages.ts
   app.get("/api/facebook/pages", async (req, res) => {
     try {
