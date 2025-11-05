@@ -41,6 +41,7 @@ import {
   insertSubscriptionPlanSchema,
   type BrandDesign,
 } from "@shared/schema";
+import { z } from "zod";
 import { posIntegrationService } from "./services/posIntegrations";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
@@ -4042,6 +4043,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error processing WooCommerce webhook:", error);
       res.status(500).json({ message: "Webhook processing failed" });
+    }
+  });
+
+  // Message routes - Save messages from webhooks or manual creation
+  app.post("/api/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Validate request body using Zod schema
+      const messageData = insertMessageSchema.parse(req.body);
+
+      // Create message in database
+      const newMessage = await storage.createMessage(messageData);
+
+      console.log(`✅ Message created: ${newMessage.id} from ${newMessage.platform}`);
+
+      res.status(201).json({
+        success: true,
+        message: newMessage,
+      });
+    } catch (error) {
+      console.error("Error creating message:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Validation error",
+          errors: error.errors,
+        });
+      }
+
+      res.status(500).json({
+        message: "Failed to create message",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
