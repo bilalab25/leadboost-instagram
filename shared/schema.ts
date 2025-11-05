@@ -124,31 +124,25 @@ export const conversationThreads = pgTable("conversation_threads", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Messages from all social platforms
+// Messages from all social platforms - Webhook storage
 export const messages = pgTable("messages", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  conversationId: uuid("conversation_id").references(
-    () => conversationThreads.id,
-    { onDelete: "cascade" },
-  ),
-  socialAccountId: uuid("social_account_id").references(
-    () => socialAccounts.id,
-    { onDelete: "cascade" },
-  ),
-  senderId: varchar("sender_id").notNull(),
-  senderName: varchar("sender_name").notNull(),
-  senderAvatar: varchar("sender_avatar"),
-  content: text("content").notNull(),
-  imageUrl: text("image_url"), // URL of attached image from Facebook/Instagram/etc
-  messageType: varchar("message_type").default("text"), // text, image, video, audio
-  direction: varchar("direction").default("inbound"), // inbound, outbound
-  status: varchar("status").default("sent"), // sent, delivered, read, failed
-  isRead: boolean("is_read").default(false),
-  priority: varchar("priority").default("normal"), // low, normal, high, urgent
-  tags: text("tags").array(),
-  assignedTo: varchar("assigned_to").references(() => users.id),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }), // Routing key: platform user who owns the conversation
+  integrationId: uuid("integration_id")
+    .notNull()
+    .references(() => integrations.id, { onDelete: "cascade" }), // Integration that received the message
+  platform: varchar("platform").notNull(), // whatsapp, messenger, instagram
+  metaMessageId: varchar("meta_message_id").notNull(), // Unique Meta ID (wamid... or mid...)
+  senderId: varchar("sender_id").notNull(), // ID of the end user who sent the message
+  recipientId: varchar("recipient_id").notNull(), // ID of the page/number that received the message
+  textContent: text("text_content"), // Message content
+  direction: varchar("direction").notNull(), // inbound (Incoming) or outbound (Outgoing/Echo)
+  timestamp: timestamp("timestamp").notNull(), // When the event occurred
+  rawPayload: jsonb("raw_payload"), // Complete webhook payload for reference
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -530,7 +524,7 @@ export const brandsRelations = relations(brands, ({ one, many }) => ({
 
 export const socialAccountsRelations = relations(
   socialAccounts,
-  ({ one, many }) => ({
+  ({ one }) => ({
     user: one(users, {
       fields: [socialAccounts.userId],
       references: [users.id],
@@ -539,35 +533,28 @@ export const socialAccountsRelations = relations(
       fields: [socialAccounts.brandId],
       references: [brands.id],
     }),
-    messages: many(messages),
   }),
 );
 
 export const conversationThreadsRelations = relations(
   conversationThreads,
-  ({ one, many }) => ({
+  ({ one }) => ({
     socialAccount: one(socialAccounts, {
       fields: [conversationThreads.socialAccountId],
       references: [socialAccounts.id],
     }),
-    messages: many(messages),
   }),
 );
 
-export const messagesRelations = relations(messages, ({ one, many }) => ({
-  conversation: one(conversationThreads, {
-    fields: [messages.conversationId],
-    references: [conversationThreads.id],
-  }),
-  socialAccount: one(socialAccounts, {
-    fields: [messages.socialAccountId],
-    references: [socialAccounts.id],
-  }),
-  assignedUser: one(users, {
-    fields: [messages.assignedTo],
+export const messagesRelations = relations(messages, ({ one }) => ({
+  user: one(users, {
+    fields: [messages.userId],
     references: [users.id],
   }),
-  attachments: many(messageAttachments),
+  integration: one(integrations, {
+    fields: [messages.integrationId],
+    references: [integrations.id],
+  }),
 }));
 
 export const messageAttachmentsRelations = relations(
