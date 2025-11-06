@@ -112,16 +112,27 @@ export interface IStorage {
   getMessagesByUserId(userId: string, unreadOnly?: boolean): Promise<Message[]>;
   getMessagesByAccountId(accountId: string): Promise<Message[]>;
   getMessagesByIntegration(integrationId: string): Promise<Message[]>;
-  getMessagesByIntegrationAndConversation(integrationId: string, conversationId: string): Promise<Message[]>;
-  getUnreadCountByConversation(integrationId: string, conversationId: string): Promise<number>;
+  getMessagesByIntegrationAndConversation(
+    integrationId: string,
+    conversationId: string,
+  ): Promise<Message[]>;
+  getUnreadCountByConversation(
+    integrationId: string,
+    conversationId: string,
+  ): Promise<number>;
   updateMessageStatus(id: string, isRead: boolean): Promise<void>;
   markMessageAsRead(id: string): Promise<void>;
-  markConversationMessagesAsRead(integrationId: string, conversationId: string): Promise<void>;
+  markConversationMessagesAsRead(
+    integrationId: string,
+    conversationId: string,
+  ): Promise<void>;
   updateMessagePriority(id: string, priority: string): Promise<void>;
   assignMessage(id: string, assignedTo: string): Promise<void>;
 
   // Conversation operations
-  createConversation(conversation: InsertConversationThread): Promise<ConversationThread>;
+  createConversation(
+    conversation: InsertConversationThread,
+  ): Promise<ConversationThread>;
   getConversationById(id: string): Promise<ConversationThread | undefined>;
   getConversationsByUserId(userId: string): Promise<ConversationThread[]>;
   updateConversationLastMessage(id: string, preview: string): Promise<void>;
@@ -131,7 +142,9 @@ export interface IStorage {
   getConversationMessages(conversationId: string): Promise<Message[]>;
 
   // Message attachment operations
-  createMessageAttachment(attachment: InsertMessageAttachment): Promise<MessageAttachment>;
+  createMessageAttachment(
+    attachment: InsertMessageAttachment,
+  ): Promise<MessageAttachment>;
   getMessageAttachments(messageId: string): Promise<MessageAttachment[]>;
 
   // Content plan operations
@@ -345,11 +358,14 @@ export interface IStorage {
     updates: Partial<Integration>,
   ): Promise<Integration | undefined>;
   deleteIntegration(id: string, userId: string): Promise<boolean>;
-  
+
   // Meta Messenger/Instagram hybrid sync operations
   bulkInsertMessages(messages: InsertMessage[]): Promise<void>;
   markIntegrationAsFetched(integrationId: string): Promise<void>;
-  findIntegrationByAccount(accountId: string, provider: string): Promise<Integration | undefined>;
+  findIntegrationByAccount(
+    accountId: string,
+    provider: string,
+  ): Promise<Integration | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -529,7 +545,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(messages.timestamp));
   }
 
-  async getMessagesByIntegrationAndConversation(integrationId: string, conversationId: string): Promise<Message[]> {
+  async getMessagesByIntegrationAndConversation(
+    integrationId: string,
+    conversationId: string,
+  ): Promise<Message[]> {
     return db
       .select()
       .from(messages)
@@ -538,14 +557,17 @@ export class DatabaseStorage implements IStorage {
           eq(messages.integrationId, integrationId),
           or(
             eq(messages.senderId, conversationId),
-            eq(messages.recipientId, conversationId)
-          )
-        )
+            eq(messages.recipientId, conversationId),
+          ),
+        ),
       )
       .orderBy(asc(messages.timestamp));
   }
 
-  async getUnreadCountByConversation(integrationId: string, conversationId: string): Promise<number> {
+  async getUnreadCountByConversation(
+    integrationId: string,
+    conversationId: string,
+  ): Promise<number> {
     const result = await db
       .select({ count: sql<number>`count(*)` })
       .from(messages)
@@ -554,13 +576,13 @@ export class DatabaseStorage implements IStorage {
           eq(messages.integrationId, integrationId),
           or(
             eq(messages.senderId, conversationId),
-            eq(messages.recipientId, conversationId)
+            eq(messages.recipientId, conversationId),
           ),
           eq(messages.isRead, false),
-          eq(messages.direction, "inbound") // Only count unread inbound messages
-        )
+          eq(messages.direction, "inbound"), // Only count unread inbound messages
+        ),
       );
-    
+
     return Number(result[0]?.count || 0);
   }
 
@@ -576,7 +598,10 @@ export class DatabaseStorage implements IStorage {
     await db.update(messages).set({ isRead: true }).where(eq(messages.id, id));
   }
 
-  async markConversationMessagesAsRead(integrationId: string, conversationId: string): Promise<void> {
+  async markConversationMessagesAsRead(
+    integrationId: string,
+    conversationId: string,
+  ): Promise<void> {
     await db
       .update(messages)
       .set({ isRead: true })
@@ -585,10 +610,10 @@ export class DatabaseStorage implements IStorage {
           eq(messages.integrationId, integrationId),
           or(
             eq(messages.senderId, conversationId),
-            eq(messages.recipientId, conversationId)
+            eq(messages.recipientId, conversationId),
           ),
-          eq(messages.isRead, false) // Only update unread messages
-        )
+          eq(messages.isRead, false), // Only update unread messages
+        ),
       );
   }
 
@@ -629,7 +654,9 @@ export class DatabaseStorage implements IStorage {
       )
       .where(eq(socialAccounts.userId, userId));
 
-    const results = await query.orderBy(desc(conversationThreads.lastMessageAt));
+    const results = await query.orderBy(
+      desc(conversationThreads.lastMessageAt),
+    );
     return results.map((row) => row.conversation_threads);
   }
 
@@ -1686,29 +1713,44 @@ export class DatabaseStorage implements IStorage {
 
   // Meta Messenger/Instagram hybrid sync operations
   async bulkInsertMessages(messagesList: InsertMessage[]): Promise<void> {
-    for (const msg of messagesList) {
-      // Use INSERT ... ON CONFLICT to avoid duplicates
-      await db
-        .insert(messages)
-        .values(msg)
-        .onConflictDoNothing({ target: messages.metaMessageId })
-        .execute();
-    }
+    if (!messagesList?.length) return;
+
+    await db
+      .insert(messages)
+      .values(messagesList)
+      .onConflictDoNothing({
+        target: [messages.integrationId, messages.metaMessageId],
+      })
+      .execute();
+
+    console.log(`✅ Inserted ${messagesList.length} messages (upsert safe)`);
   }
 
   async markIntegrationAsFetched(integrationId: string): Promise<void> {
     await db
       .update(integrations)
-      .set({ hasFetchedHistory: true, lastSyncAt: new Date(), updatedAt: new Date() })
+      .set({
+        hasFetchedHistory: true,
+        lastSyncAt: new Date(),
+        updatedAt: new Date(),
+      })
       .where(eq(integrations.id, integrationId))
       .execute();
   }
 
-  async findIntegrationByAccount(accountId: string, provider: string): Promise<Integration | undefined> {
+  async findIntegrationByAccount(
+    accountId: string,
+    provider: string,
+  ): Promise<Integration | undefined> {
     const [integration] = await db
       .select()
       .from(integrations)
-      .where(and(eq(integrations.accountId, accountId), eq(integrations.provider, provider)))
+      .where(
+        and(
+          eq(integrations.accountId, accountId),
+          eq(integrations.provider, provider),
+        ),
+      )
       .limit(1);
     return integration;
   }
