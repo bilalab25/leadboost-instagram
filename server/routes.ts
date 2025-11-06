@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { Server as SocketIOServer } from "socket.io";
 import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
@@ -2124,6 +2125,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       console.log(
                         `✅ Message saved to database: ${savedMessage.id}`,
                       );
+
+                      // Emit real-time event to connected clients
+                      const io = app.get("io");
+                      if (io) {
+                        io.emit("new_message", {
+                          provider: "whatsapp",
+                          conversationId: senderId,
+                          message: savedMessage,
+                        });
+                        console.log("📡 Real-time WhatsApp message emitted to clients");
+                      }
                     } else {
                       console.warn(
                         `⚠️ Skipping message save - no integration found`,
@@ -2184,6 +2196,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     console.log(
                       `✅ [Messenger] Message saved: ${savedMessage.id}`,
                     );
+
+                    // Emit real-time event to connected clients
+                    const io = app.get("io");
+                    if (io) {
+                      io.emit("new_message", {
+                        provider: "facebook",
+                        conversationId: senderId,
+                        message: savedMessage,
+                      });
+                      console.log("📡 Real-time Messenger message emitted to clients");
+                    }
                   } else {
                     console.warn(
                       `⚠️ [Messenger] No integration found for recipient: ${recipientId}`,
@@ -2234,6 +2257,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     console.log(
                       `✅ [Instagram] Message saved: ${savedMessage.id}`,
                     );
+
+                    // Emit real-time event to connected clients
+                    const io = app.get("io");
+                    if (io) {
+                      io.emit("new_message", {
+                        provider: "instagram",
+                        conversationId: senderId,
+                        message: savedMessage,
+                      });
+                      console.log("📡 Real-time Instagram message emitted to clients");
+                    }
                   } else {
                     console.warn(
                       `⚠️ [Instagram] No integration found for recipient: ${recipientId}`,
@@ -5687,5 +5721,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   const server = createServer(app);
+  
+  // Initialize Socket.IO for real-time messaging
+  const io = new SocketIOServer(server, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
+
+  io.on("connection", (socket) => {
+    console.log("⚡ Socket.IO client connected:", socket.id);
+    
+    socket.on("disconnect", () => {
+      console.log("❌ Socket.IO client disconnected:", socket.id);
+    });
+  });
+
+  // Make io accessible in routes via app.set
+  app.set("io", io);
+  
   return server;
 }

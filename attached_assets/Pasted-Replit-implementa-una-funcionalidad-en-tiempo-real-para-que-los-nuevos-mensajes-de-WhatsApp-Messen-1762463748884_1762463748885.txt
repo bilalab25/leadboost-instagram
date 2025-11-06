@@ -1,0 +1,117 @@
+Replit, implementa una funcionalidad en tiempo real para que los nuevos mensajes de WhatsApp, Messenger e Instagram aparezcan automáticamente en el inbox sin recargar la página.
+
+---
+
+🧩 Objetivo:
+Configurar **Socket.IO** en mi servidor Express para emitir eventos cada vez que se detecte un nuevo mensaje en el webhook `/api/webhooks/meta`, y hacer que el frontend React escuche esos eventos para actualizar el inbox al instante.
+
+---
+
+⚙️ Cambios en el backend (Express):
+
+1️⃣ Instala las dependencias necesarias:
+```bash
+npm install socket.io
+```
+
+2️⃣ En el archivo principal del servidor (por ejemplo `server.js` o `index.js`):
+- Reemplaza la inicialización normal de Express con Socket.IO:
+
+```js
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
+
+app.set("io", io); // Permite acceder a io desde rutas y webhooks
+
+io.on("connection", (socket) => {
+  console.log("⚡ Cliente conectado:", socket.id);
+  socket.on("disconnect", () => console.log("❌ Cliente desconectado:", socket.id));
+});
+
+export { io, server };
+
+server.listen(process.env.PORT || 3000, () =>
+  console.log(`🚀 Server running on port ${process.env.PORT || 3000}`)
+);
+```
+
+3️⃣ En el webhook `/api/webhooks/meta`:
+- Después de guardar el mensaje en la base de datos (`await storage.createMessage(messageData)`), emite un evento en tiempo real:
+
+```js
+const io = req.app.get("io");
+
+io.emit("new_message", {
+  provider: messageData.platform,
+  conversationId: messageData.recipientId || messageData.senderId,
+  message: messageData,
+});
+
+console.log("📡 Real-time message emitted to clients");
+```
+
+Esto notificará automáticamente a todos los clientes conectados cuando haya un nuevo mensaje de WhatsApp, Instagram o Messenger.
+
+---
+
+⚙️ Cambios en el frontend (React):
+
+1️⃣ Instala el cliente Socket.IO:
+```bash
+npm install socket.io-client
+```
+
+2️⃣ En el componente del Inbox (por ejemplo `Inbox.jsx` o `ChatView.jsx`), agrega lo siguiente:
+
+```jsx
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
+
+const socket = io("https://your-replit-app-url.repl.co"); // 👈 Reemplaza con tu URL pública de Replit
+
+function Inbox() {
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("✅ Conectado al servidor en tiempo real:", socket.id);
+    });
+
+    socket.on("new_message", (data) => {
+      console.log("💬 Nuevo mensaje recibido:", data);
+      setMessages((prev) => [...prev, data.message]); // Agrega el mensaje en tiempo real
+    });
+
+    return () => {
+      socket.off("new_message");
+    };
+  }, []);
+
+  return (
+    <div>
+      {messages.map((msg, i) => (
+        <p key={i}>{msg.textContent}</p>
+      ))}
+    </div>
+  );
+}
+
+export default Inbox;
+```
+
+---
+
+✅ Resultado esperado:
+- Cada vez que el webhook reciba un nuevo mensaje de Meta (Instagram, Messenger o WhatsApp), el servidor lo guardará y emitirá el evento `new_message`.
+- El frontend escuchará ese evento y mostrará el nuevo mensaje instantáneamente sin necesidad de recargar.
+
+---
+
+💡 Notas:
+- Si el proyecto ya tiene HTTPS (por ejemplo en Replit con un dominio .repl.co), Socket.IO funcionará sin configuración adicional.
+- Asegúrate de exportar `server` en lugar de `app.listen()` para evitar conflictos con el servidor HTTP.
