@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useNewMessageListener } from "@/hooks/useSocket";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 import { X, Send, CheckCheck, Instagram, Mail, Twitter } from "lucide-react";
@@ -162,6 +163,39 @@ export default function ConversationPanel({
 
     markAsRead();
   }, [conversationId, platform]);
+
+  // ✅ Socket.IO: Listen for new messages in real-time for this conversation
+  const handleNewMessage = useCallback((event: any) => {
+    const { provider, conversationId: msgConvoId, message } = event;
+
+    // Only add message if it belongs to this conversation
+    if (provider === platform && msgConvoId === conversationId) {
+      console.log("💬 New message for current conversation:", message);
+
+      const formattedMessage: Message = {
+        id: message.id,
+        conversationId: conversationId,
+        senderId: message.senderId,
+        senderName: message.contactName || "Unknown User",
+        content: message.textContent || "(sin mensaje)",
+        imageUrl: null,
+        direction: "inbound",
+        status: "read",
+        createdAt: message.timestamp || new Date().toISOString(),
+      };
+
+      // Add the new message to the conversation
+      setMessages(prev => {
+        // Check if message already exists (prevent duplicates)
+        const exists = prev.some(m => m.id === formattedMessage.id);
+        if (exists) return prev;
+        
+        return [...prev, formattedMessage];
+      });
+    }
+  }, [platform, conversationId]);
+
+  useNewMessageListener(handleNewMessage);
 
   // 🔹 Enviar mensaje
   const sendMessageMutation = useMutation({
