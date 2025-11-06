@@ -328,6 +328,117 @@ async function fetchWhatsappMessages(
 }
 
 // ==================================================================================
+// HYBRID SYNC HELPERS FOR MESSENGER/INSTAGRAM
+// ==================================================================================
+
+/**
+ * Perform initial historical sync for Messenger/Instagram
+ * Fetches last 50 conversations and 50 messages per conversation
+ */
+async function performInitialSync(
+  userId: string,
+  integration: any,
+  provider: string,
+): Promise<void> {
+  try {
+    console.log(`\n🔄 [INITIAL SYNC] Starting for ${provider}...`);
+
+    const accessToken = integration.accessToken;
+    const accountId = integration.accountId;
+
+    // Fetch conversations
+    const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&limit=50&access_token=${accessToken}`;
+    
+    console.log(`📞 Fetching conversations from: ${convoUrl.replace(accessToken, 'TOKEN')}`);
+    const convoRes = await fetch(convoUrl);
+    const convoData = await convoRes.json();
+
+    if (convoData.error) {
+      console.error(`❌ Initial sync error for ${provider}:`, convoData.error);
+      return;
+    }
+
+    const conversations = convoData.data || [];
+    console.log(`📦 Found ${conversations.length} conversations for ${provider}`);
+
+    const messagesToInsert = [];
+
+    // Fetch messages for each conversation
+    for (const convo of conversations) {
+      const messagesUrl = `https://graph.facebook.com/v24.0/${convo.id}/messages?fields=id,message,text,from,to,created_time,attachments&limit=50&access_token=${accessToken}`;
+      
+      const msgRes = await fetch(messagesUrl);
+      const msgData = await msgRes.json();
+
+      if (msgData.error) {
+        console.error(`⚠️ Error fetching messages for conversation ${convo.id}:`, msgData.error);
+        continue;
+      }
+
+      const messages = msgData.data || [];
+      console.log(`  📨 Conversation ${convo.id}: ${messages.length} messages`);
+
+      // Convert messages to database format
+      for (const m of messages) {
+        const text = m.message || m.text || "";
+        const isOutbound = m.from?.id === accountId;
+        const senderId = m.from?.id || "";
+        const recipientId = isOutbound ? m.to?.data?.[0]?.id || "" : accountId;
+
+        messagesToInsert.push({
+          userId,
+          integrationId: integration.id,
+          platform: provider,
+          metaMessageId: m.id,
+          senderId,
+          recipientId,
+          textContent: text,
+          direction: isOutbound ? "outbound" : "inbound",
+          isRead: isOutbound, // Mark outbound messages as read
+          timestamp: new Date(m.created_time),
+          rawPayload: { message: m },
+        });
+      }
+    }
+
+    if (messagesToInsert.length > 0) {
+      console.log(`💾 Saving ${messagesToInsert.length} messages to database...`);
+      await storage.bulkInsertMessages(messagesToInsert);
+      console.log(`✅ Initial sync complete for ${provider}`);
+    }
+
+    // Mark integration as fetched
+    await storage.markIntegrationAsFetched(integration.id);
+  } catch (err) {
+    console.error(`❌ Initial sync failed for ${provider}:`, err);
+  }
+}
+
+/**
+ * Merge local and remote messages, removing duplicates by metaMessageId
+ */
+function mergeLocalAndRemote(
+  remoteMessages: NormalizedMessage[],
+  localMessages: NormalizedMessage[],
+): NormalizedMessage[] {
+  const messageMap = new Map<string, NormalizedMessage>();
+
+  // Add remote messages first
+  for (const msg of remoteMessages) {
+    messageMap.set(msg.id, msg);
+  }
+
+  // Add local messages (won't overwrite if ID already exists)
+  for (const msg of localMessages) {
+    if (!messageMap.has(msg.id)) {
+      messageMap.set(msg.id, msg);
+    }
+  }
+
+  return Array.from(messageMap.values());
+}
+
+// ==================================================================================
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint for deployment
@@ -2029,32 +2140,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          // 2. Manejar Messenger/Instagram/Test (Lógica existente)
+          // 2. Manejar Messenger/Instagram
           else {
             for (const event of events) {
-              // 🚀 Lógica de Test (queda igual)
-              if (event.field === "messages" && event.value) {
-                console.log(
-                  "🔔 [Webhook Test] Evento de prueba 'messages' recibido:",
-                  {
-                    /* ... */
-                  },
-                );
+              // 💬 Handle Messenger messages
+              if (event.message && event.sender && event.recipient) {
+                try {
+                  console.log("💬 [Messenger] Message received:", {
+                    sender: event.sender.id,
+                    recipient: event.recipient.id,
+                    text: event.message.text,
+                    mid: event.message.mid,
+                  });
+
+                  const messageText = event.message.text || "";
+                  const senderId = event.sender.id;
+                  const recipientId = event.recipient.id;
+                  const messageId = event.message.mid;
+
+                  // Find integration by recipientId (page ID)
+                  const integration = await storage.findIntegrationByAccount(
+                    recipientId,
+                    "facebook",
+                  );
+
+                  if (integration) {
+                    const messageData = {
+                      userId: integration.userId,
+                      integrationId: integration.id,
+                      platform: "facebook",
+                      metaMessageId: messageId,
+                      senderId: senderId,
+                      recipientId: recipientId,
+                      textContent: messageText,
+                      direction: "inbound",
+                      isRead: false,
+                      timestamp: new Date(event.timestamp || Date.now()),
+                      rawPayload: body,
+                    };
+
+                    const savedMessage =
+                      await storage.createMessage(messageData);
+                    console.log(
+                      `✅ [Messenger] Message saved: ${savedMessage.id}`,
+                    );
+                  } else {
+                    console.warn(
+                      `⚠️ [Messenger] No integration found for recipient: ${recipientId}`,
+                    );
+                  }
+                } catch (error) {
+                  console.error("❌ Error processing Messenger message:", error);
+                }
               }
-              // 💬 Lógica de Messenger Real (queda igual)
-              else if (event.message) {
-                console.log("💬 [Messenger Real] Mensaje recibido:", {
-                  /* ... */
-                });
-              }
-              // 📸 Lógica de Instagram Valor (queda igual)
-              else if (
-                event.value &&
-                event.value.messaging_product === "instagram"
-              ) {
-                console.log("📷 [Instagram Valor] Evento de valor recibido:", {
-                  /* ... */
-                });
+              // 📸 Handle Instagram messages
+              else if (event.message && body.object === "instagram") {
+                try {
+                  console.log("📷 [Instagram] Message received:", {
+                    sender: event.sender?.id,
+                    recipient: event.recipient?.id,
+                    text: event.message.text,
+                    mid: event.message.mid,
+                  });
+
+                  const messageText = event.message.text || "";
+                  const senderId = event.sender?.id || "";
+                  const recipientId = event.recipient?.id || "";
+                  const messageId = event.message.mid;
+
+                  // Find integration by recipientId (Instagram Business Account ID)
+                  const integration = await storage.findIntegrationByAccount(
+                    recipientId,
+                    "instagram",
+                  );
+
+                  if (integration) {
+                    const messageData = {
+                      userId: integration.userId,
+                      integrationId: integration.id,
+                      platform: "instagram",
+                      metaMessageId: messageId,
+                      senderId: senderId,
+                      recipientId: recipientId,
+                      textContent: messageText,
+                      direction: "inbound",
+                      isRead: false,
+                      timestamp: new Date(event.timestamp || Date.now()),
+                      rawPayload: body,
+                    };
+
+                    const savedMessage =
+                      await storage.createMessage(messageData);
+                    console.log(
+                      `✅ [Instagram] Message saved: ${savedMessage.id}`,
+                    );
+                  } else {
+                    console.warn(
+                      `⚠️ [Instagram] No integration found for recipient: ${recipientId}`,
+                    );
+                  }
+                } catch (error) {
+                  console.error("❌ Error processing Instagram message:", error);
+                }
               }
             }
           }
@@ -2326,34 +2513,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
               case "facebook":
               case "instagram":
               case "threads": {
-                const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&access_token=${accessToken}`;
+                // ✅ HYBRID SYNC STRATEGY for Messenger/Instagram
+                
+                // Step 1: Check if we need to perform initial sync
+                if (!integration.hasFetchedHistory) {
+                  console.log(`🔄 [${provider.toUpperCase()}] Performing initial historical sync...`);
+                  await performInitialSync(userId, integration, provider);
+                }
 
-                console.log(
-                  `🔗 [${provider.toUpperCase()}] Fetching conversations from:`,
-                  convoUrl,
-                );
+                // Step 2: Fetch messages from local database
+                console.log(`💾 [${provider.toUpperCase()}] Fetching messages from local database`);
+                const dbMessages = await storage.getMessagesByIntegration(integration.id);
+                console.log(`📦 [${provider.toUpperCase()}] Found ${dbMessages.length} messages in database`);
+
+                // Convert database messages to NormalizedMessage format
+                const localMessages: NormalizedMessage[] = dbMessages.map((m) => ({
+                  id: m.metaMessageId,
+                  conversationId: m.direction === "inbound" ? m.senderId : m.recipientId,
+                  text: m.textContent || "",
+                  imageUrl: null,
+                  from: m.direction === "outbound" ? "You" : "User",
+                  fromId: m.senderId,
+                  created_time: m.timestamp.toISOString(),
+                  provider: provider,
+                  accountId,
+                  direction: m.direction,
+                }));
+
+                // Step 3: Fetch recent messages from API (to get any new messages)
+                console.log(`🌐 [${provider.toUpperCase()}] Fetching recent messages from Graph API`);
+                const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&access_token=${accessToken}`;
 
                 const convoRes = await fetch(convoUrl);
                 const convoData = await convoRes.json();
+
+                let remoteMessages: NormalizedMessage[] = [];
 
                 if (convoData.error) {
                   console.error(
                     `❌ [${provider.toUpperCase()}] Conversation API error:`,
                     convoData.error,
                   );
-                  throw new Error(convoData.error.message);
-                }
+                } else if (convoData.data && convoData.data.length > 0) {
+                  console.log(
+                    `📦 [${provider.toUpperCase()}] Found ${convoData.data.length} conversations`,
+                  );
 
-                console.log(
-                  `📦 [${provider.toUpperCase()}] Found ${convoData.data?.length || 0} conversations`,
-                );
-
-                if (convoData.data && convoData.data.length > 0) {
                   const messagePromises = convoData.data.map(
                     async (convo: any) => {
-                      console.log(
-                        `🗨️ Fetching messages from convo ${convo.id} (platform: ${convo.platform || "unknown"})`,
-                      );
                       try {
                         if (provider === "facebook") {
                           return await fetchFacebookMessages(
@@ -2385,8 +2592,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   );
 
                   const allConvoMessages = await Promise.all(messagePromises);
-                  messages = allConvoMessages.flat();
+                  remoteMessages = allConvoMessages.flat();
                 }
+
+                // Step 4: Merge local and remote messages (remove duplicates)
+                messages = mergeLocalAndRemote(remoteMessages, localMessages);
+                console.log(
+                  `✅ [${provider.toUpperCase()}] Merged total: ${messages.length} messages (${localMessages.length} local + ${remoteMessages.length} remote)`,
+                );
                 break;
               }
               case "whatsapp": {

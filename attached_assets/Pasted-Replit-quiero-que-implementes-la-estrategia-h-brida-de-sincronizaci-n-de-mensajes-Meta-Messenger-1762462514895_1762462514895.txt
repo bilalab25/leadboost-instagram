@@ -1,0 +1,133 @@
+Replit, quiero que implementes la **estrategia híbrida de sincronización de mensajes Meta (Messenger, Instagram y WhatsApp)** en mi servidor Express, tomando en cuenta que en mi tabla `integrations` actualmente NO existe el campo `hasFetchedHistory`.
+
+---
+
+🧩 Objetivo general:
+Configurar un sistema que:
+- 🔹 Use almacenamiento local para WhatsApp (obligatorio por diseño de Meta).
+- 🔹 Para Messenger e Instagram, traiga mensajes históricos directamente desde la Graph API y también guarde los nuevos mensajes entrantes recibidos por el webhook.
+- 🔹 Cree y maneje automáticamente un campo `hasFetchedHistory` en la tabla `integrations` para controlar si ya se hizo la sincronización inicial.
+- 🔹 Combine mensajes locales + remotos evitando duplicados.
+
+---
+
+⚙️ Cambios solicitados:
+
+### 1️⃣ Endpoint `/api/conversations/messages/all`
+- Mantén la autenticación `isAuthenticated`.
+- Para **Messenger e Instagram**:
+  - Si el campo `hasFetchedHistory` no existe aún, créalo con un valor por defecto `false`.
+  - Si `hasFetchedHistory` es `false`, realiza una sincronización inicial:
+    - Obtén las últimas 50 conversaciones (`/{page_id}/conversations`) y los últimos 50 mensajes de cada conversación (`/{conversation_id}/messages`) desde la Graph API v24.0.
+    - Guarda los mensajes en la base local (`storage.bulkInsertMessages()`).
+    - Marca la integración con `hasFetchedHistory = true`.
+  - En llamadas posteriores, combina mensajes locales con los más recientes desde Meta.
+- Para **WhatsApp**:
+  - Usa solo los mensajes locales almacenados.
+- Devuelve una respuesta unificada con:
+  ```json
+  {
+    "messages": [...],
+    "providers": ["instagram", "facebook", "whatsapp"],
+    "total": 123
+  }
+  ```
+- Ordena los mensajes por `created_time` descendente.
+- Implementa una función auxiliar `mergeLocalAndRemote(remote, local)` que elimine duplicados por `messageId`.
+
+---
+
+### 2️⃣ Webhook `/api/webhooks/meta`
+- Mantén la lógica actual de WhatsApp.
+- Agrega soporte para Messenger e Instagram:
+  - Detecta mensajes con `entry.messaging` o `entry.changes` donde `value.messaging_product === "instagram"` o provengan de una `page`.
+  - Extrae `senderId`, `recipientId`, y `messageText`.
+  - Busca la integración correspondiente (`storage.findIntegrationByAccount(recipientId, platform)`).
+  - Guarda el mensaje con:
+    ```js
+    {
+      userId: integration.userId,
+      integrationId: integration.id,
+      platform,
+      metaMessageId: event.message?.mid || value.message_id,
+      senderId,
+      recipientId,
+      textContent: messageText,
+      direction: "inbound",
+      isRead: false,
+      timestamp: new Date(),
+      rawPayload: body
+    }
+    ```
+
+---
+
+### 3️⃣ Cambios en `storage`
+Agrega estos métodos (puedes implementarlos con Prisma, Supabase o tu capa actual):
+
+```js
+async function bulkInsertMessages(userId, integrationId, messages) {
+  for (const msg of messages) {
+    await db.messages.upsert({
+      where: { metaMessageId: msg.messageId },
+      update: {},
+      create: {
+        userId,
+        integrationId,
+        platform: msg.provider,
+        metaMessageId: msg.messageId,
+        senderId: msg.senderId,
+        recipientId: msg.recipientId,
+        textContent: msg.textContent,
+        direction: msg.direction,
+        isRead: false,
+        timestamp: new Date(msg.created_time),
+      },
+    });
+  }
+}
+
+async function markIntegrationAsFetched(integrationId) {
+  await db.integrations.update({
+    where: { id: integrationId },
+    data: { hasFetchedHistory: true },
+  });
+}
+
+async function findIntegrationByAccount(accountId, provider) {
+  return await db.integrations.findFirst({
+    where: { account_id: accountId, provider },
+  });
+}
+```
+
+---
+
+### 4️⃣ Modificación de base de datos
+Si `hasFetchedHistory` aún no existe, crea el campo automáticamente antes de usarlo:
+```sql
+ALTER TABLE integrations ADD COLUMN IF NOT EXISTS hasFetchedHistory BOOLEAN DEFAULT false;
+```
+
+---
+
+### 5️⃣ Resultado esperado
+✅ Cuando un usuario conecta Messenger o Instagram por primera vez, el servidor sincroniza los últimos 50 mensajes y los guarda.  
+✅ Los nuevos mensajes que lleguen por webhook también se guardan automáticamente.  
+✅ WhatsApp continúa almacenando todos los mensajes localmente.  
+✅ El endpoint `/api/conversations/messages/all` combina mensajes locales + remotos sin duplicados.  
+✅ Todos los mensajes aparecen unificados y ordenados cronológicamente.
+
+---
+
+📦 Dependencias necesarias:
+- `node-fetch`  
+- `express`  
+- Tu sistema actual de `storage` (con acceso a integraciones y mensajes)
+
+---
+
+💡 Instrucción final:
+Genera el código completo actualizado para ambos endpoints (`/api/conversations/messages/all` y `/api/webhooks/meta`), incluyendo las funciones auxiliares y comentarios explicativos.  
+Asegúrate de manejar errores con `console.error()` y logs descriptivos.  
+El código debe ser funcional en un entorno Node.js dentro de Replit (TypeScript opcional).

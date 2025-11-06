@@ -136,7 +136,7 @@ export const messages = pgTable("messages", {
     .notNull()
     .references(() => integrations.id, { onDelete: "cascade" }), // Integration that received the message
   platform: varchar("platform").notNull(), // whatsapp, messenger, instagram
-  metaMessageId: varchar("meta_message_id").notNull(), // Unique Meta ID (wamid... or mid...)
+  metaMessageId: varchar("meta_message_id").notNull().unique(), // Unique Meta ID (wamid... or mid...) - UNIQUE constraint for hybrid sync
   senderId: varchar("sender_id").notNull(), // ID of the end user who sent the message
   recipientId: varchar("recipient_id").notNull(), // ID of the page/number that received the message
   contactName: varchar("contact_name"), // Contact profile name from WhatsApp
@@ -1114,6 +1114,7 @@ export const integrations = pgTable("integrations", {
   isActive: boolean("is_active").default(true), // Maps to: is_active
   syncEnabled: boolean("sync_enabled").default(true), // Maps to: sync_enabled
   lastSyncAt: timestamp("last_sync_at"), // Maps to: last_sync_at
+  hasFetchedHistory: boolean("has_fetched_history").default(false), // For Messenger/Instagram initial sync
   settings: jsonb("settings").default({}), // Maps to: settings
   createdAt: timestamp("created_at").defaultNow(), // Maps to: created_at
   updatedAt: timestamp("updated_at").defaultNow(), // Maps to: updated_at

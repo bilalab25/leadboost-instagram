@@ -345,6 +345,11 @@ export interface IStorage {
     updates: Partial<Integration>,
   ): Promise<Integration | undefined>;
   deleteIntegration(id: string, userId: string): Promise<boolean>;
+  
+  // Meta Messenger/Instagram hybrid sync operations
+  bulkInsertMessages(messages: InsertMessage[]): Promise<void>;
+  markIntegrationAsFetched(integrationId: string): Promise<void>;
+  findIntegrationByAccount(accountId: string, provider: string): Promise<Integration | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1677,6 +1682,35 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(integrations.id, id), eq(integrations.userId, userId)))
       .returning();
     return result.length > 0;
+  }
+
+  // Meta Messenger/Instagram hybrid sync operations
+  async bulkInsertMessages(messagesList: InsertMessage[]): Promise<void> {
+    for (const msg of messagesList) {
+      // Use INSERT ... ON CONFLICT to avoid duplicates
+      await db
+        .insert(messages)
+        .values(msg)
+        .onConflictDoNothing({ target: messages.metaMessageId })
+        .execute();
+    }
+  }
+
+  async markIntegrationAsFetched(integrationId: string): Promise<void> {
+    await db
+      .update(integrations)
+      .set({ hasFetchedHistory: true, lastSyncAt: new Date(), updatedAt: new Date() })
+      .where(eq(integrations.id, integrationId))
+      .execute();
+  }
+
+  async findIntegrationByAccount(accountId: string, provider: string): Promise<Integration | undefined> {
+    const [integration] = await db
+      .select()
+      .from(integrations)
+      .where(and(eq(integrations.accountId, accountId), eq(integrations.provider, provider)))
+      .limit(1);
+    return integration;
   }
 }
 
