@@ -116,12 +116,10 @@ async function fetchFacebookMessages(conversationId, accessToken, accountId) {
       const att = m.attachments.data[0];
       imageUrl =
         att.image_data?.url || att.file_url || att.media?.image?.src || null;
-      console.log(`     📎 Attachment found: ${imageUrl}`);
     }
 
     // 📎 Manual attachment fallback
     if (!text?.trim() && !imageUrl) {
-      console.log(`     🔍 Fetching attachments manually for message ${m.id}`);
       const attachUrl = `https://graph.facebook.com/v24.0/${m.id}/attachments?access_token=${accessToken}`;
       const attachRes = await fetch(attachUrl);
       const attachData = await attachRes.json();
@@ -149,8 +147,6 @@ async function fetchFacebookMessages(conversationId, accessToken, accountId) {
       accountId,
     });
   }
-
-  console.log(`✅ FACEBOOK done. Total valid messages: ${messages.length}`);
   return messages;
 }
 
@@ -222,8 +218,6 @@ async function fetchInstagramMessages(conversationId, accessToken, accountId) {
       direction: isOutbound ? "outbound" : "inbound",
     });
   }
-
-  console.log(`✅ INSTAGRAM done. Total valid messages: ${messages.length}`);
   return messages;
 }
 
@@ -282,20 +276,11 @@ async function fetchWhatsappMessages(
   // WhatsApp messages are stored in the database via webhooks
   // conversationId = phone number of the customer
 
-  console.log(
-    `📱 [WhatsApp] Fetching messages from database for conversation: ${conversationId}`,
-  );
-  console.log(`🔑 Integration ID: ${integrationId}, Account ID: ${accountId}`);
-
   try {
     // Fetch messages from database
     const dbMessages = await storage.getMessagesByIntegrationAndConversation(
       integrationId,
       conversationId,
-    );
-
-    console.log(
-      `📦 [WhatsApp] Found ${dbMessages.length} messages in database`,
     );
 
     const messages: NormalizedMessage[] = dbMessages.map((m) => {
@@ -317,10 +302,6 @@ async function fetchWhatsappMessages(
         direction: m.direction,
       };
     });
-
-    console.log(
-      `✅ [WhatsApp] Returning ${messages.length} normalized messages`,
-    );
     return messages;
   } catch (err) {
     console.error("❌ WhatsApp DB fetch error:", err);
@@ -349,8 +330,10 @@ async function performInitialSync(
 
     // Fetch conversations
     const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&limit=50&access_token=${accessToken}`;
-    
-    console.log(`📞 Fetching conversations from: ${convoUrl.replace(accessToken, 'TOKEN')}`);
+    console.log(
+      `📞 Fetching conversations from: ${convoUrl.replace(accessToken, "TOKEN")}`,
+    );
+
     const convoRes = await fetch(convoUrl);
     const convoData = await convoRes.json();
 
@@ -360,19 +343,24 @@ async function performInitialSync(
     }
 
     const conversations = convoData.data || [];
-    console.log(`📦 Found ${conversations.length} conversations for ${provider}`);
+    console.log(
+      `📦 Found ${conversations.length} conversations for ${provider}`,
+    );
 
     const messagesToInsert = [];
 
     // Fetch messages for each conversation
     for (const convo of conversations) {
       const messagesUrl = `https://graph.facebook.com/v24.0/${convo.id}/messages?fields=id,message,text,from,to,created_time,attachments&limit=50&access_token=${accessToken}`;
-      
+
       const msgRes = await fetch(messagesUrl);
       const msgData = await msgRes.json();
 
       if (msgData.error) {
-        console.error(`⚠️ Error fetching messages for conversation ${convo.id}:`, msgData.error);
+        console.error(
+          `⚠️ Error fetching messages for conversation ${convo.id}:`,
+          msgData.error,
+        );
         continue;
       }
 
@@ -395,21 +383,32 @@ async function performInitialSync(
           recipientId,
           textContent: text,
           direction: isOutbound ? "outbound" : "inbound",
-          isRead: isOutbound, // Mark outbound messages as read
+          isRead: isOutbound,
           timestamp: new Date(m.created_time),
           rawPayload: { message: m },
         });
       }
     }
 
+    // ✅ Save messages if any
     if (messagesToInsert.length > 0) {
-      console.log(`💾 Saving ${messagesToInsert.length} messages to database...`);
+      console.log(
+        `💾 Saving ${messagesToInsert.length} messages to database...`,
+      );
       await storage.bulkInsertMessages(messagesToInsert);
       console.log(`✅ Initial sync complete for ${provider}`);
+    } else {
+      console.log(
+        `📭 No messages found for ${provider}, marking as synced anyway`,
+      );
     }
 
-    // Mark integration as fetched
+    // ✅ Mark integration as fetched (always at the end of a successful sync)
     await storage.markIntegrationAsFetched(integration.id);
+    integration.hasFetchedHistory = true; // 👈 opcional, para actualizar en memoria también
+    console.log(
+      `🏁 [${provider.toUpperCase()}] Marked as fetched in DB and memory`,
+    );
   } catch (err) {
     console.error(`❌ Initial sync failed for ${provider}:`, err);
   }
@@ -1949,7 +1948,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/integrations", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
-
       // ✅ Usa el método del storage (más limpio y consistente)
       const userIntegrations = await storage.getIntegrations(userId);
       res.status(200).json(userIntegrations);
@@ -2134,7 +2132,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                           conversationId: senderId,
                           message: savedMessage,
                         });
-                        console.log("📡 Real-time WhatsApp message emitted to clients");
+                        console.log(
+                          "📡 Real-time WhatsApp message emitted to clients",
+                        );
                       }
                     } else {
                       console.warn(
@@ -2205,7 +2205,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         conversationId: senderId,
                         message: savedMessage,
                       });
-                      console.log("📡 Real-time Messenger message emitted to clients");
+                      console.log(
+                        "📡 Real-time Messenger message emitted to clients",
+                      );
                     }
                   } else {
                     console.warn(
@@ -2213,7 +2215,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     );
                   }
                 } catch (error) {
-                  console.error("❌ Error processing Messenger message:", error);
+                  console.error(
+                    "❌ Error processing Messenger message:",
+                    error,
+                  );
                 }
               }
               // 📸 Handle Instagram messages
@@ -2266,7 +2271,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         conversationId: senderId,
                         message: savedMessage,
                       });
-                      console.log("📡 Real-time Instagram message emitted to clients");
+                      console.log(
+                        "📡 Real-time Instagram message emitted to clients",
+                      );
                     }
                   } else {
                     console.warn(
@@ -2274,7 +2281,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     );
                   }
                 } catch (error) {
-                  console.error("❌ Error processing Instagram message:", error);
+                  console.error(
+                    "❌ Error processing Instagram message:",
+                    error,
+                  );
                 }
               }
             }
@@ -2520,14 +2530,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const userId = req.user.id;
-        console.log("\n🟪 [START UNIFIED MESSAGE AGGREGATION]");
-        console.log("👤 User:", userId);
-
         const integrations = await storage.getIntegrations(userId);
-        console.log("🧩 Found integrations:", integrations.length);
+        console.log("🧩 Found integrations:", integrations);
 
         if (!integrations || integrations.length === 0) {
-          console.warn("⚠️ No integrations found");
           return res.json({ messages: [], providers: [], total: 0 });
         }
 
@@ -2535,11 +2541,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const provider = integration.provider;
           const accessToken = integration.accessToken;
           const accountId = integration.accountId;
-
-          console.log(
-            `\n🚀 [FETCH START] Provider: ${provider} | Account: ${accountId}`,
-          );
-
           try {
             let messages: NormalizedMessage[] = [];
 
@@ -2548,34 +2549,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
               case "instagram":
               case "threads": {
                 // ✅ HYBRID SYNC STRATEGY for Messenger/Instagram
-                
+                console.log(integration, "printing integration");
+                console.log(
+                  typeof integration.hasFetchedHistory,
+                  "printing type of integration",
+                );
+
                 // Step 1: Check if we need to perform initial sync
-                if (!integration.hasFetchedHistory) {
-                  console.log(`🔄 [${provider.toUpperCase()}] Performing initial historical sync...`);
+                if (
+                  !integration.hasFetchedHistory ||
+                  integration.hasFetchedHistory == false
+                ) {
+                  console.log("se cumple con la condicion");
                   await performInitialSync(userId, integration, provider);
+                  integration.hasFetchedHistory = true;
                 }
 
                 // Step 2: Fetch messages from local database
-                console.log(`💾 [${provider.toUpperCase()}] Fetching messages from local database`);
-                const dbMessages = await storage.getMessagesByIntegration(integration.id);
-                console.log(`📦 [${provider.toUpperCase()}] Found ${dbMessages.length} messages in database`);
-
+                const dbMessages = await storage.getMessagesByIntegration(
+                  integration.id,
+                );
                 // Convert database messages to NormalizedMessage format
-                const localMessages: NormalizedMessage[] = dbMessages.map((m) => ({
-                  id: m.metaMessageId,
-                  conversationId: m.direction === "inbound" ? m.senderId : m.recipientId,
-                  text: m.textContent || "",
-                  imageUrl: null,
-                  from: m.direction === "outbound" ? "You" : "User",
-                  fromId: m.senderId,
-                  created_time: m.timestamp.toISOString(),
-                  provider: provider,
-                  accountId,
-                  direction: m.direction,
-                }));
+                const localMessages: NormalizedMessage[] = dbMessages.map(
+                  (m) => ({
+                    id: m.metaMessageId,
+                    conversationId:
+                      m.direction === "inbound" ? m.senderId : m.recipientId,
+                    text: m.textContent || "",
+                    imageUrl: null,
+                    from: m.direction === "outbound" ? "You" : "User",
+                    fromId: m.senderId,
+                    created_time: m.timestamp.toISOString(),
+                    provider: provider,
+                    accountId,
+                    direction: m.direction,
+                  }),
+                );
 
                 // Step 3: Fetch recent messages from API (to get any new messages)
-                console.log(`🌐 [${provider.toUpperCase()}] Fetching recent messages from Graph API`);
                 const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&access_token=${accessToken}`;
 
                 const convoRes = await fetch(convoUrl);
@@ -2589,10 +2600,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     convoData.error,
                   );
                 } else if (convoData.data && convoData.data.length > 0) {
-                  console.log(
-                    `📦 [${provider.toUpperCase()}] Found ${convoData.data.length} conversations`,
-                  );
-
                   const messagePromises = convoData.data.map(
                     async (convo: any) => {
                       try {
@@ -2631,21 +2638,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                 // Step 4: Merge local and remote messages (remove duplicates)
                 messages = mergeLocalAndRemote(remoteMessages, localMessages);
-                console.log(
-                  `✅ [${provider.toUpperCase()}] Merged total: ${messages.length} messages (${localMessages.length} local + ${remoteMessages.length} remote)`,
-                );
                 break;
               }
               case "whatsapp": {
-                console.log("💬 [WHATSAPP] Fetching from database");
-
-                // For WhatsApp, we need to get all unique conversations from the database
                 const allWhatsAppMessages =
                   await storage.getMessagesByIntegration(integration.id);
-
-                console.log(
-                  `📦 [WHATSAPP] Found ${allWhatsAppMessages.length} total messages in DB`,
-                );
 
                 // Group messages by conversation (sender/recipient)
                 const conversationMap = new Map<string, any[]>();
@@ -2663,10 +2660,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   conversationMap.get(convoId)!.push(msg);
                 }
 
-                console.log(
-                  `📋 [WHATSAPP] Found ${conversationMap.size} unique conversations`,
-                );
-
                 // Fetch messages for each conversation
                 const whatsappPromises = Array.from(conversationMap.keys()).map(
                   async (convoId) => {
@@ -2680,31 +2673,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                 const allConvoMessages = await Promise.all(whatsappPromises);
                 messages = allConvoMessages.flat();
-
-                console.log(
-                  `✅ [WHATSAPP] Total normalized messages: ${messages.length}`,
-                );
                 break;
               }
             }
-
-            console.log(
-              `✅ [${provider.toUpperCase()}] Total messages: ${messages.length}`,
-            );
             return { provider, accountId, messages, success: true };
           } catch (err) {
-            console.error(`❌ [${provider.toUpperCase()}] Error:`, err);
             return { provider, messages: [], success: false, error: err };
           }
         });
 
         const results = await Promise.allSettled(fetchTasks);
-        console.log(
-          "\n📊 [UNIFIED RESULTS]",
-          results.length,
-          "providers processed",
-        );
-
         const allMessages: NormalizedMessage[] = [];
         const successfulProviders: string[] = [];
 
@@ -2757,11 +2735,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-
-        console.log(
-          `🏁 Aggregation complete: ${allMessages.length} messages total from ${successfulProviders.join(", ")}`,
-        );
-        console.log(`📬 Unread counts:`, unreadCounts);
 
         res.json({
           messages: allMessages,
@@ -5721,18 +5694,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   const server = createServer(app);
-  
+
   // Initialize Socket.IO for real-time messaging
   const io = new SocketIOServer(server, {
     cors: {
       origin: "*",
-      methods: ["GET", "POST"]
-    }
+      methods: ["GET", "POST"],
+    },
   });
 
   io.on("connection", (socket) => {
     console.log("⚡ Socket.IO client connected:", socket.id);
-    
+
     socket.on("disconnect", () => {
       console.log("❌ Socket.IO client disconnected:", socket.id);
     });
@@ -5740,6 +5713,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Make io accessible in routes via app.set
   app.set("io", io);
-  
+
   return server;
 }

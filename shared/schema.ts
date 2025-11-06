@@ -9,6 +9,7 @@ import {
   integer,
   boolean,
   uuid,
+  unique,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -136,7 +137,7 @@ export const messages = pgTable("messages", {
     .notNull()
     .references(() => integrations.id, { onDelete: "cascade" }), // Integration that received the message
   platform: varchar("platform").notNull(), // whatsapp, messenger, instagram
-  metaMessageId: varchar("meta_message_id").notNull().unique(), // Unique Meta ID (wamid... or mid...) - UNIQUE constraint for hybrid sync
+  metaMessageId: varchar("meta_message_id").notNull(), // Unique Meta ID (wamid... or mid...) - Composite UNIQUE with integrationId
   senderId: varchar("sender_id").notNull(), // ID of the end user who sent the message
   recipientId: varchar("recipient_id").notNull(), // ID of the page/number that received the message
   contactName: varchar("contact_name"), // Contact profile name from WhatsApp
@@ -146,7 +147,9 @@ export const messages = pgTable("messages", {
   timestamp: timestamp("timestamp").notNull(), // When the event occurred
   rawPayload: jsonb("raw_payload"), // Complete webhook payload for reference
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  unique("messages_integration_message_unique").on(table.integrationId, table.metaMessageId),
+]);
 
 // Message attachments (images, videos, files)
 export const messageAttachments = pgTable("message_attachments", {

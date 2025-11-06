@@ -87,7 +87,7 @@ Key tables include:
 - Social accounts for platform integrations
 - Integrations with hasFetchedHistory flag for hybrid sync tracking
 - Messages with:
-  - UNIQUE constraint on metaMessageId for duplicate prevention
+  - Composite UNIQUE constraint on (integration_id, meta_message_id) for duplicate prevention per integration
   - contactName for WhatsApp profile names
   - isRead for read/unread status tracking
   - direction for inbound/outbound message routing
