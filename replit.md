@@ -12,6 +12,13 @@ Key features include:
     - Messenger/Instagram: Initial historical sync (last 50 conversations × 50 messages) + local database + webhook storage
     - Automatic duplicate prevention via unique metaMessageId constraint
     - Seamless merge of local and remote messages
+  - **Real-Time Messaging via Socket.IO**:
+    - Instant message delivery without page refresh
+    - Live inbox updates when new messages arrive
+    - Real-time conversation thread updates
+    - Toast notifications for new messages
+    - Automatic unread badge increments
+    - Works for WhatsApp, Messenger, and Instagram
   - Platform-specific fetch helpers with normalized message format
   - Universal GET endpoint supporting all connected providers
   - Diagnostic logging for request/response tracking
