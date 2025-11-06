@@ -1,43 +1,43 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 const SOCKET_URL = window.location.origin;
 
 export function useSocket() {
-  const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    if (!socketRef.current) {
-      socketRef.current = io(SOCKET_URL, {
-        transports: ["websocket", "polling"],
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: 5,
-      });
+    const newSocket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+    });
 
-      socketRef.current.on("connect", () => {
-        console.log("✅ Socket.IO connected:", socketRef.current?.id);
-      });
+    newSocket.on("connect", () => {
+      console.log("✅ Socket.IO connected:", newSocket.id);
+      setSocket(newSocket); // Trigger re-render when connected
+    });
 
-      socketRef.current.on("disconnect", () => {
-        console.log("❌ Socket.IO disconnected");
-      });
+    newSocket.on("disconnect", () => {
+      console.log("❌ Socket.IO disconnected");
+    });
 
-      socketRef.current.on("connect_error", (error) => {
-        console.error("Socket.IO connection error:", error);
-      });
-    }
+    newSocket.on("connect_error", (error) => {
+      console.error("Socket.IO connection error:", error);
+    });
+
+    // Set socket immediately so listeners can attach
+    setSocket(newSocket);
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      newSocket.disconnect();
+      setSocket(null);
     };
   }, []);
 
-  return socketRef.current;
+  return socket;
 }
 
 interface NewMessageEvent {
