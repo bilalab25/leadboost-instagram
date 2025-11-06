@@ -7,11 +7,19 @@ CampAIgner is a comprehensive social media management platform that unifies cust
 Key features include:
 - **Multi-Platform Unified Inbox** with:
   - Concurrent message aggregation from Facebook, Instagram, Threads, and WhatsApp
+  - **Hybrid Synchronization Strategy**:
+    - WhatsApp: Local storage only (webhook-based, required by Meta)
+    - Messenger/Instagram: Initial historical sync (last 50 conversations × 50 messages) + local database + webhook storage
+    - Automatic duplicate prevention via unique metaMessageId constraint
+    - Seamless merge of local and remote messages
   - Platform-specific fetch helpers with normalized message format
   - Universal GET endpoint supporting all connected providers
   - Diagnostic logging for request/response tracking
   - Conversation ID preservation for seamless detail view navigation
   - Platform badges and filters in the UI
+  - Contact name extraction and display (WhatsApp profile names)
+  - Read/unread status tracking with numeric unread badges
+  - Optimistic UI updates for instant badge clearing
 - AI-powered content planning and generation using OpenAI GPT-4o
 - Campaign management with multi-platform publishing
 - Analytics and performance tracking
@@ -70,7 +78,12 @@ The backend uses a layered architecture with separate concerns for routing, busi
 Key tables include:
 - Users and session management for authentication
 - Social accounts for platform integrations
-- Messages with metadata and sentiment analysis
+- Integrations with hasFetchedHistory flag for hybrid sync tracking
+- Messages with:
+  - UNIQUE constraint on metaMessageId for duplicate prevention
+  - contactName for WhatsApp profile names
+  - isRead for read/unread status tracking
+  - direction for inbound/outbound message routing
 - Content plans with AI-generated strategies
 - Campaigns with multi-platform publishing
 - Analytics for performance tracking
