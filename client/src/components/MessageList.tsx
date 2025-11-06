@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useNewMessageListener } from "@/hooks/useSocket";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -142,6 +143,54 @@ export default function MessageList({
 
     loadAllMessages();
   }, [toast]); // Removed platform dependency to load all on mount
+
+  // ✅ Socket.IO: Listen for new messages in real-time
+  const handleNewMessage = useCallback((event: any) => {
+    console.log("💬 New message received via Socket.IO:", event);
+
+    const { provider, conversationId, message } = event;
+
+    // Format the message to match the component's expected format
+    const formattedMessage = {
+      id: message.id,
+      conversationId: conversationId,
+      senderId: message.senderId,
+      senderName: message.contactName || "Unknown User",
+      senderAvatar: "",
+      content: message.textContent || "(sin mensaje)",
+      priority: "normal",
+      isRead: false,
+      createdAt: message.timestamp || new Date().toISOString(),
+      socialAccount: {
+        platform: provider,
+        accountName: `${provider.charAt(0).toUpperCase() + provider.slice(1)}`,
+      },
+    };
+
+    // Add the new message to the unified messages list
+    setUnifiedMessages(prev => {
+      // Check if message already exists (prevent duplicates)
+      const exists = prev.some(m => m.id === formattedMessage.id);
+      if (exists) return prev;
+      
+      return [formattedMessage, ...prev];
+    });
+
+    // Update unread count
+    const unreadKey = `${provider}-${conversationId}`;
+    setUnreadCounts(prev => ({
+      ...prev,
+      [unreadKey]: (prev[unreadKey] || 0) + 1
+    }));
+
+    // Show toast notification
+    toast({
+      title: "New Message",
+      description: `${formattedMessage.senderName}: ${formattedMessage.content.substring(0, 50)}${formattedMessage.content.length > 50 ? '...' : ''}`,
+    });
+  }, [toast]);
+
+  useNewMessageListener(handleNewMessage);
 
   // ✅ Filter messages by selected platform
   console.log(unifiedMessages, "mensajes");
