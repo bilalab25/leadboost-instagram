@@ -114,7 +114,7 @@ export default function ConversationPanel({
             setCanSendFacebookMessage(hours <= 24);
           }
         }
-
+        console.log("msgs", msgs);
         const formatted = msgs.map((msg: any) => ({
           id: msg.id,
           conversationId,
@@ -348,9 +348,7 @@ export default function ConversationPanel({
             >
               {message.direction === "inbound" && (
                 <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarFallback>
-                    {message.senderName.charAt(0)}
-                  </AvatarFallback>
+                  <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
               <div

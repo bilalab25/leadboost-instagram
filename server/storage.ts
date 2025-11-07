@@ -1531,6 +1531,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // ✅ Función corregida y completa
   async createOrUpdateIntegration(data: any) {
     const existing = await db
       .select()
@@ -1542,18 +1543,35 @@ export class DatabaseStorage implements IStorage {
         ),
       );
 
+    const now = new Date();
+
+    const baseData = {
+      userId: data.userId,
+      provider: data.provider,
+      category: data.category ?? "social_media",
+      storeName: data.storeName ?? null,
+      storeUrl: data.storeUrl ?? null,
+      accountName: data.accountName ?? null,
+      accountId: data.accountId ?? null,
+      pageId: data.pageId ?? null,
+      accessToken: data.accessToken ?? null,
+      refreshToken: data.refreshToken ?? null,
+      settings: data.settings ?? {},
+      metadata: data.metadata ?? {}, // 👈 importante si tu columna es JSONB
+      expiresAt: data.expiresAt ?? null,
+      lastSyncAt: data.lastSyncAt ?? null,
+      isActive: data.isActive ?? true,
+      syncEnabled: data.syncEnabled ?? true,
+      updatedAt: now,
+    };
+
     if (existing.length > 0) {
+      console.log(
+        `🔄 Updating integration for ${data.provider} (user: ${data.userId})`,
+      );
       await db
         .update(integrations)
-        .set({
-          accessToken: data.accessToken, // Drizzle maps to: access_token
-          refreshToken: data.refreshToken, // Drizzle maps to: refresh_token
-          accountName: data.accountName, // Drizzle maps to: account_name
-          accountId: data.accountId, // Drizzle maps to: account_id
-          settings: data.settings, // Drizzle maps to: settings
-          isActive: true, // Drizzle maps to: is_active
-          updatedAt: new Date(), // Drizzle maps to: updated_at
-        })
+        .set(baseData)
         .where(
           and(
             eq(integrations.provider, data.provider),
@@ -1561,18 +1579,12 @@ export class DatabaseStorage implements IStorage {
           ),
         );
     } else {
+      console.log(
+        `🆕 Creating new integration for ${data.provider} (user: ${data.userId})`,
+      );
       await db.insert(integrations).values({
-        userId: data.userId, // Drizzle maps to: user_id
-        provider: data.provider, // Drizzle maps to: provider
-        category: data.category ?? "social", // Drizzle maps to: category
-        storeName: data.storeName ?? "Facebook", // Drizzle maps to: store_name
-        accessToken: data.accessToken, // Drizzle maps to: access_token
-        refreshToken: data.refreshToken ?? null, // Drizzle maps to: refresh_token
-        isActive: true, // Drizzle maps to: is_active
-        syncEnabled: true, // Drizzle maps to: sync_enabled
-        accountName: data.accountName ?? null, // Drizzle maps to: account_name
-        accountId: data.accountId ?? null, // Drizzle maps to: account_id
-        settings: data.settings ?? {}, // Drizzle maps to: settings
+        ...baseData,
+        createdAt: now,
       });
     }
   }

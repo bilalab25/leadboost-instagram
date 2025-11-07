@@ -364,16 +364,14 @@ export default function MessageList({
                     onClick={() => {
                       const convoId = message.conversationId || message.id;
                       const platform = message.socialAccount.platform;
-
+                      const displayName =
+                        message.contactName || message.senderName || "Usuario";
                       setActiveConversation({
                         id: convoId,
-                        name: message.senderName,
+                        name: displayName,
                         platform: platform,
                       });
-
-                      // Clear unread badge immediately
                       handleConversationOpened(platform, convoId);
-
                       if (!message.isRead) {
                         markAsReadMutation.mutate(message.id);
                       }
@@ -467,6 +465,7 @@ export default function MessageList({
 
       {/* Right Panel - Conversation or Empty State */}
       <div className="flex-1 bg-gray-50 flex items-center justify-center">
+        {console.log(activeConversation, "conversacion activa")}
         {activeConversation ? (
           <div className="w-full h-full">
             <ConversationPanel

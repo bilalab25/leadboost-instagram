@@ -138,6 +138,7 @@ export const messages = pgTable("messages", {
     .references(() => integrations.id, { onDelete: "cascade" }), // Integration that received the message
   platform: varchar("platform").notNull(), // whatsapp, messenger, instagram
   metaMessageId: varchar("meta_message_id").notNull(), // Unique Meta ID (wamid... or mid...) - Composite UNIQUE with integrationId
+  metaConversationId: text("meta_conversation_id"), // Meta conversation/thread ID for grouping messages
   senderId: varchar("sender_id").notNull(), // ID of the end user who sent the message
   recipientId: varchar("recipient_id").notNull(), // ID of the page/number that received the message
   contactName: varchar("contact_name"), // Contact profile name from WhatsApp
