@@ -558,6 +558,7 @@ export class DatabaseStorage implements IStorage {
           or(
             eq(messages.senderId, conversationId),
             eq(messages.recipientId, conversationId),
+            eq(messages.metaConversationId, conversationId),
           ),
         ),
       )

@@ -2330,7 +2330,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
             new Date(b.created_time).getTime(),
         );
 
-        res.json({ provider, accountId, messages, total: messages.length });
+        // 🔍 Buscar meta_conversation_id en la base de datos
+        console.log(`🔍 Searching meta_conversation_id in DB for ${conversationId}`);
+        let metaConversationId = null;
+        
+        try {
+          const dbMessages = await storage.getMessagesByIntegrationAndConversation(
+            integrationId,
+            conversationId,
+          );
+          
+          // Obtener el meta_conversation_id del primer mensaje encontrado
+          if (dbMessages.length > 0 && dbMessages[0].metaConversationId) {
+            metaConversationId = dbMessages[0].metaConversationId;
+            console.log(`✅ Found meta_conversation_id: ${metaConversationId}`);
+          } else {
+            console.log(`⚠️ No meta_conversation_id found in DB for this conversation`);
+          }
+        } catch (error) {
+          console.error(`❌ Error fetching meta_conversation_id:`, error);
+        }
+
+        res.json({ 
+          provider, 
+          accountId, 
+          messages, 
+          total: messages.length,
+          metaConversationId 
+        });
       } catch (err) {
         console.error("❌ Unified messages fetch error:", err);
         res.status(500).json({
