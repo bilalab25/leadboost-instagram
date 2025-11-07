@@ -2591,14 +2591,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let apiResponse;
 
         // =========================================================
-        // 🟦 FACEBOOK
+        // 🟦 FACEBOOK (con fallback local)
         // =========================================================
         if (provider === "facebook") {
           console.log(
             `💬 [Facebook] Sending message to conversation ${conversationId}`,
           );
 
-          // 1️⃣ Obtener tu Page ID
+          // 1️⃣ Obtener Page ID
           const pageInfoRes = await fetch(
             `https://graph.facebook.com/v24.0/me?access_token=${integration.accessToken}`,
           );
@@ -2610,51 +2610,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`🆔 Page ID obtenido: ${pageId}`);
 
-          // 2️⃣ Intentar obtener el destinatario desde el último mensaje
-          const messagesRes = await fetch(
-            `https://graph.facebook.com/v24.0/${conversationId}/messages?fields=from,to,created_time&limit=1&access_token=${integration.accessToken}`,
-          );
-          const messagesData = await messagesRes.json();
+          // 2️⃣ Resolver conversación real
+          let metaConversationId = conversationId;
+          if (!conversationId.startsWith("t_")) {
+            console.log(
+              "🔄 Conversation ID parece un userId, buscando meta_conversation_id...",
+            );
 
-          if (!messagesData.data?.length) {
-            console.warn("⚠️ No se encontraron mensajes en la conversación");
-            return res.status(400).json({
-              error: "No se pudo determinar el destinatario (sin mensajes)",
-            });
+            const localMsg = await storage.findMessageByUserAndRecipient(
+              userId,
+              integration.id,
+              conversationId,
+            );
+
+            if (localMsg?.meta_conversation_id) {
+              metaConversationId = localMsg.meta_conversation_id;
+              console.log(
+                `🔗 Mapeado a meta_conversation_id: ${metaConversationId}`,
+              );
+            } else {
+              console.warn(
+                "⚠️ No se encontró meta_conversation_id asociado en DB.",
+              );
+            }
           }
 
-          const lastMessage = messagesData.data[0];
+          // 3️⃣ Intentar obtener destinatario desde Meta API
+          let messagesData = {};
+          try {
+            const res = await fetch(
+              `https://graph.facebook.com/v24.0/${metaConversationId}/messages?fields=from,to,created_time&limit=1&access_token=${integration.accessToken}`,
+            );
+            messagesData = await res.json();
+          } catch (e) {
+            console.warn("⚠️ Error al intentar obtener mensajes:", e);
+          }
+
           console.log(
-            "📨 Último mensaje encontrado:",
-            JSON.stringify(lastMessage, null, 2),
+            "📨 Respuesta Meta (últimos mensajes):",
+            JSON.stringify(messagesData, null, 2),
           );
 
-          // 3️⃣ Determinar el ID del usuario (no el de la página)
-          if (
-            lastMessage.from?.id === pageId &&
-            lastMessage.to?.data?.[0]?.id
-          ) {
-            recipientId = lastMessage.to.data[0].id;
-          } else {
-            recipientId = lastMessage.from?.id;
+          if (messagesData.data?.length) {
+            const lastMessage = messagesData.data[0];
+            if (
+              lastMessage.from?.id === pageId &&
+              lastMessage.to?.data?.[0]?.id
+            ) {
+              recipientId = lastMessage.to.data[0].id;
+            } else {
+              recipientId = lastMessage.from?.id;
+            }
+            console.log(`📍 Recipient ID (Meta API): ${recipientId}`);
           }
 
+          // 4️⃣ Fallback local
           if (!recipientId) {
-            console.error("❌ No se pudo obtener el recipientId");
-            return res.status(400).json({
-              error: "No se pudo determinar el destinatario de Facebook",
-            });
+            console.log("🔎 Intentando obtener destinatario desde DB local...");
+
+            const localMessages = await storage.findMessagesByConversation(
+              userId,
+              integration.id,
+              metaConversationId,
+            );
+
+            const inboundMsg = localMessages?.find(
+              (m) => m.direction === "inbound" && m.sender_id !== pageId,
+            );
+
+            if (inboundMsg) {
+              recipientId = inboundMsg.sender_id;
+              console.log(`📍 Recipient ID (fallback DB): ${recipientId}`);
+            } else {
+              console.warn(
+                "⚠️ No se pudo determinar el destinatario ni desde Meta ni desde DB",
+              );
+              return res.status(400).json({
+                error:
+                  "No se pudo determinar el destinatario (sin mensajes en Meta ni en DB)",
+              });
+            }
           }
 
-          console.log(`📍 Recipient ID identificado: ${recipientId}`);
-
-          // 4️⃣ Construcción del mensaje
+          // 5️⃣ Enviar mensaje
           url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
           payload = {
             messaging_type: "RESPONSE",
             recipient: { id: recipientId },
             message: { text: content },
           };
+
+          console.log("✅ [Facebook] Payload final:", payload);
         }
 
         // =========================================================
@@ -2775,7 +2821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // 💾 Guardar el mensaje saliente
-        let messageId =
+        const messageId =
           provider === "whatsapp"
             ? apiResponse.messages?.[0]?.id
             : apiResponse.message_id || apiResponse.id;

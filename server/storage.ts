@@ -1673,6 +1673,47 @@ export class DatabaseStorage implements IStorage {
       .from(integrations)
       .orderBy(desc(integrations.createdAt));
   }
+  async findMessagesByConversation(
+    userId: string,
+    integrationId: string,
+    metaConversationId: string,
+  ) {
+    return await db
+      .select()
+      .from(messages)
+      .where(
+        and(
+          eq(messages.userId, userId),
+          eq(messages.integrationId, integrationId),
+          eq(messages.metaConversationId, metaConversationId),
+        ),
+      )
+      .execute();
+  }
+
+  async findMessageByUserAndRecipient(
+    userId: string,
+    integrationId: string,
+    recipientId: string,
+  ) {
+    const result = await db
+      .select()
+      .from(messages)
+      .where(
+        and(
+          eq(messages.userId, userId),
+          eq(messages.integrationId, integrationId),
+          or(
+            eq(messages.senderId, recipientId),
+            eq(messages.recipientId, recipientId),
+          ),
+        ),
+      )
+      .limit(1)
+      .execute();
+
+    return result?.[0];
+  }
 
   async getIntegrationsByUserId(userId: string): Promise<Integration[]> {
     return await db
