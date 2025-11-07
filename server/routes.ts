@@ -244,7 +244,6 @@ async function performInitialSync(
       const messages = msgData.data || [];
       console.log(`  📨 Conversation ${convo.id}: ${messages.length} messages`);
 
-      // Convert to database format
       for (const m of messages) {
         const text = m.message || m.text || "";
         const fromId = m.from?.id || "";
@@ -253,16 +252,11 @@ async function performInitialSync(
         const toName =
           m.to?.data?.[0]?.name || m.to?.data?.[0]?.username || "Unknown";
 
-        // 🧠 Detect direction (outbound vs inbound)
+        // 🧠 Detect direction
         let isOutbound = false;
-
-        // Facebook / Instagram / Threads share the same business Page ID
         if (["facebook", "instagram", "threads"].includes(provider)) {
-          if (fromId === accountId || fromId === integration.pageId) {
+          if (fromId === accountId || fromId === integration.pageId)
             isOutbound = true;
-          }
-
-          // 🩵 Extra fix for Instagram / Threads
           if (
             provider !== "facebook" &&
             (fromId.startsWith("1784") ||
@@ -273,28 +267,24 @@ async function performInitialSync(
           }
         }
 
-        // WhatsApp Business (use WABA or phone_number_id)
         if (provider === "whatsapp") {
           const wabaId = integration.metadata?.waba_id || integration.page_id;
-          if (fromId === wabaId || fromId === accountId) {
-            isOutbound = true;
-          }
+          if (fromId === wabaId || fromId === accountId) isOutbound = true;
         }
 
-        // Debug log for direction detection
         console.log(
-          `🧩 Msg ${m.id.slice(0, 10)}... | from: ${fromName} (${fromId}) → to: ${toName} (${toId}) | provider: ${provider} | outbound: ${isOutbound}`,
+          `🧩 Msg ${m.id.slice(0, 10)}... | from: ${fromName} (${fromId}) → to: ${toName} (${toId}) | outbound: ${isOutbound}`,
         );
 
-        // Define contact name
         const contactName = isOutbound ? toName : fromName;
 
-        // Build insert object
+        // ✅ Save Meta Conversation ID here
         messagesToInsert.push({
           userId,
           integrationId: integration.id,
           platform: provider,
           metaMessageId: m.id,
+          metaConversationId: convo.id, // 👈 NUEVO CAMPO
           senderId: fromId,
           recipientId: toId,
           textContent: text,
@@ -302,7 +292,7 @@ async function performInitialSync(
           isRead: isOutbound,
           timestamp: new Date(m.created_time),
           contactName,
-          rawPayload: { message: m },
+          rawPayload: { message: m, conversation: convo },
         });
       }
     }
@@ -2625,11 +2615,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (!messagesData.data?.length) {
             console.warn("⚠️ No se encontraron mensajes en la conversación");
-            return res
-              .status(400)
-              .json({
-                error: "No se pudo determinar el destinatario (sin mensajes)",
-              });
+            return res.status(400).json({
+              error: "No se pudo determinar el destinatario (sin mensajes)",
+            });
           }
 
           const lastMessage = messagesData.data[0];
@@ -2650,11 +2638,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (!recipientId) {
             console.error("❌ No se pudo obtener el recipientId");
-            return res
-              .status(400)
-              .json({
-                error: "No se pudo determinar el destinatario de Facebook",
-              });
+            return res.status(400).json({
+              error: "No se pudo determinar el destinatario de Facebook",
+            });
           }
 
           console.log(`📍 Recipient ID identificado: ${recipientId}`);
