@@ -69,7 +69,9 @@ export default function ConversationPanel({
 }: ConversationPanelProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
+  const [metaConversationId, setMetaConversationId] = useState<string | null>(
+    null,
+  );
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -89,8 +91,8 @@ export default function ConversationPanel({
         const res = await fetch(`/api/messages/${platform}/${conversationId}`);
         const data = await res.json();
 
-        console.log("📩 pageId:", data.pageId);
-        console.log("messages:", data.messages);
+        console.log("DATA, trayendo todos los mensajes: ", data);
+        setMetaConversationId(data.metaConversationId || null);
 
         if (!res.ok) throw new Error(data.error || "Error loading messages");
 
@@ -114,7 +116,6 @@ export default function ConversationPanel({
             setCanSendFacebookMessage(hours <= 24);
           }
         }
-        console.log("msgs", msgs);
         const formatted = msgs.map((msg: any) => ({
           id: msg.id,
           conversationId,
@@ -155,7 +156,6 @@ export default function ConversationPanel({
         await fetch(`/api/messages/${platform}/${conversationId}/mark-read`, {
           method: "POST",
         });
-        console.log("✅ Messages marked as read");
       } catch (err) {
         console.error("❌ Error marking messages as read:", err);
       }
@@ -171,8 +171,6 @@ export default function ConversationPanel({
 
       // Only add message if it belongs to this conversation
       if (provider === platform && msgConvoId === conversationId) {
-        console.log("💬 New message for current conversation:", message);
-
         const formattedMessage: Message = {
           id: message.id,
           conversationId: conversationId,
@@ -203,8 +201,10 @@ export default function ConversationPanel({
   // 🔹 Enviar mensaje
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string }) => {
+      // ⚙️ Usa metaConversationId si existe (para Facebook)
+      const targetConversationId = metaConversationId || conversationId;
       const res = await fetch(
-        `/api/${platform}/conversations/${conversationId}/messages`,
+        `/api/${platform}/conversations/${targetConversationId}/messages`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -212,10 +212,14 @@ export default function ConversationPanel({
         },
       );
 
-      if (!res.ok) throw new Error("Error al enviar mensaje");
-      return res.json();
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Error al enviar mensaje");
+
+      return result;
     },
+
     onMutate: async (data) => {
+      // Agrega mensaje local optimista
       setMessages((prev) => [
         ...prev,
         {
@@ -230,13 +234,19 @@ export default function ConversationPanel({
         },
       ]);
     },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
       setMessageText("");
+      toast({
+        title: "✅ Mensaje enviado",
+        description: `Tu mensaje fue enviado correctamente a ${platform}.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
     },
+
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Error al enviar mensaje",
         description: error.message,
         variant: "destructive",
       });

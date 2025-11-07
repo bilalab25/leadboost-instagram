@@ -83,6 +83,7 @@ export default function MessageList({
           console.error(
             "❌ Unified endpoint failed, falling back to Facebook only",
           );
+
           // Fallback to Facebook only
           const fbRes = await fetch("/api/facebook/conversations");
           const fbData = await fbRes.json();
@@ -132,6 +133,7 @@ export default function MessageList({
           return {
             id: m.id,
             conversationId: m.conversation_id || m.conversationId,
+            metaConversationId: m.meta_conversation_id || m.metaConversationId,
             senderId: m.sender_id || m.from,
             senderName,
             senderAvatar: "",
@@ -172,12 +174,13 @@ export default function MessageList({
     (event: any) => {
       console.log("💬 New message received via Socket.IO:", event);
 
-      const { provider, conversationId, message } = event;
+      const { provider, conversationId, metaConversationId, message } = event;
 
       // Format the message to match the component's expected format
       const formattedMessage = {
         id: message.id,
         conversationId: conversationId,
+        metaConversationId: metaConversationId,
         senderId: message.senderId,
         senderName: message.contactName || "Unknown User",
         senderAvatar: "",
@@ -241,11 +244,11 @@ export default function MessageList({
     },
   });
 
-  // ✅ Agrupar mensajes por conversaciónId
-  // ✅ Agrupar mensajes por conversaciónId
+  // ✅ Agrupar mensajes por metaConversationId (si está disponible) o conversationId
   const groupedConversations = Object.values(
     filteredMessages.reduce((acc: any, msg: any) => {
-      const convoId = msg.conversationId || msg.id;
+      // Usar metaConversationId para agrupar si está disponible (para WhatsApp y otras plataformas Meta)
+      const convoId = msg.metaConversationId || msg.conversationId || msg.id;
       const isInbound = msg.direction === "inbound" || msg.from !== "You";
 
       // Determine the contact name for this specific message

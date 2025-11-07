@@ -64,6 +64,7 @@ const upload = multer({ dest: "uploads/" });
 interface NormalizedMessage {
   id: string;
   conversationId: string; // CRITICAL: Separate conversation identifier for detail view
+  metaConversationId?: string | null; // ✅ Meta conversation ID for proper grouping
   text: string;
   imageUrl: string | null;
   from: string;
@@ -98,6 +99,7 @@ async function fetchFacebookMessagesFromDB(
   return dbMessages.map((m) => ({
     id: m.metaMessageId,
     conversationId,
+    metaConversationId: m.metaConversationId,
     text: m.textContent || "",
     imageUrl: m.imageUrl || null,
     from: m.direction === "outbound" ? "You" : m.senderName || "Usuario",
@@ -122,6 +124,7 @@ async function fetchInstagramMessagesFromDB(
   return dbMessages.map((m) => ({
     id: m.metaMessageId,
     conversationId,
+    metaConversationId: m.metaConversationId,
     text: m.textContent || "",
     imageUrl: m.imageUrl || null,
     from: m.direction === "outbound" ? "You" : m.senderName || "Usuario",
@@ -146,6 +149,7 @@ async function fetchThreadsMessagesFromDB(
   return dbMessages.map((m) => ({
     id: m.metaMessageId,
     conversationId,
+    metaConversationId: m.metaConversationId,
     text: m.textContent || "",
     imageUrl: m.imageUrl || null,
     from: m.direction === "outbound" ? "You" : m.senderName || "Usuario",
@@ -170,6 +174,7 @@ async function fetchWhatsappMessagesFromDB(
   return dbMessages.map((m) => ({
     id: m.metaMessageId,
     conversationId,
+    metaConversationId: m.metaConversationId,
     text: m.textContent || "",
     imageUrl: m.imageUrl || null,
     from: m.direction === "outbound" ? "You" : m.contactName || conversationId,
@@ -2005,6 +2010,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         io.emit("new_message", {
                           provider: "whatsapp",
                           conversationId: senderId,
+                          metaConversationId: savedMessage.metaConversationId,
                           message: savedMessage,
                         });
                         console.log(
@@ -2079,6 +2085,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       io.emit("new_message", {
                         provider: "instagram",
                         conversationId: senderId,
+                        metaConversationId: savedMessage.metaConversationId,
                         message: savedMessage,
                       });
                       console.log(
@@ -2145,6 +2152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       io.emit("new_message", {
                         provider: "facebook",
                         conversationId: senderId,
+                        metaConversationId: savedMessage.metaConversationId,
                         message: savedMessage,
                       });
                       console.log(
@@ -2270,11 +2278,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { provider, conversationId } = req.params;
         const userId = req.user.id;
 
-        console.log("\n🟦 [START MESSAGE FETCH]");
-        console.log("🔹 Provider:", provider);
-        console.log("🔹 Conversation ID:", conversationId);
-        console.log("👤 User ID:", userId);
-
         const validProviders = ["facebook", "instagram", "threads", "whatsapp"];
         if (!validProviders.includes(provider)) {
           return res.status(400).json({ error: "Invalid provider" });
@@ -2330,33 +2333,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
             new Date(b.created_time).getTime(),
         );
 
-        // 🔍 Buscar meta_conversation_id en la base de datos
-        console.log(`🔍 Searching meta_conversation_id in DB for ${conversationId}`);
         let metaConversationId = null;
-        
+
         try {
-          const dbMessages = await storage.getMessagesByIntegrationAndConversation(
-            integrationId,
-            conversationId,
-          );
-          
+          const dbMessages =
+            await storage.getMessagesByIntegrationAndConversation(
+              integrationId,
+              conversationId,
+            );
+
           // Obtener el meta_conversation_id del primer mensaje encontrado
           if (dbMessages.length > 0 && dbMessages[0].metaConversationId) {
             metaConversationId = dbMessages[0].metaConversationId;
-            console.log(`✅ Found meta_conversation_id: ${metaConversationId}`);
           } else {
-            console.log(`⚠️ No meta_conversation_id found in DB for this conversation`);
+            console.log(
+              `⚠️ No meta_conversation_id found in DB for this conversation`,
+            );
           }
         } catch (error) {
           console.error(`❌ Error fetching meta_conversation_id:`, error);
         }
 
-        res.json({ 
-          provider, 
-          accountId, 
-          messages, 
+        res.json({
+          provider,
+          accountId,
+          messages,
           total: messages.length,
-          metaConversationId 
+          metaConversationId,
         });
       } catch (err) {
         console.error("❌ Unified messages fetch error:", err);
@@ -2447,6 +2450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     id: m.metaMessageId,
                     conversationId:
                       m.direction === "inbound" ? m.senderId : m.recipientId,
+                    metaConversationId: m.metaConversationId,
                     text: m.textContent || "",
                     from:
                       m.direction === "outbound"
@@ -2488,14 +2492,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                 const whatsappPromises = Array.from(conversationMap.keys()).map(
                   async (convoId) => {
-                    return await fetchWhatsappMessages(
-                      convoId,
+                    return await fetchWhatsappMessagesFromDB(
                       integration.id,
+                      convoId,
                       accountId,
                     );
                   },
                 );
-
                 const allConvoMessages = await Promise.all(whatsappPromises);
                 messages = allConvoMessages.flat();
                 break;
@@ -2731,28 +2734,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // =========================================================
-        // 🟣 INSTAGRAM / THREADS
+        // 🟣 INSTAGRAM / THREADS (enviar usando el PAGE-ID)
         // =========================================================
         else if (provider === "instagram" || provider === "threads") {
           console.log(
             `💬 [Instagram/Threads] Sending message to conversation ${conversationId}`,
           );
 
-          // 1️⃣ Obtener IG Business ID
-          const igRes = await fetch(
-            `https://graph.facebook.com/v24.0/${integration.accountId}?fields=connected_instagram_account{id,username}&access_token=${integration.accessToken}`,
-          );
-          const igData = await igRes.json();
+          // 1️⃣ Obtener el PAGE-ID de la integración (Facebook Page vinculada)
+          const pageId = integration.pageId;
 
-          const igBusinessId =
-            igData?.connected_instagram_account?.id || integration.accountId;
-
-          if (!igBusinessId)
+          if (!pageId) {
             throw new Error(
-              "No se pudo obtener el IG Business ID desde la integración.",
+              "No se encontró el Page ID vinculado a la cuenta IG.",
             );
+          }
 
-          console.log(`🆔 IG Business ID: ${igBusinessId}`);
+          console.log(`🆔 Page ID vinculado: ${pageId}`);
 
           // 2️⃣ Obtener destinatario (usuario final)
           const convoRes = await fetch(
@@ -2761,7 +2759,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const convoData = await convoRes.json();
 
           const participants = convoData.participants?.data || [];
-          recipientId = participants.find((p) => p.id !== igBusinessId)?.id;
+          recipientId = participants.find(
+            (p) => !p.id.startsWith("1784") && !p.id.startsWith(pageId),
+          )?.id;
 
           if (!recipientId) {
             console.error("❌ No se pudo determinar el destinatario de IG");
@@ -2772,11 +2772,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`📍 Recipient ID (IG): ${recipientId}`);
 
-          url = `https://graph.facebook.com/v24.0/${igBusinessId}/messages`;
+          // 3️⃣ Construcción del mensaje
+          url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
           payload = {
             recipient: { id: recipientId },
             message: { text: content },
           };
+
+          console.log("✅ [Instagram] Payload final:", payload);
         }
 
         // =========================================================
@@ -2852,6 +2855,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           provider === "whatsapp"
             ? apiResponse.messages?.[0]?.id
             : apiResponse.message_id || apiResponse.id;
+        if (!recipientId) {
+          throw new Error("recipientId is missing before saving to DB");
+        }
 
         if (messageId) {
           await storage.createMessage({
