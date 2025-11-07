@@ -58,10 +58,13 @@ export default function MessageList({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Callback to refresh messages list (called when conversation is opened)
-  const handleConversationOpened = (platform: string, conversationId: string) => {
+  const handleConversationOpened = (
+    platform: string,
+    conversationId: string,
+  ) => {
     // Optimistically clear the unread count for this conversation
     const unreadKey = `${platform}-${conversationId}`;
-    setUnreadCounts(prev => {
+    setUnreadCounts((prev) => {
       const updated = { ...prev };
       delete updated[unreadKey];
       return updated;
@@ -76,7 +79,6 @@ export default function MessageList({
 
         // Try unified aggregation endpoint first
         const res = await fetch("/api/conversations/messages/all");
-
         if (!res.ok) {
           console.error(
             "❌ Unified endpoint failed, falling back to Facebook only",
@@ -107,25 +109,46 @@ export default function MessageList({
         }
 
         const data = await res.json();
+        console.log(data, "soy la data");
+
         const messages = data.messages || [];
         const counts = data.unreadCounts || {};
 
-        // Transform unified messages to component format
-        const formatted = messages.map((m: any) => ({
-          id: m.id,
-          conversationId: m.conversationId, // CRITICAL: Use server-provided conversation ID, not message ID
-          senderId: m.fromId,
-          senderName: m.from,
-          senderAvatar: "",
-          content: m.text || "(sin mensaje)",
-          priority: "normal",
-          isRead: true,
-          createdAt: m.created_time,
-          socialAccount: {
-            platform: m.provider,
-            accountName: `${m.provider.charAt(0).toUpperCase() + m.provider.slice(1)}`,
-          },
-        }));
+        const formatted = messages.map((m: any) => {
+          // Respetar la dirección del backend (no recalcular)
+          const isOutbound = m.direction === "outbound";
+
+          // Nombre del contacto: el opuesto a "You"
+          const contactName = isOutbound
+            ? m.to ||
+              m.recipientName ||
+              m.conversationId || // fallback
+              "Contacto"
+            : m.from || m.senderName || "Usuario";
+
+          // Mostrar "Tú" o el contacto en la burbuja
+          const senderName = isOutbound ? "Tú" : contactName;
+
+          return {
+            id: m.id,
+            conversationId: m.conversation_id || m.conversationId,
+            senderId: m.sender_id || m.from,
+            senderName,
+            senderAvatar: "",
+            content: m.text_content || m.text || "(sin mensaje)",
+            direction: m.direction, // viene del backend
+            priority: "normal",
+            isRead: m.is_read ?? true,
+            createdAt: m.timestamp || m.created_time,
+            socialAccount: {
+              platform: m.platform || m.provider,
+              accountName: (m.platform || m.provider)?.replace(/^./, (x) =>
+                x.toUpperCase(),
+              ),
+            },
+            contactName,
+          };
+        });
 
         setUnifiedMessages(formatted);
         setUnreadCounts(counts);
@@ -145,50 +168,53 @@ export default function MessageList({
   }, [toast]); // Removed platform dependency to load all on mount
 
   // ✅ Socket.IO: Listen for new messages in real-time
-  const handleNewMessage = useCallback((event: any) => {
-    console.log("💬 New message received via Socket.IO:", event);
+  const handleNewMessage = useCallback(
+    (event: any) => {
+      console.log("💬 New message received via Socket.IO:", event);
 
-    const { provider, conversationId, message } = event;
+      const { provider, conversationId, message } = event;
 
-    // Format the message to match the component's expected format
-    const formattedMessage = {
-      id: message.id,
-      conversationId: conversationId,
-      senderId: message.senderId,
-      senderName: message.contactName || "Unknown User",
-      senderAvatar: "",
-      content: message.textContent || "(sin mensaje)",
-      priority: "normal",
-      isRead: false,
-      createdAt: message.timestamp || new Date().toISOString(),
-      socialAccount: {
-        platform: provider,
-        accountName: `${provider.charAt(0).toUpperCase() + provider.slice(1)}`,
-      },
-    };
+      // Format the message to match the component's expected format
+      const formattedMessage = {
+        id: message.id,
+        conversationId: conversationId,
+        senderId: message.senderId,
+        senderName: message.contactName || "Unknown User",
+        senderAvatar: "",
+        content: message.textContent || "(sin mensaje)",
+        priority: "normal",
+        isRead: false,
+        createdAt: message.timestamp || new Date().toISOString(),
+        socialAccount: {
+          platform: provider,
+          accountName: `${provider.charAt(0).toUpperCase() + provider.slice(1)}`,
+        },
+      };
 
-    // Add the new message to the unified messages list
-    setUnifiedMessages(prev => {
-      // Check if message already exists (prevent duplicates)
-      const exists = prev.some(m => m.id === formattedMessage.id);
-      if (exists) return prev;
-      
-      return [formattedMessage, ...prev];
-    });
+      // Add the new message to the unified messages list
+      setUnifiedMessages((prev) => {
+        // Check if message already exists (prevent duplicates)
+        const exists = prev.some((m) => m.id === formattedMessage.id);
+        if (exists) return prev;
 
-    // Update unread count
-    const unreadKey = `${provider}-${conversationId}`;
-    setUnreadCounts(prev => ({
-      ...prev,
-      [unreadKey]: (prev[unreadKey] || 0) + 1
-    }));
+        return [formattedMessage, ...prev];
+      });
 
-    // Show toast notification
-    toast({
-      title: "New Message",
-      description: `${formattedMessage.senderName}: ${formattedMessage.content.substring(0, 50)}${formattedMessage.content.length > 50 ? '...' : ''}`,
-    });
-  }, [toast]);
+      // Update unread count
+      const unreadKey = `${provider}-${conversationId}`;
+      setUnreadCounts((prev) => ({
+        ...prev,
+        [unreadKey]: (prev[unreadKey] || 0) + 1,
+      }));
+
+      // Show toast notification
+      toast({
+        title: "New Message",
+        description: `${formattedMessage.senderName}: ${formattedMessage.content.substring(0, 50)}${formattedMessage.content.length > 50 ? "..." : ""}`,
+      });
+    },
+    [toast],
+  );
 
   useNewMessageListener(handleNewMessage);
 
@@ -216,21 +242,63 @@ export default function MessageList({
   });
 
   // ✅ Agrupar mensajes por conversaciónId
+  // ✅ Agrupar mensajes por conversaciónId
   const groupedConversations = Object.values(
     filteredMessages.reduce((acc: any, msg: any) => {
       const convoId = msg.conversationId || msg.id;
+      const isInbound = msg.direction === "inbound" || msg.from !== "You";
+
+      // Determine the contact name for this specific message
+      const messageContactName = isInbound
+        ? msg.from
+        : msg.to || msg.recipientName;
+
+      // Si la conversación no existe todavía
       if (!acc[convoId]) {
         acc[convoId] = {
           ...msg,
+          // **FIX**: Set initial contactName based on the message's determined name,
+          // prioritizing a named contact over a fallback.
+          contactName: msg.contactName || messageContactName || "Unknown User",
           messages: [msg],
         };
       } else {
         acc[convoId].messages.push(msg);
-        // si este mensaje es más reciente, actualiza los datos principales
+
+        // 🔹 Solo actualiza contenido/fecha, no nombre
         if (new Date(msg.createdAt) > new Date(acc[convoId].createdAt)) {
-          acc[convoId] = { ...acc[convoId], ...msg };
+          acc[convoId] = {
+            ...acc[convoId],
+            content: msg.content,
+            createdAt: msg.createdAt,
+            isRead: msg.isRead,
+          };
+        }
+
+        // 🔹 **FIXED LOGIC**: Prioritize the actual contact name if the current one is
+        // the conversation ID fallback or "Unknown User", AND the new message
+        // has a better name (Gilberto Medina Trejo).
+        const currentConvoName = acc[convoId].contactName;
+        if (
+          messageContactName &&
+          messageContactName !== "You" &&
+          (currentConvoName === convoId ||
+            currentConvoName === "Unknown User" ||
+            currentConvoName === "Contacto" ||
+            currentConvoName === acc[convoId].senderName)
+        ) {
+          acc[convoId].contactName = messageContactName;
+        }
+        // Fallback in case `msg.contactName` from the unified API call is what we need
+        else if (
+          msg.contactName &&
+          msg.contactName !== "Tú" &&
+          msg.contactName !== convoId
+        ) {
+          acc[convoId].contactName = msg.contactName;
         }
       }
+
       return acc;
     }, {}),
   );
@@ -296,16 +364,16 @@ export default function MessageList({
                     onClick={() => {
                       const convoId = message.conversationId || message.id;
                       const platform = message.socialAccount.platform;
-                      
+
                       setActiveConversation({
                         id: convoId,
                         name: message.senderName,
                         platform: platform,
                       });
-                      
+
                       // Clear unread badge immediately
                       handleConversationOpened(platform, convoId);
-                      
+
                       if (!message.isRead) {
                         markAsReadMutation.mutate(message.id);
                       }
@@ -342,14 +410,17 @@ export default function MessageList({
                               !message.isRead && "font-semibold",
                             )}
                           >
-                            {message.senderName}
+                            {message.contactName ||
+                              message.senderName ||
+                              "Contacto"}
                           </p>
+
                           <div className="flex items-center gap-2">
                             {(() => {
                               const unreadKey = `${message.socialAccount.platform}-${message.conversationId || message.id}`;
                               const unreadCount = unreadCounts[unreadKey] || 0;
                               return unreadCount > 0 ? (
-                                <Badge 
+                                <Badge
                                   className="bg-primary text-white text-xs h-5 min-w-5 flex items-center justify-center rounded-full px-1.5"
                                   data-testid={`badge-unread-${message.conversationId}`}
                                 >
@@ -358,10 +429,13 @@ export default function MessageList({
                               ) : null;
                             })()}
                             <span className="text-xs text-gray-500">
-                              {formatDistanceToNow(new Date(message.createdAt), {
-                                addSuffix: false,
-                                locale: es,
-                              })}
+                              {formatDistanceToNow(
+                                new Date(message.createdAt),
+                                {
+                                  addSuffix: false,
+                                  locale: es,
+                                },
+                              )}
                             </span>
                           </div>
                         </div>

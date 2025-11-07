@@ -119,7 +119,7 @@ export default function ConversationPanel({
           id: msg.id,
           conversationId,
           senderId: msg.fromId,
-          senderName: msg.from,
+          senderName: msg.from || msg.contactName || "User",
           content: msg.text || "(sin mensaje)",
           imageUrl: msg.imageUrl || null,
           direction:
@@ -150,7 +150,7 @@ export default function ConversationPanel({
   useEffect(() => {
     async function markAsRead() {
       if (!platform || !conversationId) return;
-      
+
       try {
         await fetch(`/api/messages/${platform}/${conversationId}/mark-read`, {
           method: "POST",
@@ -165,35 +165,38 @@ export default function ConversationPanel({
   }, [conversationId, platform]);
 
   // ✅ Socket.IO: Listen for new messages in real-time for this conversation
-  const handleNewMessage = useCallback((event: any) => {
-    const { provider, conversationId: msgConvoId, message } = event;
+  const handleNewMessage = useCallback(
+    (event: any) => {
+      const { provider, conversationId: msgConvoId, message } = event;
 
-    // Only add message if it belongs to this conversation
-    if (provider === platform && msgConvoId === conversationId) {
-      console.log("💬 New message for current conversation:", message);
+      // Only add message if it belongs to this conversation
+      if (provider === platform && msgConvoId === conversationId) {
+        console.log("💬 New message for current conversation:", message);
 
-      const formattedMessage: Message = {
-        id: message.id,
-        conversationId: conversationId,
-        senderId: message.senderId,
-        senderName: message.contactName || "Unknown User",
-        content: message.textContent || "(sin mensaje)",
-        imageUrl: null,
-        direction: "inbound",
-        status: "read",
-        createdAt: message.timestamp || new Date().toISOString(),
-      };
+        const formattedMessage: Message = {
+          id: message.id,
+          conversationId: conversationId,
+          senderId: message.senderId,
+          senderName: message.contactName || "Unknown User",
+          content: message.textContent || "(sin mensaje)",
+          imageUrl: null,
+          direction: "inbound",
+          status: "read",
+          createdAt: message.timestamp || new Date().toISOString(),
+        };
 
-      // Add the new message to the conversation
-      setMessages(prev => {
-        // Check if message already exists (prevent duplicates)
-        const exists = prev.some(m => m.id === formattedMessage.id);
-        if (exists) return prev;
-        
-        return [...prev, formattedMessage];
-      });
-    }
-  }, [platform, conversationId]);
+        // Add the new message to the conversation
+        setMessages((prev) => {
+          // Check if message already exists (prevent duplicates)
+          const exists = prev.some((m) => m.id === formattedMessage.id);
+          if (exists) return prev;
+
+          return [...prev, formattedMessage];
+        });
+      }
+    },
+    [platform, conversationId],
+  );
 
   useNewMessageListener(handleNewMessage);
 

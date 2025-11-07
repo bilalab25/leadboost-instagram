@@ -1124,7 +1124,7 @@ export const integrations = pgTable("integrations", {
   accountName: text("account_name"), // Maps to: account_name
   accountId: text("account_id"), // Maps to: account_id
   expiresAt: timestamp("expires_at"), // Maps to: expires_at
-  metadata: text("metadata"), // Maps to: metadata
+  metadata: jsonb("metadata"), // Maps to: metadata (JSONB for structured data queries)
 });
 
 // Scheduled Appointments

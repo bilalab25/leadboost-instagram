@@ -323,12 +323,18 @@ async function performInitialSync(
   provider: string,
 ): Promise<void> {
   try {
-    console.log(`\n🔄 [INITIAL SYNC] Starting for ${provider}...`);
+    console.log(
+      `\n🔄 [INITIAL SYNC] Starting for ${provider.toUpperCase()}...`,
+    );
 
     const accessToken = integration.accessToken;
     const accountId = integration.accountId;
 
-    // Fetch conversations
+    // Basic business identifiers (simplified)
+    const businessIds = [accountId, integration.pageId].filter(Boolean);
+    console.log(`🔍 Business IDs detected:`, businessIds);
+
+    // Fetch all conversations
     const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&limit=50&access_token=${accessToken}`;
     console.log(
       `📞 Fetching conversations from: ${convoUrl.replace(accessToken, "TOKEN")}`,
@@ -347,12 +353,11 @@ async function performInitialSync(
       `📦 Found ${conversations.length} conversations for ${provider}`,
     );
 
-    const messagesToInsert = [];
+    const messagesToInsert: any[] = [];
 
-    // Fetch messages for each conversation
+    // Loop through each conversation
     for (const convo of conversations) {
       const messagesUrl = `https://graph.facebook.com/v24.0/${convo.id}/messages?fields=id,message,text,from,to,created_time,attachments&limit=50&access_token=${accessToken}`;
-
       const msgRes = await fetch(messagesUrl);
       const msgData = await msgRes.json();
 
@@ -367,30 +372,70 @@ async function performInitialSync(
       const messages = msgData.data || [];
       console.log(`  📨 Conversation ${convo.id}: ${messages.length} messages`);
 
-      // Convert messages to database format
+      // Convert to database format
       for (const m of messages) {
         const text = m.message || m.text || "";
-        const isOutbound = m.from?.id === accountId;
-        const senderId = m.from?.id || "";
-        const recipientId = isOutbound ? m.to?.data?.[0]?.id || "" : accountId;
+        const fromId = m.from?.id || "";
+        const fromName = m.from?.name || m.from?.username || "Unknown";
+        const toId = m.to?.data?.[0]?.id || "";
+        const toName =
+          m.to?.data?.[0]?.name || m.to?.data?.[0]?.username || "Unknown";
 
+        // 🧠 Detect direction (outbound vs inbound)
+        let isOutbound = false;
+
+        // Facebook / Instagram / Threads share the same business Page ID
+        if (["facebook", "instagram", "threads"].includes(provider)) {
+          if (fromId === accountId || fromId === integration.pageId) {
+            isOutbound = true;
+          }
+
+          // 🩵 Extra fix for Instagram / Threads
+          if (
+            provider !== "facebook" &&
+            (fromId.startsWith("1784") ||
+              fromName?.toLowerCase() ===
+                integration.accountName?.toLowerCase())
+          ) {
+            isOutbound = true;
+          }
+        }
+
+        // WhatsApp Business (use WABA or phone_number_id)
+        if (provider === "whatsapp") {
+          const wabaId = integration.metadata?.waba_id || integration.page_id;
+          if (fromId === wabaId || fromId === accountId) {
+            isOutbound = true;
+          }
+        }
+
+        // Debug log for direction detection
+        console.log(
+          `🧩 Msg ${m.id.slice(0, 10)}... | from: ${fromName} (${fromId}) → to: ${toName} (${toId}) | provider: ${provider} | outbound: ${isOutbound}`,
+        );
+
+        // Define contact name
+        const contactName = isOutbound ? toName : fromName;
+
+        // Build insert object
         messagesToInsert.push({
           userId,
           integrationId: integration.id,
           platform: provider,
           metaMessageId: m.id,
-          senderId,
-          recipientId,
+          senderId: fromId,
+          recipientId: toId,
           textContent: text,
           direction: isOutbound ? "outbound" : "inbound",
           isRead: isOutbound,
           timestamp: new Date(m.created_time),
+          contactName,
           rawPayload: { message: m },
         });
       }
     }
 
-    // ✅ Save messages if any
+    // ✅ Save messages
     if (messagesToInsert.length > 0) {
       console.log(
         `💾 Saving ${messagesToInsert.length} messages to database...`,
@@ -399,13 +444,13 @@ async function performInitialSync(
       console.log(`✅ Initial sync complete for ${provider}`);
     } else {
       console.log(
-        `📭 No messages found for ${provider}, marking as synced anyway`,
+        `📭 No new messages found for ${provider}, marking as synced anyway`,
       );
     }
 
-    // ✅ Mark integration as fetched (always at the end of a successful sync)
+    // ✅ Mark integration as fetched
     await storage.markIntegrationAsFetched(integration.id);
-    integration.hasFetchedHistory = true; // 👈 opcional, para actualizar en memoria también
+    integration.hasFetchedHistory = true;
     console.log(
       `🏁 [${provider.toUpperCase()}] Marked as fetched in DB and memory`,
     );
@@ -1757,7 +1802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             pageAccessToken?.slice(0, 20),
           );
 
-          const testUrl = `https://graph.facebook.com/v24.0/${igAccount.id}/conversations?fields=id,participants,platform,updated_time&limit=1&access_token=${pageAccessToken}`;
+          const testUrl = `https://graph.facebook.com/v24.0/${page.id}/conversations?platform=instagram&fields=id,participants,platform,updated_time&limit=1&access_token=${pageAccessToken}`;
           const testRes = await fetch(testUrl);
           const testData = await testRes.json();
 
@@ -1781,17 +1826,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: "social_media",
             storeName: "Instagram",
             storeUrl: `https://instagram.com/${igDetails.username || page.name}`,
-            // ⚠️ IMPORTANT CHANGE:
-            // Use page.id (Facebook Page ID) instead of igAccount.id
-            // because since Graph API v24.0, message/conversation endpoints use the PAGE_ID
-            accountId: page.id,
+            accountId: igAccount.id,
             accessToken: pageAccessToken,
             accountName: igDetails.username || page.name,
             pageId: page.id,
             metadata: {
               fbPageId: page.id,
               fbPageName: page.name,
-              igAccountId: igAccount.id, // keep IG id here for reference
+              igAccountId: igAccount.id,
               igUsername: igDetails.username,
               igProfilePic: igDetails.profile_picture_url,
               note: "accountId intentionally set to PAGE_ID (Graph API v24.0 change)",
@@ -1981,13 +2023,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/webhooks/meta", async (req, res) => {
     try {
-      // 🚨 LOG 1: Confirma que la solicitud POST está llegando a esta ruta
       console.log("=================================================");
       console.log("✅ REQUEST RECEIVED: POST /api/webhooks/meta");
 
       const body = req.body;
 
-      // 🚨 LOG 2: Muestra el cuerpo completo que Meta envió
       console.log("🔴 PAYLOAD RAW (BODY):");
       console.dir(body, { depth: null });
       console.log("=================================================");
@@ -2002,7 +2042,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const entry of body.entry || []) {
           const events = entry.messaging || entry.changes || [];
 
-          // 1. Manejar WhatsApp: Usamos entry.changes, pero buscamos la estructura interna
+          // ==============================
+          // 🔹 WHATSAPP BUSINESS ACCOUNT
+          // ==============================
           if (body.object === "whatsapp_business_account") {
             for (const change of entry.changes || []) {
               if (change.field === "messages" && change.value.messages) {
@@ -2010,55 +2052,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const phoneNumberId = metadata?.phone_number_id;
                 const displayPhoneNumber = metadata?.display_phone_number;
 
-                // Extract contact information
                 const contacts = change.value.contacts || [];
                 const contactName = contacts[0]?.profile?.name || null;
 
-                // Find the integration based on phone_number_id
                 let integration = null;
                 if (phoneNumberId) {
                   try {
-                    // Get all integrations and find the one with matching phone_number_id
                     const allIntegrations = await storage.getAllIntegrations();
-
                     console.log(
                       "🔍 Searching for integration with phoneNumberId:",
                       phoneNumberId,
                     );
-                    console.log(
-                      "📋 Total integrations found:",
-                      allIntegrations.length,
-                    );
 
-                    // Debug: Log all WhatsApp integrations with their metadata
-                    const whatsappIntegrations = allIntegrations.filter(
-                      (int: any) => int.provider === "whatsapp",
-                    );
-                    console.log(
-                      "📱 WhatsApp integrations:",
-                      whatsappIntegrations.map((int: any) => ({
-                        id: int.id,
-                        accountId: int.accountId,
-                        metadata: int.metadata,
-                      })),
-                    );
-
-                    integration = allIntegrations.find((int: any) => {
-                      // Parse metadata if it's a string
+                    integration = allIntegrations.find((int) => {
                       let metadata = int.metadata;
                       if (typeof metadata === "string") {
                         try {
-                          // Fix the malformed JSON string (has single quotes instead of double quotes)
                           const fixedMetadata = metadata
                             .replace(/(\w+):/g, '"$1":')
                             .replace(/'/g, '"');
                           metadata = JSON.parse(fixedMetadata);
                         } catch (e) {
-                          console.error("Failed to parse metadata:", metadata);
                           metadata = null;
                         }
                       }
-
                       return (
                         metadata?.phoneNumberId === phoneNumberId ||
                         int.accountId === phoneNumberId
@@ -2081,15 +2098,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }
                 }
 
-                // Ahora iteramos los mensajes reales de WhatsApp
                 for (const waMessage of change.value.messages) {
                   try {
-                    const messageId = waMessage.id; // wamid...
-                    const senderId = waMessage.from; // Phone number of sender
-                    const timestamp = waMessage.timestamp; // Unix timestamp
-                    const messageType = waMessage.type; // text, image, video, etc.
-
+                    const messageId = waMessage.id;
+                    const senderId = waMessage.from;
+                    const timestamp = waMessage.timestamp;
+                    const messageType = waMessage.type;
                     let textContent = null;
+
                     if (messageType === "text" && waMessage.text?.body) {
                       textContent = waMessage.text.body;
                     }
@@ -2101,7 +2117,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       phoneNumberId,
                     });
 
-                    // Save message to database if we found the integration
                     if (integration) {
                       const messageData = {
                         userId: integration.userId,
@@ -2110,12 +2125,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         metaMessageId: messageId,
                         senderId: senderId,
                         recipientId: phoneNumberId || displayPhoneNumber || "",
-                        contactName: contactName, // Save contact name from WhatsApp
+                        contactName: contactName,
                         textContent: textContent,
-                        direction: "inbound", // Messages from webhook are always inbound
-                        isRead: false, // New inbound messages are unread by default
-                        timestamp: new Date(parseInt(timestamp) * 1000), // Convert Unix to Date
-                        rawPayload: body, // Store entire webhook payload
+                        direction: "inbound",
+                        isRead: false,
+                        timestamp: new Date(parseInt(timestamp) * 1000),
+                        rawPayload: body,
                       };
 
                       const savedMessage =
@@ -2124,7 +2139,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         `✅ Message saved to database: ${savedMessage.id}`,
                       );
 
-                      // Emit real-time event to connected clients
                       const io = app.get("io");
                       if (io) {
                         io.emit("new_message", {
@@ -2138,7 +2152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       }
                     } else {
                       console.warn(
-                        `⚠️ Skipping message save - no integration found`,
+                        "⚠️ Skipping message save - no integration found",
                       );
                     }
                   } catch (error) {
@@ -2152,77 +2166,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          // 2. Manejar Messenger/Instagram
+          // ==============================
+          // 🔹 INSTAGRAM & MESSENGER
+          // ==============================
           else {
             for (const event of events) {
-              // 💬 Handle Messenger messages
-              if (event.message && event.sender && event.recipient) {
-                try {
-                  console.log("💬 [Messenger] Message received:", {
-                    sender: event.sender.id,
-                    recipient: event.recipient.id,
-                    text: event.message.text,
-                    mid: event.message.mid,
-                  });
-
-                  const messageText = event.message.text || "";
-                  const senderId = event.sender.id;
-                  const recipientId = event.recipient.id;
-                  const messageId = event.message.mid;
-
-                  // Find integration by recipientId (page ID)
-                  const integration = await storage.findIntegrationByAccount(
-                    recipientId,
-                    "facebook",
-                  );
-
-                  if (integration) {
-                    const messageData = {
-                      userId: integration.userId,
-                      integrationId: integration.id,
-                      platform: "facebook",
-                      metaMessageId: messageId,
-                      senderId: senderId,
-                      recipientId: recipientId,
-                      textContent: messageText,
-                      direction: "inbound",
-                      isRead: false,
-                      timestamp: new Date(event.timestamp || Date.now()),
-                      rawPayload: body,
-                    };
-
-                    const savedMessage =
-                      await storage.createMessage(messageData);
-                    console.log(
-                      `✅ [Messenger] Message saved: ${savedMessage.id}`,
-                    );
-
-                    // Emit real-time event to connected clients
-                    const io = app.get("io");
-                    if (io) {
-                      io.emit("new_message", {
-                        provider: "facebook",
-                        conversationId: senderId,
-                        message: savedMessage,
-                      });
-                      console.log(
-                        "📡 Real-time Messenger message emitted to clients",
-                      );
-                    }
-                  } else {
-                    console.warn(
-                      `⚠️ [Messenger] No integration found for recipient: ${recipientId}`,
-                    );
-                  }
-                } catch (error) {
-                  console.error(
-                    "❌ Error processing Messenger message:",
-                    error,
-                  );
-                }
-              }
-              // 📸 Handle Instagram messages
-              else if (event.message && body.object === "instagram") {
+              // 📸 INSTAGRAM (prioridad)
+              if (body.object === "instagram" && event.message) {
                 try {
                   console.log("📷 [Instagram] Message received:", {
                     sender: event.sender?.id,
@@ -2236,7 +2186,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   const recipientId = event.recipient?.id || "";
                   const messageId = event.message.mid;
 
-                  // Find integration by recipientId (Instagram Business Account ID)
                   const integration = await storage.findIntegrationByAccount(
                     recipientId,
                     "instagram",
@@ -2263,7 +2212,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       `✅ [Instagram] Message saved: ${savedMessage.id}`,
                     );
 
-                    // Emit real-time event to connected clients
                     const io = app.get("io");
                     if (io) {
                       io.emit("new_message", {
@@ -2287,9 +2235,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   );
                 }
               }
+
+              // 💬 MESSENGER (evaluar después)
+              else if (event.message && event.sender && event.recipient) {
+                try {
+                  console.log("💬 [Messenger] Message received:", {
+                    sender: event.sender.id,
+                    recipient: event.recipient.id,
+                    text: event.message.text,
+                    mid: event.message.mid,
+                  });
+
+                  const messageText = event.message.text || "";
+                  const senderId = event.sender.id;
+                  const recipientId = event.recipient.id;
+                  const messageId = event.message.mid;
+
+                  const integration = await storage.findIntegrationByAccount(
+                    recipientId,
+                    "facebook",
+                  );
+
+                  if (integration) {
+                    const messageData = {
+                      userId: integration.userId,
+                      integrationId: integration.id,
+                      platform: "facebook",
+                      metaMessageId: messageId,
+                      senderId: senderId,
+                      recipientId: recipientId,
+                      textContent: messageText,
+                      direction: "inbound",
+                      isRead: false,
+                      timestamp: new Date(event.timestamp || Date.now()),
+                      rawPayload: body,
+                    };
+
+                    const savedMessage =
+                      await storage.createMessage(messageData);
+                    console.log(
+                      `✅ [Messenger] Message saved: ${savedMessage.id}`,
+                    );
+
+                    const io = app.get("io");
+                    if (io) {
+                      io.emit("new_message", {
+                        provider: "facebook",
+                        conversationId: senderId,
+                        message: savedMessage,
+                      });
+                      console.log(
+                        "📡 Real-time Messenger message emitted to clients",
+                      );
+                    }
+                  } else {
+                    console.warn(
+                      `⚠️ [Messenger] No integration found for recipient: ${recipientId}`,
+                    );
+                  }
+                } catch (error) {
+                  console.error(
+                    "❌ Error processing Messenger message:",
+                    error,
+                  );
+                }
+              }
             }
           }
-        } // Fin del for (entry)
+        }
 
         res.status(200).send("EVENT_RECEIVED");
       } else {
@@ -2531,8 +2544,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const userId = req.user.id;
         const integrations = await storage.getIntegrations(userId);
-        console.log("🧩 Found integrations:", integrations);
-
         if (!integrations || integrations.length === 0) {
           return res.json({ messages: [], providers: [], total: 0 });
         }
@@ -2548,36 +2559,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
               case "facebook":
               case "instagram":
               case "threads": {
-                // ✅ HYBRID SYNC STRATEGY for Messenger/Instagram
-                console.log(integration, "printing integration");
-                console.log(
-                  typeof integration.hasFetchedHistory,
-                  "printing type of integration",
-                );
-
-                // Step 1: Check if we need to perform initial sync
-                if (
-                  !integration.hasFetchedHistory ||
-                  integration.hasFetchedHistory == false
-                ) {
-                  console.log("se cumple con la condicion");
+                // ✅ Step 1: Perform initial sync if necessary
+                if (!integration.hasFetchedHistory) {
+                  console.log(
+                    `🔄 [${provider.toUpperCase()}] Performing initial sync...`,
+                  );
                   await performInitialSync(userId, integration, provider);
                   integration.hasFetchedHistory = true;
+                  await storage.markIntegrationAsFetched(integration.id);
                 }
 
-                // Step 2: Fetch messages from local database
+                // ✅ Step 2: Always read messages from your local database
+                console.log(
+                  `💾 [${provider.toUpperCase()}] Fetching messages from local database`,
+                );
                 const dbMessages = await storage.getMessagesByIntegration(
                   integration.id,
                 );
-                // Convert database messages to NormalizedMessage format
+
                 const localMessages: NormalizedMessage[] = dbMessages.map(
                   (m) => ({
                     id: m.metaMessageId,
                     conversationId:
                       m.direction === "inbound" ? m.senderId : m.recipientId,
                     text: m.textContent || "",
-                    imageUrl: null,
-                    from: m.direction === "outbound" ? "You" : "User",
+                    from:
+                      m.direction === "outbound"
+                        ? "You"
+                        : m.contactName || "User",
                     fromId: m.senderId,
                     created_time: m.timestamp.toISOString(),
                     provider: provider,
@@ -2586,69 +2595,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }),
                 );
 
-                // Step 3: Fetch recent messages from API (to get any new messages)
-                const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&access_token=${accessToken}`;
+                // 🚫 Skip Meta API calls (Facebook/Instagram)
+                console.log(
+                  `🧠 [${provider.toUpperCase()}] Skipping remote fetch — using only DB`,
+                );
+                messages = localMessages;
 
-                const convoRes = await fetch(convoUrl);
-                const convoData = await convoRes.json();
-
-                let remoteMessages: NormalizedMessage[] = [];
-
-                if (convoData.error) {
-                  console.error(
-                    `❌ [${provider.toUpperCase()}] Conversation API error:`,
-                    convoData.error,
-                  );
-                } else if (convoData.data && convoData.data.length > 0) {
-                  const messagePromises = convoData.data.map(
-                    async (convo: any) => {
-                      try {
-                        if (provider === "facebook") {
-                          return await fetchFacebookMessages(
-                            convo.id,
-                            accessToken,
-                            accountId,
-                          );
-                        } else if (provider === "instagram") {
-                          return await fetchInstagramMessages(
-                            convo.id,
-                            accessToken,
-                            accountId,
-                          );
-                        } else {
-                          return await fetchThreadsMessages(
-                            convo.id,
-                            accessToken,
-                            accountId,
-                          );
-                        }
-                      } catch (innerErr) {
-                        console.error(
-                          `⚠️ Error fetching messages for convo ${convo.id} (${provider}):`,
-                          innerErr,
-                        );
-                        return [];
-                      }
-                    },
-                  );
-
-                  const allConvoMessages = await Promise.all(messagePromises);
-                  remoteMessages = allConvoMessages.flat();
-                }
-
-                // Step 4: Merge local and remote messages (remove duplicates)
-                messages = mergeLocalAndRemote(remoteMessages, localMessages);
                 break;
               }
+
               case "whatsapp": {
                 const allWhatsAppMessages =
                   await storage.getMessagesByIntegration(integration.id);
-
-                // Group messages by conversation (sender/recipient)
                 const conversationMap = new Map<string, any[]>();
 
                 for (const msg of allWhatsAppMessages) {
-                  // Use senderId as conversation identifier (customer's phone number)
                   const convoId =
                     msg.direction === "inbound"
                       ? msg.senderId
@@ -2660,7 +2621,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   conversationMap.get(convoId)!.push(msg);
                 }
 
-                // Fetch messages for each conversation
                 const whatsappPromises = Array.from(conversationMap.keys()).map(
                   async (convoId) => {
                     return await fetchWhatsappMessages(
@@ -2676,6 +2636,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 break;
               }
             }
+
             return { provider, accountId, messages, success: true };
           } catch (err) {
             return { provider, messages: [], success: false, error: err };
