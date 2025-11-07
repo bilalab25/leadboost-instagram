@@ -90,7 +90,7 @@ export default function ConversationPanel({
         const data = await res.json();
 
         console.log("📩 pageId:", data.pageId);
-        console.log("📬 first message:", data.messages?.[0]);
+        console.log("messages:", data.messages);
 
         if (!res.ok) throw new Error(data.error || "Error loading messages");
 
