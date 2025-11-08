@@ -2514,18 +2514,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ error: `No ${provider} integration found for user` });
         }
 
-        let url, payload, recipientId;
+        let url, payload, recipientId, metaConversationId;
         let apiResponse;
 
         // =========================================================
-        // 🟦 FACEBOOK (con fallback local)
+        // 🟦 FACEBOOK
         // =========================================================
         if (provider === "facebook") {
-          console.log(
-            `💬 [Facebook] Sending message to conversation ${conversationId}`,
-          );
+          console.log(`💬 [Facebook] Sending message to ${conversationId}`);
 
-          // 1️⃣ Obtener Page ID
+          // 1️⃣ Obtener Page ID desde el token
           const pageInfoRes = await fetch(
             `https://graph.facebook.com/v24.0/me?access_token=${integration.accessToken}`,
           );
@@ -2537,8 +2535,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`🆔 Page ID obtenido: ${pageId}`);
 
-          // 2️⃣ Resolver conversación real
-          let metaConversationId = conversationId;
+          // 2️⃣ Resolver meta_conversation_id
+          metaConversationId = conversationId;
           if (!conversationId.startsWith("t_")) {
             console.log(
               "🔄 Conversation ID parece un userId, buscando meta_conversation_id...",
@@ -2556,13 +2554,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 `🔗 Mapeado a meta_conversation_id: ${metaConversationId}`,
               );
             } else {
-              console.warn(
-                "⚠️ No se encontró meta_conversation_id asociado en DB.",
-              );
+              console.warn("⚠️ No se encontró meta_conversation_id asociado.");
             }
           }
 
-          // 3️⃣ Intentar obtener destinatario desde Meta API
+          // 3️⃣ Intentar obtener destinatario desde Meta
           let messagesData = {};
           try {
             const res = await fetch(
@@ -2572,11 +2568,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } catch (e) {
             console.warn("⚠️ Error al intentar obtener mensajes:", e);
           }
-
-          console.log(
-            "📨 Respuesta Meta (últimos mensajes):",
-            JSON.stringify(messagesData, null, 2),
-          );
 
           if (messagesData.data?.length) {
             const lastMessage = messagesData.data[0];
@@ -2591,10 +2582,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`📍 Recipient ID (Meta API): ${recipientId}`);
           }
 
-          // 4️⃣ Fallback local
+          // 4️⃣ Fallback local si no se pudo determinar destinatario
           if (!recipientId) {
-            console.log("🔎 Intentando obtener destinatario desde DB local...");
-
             const localMessages = await storage.findMessagesByConversation(
               userId,
               integration.id,
@@ -2609,9 +2598,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               recipientId = inboundMsg.sender_id;
               console.log(`📍 Recipient ID (fallback DB): ${recipientId}`);
             } else {
-              console.warn(
-                "⚠️ No se pudo determinar el destinatario ni desde Meta ni desde DB",
-              );
               return res.status(400).json({
                 error:
                   "No se pudo determinar el destinatario (sin mensajes en Meta ni en DB)",
@@ -2619,7 +2605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          // 5️⃣ Enviar mensaje
+          // 5️⃣ Enviar mensaje a Meta API
           url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
           payload = {
             messaging_type: "RESPONSE",
@@ -2631,25 +2617,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // =========================================================
-        // 🟣 INSTAGRAM / THREADS (enviar usando el PAGE-ID)
+        // 🟣 INSTAGRAM / THREADS
         // =========================================================
         else if (provider === "instagram" || provider === "threads") {
           console.log(
             `💬 [Instagram/Threads] Sending message to conversation ${conversationId}`,
           );
 
-          // 1️⃣ Obtener el PAGE-ID de la integración (Facebook Page vinculada)
           const pageId = integration.pageId;
-
-          if (!pageId) {
+          if (!pageId)
             throw new Error(
               "No se encontró el Page ID vinculado a la cuenta IG.",
             );
-          }
 
           console.log(`🆔 Page ID vinculado: ${pageId}`);
 
-          // 2️⃣ Obtener destinatario (usuario final)
+          // El conversationId de IG ya es el meta_conversation_id
+          metaConversationId = conversationId;
+
+          // Obtener destinatario
           const convoRes = await fetch(
             `https://graph.facebook.com/v24.0/${conversationId}?fields=participants&access_token=${integration.accessToken}`,
           );
@@ -2657,19 +2643,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const participants = convoData.participants?.data || [];
           recipientId = participants.find(
-            (p) => !p.id.startsWith("1784") && !p.id.startsWith(pageId),
+            (p) => !p.id.startsWith("1784") && p.id !== pageId,
           )?.id;
 
-          if (!recipientId) {
-            console.error("❌ No se pudo determinar el destinatario de IG");
+          if (!recipientId)
             return res
               .status(400)
               .json({ error: "No se pudo determinar el destinatario de IG" });
-          }
 
           console.log(`📍 Recipient ID (IG): ${recipientId}`);
 
-          // 3️⃣ Construcción del mensaje
+          // Construcción del payload
           url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
           payload = {
             recipient: { id: recipientId },
@@ -2695,12 +2679,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const phoneNumberId =
             integration.metadata?.phone_number_id || integration.accountId;
-
-          if (!phoneNumberId) {
-            return res.status(400).json({
-              error: "Missing WhatsApp Phone Number ID in integration metadata",
-            });
-          }
+          if (!phoneNumberId)
+            return res
+              .status(400)
+              .json({ error: "Missing WhatsApp Phone Number ID" });
 
           url = `https://graph.facebook.com/v24.0/${phoneNumberId}/messages`;
           payload = {
@@ -2711,6 +2693,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           recipientId = finalRecipientId;
+
+          // Generar meta_conversation_id consistente
+          metaConversationId = `${provider}:${phoneNumberId}:${recipientId}`;
         }
 
         // =========================================================
@@ -2721,7 +2706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // =========================================================
-        // 🚀 ENVÍO Y GUARDADO EN BASE DE DATOS
+        // 🚀 ENVÍO A META API
         // =========================================================
         console.log("🚀 Enviando mensaje a Meta API:");
         console.log("🔗 URL:", url);
@@ -2747,14 +2732,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: apiResponse.error.message });
         }
 
-        // 💾 Guardar el mensaje saliente
+        // =========================================================
+        // 💾 GUARDAR MENSAJE EN DB
+        // =========================================================
         const messageId =
           provider === "whatsapp"
             ? apiResponse.messages?.[0]?.id
             : apiResponse.message_id || apiResponse.id;
-        if (!recipientId) {
+
+        if (!recipientId)
           throw new Error("recipientId is missing before saving to DB");
-        }
 
         if (messageId) {
           await storage.createMessage({
@@ -2762,6 +2749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             integrationId: integration.id,
             platform: provider,
             metaMessageId: messageId,
+            metaConversationId, // ✅ Guardamos siempre
             senderId: integration.accountId,
             recipientId,
             textContent: content,
@@ -2774,6 +2762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(
             `💾 [${provider.toUpperCase()}] Message saved: ${messageId}`,
           );
+          console.log(`🧩 meta_conversation_id: ${metaConversationId}`);
         }
 
         console.log(`✅ [${provider.toUpperCase()}] Message sent successfully`);
@@ -2781,6 +2770,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           provider,
           recipientId,
+          metaConversationId,
           content,
           timestamp: new Date().toISOString(),
           apiResponse,
