@@ -1892,7 +1892,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("✅ REQUEST RECEIVED: POST /api/webhooks/meta");
 
       const body = req.body;
-
       console.log("🔴 PAYLOAD RAW (BODY):");
       console.dir(body, { depth: null });
       console.log("=================================================");
@@ -1907,267 +1906,165 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const entry of body.entry || []) {
           const events = entry.messaging || entry.changes || [];
 
-          // ==============================
-          // 🔹 WHATSAPP BUSINESS ACCOUNT
-          // ==============================
+          // ======================================================
+          // 🔹 WHATSAPP
+          // ======================================================
           if (body.object === "whatsapp_business_account") {
             for (const change of entry.changes || []) {
               if (change.field === "messages" && change.value.messages) {
                 const metadata = change.value.metadata;
                 const phoneNumberId = metadata?.phone_number_id;
                 const displayPhoneNumber = metadata?.display_phone_number;
-
                 const contacts = change.value.contacts || [];
                 const contactName = contacts[0]?.profile?.name || null;
 
                 let integration = null;
                 if (phoneNumberId) {
-                  try {
-                    const allIntegrations = await storage.getAllIntegrations();
-                    console.log(
-                      "🔍 Searching for integration with phoneNumberId:",
-                      phoneNumberId,
-                    );
-
-                    integration = allIntegrations.find((int) => {
-                      let metadata = int.metadata;
-                      if (typeof metadata === "string") {
-                        try {
-                          const fixedMetadata = metadata
-                            .replace(/(\w+):/g, '"$1":')
-                            .replace(/'/g, '"');
-                          metadata = JSON.parse(fixedMetadata);
-                        } catch (e) {
-                          metadata = null;
-                        }
+                  const allIntegrations = await storage.getAllIntegrations();
+                  integration = allIntegrations.find((int) => {
+                    let meta = int.metadata;
+                    if (typeof meta === "string") {
+                      try {
+                        meta = JSON.parse(
+                          meta.replace(/(\w+):/g, '"$1":').replace(/'/g, '"'),
+                        );
+                      } catch {
+                        meta = null;
                       }
-                      return (
-                        metadata?.phoneNumberId === phoneNumberId ||
-                        int.accountId === phoneNumberId
-                      );
-                    });
-
-                    if (!integration) {
-                      console.warn(
-                        `⚠️ No integration found for phone_number_id: ${phoneNumberId}`,
-                      );
-                    } else {
-                      console.log("✅ Integration found:", {
-                        id: integration.id,
-                        userId: integration.userId,
-                        metadata: integration.metadata,
-                      });
                     }
-                  } catch (error) {
-                    console.error("Error finding integration:", error);
-                  }
+                    return (
+                      meta?.phoneNumberId === phoneNumberId ||
+                      int.accountId === phoneNumberId
+                    );
+                  });
                 }
 
                 for (const waMessage of change.value.messages) {
-                  try {
-                    const messageId = waMessage.id;
-                    const senderId = waMessage.from;
-                    const timestamp = waMessage.timestamp;
-                    const messageType = waMessage.type;
-                    let textContent = null;
+                  const messageId = waMessage.id;
+                  const senderId = waMessage.from;
+                  const timestamp = waMessage.timestamp;
+                  const messageType = waMessage.type;
+                  const textContent =
+                    messageType === "text" && waMessage.text?.body
+                      ? waMessage.text.body
+                      : null;
 
-                    if (messageType === "text" && waMessage.text?.body) {
-                      textContent = waMessage.text.body;
-                    }
-
-                    console.log("🟢 [WhatsApp] Mensaje recibido:", {
-                      messageId,
+                  if (integration) {
+                    const metaConversationId = `${phoneNumberId}_${senderId}`;
+                    const messageData = {
+                      userId: integration.userId,
+                      integrationId: integration.id,
+                      platform: "whatsapp",
+                      metaMessageId: messageId,
+                      metaConversationId,
                       senderId,
+                      recipientId: phoneNumberId || displayPhoneNumber || "",
+                      contactName,
                       textContent,
-                      phoneNumberId,
-                    });
+                      direction: "inbound",
+                      isRead: false,
+                      timestamp: new Date(parseInt(timestamp) * 1000),
+                      rawPayload: body,
+                    };
 
-                    if (integration) {
-                      const messageData = {
-                        userId: integration.userId,
-                        integrationId: integration.id,
-                        platform: "whatsapp",
-                        metaMessageId: messageId,
-                        metaConversationId: senderId,
-                        senderId: senderId,
-                        recipientId: phoneNumberId || displayPhoneNumber || "",
-                        contactName: contactName,
-                        textContent: textContent,
-                        direction: "inbound",
-                        isRead: false,
-                        timestamp: new Date(parseInt(timestamp) * 1000),
-                        rawPayload: body,
-                      };
-
-                      const savedMessage =
-                        await storage.createMessage(messageData);
-                      console.log(
-                        `✅ Message saved to database: ${savedMessage.id}`,
-                      );
-
-                      const io = app.get("io");
-                      if (io) {
-                        io.emit("new_message", {
-                          provider: "whatsapp",
-                          conversationId: senderId,
-                          metaConversationId: savedMessage.metaConversationId,
-                          message: savedMessage,
-                        });
-                        console.log(
-                          "📡 Real-time WhatsApp message emitted to clients",
-                        );
-                      }
-                    } else {
-                      console.warn(
-                        "⚠️ Skipping message save - no integration found",
-                      );
-                    }
-                  } catch (error) {
-                    console.error(
-                      "❌ Error processing WhatsApp message:",
-                      error,
+                    const savedMessage =
+                      await storage.createMessage(messageData);
+                    console.log(
+                      `✅ [WhatsApp] Message saved: ${savedMessage.id}`,
                     );
+
+                    const io = app.get("io");
+                    io?.emit("new_message", {
+                      provider: "whatsapp",
+                      conversationId: metaConversationId,
+                      metaConversationId,
+                      message: savedMessage,
+                    });
                   }
                 }
               }
             }
           }
 
-          // ==============================
+          // ======================================================
           // 🔹 INSTAGRAM & MESSENGER
-          // ==============================
+          // ======================================================
           else {
             for (const event of events) {
-              // 📸 INSTAGRAM (prioridad)
-              if (body.object === "instagram" && event.message) {
-                try {
-                  console.log("📷 [Instagram] Message received:", {
-                    sender: event.sender?.id,
-                    recipient: event.recipient?.id,
-                    text: event.message.text,
-                    mid: event.message.mid,
-                  });
+              if (event.message && event.sender && event.recipient) {
+                const senderId = event.sender.id;
+                const recipientId = event.recipient.id;
+                const messageId = event.message.mid;
+                const messageText = event.message.text || "";
+                const platform =
+                  body.object === "instagram" ? "instagram" : "facebook";
 
-                  const messageText = event.message.text || "";
-                  const senderId = event.sender?.id || "";
-                  const recipientId = event.recipient?.id || "";
-                  const messageId = event.message.mid;
+                const integration = await storage.findIntegrationByAccount(
+                  recipientId,
+                  platform,
+                );
 
-                  const integration = await storage.findIntegrationByAccount(
-                    recipientId,
-                    "instagram",
-                  );
+                if (integration) {
+                  const accessToken = integration.accessToken;
+                  const pageId = integration.pageId || recipientId;
+                  let metaConversationId = null;
 
-                  if (integration) {
-                    const messageData = {
-                      userId: integration.userId,
-                      integrationId: integration.id,
-                      platform: "instagram",
-                      metaMessageId: messageId,
-                      metaConversationId: senderId,
-                      senderId: senderId,
-                      recipientId: recipientId,
-                      textContent: messageText,
-                      direction: "inbound",
-                      isRead: false,
-                      timestamp: new Date(event.timestamp || Date.now()),
-                      rawPayload: body,
-                    };
-
-                    const savedMessage =
-                      await storage.createMessage(messageData);
-                    console.log(
-                      `✅ [Instagram] Message saved: ${savedMessage.id}`,
+                  try {
+                    // ✅ Endpoint unificado para Messenger e Instagram
+                    const convoRes = await fetch(
+                      `https://graph.facebook.com/v24.0/${pageId}/conversations?platform=${platform === "facebook" ? "messenger" : "instagram"}&user_id=${senderId}&access_token=${accessToken}`,
                     );
+                    const convoData = await convoRes.json();
 
-                    const io = app.get("io");
-                    if (io) {
-                      io.emit("new_message", {
-                        provider: "instagram",
-                        conversationId: senderId,
-                        metaConversationId: savedMessage.metaConversationId,
-                        message: savedMessage,
-                      });
+                    if (convoData?.data?.[0]?.id) {
+                      metaConversationId = convoData.data[0].id;
                       console.log(
-                        "📡 Real-time Instagram message emitted to clients",
+                        `🔗 [${platform}] Found conversation_id: ${metaConversationId}`,
                       );
+                    } else {
+                      console.warn(
+                        `⚠️ [${platform}] No conversation found, fallback.`,
+                      );
+                      metaConversationId = `${recipientId}_${senderId}`;
                     }
-                  } else {
-                    console.warn(
-                      `⚠️ [Instagram] No integration found for recipient: ${recipientId}`,
+                  } catch (err) {
+                    console.error(
+                      `❌ [${platform}] Error fetching conversation_id:`,
+                      err,
                     );
+                    metaConversationId = `${recipientId}_${senderId}`;
                   }
-                } catch (error) {
-                  console.error(
-                    "❌ Error processing Instagram message:",
-                    error,
-                  );
-                }
-              }
 
-              // 💬 MESSENGER (evaluar después)
-              else if (event.message && event.sender && event.recipient) {
-                try {
-                  console.log("💬 [Messenger] Message received:", {
-                    sender: event.sender.id,
-                    recipient: event.recipient.id,
-                    text: event.message.text,
-                    mid: event.message.mid,
-                  });
-
-                  const messageText = event.message.text || "";
-                  const senderId = event.sender.id;
-                  const recipientId = event.recipient.id;
-                  const messageId = event.message.mid;
-
-                  const integration = await storage.findIntegrationByAccount(
+                  const messageData = {
+                    userId: integration.userId,
+                    integrationId: integration.id,
+                    platform,
+                    metaMessageId: messageId,
+                    metaConversationId,
+                    senderId,
                     recipientId,
-                    "facebook",
+                    textContent: messageText,
+                    direction: "inbound",
+                    isRead: false,
+                    timestamp: new Date(event.timestamp || Date.now()),
+                    rawPayload: body,
+                  };
+
+                  const savedMessage = await storage.createMessage(messageData);
+                  console.log(
+                    `✅ [${platform}] Message saved: ${savedMessage.id}`,
                   );
 
-                  if (integration) {
-                    const messageData = {
-                      userId: integration.userId,
-                      integrationId: integration.id,
-                      platform: "facebook",
-                      metaMessageId: messageId,
-                      metaConversationId: senderId,
-                      senderId: senderId,
-                      recipientId: recipientId,
-                      textContent: messageText,
-                      direction: "inbound",
-                      isRead: false,
-                      timestamp: new Date(event.timestamp || Date.now()),
-                      rawPayload: body,
-                    };
-
-                    const savedMessage =
-                      await storage.createMessage(messageData);
-                    console.log(
-                      `✅ [Messenger] Message saved: ${savedMessage.id}`,
-                    );
-
-                    const io = app.get("io");
-                    if (io) {
-                      io.emit("new_message", {
-                        provider: "facebook",
-                        conversationId: senderId,
-                        metaConversationId: savedMessage.metaConversationId,
-                        message: savedMessage,
-                      });
-                      console.log(
-                        "📡 Real-time Messenger message emitted to clients",
-                      );
-                    }
-                  } else {
-                    console.warn(
-                      `⚠️ [Messenger] No integration found for recipient: ${recipientId}`,
-                    );
-                  }
-                } catch (error) {
-                  console.error(
-                    "❌ Error processing Messenger message:",
-                    error,
+                  const io = app.get("io");
+                  io?.emit("new_message", {
+                    provider: platform,
+                    conversationId: metaConversationId,
+                    metaConversationId,
+                    message: savedMessage,
+                  });
+                } else {
+                  console.warn(
+                    `⚠️ [${platform}] No integration found for recipient: ${recipientId}`,
                   );
                 }
               }
