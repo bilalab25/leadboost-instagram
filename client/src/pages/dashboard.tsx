@@ -163,13 +163,15 @@ export default function Dashboard() {
   // }
 
   // 🔹 Últimos mensajes unificados
-  const { data: latestMessages, isLoading: messagesLoading } = useQuery({
-    queryKey: ["/api/messages/latest"],
+  const { data: latestConversationsData, isLoading: conversationsLoading } = useQuery({
+    queryKey: ["/api/conversations", { limit: 5 }],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/messages/latest?limit=10");
+      const res = await apiRequest("GET", "/api/conversations?limit=5");
       return res.json();
     },
   });
+
+  const latestConversations = latestConversationsData?.conversations || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -476,7 +478,7 @@ export default function Dashboard() {
                         <div className="flex items-center gap-3">
                           <div className="w-2 h-2 rounded-full bg-gradient-to-r from-brand-500 to-brand-600"></div>
                           <CardTitle className="text-lg font-semibold text-gray-900 m-0">
-                            {isSpanish ? "Últimos mensajes" : "Latest Messages"}
+                            {isSpanish ? "Últimas conversaciones" : "Latest Conversations"}
                           </CardTitle>
                         </div>
 
@@ -494,7 +496,7 @@ export default function Dashboard() {
 
 
                       <CardContent className="p-0">
-                        {messagesLoading ? (
+                        {conversationsLoading ? (
                           <div className="p-6 space-y-4">
                             {[1, 2, 3].map((i) => (
                               <div key={i} className="flex items-start gap-4 p-4">
@@ -510,9 +512,9 @@ export default function Dashboard() {
                               </div>
                             ))}
                           </div>
-                        ) : latestMessages?.length ? (
+                        ) : latestConversations?.length ? (
                           <div className="divide-y divide-gray-100">
-                            {latestMessages.map((msg: any, index: number) => {
+                            {latestConversations.map((conversation: any, index: number) => {
                               const platformStyles: Record<
                                 string,
                                 { icon: any; color: string; bgGradient: string; name: string }
@@ -555,7 +557,7 @@ export default function Dashboard() {
                                 },
                               };
 
-                              const platform = platformStyles[msg.provider] || {
+                              const platform = platformStyles[conversation.platform] || {
                                 icon: HelpCircle,
                                 color: "#9CA3AF",
                                 bgGradient: "from-gray-400/10 to-gray-500/5",
@@ -563,31 +565,31 @@ export default function Dashboard() {
                               };
                               const Icon = platform.icon;
 
-                              // Determine if message is unread
-                              const isUnread = msg.isRead === false || msg.is_read === false;
+                              // Determine if conversation has unread messages
+                              const isUnread = conversation.unreadCount > 0;
 
                               // Format timestamp
-                              const timeAgo = msg.created_time 
-                                ? formatDistanceToNow(new Date(msg.created_time), { addSuffix: true })
+                              const timeAgo = conversation.lastMessageAt 
+                                ? formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })
                                 : "";
 
                               return (
                                 <div
-                                  key={msg.id}
+                                  key={conversation.id}
                                   role="button"
                                   tabIndex={0}
                                   onClick={() =>
-                                    (window.location.href = `/inbox?conversation=${msg.conversationId}`)
+                                    (window.location.href = `/inbox?conversation=${conversation.id}`)
                                   }
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                       e.preventDefault();
-                                      window.location.href = `/inbox?conversation=${msg.conversationId}`;
+                                      window.location.href = `/inbox?conversation=${conversation.id}`;
                                     }
                                   }}
                                   className="group relative flex items-start gap-4 p-4 lg:p-5 cursor-pointer hover:bg-gradient-to-r hover:from-brand-50/40 hover:to-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:bg-gradient-to-r focus:from-brand-50/40 focus:to-transparent transition-all duration-300 hover:shadow-sm rounded-lg"
-                                  data-testid={`message-item-${index}`}
-                                  aria-label={`Message from ${msg.from || msg.contactName || 'Unknown'} on ${platform.name}`}
+                                  data-testid={`conversation-item-${index}`}
+                                  aria-label={`Conversation with ${conversation.contactName || 'Unknown'} on ${platform.name}`}
                                 >
                                   {/* Platform Icon with Gradient Background */}
                                   <div
@@ -599,15 +601,17 @@ export default function Dashboard() {
                                     />
                                   </div>
 
-                                  {/* Message Content */}
+                                  {/* Conversation Content */}
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between gap-3 mb-2">
                                       <div className="flex items-center gap-2 flex-1 min-w-0">
                                         <h4 className="text-base font-semibold text-gray-900 truncate">
-                                          {msg.from || msg.contactName || "Unknown"}
+                                          {conversation.contactName || "Unknown"}
                                         </h4>
                                         {isUnread && (
-                                          <div className="flex-shrink-0 w-2 h-2 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 animate-pulse"></div>
+                                          <Badge variant="default" className="bg-brand-500 text-white text-xs px-2 py-0.5">
+                                            {conversation.unreadCount}
+                                          </Badge>
                                         )}
                                       </div>
                                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -619,7 +623,7 @@ export default function Dashboard() {
                                     </div>
 
                                     <p className={`text-sm mt-1.5 line-clamp-2 leading-relaxed ${isUnread ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
-                                      {msg.text || msg.textContent || (isSpanish ? "(sin mensaje)" : "(no message)")}
+                                      {conversation.lastMessage || (isSpanish ? "(sin mensaje)" : "(no message)")}
                                     </p>
 
                                     {/* Metadata Row */}
@@ -631,26 +635,7 @@ export default function Dashboard() {
                                         {platform.name}
                                       </Badge>
                                       
-                                      {msg.imageUrl && (
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                          <ImageIcon className="w-3.5 h-3.5" />
-                                          <span>{isSpanish ? "Imagen" : "Image"}</span>
-                                        </div>
-                                      )}
-                                      
-                                      {msg.videoUrl && (
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                          <Video className="w-3.5 h-3.5" />
-                                          <span>{isSpanish ? "Video" : "Video"}</span>
-                                        </div>
-                                      )}
-                                      
-                                      {msg.attachmentUrl && !msg.imageUrl && !msg.videoUrl && (
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                          <File className="w-3.5 h-3.5" />
-                                          <span>{isSpanish ? "Archivo" : "File"}</span>
-                                        </div>
-                                      )}
+                                      {/* Removed flag/attachment display - not needed for dashboard */}
                                     </div>
                                   </div>
 
@@ -669,13 +654,13 @@ export default function Dashboard() {
                             </div>
                             <p className="text-gray-500 font-medium">
                               {isSpanish
-                                ? "No hay mensajes recientes"
-                                : "No recent messages"}
+                                ? "No hay conversaciones recientes"
+                                : "No recent conversations"}
                             </p>
                             <p className="text-sm text-gray-400 mt-2">
                               {isSpanish
-                                ? "Los nuevos mensajes aparecerán aquí"
-                                : "New messages will appear here"}
+                                ? "Las nuevas conversaciones aparecerán aquí"
+                                : "New conversations will appear here"}
                             </p>
                           </div>
                         )}

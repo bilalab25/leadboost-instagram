@@ -2496,9 +2496,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/conversations", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
-      const conversations = await storage.getConversations(userId);
+      const limitParam = req.query.limit;
       
-      console.log(`📋 Retrieved ${conversations.length} conversations for user ${userId}`);
+      // Parse and validate limit parameter
+      let limit: number | undefined;
+      if (limitParam) {
+        const parsed = parseInt(limitParam as string, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          limit = parsed;
+        }
+      }
+      
+      const conversations = await storage.getConversations(userId, limit);
+      
+      console.log(`📋 Retrieved ${conversations.length} conversations for user ${userId}${limit ? ` (limit: ${limit})` : ''}`);
       res.json({ conversations });
     } catch (err) {
       console.error("❌ Error fetching conversations:", err);

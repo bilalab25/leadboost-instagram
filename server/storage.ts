@@ -142,7 +142,7 @@ export interface IStorage {
     lastMessage?: string;
     lastMessageAt?: Date;
   }): Promise<Conversation>;
-  getConversations(userId: string): Promise<Conversation[]>;
+  getConversations(userId: string, limit?: number): Promise<Conversation[]>;
   getConversationsByIntegration(integrationId: string): Promise<Conversation[]>;
   getConversationMessages(conversationId: string): Promise<Message[]>;
   updateConversationMetadata(
@@ -698,12 +698,18 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async getConversations(userId: string): Promise<Conversation[]> {
-    return db
+  async getConversations(userId: string, limit?: number): Promise<Conversation[]> {
+    const query = db
       .select()
       .from(conversations)
       .where(eq(conversations.userId, userId))
       .orderBy(desc(conversations.lastMessageAt));
+    
+    if (limit && limit > 0) {
+      return query.limit(limit);
+    }
+    
+    return query;
   }
 
   async getConversationsByIntegration(
