@@ -44,6 +44,8 @@ import {
   Video,
   File,
   Clock,
+  Star,
+  Archive,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -636,7 +638,7 @@ export default function Dashboard() {
                                           )}
                                         </h4>
 
-                                        {/* Platform and time together */}
+                                        {/* Platform, flag, and time together */}
                                         <div className="flex items-center gap-2 flex-shrink-0 text-xs text-gray-500">
                                           <Badge
                                             variant="secondary"
@@ -644,6 +646,19 @@ export default function Dashboard() {
                                           >
                                             {platform.name}
                                           </Badge>
+                                          {/* Flag Icon */}
+                                          {conversation.flag === 'important' && (
+                                            <Star 
+                                              className="w-3 h-3 text-yellow-500 fill-yellow-500"
+                                              aria-label="Important"
+                                            />
+                                          )}
+                                          {conversation.flag === 'archived' && (
+                                            <Archive 
+                                              className="w-3 h-3 text-gray-500"
+                                              aria-label="Archived"
+                                            />
+                                          )}
                                           <Clock className="w-3 h-3 text-gray-400" />
                                           <span>{timeAgo}</span>
                                         </div>
