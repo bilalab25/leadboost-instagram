@@ -2548,14 +2548,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.resetUnreadCount(id);
 
       // Mark all messages in the conversation as read
-      const messages = await storage.getConversationMessages(id);
-      for (const message of messages) {
-        if (!message.isRead) {
-          await storage.updateMessage(message.id, { isRead: true });
-        }
-      }
+      await storage.markConversationMessagesAsRead(
+        conversation.integrationId,
+        conversation.metaConversationId
+      );
 
-      console.log(`✅ Marked conversation ${id} as read (${messages.length} messages)`);
+      console.log(`✅ Marked conversation ${id} as read`);
       res.json({ success: true });
     } catch (err) {
       console.error("❌ Error marking conversation as read:", err);
