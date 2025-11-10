@@ -3,6 +3,7 @@ import {
   brands,
   socialAccounts,
   conversationThreads,
+  conversations,
   messages,
   messageAttachments,
   contentPlans,
@@ -33,6 +34,8 @@ import {
   type SocialAccount,
   type InsertConversationThread,
   type ConversationThread,
+  type InsertConversation,
+  type Conversation,
   type InsertMessage,
   type Message,
   type InsertMessageAttachment,
@@ -129,17 +132,25 @@ export interface IStorage {
   updateMessagePriority(id: string, priority: string): Promise<void>;
   assignMessage(id: string, assignedTo: string): Promise<void>;
 
-  // Conversation operations
-  createConversation(
-    conversation: InsertConversationThread,
-  ): Promise<ConversationThread>;
-  getConversationById(id: string): Promise<ConversationThread | undefined>;
-  getConversationsByUserId(userId: string): Promise<ConversationThread[]>;
-  updateConversationLastMessage(id: string, preview: string): Promise<void>;
-
-  // Conversation message operations
-  createConversationMessage(message: InsertMessage): Promise<Message>;
+  // New Conversations operations (using conversations table)
+  getOrCreateConversation(params: {
+    integrationId: string;
+    userId: string;
+    metaConversationId: string;
+    platform: string;
+    contactName?: string;
+    lastMessage?: string;
+    lastMessageAt?: Date;
+  }): Promise<Conversation>;
+  getConversations(userId: string): Promise<Conversation[]>;
+  getConversationsByIntegration(integrationId: string): Promise<Conversation[]>;
   getConversationMessages(conversationId: string): Promise<Message[]>;
+  updateConversationMetadata(
+    id: string,
+    updates: Partial<Conversation>,
+  ): Promise<Conversation | undefined>;
+  incrementUnreadCount(conversationId: string): Promise<void>;
+  resetUnreadCount(conversationId: string): Promise<void>;
 
   // Message attachment operations
   createMessageAttachment(
@@ -647,67 +658,62 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Conversation operations
-  async createConversation(
-    conversation: InsertConversationThread,
-  ): Promise<ConversationThread> {
-    const [newConversation] = await db
-      .insert(conversationThreads)
-      .values(conversation)
-      .returning();
-    return newConversation;
+  // New Conversations operations (using conversations table)
+  async getOrCreateConversation(params: {
+    integrationId: string;
+    userId: string;
+    metaConversationId: string;
+    platform: string;
+    contactName?: string;
+    lastMessage?: string;
+    lastMessageAt?: Date;
+  }): Promise<Conversation> {
+    return await db.transaction(async (tx) => {
+      // Try to insert with ON CONFLICT DO UPDATE
+      const [conversation] = await tx
+        .insert(conversations)
+        .values({
+          integrationId: params.integrationId,
+          userId: params.userId,
+          metaConversationId: params.metaConversationId,
+          platform: params.platform,
+          contactName: params.contactName,
+          lastMessage: params.lastMessage,
+          lastMessageAt: params.lastMessageAt || new Date(),
+          unreadCount: 0,
+          flag: "none",
+        })
+        .onConflictDoUpdate({
+          target: [conversations.integrationId, conversations.metaConversationId],
+          set: {
+            contactName: params.contactName || sql`${conversations.contactName}`,
+            lastMessage: params.lastMessage || sql`${conversations.lastMessage}`,
+            lastMessageAt: params.lastMessageAt || new Date(),
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+
+      return conversation;
+    });
   }
 
-  async getConversationById(
-    id: string,
-  ): Promise<ConversationThread | undefined> {
-    const [conversation] = await db
+  async getConversations(userId: string): Promise<Conversation[]> {
+    return db
       .select()
-      .from(conversationThreads)
-      .where(eq(conversationThreads.id, id));
-    return conversation;
+      .from(conversations)
+      .where(eq(conversations.userId, userId))
+      .orderBy(desc(conversations.lastMessageAt));
   }
 
-  async getConversationsByUserId(
-    userId: string,
-  ): Promise<ConversationThread[]> {
-    const query = db
+  async getConversationsByIntegration(
+    integrationId: string,
+  ): Promise<Conversation[]> {
+    return db
       .select()
-      .from(conversationThreads)
-      .innerJoin(
-        socialAccounts,
-        eq(conversationThreads.socialAccountId, socialAccounts.id),
-      )
-      .where(eq(socialAccounts.userId, userId));
-
-    const results = await query.orderBy(
-      desc(conversationThreads.lastMessageAt),
-    );
-    return results.map((row) => row.conversation_threads);
-  }
-
-  async updateConversationLastMessage(
-    id: string,
-    preview: string,
-  ): Promise<void> {
-    await db
-      .update(conversationThreads)
-      .set({ lastMessagePreview: preview, lastMessageAt: new Date() })
-      .where(eq(conversationThreads.id, id));
-  }
-
-  // Conversation message operations
-  async createConversationMessage(message: InsertMessage): Promise<Message> {
-    const [newMessage] = await db.insert(messages).values(message).returning();
-
-    // Update conversation last message
-    if (message.conversationId) {
-      await this.updateConversationLastMessage(
-        message.conversationId,
-        message.content.substring(0, 100),
-      );
-    }
-
-    return newMessage;
+      .from(conversations)
+      .where(eq(conversations.integrationId, integrationId))
+      .orderBy(desc(conversations.lastMessageAt));
   }
 
   async getConversationMessages(conversationId: string): Promise<Message[]> {
@@ -715,7 +721,39 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
-      .orderBy(asc(messages.createdAt));
+      .orderBy(asc(messages.timestamp));
+  }
+
+  async updateConversationMetadata(
+    id: string,
+    updates: Partial<Conversation>,
+  ): Promise<Conversation | undefined> {
+    const [updated] = await db
+      .update(conversations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(conversations.id, id))
+      .returning();
+    return updated;
+  }
+
+  async incrementUnreadCount(conversationId: string): Promise<void> {
+    await db
+      .update(conversations)
+      .set({
+        unreadCount: sql`${conversations.unreadCount} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(conversations.id, conversationId));
+  }
+
+  async resetUnreadCount(conversationId: string): Promise<void> {
+    await db
+      .update(conversations)
+      .set({
+        unreadCount: 0,
+        updatedAt: new Date(),
+      })
+      .where(eq(conversations.id, conversationId));
   }
 
   // Message attachment operations

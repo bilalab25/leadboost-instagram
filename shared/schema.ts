@@ -106,7 +106,33 @@ export const socialAccounts = pgTable("social_accounts", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Conversation threads to group messages
+// Conversations table - Groups messages from Meta platforms
+export const conversations = pgTable("conversations", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  integrationId: uuid("integration_id")
+    .notNull()
+    .references(() => integrations.id, { onDelete: "cascade" }),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  metaConversationId: text("meta_conversation_id").notNull(), // Meta-specific conversation ID
+  platform: varchar("platform").notNull(), // whatsapp, messenger, instagram, threads
+  contactName: varchar("contact_name"), // Contact/participant name
+  lastMessage: text("last_message"), // Preview of last message
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  unreadCount: integer("unread_count").default(0),
+  flag: varchar("flag").default("none"), // none, important, archived
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique("conversations_integration_meta_unique").on(table.integrationId, table.metaConversationId),
+  index("conversations_integration_idx").on(table.integrationId),
+  index("conversations_user_idx").on(table.userId),
+]);
+
+// DEPRECATED: Old conversation threads table - Use conversations table instead
 export const conversationThreads = pgTable("conversation_threads", {
   id: uuid("id")
     .primaryKey()
@@ -136,6 +162,7 @@ export const messages = pgTable("messages", {
   integrationId: uuid("integration_id")
     .notNull()
     .references(() => integrations.id, { onDelete: "cascade" }), // Integration that received the message
+  conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "cascade" }), // Link to conversation
   platform: varchar("platform").notNull(), // whatsapp, messenger, instagram
   metaMessageId: varchar("meta_message_id").notNull(), // Unique Meta ID (wamid... or mid...) - Composite UNIQUE with integrationId
   metaConversationId: text("meta_conversation_id"), // Meta conversation/thread ID for grouping messages
@@ -150,6 +177,7 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   unique("messages_integration_message_unique").on(table.integrationId, table.metaMessageId),
+  index("messages_conversation_idx").on(table.conversationId),
 ]);
 
 // Message attachments (images, videos, files)
@@ -542,6 +570,21 @@ export const socialAccountsRelations = relations(
   }),
 );
 
+export const conversationsRelations = relations(
+  conversations,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [conversations.userId],
+      references: [users.id],
+    }),
+    integration: one(integrations, {
+      fields: [conversations.integrationId],
+      references: [integrations.id],
+    }),
+    messages: many(messages),
+  }),
+);
+
 export const conversationThreadsRelations = relations(
   conversationThreads,
   ({ one }) => ({
@@ -560,6 +603,10 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   integration: one(integrations, {
     fields: [messages.integrationId],
     references: [integrations.id],
+  }),
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
   }),
 }));
 
@@ -706,6 +753,12 @@ export const insertConversationThreadSchema = createInsertSchema(
   lastMessageAt: true,
 });
 
+export const insertConversationSchema = createInsertSchema(conversations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   createdAt: true,
@@ -824,6 +877,9 @@ export type InsertConversationThread = z.infer<
   typeof insertConversationThreadSchema
 >;
 export type ConversationThread = typeof conversationThreads.$inferSelect;
+
+export type InsertConversation = z.infer<typeof insertConversationSchema>;
+export type Conversation = typeof conversations.$inferSelect;
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;

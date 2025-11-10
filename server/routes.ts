@@ -231,6 +231,7 @@ async function performInitialSync(
     );
 
     const messagesToInsert: any[] = [];
+    const conversationMetadata = new Map<string, any>(); // Track latest message per conversation
 
     // Loop through each conversation
     for (const convo of conversations) {
@@ -282,25 +283,61 @@ async function performInitialSync(
         );
 
         const contactName = isOutbound ? toName : fromName;
+        const messageTimestamp = new Date(m.created_time);
 
-        // ✅ Save Meta Conversation ID here
+        // Track latest message for conversation metadata
+        const existing = conversationMetadata.get(convo.id);
+        if (!existing || messageTimestamp > existing.latestTimestamp) {
+          conversationMetadata.set(convo.id, {
+            metaConversationId: convo.id,
+            latestMessage: text,
+            latestTimestamp: messageTimestamp,
+            contactName,
+          });
+        }
+
+        // ✅ Save Meta Conversation ID here (conversationId will be added later)
         messagesToInsert.push({
           userId,
           integrationId: integration.id,
           platform: provider,
           metaMessageId: m.id,
-          metaConversationId: convo.id, // 👈 NUEVO CAMPO
+          metaConversationId: convo.id,
           senderId: fromId,
           recipientId: toId,
           textContent: text,
           direction: isOutbound ? "outbound" : "inbound",
           isRead: isOutbound,
-          timestamp: new Date(m.created_time),
+          timestamp: messageTimestamp,
           contactName,
           rawPayload: { message: m, conversation: convo },
         });
       }
     }
+
+    // ✅ Batch create conversations
+    console.log(`🔄 Creating ${conversationMetadata.size} conversations...`);
+    const conversationMap = new Map<string, string>(); // metaConversationId -> conversationId
+    
+    for (const [metaConversationId, metadata] of conversationMetadata.entries()) {
+      const conversation = await storage.getOrCreateConversation({
+        integrationId: integration.id,
+        userId,
+        metaConversationId,
+        platform: provider,
+        contactName: metadata.contactName,
+        lastMessage: metadata.latestMessage,
+        lastMessageAt: metadata.latestTimestamp,
+      });
+      conversationMap.set(metaConversationId, conversation.id);
+    }
+
+    // ✅ Add conversationId to all messages
+    messagesToInsert.forEach(msg => {
+      msg.conversationId = conversationMap.get(msg.metaConversationId);
+    });
+    
+    console.log(`✅ Mapped ${messagesToInsert.length} messages to conversations`);
 
     // ✅ Save messages
     if (messagesToInsert.length > 0) {
@@ -2074,9 +2111,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                   if (integration) {
                     const metaConversationId = `${phoneNumberId}_${senderId}`;
+                    
+                    // Get or create conversation
+                    const conversation = await storage.getOrCreateConversation({
+                      integrationId: integration.id,
+                      userId: integration.userId,
+                      metaConversationId,
+                      platform: "whatsapp",
+                      contactName,
+                      lastMessage: textContent || "",
+                      lastMessageAt: new Date(parseInt(timestamp) * 1000),
+                    });
+
                     const messageData = {
                       userId: integration.userId,
                       integrationId: integration.id,
+                      conversationId: conversation.id,
                       platform: "whatsapp",
                       metaMessageId: messageId,
                       metaConversationId,
@@ -2095,6 +2145,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     console.log(
                       `✅ [WhatsApp] Message saved: ${savedMessage.id}`,
                     );
+
+                    // Increment unread count for inbound messages
+                    await storage.incrementUnreadCount(conversation.id);
 
                     const io = app.get("io");
                     io?.emit("new_message", {
@@ -2158,9 +2211,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     metaConversationId = `${recipientId}_${senderId}`;
                   }
 
+                  // Get or create conversation
+                  const conversation = await storage.getOrCreateConversation({
+                    integrationId: integration.id,
+                    userId: integration.userId,
+                    metaConversationId: metaConversationId || "",
+                    platform,
+                    contactName: null,
+                    lastMessage: messageText,
+                    lastMessageAt: new Date(event.timestamp || Date.now()),
+                  });
+
                   const messageData = {
                     userId: integration.userId,
                     integrationId: integration.id,
+                    conversationId: conversation.id,
                     platform,
                     metaMessageId: messageId,
                     metaConversationId,
@@ -2177,6 +2242,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   console.log(
                     `✅ [${platform}] Message saved: ${savedMessage.id}`,
                   );
+
+                  // Increment unread count for inbound messages
+                  await storage.incrementUnreadCount(conversation.id);
 
                   const io = app.get("io");
                   io?.emit("new_message", {
@@ -2423,6 +2491,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   );
+
+  // ✅ NEW: Get all conversations for authenticated user
+  app.get("/api/conversations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const conversations = await storage.getConversations(userId);
+      
+      console.log(`📋 Retrieved ${conversations.length} conversations for user ${userId}`);
+      res.json({ conversations });
+    } catch (err) {
+      console.error("❌ Error fetching conversations:", err);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  // ✅ NEW: Get all messages for a specific conversation
+  app.get("/api/conversations/:id/messages", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      // Verify user has access to this conversation
+      const conversations = await storage.getConversations(userId);
+      const conversation = conversations.find((c) => c.id === id);
+
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      const messages = await storage.getConversationMessages(id);
+      
+      console.log(`📨 Retrieved ${messages.length} messages for conversation ${id}`);
+      res.json({ messages });
+    } catch (err) {
+      console.error("❌ Error fetching conversation messages:", err);
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
 
   // ✅ NEW: Unified aggregation endpoint - Get ALL messages from ALL connected providers
   app.get(
