@@ -466,8 +466,8 @@ export default function Dashboard() {
                   <div className="space-y-8">
                     {/* Unified Inbox */}
                     <Card>
-                      <CardHeader className="border-b border-gray-200 flex items-center justify-between">
-                        <CardTitle>
+                      <CardHeader className="border-b border-gray-100 flex items-center justify-between">
+                        <CardTitle className="text-lg font-semibold text-gray-800">
                           {isSpanish ? "Últimos mensajes" : "Latest Messages"}
                         </CardTitle>
                         <Button
@@ -481,62 +481,114 @@ export default function Dashboard() {
                         </Button>
                       </CardHeader>
 
-                      <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <CardContent className="p-6">
                         {messagesLoading ? (
-                          <div className="col-span-full text-center py-6 text-gray-400">
+                          <div className="text-center py-8 text-gray-400">
                             {isSpanish
                               ? "Cargando mensajes..."
                               : "Loading messages..."}
                           </div>
                         ) : latestMessages?.length ? (
-                          latestMessages.map((msg: any) => (
-                            <div
-                              key={msg.id}
-                              className="rounded-xl border border-gray-100 bg-white shadow-sm p-4 hover:shadow-md transition-all cursor-pointer"
-                              onClick={() =>
-                                (window.location.href = `/inbox?conversation=${msg.conversationId}`)
-                              }
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  {msg.channel === "facebook" && (
-                                    <SiFacebook className="text-[#1877F2] w-4 h-4" />
-                                  )}
-                                  {msg.channel === "instagram" && (
-                                    <SiInstagram className="text-pink-500 w-4 h-4" />
-                                  )}
-                                  {msg.channel === "whatsapp" && (
-                                    <SiWhatsapp className="text-green-500 w-4 h-4" />
-                                  )}
-                                  {msg.channel === "linkedin" && (
-                                    <SiLinkedin className="text-blue-600 w-4 h-4" />
-                                  )}
-                                  <span className="font-semibold text-gray-800 text-sm">
-                                    {msg.from || "Unknown"}
-                                  </span>
+                          <div className="flex flex-col divide-y divide-gray-100">
+                            {latestMessages.map((msg: any) => {
+                              const platformStyles: Record<
+                                string,
+                                { icon: any; color: string; name: string }
+                              > = {
+                                facebook: {
+                                  icon: SiFacebook,
+                                  color: "#1877F2",
+                                  name: "Facebook",
+                                },
+                                instagram: {
+                                  icon: SiInstagram,
+                                  color: "#E4405F",
+                                  name: "Instagram",
+                                },
+                                whatsapp: {
+                                  icon: SiWhatsapp,
+                                  color: "#25D366",
+                                  name: "WhatsApp",
+                                },
+                                linkedin: {
+                                  icon: SiLinkedin,
+                                  color: "#0A66C2",
+                                  name: "LinkedIn",
+                                },
+                                tiktok: {
+                                  icon: SiTiktok,
+                                  color: "#000000",
+                                  name: "TikTok",
+                                },
+                                youtube: {
+                                  icon: SiYoutube,
+                                  color: "#FF0000",
+                                  name: "YouTube",
+                                },
+                              };
+
+                              const platform = platformStyles[msg.provider] || {
+                                icon: HelpCircle,
+                                color: "#9CA3AF",
+                                name: "Unknown",
+                              };
+                              const Icon = platform.icon;
+
+                              return (
+                                <div
+                                  key={msg.id}
+                                  onClick={() =>
+                                    (window.location.href = `/inbox?conversation=${msg.conversationId}`)
+                                  }
+                                  className="group flex items-start gap-4 py-4 cursor-pointer hover:bg-gray-50 transition-all duration-200 rounded-xl px-3"
+                                >
+                                  {/* Icono plataforma */}
+                                  <div
+                                    className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
+                                    style={{
+                                      backgroundColor: `${platform.color}15`,
+                                    }}
+                                  >
+                                    <Icon
+                                      className="w-6 h-6"
+                                      style={{ color: platform.color }}
+                                    />
+                                  </div>
+
+                                  {/* Contenido */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                      <h4 className="text-sm font-semibold text-gray-800 truncate">
+                                        {msg.from || "Unknown"}
+                                      </h4>
+                                      <span className="text-xs text-gray-400">
+                                        {new Date(
+                                          msg.created_time,
+                                        ).toLocaleDateString()}
+                                      </span>
+                                    </div>
+
+                                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                                      {msg.text || "(sin mensaje)"}
+                                    </p>
+
+                                    <div className="mt-2 flex items-center gap-2">
+                                      {msg.imageUrl && (
+                                        <span className="text-[11px] text-gray-400">
+                                          📎{" "}
+                                          {isSpanish
+                                            ? "Con imagen"
+                                            : "With image"}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                                <span className="text-xs text-gray-400">
-                                  {new Date(
-                                    msg.created_time,
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-
-                              <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                                {msg.text || "(sin mensaje)"}
-                              </p>
-
-                              {msg.imageUrl && (
-                                <img
-                                  src={msg.imageUrl}
-                                  alt="Attachment"
-                                  className="rounded-lg w-full h-28 object-cover"
-                                />
-                              )}
-                            </div>
-                          ))
+                              );
+                            })}
+                          </div>
                         ) : (
-                          <div className="col-span-full text-center py-6 text-gray-400">
+                          <div className="text-center py-8 text-gray-400">
                             {isSpanish
                               ? "No hay mensajes recientes"
                               : "No recent messages"}

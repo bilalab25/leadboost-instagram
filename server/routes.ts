@@ -822,32 +822,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/messages/latest", async (req, res) => {
+  app.get("/api/messages/latest", isAuthenticated, async (req, res) => {
     try {
-      const { limit = 10 } = req.query;
-      const messagesUrl = `https://graph.facebook.com/v24.0/me/conversations?fields=messages.limit(${limit}){id,message,from,created_time,attachments{media,url}}&access_token=${process.env.FB_ACCESS_TOKEN}`;
-      const response = await fetch(messagesUrl);
-      const data = await response.json();
+      // 1. Obtener el límite y el usuario
+      const { limit: limitStr = "10" } = req.query;
+      const limit = parseInt(limitStr as string, 10);
+      if (isNaN(limit) || limit <= 0) {
+        return res.status(400).json({ error: "Invalid limit parameter" });
+      }
+      const userId = req.user.id;
 
-      const messages = (data.data || []).flatMap(
-        (conv) =>
-          conv.messages?.data?.map((m) => ({
-            id: m.id,
-            conversationId: conv.id,
-            text: m.message || "",
-            from: m.from?.name,
-            created_time: m.created_time,
-            imageUrl: m.attachments?.data?.[0]?.media?.image?.src || null,
-            channel: "facebook",
-          })) || [],
+      // 2. Obtener todas las integraciones del usuario
+      const integrations = await storage.getIntegrations(userId);
+      if (!integrations || integrations.length === 0) {
+        return res.json([]);
+      }
+
+      // 3. Crear tareas para obtener mensajes de CADA integración
+      const fetchTasks = integrations.map(async (integration) => {
+        const provider = integration.provider;
+        const accountId = integration.accountId;
+
+        try {
+          let messages: NormalizedMessage[] = [];
+
+          switch (provider) {
+            case "facebook":
+            case "instagram":
+            case "threads": {
+              // Opcional: Ejecutar sincronización inicial si es necesario (como en el otro endpoint)
+              if (!integration.hasFetchedHistory) {
+                await performInitialSync(userId, integration, provider);
+                await storage.markIntegrationAsFetched(integration.id);
+              }
+
+              // ✅ Leer mensajes de la base de datos local para Meta (Facebook/Instagram/Threads)
+              const dbMessages = await storage.getMessagesByIntegration(
+                integration.id,
+                limit, // Pasa el límite a tu función de almacenamiento
+              );
+
+              messages = dbMessages.map((m) => ({
+                id: m.metaMessageId,
+                conversationId:
+                  m.direction === "inbound" ? m.senderId : m.recipientId,
+                metaConversationId: m.metaConversationId,
+                text: m.textContent || "",
+                from:
+                  m.direction === "outbound" ? "You" : m.contactName || "User",
+                fromId: m.senderId,
+                created_time: m.timestamp.toISOString(),
+                provider: provider,
+                accountId,
+                direction: m.direction,
+                // Nota: Tendrás que asegurarte de que tu función getMessagesByIntegration
+                // también pueda obtener datos de imágenes (imageUrl) si es necesario.
+                // Por ahora, lo dejo como null o necesitarías adaptar la lógica de mapeo si almacenas esa URL.
+                imageUrl: null,
+              }));
+
+              break;
+            }
+
+            case "whatsapp": {
+              // Nota: El endpoint 'all' hace una agregación más compleja por conversación
+              // Para "latest", simplemente vamos a obtener los últimos mensajes DIRECTOS de la DB
+              // y luego aplicaremos el límite y ordenamiento globalmente.
+
+              const allWhatsAppMessages =
+                await storage.getMessagesByIntegration(
+                  integration.id,
+                  limit, // Pasa el límite a tu función de almacenamiento
+                );
+
+              messages = allWhatsAppMessages.map((m) => ({
+                id: m.metaMessageId,
+                conversationId:
+                  m.direction === "inbound" ? m.senderId : m.recipientId,
+                metaConversationId: m.metaConversationId,
+                text: m.textContent || "",
+                from:
+                  m.direction === "outbound" ? "You" : m.contactName || "User",
+                fromId: m.senderId,
+                created_time: m.timestamp.toISOString(),
+                provider: provider,
+                accountId,
+                direction: m.direction,
+                imageUrl: null,
+              }));
+
+              break;
+            }
+
+            default:
+              console.warn(`Provider desconocido: ${provider}`);
+              break;
+          }
+
+          return { messages, success: true, provider, accountId };
+        } catch (err) {
+          console.error(`❌ Error fetching messages for ${provider}:`, err);
+          return {
+            messages: [],
+            success: false,
+            provider,
+            accountId,
+            error: err,
+          };
+        }
+      });
+
+      // 4. Ejecutar las tareas de obtención de mensajes
+      const results = await Promise.allSettled(fetchTasks);
+      const allMessages: NormalizedMessage[] = [];
+
+      // 5. Unificar los mensajes exitosos
+      results.forEach((result) => {
+        if (
+          result.status === "fulfilled" &&
+          result.value.success &&
+          result.value.messages.length > 0
+        ) {
+          // Adjunta el accountId a cada mensaje
+          const providerMessages = result.value.messages.map((msg) => ({
+            ...msg,
+            accountId: result.value.accountId,
+          }));
+          allMessages.push(...providerMessages);
+        }
+      });
+
+      // 6. Ordenar todos los mensajes por 'created_time' (el más reciente primero)
+      allMessages.sort(
+        (a, b) =>
+          new Date(b.created_time).getTime() -
+          new Date(a.created_time).getTime(),
       );
 
-      res.json(messages.slice(0, limit));
+      // 7. Aplicar el límite y enviar la respuesta
+      const latestMessages = allMessages.slice(0, limit);
+
+      res.json(latestMessages);
     } catch (err) {
-      console.error("❌ Error fetching latest messages:", err);
+      console.error("❌ Error fetching latest messages from DB:", err);
       res.status(500).json({ error: "Failed to fetch latest messages" });
     }
   });
+
+  // Importante: Debes actualizar la firma de tu función de almacenamiento si aún no lo has hecho.
+  // Por ejemplo: storage.getMessagesByIntegration(integrationId: string, limit?: number)
 
   // Content plans routes
   app.get("/api/content-plans", async (req: any, res) => {
