@@ -90,18 +90,17 @@ export default function ConversationPanel({
 
   const isFacebookConversation = platform === "facebook";
 
-  // 🔹 Load messages from unified endpoint
+  // 🔹 Load messages from conversations endpoint
   useEffect(() => {
     async function loadMessages() {
       try {
         setLoading(true);
-        if (!platform) return;
+        if (!conversationId) return;
 
-        const res = await fetch(`/api/messages/${platform}/${conversationId}`);
+        const res = await fetch(`/api/conversations/${conversationId}/messages`);
         const data = await res.json();
 
         console.log("DATA, trayendo todos los mensajes: ", data);
-        setMetaConversationId(data.metaConversationId || null);
 
         if (!res.ok) throw new Error(data.error || "Error loading messages");
 
@@ -111,17 +110,17 @@ export default function ConversationPanel({
         if (platform === "facebook" && msgs.length > 0) {
           // Busca el último mensaje entrante (del usuario)
           const lastInbound = msgs
-            .filter((m: any) => m.fromId !== data.pageId) // Asumiendo que data.pageId es el ID de la página/agente
+            .filter((m: any) => m.direction === "inbound")
             .sort(
               (a: any, b: any) =>
-                new Date(b.created_time).getTime() -
-                new Date(a.created_time).getTime(),
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime(),
             )[0];
 
-          if (lastInbound?.created_time) {
+          if (lastInbound?.timestamp) {
             const hours = differenceInHours(
               new Date(),
-              new Date(lastInbound.created_time),
+              new Date(lastInbound.timestamp),
             );
             // Actualización del estado
             setCanSendFacebookMessage(hours <= 24);
@@ -134,15 +133,13 @@ export default function ConversationPanel({
         const formatted = msgs.map((msg: any) => ({
           id: msg.id,
           conversationId,
-          senderId: msg.fromId,
-          senderName: msg.from || msg.contactName || "User",
-          content: msg.text || "(sin mensaje)",
-          imageUrl: msg.imageUrl || null,
-          direction:
-            msg.direction ||
-            (msg.fromId === data.accountId ? "outbound" : "inbound"), // ✅ usa el backend si existe
-          createdAt: msg.created_time,
-          status: "read",
+          senderId: msg.senderId,
+          senderName: msg.contactName || msg.senderId || "User",
+          content: msg.textContent || "(sin mensaje)",
+          imageUrl: null, // Will need to fetch attachments separately
+          direction: msg.direction, // Already set by backend
+          createdAt: msg.timestamp,
+          status: msg.isRead ? "read" : "delivered",
         }));
 
         // 🔹 Backend now returns messages in chronological order (oldest first)
