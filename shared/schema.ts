@@ -10,6 +10,7 @@ import {
   boolean,
   uuid,
   unique,
+  numeric,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1261,6 +1262,25 @@ export const chatbotConversations = pgTable("chatbot_conversations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Social Posting Frequency - AI-suggested and custom posting schedules
+export const socialPostingFrequency = pgTable("social_posting_frequency", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(), // facebook, instagram, etc.
+  frequencyDays: integer("frequency_days").notNull(), // posts per week
+  daysWeek: text("days_week").array().notNull(), // ["mon","tue","thu"]
+  source: text("source").default("ai"), // ai | custom
+  status: text("status").default("pending"), // pending | accepted | customized
+  confidenceScore: numeric("confidence_score", { precision: 5, scale: 2 }),
+  insightsData: jsonb("insights_data"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Chatbot schemas
 export const insertChatbotConfigSchema = createInsertSchema(
   chatbotConfigs,
@@ -1327,3 +1347,17 @@ export type InsertChatbotConversation = z.infer<
 export type ChatbotConversation = typeof chatbotConversations.$inferSelect;
 export type InsertIntegration = z.infer<typeof insertIntegrationSchema>;
 export type Integration = typeof integrations.$inferSelect;
+
+// Social Posting Frequency schemas
+export const insertSocialPostingFrequencySchema = createInsertSchema(
+  socialPostingFrequency,
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSocialPostingFrequency = z.infer<
+  typeof insertSocialPostingFrequencySchema
+>;
+export type SocialPostingFrequency = typeof socialPostingFrequency.$inferSelect;
