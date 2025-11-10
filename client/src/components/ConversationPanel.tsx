@@ -15,7 +15,16 @@ import {
   Mail,
   Twitter,
   AlertTriangle,
-} from "lucide-react"; // Importar AlertTriangle
+  Flag,
+  Archive,
+  Star,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   SiWhatsapp,
   SiTiktok,
@@ -86,6 +95,7 @@ export default function ConversationPanel({
   // Mantener el estado, pero ahora solo se usará para la lógica de visualización y deshabilitación
   const [canSendFacebookMessage, setCanSendFacebookMessage] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [conversationFlag, setConversationFlag] = useState<'none' | 'important' | 'archived'>('none');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const isFacebookConversation = platform === "facebook";
@@ -96,6 +106,13 @@ export default function ConversationPanel({
       try {
         setLoading(true);
         if (!conversationId) return;
+
+        // Fetch conversation details first to get the flag
+        const conversationRes = await fetch(`/api/conversations/${conversationId}`);
+        const conversationData = await conversationRes.json();
+        if (conversationData.conversation) {
+          setConversationFlag(conversationData.conversation.flag || 'none');
+        }
 
         const res = await fetch(`/api/conversations/${conversationId}/messages`);
         const data = await res.json();
@@ -224,6 +241,37 @@ export default function ConversationPanel({
   useNewMessageListener(handleNewMessage);
 
   // 🔹 Enviar mensaje
+  // 🏁 Mutation to update conversation flag
+  const updateFlagMutation = useMutation({
+    mutationFn: async (flag: 'none' | 'important' | 'archived') => {
+      const res = await fetch(`/api/conversations/${conversationId}/flag`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ flag }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Error updating flag");
+
+      return result;
+    },
+    onSuccess: (data) => {
+      setConversationFlag(data.conversation.flag);
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      toast({
+        title: "Flag updated",
+        description: `Conversation marked as ${data.conversation.flag}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string }) => {
       // ⚙️ Usa metaConversationId si existe (para Facebook)
@@ -349,8 +397,48 @@ export default function ConversationPanel({
             </p>
           </div>
         </div>
+        
+        {/* Flag Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              disabled={updateFlagMutation.isPending}
+              data-testid="button-flag-dropdown"
+            >
+              {conversationFlag === 'important' && <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
+              {conversationFlag === 'archived' && <Archive className="h-4 w-4 text-gray-500" />}
+              {conversationFlag === 'none' && <Flag className="h-4 w-4 text-gray-400" />}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem 
+              onClick={() => updateFlagMutation.mutate('none')}
+              data-testid="flag-option-none"
+            >
+              <Flag className="h-4 w-4 mr-2 text-gray-400" />
+              None
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => updateFlagMutation.mutate('important')}
+              data-testid="flag-option-important"
+            >
+              <Star className="h-4 w-4 mr-2 text-yellow-500" />
+              Important
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => updateFlagMutation.mutate('archived')}
+              data-testid="flag-option-archived"
+            >
+              <Archive className="h-4 w-4 mr-2 text-gray-500" />
+              Archived
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         {isDrawer && (
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} data-testid="button-close-panel">
             <X className="h-5 w-5" />
           </Button>
         )}

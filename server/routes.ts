@@ -2517,6 +2517,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ NEW: Get a single conversation by ID
+  app.get("/api/conversations/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      // Verify user has access to this conversation
+      const conversations = await storage.getConversations(userId);
+      const conversation = conversations.find((c) => c.id === id);
+
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      console.log(`📝 Retrieved conversation ${id} for user ${userId}`);
+      res.json({ conversation });
+    } catch (err) {
+      console.error("❌ Error fetching conversation:", err);
+      res.status(500).json({ error: "Failed to fetch conversation" });
+    }
+  });
+
   // ✅ NEW: Get all messages for a specific conversation
   app.get("/api/conversations/:id/messages", isAuthenticated, async (req, res) => {
     try {
@@ -2569,6 +2591,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("❌ Error marking conversation as read:", err);
       res.status(500).json({ error: "Failed to mark conversation as read" });
+    }
+  });
+
+  // ✅ NEW: Update conversation flag
+  app.patch("/api/conversations/:id/flag", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { flag } = req.body;
+      const userId = req.user.id;
+
+      // Validate flag value
+      const validFlags = ['none', 'important', 'archived'];
+      if (!flag || !validFlags.includes(flag)) {
+        return res.status(400).json({ 
+          error: "Invalid flag value. Must be: none, important, or archived" 
+        });
+      }
+
+      // Verify user has access to this conversation
+      const conversations = await storage.getConversations(userId);
+      const conversation = conversations.find((c) => c.id === id);
+
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      // Update the flag
+      const updated = await storage.updateConversationMetadata(id, { flag });
+
+      console.log(`🏁 Updated conversation ${id} flag to: ${flag}`);
+      res.json({ success: true, conversation: updated });
+    } catch (err) {
+      console.error("❌ Error updating conversation flag:", err);
+      res.status(500).json({ error: "Failed to update conversation flag" });
     }
   });
 

@@ -7,12 +7,18 @@ import TopHeader from "@/components/TopHeader";
 import MessageList from "@/components/MessageList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Filter, Search } from "lucide-react";
+import { Filter, Search, Star, Archive, Flag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import HelpChatbot from "@/components/HelpChatbot";
 import { Instagram, Mail, Twitter } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook } from "react-icons/si";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Inbox() {
   const { toast } = useToast();
@@ -23,6 +29,7 @@ export default function Inbox() {
   const [selectedPlatform, setSelectedPlatform] = useState<string | undefined>(
     undefined,
   );
+  const [selectedFlag, setSelectedFlag] = useState<'all' | 'none' | 'important' | 'archived'>('all');
   const [loading, setLoading] = useState(false);
 
   // Redirección si no autenticado
@@ -161,16 +168,46 @@ export default function Inbox() {
                     data-testid="input-search-messages"
                   />
                 </div>
-                <Button variant="outline" size="icon">
-                  <Filter className="h-4 w-4" />
-                </Button>
+                {/* Flag Filter Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" data-testid="button-flag-filter">
+                      {selectedFlag === 'important' && <Star className="h-4 w-4 text-yellow-500" />}
+                      {selectedFlag === 'archived' && <Archive className="h-4 w-4 text-gray-500" />}
+                      {(selectedFlag === 'all' || selectedFlag === 'none') && <Filter className="h-4 w-4" />}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      onClick={() => setSelectedFlag('all')}
+                      data-testid="filter-option-all"
+                    >
+                      <Flag className="h-4 w-4 mr-2 text-gray-400" />
+                      {isSpanish ? "Todas" : "All"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setSelectedFlag('important')}
+                      data-testid="filter-option-important"
+                    >
+                      <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                      {isSpanish ? "Importantes" : "Important"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setSelectedFlag('archived')}
+                      data-testid="filter-option-archived"
+                    >
+                      <Archive className="h-4 w-4 mr-2 text-gray-500" />
+                      {isSpanish ? "Archivadas" : "Archived"}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
 
           {/* WhatsApp-style Split View */}
           <div className="flex-1 flex overflow-hidden">
-            <MessageList showHeader={false} platform={selectedPlatform} />
+            <MessageList showHeader={false} platform={selectedPlatform} flagFilter={selectedFlag} />
           </div>
         </div>
       </div>

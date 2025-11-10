@@ -8,7 +8,7 @@ import { useNewMessageListener } from "@/hooks/useSocket";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Instagram, Mail, Twitter } from "lucide-react";
+import { Instagram, Mail, Twitter, Star, Archive } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import ConversationPanel from "@/components/ConversationPanel";
@@ -52,12 +52,14 @@ interface MessageListProps {
   limit?: number;
   showHeader?: boolean;
   platform?: string;
+  flagFilter?: 'all' | 'none' | 'important' | 'archived';
 }
 
 export default function MessageList({
   limit = 50,
   showHeader = true,
   platform,
+  flagFilter = 'all',
 }: MessageListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -158,11 +160,18 @@ export default function MessageList({
 
   useNewMessageListener(handleNewMessage);
 
-  // ✅ Filter conversations by platform
+  // ✅ Filter conversations by platform and flag
   const conversations = conversationsData || [];
-  const filteredConversations = platform
+  let filteredConversations = platform
     ? conversations.filter((c) => c.platform === platform)
     : conversations;
+  
+  // Apply flag filter
+  if (flagFilter !== 'all') {
+    filteredConversations = filteredConversations.filter((c) => 
+      c.flag === flagFilter || (!c.flag && flagFilter === 'none')
+    );
+  }
 
   // Sort by most recent and limit
   const displayedConversations = filteredConversations
@@ -218,7 +227,14 @@ export default function MessageList({
                   key={conversation.id}
                   className={cn(
                     "p-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100",
-                    hasUnread && "bg-blue-50/50",
+                    // Important conversations get yellow background
+                    conversation.flag === "important" && hasUnread && "bg-amber-50 border-l-4 border-l-yellow-500",
+                    conversation.flag === "important" && !hasUnread && "bg-white border-l-4 border-l-yellow-400",
+                    // Archived conversations are muted (no unread highlight)
+                    conversation.flag === "archived" && "bg-gray-50 border-l-4 border-l-gray-300 opacity-75",
+                    // Normal conversations (no flag)
+                    (!conversation.flag || conversation.flag === "none") && hasUnread && "bg-blue-50/50",
+                    // Active conversation highlight
                     isActive && "bg-gray-100 border-l-4 border-l-primary"
                   )}
                   onClick={() => {
@@ -259,13 +275,30 @@ export default function MessageList({
                         <p
                           className={cn(
                             "text-sm text-gray-900 truncate",
-                            hasUnread && "font-semibold"
+                            hasUnread && "font-semibold",
+                            conversation.flag === "archived" && "text-gray-500"
                           )}
                         >
                           {conversation.contactName || "Contact"}
                         </p>
 
                         <div className="flex items-center gap-2">
+                          {/* Flag icon */}
+                          {conversation.flag === "important" && (
+                            <Star 
+                              className="h-4 w-4 text-yellow-500 fill-yellow-500" 
+                              data-testid={`flag-icon-important-${conversation.id}`}
+                              aria-label="Important conversation"
+                            />
+                          )}
+                          {conversation.flag === "archived" && (
+                            <Archive 
+                              className="h-4 w-4 text-gray-400" 
+                              data-testid={`flag-icon-archived-${conversation.id}`}
+                              aria-label="Archived conversation"
+                            />
+                          )}
+                          
                           {hasUnread && (
                             <Badge
                               className="bg-primary text-white text-xs h-5 min-w-5 flex items-center justify-center rounded-full px-1.5"
@@ -274,7 +307,10 @@ export default function MessageList({
                               {conversation.unreadCount}
                             </Badge>
                           )}
-                          <span className="text-xs text-gray-500">
+                          <span className={cn(
+                            "text-xs text-gray-500",
+                            conversation.flag === "archived" && "text-gray-400"
+                          )}>
                             {formatDistanceToNow(
                               new Date(conversation.lastMessageAt),
                               {
