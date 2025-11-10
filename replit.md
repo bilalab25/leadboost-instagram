@@ -91,6 +91,16 @@ Key tables include:
   - contactName for WhatsApp profile names
   - isRead for read/unread status tracking
   - direction for inbound/outbound message routing
+  - conversationId (nullable FK) linking messages to conversations
+- **Conversations** for organizing messages into threads:
+  - UNIQUE constraint on (integrationId, metaConversationId) to prevent duplicates per integration
+  - Fields: platform, contactName, lastMessage, lastMessageAt, unreadCount, flag
+  - Atomic getOrCreateConversation() using INSERT...ON CONFLICT DO UPDATE for thread-safe upserts
+  - Metadata tracking (latest message, timestamp, contact name) updated during webhook/sync
+  - One-to-many relationship with messages via conversationId
+  - API endpoints: GET /api/conversations (list all), GET /api/conversations/:id/messages (get messages)
+  - Integration with webhooks: conversations created before messages for proper relationship
+  - Performance optimized: batch creation during initial sync, incremental updates via webhooks
 - Content plans with AI-generated strategies
 - Campaigns with multi-platform publishing
 - Analytics for performance tracking
