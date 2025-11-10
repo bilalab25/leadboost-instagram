@@ -163,13 +163,14 @@ export default function Dashboard() {
   // }
 
   // 🔹 Últimos mensajes unificados
-  const { data: latestConversationsData, isLoading: conversationsLoading } = useQuery({
-    queryKey: ["/api/conversations", { limit: 5 }],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/conversations?limit=5");
-      return res.json();
-    },
-  });
+  const { data: latestConversationsData, isLoading: conversationsLoading } =
+    useQuery({
+      queryKey: ["/api/conversations", { limit: 5 }],
+      queryFn: async () => {
+        const res = await apiRequest("GET", "/api/conversations?limit=5");
+        return res.json();
+      },
+    });
 
   const latestConversations = latestConversationsData?.conversations || [];
 
@@ -478,7 +479,9 @@ export default function Dashboard() {
                         <div className="flex items-center gap-3">
                           <div className="w-2 h-2 rounded-full bg-gradient-to-r from-brand-500 to-brand-600"></div>
                           <CardTitle className="text-lg font-semibold text-gray-900 m-0">
-                            {isSpanish ? "Últimas conversaciones" : "Latest Conversations"}
+                            {isSpanish
+                              ? "Últimas conversaciones"
+                              : "Latest Conversations"}
                           </CardTitle>
                         </div>
 
@@ -494,12 +497,14 @@ export default function Dashboard() {
                         </Button>
                       </CardHeader>
 
-
                       <CardContent className="p-0">
                         {conversationsLoading ? (
                           <div className="p-6 space-y-4">
                             {[1, 2, 3].map((i) => (
-                              <div key={i} className="flex items-start gap-4 p-4">
+                              <div
+                                key={i}
+                                className="flex items-start gap-4 p-4"
+                              >
                                 <Skeleton className="h-14 w-14 rounded-xl flex-shrink-0" />
                                 <div className="flex-1 space-y-3">
                                   <div className="flex items-center justify-between">
@@ -514,138 +519,153 @@ export default function Dashboard() {
                           </div>
                         ) : latestConversations?.length ? (
                           <div className="divide-y divide-gray-100">
-                            {latestConversations.map((conversation: any, index: number) => {
-                              const platformStyles: Record<
-                                string,
-                                { icon: any; color: string; bgGradient: string; name: string }
-                              > = {
-                                facebook: {
-                                  icon: SiFacebook,
-                                  color: "#1877F2",
-                                  bgGradient: "from-blue-500/10 to-blue-600/5",
-                                  name: "Facebook",
-                                },
-                                instagram: {
-                                  icon: SiInstagram,
-                                  color: "#E4405F",
-                                  bgGradient: "from-pink-500/10 to-purple-600/5",
-                                  name: "Instagram",
-                                },
-                                whatsapp: {
-                                  icon: SiWhatsapp,
-                                  color: "#25D366",
-                                  bgGradient: "from-green-500/10 to-green-600/5",
-                                  name: "WhatsApp",
-                                },
-                                linkedin: {
-                                  icon: SiLinkedin,
-                                  color: "#0A66C2",
-                                  bgGradient: "from-blue-600/10 to-blue-700/5",
-                                  name: "LinkedIn",
-                                },
-                                tiktok: {
-                                  icon: SiTiktok,
-                                  color: "#000000",
-                                  bgGradient: "from-gray-800/10 to-gray-900/5",
-                                  name: "TikTok",
-                                },
-                                youtube: {
-                                  icon: SiYoutube,
-                                  color: "#FF0000",
-                                  bgGradient: "from-red-500/10 to-red-600/5",
-                                  name: "YouTube",
-                                },
-                              };
-
-                              const platform = platformStyles[conversation.platform] || {
-                                icon: HelpCircle,
-                                color: "#9CA3AF",
-                                bgGradient: "from-gray-400/10 to-gray-500/5",
-                                name: "Unknown",
-                              };
-                              const Icon = platform.icon;
-
-                              // Determine if conversation has unread messages
-                              const isUnread = conversation.unreadCount > 0;
-
-                              // Format timestamp
-                              const timeAgo = conversation.lastMessageAt 
-                                ? formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })
-                                : "";
-
-                              return (
-                                <div
-                                  key={conversation.id}
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={() =>
-                                    (window.location.href = `/inbox?conversation=${conversation.id}`)
+                            {latestConversations.map(
+                              (conversation: any, index: number) => {
+                                const platformStyles: Record<
+                                  string,
+                                  {
+                                    icon: any;
+                                    color: string;
+                                    bgGradient: string;
+                                    name: string;
                                   }
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                      e.preventDefault();
-                                      window.location.href = `/inbox?conversation=${conversation.id}`;
-                                    }
-                                  }}
-                                  className="group relative flex items-start gap-4 p-4 lg:p-5 cursor-pointer hover:bg-gradient-to-r hover:from-brand-50/40 hover:to-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:bg-gradient-to-r focus:from-brand-50/40 focus:to-transparent transition-all duration-300 hover:shadow-sm rounded-lg"
-                                  data-testid={`conversation-item-${index}`}
-                                  aria-label={`Conversation with ${conversation.contactName || 'Unknown'} on ${platform.name}`}
-                                >
-                                  {/* Platform Icon with Gradient Background */}
+                                > = {
+                                  facebook: {
+                                    icon: SiFacebook,
+                                    color: "#1877F2",
+                                    bgGradient:
+                                      "from-blue-500/10 to-blue-600/5",
+                                    name: "Facebook",
+                                  },
+                                  instagram: {
+                                    icon: SiInstagram,
+                                    color: "#E4405F",
+                                    bgGradient:
+                                      "from-pink-500/10 to-purple-600/5",
+                                    name: "Instagram",
+                                  },
+                                  whatsapp: {
+                                    icon: SiWhatsapp,
+                                    color: "#25D366",
+                                    bgGradient:
+                                      "from-green-500/10 to-green-600/5",
+                                    name: "WhatsApp",
+                                  },
+                                  linkedin: {
+                                    icon: SiLinkedin,
+                                    color: "#0A66C2",
+                                    bgGradient:
+                                      "from-blue-600/10 to-blue-700/5",
+                                    name: "LinkedIn",
+                                  },
+                                  tiktok: {
+                                    icon: SiTiktok,
+                                    color: "#000000",
+                                    bgGradient:
+                                      "from-gray-800/10 to-gray-900/5",
+                                    name: "TikTok",
+                                  },
+                                  youtube: {
+                                    icon: SiYoutube,
+                                    color: "#FF0000",
+                                    bgGradient: "from-red-500/10 to-red-600/5",
+                                    name: "YouTube",
+                                  },
+                                };
+
+                                const platform = platformStyles[
+                                  conversation.platform
+                                ] || {
+                                  icon: HelpCircle,
+                                  color: "#9CA3AF",
+                                  bgGradient: "from-gray-400/10 to-gray-500/5",
+                                  name: "Unknown",
+                                };
+                                const Icon = platform.icon;
+
+                                // Determine if conversation has unread messages
+                                const isUnread = conversation.unreadCount > 0;
+
+                                // Format timestamp
+                                const timeAgo = conversation.lastMessageAt
+                                  ? formatDistanceToNow(
+                                      new Date(conversation.lastMessageAt),
+                                      { addSuffix: true },
+                                    )
+                                  : "";
+
+                                return (
                                   <div
-                                    className={`flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center bg-gradient-to-br ${platform.bgGradient} border border-gray-100 group-hover:scale-105 transition-transform duration-300 shadow-sm`}
+                                    key={conversation.id}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() =>
+                                      (window.location.href = `/inbox?conversation=${conversation.id}`)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        window.location.href = `/inbox?conversation=${conversation.id}`;
+                                      }
+                                    }}
+                                    className="group relative flex items-start gap-3 p-3 cursor-pointer hover:bg-brand-50/30 rounded-lg transition-all duration-200"
                                   >
-                                    <Icon
-                                      className="w-7 h-7"
-                                      style={{ color: platform.color }}
-                                    />
-                                  </div>
+                                    {/* Smaller Platform Icon */}
+                                    <div
+                                      className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-gradient-to-br ${platform.bgGradient} border border-gray-100 shadow-sm`}
+                                    >
+                                      <Icon
+                                        className="w-4.5 h-4.5"
+                                        style={{ color: platform.color }}
+                                      />
+                                    </div>
 
-                                  {/* Conversation Content */}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-3 mb-2">
-                                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                                        <h4 className="text-base font-semibold text-gray-900 truncate">
-                                          {conversation.contactName || "Unknown"}
+                                    {/* Compact Content */}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <h4 className="text-sm font-semibold text-gray-900 truncate flex items-center gap-2">
+                                          {conversation.contactName ||
+                                            "Unknown"}
+                                          {isUnread && (
+                                            <Badge
+                                              variant="default"
+                                              className="bg-brand-500 text-white text-[10px] px-1.5 py-0.5"
+                                            >
+                                              {conversation.unreadCount}
+                                            </Badge>
+                                          )}
                                         </h4>
-                                        {isUnread && (
-                                          <Badge variant="default" className="bg-brand-500 text-white text-xs px-2 py-0.5">
-                                            {conversation.unreadCount}
+
+                                        {/* Platform and time together */}
+                                        <div className="flex items-center gap-2 flex-shrink-0 text-xs text-gray-500">
+                                          <Badge
+                                            variant="secondary"
+                                            className="text-[10px] font-medium bg-white/70 text-gray-600 border-gray-200"
+                                          >
+                                            {platform.name}
                                           </Badge>
-                                        )}
+                                          <Clock className="w-3 h-3 text-gray-400" />
+                                          <span>{timeAgo}</span>
+                                        </div>
                                       </div>
-                                      <div className="flex items-center gap-2 flex-shrink-0">
-                                        <Clock className="w-3.5 h-3.5 text-gray-400" />
-                                        <span className="text-xs font-medium text-gray-500">
-                                          {timeAgo}
-                                        </span>
-                                      </div>
-                                    </div>
 
-                                    <p className={`text-sm mt-1.5 line-clamp-2 leading-relaxed ${isUnread ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
-                                      {conversation.lastMessage || (isSpanish ? "(sin mensaje)" : "(no message)")}
-                                    </p>
-
-                                    {/* Metadata Row */}
-                                    <div className="mt-3 flex items-center gap-3">
-                                      <Badge 
-                                        variant="secondary" 
-                                        className="text-xs font-medium bg-white/60 text-gray-700 border-gray-200"
+                                      <p
+                                        className={`text-xs leading-snug line-clamp-1 ${
+                                          isUnread
+                                            ? "text-gray-900 font-medium"
+                                            : "text-gray-600"
+                                        }`}
                                       >
-                                        {platform.name}
-                                      </Badge>
-                                      
-                                      {/* Removed flag/attachment display - not needed for dashboard */}
+                                        {conversation.lastMessage ||
+                                          (isSpanish
+                                            ? "(sin mensaje)"
+                                            : "(no message)")}
+                                      </p>
                                     </div>
                                   </div>
-
-                                  {/* Hover Arrow Indicator */}
-                                  <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <ArrowRight className="w-5 h-5 text-brand-600" />
-                                  </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              },
+                            )}
                           </div>
                         ) : (
                           <div className="text-center py-12 px-6">
