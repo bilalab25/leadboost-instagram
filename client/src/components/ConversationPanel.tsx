@@ -106,6 +106,11 @@ export default function ConversationPanel({
 
         const msgs = data.messages || [];
 
+        // 🔹 Extract metaConversationId from messages (needed for sending)
+        if (msgs.length > 0 && msgs[0].metaConversationId) {
+          setMetaConversationId(msgs[0].metaConversationId);
+        }
+
         // 🔹 Detectar ventana de 24 h solo para Facebook
         if (platform === "facebook" && msgs.length > 0) {
           // Busca el último mensaje entrante (del usuario)
