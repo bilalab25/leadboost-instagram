@@ -1,0 +1,122 @@
+Mi aplicación usa Node.js + Express y la base de datos de Replit (Replit DB).
+
+Actualmente tengo:
+- Una función `performInitialSync` que obtiene mensajes de las integraciones (Meta Graph API, WhatsApp, etc.) y los guarda directamente en la base.
+- Un endpoint `/api/webhooks/meta` que recibe mensajes nuevos desde Meta y también los guarda directamente.
+
+Quiero que ambos cambien para manejar **una tabla de conversaciones separada** usando Replit DB, y que cada mensaje tenga un campo `conversationId` ligado a esa conversación.
+
+---
+
+### ⚙️ Nueva estructura en Replit DB
+
+Usaremos Replit DB con estas claves:
+
+- `conversation_<metaConversationId>` → guarda un objeto JSON con la información de la conversación.
+- `message_<uuid>` → guarda cada mensaje individual, con el campo `conversationId` apuntando a la conversación.
+- `conversations_index` → un array con todos los IDs de conversaciones creadas (para listarlas fácilmente).
+
+---
+
+### 🧱 Ejemplo de estructura
+
+**conversation_828092020393635_5217712409254**
+{
+  "id": "828092020393635_5217712409254",
+  "userId": "QfnFTJ0yRtXIFlxsLcxrUfJscks2",
+  "platform": "whatsapp",
+  "contactName": "Paola",
+  "lastMessage": "WhatsApp Test 3",
+  "lastMessageAt": "2025-11-10T14:50:18.000Z",
+  "unreadCount": 0,
+  "flag": "none",
+  "createdAt": "2025-11-10T14:05:52.000Z"
+}
+
+**message_d8f45c7d-8a4f-47c3-bc93-40360e2e1321**
+{
+  "id": "d8f45c7d-8a4f-47c3-bc93-40360e2e1321",
+  "conversationId": "828092020393635_5217712409254",
+  "textContent": "WhatsApp Test 3",
+  "direction": "inbound",
+  "timestamp": "2025-11-10T14:50:18.000Z"
+}
+
+---
+
+### 🧠 Nueva función auxiliar
+
+Crea una función llamada `getOrCreateConversation(metaConversationId, userId, platform, contactName, lastMessage, lastMessageAt)` que haga lo siguiente:
+
+1. Buscar en Replit DB si existe la clave `conversation_${metaConversationId}`.  
+   - Si existe, devuelve esa conversación.
+2. Si no existe:
+   - Crea una nueva conversación con los datos indicados.
+   - Agrega su `id` al array `conversations_index` (crearlo si no existe).
+   - Guarda la conversación con la clave `conversation_${metaConversationId}`.
+   - Devuelve el objeto de conversación creado.
+
+---
+
+### 📨 Cambios en `/api/webhooks/meta`
+
+1. Extraer del payload el `meta_conversation_id` (por ejemplo `"${phone_number_id}_${from}"` o `"${page_id}_${sender_id}"`).
+2. Llamar a `getOrCreateConversation()` pasando los datos necesarios.
+3. Crear un nuevo `message` con:
+   - `id`: UUID
+   - `conversationId`: meta_conversation_id
+   - `textContent`, `direction`, `timestamp`, etc.
+4. Guardar el mensaje en `db.set("message_<uuid>", messageObject)`.
+5. Actualizar la conversación (su `lastMessage` y `lastMessageAt`) con el nuevo texto.
+
+---
+
+### 🔁 Cambios en `performInitialSync`
+
+Cada vez que se sincronicen mensajes:
+1. Calcular el `meta_conversation_id` para cada contacto.
+2. Llamar a `getOrCreateConversation()` para garantizar que exista la conversación.
+3. Para cada mensaje sincronizado, guardar:
+   - `conversationId`: el mismo meta_conversation_id
+   - `textContent`, `direction`, `timestamp`, etc.
+4. Actualizar el `lastMessage` y `lastMessageAt` de la conversación con el mensaje más reciente.
+
+---
+
+### 📬 Endpoint adicional sugerido
+
+**GET /api/conversations**
+Devuelve la lista de conversaciones.  
+Debe leer `conversations_index`, mapear cada ID, y retornar las conversaciones almacenadas (`conversation_<id>`).
+
+**GET /api/conversations/:id/messages**
+Busca todos los mensajes que tengan ese `conversationId` (recorriendo todas las claves que empiecen con `message_`).
+
+---
+
+### 💡 Estilo de código
+
+Usa el paquete oficial de Replit DB:
+import Database from "@replit/database";
+const db = new Database();
+
+Usa funciones `await db.get(key)` y `await db.set(key, value)` con valores JSON.  
+Asegúrate de convertir objetos con `JSON.parse` y `JSON.stringify` cuando sea necesario.
+
+---
+
+### 🚀 Objetivo
+
+Replit debe modificar el backend para que:
+
+- Cree automáticamente conversaciones al llegar un mensaje nuevo.
+- Guarde los mensajes asociados a esa conversación.
+- Mantenga un índice de todas las conversaciones.
+- Evite depender del agrupamiento por `meta_conversation_id` en el frontend.
+- Sea fácil agregar luego flags o filtros por estado.
+
+Genera el código completo necesario para:
+- La función `getOrCreateConversation`
+- La actualización del endpoint `/api/webhooks/meta`
+- La actualización de `performInitialSync`
+- Los endpoints de consulta (`/api/conversations` y `/api/conversations/:id/messages`)
