@@ -13,6 +13,7 @@ import ContentCalendar from "@/components/ContentCalendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +40,12 @@ import {
   X,
   Send,
   Play,
+  Image as ImageIcon,
+  Video,
+  File,
+  Clock,
 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import {
   SiInstagram,
   SiTiktok,
@@ -464,65 +470,87 @@ export default function Dashboard() {
                 <div className="space-y-8">
                   {/* Main Content */}
                   <div className="space-y-8">
-                    {/* Unified Inbox */}
-                    <Card>
-                      <CardHeader className="border-b border-gray-100 flex items-center justify-between">
-                        <CardTitle className="text-lg font-semibold text-gray-800">
-                          {isSpanish ? "Últimos mensajes" : "Latest Messages"}
-                        </CardTitle>
+                    {/* Unified Inbox - Enhanced Design */}
+                    <Card className="overflow-hidden bg-gradient-to-br from-white via-white to-brand-50/20 border-brand-100/50 shadow-sm">
+                      <CardHeader className="border-b border-brand-100/50 bg-gradient-to-r from-white to-brand-50/30 px-6 py-5 flex flex-row items-center justify-between backdrop-blur-sm">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-gradient-to-r from-brand-500 to-brand-600"></div>
+                          <CardTitle className="text-lg font-semibold text-gray-900 m-0">
+                            {isSpanish ? "Últimos mensajes" : "Latest Messages"}
+                          </CardTitle>
+                        </div>
+
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-brand-600 hover:text-brand-700"
+                          className="text-brand-600 hover:text-brand-700 hover:bg-brand-50 flex items-center gap-1.5 font-medium transition-all"
                           onClick={() => (window.location.href = "/inbox")}
+                          data-testid="button-view-all-messages"
                         >
                           {isSpanish ? "Ver todos" : "View all"}
-                          <ArrowRight className="w-4 h-4 ml-1" />
+                          <ArrowRight className="w-4 h-4" />
                         </Button>
                       </CardHeader>
 
-                      <CardContent className="p-6">
+
+                      <CardContent className="p-0">
                         {messagesLoading ? (
-                          <div className="text-center py-8 text-gray-400">
-                            {isSpanish
-                              ? "Cargando mensajes..."
-                              : "Loading messages..."}
+                          <div className="p-6 space-y-4">
+                            {[1, 2, 3].map((i) => (
+                              <div key={i} className="flex items-start gap-4 p-4">
+                                <Skeleton className="h-14 w-14 rounded-xl flex-shrink-0" />
+                                <div className="flex-1 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <Skeleton className="h-4 w-32" />
+                                    <Skeleton className="h-3 w-16" />
+                                  </div>
+                                  <Skeleton className="h-4 w-full" />
+                                  <Skeleton className="h-4 w-3/4" />
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         ) : latestMessages?.length ? (
-                          <div className="flex flex-col divide-y divide-gray-100">
-                            {latestMessages.map((msg: any) => {
+                          <div className="divide-y divide-gray-100">
+                            {latestMessages.map((msg: any, index: number) => {
                               const platformStyles: Record<
                                 string,
-                                { icon: any; color: string; name: string }
+                                { icon: any; color: string; bgGradient: string; name: string }
                               > = {
                                 facebook: {
                                   icon: SiFacebook,
                                   color: "#1877F2",
+                                  bgGradient: "from-blue-500/10 to-blue-600/5",
                                   name: "Facebook",
                                 },
                                 instagram: {
                                   icon: SiInstagram,
                                   color: "#E4405F",
+                                  bgGradient: "from-pink-500/10 to-purple-600/5",
                                   name: "Instagram",
                                 },
                                 whatsapp: {
                                   icon: SiWhatsapp,
                                   color: "#25D366",
+                                  bgGradient: "from-green-500/10 to-green-600/5",
                                   name: "WhatsApp",
                                 },
                                 linkedin: {
                                   icon: SiLinkedin,
                                   color: "#0A66C2",
+                                  bgGradient: "from-blue-600/10 to-blue-700/5",
                                   name: "LinkedIn",
                                 },
                                 tiktok: {
                                   icon: SiTiktok,
                                   color: "#000000",
+                                  bgGradient: "from-gray-800/10 to-gray-900/5",
                                   name: "TikTok",
                                 },
                                 youtube: {
                                   icon: SiYoutube,
                                   color: "#FF0000",
+                                  bgGradient: "from-red-500/10 to-red-600/5",
                                   name: "YouTube",
                                 },
                               };
@@ -530,68 +558,125 @@ export default function Dashboard() {
                               const platform = platformStyles[msg.provider] || {
                                 icon: HelpCircle,
                                 color: "#9CA3AF",
+                                bgGradient: "from-gray-400/10 to-gray-500/5",
                                 name: "Unknown",
                               };
                               const Icon = platform.icon;
 
+                              // Determine if message is unread
+                              const isUnread = msg.isRead === false || msg.is_read === false;
+
+                              // Format timestamp
+                              const timeAgo = msg.created_time 
+                                ? formatDistanceToNow(new Date(msg.created_time), { addSuffix: true })
+                                : "";
+
                               return (
                                 <div
                                   key={msg.id}
+                                  role="button"
+                                  tabIndex={0}
                                   onClick={() =>
                                     (window.location.href = `/inbox?conversation=${msg.conversationId}`)
                                   }
-                                  className="group flex items-start gap-4 py-4 cursor-pointer hover:bg-gray-50 transition-all duration-200 rounded-xl px-3"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      window.location.href = `/inbox?conversation=${msg.conversationId}`;
+                                    }
+                                  }}
+                                  className="group relative flex items-start gap-4 p-4 lg:p-5 cursor-pointer hover:bg-gradient-to-r hover:from-brand-50/40 hover:to-transparent focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:bg-gradient-to-r focus:from-brand-50/40 focus:to-transparent transition-all duration-300 hover:shadow-sm rounded-lg"
+                                  data-testid={`message-item-${index}`}
+                                  aria-label={`Message from ${msg.from || msg.contactName || 'Unknown'} on ${platform.name}`}
                                 >
-                                  {/* Icono plataforma */}
+                                  {/* Platform Icon with Gradient Background */}
                                   <div
-                                    className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
-                                    style={{
-                                      backgroundColor: `${platform.color}15`,
-                                    }}
+                                    className={`flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center bg-gradient-to-br ${platform.bgGradient} border border-gray-100 group-hover:scale-105 transition-transform duration-300 shadow-sm`}
                                   >
                                     <Icon
-                                      className="w-6 h-6"
+                                      className="w-7 h-7"
                                       style={{ color: platform.color }}
                                     />
                                   </div>
 
-                                  {/* Contenido */}
+                                  {/* Message Content */}
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between">
-                                      <h4 className="text-sm font-semibold text-gray-800 truncate">
-                                        {msg.from || "Unknown"}
-                                      </h4>
-                                      <span className="text-xs text-gray-400">
-                                        {new Date(
-                                          msg.created_time,
-                                        ).toLocaleDateString()}
-                                      </span>
+                                    <div className="flex items-start justify-between gap-3 mb-2">
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <h4 className="text-base font-semibold text-gray-900 truncate">
+                                          {msg.from || msg.contactName || "Unknown"}
+                                        </h4>
+                                        {isUnread && (
+                                          <div className="flex-shrink-0 w-2 h-2 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 animate-pulse"></div>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-shrink-0">
+                                        <Clock className="w-3.5 h-3.5 text-gray-400" />
+                                        <span className="text-xs font-medium text-gray-500">
+                                          {timeAgo}
+                                        </span>
+                                      </div>
                                     </div>
 
-                                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                                      {msg.text || "(sin mensaje)"}
+                                    <p className={`text-sm mt-1.5 line-clamp-2 leading-relaxed ${isUnread ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
+                                      {msg.text || msg.textContent || (isSpanish ? "(sin mensaje)" : "(no message)")}
                                     </p>
 
-                                    <div className="mt-2 flex items-center gap-2">
+                                    {/* Metadata Row */}
+                                    <div className="mt-3 flex items-center gap-3">
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="text-xs font-medium bg-white/60 text-gray-700 border-gray-200"
+                                      >
+                                        {platform.name}
+                                      </Badge>
+                                      
                                       {msg.imageUrl && (
-                                        <span className="text-[11px] text-gray-400">
-                                          📎{" "}
-                                          {isSpanish
-                                            ? "Con imagen"
-                                            : "With image"}
-                                        </span>
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                          <ImageIcon className="w-3.5 h-3.5" />
+                                          <span>{isSpanish ? "Imagen" : "Image"}</span>
+                                        </div>
+                                      )}
+                                      
+                                      {msg.videoUrl && (
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                          <Video className="w-3.5 h-3.5" />
+                                          <span>{isSpanish ? "Video" : "Video"}</span>
+                                        </div>
+                                      )}
+                                      
+                                      {msg.attachmentUrl && !msg.imageUrl && !msg.videoUrl && (
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                          <File className="w-3.5 h-3.5" />
+                                          <span>{isSpanish ? "Archivo" : "File"}</span>
+                                        </div>
                                       )}
                                     </div>
+                                  </div>
+
+                                  {/* Hover Arrow Indicator */}
+                                  <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <ArrowRight className="w-5 h-5 text-brand-600" />
                                   </div>
                                 </div>
                               );
                             })}
                           </div>
                         ) : (
-                          <div className="text-center py-8 text-gray-400">
-                            {isSpanish
-                              ? "No hay mensajes recientes"
-                              : "No recent messages"}
+                          <div className="text-center py-12 px-6">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 mb-4">
+                              <Send className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <p className="text-gray-500 font-medium">
+                              {isSpanish
+                                ? "No hay mensajes recientes"
+                                : "No recent messages"}
+                            </p>
+                            <p className="text-sm text-gray-400 mt-2">
+                              {isSpanish
+                                ? "Los nuevos mensajes aparecerán aquí"
+                                : "New messages will appear here"}
+                            </p>
                           </div>
                         )}
                       </CardContent>
