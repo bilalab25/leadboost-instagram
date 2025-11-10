@@ -2668,12 +2668,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // =========================================================
         else if (provider === "whatsapp") {
           console.log(`💬 [WhatsApp] Sending message to ${conversationId}`);
-
+          const parts = conversationId.split("_");
           let finalRecipientId = conversationId;
+
+          if (parts.length === 2) {
+            finalRecipientId = parts[1]; // Ahora finalRecipientId es "5217712409254"
+            console.log(
+              `📍 Recipient ID extraído del composite ID: ${finalRecipientId}`,
+            );
+          }
+
           if (finalRecipientId.startsWith("521")) {
+            const originalFinalRecipientId = finalRecipientId;
+            // La normalización asume que "521" debe ser "52" + resto (sin el 1)
             finalRecipientId = "52" + finalRecipientId.substring(3);
             console.log(
-              `⚙️ Número normalizado: ${conversationId} → ${finalRecipientId}`,
+              `⚙️ Número normalizado: ${originalFinalRecipientId} → ${finalRecipientId}`,
             );
           }
 
@@ -2687,15 +2697,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           url = `https://graph.facebook.com/v24.0/${phoneNumberId}/messages`;
           payload = {
             messaging_product: "whatsapp",
+            // ✅ FIX: Usar solo el número de teléfono extraído/normalizado
             to: finalRecipientId,
             type: "text",
             text: { body: content },
           };
 
           recipientId = finalRecipientId;
-
-          // Generar meta_conversation_id consistente
-          metaConversationId = `${provider}:${phoneNumberId}:${recipientId}`;
+          metaConversationId = conversationId;
+          console.log("✅ [WhatsApp] Payload final:", payload);
         }
 
         // =========================================================

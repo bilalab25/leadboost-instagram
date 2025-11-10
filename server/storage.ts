@@ -75,7 +75,7 @@ import {
   type Integration,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, or, sql, gte, lte } from "drizzle-orm";
+import { eq, and, desc, asc, or, sql, gte, lte, SQL } from "drizzle-orm";
 import { mapFromDb, mapPartialToDb, mapToDb } from "./mappers/brandDesign";
 
 export interface IStorage {
@@ -549,22 +549,46 @@ export class DatabaseStorage implements IStorage {
     integrationId: string,
     conversationId: string,
   ): Promise<Message[]> {
+    const conversationIdConditions: SQL[] = [
+      eq(messages.metaConversationId, conversationId),
+      eq(messages.senderId, conversationId),
+      eq(messages.recipientId, conversationId),
+    ];
+    let alternativePhoneNumber: string | null = null;
+
+    const isPhoneNumber =
+      /^\d{10,}$/.test(conversationId) && conversationId.startsWith("52");
+
+    if (isPhoneNumber) {
+      if (conversationId.startsWith("521")) {
+        alternativePhoneNumber =
+          conversationId.substring(0, 2) + conversationId.substring(3);
+      } else {
+        alternativePhoneNumber =
+          conversationId.substring(0, 2) + "1" + conversationId.substring(2);
+      }
+    }
+
+    if (alternativePhoneNumber) {
+      conversationIdConditions.push(
+        eq(messages.senderId, alternativePhoneNumber),
+      );
+      conversationIdConditions.push(
+        eq(messages.recipientId, alternativePhoneNumber),
+      );
+    }
+
     return db
       .select()
       .from(messages)
       .where(
         and(
           eq(messages.integrationId, integrationId),
-          or(
-            eq(messages.senderId, conversationId),
-            eq(messages.recipientId, conversationId),
-            eq(messages.metaConversationId, conversationId),
-          ),
+          or(...conversationIdConditions),
         ),
       )
       .orderBy(asc(messages.timestamp));
   }
-
   async getUnreadCountByConversation(
     integrationId: string,
     conversationId: string,
