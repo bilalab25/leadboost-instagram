@@ -2530,6 +2530,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ NEW: Mark conversation as read
+  app.patch("/api/conversations/:id/read", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      // Verify user has access to this conversation
+      const conversations = await storage.getConversations(userId);
+      const conversation = conversations.find((c) => c.id === id);
+
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      // Reset unread count for the conversation
+      await storage.resetUnreadCount(id);
+
+      // Mark all messages in the conversation as read
+      const messages = await storage.getConversationMessages(id);
+      for (const message of messages) {
+        if (!message.isRead) {
+          await storage.updateMessage(message.id, { isRead: true });
+        }
+      }
+
+      console.log(`✅ Marked conversation ${id} as read (${messages.length} messages)`);
+      res.json({ success: true });
+    } catch (err) {
+      console.error("❌ Error marking conversation as read:", err);
+      res.status(500).json({ error: "Failed to mark conversation as read" });
+    }
+  });
+
   // ✅ NEW: Unified aggregation endpoint - Get ALL messages from ALL connected providers
   app.get(
     "/api/conversations/messages/all",
