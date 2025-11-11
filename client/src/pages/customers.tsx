@@ -34,7 +34,7 @@ import {
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, DollarSign, FileText, Upload, Eye } from "lucide-react";
+import { Plus, DollarSign, FileText, Upload, Eye, Edit, MessageCircle } from "lucide-react";
 import type { Customer, Invoice } from "@shared/schema";
 import type { UploadResult } from "@uppy/core";
 import HelpChatbot from "@/components/HelpChatbot";
@@ -53,6 +53,8 @@ export default function CustomersPage() {
   const queryClient = useQueryClient();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
+  const [showEditCustomer, setShowEditCustomer] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [showAddInvoice, setShowAddInvoice] = useState(false);
   const { language, isSpanish,toggleLanguage } = useLanguage();
 
@@ -76,6 +78,20 @@ export default function CustomersPage() {
     },
     onError: () => {
       toast({ title: "Failed to create customer", variant: "destructive" });
+    },
+  });
+
+  const updateCustomerMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => 
+      apiRequest(`/api/customers/${id}`, { method: 'PUT', body: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      setShowEditCustomer(false);
+      setEditingCustomer(null);
+      toast({ title: "Customer updated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update customer", variant: "destructive" });
     },
   });
 
@@ -117,6 +133,23 @@ export default function CustomersPage() {
       status: formData.get('status') as string,
     };
     createCustomerMutation.mutate(data);
+  };
+
+  const handleEditCustomer = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingCustomer) return;
+    
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      company: formData.get('company') as string,
+      address: formData.get('address') as string,
+      notes: formData.get('notes') as string,
+      status: formData.get('status') as string,
+    };
+    updateCustomerMutation.mutate({ id: editingCustomer.id, data });
   };
 
   const handleAddInvoice = (e: React.FormEvent<HTMLFormElement>) => {
@@ -256,6 +289,106 @@ export default function CustomersPage() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Customer Dialog */}
+        <Dialog open={showEditCustomer} onOpenChange={setShowEditCustomer}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Customer</DialogTitle>
+              <DialogDescription>
+                Update customer information
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleEditCustomer} className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Customer Name</Label>
+                <Input 
+                  id="edit-name" 
+                  name="name" 
+                  defaultValue={editingCustomer?.name} 
+                  required 
+                  data-testid="input-edit-customer-name" 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-email">Email</Label>
+                <Input 
+                  id="edit-email" 
+                  name="email" 
+                  type="email" 
+                  defaultValue={editingCustomer?.email || ''} 
+                  data-testid="input-edit-customer-email" 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-phone">Phone</Label>
+                <Input 
+                  id="edit-phone" 
+                  name="phone" 
+                  defaultValue={editingCustomer?.phone || ''} 
+                  data-testid="input-edit-customer-phone" 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-company">Company</Label>
+                <Input 
+                  id="edit-company" 
+                  name="company" 
+                  defaultValue={editingCustomer?.company || ''} 
+                  data-testid="input-edit-customer-company" 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-address">Address</Label>
+                <Textarea 
+                  id="edit-address" 
+                  name="address" 
+                  defaultValue={editingCustomer?.address || ''} 
+                  data-testid="input-edit-customer-address" 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-notes">Notes</Label>
+                <Textarea 
+                  id="edit-notes" 
+                  name="notes" 
+                  defaultValue={editingCustomer?.notes || ''} 
+                  data-testid="input-edit-customer-notes" 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-status">Status</Label>
+                <Select name="status" defaultValue={editingCustomer?.status || 'active'}>
+                  <SelectTrigger data-testid="select-edit-customer-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="prospect">Prospect</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowEditCustomer(false)} 
+                  data-testid="button-cancel-edit-customer"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateCustomerMutation.isPending} 
+                  data-testid="button-save-edit-customer"
+                >
+                  Update Customer
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats Cards */}
@@ -333,6 +466,18 @@ export default function CustomersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingCustomer(customer);
+                          setShowEditCustomer(true);
+                        }}
+                        data-testid={`button-edit-customer-${customer.id}`}
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
