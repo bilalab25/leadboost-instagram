@@ -466,6 +466,17 @@ export default function CustomersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
+                      {customer.conversationId && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.location.href = `/inbox?conversationId=${customer.conversationId}`}
+                          data-testid={`button-view-conversation-${customer.id}`}
+                        >
+                          <MessageCircle className="w-4 h-4 mr-1" />
+                          Chat
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
