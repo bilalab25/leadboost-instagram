@@ -1205,6 +1205,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Social Posting Frequency routes
+  app.post(
+    "/api/posting-frequency",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const { schedules } = req.body;
+
+        if (!schedules || !Array.isArray(schedules)) {
+          return res.status(400).json({ message: "Invalid schedules data" });
+        }
+
+        // Convert schedules to database format
+        const frequencies = schedules.map((schedule: any) => ({
+          userId,
+          platform: schedule.platform,
+          frequencyDays: schedule.postsPerWeek,
+          daysWeek: schedule.selectedDays,
+          source: "custom",
+          status: "accepted",
+          confidenceScore: null,
+          insightsData: null,
+        }));
+
+        // Save to database
+        await storage.saveSocialPostingFrequencies(frequencies);
+
+        // Log activity
+        await storage.createActivityLog({
+          userId,
+          action: "save_posting_frequency",
+          description: `Saved posting frequency for ${schedules.length} platforms`,
+          entityType: "posting_frequency",
+          entityId: userId,
+        });
+
+        res.json({ success: true, message: "Posting frequency saved successfully" });
+      } catch (error) {
+        console.error("Error saving posting frequency:", error);
+        res.status(500).json({ message: "Failed to save posting frequency" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/posting-frequency",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+
+        const frequencies = await storage.getSocialPostingFrequenciesByUserId(userId);
+        res.json(frequencies);
+      } catch (error) {
+        console.error("Error fetching posting frequency:", error);
+        res.status(500).json({ message: "Failed to fetch posting frequency" });
+      }
+    },
+  );
+
   // Campaigns routes
   app.get("/api/campaigns", async (req: any, res) => {
     try {

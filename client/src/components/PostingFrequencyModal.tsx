@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Dialog,
   DialogContent,
@@ -71,6 +72,7 @@ export default function PostingFrequencyModal({
   onSaveSchedule,
 }: PostingFrequencyModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch user's connected integrations
   const { data: integrations = [], isLoading: integrationsLoading } = useQuery<any[]>({
@@ -152,13 +154,34 @@ export default function PostingFrequencyModal({
     }
   }, [isOpen, currentSchedule]);
 
+  // Mutation to save posting frequency to database
+  const saveFrequencyMutation = useMutation({
+    mutationFn: async (schedules: PlatformSchedule[]) => {
+      const response = await apiRequest("POST", "/api/posting-frequency", {
+        schedules,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/posting-frequency"] });
+      toast({
+        title: "Success!",
+        description: "Posting frequency saved to database successfully.",
+      });
+      onSaveSchedule(schedules);
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save posting frequency",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAcceptSuggestion = () => {
-    onSaveSchedule(schedules);
-    toast({
-      title: "Posting Schedule Applied",
-      description: `AI-suggested posting schedule has been applied to your calendar.`,
-    });
-    onClose();
+    saveFrequencyMutation.mutate(schedules);
   };
 
   const handleCustomize = () => {
@@ -203,12 +226,7 @@ export default function PostingFrequencyModal({
   };
 
   const handleSaveCustomSchedule = () => {
-    onSaveSchedule(schedules);
-    toast({
-      title: "Custom Schedule Saved",
-      description: `Your custom posting schedule has been applied to the calendar.`,
-    });
-    onClose();
+    saveFrequencyMutation.mutate(schedules);
   };
 
   const getPlatformInfo = (platformId: string) => {
@@ -265,9 +283,11 @@ export default function PostingFrequencyModal({
                     <Button
                       size="sm"
                       onClick={handleAcceptSuggestion}
+                      disabled={saveFrequencyMutation.isPending}
                       data-testid="button-accept-suggestion"
                     >
-                      <Check className="h-4 w-4 mr-1" /> Accept Suggestion
+                      <Check className="h-4 w-4 mr-1" /> 
+                      {saveFrequencyMutation.isPending ? "Saving..." : "Accept Suggestion"}
                     </Button>
                     <Button
                       size="sm"
@@ -410,8 +430,13 @@ export default function PostingFrequencyModal({
             Cancel
           </Button>
           {!useSuggested && (
-            <Button onClick={handleSaveCustomSchedule} data-testid="button-save-custom-schedule">
-              <Check className="h-4 w-4 mr-1" /> Save Schedule
+            <Button 
+              onClick={handleSaveCustomSchedule} 
+              disabled={saveFrequencyMutation.isPending}
+              data-testid="button-save-custom-schedule"
+            >
+              <Check className="h-4 w-4 mr-1" /> 
+              {saveFrequencyMutation.isPending ? "Saving..." : "Save Schedule"}
             </Button>
           )}
           </DialogFooter>

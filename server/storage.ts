@@ -24,6 +24,7 @@ import {
   brandAssets,
   campaignDesigns,
   integrations,
+  socialPostingFrequency,
   // Asegúrate de que estos tipos en @shared/schema incluyan firebaseUid y hagan password, email, firstName, lastName opcionales/nullable
   type User,
   type UpsertUser, // Asumo que UpsertUser es para operaciones de upsert, no para updateUser
@@ -76,6 +77,8 @@ import {
   type InsertBrandAsset,
   type InsertIntegration,
   type Integration,
+  type InsertSocialPostingFrequency,
+  type SocialPostingFrequency,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, or, sql, gte, lte, SQL } from "drizzle-orm";
@@ -377,6 +380,14 @@ export interface IStorage {
     accountId: string,
     provider: string,
   ): Promise<Integration | undefined>;
+
+  // Social Posting Frequency operations
+  saveSocialPostingFrequencies(
+    frequencies: InsertSocialPostingFrequency[],
+  ): Promise<void>;
+  getSocialPostingFrequenciesByUserId(
+    userId: string,
+  ): Promise<SocialPostingFrequency[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1875,6 +1886,35 @@ export class DatabaseStorage implements IStorage {
       )
       .limit(1);
     return integration;
+  }
+
+  // Social Posting Frequency operations
+  async saveSocialPostingFrequencies(
+    frequencies: InsertSocialPostingFrequency[],
+  ): Promise<void> {
+    if (!frequencies || frequencies.length === 0) return;
+
+    // Delete existing frequencies for this user to avoid duplicates
+    const userId = frequencies[0]?.userId;
+    if (userId) {
+      await db
+        .delete(socialPostingFrequency)
+        .where(eq(socialPostingFrequency.userId, userId))
+        .execute();
+    }
+
+    // Insert new frequencies
+    await db.insert(socialPostingFrequency).values(frequencies).execute();
+  }
+
+  async getSocialPostingFrequenciesByUserId(
+    userId: string,
+  ): Promise<SocialPostingFrequency[]> {
+    return await db
+      .select()
+      .from(socialPostingFrequency)
+      .where(eq(socialPostingFrequency.userId, userId))
+      .orderBy(desc(socialPostingFrequency.createdAt));
   }
 }
 
