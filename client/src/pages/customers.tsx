@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -50,6 +56,8 @@ import {
   Edit,
   MessageCircle,
   User,
+  Calendar,
+  Info,
 } from "lucide-react";
 import type { Customer, Invoice } from "@shared/schema";
 import type { UploadResult } from "@uppy/core";
@@ -77,15 +85,16 @@ export default function CustomersPage() {
   const [showAddInvoice, setShowAddInvoice] = useState(false);
   const [newCustomerStatus, setNewCustomerStatus] = useState("active");
   const [editCustomerStatus, setEditCustomerStatus] = useState("active");
+  const [revenueFilter, setRevenueFilter] = useState<"current" | "all">("current");
   const { language, isSpanish, toggleLanguage } = useLanguage();
 
   // Fetch customers
-  const { data: customers = [], isLoading: customersLoading } = useQuery({
+  const { data: customers = [], isLoading: customersLoading } = useQuery<Customer[]>({
     queryKey: ["/api/customers"],
   });
 
   // Fetch invoices
-  const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery<InvoiceWithCustomer[]>({
     queryKey: ["/api/invoices"],
   });
 
@@ -191,7 +200,7 @@ export default function CustomersPage() {
 
   const handleFileUpload = async (invoiceId: string) => {
     try {
-      const response = await apiRequest("POST", "/api/objects/upload");
+      const response: any = await apiRequest("POST", "/api/objects/upload");
       return { method: "PUT" as const, url: response.uploadURL };
     } catch (error) {
       toast({ title: "Failed to get upload URL", variant: "destructive" });
@@ -201,9 +210,7 @@ export default function CustomersPage() {
 
   const handleFileUploadComplete =
     (invoiceId: string) =>
-    (
-      result: UploadResult<Record<string, unknown>, Record<string, unknown>>,
-    ) => {
+    (result: any) => {
       if (result.successful && result.successful[0]) {
         const fileUrl = result.successful[0].uploadURL;
         updateInvoiceMutation.mutate({
@@ -235,6 +242,34 @@ export default function CustomersPage() {
       currency: "USD",
     }).format(amount / 100);
   };
+
+  // Calculate total revenue based on filter
+  const totalRevenue = useMemo(() => {
+    const paidInvoices = invoices.filter((inv: InvoiceWithCustomer) => inv.status === "paid");
+    
+    if (revenueFilter === "current") {
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      
+      return paidInvoices
+        .filter((inv: InvoiceWithCustomer) => {
+          const createdDate = new Date(inv.createdAt);
+          return (
+            createdDate.getMonth() === currentMonth &&
+            createdDate.getFullYear() === currentYear
+          );
+        })
+        .reduce((sum: number, inv: InvoiceWithCustomer) => sum + inv.amount, 0);
+    }
+    
+    return paidInvoices.reduce((sum: number, inv: InvoiceWithCustomer) => sum + inv.amount, 0);
+  }, [invoices, revenueFilter]);
+
+  // Get current month name for display
+  const currentMonthName = useMemo(() => {
+    return new Date().toLocaleString("default", { month: "long", year: "numeric" });
+  }, []);
 
   if (customersLoading || invoicesLoading) {
     return <div className="p-6">Loading...</div>;
@@ -512,9 +547,14 @@ export default function CustomersPage() {
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Revenue
-                    </CardTitle>
+                    <div className="flex flex-col">
+                      <CardTitle className="text-sm font-medium">
+                        Total Revenue
+                      </CardTitle>
+                      <CardDescription className="text-xs mt-1">
+                        {revenueFilter === "current" ? currentMonthName : "All Time"}
+                      </CardDescription>
+                    </div>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -522,138 +562,229 @@ export default function CustomersPage() {
                       className="text-2xl font-bold"
                       data-testid="text-total-revenue"
                     >
-                      {formatCurrency(
-                        invoices
-                          .filter((inv) => inv.status === "paid")
-                          .reduce((sum, inv) => sum + inv.amount, 0),
-                      )}
+                      {formatCurrency(totalRevenue)}
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        variant={revenueFilter === "current" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setRevenueFilter("current")}
+                        data-testid="button-filter-current-month"
+                      >
+                        <Calendar className="h-3 w-3 mr-1" />
+                        Current Month
+                      </Button>
+                      <Button
+                        variant={revenueFilter === "all" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setRevenueFilter("all")}
+                        data-testid="button-filter-all-time"
+                      >
+                        All Time
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               </div>
 
               {/* Customers Table */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Customers</CardTitle>
-                  <CardDescription>
-                    View and manage all your customers
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Total Invoiced</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customers.map((customer: Customer) => (
-                        <TableRow
-                          key={customer.id}
-                          data-testid={`row-customer-${customer.id}`}
-                        >
-                          <TableCell
-                            className="font-medium"
-                            data-testid={`text-customer-name-${customer.id}`}
-                          >
-                            {customer.name}
-                          </TableCell>
-                          <TableCell
-                            data-testid={`text-customer-company-${customer.id}`}
-                          >
-                            {customer.company || "-"}
-                          </TableCell>
-                          <TableCell
-                            data-testid={`text-customer-email-${customer.id}`}
-                          >
-                            {customer.email || "-"}
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(customer.status || "active")}
-                          </TableCell>
-                          <TableCell
-                            data-testid={`text-customer-total-${customer.id}`}
-                          >
-                            {formatCurrency(customer.totalInvoiced || 0)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              {customer.conversationId && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() =>
-                                    navigate(
-                                      `/inbox?conversationId=${customer.conversationId}`,
-                                    )
-                                  }
-                                  data-testid={`button-view-conversation-${customer.id}`}
+              <Accordion type="single" collapsible defaultValue="customers">
+                <AccordionItem value="customers">
+                  <Card>
+                    <CardHeader>
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex flex-col items-start">
+                          <CardTitle>Customers</CardTitle>
+                          <CardDescription>
+                            View and manage all your customers
+                          </CardDescription>
+                        </div>
+                      </AccordionTrigger>
+                    </CardHeader>
+                    <AccordionContent>
+                      <CardContent>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Name</TableHead>
+                              <TableHead>Company</TableHead>
+                              <TableHead>Email</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Total Invoiced</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {customers.map((customer: Customer) => (
+                              <TableRow
+                                key={customer.id}
+                                data-testid={`row-customer-${customer.id}`}
+                              >
+                                <TableCell
+                                  className="font-medium"
+                                  data-testid={`text-customer-name-${customer.id}`}
                                 >
-                                  <MessageCircle className="w-4 h-4 mr-1" />
-                                  Chat
-                                </Button>
-                              )}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setEditingCustomer(customer);
-                                  setEditCustomerStatus(
-                                    customer.status || "active",
-                                  );
-                                  setShowEditCustomer(true);
-                                }}
-                                data-testid={`button-edit-customer-${customer.id}`}
-                              >
-                                <Edit className="w-4 h-4 mr-1" />
-                                Edit
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedCustomer(customer);
-                                  setShowAddInvoice(true);
-                                }}
-                                data-testid={`button-add-invoice-${customer.id}`}
-                              >
-                                <Plus className="w-4 h-4 mr-1" />
-                                Invoice
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setSelectedCustomer(customer)}
-                                data-testid={`button-view-customer-${customer.id}`}
-                              >
-                                <Eye className="w-4 h-4 mr-1" />
-                                View
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+                                  {customer.name}
+                                </TableCell>
+                                <TableCell
+                                  data-testid={`text-customer-company-${customer.id}`}
+                                >
+                                  {customer.company || "-"}
+                                </TableCell>
+                                <TableCell
+                                  data-testid={`text-customer-email-${customer.id}`}
+                                >
+                                  {customer.email || "-"}
+                                </TableCell>
+                                <TableCell>
+                                  {getStatusBadge(customer.status || "active")}
+                                </TableCell>
+                                <TableCell
+                                  data-testid={`text-customer-total-${customer.id}`}
+                                >
+                                  {formatCurrency(customer.totalInvoiced || 0)}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex space-x-2">
+                                    {customer.conversationId && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                          navigate(
+                                            `/inbox?conversationId=${customer.conversationId}`,
+                                          )
+                                        }
+                                        data-testid={`button-view-conversation-${customer.id}`}
+                                      >
+                                        <MessageCircle className="w-4 h-4 mr-1" />
+                                        Chat
+                                      </Button>
+                                    )}
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setEditingCustomer(customer);
+                                        setEditCustomerStatus(
+                                          customer.status || "active",
+                                        );
+                                        setShowEditCustomer(true);
+                                      }}
+                                      data-testid={`button-edit-customer-${customer.id}`}
+                                    >
+                                      <Edit className="w-4 h-4 mr-1" />
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setSelectedCustomer(customer);
+                                        setShowAddInvoice(true);
+                                      }}
+                                      data-testid={`button-add-invoice-${customer.id}`}
+                                    >
+                                      <Plus className="w-4 h-4 mr-1" />
+                                      Invoice
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setSelectedCustomer(customer)}
+                                      data-testid={`button-view-customer-${customer.id}`}
+                                    >
+                                      <Eye className="w-4 h-4 mr-1" />
+                                      View
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </AccordionContent>
+                  </Card>
+                </AccordionItem>
+              </Accordion>
 
               {/* Invoices Section */}
               {selectedCustomer && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Invoices for {selectedCustomer.name}</CardTitle>
-                    <CardDescription>
-                      Manage invoices and upload files for this customer
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                <div className="space-y-4">
+                  {/* Customer Info Banner */}
+                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-blue-500 rounded-full">
+                          <User className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <h3 className="font-bold text-lg text-gray-900">{selectedCustomer.name}</h3>
+                            <div className="mt-2 space-y-1 text-sm text-gray-700">
+                              {selectedCustomer.email && (
+                                <p className="flex items-center gap-2">
+                                  <span className="font-medium">Email:</span> {selectedCustomer.email}
+                                </p>
+                              )}
+                              {selectedCustomer.phone && (
+                                <p className="flex items-center gap-2">
+                                  <span className="font-medium">Phone:</span> {selectedCustomer.phone}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Company & Address</p>
+                            <div className="mt-2 space-y-1 text-sm text-gray-700">
+                              {selectedCustomer.company && (
+                                <p className="flex items-center gap-2">
+                                  <span className="font-medium">Company:</span> {selectedCustomer.company}
+                                </p>
+                              )}
+                              {selectedCustomer.address && (
+                                <p className="flex items-center gap-2">
+                                  <span className="font-medium">Address:</span> {selectedCustomer.address}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Revenue & Status</p>
+                            <div className="mt-2 space-y-2">
+                              <div className="bg-white rounded-lg p-3 border border-blue-200">
+                                <p className="text-xs text-gray-600">Total Revenue</p>
+                                <p className="text-2xl font-bold text-blue-600" data-testid="text-customer-banner-revenue">
+                                  {formatCurrency(selectedCustomer.totalInvoiced || 0)}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium text-gray-600">Status:</span>
+                                {getStatusBadge(selectedCustomer.status || "active")}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {selectedCustomer.notes && (
+                        <div className="mt-4 pt-4 border-t border-blue-200">
+                          <p className="text-xs font-medium text-gray-600 mb-1">Notes:</p>
+                          <p className="text-sm text-gray-700">{selectedCustomer.notes}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Invoices Table */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Invoices for {selectedCustomer.name}</CardTitle>
+                      <CardDescription>
+                        Manage invoices and upload files for this customer
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -734,6 +865,7 @@ export default function CustomersPage() {
                     </Table>
                   </CardContent>
                 </Card>
+                </div>
               )}
 
               {/* Add Invoice Dialog */}
