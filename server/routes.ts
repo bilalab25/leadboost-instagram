@@ -1272,67 +1272,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // Customer routes
-  app.post(
-    "/api/customers",
-    isAuthenticated,
-    async (req: any, res) => {
-      try {
-        const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
-        const { name, phone, platform } = req.body;
-
-        if (!name) {
-          return res.status(400).json({ message: "Customer name is required" });
-        }
-
-        // Check if customer already exists (by phone for WhatsApp, by name for others)
-        let existingCustomer;
-        if (phone && platform === "whatsapp") {
-          existingCustomer = await storage.getCustomerByPhone(userId, phone);
-        } else {
-          existingCustomer = await storage.getCustomerByName(userId, name);
-        }
-
-        if (existingCustomer) {
-          return res.status(409).json({ 
-            message: "Customer already exists",
-            customer: existingCustomer
-          });
-        }
-
-        // Create new customer
-        const customer = await storage.createCustomer({
-          userId,
-          name,
-          phone: phone || null,
-          email: null,
-          company: null,
-          address: null,
-          notes: `Lead created from ${platform} conversation`,
-          status: "prospect",
-          totalInvoiced: 0,
-        });
-
-        // Log activity
-        await storage.createActivityLog({
-          userId,
-          action: "create_customer",
-          description: `Created customer lead: ${name}${phone ? ` (${phone})` : ''}`,
-          entityType: "customer",
-          entityId: customer.id,
-        });
-
-        res.json({ success: true, customer });
-      } catch (error) {
-        console.error("Error creating customer:", error);
-        res.status(500).json({ message: "Failed to create customer" });
-      }
-    },
-  );
-
   // Campaigns routes
   app.get("/api/campaigns", async (req: any, res) => {
     try {
@@ -3712,143 +3651,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customer management routes
   app.get("/api/customers", isAuthenticated, async (req: any, res) => {
     try {
-      // Return mock customer data
-      const mockCustomers = [
-        {
-          id: "customer-1",
-          name: "Sarah Martinez",
-          email: "sarah.martinez@email.com",
-          phone: "+1-555-0123",
-          avatar: null,
-          totalSpent: 1247.5,
-          lastOrderDate: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 3,
-          ).toISOString(),
-          orderCount: 8,
-          lifetimeValue: 2340.75,
-          acquisitionChannel: "instagram",
-          status: "active",
-          tags: ["VIP", "influencer"],
-          notes:
-            "Social media influencer with 15K followers. Great brand advocate.",
-          addresses: [
-            {
-              type: "shipping",
-              street: "123 Main St",
-              city: "Los Angeles",
-              state: "CA",
-              zip: "90210",
-              country: "USA",
-            },
-          ],
-          preferredPlatform: "instagram",
-          engagementLevel: "high",
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 120,
-          ).toISOString(),
-        },
-        {
-          id: "customer-2",
-          name: "Mike Johnson",
-          email: "mike.johnson@gmail.com",
-          phone: "+1-555-0456",
-          avatar: null,
-          totalSpent: 892.25,
-          lastOrderDate: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 7,
-          ).toISOString(),
-          orderCount: 5,
-          lifetimeValue: 892.25,
-          acquisitionChannel: "facebook",
-          status: "active",
-          tags: ["repeat-customer"],
-          notes:
-            "Prefers email communication. Always asks detailed product questions.",
-          addresses: [
-            {
-              type: "shipping",
-              street: "456 Oak Ave",
-              city: "Chicago",
-              state: "IL",
-              zip: "60614",
-              country: "USA",
-            },
-          ],
-          preferredPlatform: "email",
-          engagementLevel: "medium",
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 85,
-          ).toISOString(),
-        },
-        {
-          id: "customer-3",
-          name: "Emma Wilson",
-          email: "emma.wilson@yahoo.com",
-          phone: "+1-555-0789",
-          avatar: null,
-          totalSpent: 2156.8,
-          lastOrderDate: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 1,
-          ).toISOString(),
-          orderCount: 12,
-          lifetimeValue: 3240.9,
-          acquisitionChannel: "tiktok",
-          status: "VIP",
-          tags: ["VIP", "high-value", "brand-advocate"],
-          notes:
-            "Top customer! Creates UGC content regularly. Always leaves positive reviews.",
-          addresses: [
-            {
-              type: "shipping",
-              street: "789 Pine St",
-              city: "New York",
-              state: "NY",
-              zip: "10001",
-              country: "USA",
-            },
-          ],
-          preferredPlatform: "tiktok",
-          engagementLevel: "high",
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 200,
-          ).toISOString(),
-        },
-        {
-          id: "customer-4",
-          name: "David Chen",
-          email: "david.chen@outlook.com",
-          phone: "+1-555-0321",
-          avatar: null,
-          totalSpent: 543.75,
-          lastOrderDate: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 14,
-          ).toISOString(),
-          orderCount: 3,
-          lifetimeValue: 543.75,
-          acquisitionChannel: "whatsapp",
-          status: "active",
-          tags: ["business-inquiry"],
-          notes:
-            "Interested in bulk purchasing for his small business. Potential wholesale customer.",
-          addresses: [
-            {
-              type: "shipping",
-              street: "321 Cedar Rd",
-              city: "Seattle",
-              state: "WA",
-              zip: "98101",
-              country: "USA",
-            },
-          ],
-          preferredPlatform: "whatsapp",
-          engagementLevel: "medium",
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 45,
-          ).toISOString(),
-        },
-      ];
-
-      res.json(mockCustomers);
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      
+      const customers = await storage.getCustomersByUserId(userId);
+      res.json(customers);
     } catch (error) {
       console.error("Error fetching customers:", error);
       res.status(500).json({ message: "Failed to fetch customers" });
@@ -3859,17 +3666,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const { name, phone, platform } = req.body;
+
+      if (!name) {
+        return res.status(400).json({ message: "Customer name is required" });
+      }
+
+      // Check if customer already exists (by phone for WhatsApp, by name for others)
+      let existingCustomer;
+      if (phone && platform === "whatsapp") {
+        existingCustomer = await storage.getCustomerByPhone(userId, phone);
+      } else if (phone) {
+        existingCustomer = await storage.getCustomerByPhone(userId, phone);
+      } else {
+        existingCustomer = await storage.getCustomerByName(userId, name);
+      }
+
+      if (existingCustomer) {
+        return res.status(409).json({ 
+          message: "Customer already exists",
+          customer: existingCustomer
+        });
+      }
+
+      // Prepare customer data with defaults for missing fields
       const customerData = insertCustomerSchema.parse({
-        ...req.body,
         userId,
+        name,
+        phone: phone || null,
+        email: req.body.email || null,
+        company: req.body.company || null,
+        address: req.body.address || null,
+        notes: req.body.notes || (platform ? `Lead created from ${platform} conversation` : null),
+        status: req.body.status || (platform ? "prospect" : "active"),
+        totalInvoiced: 0,
       });
+
       const customer = await storage.createCustomer(customerData);
 
       // Log activity
       await storage.createActivityLog({
         userId,
         action: "customer_created",
-        description: `Created customer: ${customer.name}`,
+        description: `Created customer: ${customer.name}${phone ? ` (${phone})` : ''}`,
         entityType: "customer",
         entityId: customer.id,
       });
