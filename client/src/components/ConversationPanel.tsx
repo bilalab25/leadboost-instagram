@@ -27,13 +27,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import {
   SiWhatsapp,
@@ -107,7 +100,6 @@ export default function ConversationPanel({
   const [canSendFacebookMessage, setCanSendFacebookMessage] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [conversationFlag, setConversationFlag] = useState<'none' | 'important' | 'archived'>('none');
-  const [showCustomerDrawer, setShowCustomerDrawer] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch linked customer for this conversation
@@ -442,15 +434,16 @@ export default function ConversationPanel({
   return (
     <div
       className={cn(
-        "bg-white flex flex-col",
+        "bg-white flex",
         isDrawer
-          ? "fixed inset-y-0 right-0 w-full sm:w-[500px] shadow-2xl z-[100]"
+          ? "fixed inset-y-0 right-0 w-full sm:w-[900px] shadow-2xl z-[100]"
           : "h-full",
       )}
     >
-      {/* Header */}
-      {/* ... (código del encabezado sin cambios) */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      {/* Main conversation area - Left column */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3 flex-1">
           <div className="relative">
             <Avatar className="h-10 w-10">
@@ -488,19 +481,6 @@ export default function ConversationPanel({
               title="Create Lead"
             >
               <UserPlus className="h-4 w-4 text-green-600" />
-            </Button>
-          )}
-
-          {/* View Customer Button - shown when customer exists */}
-          {linkedCustomer && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowCustomerDrawer(true)}
-              data-testid="button-view-customer"
-              title="View Customer"
-            >
-              <Eye className="h-4 w-4 text-blue-600" />
             </Button>
           )}
 
@@ -686,109 +666,122 @@ export default function ConversationPanel({
         </div>
       </div>
 
-      {/* Image Preview Modal */}
-      {/* ... (código del modal de vista previa sin cambios) */}
-      {previewImage && (
-        <div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[999]"
-          onClick={() => setPreviewImage(null)}
-        >
-          <img
-            src={previewImage}
-            alt="Vista previa"
-            className="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl border border-white"
-          />
+        {/* Image Preview Modal */}
+        {previewImage && (
+          <div
+            className="fixed inset-0 bg-black/70 flex items-center justify-center z-[999]"
+            onClick={() => setPreviewImage(null)}
+          >
+            <img
+              src={previewImage}
+              alt="Vista previa"
+              className="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl border border-white"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Right column - Participant/Customer Info */}
+      <div className="w-80 bg-gray-50 border-l border-gray-200 flex flex-col overflow-y-auto">
+        {/* Participant Info Header */}
+        <div className="p-6 border-b border-gray-200 flex flex-col items-center">
+          <Avatar className="h-20 w-20 mb-3">
+            <AvatarImage alt={displayName} />
+            <AvatarFallback className="text-2xl">{displayName.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <h3 className="font-semibold text-lg text-gray-900">{displayName}</h3>
+          <div className="flex items-center gap-2 mt-1">
+            {PlatformIcon && (
+              <div
+                className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center",
+                  platformBg,
+                )}
+              >
+                <PlatformIcon className="text-white text-xs h-3 w-3" />
+              </div>
+            )}
+            <p className="text-sm text-gray-500 capitalize">{displayPlatform}</p>
+          </div>
         </div>
-      )}
 
-      {/* Customer Details Drawer */}
-      <Sheet open={showCustomerDrawer} onOpenChange={setShowCustomerDrawer}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Customer Information</SheetTitle>
-            <SheetDescription>
-              Details for this customer and their conversation
-            </SheetDescription>
-          </SheetHeader>
+        {/* Customer Details Section */}
+        {linkedCustomer ? (
+          <div className="p-6 space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-gray-900">Customer Information</h4>
+              <Badge
+                variant={
+                  linkedCustomer.status === "active"
+                    ? "default"
+                    : linkedCustomer.status === "inactive"
+                    ? "secondary"
+                    : "outline"
+                }
+              >
+                {linkedCustomer.status}
+              </Badge>
+            </div>
 
-          {linkedCustomer && (
-            <div className="mt-6 space-y-4">
+            {linkedCustomer.email && (
               <div>
-                <label className="text-sm font-medium text-gray-500">Name</label>
-                <p className="text-base font-semibold">{linkedCustomer.name}</p>
+                <label className="text-xs font-medium text-gray-500 uppercase">Email</label>
+                <p className="text-sm text-gray-900 mt-1">{linkedCustomer.email}</p>
               </div>
+            )}
 
-              {linkedCustomer.email && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Email</label>
-                  <p className="text-base">{linkedCustomer.email}</p>
-                </div>
-              )}
-
-              {linkedCustomer.phone && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Phone</label>
-                  <p className="text-base">{linkedCustomer.phone}</p>
-                </div>
-              )}
-
-              {linkedCustomer.company && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Company</label>
-                  <p className="text-base">{linkedCustomer.company}</p>
-                </div>
-              )}
-
+            {linkedCustomer.phone && (
               <div>
-                <label className="text-sm font-medium text-gray-500">Status</label>
-                <div className="mt-1">
-                  <Badge
-                    variant={
-                      linkedCustomer.status === "active"
-                        ? "default"
-                        : linkedCustomer.status === "inactive"
-                        ? "secondary"
-                        : "outline"
-                    }
-                  >
-                    {linkedCustomer.status}
-                  </Badge>
-                </div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Phone</label>
+                <p className="text-sm text-gray-900 mt-1">{linkedCustomer.phone}</p>
               </div>
+            )}
 
-              {linkedCustomer.totalInvoiced !== undefined && linkedCustomer.totalInvoiced !== null && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Total Invoiced</label>
-                  <p className="text-base font-semibold">
-                    ${(linkedCustomer.totalInvoiced / 100).toFixed(2)}
-                  </p>
-                </div>
-              )}
+            {linkedCustomer.company && (
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Company</label>
+                <p className="text-sm text-gray-900 mt-1">{linkedCustomer.company}</p>
+              </div>
+            )}
 
-              {linkedCustomer.address && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Address</label>
-                  <p className="text-base">{linkedCustomer.address}</p>
-                </div>
-              )}
-
-              {linkedCustomer.notes && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Notes</label>
-                  <p className="text-base text-gray-700">{linkedCustomer.notes}</p>
-                </div>
-              )}
-
-              <div className="pt-4 border-t">
-                <label className="text-sm font-medium text-gray-500">Created</label>
-                <p className="text-sm text-gray-600">
-                  {linkedCustomer.createdAt && new Date(linkedCustomer.createdAt).toLocaleDateString()}
+            {linkedCustomer.totalInvoiced !== undefined && linkedCustomer.totalInvoiced !== null && (
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Total Invoiced</label>
+                <p className="text-base font-semibold text-gray-900 mt-1">
+                  ${(linkedCustomer.totalInvoiced / 100).toFixed(2)}
                 </p>
               </div>
+            )}
+
+            {linkedCustomer.address && (
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Address</label>
+                <p className="text-sm text-gray-900 mt-1">{linkedCustomer.address}</p>
+              </div>
+            )}
+
+            {linkedCustomer.notes && (
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Notes</label>
+                <p className="text-sm text-gray-700 mt-1">{linkedCustomer.notes}</p>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-gray-200">
+              <label className="text-xs font-medium text-gray-500 uppercase">Customer Since</label>
+              <p className="text-sm text-gray-600 mt-1">
+                {linkedCustomer.createdAt && new Date(linkedCustomer.createdAt).toLocaleDateString()}
+              </p>
             </div>
-          )}
-        </SheetContent>
-      </Sheet>
+          </div>
+        ) : (
+          <div className="p-6">
+            <p className="text-sm text-gray-500 text-center">
+              No customer information available
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
