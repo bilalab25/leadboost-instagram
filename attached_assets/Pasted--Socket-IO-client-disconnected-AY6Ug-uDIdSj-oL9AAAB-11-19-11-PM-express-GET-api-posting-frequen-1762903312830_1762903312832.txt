@@ -1,0 +1,98 @@
+❌ Socket.IO client disconnected: AY6Ug-uDIdSj-oL9AAAB
+11:19:11 PM [express] GET /api/posting-frequency 200 in 2585ms :: []
+[AI Suggestions] Calling n8n webhook with payload: {
+  "Integrations": [
+    {
+      "id": "0d3ca7ae-b268-4ddf-aef3-1708ea481a05",
+      "user_id": "QfnFTJ0yRtXIFlxsLcxrUfJscks2",
+      "provider": "instagram",
+      "category": "social_media",
+      "store_name": "Instagram",
+      "store_url": "https://instagram.com/107sushi",
+      "page_id": "1630307990514455",
+      "access_token": "EAALYScPZBmAIBPzrAIgdOmHioU6vOZBSV37ddSNYd0kZBszSTjYIEGW5ZAY0UaDw9HTX2cndxYSO34Hpd3AtdCxwnVrBDac1M5jxCoP2rXTau9ErCKXK6DIeqc3AWgY1nzagviPQsM6EpT1NvigcMCjj0u2oejBVk1pZBOy6izeAUyC1GhLgXlsoE2ZB46XpsP3QGzPS6ZC",
+      "refresh_token": null,
+      "is_active": true,
+      "sync_enabled": true,
+      "last_sync_at": "2025-11-10T20:08:59.189Z",
+      "settings": {},
+      "created_at": "2025-11-10T19:32:06.545Z",
+      "updated_at": "2025-11-10T20:08:59.189Z",
+      "account_name": "107sushi",
+      "account_id": "17841408580030849",
+      "expires_at": null,
+      "metadata": {
+        "note": "accountId intentionally set to PAGE_ID (Graph API v24.0 change)",
+        "source": "facebook_callback_auto",
+        "fbPageId": "1630307990514455",
+        "fbPageName": "107 SUSHI & RAMEN",
+        "igUsername": "107sushi",
+        "igAccountId": "17841408580030849",
+        "igProfilePic": "https://scontent-mia3-3.xx.fbcdn.net/v/t51.2885-15/37937286_2395823527394648_8839332386417147904_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=7d201b&_nc_eui2=AeFz77qu2Qxbh2YH8TfqcTxJd5XuUABdz453le5QAF3PjivsAXMo8CsrIGhLN3uibY_ZOxcdefEqrwpsbL9Rbjlf&_nc_ohc=MY2xNS1ImqEQ7kNvwGHKR_S&_nc_oc=AdlxGX7BXFwe77l3ETnFpeAWscx-wSvoWBMkGkZu7kTEtg2H4Wj99evGPE9Dg16LTHo&_nc_zt=23&_nc_ht=scontent-mia3-3.xx&edm=AL-3X8kEAAAA&oh=00_AfifyZlh5sQ8tbB-KCHhFogM4cAwR87waT7D4bWYXoRBaA&oe=69180F48"
+      }
+    },
+    {
+      "id": "d6607d95-0fdc-434c-bb5c-2a404fe08b0d",
+      "user_id": "QfnFTJ0yRtXIFlxsLcxrUfJscks2",
+      "provider": "facebook",
+      "category": "social_media",
+      "store_name": "Facebook",
+      "store_url": "https://facebook.com/1630307990514455",
+      "page_id": "1630307990514455",
+      "access_token": "EAALYScPZBmAIBPzrAIgdOmHioU6vOZBSV37ddSNYd0kZBszSTjYIEGW5ZAY0UaDw9HTX2cndxYSO34Hpd3AtdCxwnVrBDac1M5jxCoP2rXTau9ErCKXK6DIeqc3AWgY1nzagviPQsM6EpT1NvigcMCjj0u2oejBVk1pZBOy6izeAUyC1GhLgXlsoE2ZB46XpsP3QGzPS6ZC",
+      "refresh_token": null,
+      "is_active": true,
+      "sync_enabled": true,
+      "last_sync_at": "2025-11-10T20:09:47.693Z",
+      "settings": {
+        "fbUserId": "1630307990514455",
+        "fbUserName": "107 SUSHI & RAMEN"
+      },
+      "created_at": "2025-11-10T19:32:05.247Z",
+      "updated_at": "2025-11-10T20:09:47.693Z",
+      "account_name": "107 SUSHI & RAMEN",
+      "account_id": "1630307990514455",
+      "expires_at": null,
+      "metadata": {
+        "source": "facebook_callback",
+        "fbCategory": "Ramen Restaurant",
+        "fbPageName": "107 SUSHI & RAMEN",
+        "fbPermissions": [
+          "MODERATE",
+          "MESSAGING",
+          "ANALYZE",
+          "ADVERTISE",
+          "CREATE_CONTENT",
+          "MANAGE"
+        ]
+      }
+    }
+  ]
+}
+[AI Suggestions] N8n response status: 200
+[AI Suggestions] N8n response headers: {
+  'cf-cache-status': 'DYNAMIC',
+  'cf-ray': '99d1835a9beae852-ORD',
+  connection: 'keep-alive',
+  'content-length': '0',
+  'content-security-policy': 'sandbox allow-downloads allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-scripts allow-top-navigation allow-top-navigation-by-user-activation allow-top-navigation-to-custom-protocols',
+  'content-type': 'application/json; charset=utf-8',
+  date: 'Tue, 11 Nov 2025 23:20:45 GMT',
+  nel: '{"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}',
+  'referrer-policy': 'same-origin',
+  'report-to': '{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=3%2BSkOXfu24Xd6VmVUa3xLRbJqxS2oU8Nd7tIyvJJ2Xo%2F8E5y8F7ZQ8Ld9Pn2QAe%2B6NsXtKDPbtyHY5T7vhyavM7NdIdFRKGIFgsCH58vrjXdhtHowQ%3D%3D"}]}',
+  server: 'cloudflare',
+  'strict-transport-security': 'max-age=15552000; includeSubDomains',
+  vary: 'Accept-Encoding, Accept-Encoding',
+  'x-content-type-options': 'nosniff',
+  'x-frame-options': 'SAMEORIGIN'
+}
+[AI Suggestions] N8n response body: 
+[AI Suggestions] Failed to parse n8n response as JSON: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:1373:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error fetching AI suggestions: Error: Invalid JSON response from n8n: 
+    at <anonymous> (/home/runner/workspace/server/routes.ts:1379:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11:20:45 PM [express] POST /api/posting-frequency/ai-suggestions 500 in 94391ms :: {"message":"Failed to fetch AI suggestions","error":"Invalid JSON response from n8n: "}

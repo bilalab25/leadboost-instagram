@@ -1270,119 +1270,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get AI-powered posting frequency suggestions from n8n
-  app.post("/api/posting-frequency/ai-suggestions", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-
-      // Fetch user's integrations
-      const integrations = await storage.getIntegrationsByUserId(userId);
-      
-      // Filter for Facebook and Instagram only
-      const relevantIntegrations = integrations.filter(
-        (integration: any) => 
-          (integration.provider === "facebook" || integration.provider === "instagram") &&
-          integration.isActive
-      );
-
-      if (relevantIntegrations.length === 0) {
-        return res.status(400).json({ 
-          message: "No active Facebook or Instagram integrations found" 
-        });
-      }
-
-      // Prepare data for n8n endpoint
-      const payload = {
-        Integrations: relevantIntegrations.map((integration: any) => ({
-          id: integration.id,
-          user_id: integration.userId,
-          provider: integration.provider,
-          category: integration.category,
-          store_name: integration.storeName,
-          store_url: integration.storeUrl,
-          page_id: integration.pageId,
-          access_token: integration.accessToken,
-          refresh_token: integration.refreshToken,
-          is_active: integration.isActive,
-          sync_enabled: integration.syncEnabled,
-          last_sync_at: integration.lastSyncAt,
-          settings: integration.settings,
-          created_at: integration.createdAt,
-          updated_at: integration.updatedAt,
-          account_name: integration.accountName,
-          account_id: integration.accountId,
-          expires_at: integration.expiresAt,
-          metadata: integration.metadata,
-        })),
-      };
-
-      // Call n8n webhook with timeout
-      console.log("[AI Suggestions] Calling n8n webhook with payload:", JSON.stringify(payload, null, 2));
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-      
-      let aiSuggestions;
+  app.post(
+    "/api/posting-frequency/ai-suggestions",
+    isAuthenticated,
+    async (req: any, res) => {
       try {
-        const n8nResponse = await fetch(
-          "https://monicapv27.app.n8n.cloud/webhook-test/ccc38e62-2f29-4fc5-8741-fce3350f5a86",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-            signal: controller.signal,
-          }
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+
+        // Fetch user's integrations
+        const integrations = await storage.getIntegrationsByUserId(userId);
+
+        // Filter for Facebook and Instagram only
+        const relevantIntegrations = integrations.filter(
+          (integration: any) =>
+            (integration.provider === "facebook" ||
+              integration.provider === "instagram") &&
+            integration.isActive,
         );
 
-        clearTimeout(timeoutId);
-
-        console.log("[AI Suggestions] N8n response status:", n8nResponse.status);
-        console.log("[AI Suggestions] N8n response headers:", Object.fromEntries(n8nResponse.headers.entries()));
-
-        if (!n8nResponse.ok) {
-          const errorText = await n8nResponse.text();
-          console.error("[AI Suggestions] N8n error response:", errorText);
-          throw new Error(`N8n webhook returned ${n8nResponse.status}: ${errorText}`);
+        if (relevantIntegrations.length === 0) {
+          return res.status(400).json({
+            message: "No active Facebook or Instagram integrations found",
+          });
         }
 
-        // Get response text first to debug
-        const responseText = await n8nResponse.text();
-        console.log("[AI Suggestions] N8n response body:", responseText);
+        // Prepare data for n8n endpoint
+        const payload = {
+          Integrations: relevantIntegrations.map((integration: any) => ({
+            id: integration.id,
+            user_id: integration.userId,
+            provider: integration.provider,
+            category: integration.category,
+            store_name: integration.storeName,
+            store_url: integration.storeUrl,
+            page_id: integration.pageId,
+            access_token: integration.accessToken,
+            refresh_token: integration.refreshToken,
+            is_active: integration.isActive,
+            sync_enabled: integration.syncEnabled,
+            last_sync_at: integration.lastSyncAt,
+            settings: integration.settings,
+            created_at: integration.createdAt,
+            updated_at: integration.updatedAt,
+            account_name: integration.accountName,
+            account_id: integration.accountId,
+            expires_at: integration.expiresAt,
+            metadata: integration.metadata,
+          })),
+        };
 
-        // Parse the JSON
+        // Call n8n webhook with timeout
+        console.log(
+          "[AI Suggestions] Calling n8n webhook with payload:",
+          JSON.stringify(payload, null, 2),
+        );
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 150000); // 30 second timeout
+
+        let aiSuggestions;
         try {
-          aiSuggestions = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error("[AI Suggestions] Failed to parse n8n response as JSON:", parseError);
-          throw new Error(`Invalid JSON response from n8n: ${responseText.substring(0, 200)}`);
+          const n8nResponse = await fetch(
+            "https://monicapv27.app.n8n.cloud/webhook-test/ccc38e62-2f29-4fc5-8741-fce3350f5a86",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+              signal: controller.signal,
+            },
+          );
+
+          clearTimeout(timeoutId);
+
+          console.log(
+            "[AI Suggestions] N8n response status:",
+            n8nResponse.status,
+          );
+          console.log(
+            "[AI Suggestions] N8n response headers:",
+            Object.fromEntries(n8nResponse.headers.entries()),
+          );
+
+          if (!n8nResponse.ok) {
+            const errorText = await n8nResponse.text();
+            console.error("[AI Suggestions] N8n error response:", errorText);
+            throw new Error(
+              `N8n webhook returned ${n8nResponse.status}: ${errorText}`,
+            );
+          }
+
+          // Get response text first to debug
+          const responseText = await n8nResponse.text();
+          console.log("[AI Suggestions] N8n response body:", responseText);
+
+          // Parse the JSON
+          try {
+            aiSuggestions = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error(
+              "[AI Suggestions] Failed to parse n8n response as JSON:",
+              parseError,
+            );
+            throw new Error(
+              `Invalid JSON response from n8n: ${responseText.substring(0, 200)}`,
+            );
+          }
+
+          console.log(
+            "[AI Suggestions] Parsed AI suggestions:",
+            JSON.stringify(aiSuggestions, null, 2),
+          );
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          if (fetchError instanceof Error && fetchError.name === "AbortError") {
+            throw new Error("N8n webhook request timed out after 30 seconds");
+          }
+          throw fetchError;
         }
 
-        console.log("[AI Suggestions] Parsed AI suggestions:", JSON.stringify(aiSuggestions, null, 2));
-      } catch (fetchError) {
-        clearTimeout(timeoutId);
-        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-          throw new Error('N8n webhook request timed out after 30 seconds');
+        // Validate response structure
+        if (!Array.isArray(aiSuggestions) || aiSuggestions.length === 0) {
+          throw new Error("Invalid response format from n8n");
         }
-        throw fetchError;
-      }
 
-      // Validate response structure
-      if (!Array.isArray(aiSuggestions) || aiSuggestions.length === 0) {
-        throw new Error("Invalid response format from n8n");
+        // Return sanitized suggestions
+        res.json(aiSuggestions);
+      } catch (error) {
+        console.error("Error fetching AI suggestions:", error);
+        res.status(500).json({
+          message: "Failed to fetch AI suggestions",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       }
-
-      // Return sanitized suggestions
-      res.json(aiSuggestions);
-    } catch (error) {
-      console.error("Error fetching AI suggestions:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch AI suggestions",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
+    },
+  );
 
   // Campaigns routes
   app.get("/api/campaigns", async (req: any, res) => {
@@ -3790,21 +3816,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/customers/by-conversation/:conversationId", isAuthenticated, async (req: any, res) => {
-    try {
-      const conversationId = req.params.conversationId;
-      const customer = await storage.getCustomerByConversationId(conversationId);
-      
-      if (!customer) {
-        return res.status(404).json({ message: "Customer not found" });
+  app.get(
+    "/api/customers/by-conversation/:conversationId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const conversationId = req.params.conversationId;
+        const customer =
+          await storage.getCustomerByConversationId(conversationId);
+
+        if (!customer) {
+          return res.status(404).json({ message: "Customer not found" });
+        }
+
+        res.json(customer);
+      } catch (error) {
+        console.error("Error fetching customer by conversation:", error);
+        res.status(500).json({ message: "Failed to fetch customer" });
       }
-      
-      res.json(customer);
-    } catch (error) {
-      console.error("Error fetching customer by conversation:", error);
-      res.status(500).json({ message: "Failed to fetch customer" });
-    }
-  });
+    },
+  );
 
   app.post("/api/customers", isAuthenticated, async (req: any, res) => {
     try {
