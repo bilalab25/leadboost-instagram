@@ -816,11 +816,24 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
   updatedAt: true,
 });
 
-export const insertInvoiceSchema = createInsertSchema(invoices).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertInvoiceSchema = createInsertSchema(invoices)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    dueDate: z
+      .union([z.string(), z.date()])
+      .transform((val) => (typeof val === "string" ? new Date(val) : val))
+      .optional()
+      .nullable(),
+    paidDate: z
+      .union([z.string(), z.date()])
+      .transform((val) => (typeof val === "string" ? new Date(val) : val))
+      .optional()
+      .nullable(),
+  });
 
 export const insertTeamTaskSchema = createInsertSchema(teamTasks).omit({
   id: true,
