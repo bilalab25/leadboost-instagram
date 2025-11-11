@@ -108,30 +108,37 @@ export const socialAccounts = pgTable("social_accounts", {
 });
 
 // Conversations table - Groups messages from Meta platforms
-export const conversations = pgTable("conversations", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  integrationId: uuid("integration_id")
-    .notNull()
-    .references(() => integrations.id, { onDelete: "cascade" }),
-  userId: varchar("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  metaConversationId: text("meta_conversation_id").notNull(), // Meta-specific conversation ID
-  platform: varchar("platform").notNull(), // whatsapp, messenger, instagram, threads
-  contactName: varchar("contact_name"), // Contact/participant name
-  lastMessage: text("last_message"), // Preview of last message
-  lastMessageAt: timestamp("last_message_at").defaultNow(),
-  unreadCount: integer("unread_count").default(0),
-  flag: varchar("flag").default("none"), // none, important, archived
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  unique("conversations_integration_meta_unique").on(table.integrationId, table.metaConversationId),
-  index("conversations_integration_idx").on(table.integrationId),
-  index("conversations_user_idx").on(table.userId),
-]);
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    integrationId: uuid("integration_id")
+      .notNull()
+      .references(() => integrations.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    metaConversationId: text("meta_conversation_id").notNull(), // Meta-specific conversation ID
+    platform: varchar("platform").notNull(), // whatsapp, messenger, instagram, threads
+    contactName: varchar("contact_name"), // Contact/participant name
+    lastMessage: text("last_message"), // Preview of last message
+    lastMessageAt: timestamp("last_message_at").defaultNow(),
+    unreadCount: integer("unread_count").default(0),
+    flag: varchar("flag").default("none"), // none, important, archived
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    unique("conversations_integration_meta_unique").on(
+      table.integrationId,
+      table.metaConversationId,
+    ),
+    index("conversations_integration_idx").on(table.integrationId),
+    index("conversations_user_idx").on(table.userId),
+  ],
+);
 
 // DEPRECATED: Old conversation threads table - Use conversations table instead
 export const conversationThreads = pgTable("conversation_threads", {
@@ -153,33 +160,42 @@ export const conversationThreads = pgTable("conversation_threads", {
 });
 
 // Messages from all social platforms - Webhook storage
-export const messages = pgTable("messages", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }), // Routing key: platform user who owns the conversation
-  integrationId: uuid("integration_id")
-    .notNull()
-    .references(() => integrations.id, { onDelete: "cascade" }), // Integration that received the message
-  conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "cascade" }), // Link to conversation
-  platform: varchar("platform").notNull(), // whatsapp, messenger, instagram
-  metaMessageId: varchar("meta_message_id").notNull(), // Unique Meta ID (wamid... or mid...) - Composite UNIQUE with integrationId
-  metaConversationId: text("meta_conversation_id"), // Meta conversation/thread ID for grouping messages
-  senderId: varchar("sender_id").notNull(), // ID of the end user who sent the message
-  recipientId: varchar("recipient_id").notNull(), // ID of the page/number that received the message
-  contactName: varchar("contact_name"), // Contact profile name from WhatsApp
-  textContent: text("text_content"), // Message content
-  direction: varchar("direction").notNull(), // inbound (Incoming) or outbound (Outgoing/Echo)
-  isRead: boolean("is_read").default(false), // Read status for message
-  timestamp: timestamp("timestamp").notNull(), // When the event occurred
-  rawPayload: jsonb("raw_payload"), // Complete webhook payload for reference
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  unique("messages_integration_message_unique").on(table.integrationId, table.metaMessageId),
-  index("messages_conversation_idx").on(table.conversationId),
-]);
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }), // Routing key: platform user who owns the conversation
+    integrationId: uuid("integration_id")
+      .notNull()
+      .references(() => integrations.id, { onDelete: "cascade" }), // Integration that received the message
+    conversationId: uuid("conversation_id").references(() => conversations.id, {
+      onDelete: "cascade",
+    }), // Link to conversation
+    platform: varchar("platform").notNull(), // whatsapp, messenger, instagram
+    metaMessageId: varchar("meta_message_id").notNull(), // Unique Meta ID (wamid... or mid...) - Composite UNIQUE with integrationId
+    metaConversationId: text("meta_conversation_id"), // Meta conversation/thread ID for grouping messages
+    senderId: varchar("sender_id").notNull(), // ID of the end user who sent the message
+    recipientId: varchar("recipient_id").notNull(), // ID of the page/number that received the message
+    contactName: varchar("contact_name"), // Contact profile name from WhatsApp
+    textContent: text("text_content"), // Message content
+    direction: varchar("direction").notNull(), // inbound (Incoming) or outbound (Outgoing/Echo)
+    isRead: boolean("is_read").default(false), // Read status for message
+    timestamp: timestamp("timestamp").notNull(), // When the event occurred
+    rawPayload: jsonb("raw_payload"), // Complete webhook payload for reference
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    unique("messages_integration_message_unique").on(
+      table.integrationId,
+      table.metaMessageId,
+    ),
+    index("messages_conversation_idx").on(table.conversationId),
+  ],
+);
 
 // Message attachments (images, videos, files)
 export const messageAttachments = pgTable("message_attachments", {
@@ -560,19 +576,16 @@ export const brandsRelations = relations(brands, ({ one, many }) => ({
   posIntegrations: many(posIntegrations),
 }));
 
-export const socialAccountsRelations = relations(
-  socialAccounts,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [socialAccounts.userId],
-      references: [users.id],
-    }),
-    brand: one(brands, {
-      fields: [socialAccounts.brandId],
-      references: [brands.id],
-    }),
+export const socialAccountsRelations = relations(socialAccounts, ({ one }) => ({
+  user: one(users, {
+    fields: [socialAccounts.userId],
+    references: [users.id],
   }),
-);
+  brand: one(brands, {
+    fields: [socialAccounts.brandId],
+    references: [brands.id],
+  }),
+}));
 
 export const conversationsRelations = relations(
   conversations,

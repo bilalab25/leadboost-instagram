@@ -175,13 +175,12 @@ export default function CustomersPage() {
   const handleAddInvoice = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const dueDateString = formData.get("dueDate") as string;
     const data = {
       customerId: selectedCustomer?.id,
       invoiceNumber: formData.get("invoiceNumber") as string,
       amount: parseInt((formData.get("amount") as string) || "0") * 100, // Convert to cents
       description: formData.get("description") as string,
-      dueDate: dueDateString ? new Date(dueDateString) : null,
+      dueDate: formData.get("dueDate") as string,
       status: formData.get("status") as string,
     };
     createInvoiceMutation.mutate(data);
