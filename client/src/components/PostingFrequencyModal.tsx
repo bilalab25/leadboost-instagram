@@ -87,6 +87,18 @@ export default function PostingFrequencyModal({
     enabled: isOpen, // Only fetch when modal is open
   });
 
+  // Fetch AI suggestions from n8n (only when needed)
+  const [shouldFetchAI, setShouldFetchAI] = useState(false);
+  const { data: aiSuggestionsData, isLoading: aiSuggestionsLoading, error: aiSuggestionsError } = useQuery<any[]>({
+    queryKey: ["/api/posting-frequency/ai-suggestions"],
+    queryFn: async () => {
+      const response = await apiRequest("POST", "/api/posting-frequency/ai-suggestions", {});
+      return await response.json();
+    },
+    enabled: shouldFetchAI && isOpen,
+    retry: false, // Don't retry on error
+  });
+
   // Get connected platform providers
   const connectedPlatforms = integrations.map((integration) => integration.provider?.toLowerCase());
 
@@ -148,9 +160,10 @@ export default function PostingFrequencyModal({
   const [useSuggested, setUseSuggested] = useState(true);
   const [hasSavedData, setHasSavedData] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [useN8nSuggestions, setUseN8nSuggestions] = useState(false);
 
   useEffect(() => {
-    if (isOpen && !frequenciesLoading) {
+    if (isOpen && !frequenciesLoading && !integrationsLoading) {
       // Check if there are saved frequencies in the database
       if (savedFrequencies && savedFrequencies.length > 0) {
         // Convert database format to component format
@@ -163,21 +176,121 @@ export default function PostingFrequencyModal({
         setUseSuggested(false);
         setHasSavedData(true);
         setIsEditMode(false); // Start in view mode
+        setUseN8nSuggestions(false);
       } else if (currentSchedule) {
         // Use parent-provided schedule
         setSchedules(currentSchedule);
         setUseSuggested(false);
         setHasSavedData(false);
         setIsEditMode(true); // Allow editing
+        setUseN8nSuggestions(false);
       } else {
-        // Generate AI suggestions
-        setSchedules(generateSuggestedSchedule());
+        // Check if user has Facebook and Instagram integrations
+        const hasFacebook = integrations.some((i: any) => i.provider === "facebook" && i.isActive);
+        const hasInstagram = integrations.some((i: any) => i.provider === "instagram" && i.isActive);
+        
+        if (hasFacebook && hasInstagram) {
+          // Fetch AI suggestions from n8n
+          setShouldFetchAI(true);
+          setUseN8nSuggestions(true);
+        } else {
+          // Generate default AI suggestions
+          setSchedules(generateSuggestedSchedule());
+          setUseSuggested(true);
+          setHasSavedData(false);
+          setIsEditMode(false);
+          setUseN8nSuggestions(false);
+        }
+      }
+    }
+  }, [isOpen, savedFrequencies, currentSchedule, frequenciesLoading, integrationsLoading, integrations]);
+
+  // Process AI suggestions from n8n when they arrive
+  useEffect(() => {
+    if (aiSuggestionsData && useN8nSuggestions) {
+      try {
+        // Validate response structure
+        if (!Array.isArray(aiSuggestionsData) || aiSuggestionsData.length === 0) {
+          throw new Error("Invalid AI suggestions format: expected non-empty array");
+        }
+
+        const firstSuggestion = aiSuggestionsData[0];
+        if (!firstSuggestion || !Array.isArray(firstSuggestion.recommendations)) {
+          throw new Error("Invalid AI suggestions format: missing recommendations");
+        }
+
+        // Convert n8n response to PlatformSchedule format with validation
+        const convertedSchedules: PlatformSchedule[] = firstSuggestion.recommendations
+          .filter((rec: any) => rec && rec.platform && rec.days_week) // Filter out invalid records
+          .map((rec: any) => {
+            // Extract number from frequency_days string (e.g., "1 publicación por semana" -> 1)
+            const freqMatch = rec.frequency_days?.match(/\d+/);
+            const postsPerWeek = freqMatch ? parseInt(freqMatch[0]) : 1;
+            
+            // Validate postsPerWeek is reasonable
+            const validatedPostsPerWeek = Math.max(1, Math.min(7, postsPerWeek));
+            
+            // Convert day abbreviations to full lowercase names
+            const dayMap: Record<string, string> = {
+              "mon": "monday",
+              "tue": "tuesday",
+              "wed": "wednesday",
+              "thu": "thursday",
+              "fri": "friday",
+              "sat": "saturday",
+              "sun": "sunday"
+            };
+            
+            const selectedDays = (Array.isArray(rec.days_week) ? rec.days_week : [])
+              .map((day: string) => dayMap[day.toLowerCase()] || day.toLowerCase())
+              .filter((day: string) => day && day.length > 0); // Remove empty strings
+            
+            // Ensure we have at least one day selected
+            const finalDays = selectedDays.length > 0 ? selectedDays : ["monday"];
+            
+            return {
+              platform: rec.platform.toLowerCase(),
+              postsPerWeek: Math.min(validatedPostsPerWeek, finalDays.length), // Ensure consistency
+              selectedDays: finalDays
+            };
+          });
+
+        if (convertedSchedules.length === 0) {
+          throw new Error("No valid recommendations found in AI suggestions");
+        }
+          
+        setSchedules(convertedSchedules);
         setUseSuggested(true);
         setHasSavedData(false);
         setIsEditMode(false);
+      } catch (error) {
+        console.error("Error processing AI suggestions:", error);
+        toast({
+          title: "AI Suggestions Error",
+          description: "Failed to process AI suggestions. Using default schedule.",
+          variant: "destructive"
+        });
+        // Fallback to default suggestions
+        setSchedules(generateSuggestedSchedule());
+        setUseSuggested(true);
+        setUseN8nSuggestions(false);
       }
     }
-  }, [isOpen, savedFrequencies, currentSchedule, frequenciesLoading]);
+  }, [aiSuggestionsData, useN8nSuggestions, toast]);
+
+  // Handle AI suggestions error
+  useEffect(() => {
+    if (aiSuggestionsError && useN8nSuggestions) {
+      toast({
+        title: "Could not fetch AI suggestions",
+        description: "Using default posting schedule instead.",
+      });
+      // Fallback to default suggestions
+      setSchedules(generateSuggestedSchedule());
+      setUseSuggested(true);
+      setUseN8nSuggestions(false);
+    }
+  }, [aiSuggestionsError, useN8nSuggestions, toast]);
 
   // Mutation to save posting frequency to database
   const saveFrequencyMutation = useMutation({
@@ -292,10 +405,12 @@ export default function PostingFrequencyModal({
           </DialogTitle>
         </DialogHeader>
 
-        {(integrationsLoading || frequenciesLoading) ? (
+        {(integrationsLoading || frequenciesLoading || (aiSuggestionsLoading && useN8nSuggestions)) ? (
           <div className="py-12 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-gray-500">Loading your posting schedule...</p>
+            <p className="text-gray-500">
+              {aiSuggestionsLoading ? "Fetching AI-powered suggestions from insights..." : "Loading your posting schedule..."}
+            </p>
           </div>
         ) : userPlatforms.length === 0 ? (
           <div className="py-12 text-center">
@@ -317,11 +432,13 @@ export default function PostingFrequencyModal({
                 <Sparkles className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 mb-1">
-                    AI-Suggested Schedule
+                    {useN8nSuggestions ? "AI-Powered Insights Schedule" : "AI-Suggested Schedule"}
                   </h3>
                   <p className="text-sm text-gray-600 mb-3">
-                    Based on industry best practices and optimal engagement times,
-                    we've created a posting schedule tailored for maximum reach and engagement.
+                    {useN8nSuggestions 
+                      ? "Based on your Facebook and Instagram engagement data, we've analyzed your audience behavior to create an optimized posting schedule for maximum reach and engagement."
+                      : "Based on industry best practices and optimal engagement times, we've created a posting schedule tailored for maximum reach and engagement."
+                    }
                   </p>
                   <div className="flex gap-2">
                     <Button

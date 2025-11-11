@@ -1269,6 +1269,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get AI-powered posting frequency suggestions from n8n
+  app.post("/api/posting-frequency/ai-suggestions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+
+      // Fetch user's integrations
+      const integrations = await storage.getIntegrationsByUserId(userId);
+      
+      // Filter for Facebook and Instagram only
+      const relevantIntegrations = integrations.filter(
+        (integration: any) => 
+          (integration.provider === "facebook" || integration.provider === "instagram") &&
+          integration.isActive
+      );
+
+      if (relevantIntegrations.length === 0) {
+        return res.status(400).json({ 
+          message: "No active Facebook or Instagram integrations found" 
+        });
+      }
+
+      // Prepare data for n8n endpoint
+      const payload = {
+        Integrations: relevantIntegrations.map((integration: any) => ({
+          id: integration.id,
+          user_id: integration.userId,
+          provider: integration.provider,
+          category: integration.category,
+          store_name: integration.storeName,
+          store_url: integration.storeUrl,
+          page_id: integration.pageId,
+          access_token: integration.accessToken,
+          refresh_token: integration.refreshToken,
+          is_active: integration.isActive,
+          sync_enabled: integration.syncEnabled,
+          last_sync_at: integration.lastSyncAt,
+          settings: integration.settings,
+          created_at: integration.createdAt,
+          updated_at: integration.updatedAt,
+          account_name: integration.accountName,
+          account_id: integration.accountId,
+          expires_at: integration.expiresAt,
+          metadata: integration.metadata,
+        })),
+      };
+
+      // Call n8n webhook
+      const n8nResponse = await fetch(
+        "https://monicapv27.app.n8n.cloud/webhook-test/ccc38e62-2f29-4fc5-8741-fce3350f5a86",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!n8nResponse.ok) {
+        throw new Error(`N8n webhook returned ${n8nResponse.status}`);
+      }
+
+      const aiSuggestions = await n8nResponse.json();
+
+      // Validate response structure
+      if (!Array.isArray(aiSuggestions) || aiSuggestions.length === 0) {
+        throw new Error("Invalid response format from n8n");
+      }
+
+      // Return sanitized suggestions
+      res.json(aiSuggestions);
+    } catch (error) {
+      console.error("Error fetching AI suggestions:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch AI suggestions",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Campaigns routes
   app.get("/api/campaigns", async (req: any, res) => {
     try {
