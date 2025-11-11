@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
@@ -51,6 +52,7 @@ interface InvoiceWithCustomer extends Invoice {
 export default function CustomersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [showEditCustomer, setShowEditCustomer] = useState(false);
@@ -470,7 +472,7 @@ export default function CustomersPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.location.href = `/inbox?conversationId=${customer.conversationId}`}
+                          onClick={() => navigate(`/inbox?conversationId=${customer.conversationId}`)}
                           data-testid={`button-view-conversation-${customer.id}`}
                         >
                           <MessageCircle className="w-4 h-4 mr-1" />
