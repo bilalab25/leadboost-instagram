@@ -31,9 +31,9 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     // Handle query keys with parameters
     const [baseUrl, params] = queryKey as [string, Record<string, any>?];
-    
+
     let url = baseUrl;
-    if (params && typeof params === 'object') {
+    if (params && typeof params === "object") {
       const searchParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -42,10 +42,10 @@ export const getQueryFn: <T>(options: {
       });
       const queryString = searchParams.toString();
       if (queryString) {
-        url += '?' + queryString;
+        url += "?" + queryString;
       }
     }
-    
+
     const res = await fetch(url, {
       credentials: "include",
     });

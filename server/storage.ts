@@ -197,8 +197,14 @@ export interface IStorage {
   // Customer operations
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   getCustomersByUserId(userId: string): Promise<Customer[]>;
-  getCustomerByPhone(userId: string, phone: string): Promise<Customer | undefined>;
-  getCustomerByName(userId: string, name: string): Promise<Customer | undefined>;
+  getCustomerByPhone(
+    userId: string,
+    phone: string,
+  ): Promise<Customer | undefined>;
+  getCustomerByName(
+    userId: string,
+    name: string,
+  ): Promise<Customer | undefined>;
   updateCustomer(
     id: string,
     userId: string,
@@ -697,10 +703,15 @@ export class DatabaseStorage implements IStorage {
           flag: "none",
         })
         .onConflictDoUpdate({
-          target: [conversations.integrationId, conversations.metaConversationId],
+          target: [
+            conversations.integrationId,
+            conversations.metaConversationId,
+          ],
           set: {
-            contactName: params.contactName || sql`${conversations.contactName}`,
-            lastMessage: params.lastMessage || sql`${conversations.lastMessage}`,
+            contactName:
+              params.contactName || sql`${conversations.contactName}`,
+            lastMessage:
+              params.lastMessage || sql`${conversations.lastMessage}`,
             lastMessageAt: params.lastMessageAt || new Date(),
             updatedAt: new Date(),
           },
@@ -711,17 +722,20 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async getConversations(userId: string, limit?: number): Promise<Conversation[]> {
+  async getConversations(
+    userId: string,
+    limit?: number,
+  ): Promise<Conversation[]> {
     const query = db
       .select()
       .from(conversations)
       .where(eq(conversations.userId, userId))
       .orderBy(desc(conversations.lastMessageAt));
-    
+
     if (limit && limit > 0) {
       return query.limit(limit);
     }
-    
+
     return query;
   }
 
@@ -941,7 +955,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(customers.createdAt));
   }
 
-  async getCustomerByPhone(userId: string, phone: string): Promise<Customer | undefined> {
+  async getCustomerByPhone(
+    userId: string,
+    phone: string,
+  ): Promise<Customer | undefined> {
     const [customer] = await db
       .select()
       .from(customers)
@@ -950,7 +967,10 @@ export class DatabaseStorage implements IStorage {
     return customer;
   }
 
-  async getCustomerByName(userId: string, name: string): Promise<Customer | undefined> {
+  async getCustomerByName(
+    userId: string,
+    name: string,
+  ): Promise<Customer | undefined> {
     const [customer] = await db
       .select()
       .from(customers)
@@ -964,6 +984,8 @@ export class DatabaseStorage implements IStorage {
     userId: string,
     updates: Partial<Customer>,
   ): Promise<Customer | undefined> {
+    console.log("🔎 Updating in DB where:", { id, userId, updates });
+
     const [updated] = await db
       .update(customers)
       .set({ ...updates, updatedAt: new Date() })

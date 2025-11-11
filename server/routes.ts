@@ -318,8 +318,11 @@ async function performInitialSync(
     // ✅ Batch create conversations
     console.log(`🔄 Creating ${conversationMetadata.size} conversations...`);
     const conversationMap = new Map<string, string>(); // metaConversationId -> conversationId
-    
-    for (const [metaConversationId, metadata] of conversationMetadata.entries()) {
+
+    for (const [
+      metaConversationId,
+      metadata,
+    ] of conversationMetadata.entries()) {
       const conversation = await storage.getOrCreateConversation({
         integrationId: integration.id,
         userId,
@@ -333,11 +336,13 @@ async function performInitialSync(
     }
 
     // ✅ Add conversationId to all messages
-    messagesToInsert.forEach(msg => {
+    messagesToInsert.forEach((msg) => {
       msg.conversationId = conversationMap.get(msg.metaConversationId);
     });
-    
-    console.log(`✅ Mapped ${messagesToInsert.length} messages to conversations`);
+
+    console.log(
+      `✅ Mapped ${messagesToInsert.length} messages to conversations`,
+    );
 
     // ✅ Save messages
     if (messagesToInsert.length > 0) {
@@ -1206,71 +1211,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Social Posting Frequency routes
-  app.post(
-    "/api/posting-frequency",
-    isAuthenticated,
-    async (req: any, res) => {
-      try {
-        const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
-        const { schedules } = req.body;
+  app.post("/api/posting-frequency", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const { schedules } = req.body;
 
-        if (!schedules || !Array.isArray(schedules)) {
-          return res.status(400).json({ message: "Invalid schedules data" });
-        }
-
-        // Convert schedules to database format
-        const frequencies = schedules.map((schedule: any) => ({
-          userId,
-          platform: schedule.platform,
-          frequencyDays: schedule.postsPerWeek,
-          daysWeek: schedule.selectedDays,
-          source: "custom",
-          status: "accepted",
-          confidenceScore: null,
-          insightsData: null,
-        }));
-
-        // Save to database
-        await storage.saveSocialPostingFrequencies(frequencies);
-
-        // Log activity
-        await storage.createActivityLog({
-          userId,
-          action: "save_posting_frequency",
-          description: `Saved posting frequency for ${schedules.length} platforms`,
-          entityType: "posting_frequency",
-          entityId: userId,
-        });
-
-        res.json({ success: true, message: "Posting frequency saved successfully" });
-      } catch (error) {
-        console.error("Error saving posting frequency:", error);
-        res.status(500).json({ message: "Failed to save posting frequency" });
+      if (!schedules || !Array.isArray(schedules)) {
+        return res.status(400).json({ message: "Invalid schedules data" });
       }
-    },
-  );
 
-  app.get(
-    "/api/posting-frequency",
-    isAuthenticated,
-    async (req: any, res) => {
-      try {
-        const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+      // Convert schedules to database format
+      const frequencies = schedules.map((schedule: any) => ({
+        userId,
+        platform: schedule.platform,
+        frequencyDays: schedule.postsPerWeek,
+        daysWeek: schedule.selectedDays,
+        source: "custom",
+        status: "accepted",
+        confidenceScore: null,
+        insightsData: null,
+      }));
 
-        const frequencies = await storage.getSocialPostingFrequenciesByUserId(userId);
-        res.json(frequencies);
-      } catch (error) {
-        console.error("Error fetching posting frequency:", error);
-        res.status(500).json({ message: "Failed to fetch posting frequency" });
-      }
-    },
-  );
+      // Save to database
+      await storage.saveSocialPostingFrequencies(frequencies);
+
+      // Log activity
+      await storage.createActivityLog({
+        userId,
+        action: "save_posting_frequency",
+        description: `Saved posting frequency for ${schedules.length} platforms`,
+        entityType: "posting_frequency",
+        entityId: userId,
+      });
+
+      res.json({
+        success: true,
+        message: "Posting frequency saved successfully",
+      });
+    } catch (error) {
+      console.error("Error saving posting frequency:", error);
+      res.status(500).json({ message: "Failed to save posting frequency" });
+    }
+  });
+
+  app.get("/api/posting-frequency", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+
+      const frequencies =
+        await storage.getSocialPostingFrequenciesByUserId(userId);
+      res.json(frequencies);
+    } catch (error) {
+      console.error("Error fetching posting frequency:", error);
+      res.status(500).json({ message: "Failed to fetch posting frequency" });
+    }
+  });
 
   // Campaigns routes
   app.get("/api/campaigns", async (req: any, res) => {
@@ -2178,7 +2175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                   if (integration) {
                     const metaConversationId = `${phoneNumberId}_${senderId}`;
-                    
+
                     // Get or create conversation
                     const conversation = await storage.getOrCreateConversation({
                       integrationId: integration.id,
@@ -2564,7 +2561,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const limitParam = req.query.limit;
-      
+
       // Parse and validate limit parameter
       let limit: number | undefined;
       if (limitParam) {
@@ -2573,10 +2570,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           limit = parsed;
         }
       }
-      
+
       const conversations = await storage.getConversations(userId, limit);
-      
-      console.log(`📋 Retrieved ${conversations.length} conversations for user ${userId}${limit ? ` (limit: ${limit})` : ''}`);
+
+      console.log(
+        `📋 Retrieved ${conversations.length} conversations for user ${userId}${limit ? ` (limit: ${limit})` : ""}`,
+      );
       res.json({ conversations });
     } catch (err) {
       console.error("❌ Error fetching conversations:", err);
@@ -2607,93 +2606,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ✅ NEW: Get all messages for a specific conversation
-  app.get("/api/conversations/:id/messages", isAuthenticated, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const userId = req.user.id;
+  app.get(
+    "/api/conversations/:id/messages",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { id } = req.params;
+        const userId = req.user.id;
 
-      // Verify user has access to this conversation
-      const conversations = await storage.getConversations(userId);
-      const conversation = conversations.find((c) => c.id === id);
+        // Verify user has access to this conversation
+        const conversations = await storage.getConversations(userId);
+        const conversation = conversations.find((c) => c.id === id);
 
-      if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found" });
+        if (!conversation) {
+          return res.status(404).json({ error: "Conversation not found" });
+        }
+
+        const messages = await storage.getConversationMessages(id);
+
+        console.log(
+          `📨 Retrieved ${messages.length} messages for conversation ${id}`,
+        );
+        res.json({ messages });
+      } catch (err) {
+        console.error("❌ Error fetching conversation messages:", err);
+        res.status(500).json({ error: "Failed to fetch messages" });
       }
-
-      const messages = await storage.getConversationMessages(id);
-      
-      console.log(`📨 Retrieved ${messages.length} messages for conversation ${id}`);
-      res.json({ messages });
-    } catch (err) {
-      console.error("❌ Error fetching conversation messages:", err);
-      res.status(500).json({ error: "Failed to fetch messages" });
-    }
-  });
+    },
+  );
 
   // ✅ NEW: Mark conversation as read
-  app.patch("/api/conversations/:id/read", isAuthenticated, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const userId = req.user.id;
+  app.patch(
+    "/api/conversations/:id/read",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { id } = req.params;
+        const userId = req.user.id;
 
-      // Verify user has access to this conversation
-      const conversations = await storage.getConversations(userId);
-      const conversation = conversations.find((c) => c.id === id);
+        // Verify user has access to this conversation
+        const conversations = await storage.getConversations(userId);
+        const conversation = conversations.find((c) => c.id === id);
 
-      if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found" });
+        if (!conversation) {
+          return res.status(404).json({ error: "Conversation not found" });
+        }
+
+        // Reset unread count for the conversation
+        await storage.resetUnreadCount(id);
+
+        // Mark all messages in the conversation as read
+        await storage.markConversationMessagesAsRead(
+          conversation.integrationId,
+          conversation.metaConversationId,
+        );
+
+        console.log(`✅ Marked conversation ${id} as read`);
+        res.json({ success: true });
+      } catch (err) {
+        console.error("❌ Error marking conversation as read:", err);
+        res.status(500).json({ error: "Failed to mark conversation as read" });
       }
-
-      // Reset unread count for the conversation
-      await storage.resetUnreadCount(id);
-
-      // Mark all messages in the conversation as read
-      await storage.markConversationMessagesAsRead(
-        conversation.integrationId,
-        conversation.metaConversationId
-      );
-
-      console.log(`✅ Marked conversation ${id} as read`);
-      res.json({ success: true });
-    } catch (err) {
-      console.error("❌ Error marking conversation as read:", err);
-      res.status(500).json({ error: "Failed to mark conversation as read" });
-    }
-  });
+    },
+  );
 
   // ✅ NEW: Update conversation flag
-  app.patch("/api/conversations/:id/flag", isAuthenticated, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { flag } = req.body;
-      const userId = req.user.id;
+  app.patch(
+    "/api/conversations/:id/flag",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { flag } = req.body;
+        const userId = req.user.id;
 
-      // Validate flag value
-      const validFlags = ['none', 'important', 'archived'];
-      if (!flag || !validFlags.includes(flag)) {
-        return res.status(400).json({ 
-          error: "Invalid flag value. Must be: none, important, or archived" 
-        });
+        // Validate flag value
+        const validFlags = ["none", "important", "archived"];
+        if (!flag || !validFlags.includes(flag)) {
+          return res.status(400).json({
+            error: "Invalid flag value. Must be: none, important, or archived",
+          });
+        }
+
+        // Verify user has access to this conversation
+        const conversations = await storage.getConversations(userId);
+        const conversation = conversations.find((c) => c.id === id);
+
+        if (!conversation) {
+          return res.status(404).json({ error: "Conversation not found" });
+        }
+
+        // Update the flag
+        const updated = await storage.updateConversationMetadata(id, { flag });
+
+        console.log(`🏁 Updated conversation ${id} flag to: ${flag}`);
+        res.json({ success: true, conversation: updated });
+      } catch (err) {
+        console.error("❌ Error updating conversation flag:", err);
+        res.status(500).json({ error: "Failed to update conversation flag" });
       }
-
-      // Verify user has access to this conversation
-      const conversations = await storage.getConversations(userId);
-      const conversation = conversations.find((c) => c.id === id);
-
-      if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found" });
-      }
-
-      // Update the flag
-      const updated = await storage.updateConversationMetadata(id, { flag });
-
-      console.log(`🏁 Updated conversation ${id} flag to: ${flag}`);
-      res.json({ success: true, conversation: updated });
-    } catch (err) {
-      console.error("❌ Error updating conversation flag:", err);
-      res.status(500).json({ error: "Failed to update conversation flag" });
-    }
-  });
+    },
+  );
 
   // ✅ NEW: Unified aggregation endpoint - Get ALL messages from ALL connected providers
   app.get(
@@ -3653,7 +3666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      
+
       const customers = await storage.getCustomersByUserId(userId);
       res.json(customers);
     } catch (error) {
@@ -3683,9 +3696,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (existingCustomer) {
-        return res.status(409).json({ 
+        return res.status(409).json({
           message: "Customer already exists",
-          customer: existingCustomer
+          customer: existingCustomer,
         });
       }
 
@@ -3697,7 +3710,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: req.body.email || null,
         company: req.body.company || null,
         address: req.body.address || null,
-        notes: req.body.notes || (platform ? `Lead created from ${platform} conversation` : null),
+        notes:
+          req.body.notes ||
+          (platform ? `Lead created from ${platform} conversation` : null),
         status: req.body.status || (platform ? "prospect" : "active"),
         totalInvoiced: 0,
         conversationId: conversationId || null,
@@ -3709,7 +3724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createActivityLog({
         userId,
         action: "customer_created",
-        description: `Created customer: ${customer.name}${phone ? ` (${phone})` : ''}`,
+        description: `Created customer: ${customer.name}${phone ? ` (${phone})` : ""}`,
         entityType: "customer",
         entityId: customer.id,
       });
@@ -3727,17 +3742,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
       const customerId = req.params.id;
       const updates = req.body;
-
       const customer = await storage.updateCustomer(
         customerId,
         userId,
         updates,
       );
+
       if (!customer) {
         return res.status(404).json({ message: "Customer not found" });
       }
 
-      // Log activity
       await storage.createActivityLog({
         userId,
         action: "customer_updated",
@@ -3748,8 +3762,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(customer);
     } catch (error) {
-      console.error("Error updating customer:", error);
-      res.status(500).json({ message: "Failed to update customer" });
+      res
+        .status(500)
+        .json({ message: "Failed to update customer", error: error.message });
     }
   });
 
