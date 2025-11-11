@@ -49,6 +49,7 @@ import {
   Eye,
   Edit,
   MessageCircle,
+  User,
 } from "lucide-react";
 import type { Customer, Invoice } from "@shared/schema";
 import type { UploadResult } from "@uppy/core";
@@ -480,7 +481,7 @@ export default function CustomersPage() {
                     <CardTitle className="text-sm font-medium">
                       Total Customers
                     </CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <User className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div
