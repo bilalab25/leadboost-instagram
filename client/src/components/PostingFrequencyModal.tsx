@@ -80,6 +80,12 @@ export default function PostingFrequencyModal({
     enabled: isOpen, // Only fetch when modal is open
   });
 
+  // Fetch saved posting frequencies from database
+  const { data: savedFrequencies = [], isLoading: frequenciesLoading } = useQuery<any[]>({
+    queryKey: ["/api/posting-frequency"],
+    enabled: isOpen, // Only fetch when modal is open
+  });
+
   // Get connected platform providers
   const connectedPlatforms = integrations.map((integration) => integration.provider?.toLowerCase());
 
@@ -137,22 +143,32 @@ export default function PostingFrequencyModal({
       .filter((schedule) => schedule !== undefined);
   };
 
-  const [schedules, setSchedules] = useState<PlatformSchedule[]>(
-    currentSchedule || generateSuggestedSchedule()
-  );
-  const [useSuggested, setUseSuggested] = useState(!currentSchedule);
+  const [schedules, setSchedules] = useState<PlatformSchedule[]>([]);
+  const [useSuggested, setUseSuggested] = useState(true);
 
   useEffect(() => {
-    if (isOpen && !currentSchedule) {
-      // Only reset to suggested if there's no saved schedule
-      setSchedules(generateSuggestedSchedule());
-      setUseSuggested(true);
-    } else if (isOpen && currentSchedule) {
-      // Load the saved schedule
-      setSchedules(currentSchedule);
-      setUseSuggested(false);
+    if (isOpen && !frequenciesLoading) {
+      // Check if there are saved frequencies in the database
+      if (savedFrequencies && savedFrequencies.length > 0) {
+        // Convert database format to component format
+        const convertedSchedules = savedFrequencies.map((freq: any) => ({
+          platform: freq.platform,
+          postsPerWeek: freq.frequencyDays,
+          selectedDays: freq.daysWeek,
+        }));
+        setSchedules(convertedSchedules);
+        setUseSuggested(false);
+      } else if (currentSchedule) {
+        // Use parent-provided schedule
+        setSchedules(currentSchedule);
+        setUseSuggested(false);
+      } else {
+        // Generate AI suggestions
+        setSchedules(generateSuggestedSchedule());
+        setUseSuggested(true);
+      }
     }
-  }, [isOpen, currentSchedule]);
+  }, [isOpen, savedFrequencies, currentSchedule, frequenciesLoading]);
 
   // Mutation to save posting frequency to database
   const saveFrequencyMutation = useMutation({
@@ -248,10 +264,10 @@ export default function PostingFrequencyModal({
           </DialogTitle>
         </DialogHeader>
 
-        {integrationsLoading ? (
+        {(integrationsLoading || frequenciesLoading) ? (
           <div className="py-12 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-gray-500">Loading your connected platforms...</p>
+            <p className="text-gray-500">Loading your posting schedule...</p>
           </div>
         ) : userPlatforms.length === 0 ? (
           <div className="py-12 text-center">
