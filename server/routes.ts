@@ -3666,7 +3666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const { name, phone, platform } = req.body;
+      const { name, phone, platform, conversationId } = req.body;
 
       if (!name) {
         return res.status(400).json({ message: "Customer name is required" });
@@ -3700,6 +3700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: req.body.notes || (platform ? `Lead created from ${platform} conversation` : null),
         status: req.body.status || (platform ? "prospect" : "active"),
         totalInvoiced: 0,
+        conversationId: conversationId || null,
       });
 
       const customer = await storage.createCustomer(customerData);

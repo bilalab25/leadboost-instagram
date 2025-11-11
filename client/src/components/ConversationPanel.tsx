@@ -293,7 +293,8 @@ export default function ConversationPanel({
         body: JSON.stringify({ 
           name: participantName || "Unknown Contact",
           phone,
-          platform 
+          platform,
+          conversationId // Pass the database conversation ID
         }),
       });
 

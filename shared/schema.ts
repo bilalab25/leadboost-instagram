@@ -399,6 +399,9 @@ export const customers = pgTable("customers", {
   notes: text("notes"),
   status: varchar("status").default("active"), // active, inactive, prospect
   totalInvoiced: integer("total_invoiced").default(0),
+  conversationId: uuid("conversation_id").references(() => conversations.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
