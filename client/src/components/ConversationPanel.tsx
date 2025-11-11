@@ -311,7 +311,7 @@ export default function ConversationPanel({
     onSuccess: (data) => {
       toast({
         title: "Lead Created!",
-        description: `${data.customer.name} has been added to your customers`,
+        description: `${data.name} has been added to your customers`,
       });
     },
     onError: (error: Error) => {

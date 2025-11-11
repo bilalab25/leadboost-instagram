@@ -724,7 +724,6 @@ export default function CustomersPage() {
                                   )}
                                   buttonClassName="h-8 px-2 text-xs"
                                 >
-                                  <Upload className="w-3 h-3 mr-1" />
                                   Upload
                                 </ObjectUploader>
                               </TableCell>
