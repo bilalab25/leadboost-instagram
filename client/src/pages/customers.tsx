@@ -58,6 +58,8 @@ export default function CustomersPage() {
   const [showEditCustomer, setShowEditCustomer] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [showAddInvoice, setShowAddInvoice] = useState(false);
+  const [newCustomerStatus, setNewCustomerStatus] = useState('active');
+  const [editCustomerStatus, setEditCustomerStatus] = useState('active');
   const { language, isSpanish,toggleLanguage } = useLanguage();
 
   // Fetch customers
@@ -132,7 +134,7 @@ export default function CustomersPage() {
       company: formData.get('company') as string,
       address: formData.get('address') as string,
       notes: formData.get('notes') as string,
-      status: formData.get('status') as string,
+      status: newCustomerStatus,
     };
     createCustomerMutation.mutate(data);
   };
@@ -149,7 +151,7 @@ export default function CustomersPage() {
       company: formData.get('company') as string,
       address: formData.get('address') as string,
       notes: formData.get('notes') as string,
-      status: formData.get('status') as string,
+      status: editCustomerStatus,
     };
     updateCustomerMutation.mutate({ id: editingCustomer.id, data });
   };
@@ -269,7 +271,7 @@ export default function CustomersPage() {
               </div>
               <div>
                 <Label htmlFor="status">Status</Label>
-                <Select name="status" defaultValue="active">
+                <Select value={newCustomerStatus} onValueChange={setNewCustomerStatus}>
                   <SelectTrigger data-testid="select-customer-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -360,7 +362,7 @@ export default function CustomersPage() {
               </div>
               <div>
                 <Label htmlFor="edit-status">Status</Label>
-                <Select name="status" defaultValue={editingCustomer?.status || 'active'}>
+                <Select value={editCustomerStatus} onValueChange={setEditCustomerStatus}>
                   <SelectTrigger data-testid="select-edit-customer-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -484,6 +486,7 @@ export default function CustomersPage() {
                         variant="outline"
                         onClick={() => {
                           setEditingCustomer(customer);
+                          setEditCustomerStatus(customer.status || 'active');
                           setShowEditCustomer(true);
                         }}
                         data-testid={`button-edit-customer-${customer.id}`}
