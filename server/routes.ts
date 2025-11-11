@@ -1316,23 +1316,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })),
       };
 
-      // Call n8n webhook
-      const n8nResponse = await fetch(
-        "https://monicapv27.app.n8n.cloud/webhook-test/ccc38e62-2f29-4fc5-8741-fce3350f5a86",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
+      // Call n8n webhook with timeout
+      console.log("[AI Suggestions] Calling n8n webhook with payload:", JSON.stringify(payload, null, 2));
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      let aiSuggestions;
+      try {
+        const n8nResponse = await fetch(
+          "https://monicapv27.app.n8n.cloud/webhook-test/ccc38e62-2f29-4fc5-8741-fce3350f5a86",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          }
+        );
+
+        clearTimeout(timeoutId);
+
+        console.log("[AI Suggestions] N8n response status:", n8nResponse.status);
+        console.log("[AI Suggestions] N8n response headers:", Object.fromEntries(n8nResponse.headers.entries()));
+
+        if (!n8nResponse.ok) {
+          const errorText = await n8nResponse.text();
+          console.error("[AI Suggestions] N8n error response:", errorText);
+          throw new Error(`N8n webhook returned ${n8nResponse.status}: ${errorText}`);
         }
-      );
 
-      if (!n8nResponse.ok) {
-        throw new Error(`N8n webhook returned ${n8nResponse.status}`);
+        // Get response text first to debug
+        const responseText = await n8nResponse.text();
+        console.log("[AI Suggestions] N8n response body:", responseText);
+
+        // Parse the JSON
+        try {
+          aiSuggestions = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error("[AI Suggestions] Failed to parse n8n response as JSON:", parseError);
+          throw new Error(`Invalid JSON response from n8n: ${responseText.substring(0, 200)}`);
+        }
+
+        console.log("[AI Suggestions] Parsed AI suggestions:", JSON.stringify(aiSuggestions, null, 2));
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          throw new Error('N8n webhook request timed out after 30 seconds');
+        }
+        throw fetchError;
       }
-
-      const aiSuggestions = await n8nResponse.json();
 
       // Validate response structure
       if (!Array.isArray(aiSuggestions) || aiSuggestions.length === 0) {
