@@ -3675,6 +3675,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/customers/by-conversation/:conversationId", isAuthenticated, async (req: any, res) => {
+    try {
+      const conversationId = req.params.conversationId;
+      const customer = await storage.getCustomerByConversationId(conversationId);
+      
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+      
+      res.json(customer);
+    } catch (error) {
+      console.error("Error fetching customer by conversation:", error);
+      res.status(500).json({ message: "Failed to fetch customer" });
+    }
+  });
+
   app.post("/api/customers", isAuthenticated, async (req: any, res) => {
     try {
       const userId =

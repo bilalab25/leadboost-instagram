@@ -205,6 +205,9 @@ export interface IStorage {
     userId: string,
     name: string,
   ): Promise<Customer | undefined>;
+  getCustomerByConversationId(
+    conversationId: string,
+  ): Promise<Customer | undefined>;
   updateCustomer(
     id: string,
     userId: string,
@@ -975,6 +978,17 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(customers)
       .where(and(eq(customers.userId, userId), eq(customers.name, name)))
+      .limit(1);
+    return customer;
+  }
+
+  async getCustomerByConversationId(
+    conversationId: string,
+  ): Promise<Customer | undefined> {
+    const [customer] = await db
+      .select()
+      .from(customers)
+      .where(eq(customers.conversationId, conversationId))
       .limit(1);
     return customer;
   }

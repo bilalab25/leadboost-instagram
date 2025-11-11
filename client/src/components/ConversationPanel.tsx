@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +19,7 @@ import {
   Archive,
   Star,
   UserPlus,
+  Eye,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,6 +28,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
+import {
   SiWhatsapp,
   SiTiktok,
   SiFacebook,
@@ -34,6 +43,7 @@ import {
   SiDiscord,
 } from "react-icons/si";
 import { cn } from "@/lib/utils";
+import type { Customer } from "@shared/schema";
 
 interface Message {
   id: string;
@@ -97,7 +107,22 @@ export default function ConversationPanel({
   const [canSendFacebookMessage, setCanSendFacebookMessage] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [conversationFlag, setConversationFlag] = useState<'none' | 'important' | 'archived'>('none');
+  const [showCustomerDrawer, setShowCustomerDrawer] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch linked customer for this conversation
+  const { data: linkedCustomer } = useQuery<Customer>({
+    queryKey: ["/api/customers/by-conversation", conversationId],
+    queryFn: async () => {
+      const res = await fetch(`/api/customers/by-conversation/${conversationId}`);
+      if (!res.ok) {
+        if (res.status === 404) return null;
+        throw new Error("Failed to fetch customer");
+      }
+      return res.json();
+    },
+    retry: false,
+  });
 
   const isFacebookConversation = platform === "facebook";
 
@@ -452,17 +477,32 @@ export default function ConversationPanel({
         </div>
         
         <div className="flex items-center gap-1">
-          {/* Create Lead Button */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => createLeadMutation.mutate()}
-            disabled={createLeadMutation.isPending}
-            data-testid="button-create-lead"
-            title="Create Lead"
-          >
-            <UserPlus className="h-4 w-4 text-green-600" />
-          </Button>
+          {/* Create Lead Button - disabled if customer exists */}
+          {!linkedCustomer && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => createLeadMutation.mutate()}
+              disabled={createLeadMutation.isPending}
+              data-testid="button-create-lead"
+              title="Create Lead"
+            >
+              <UserPlus className="h-4 w-4 text-green-600" />
+            </Button>
+          )}
+
+          {/* View Customer Button - shown when customer exists */}
+          {linkedCustomer && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowCustomerDrawer(true)}
+              data-testid="button-view-customer"
+              title="View Customer"
+            >
+              <Eye className="h-4 w-4 text-blue-600" />
+            </Button>
+          )}
 
           {/* Flag Dropdown */}
           <DropdownMenu>
@@ -660,6 +700,95 @@ export default function ConversationPanel({
           />
         </div>
       )}
+
+      {/* Customer Details Drawer */}
+      <Sheet open={showCustomerDrawer} onOpenChange={setShowCustomerDrawer}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Customer Information</SheetTitle>
+            <SheetDescription>
+              Details for this customer and their conversation
+            </SheetDescription>
+          </SheetHeader>
+
+          {linkedCustomer && (
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Name</label>
+                <p className="text-base font-semibold">{linkedCustomer.name}</p>
+              </div>
+
+              {linkedCustomer.email && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Email</label>
+                  <p className="text-base">{linkedCustomer.email}</p>
+                </div>
+              )}
+
+              {linkedCustomer.phone && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Phone</label>
+                  <p className="text-base">{linkedCustomer.phone}</p>
+                </div>
+              )}
+
+              {linkedCustomer.company && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Company</label>
+                  <p className="text-base">{linkedCustomer.company}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">Status</label>
+                <div className="mt-1">
+                  <Badge
+                    variant={
+                      linkedCustomer.status === "active"
+                        ? "default"
+                        : linkedCustomer.status === "inactive"
+                        ? "secondary"
+                        : "outline"
+                    }
+                  >
+                    {linkedCustomer.status}
+                  </Badge>
+                </div>
+              </div>
+
+              {linkedCustomer.totalInvoiced !== undefined && linkedCustomer.totalInvoiced !== null && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Total Invoiced</label>
+                  <p className="text-base font-semibold">
+                    ${(linkedCustomer.totalInvoiced / 100).toFixed(2)}
+                  </p>
+                </div>
+              )}
+
+              {linkedCustomer.address && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Address</label>
+                  <p className="text-base">{linkedCustomer.address}</p>
+                </div>
+              )}
+
+              {linkedCustomer.notes && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Notes</label>
+                  <p className="text-base text-gray-700">{linkedCustomer.notes}</p>
+                </div>
+              )}
+
+              <div className="pt-4 border-t">
+                <label className="text-sm font-medium text-gray-500">Created</label>
+                <p className="text-sm text-gray-600">
+                  {linkedCustomer.createdAt && new Date(linkedCustomer.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
