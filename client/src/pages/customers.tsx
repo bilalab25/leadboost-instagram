@@ -85,7 +85,7 @@ export default function CustomersPage() {
   const [showAddInvoice, setShowAddInvoice] = useState(false);
   const [newCustomerStatus, setNewCustomerStatus] = useState("active");
   const [editCustomerStatus, setEditCustomerStatus] = useState("active");
-  const [revenueFilter, setRevenueFilter] = useState<"current" | "all">("current");
+  const [dateFilter, setDateFilter] = useState<"current" | "all">("current");
   const { language, isSpanish, toggleLanguage } = useLanguage();
 
   // Fetch customers
@@ -243,28 +243,40 @@ export default function CustomersPage() {
     }).format(amount / 100);
   };
 
+  // Helper function to check if date is in current month
+  const isInCurrentMonth = (date: Date) => {
+    const now = new Date();
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  };
+
+  // Filter invoices based on date filter
+  const filteredInvoices = useMemo(() => {
+    if (dateFilter === "all") return invoices;
+    
+    return invoices.filter((inv: InvoiceWithCustomer) => {
+      const createdDate = new Date(inv.createdAt);
+      return isInCurrentMonth(createdDate);
+    });
+  }, [invoices, dateFilter]);
+
+  // Filter customers who have invoices in the selected period
+  const filteredCustomers = useMemo(() => {
+    if (dateFilter === "all") return customers;
+    
+    const customerIdsWithInvoices = new Set(
+      filteredInvoices.map((inv: InvoiceWithCustomer) => inv.customerId)
+    );
+    
+    return customers.filter((customer: Customer) => 
+      customerIdsWithInvoices.has(customer.id)
+    );
+  }, [customers, filteredInvoices, dateFilter]);
+
   // Calculate total revenue based on filter
   const totalRevenue = useMemo(() => {
-    const paidInvoices = invoices.filter((inv: InvoiceWithCustomer) => inv.status === "paid");
-    
-    if (revenueFilter === "current") {
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-      
-      return paidInvoices
-        .filter((inv: InvoiceWithCustomer) => {
-          const createdDate = new Date(inv.createdAt);
-          return (
-            createdDate.getMonth() === currentMonth &&
-            createdDate.getFullYear() === currentYear
-          );
-        })
-        .reduce((sum: number, inv: InvoiceWithCustomer) => sum + inv.amount, 0);
-    }
-    
+    const paidInvoices = filteredInvoices.filter((inv: InvoiceWithCustomer) => inv.status === "paid");
     return paidInvoices.reduce((sum: number, inv: InvoiceWithCustomer) => sum + inv.amount, 0);
-  }, [invoices, revenueFilter]);
+  }, [filteredInvoices]);
 
   // Get current month name for display
   const currentMonthName = useMemo(() => {
@@ -509,82 +521,95 @@ export default function CustomersPage() {
                 </Dialog>
               </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Customers
-                    </CardTitle>
-                    <User className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div
-                      className="text-2xl font-bold"
-                      data-testid="text-total-customers"
-                    >
-                      {customers.length}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Invoices
-                    </CardTitle>
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div
-                      className="text-2xl font-bold"
-                      data-testid="text-total-invoices"
-                    >
-                      {invoices.length}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div className="flex flex-col">
-                      <CardTitle className="text-sm font-medium">
-                        Total Revenue
-                      </CardTitle>
-                      <CardDescription className="text-xs mt-1">
-                        {revenueFilter === "current" ? currentMonthName : "All Time"}
-                      </CardDescription>
-                    </div>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div
-                      className="text-2xl font-bold"
-                      data-testid="text-total-revenue"
-                    >
-                      {formatCurrency(totalRevenue)}
-                    </div>
-                    <div className="flex gap-2 mt-3">
-                      <Button
-                        variant={revenueFilter === "current" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setRevenueFilter("current")}
-                        data-testid="button-filter-current-month"
+              {/* Stats Cards with Global Date Filter */}
+              <div className="space-y-4">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant={dateFilter === "current" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setDateFilter("current")}
+                    data-testid="button-filter-current-month"
+                  >
+                    <Calendar className="h-3 w-3 mr-1" />
+                    Current Month
+                  </Button>
+                  <Button
+                    variant={dateFilter === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setDateFilter("all")}
+                    data-testid="button-filter-all-time"
+                  >
+                    All Time
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <div className="flex flex-col">
+                        <CardTitle className="text-sm font-medium">
+                          Total Customers
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-1">
+                          {dateFilter === "current" ? "with invoices in " + currentMonthName : "All Time"}
+                        </CardDescription>
+                      </div>
+                      <User className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div
+                        className="text-2xl font-bold"
+                        data-testid="text-total-customers"
                       >
-                        <Calendar className="h-3 w-3 mr-1" />
-                        Current Month
-                      </Button>
-                      <Button
-                        variant={revenueFilter === "all" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setRevenueFilter("all")}
-                        data-testid="button-filter-all-time"
+                        {filteredCustomers.length}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <div className="flex flex-col">
+                        <CardTitle className="text-sm font-medium">
+                          Total Invoices
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-1">
+                          {dateFilter === "current" ? currentMonthName : "All Time"}
+                        </CardDescription>
+                      </div>
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div
+                        className="text-2xl font-bold"
+                        data-testid="text-total-invoices"
                       >
-                        All Time
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                        {filteredInvoices.length}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <div className="flex flex-col">
+                        <CardTitle className="text-sm font-medium">
+                          Total Revenue
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-1">
+                          {dateFilter === "current" ? currentMonthName : "All Time"}
+                        </CardDescription>
+                      </div>
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div
+                        className="text-2xl font-bold"
+                        data-testid="text-total-revenue"
+                      >
+                        {formatCurrency(totalRevenue)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
 
               {/* Customers Table */}
@@ -690,12 +715,14 @@ export default function CustomersPage() {
                                     </Button>
                                     <Button
                                       size="sm"
-                                      variant="outline"
-                                      onClick={() => setSelectedCustomer(customer)}
+                                      variant={selectedCustomer?.id === customer.id ? "default" : "outline"}
+                                      onClick={() => setSelectedCustomer(
+                                        selectedCustomer?.id === customer.id ? null : customer
+                                      )}
                                       data-testid={`button-view-customer-${customer.id}`}
                                     >
                                       <Eye className="w-4 h-4 mr-1" />
-                                      View
+                                      {selectedCustomer?.id === customer.id ? "Hide" : "View"}
                                     </Button>
                                   </div>
                                 </TableCell>
@@ -709,12 +736,12 @@ export default function CustomersPage() {
                 </AccordionItem>
               </Accordion>
 
-              {/* Invoices Section */}
+              {/* Customer Details Section */}
               {selectedCustomer && (
-                <div className="space-y-4">
-                  {/* Customer Info Banner */}
-                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-                    <CardContent className="p-6">
+                <Card>
+                  <CardContent className="p-0">
+                    {/* Customer Info Banner */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 p-6">
                       <div className="flex items-start gap-4">
                         <div className="p-3 bg-blue-500 rounded-full">
                           <User className="h-6 w-6 text-white" />
@@ -773,18 +800,17 @@ export default function CustomersPage() {
                           <p className="text-sm text-gray-700">{selectedCustomer.notes}</p>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
 
-                  {/* Invoices Table */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Invoices for {selectedCustomer.name}</CardTitle>
-                      <CardDescription>
-                        Manage invoices and upload files for this customer
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                    {/* Invoices Table */}
+                    <div>
+                      <div className="p-6 pb-2">
+                        <CardTitle>Invoices for {selectedCustomer.name}</CardTitle>
+                        <CardDescription>
+                          Manage invoices and upload files for this customer
+                        </CardDescription>
+                      </div>
+                      <div className="p-6 pt-4">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -863,9 +889,10 @@ export default function CustomersPage() {
                           ))}
                       </TableBody>
                     </Table>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
-                </div>
               )}
 
               {/* Add Invoice Dialog */}
