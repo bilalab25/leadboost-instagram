@@ -1269,7 +1269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get AI-powered posting frequency suggestions from n8n
+  // Get AI-powered posting frequency suggestions (using Graph API directly)
   app.post(
     "/api/posting-frequency/ai-suggestions",
     isAuthenticated,
@@ -1297,114 +1297,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Prepare data for n8n endpoint
-        const payload = {
-          Integrations: relevantIntegrations.map((integration: any) => ({
-            id: integration.id,
-            user_id: integration.userId,
-            provider: integration.provider,
-            category: integration.category,
-            store_name: integration.storeName,
-            store_url: integration.storeUrl,
-            page_id: integration.pageId,
-            access_token: integration.accessToken,
-            refresh_token: integration.refreshToken,
-            is_active: integration.isActive,
-            sync_enabled: integration.syncEnabled,
-            last_sync_at: integration.lastSyncAt,
-            settings: integration.settings,
-            created_at: integration.createdAt,
-            updated_at: integration.updatedAt,
-            account_name: integration.accountName,
-            account_id: integration.accountId,
-            expires_at: integration.expiresAt,
-            metadata: integration.metadata,
-          })),
-        };
-
         console.log(
-          "[AI Suggestions] Calling n8n webhook with payload:",
-          JSON.stringify(payload, null, 2),
+          "[AI Suggestions] Processing insights for",
+          relevantIntegrations.length,
+          "integrations",
         );
 
-        // Call n8n webhook with timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 150000);
+        const recommendations = [];
 
-        let aiSuggestions: any;
-        try {
-          const n8nResponse = await fetch(
-            "https://monicapv27.app.n8n.cloud/webhook-test/ccc38e62-2f29-4fc5-8741-fce3350f5a86",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payload),
-              signal: controller.signal,
-            },
-          );
+        // Process each integration
+        for (const integration of relevantIntegrations) {
+          try {
+            if (integration.provider === "facebook") {
+              // Facebook Insights API call
+              const insightsUrl = `https://graph.facebook.com/v24.0/${integration.accountId}/insights?metric=page_media_view,page_post_engagements,page_posts_impressions_unique&period=month&access_token=${integration.accessToken}`;
 
-          clearTimeout(timeoutId);
+              const response = await fetch(insightsUrl);
+              const data = await response.json();
 
-          console.log(
-            "[AI Suggestions] N8n response status:",
-            n8nResponse.status,
-          );
-          console.log(
-            "[AI Suggestions] N8n response headers:",
-            Object.fromEntries(n8nResponse.headers.entries()),
-          );
+              console.log(
+                "[AI Suggestions] Facebook insights response:",
+                JSON.stringify(data, null, 2),
+              );
 
-          if (!n8nResponse.ok) {
-            const errorText = await n8nResponse.text();
-            console.error("[AI Suggestions] N8n error response:", errorText);
-            throw new Error(
-              `N8n webhook returned ${n8nResponse.status}: ${errorText}`,
+              // Calculate metrics
+              const fbData = data.data || [];
+              const getMetric = (name: string) => {
+                const metric = fbData.find((m: any) => m.name === name);
+                return metric?.values?.map((v: any) => v.value) || [];
+              };
+              const avg = (arr: number[]) =>
+                arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
+              const avgEng = avg(getMetric("page_post_engagements"));
+              const avgReach = avg(getMetric("page_posts_impressions_unique"));
+              const avgViews = avg(getMetric("page_media_view"));
+
+              // Calculate engagement rate
+              const rate = avgEng / (avgReach || 1);
+
+              // Determine frequency based on engagement
+              let frequency = "1 publicación por semana";
+              if (rate > 0.05) frequency = "3 publicaciones por semana";
+              if (rate > 0.08) frequency = "5 publicaciones por semana";
+
+              // Determine days based on frequency
+              let days = ["wed"];
+              if (frequency.includes("3")) days = ["mon", "wed", "fri"];
+              if (frequency.includes("5"))
+                days = ["mon", "tue", "wed", "thu", "fri"];
+
+              // Determine hours based on engagement
+              let hours = ["12:00", "14:00"];
+              if (rate > 0.05) hours = ["11:00", "13:00"];
+              if (rate > 0.08) hours = ["10:00", "12:00"];
+
+              recommendations.push({
+                platform: "facebook",
+                frequency_days: frequency,
+                days_week: days,
+                best_hours: hours,
+                insights_data: {
+                  avg_engagement_rate: rate,
+                  avg_reach: avgReach,
+                  avg_views: avgViews,
+                },
+              });
+            } else if (integration.provider === "instagram") {
+              // Instagram Insights API calls (2 separate calls)
+              const insights1Url = `https://graph.facebook.com/v24.0/${integration.accountId}/insights?metric=reach,profile_views,accounts_engaged,total_interactions&period=day&access_token=${integration.accessToken}`;
+              const insights2Url = `https://graph.facebook.com/v24.0/${integration.accountId}/insights?metric=follower_count&period=day&access_token=${integration.accessToken}`;
+
+              const [response1, response2] = await Promise.all([
+                fetch(insights1Url),
+                fetch(insights2Url),
+              ]);
+
+              const [data1, data2] = await Promise.all([
+                response1.json(),
+                response2.json(),
+              ]);
+
+              console.log(
+                "[AI Suggestions] Instagram insights1 response:",
+                JSON.stringify(data1, null, 2),
+              );
+              console.log(
+                "[AI Suggestions] Instagram insights2 response:",
+                JSON.stringify(data2, null, 2),
+              );
+
+              // Combine metrics from both calls
+              const metrics = [...(data1.data || []), ...(data2.data || [])];
+              const getMetric = (name: string) => {
+                const metric = metrics.find((m: any) => m.name === name);
+                return metric?.values?.map((v: any) => v.value) || [];
+              };
+              const avg = (arr: number[]) =>
+                arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
+              const avgReach = avg(getMetric("reach"));
+              const avgProfileViews = avg(getMetric("profile_views"));
+              const avgAccountsEngaged = avg(getMetric("accounts_engaged"));
+              const avgInteractions = avg(getMetric("total_interactions"));
+              const avgFollowers = avg(getMetric("follower_count"));
+
+              const engagementRate = avgAccountsEngaged / (avgReach || 1);
+              const interactionRate = avgInteractions / (avgReach || 1);
+
+              // Determine frequency
+              let frequency = "1 publicación por semana";
+              if (engagementRate > 0.04 || interactionRate > 0.03)
+                frequency = "3 publicaciones por semana";
+              if (engagementRate > 0.08 || interactionRate > 0.06)
+                frequency = "5 publicaciones por semana";
+
+              // Determine days based on frequency
+              let days = ["wed"];
+              if (frequency.includes("3")) days = ["tue", "thu", "sat"];
+              if (frequency.includes("5"))
+                days = ["mon", "tue", "wed", "thu", "fri"];
+
+              // Determine hours based on engagement
+              let hours = ["10:00", "12:00"];
+              if (engagementRate > 0.05) hours = ["11:00", "13:00"];
+              if (engagementRate > 0.08) hours = ["09:00", "11:00"];
+
+              recommendations.push({
+                platform: "instagram",
+                frequency_days: frequency,
+                days_week: days,
+                best_hours: hours,
+                insights_data: {
+                  avg_engagement_rate: engagementRate,
+                  avg_reach: avgReach,
+                  avg_profile_views: avgProfileViews,
+                  avg_accounts_engaged: avgAccountsEngaged,
+                  avg_interactions: avgInteractions,
+                  avg_followers: avgFollowers,
+                  interaction_rate: interactionRate,
+                },
+              });
+            }
+          } catch (integrationError) {
+            console.error(
+              `[AI Suggestions] Error processing ${integration.provider}:`,
+              integrationError,
             );
+            // Continue with other integrations even if one fails
           }
-
-          // Get and parse response safely
-          const responseText = await n8nResponse.text();
-          console.log("[AI Suggestions] N8n response body:", responseText);
-
-          aiSuggestions = responseText?.trim()
-            ? JSON.parse(responseText)
-            : null;
-
-          console.log(
-            "[AI Suggestions] Parsed AI suggestions:",
-            JSON.stringify(aiSuggestions, null, 2),
-          );
-        } catch (fetchError) {
-          clearTimeout(timeoutId);
-          if (fetchError instanceof Error && fetchError.name === "AbortError") {
-            throw new Error("N8n webhook request timed out after 30 seconds");
-          }
-          throw fetchError;
         }
 
-        // ✅ Validate flexible response structure
-        let recommendations: any[] = [];
-
-        if (Array.isArray(aiSuggestions)) {
-          // case: n8n devuelve array directamente
-          recommendations = aiSuggestions;
-        } else if (
-          aiSuggestions &&
-          Array.isArray(aiSuggestions.recommendations)
-        ) {
-          // case: n8n devuelve objeto con recommendations
-          recommendations = aiSuggestions.recommendations;
-        } else {
-          throw new Error("Invalid response format from n8n");
+        if (recommendations.length === 0) {
+          return res.status(500).json({
+            message: "Failed to generate recommendations from any platform",
+          });
         }
 
-        // Return sanitized result
-        res.json({
-          user_id: aiSuggestions.user_id || userId,
-          recommendations,
-        });
+        // Return in the same format as before
+        const result = [
+          {
+            user_id: userId,
+            recommendations,
+          },
+        ];
+
+        console.log(
+          "[AI Suggestions] Generated recommendations:",
+          JSON.stringify(result, null, 2),
+        );
+        res.json(result);
       } catch (error) {
         console.error("❌ Error fetching AI suggestions:", error);
         res.status(500).json({
