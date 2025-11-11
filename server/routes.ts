@@ -3798,99 +3798,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Invoice management routes
   app.get("/api/invoices", isAuthenticated, async (req: any, res) => {
     try {
-      // Return mock invoice data
-      const mockInvoices = [
-        {
-          id: "inv-1",
-          invoiceNumber: "INV-2024-001",
-          customerId: "customer-1",
-          customerName: "Sarah Martinez",
-          amount: 234.5,
-          status: "paid",
-          dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-          paidDate: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 3,
-          ).toISOString(),
-          description: "Social media management services - March 2024",
-          items: [
-            {
-              description: "Instagram management",
-              quantity: 1,
-              rate: 150.0,
-              amount: 150.0,
-            },
-            {
-              description: "TikTok content creation",
-              quantity: 1,
-              rate: 84.5,
-              amount: 84.5,
-            },
-          ],
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 15,
-          ).toISOString(),
-        },
-        {
-          id: "inv-2",
-          invoiceNumber: "INV-2024-002",
-          customerId: "customer-3",
-          customerName: "Emma Wilson",
-          amount: 450.0,
-          status: "pending",
-          dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
-          paidDate: null,
-          description: "Premium social media package - April 2024",
-          items: [
-            {
-              description: "Multi-platform management",
-              quantity: 1,
-              rate: 300.0,
-              amount: 300.0,
-            },
-            {
-              description: "AI content planning",
-              quantity: 1,
-              rate: 150.0,
-              amount: 150.0,
-            },
-          ],
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 3,
-          ).toISOString(),
-        },
-        {
-          id: "inv-3",
-          invoiceNumber: "INV-2024-003",
-          customerId: "customer-2",
-          customerName: "Mike Johnson",
-          amount: 180.0,
-          status: "overdue",
-          dueDate: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 10,
-          ).toISOString(),
-          paidDate: null,
-          description: "Facebook advertising consultation",
-          items: [
-            {
-              description: "Ad campaign setup",
-              quantity: 1,
-              rate: 120.0,
-              amount: 120.0,
-            },
-            {
-              description: "Performance analysis",
-              quantity: 1,
-              rate: 60.0,
-              amount: 60.0,
-            },
-          ],
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 20,
-          ).toISOString(),
-        },
-      ];
-
-      res.json(mockInvoices);
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const invoices = await storage.getInvoicesByUserId(userId);
+      res.json(invoices);
     } catch (error) {
       console.error("Error fetching invoices:", error);
       res.status(500).json({ message: "Failed to fetch invoices" });
