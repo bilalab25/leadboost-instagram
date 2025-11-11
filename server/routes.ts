@@ -1272,6 +1272,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Customer routes
+  app.post(
+    "/api/customers",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const { name, phone, platform } = req.body;
+
+        if (!name) {
+          return res.status(400).json({ message: "Customer name is required" });
+        }
+
+        // Check if customer already exists (by phone for WhatsApp, by name for others)
+        let existingCustomer;
+        if (phone && platform === "whatsapp") {
+          existingCustomer = await storage.getCustomerByPhone(userId, phone);
+        } else {
+          existingCustomer = await storage.getCustomerByName(userId, name);
+        }
+
+        if (existingCustomer) {
+          return res.status(409).json({ 
+            message: "Customer already exists",
+            customer: existingCustomer
+          });
+        }
+
+        // Create new customer
+        const customer = await storage.createCustomer({
+          userId,
+          name,
+          phone: phone || null,
+          email: null,
+          company: null,
+          address: null,
+          notes: `Lead created from ${platform} conversation`,
+          status: "prospect",
+          totalInvoiced: 0,
+        });
+
+        // Log activity
+        await storage.createActivityLog({
+          userId,
+          action: "create_customer",
+          description: `Created customer lead: ${name}${phone ? ` (${phone})` : ''}`,
+          entityType: "customer",
+          entityId: customer.id,
+        });
+
+        res.json({ success: true, customer });
+      } catch (error) {
+        console.error("Error creating customer:", error);
+        res.status(500).json({ message: "Failed to create customer" });
+      }
+    },
+  );
+
   // Campaigns routes
   app.get("/api/campaigns", async (req: any, res) => {
     try {

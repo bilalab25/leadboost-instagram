@@ -18,6 +18,7 @@ import {
   Flag,
   Archive,
   Star,
+  UserPlus,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -272,6 +273,57 @@ export default function ConversationPanel({
     },
   });
 
+  // 🏁 Mutation to create customer lead
+  const createLeadMutation = useMutation({
+    mutationFn: async () => {
+      // Extract phone number from metaConversationId for WhatsApp
+      let phone = null;
+      if (platform === "whatsapp" && metaConversationId) {
+        // metaConversationId format: "PHONE_NUMBER_ID_SENDER_PHONE"
+        // Extract the sender phone (everything after the last underscore)
+        const parts = metaConversationId.split('_');
+        if (parts.length >= 2) {
+          phone = parts[parts.length - 1]; // Get the last part (sender's phone)
+        }
+      }
+
+      const res = await fetch(`/api/customers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          name: participantName || "Unknown Contact",
+          phone,
+          platform 
+        }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        if (res.status === 409) {
+          throw new Error("Customer already exists");
+        }
+        throw new Error(result.message || "Error creating customer");
+      }
+
+      return result;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Lead Created!",
+        description: `${data.customer.name} has been added to your customers`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: error.message === "Customer already exists" ? "Already a Customer" : "Error",
+        description: error.message === "Customer already exists" 
+          ? "This contact is already in your customer list" 
+          : error.message,
+        variant: error.message === "Customer already exists" ? "default" : "destructive",
+      });
+    },
+  });
+
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string }) => {
       // ⚙️ Usa metaConversationId si existe (para Facebook)
@@ -398,44 +450,58 @@ export default function ConversationPanel({
           </div>
         </div>
         
-        {/* Flag Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              disabled={updateFlagMutation.isPending}
-              data-testid="button-flag-dropdown"
-            >
-              {conversationFlag === 'important' && <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
-              {conversationFlag === 'archived' && <Archive className="h-4 w-4 text-gray-500" />}
-              {conversationFlag === 'none' && <Flag className="h-4 w-4 text-gray-400" />}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem 
-              onClick={() => updateFlagMutation.mutate('none')}
-              data-testid="flag-option-none"
-            >
-              <Flag className="h-4 w-4 mr-2 text-gray-400" />
-              None
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => updateFlagMutation.mutate('important')}
-              data-testid="flag-option-important"
-            >
-              <Star className="h-4 w-4 mr-2 text-yellow-500" />
-              Important
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => updateFlagMutation.mutate('archived')}
-              data-testid="flag-option-archived"
-            >
-              <Archive className="h-4 w-4 mr-2 text-gray-500" />
-              Archived
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-1">
+          {/* Create Lead Button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => createLeadMutation.mutate()}
+            disabled={createLeadMutation.isPending}
+            data-testid="button-create-lead"
+            title="Create Lead"
+          >
+            <UserPlus className="h-4 w-4 text-green-600" />
+          </Button>
+
+          {/* Flag Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                disabled={updateFlagMutation.isPending}
+                data-testid="button-flag-dropdown"
+              >
+                {conversationFlag === 'important' && <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
+                {conversationFlag === 'archived' && <Archive className="h-4 w-4 text-gray-500" />}
+                {conversationFlag === 'none' && <Flag className="h-4 w-4 text-gray-400" />}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={() => updateFlagMutation.mutate('none')}
+                data-testid="flag-option-none"
+              >
+                <Flag className="h-4 w-4 mr-2 text-gray-400" />
+                None
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => updateFlagMutation.mutate('important')}
+                data-testid="flag-option-important"
+              >
+                <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                Important
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => updateFlagMutation.mutate('archived')}
+                data-testid="flag-option-archived"
+              >
+                <Archive className="h-4 w-4 mr-2 text-gray-500" />
+                Archived
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         {isDrawer && (
           <Button variant="ghost" size="sm" onClick={onClose} data-testid="button-close-panel">

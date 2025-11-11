@@ -197,6 +197,8 @@ export interface IStorage {
   // Customer operations
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   getCustomersByUserId(userId: string): Promise<Customer[]>;
+  getCustomerByPhone(userId: string, phone: string): Promise<Customer | undefined>;
+  getCustomerByName(userId: string, name: string): Promise<Customer | undefined>;
   updateCustomer(
     id: string,
     userId: string,
@@ -937,6 +939,24 @@ export class DatabaseStorage implements IStorage {
       .from(customers)
       .where(eq(customers.userId, userId))
       .orderBy(desc(customers.createdAt));
+  }
+
+  async getCustomerByPhone(userId: string, phone: string): Promise<Customer | undefined> {
+    const [customer] = await db
+      .select()
+      .from(customers)
+      .where(and(eq(customers.userId, userId), eq(customers.phone, phone)))
+      .limit(1);
+    return customer;
+  }
+
+  async getCustomerByName(userId: string, name: string): Promise<Customer | undefined> {
+    const [customer] = await db
+      .select()
+      .from(customers)
+      .where(and(eq(customers.userId, userId), eq(customers.name, name)))
+      .limit(1);
+    return customer;
   }
 
   async updateCustomer(
