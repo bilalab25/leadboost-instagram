@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -70,36 +71,68 @@ export default function PostingFrequencyModal({
   onSaveSchedule,
 }: PostingFrequencyModalProps) {
   const { toast } = useToast();
+
+  // Fetch user's connected integrations
+  const { data: integrations = [], isLoading: integrationsLoading } = useQuery<any[]>({
+    queryKey: ["/api/integrations"],
+    enabled: isOpen, // Only fetch when modal is open
+  });
+
+  // Get connected platform providers
+  const connectedPlatforms = integrations.map((integration) => integration.provider?.toLowerCase());
+
+  // Filter platforms to only show connected ones
+  const userPlatforms = platforms.filter((p) => connectedPlatforms.includes(p.id));
   
-  // Generate suggested schedule based on platform best practices
+  // Generate suggested schedule based on platform best practices (only for connected platforms)
   const generateSuggestedSchedule = (): PlatformSchedule[] => {
-    return [
-      {
+    const defaultSchedules: { [key: string]: PlatformSchedule } = {
+      instagram: {
         platform: "instagram",
         postsPerWeek: 5,
         selectedDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
       },
-      {
+      facebook: {
         platform: "facebook",
         postsPerWeek: 3,
         selectedDays: ["monday", "wednesday", "friday"],
       },
-      {
+      tiktok: {
         platform: "tiktok",
         postsPerWeek: 4,
         selectedDays: ["monday", "wednesday", "thursday", "saturday"],
       },
-      {
+      linkedin: {
         platform: "linkedin",
         postsPerWeek: 3,
         selectedDays: ["tuesday", "wednesday", "thursday"],
       },
-      {
+      twitter: {
         platform: "twitter",
         postsPerWeek: 7,
         selectedDays: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
       },
-    ];
+      whatsapp: {
+        platform: "whatsapp",
+        postsPerWeek: 2,
+        selectedDays: ["monday", "thursday"],
+      },
+      youtube: {
+        platform: "youtube",
+        postsPerWeek: 2,
+        selectedDays: ["tuesday", "friday"],
+      },
+      pinterest: {
+        platform: "pinterest",
+        postsPerWeek: 4,
+        selectedDays: ["monday", "wednesday", "friday", "sunday"],
+      },
+    };
+
+    // Only return schedules for connected platforms
+    return connectedPlatforms
+      .map((platform) => defaultSchedules[platform])
+      .filter((schedule) => schedule !== undefined);
   };
 
   const [schedules, setSchedules] = useState<PlatformSchedule[]>(
@@ -182,7 +215,8 @@ export default function PostingFrequencyModal({
     return platforms.find((p) => p.id === platformId);
   };
 
-  const availablePlatforms = platforms.filter(
+  // Only show connected platforms that aren't already in the schedule
+  const availablePlatforms = userPlatforms.filter(
     (p) => !schedules.find((s) => s.platform === p.id)
   );
 
@@ -196,7 +230,24 @@ export default function PostingFrequencyModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        {integrationsLoading ? (
+          <div className="py-12 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-500">Loading your connected platforms...</p>
+          </div>
+        ) : userPlatforms.length === 0 ? (
+          <div className="py-12 text-center">
+            <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <h3 className="font-semibold text-gray-900 mb-2">No Connected Platforms</h3>
+            <p className="text-gray-500 mb-4">
+              Please connect your social media platforms first to set up posting frequency.
+            </p>
+            <Button onClick={onClose} variant="outline">
+              Close
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-6 py-4">
           {/* AI Suggestion Banner */}
           {useSuggested && (
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
@@ -350,9 +401,11 @@ export default function PostingFrequencyModal({
               </div>
             )}
           </div>
-        </div>
+          </div>
+        )}
 
-        <DialogFooter>
+        {!integrationsLoading && userPlatforms.length > 0 && (
+          <DialogFooter>
           <Button variant="outline" onClick={onClose} data-testid="button-cancel-frequency">
             Cancel
           </Button>
@@ -361,7 +414,8 @@ export default function PostingFrequencyModal({
               <Check className="h-4 w-4 mr-1" /> Save Schedule
             </Button>
           )}
-        </DialogFooter>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
