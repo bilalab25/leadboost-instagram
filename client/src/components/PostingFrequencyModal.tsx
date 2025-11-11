@@ -20,6 +20,7 @@ import {
   Check,
   Plus,
   X,
+  Edit,
 } from "lucide-react";
 import {
   SiWhatsapp,
@@ -145,6 +146,8 @@ export default function PostingFrequencyModal({
 
   const [schedules, setSchedules] = useState<PlatformSchedule[]>([]);
   const [useSuggested, setUseSuggested] = useState(true);
+  const [hasSavedData, setHasSavedData] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     if (isOpen && !frequenciesLoading) {
@@ -158,14 +161,20 @@ export default function PostingFrequencyModal({
         }));
         setSchedules(convertedSchedules);
         setUseSuggested(false);
+        setHasSavedData(true);
+        setIsEditMode(false); // Start in view mode
       } else if (currentSchedule) {
         // Use parent-provided schedule
         setSchedules(currentSchedule);
         setUseSuggested(false);
+        setHasSavedData(false);
+        setIsEditMode(true); // Allow editing
       } else {
         // Generate AI suggestions
         setSchedules(generateSuggestedSchedule());
         setUseSuggested(true);
+        setHasSavedData(false);
+        setIsEditMode(false);
       }
     }
   }, [isOpen, savedFrequencies, currentSchedule, frequenciesLoading]);
@@ -202,6 +211,25 @@ export default function PostingFrequencyModal({
 
   const handleCustomize = () => {
     setUseSuggested(false);
+    setIsEditMode(true);
+    setHasSavedData(false); // This is a new customization, not saved data
+  };
+
+  const handleEdit = () => {
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    // Reload saved data
+    if (savedFrequencies && savedFrequencies.length > 0) {
+      const convertedSchedules = savedFrequencies.map((freq: any) => ({
+        platform: freq.platform,
+        postsPerWeek: freq.frequencyDays,
+        selectedDays: freq.daysWeek,
+      }));
+      setSchedules(convertedSchedules);
+    }
+    setIsEditMode(false);
   };
 
   const updateSchedule = (
@@ -323,7 +351,7 @@ export default function PostingFrequencyModal({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">Platform Schedules</h3>
-              {!useSuggested && availablePlatforms.length > 0 && (
+              {!useSuggested && isEditMode && availablePlatforms.length > 0 && (
                 <div className="flex items-center gap-2">
                   <Label className="text-sm text-gray-600">Add Platform:</Label>
                   <div className="flex gap-1">
@@ -366,7 +394,7 @@ export default function PostingFrequencyModal({
                         {schedule.postsPerWeek} posts/week
                       </Badge>
                     </div>
-                    {!useSuggested && (
+                    {!useSuggested && isEditMode && (
                       <Button
                         size="sm"
                         variant="ghost"
@@ -387,13 +415,13 @@ export default function PostingFrequencyModal({
                         return (
                           <button
                             key={day.id}
-                            onClick={() => !useSuggested && toggleDay(schedule.platform, day.id)}
-                            disabled={useSuggested}
+                            onClick={() => (!useSuggested && isEditMode) && toggleDay(schedule.platform, day.id)}
+                            disabled={useSuggested || !isEditMode}
                             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                               isSelected
                                 ? "bg-primary text-white"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            } ${useSuggested ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                            } ${(useSuggested || !isEditMode) ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                             data-testid={`button-toggle-day-${schedule.platform}-${day.id}`}
                           >
                             {day.name}
@@ -421,7 +449,8 @@ export default function PostingFrequencyModal({
                             parseInt(e.target.value)
                           )
                         }
-                        className="w-full"
+                        disabled={!isEditMode}
+                        className={`w-full ${!isEditMode ? "opacity-60 cursor-not-allowed" : ""}`}
                         data-testid={`slider-posts-per-week-${schedule.platform}`}
                       />
                     </div>
@@ -440,21 +469,46 @@ export default function PostingFrequencyModal({
           </div>
         )}
 
-        {!integrationsLoading && userPlatforms.length > 0 && (
+        {!integrationsLoading && !frequenciesLoading && userPlatforms.length > 0 && (
           <DialogFooter>
-          <Button variant="outline" onClick={onClose} data-testid="button-cancel-frequency">
-            Cancel
-          </Button>
-          {!useSuggested && (
-            <Button 
-              onClick={handleSaveCustomSchedule} 
-              disabled={saveFrequencyMutation.isPending}
-              data-testid="button-save-custom-schedule"
-            >
-              <Check className="h-4 w-4 mr-1" /> 
-              {saveFrequencyMutation.isPending ? "Saving..." : "Save Schedule"}
-            </Button>
-          )}
+          {hasSavedData && !isEditMode ? (
+            <>
+              <Button variant="outline" onClick={onClose} data-testid="button-close-frequency">
+                Close
+              </Button>
+              <Button onClick={handleEdit} data-testid="button-edit-frequency">
+                <Edit className="h-4 w-4 mr-1" /> Edit Schedule
+              </Button>
+            </>
+          ) : hasSavedData && isEditMode ? (
+            <>
+              <Button variant="outline" onClick={handleCancelEdit} data-testid="button-cancel-edit">
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveCustomSchedule} 
+                disabled={saveFrequencyMutation.isPending}
+                data-testid="button-save-changes"
+              >
+                <Check className="h-4 w-4 mr-1" /> 
+                {saveFrequencyMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </>
+          ) : !useSuggested ? (
+            <>
+              <Button variant="outline" onClick={onClose} data-testid="button-cancel-frequency">
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveCustomSchedule} 
+                disabled={saveFrequencyMutation.isPending}
+                data-testid="button-save-custom-schedule"
+              >
+                <Check className="h-4 w-4 mr-1" /> 
+                {saveFrequencyMutation.isPending ? "Saving..." : "Save Schedule"}
+              </Button>
+            </>
+          ) : null}
           </DialogFooter>
         )}
       </DialogContent>
