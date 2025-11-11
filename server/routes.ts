@@ -1322,16 +1322,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })),
         };
 
-        // Call n8n webhook with timeout
         console.log(
           "[AI Suggestions] Calling n8n webhook with payload:",
           JSON.stringify(payload, null, 2),
         );
 
+        // Call n8n webhook with timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 150000); // 30 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 150000);
 
-        let aiSuggestions;
+        let aiSuggestions: any;
         try {
           const n8nResponse = await fetch(
             "https://monicapv27.app.n8n.cloud/webhook-test/ccc38e62-2f29-4fc5-8741-fce3350f5a86",
@@ -1364,22 +1364,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
           }
 
-          // Get response text first to debug
+          // Get and parse response safely
           const responseText = await n8nResponse.text();
           console.log("[AI Suggestions] N8n response body:", responseText);
 
-          // Parse the JSON
-          try {
-            aiSuggestions = JSON.parse(responseText);
-          } catch (parseError) {
-            console.error(
-              "[AI Suggestions] Failed to parse n8n response as JSON:",
-              parseError,
-            );
-            throw new Error(
-              `Invalid JSON response from n8n: ${responseText.substring(0, 200)}`,
-            );
-          }
+          aiSuggestions = responseText?.trim()
+            ? JSON.parse(responseText)
+            : null;
 
           console.log(
             "[AI Suggestions] Parsed AI suggestions:",
@@ -1393,15 +1384,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           throw fetchError;
         }
 
-        // Validate response structure
-        if (!Array.isArray(aiSuggestions) || aiSuggestions.length === 0) {
+        // ✅ Validate flexible response structure
+        let recommendations: any[] = [];
+
+        if (Array.isArray(aiSuggestions)) {
+          // case: n8n devuelve array directamente
+          recommendations = aiSuggestions;
+        } else if (
+          aiSuggestions &&
+          Array.isArray(aiSuggestions.recommendations)
+        ) {
+          // case: n8n devuelve objeto con recommendations
+          recommendations = aiSuggestions.recommendations;
+        } else {
           throw new Error("Invalid response format from n8n");
         }
 
-        // Return sanitized suggestions
-        res.json(aiSuggestions);
+        // Return sanitized result
+        res.json({
+          user_id: aiSuggestions.user_id || userId,
+          recommendations,
+        });
       } catch (error) {
-        console.error("Error fetching AI suggestions:", error);
+        console.error("❌ Error fetching AI suggestions:", error);
         res.status(500).json({
           message: "Failed to fetch AI suggestions",
           error: error instanceof Error ? error.message : "Unknown error",
@@ -3099,7 +3104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (localMsg?.meta_conversation_id) {
               metaConversationId = localMsg.meta_conversation_id;
               console.log(
-                `🔗 Mapeado a meta_conversation_id: ${metaConversationId}`,
+                `Mapeado a meta_conversation_id: ${metaConversationId}`,
               );
             } else {
               console.warn("⚠️ No se encontró meta_conversation_id asociado.");

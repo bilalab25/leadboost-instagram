@@ -1,0 +1,365 @@
+{
+  "name": "Metrics Generator — Fast Version",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ccc38e62-2f29-4fc5-8741-fce3350f5a86",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1600,
+        120
+      ],
+      "id": "webhook1",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.Integrations",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -1400,
+        120
+      ],
+      "id": "splitOut1",
+      "name": "Split Integrations"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.provider }}",
+                    "rightValue": "facebook",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and",
+                "options": {
+                  "caseSensitive": true
+                }
+              }
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.provider }}",
+                    "rightValue": "instagram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and",
+                "options": {
+                  "caseSensitive": true
+                }
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1200,
+        120
+      ],
+      "id": "switch1",
+      "name": "Switch Platform"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v24.0/{{ $json.account_id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "page_media_view,page_post_engagements,page_posts_impressions_unique"
+            },
+            {
+              "name": "period",
+              "value": "month"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $json.access_token }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -960,
+        0
+      ],
+      "id": "fb_insights",
+      "name": "Facebook Insights"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calcular métricas promedio de Facebook\nconst fb = $json.data || [];\nconst get = name => fb.find(m => m.name === name)?.values.map(v => v.value) || [];\nconst avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;\nconst avgEng = avg(get('page_post_engagements'));\nconst avgReach = avg(get('page_posts_impressions_unique'));\nconst avgViews = avg(get('page_media_view'));\n\n// Frecuencia según tasa de engagement\nconst rate = avgEng / (avgReach || 1);\nlet frequency = '1 publicación por semana';\nif (rate > 0.05) frequency = '3 publicaciones por semana';\nif (rate > 0.08) frequency = '5 publicaciones por semana';\n\n// Días según frecuencia\nlet days = ['wed'];\nif (frequency.includes('3')) days = ['mon','wed','fri'];\nif (frequency.includes('5')) days = ['mon','tue','wed','thu','fri'];\n\n// Horas según engagement\nlet hours = ['12:00','14:00'];\nif (rate > 0.05) hours = ['11:00','13:00'];\nif (rate > 0.08) hours = ['10:00','12:00'];\n\nreturn [{ json: {\n  platform: 'facebook',\n  frequency_days: frequency,\n  days_week: days,\n  best_hours: hours,\n  insights_data: {\n    avg_engagement_rate: rate,\n    avg_reach: avgReach,\n    avg_views: avgViews\n  }\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        0
+      ],
+      "id": "fb_besttime",
+      "name": "Facebook Metrics + Best Time"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v24.0/{{ $json.account_id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "reach,profile_views,accounts_engaged,total_interactions"
+            },
+            {
+              "name": "period",
+              "value": "day"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $json.access_token }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -960,
+        320
+      ],
+      "id": "ig_insights1",
+      "name": "Instagram Insights1"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v24.0/{{ $json.account_id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "follower_count"
+            },
+            {
+              "name": "period",
+              "value": "day"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $json.access_token }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -960,
+        480
+      ],
+      "id": "ig_insights2",
+      "name": "Instagram Insights2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combinar métricas de Instagram\nconst metrics = [].concat($items('Instagram Insights1')[0].json.data || [], $items('Instagram Insights2')[0].json.data || []);\nconst get = name => metrics.find(m => m.name === name)?.values?.map(v => v.value) || [];\nconst avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;\nconst avgReach = avg(get('reach'));\nconst avgProfileViews = avg(get('profile_views'));\nconst avgAccountsEngaged = avg(get('accounts_engaged'));\nconst avgInteractions = avg(get('total_interactions'));\nconst avgFollowers = avg(get('follower_count'));\n\nconst engagementRate = avgAccountsEngaged / (avgReach || 1);\nconst interactionRate = avgInteractions / (avgReach || 1);\n\n// Frecuencia\nlet frequency = '1 publicación por semana';\nif (engagementRate > 0.04 || interactionRate > 0.03) frequency = '3 publicaciones por semana';\nif (engagementRate > 0.08 || interactionRate > 0.06) frequency = '5 publicaciones por semana';\n\n// Días y horas\nlet days = ['wed'];\nif (frequency.includes('3')) days = ['tue','thu','sat'];\nif (frequency.includes('5')) days = ['mon','tue','wed','thu','fri'];\nlet hours = ['10:00','12:00'];\nif (engagementRate > 0.05) hours = ['11:00','13:00'];\nif (engagementRate > 0.08) hours = ['09:00','11:00'];\n\nreturn [{ json: {\n  platform: 'instagram',\n  frequency_days: frequency,\n  days_week: days,\n  best_hours: hours,\n  insights_data: {\n    avg_engagement_rate: engagementRate,\n    avg_reach: avgReach,\n    avg_profile_views: avgProfileViews,\n    avg_accounts_engaged: avgAccountsEngaged,\n    avg_interactions: avgInteractions,\n    avg_followers: avgFollowers,\n    interaction_rate: interactionRate\n  }\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        400
+      ],
+      "id": "ig_besttime",
+      "name": "Instagram Metrics + Best Time"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -480,
+        200
+      ],
+      "id": "merge_results",
+      "name": "Merge Results"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tomar datos combinados del merge\nconst data = $items('Merge Results').map(i => i.json);\nconst userId = $('Webhook').first().json.body.Integrations[0].user_id;\nreturn [{ json: { user_id: userId, recommendations: data } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        200
+      ],
+      "id": "final_result",
+      "name": "Resultado Final"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        200
+      ],
+      "id": "respond_webhook",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Split Integrations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Integrations": {
+      "main": [
+        [
+          {
+            "node": "Switch Platform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Platform": {
+      "main": [
+        [
+          {
+            "node": "Facebook Insights",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Instagram Insights1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Instagram Insights2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Insights": {
+      "main": [
+        [
+          {
+            "node": "Facebook Metrics + Best Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Insights1": {
+      "main": [
+        [
+          {
+            "node": "Instagram Metrics + Best Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Insights2": {
+      "main": [
+        [
+          {
+            "node": "Instagram Metrics + Best Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Metrics + Best Time": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Metrics + Best Time": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Resultado Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resultado Final": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
