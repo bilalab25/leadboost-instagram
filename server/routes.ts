@@ -4152,12 +4152,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Customer management routes
-  app.get("/api/customers", isAuthenticated, async (req: any, res) => {
+  app.get("/api/customers", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.brandMembership.brandId;
 
-      const customers = await storage.getCustomersByUserId(userId);
+      const customers = await storage.getCustomersByBrandId(brandId);
       res.json(customers);
     } catch (error) {
       console.error("Error fetching customers:", error);
@@ -4168,11 +4167,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/customers/by-conversation/:conversationId",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
+        const brandId = req.brandMembership.brandId;
         const conversationId = req.params.conversationId;
         const customer =
-          await storage.getCustomerByConversationId(conversationId);
+          await storage.getCustomerByConversationId(conversationId, brandId);
 
         if (!customer) {
           return res.status(404).json({ message: "Customer not found" });
@@ -4186,10 +4187,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.post("/api/customers", isAuthenticated, async (req: any, res) => {
+  app.post("/api/customers", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.brandMembership.brandId;
       const { name, phone, platform, conversationId } = req.body;
 
       if (!name) {
@@ -4199,11 +4201,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if customer already exists (by phone for WhatsApp, by name for others)
       let existingCustomer;
       if (phone && platform === "whatsapp") {
-        existingCustomer = await storage.getCustomerByPhone(userId, phone);
+        existingCustomer = await storage.getCustomerByPhone(brandId, phone);
       } else if (phone) {
-        existingCustomer = await storage.getCustomerByPhone(userId, phone);
+        existingCustomer = await storage.getCustomerByPhone(brandId, phone);
       } else {
-        existingCustomer = await storage.getCustomerByName(userId, name);
+        existingCustomer = await storage.getCustomerByName(brandId, name);
       }
 
       if (existingCustomer) {
@@ -4213,9 +4215,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Prepare customer data with defaults for missing fields
-      const customerData = insertCustomerSchema.parse({
-        userId,
+      // Validate client-provided data (without userId/brandId/totalInvoiced/status)
+      const validatedData = insertCustomerSchema.parse({
         name,
         phone: phone || null,
         email: req.body.email || null,
@@ -4224,16 +4225,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes:
           req.body.notes ||
           (platform ? `Lead created from ${platform} conversation` : null),
-        status: req.body.status || (platform ? "prospect" : "active"),
-        totalInvoiced: 0,
         conversationId: conversationId || null,
       });
+
+      // Enrich with server-side context (brandId, userId, totalInvoiced, status)
+      const customerData = {
+        ...validatedData,
+        brandId,
+        userId,
+        totalInvoiced: 0, // Server-controlled: always start at 0
+        status: platform ? "prospect" : "active", // Server-controlled: prospect for platform leads, active otherwise
+      };
 
       const customer = await storage.createCustomer(customerData);
 
       // Log activity
       await storage.createActivityLog({
         userId,
+        brandId,
         action: "customer_created",
         description: `Created customer: ${customer.name}${phone ? ` (${phone})` : ""}`,
         entityType: "customer",
@@ -4247,15 +4256,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/customers/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/customers/:id", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.brandMembership.brandId;
       const customerId = req.params.id;
       const updates = req.body;
       const customer = await storage.updateCustomer(
         customerId,
-        userId,
+        brandId,
         updates,
       );
 
@@ -4265,6 +4275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.createActivityLog({
         userId,
+        brandId,
         action: "customer_updated",
         description: `Updated customer: ${customer.name}`,
         entityType: "customer",
@@ -4279,13 +4290,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/customers/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/customers/:id", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.brandMembership.brandId;
       const customerId = req.params.id;
 
-      const success = await storage.deleteCustomer(customerId, userId);
+      const success = await storage.deleteCustomer(customerId, brandId);
       if (!success) {
         return res.status(404).json({ message: "Customer not found" });
       }
@@ -4293,6 +4305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log activity
       await storage.createActivityLog({
         userId,
+        brandId,
         action: "customer_deleted",
         description: `Deleted customer`,
         entityType: "customer",

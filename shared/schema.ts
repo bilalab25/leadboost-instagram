@@ -888,6 +888,8 @@ export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({
 
 export const insertCustomerSchema = createInsertSchema(customers).omit({
   id: true,
+  userId: true,
+  brandId: true,
   createdAt: true,
   updatedAt: true,
 });
