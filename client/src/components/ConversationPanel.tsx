@@ -37,6 +37,7 @@ import {
 } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@shared/schema";
+import { useBrand } from "@/contexts/BrandContext";
 
 interface Message {
   id: string;
@@ -90,6 +91,7 @@ export default function ConversationPanel({
 }: ConversationPanelProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeBrandId } = useBrand();
   const [metaConversationId, setMetaConversationId] = useState<string | null>(
     null,
   );
@@ -102,9 +104,9 @@ export default function ConversationPanel({
   const [conversationFlag, setConversationFlag] = useState<'none' | 'important' | 'archived'>('none');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch linked customer for this conversation
+  // Fetch linked customer for this conversation (brand-scoped)
   const { data: linkedCustomer } = useQuery<Customer>({
-    queryKey: ["/api/customers/by-conversation", conversationId],
+    queryKey: ["/api/customers/by-conversation", activeBrandId, conversationId],
     queryFn: async () => {
       const res = await fetch(`/api/customers/by-conversation/${conversationId}`);
       if (!res.ok) {
@@ -113,6 +115,7 @@ export default function ConversationPanel({
       }
       return res.json();
     },
+    enabled: !!activeBrandId,
     retry: false,
   });
 
@@ -253,7 +256,7 @@ export default function ConversationPanel({
         });
       }
     },
-    [platform, conversationId, isFacebookConversation],
+    [platform, conversationId, isFacebookConversation, activeBrandId],
   );
 
   useNewMessageListener(handleNewMessage);
@@ -262,6 +265,8 @@ export default function ConversationPanel({
   // 🏁 Mutation to update conversation flag
   const updateFlagMutation = useMutation({
     mutationFn: async (flag: 'none' | 'important' | 'archived') => {
+      if (!activeBrandId) throw new Error("No active brand");
+      
       const res = await fetch(`/api/conversations/${conversationId}/flag`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -275,7 +280,7 @@ export default function ConversationPanel({
     },
     onSuccess: (data) => {
       setConversationFlag(data.conversation.flag);
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
       toast({
         title: "Flag updated",
         description: `Conversation marked as ${data.conversation.flag}`,
@@ -293,6 +298,8 @@ export default function ConversationPanel({
   // 🏁 Mutation to create customer lead
   const createLeadMutation = useMutation({
     mutationFn: async () => {
+      if (!activeBrandId) throw new Error("No active brand");
+      
       // Extract phone number from metaConversationId for WhatsApp
       let phone = null;
       if (platform === "whatsapp" && metaConversationId) {
@@ -326,6 +333,8 @@ export default function ConversationPanel({
       return result;
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers/by-conversation", activeBrandId, conversationId] });
       toast({
         title: "Lead Created!",
         description: `${data.name} has been added to your customers`,
@@ -344,6 +353,8 @@ export default function ConversationPanel({
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string }) => {
+      if (!activeBrandId) throw new Error("No active brand");
+      
       // ⚙️ Usa metaConversationId si existe (para Facebook)
       const targetConversationId = metaConversationId || conversationId;
       const res = await fetch(
@@ -384,7 +395,8 @@ export default function ConversationPanel({
         title: "✅ Mensaje enviado",
         description: `Tu mensaje fue enviado correctamente a ${platform}.`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "messages"] });
     },
 
     onError: (error: Error) => {

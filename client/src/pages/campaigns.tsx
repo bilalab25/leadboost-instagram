@@ -8,6 +8,7 @@ import { translations, platformOptionsSpanish } from "@/lib/translations";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import { Button } from "@/components/ui/button";
+import { useBrand } from "@/contexts/BrandContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -223,6 +224,7 @@ export default function Campaigns() {
   const { isAuthenticated, isLoading } = useAuth();
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const queryClient = useQueryClient();
+  const { activeBrandId } = useBrand();
   const t = translations[language];
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -253,18 +255,20 @@ export default function Campaigns() {
 
   const { data: campaigns, isLoading: campaignsLoading } = useQuery<Campaign[]>(
     {
-      queryKey: ["/api/campaigns"],
+      queryKey: ["/api/campaigns", activeBrandId],
+      enabled: !!activeBrandId,
       retry: false,
     },
   );
 
   const createCampaignMutation = useMutation({
     mutationFn: async (campaignData: any) => {
+      if (!activeBrandId) throw new Error("No active brand");
       const response = await apiRequest("POST", "/api/campaigns", campaignData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/campaigns", activeBrandId] });
       setIsCreateDialogOpen(false);
       resetForm();
       toast({
@@ -283,6 +287,7 @@ export default function Campaigns() {
 
   const generateAICampaignMutation = useMutation({
     mutationFn: async () => {
+      if (!activeBrandId) throw new Error("No active brand");
       const response = await apiRequest("POST", "/api/campaigns/generate", {
         prompt: aiPrompt,
         platforms: selectedPlatforms,
@@ -291,7 +296,7 @@ export default function Campaigns() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/campaigns", activeBrandId] });
       setIsAIDialogOpen(false);
       resetForm();
       toast({
@@ -310,6 +315,7 @@ export default function Campaigns() {
 
   const publishCampaignMutation = useMutation({
     mutationFn: async (campaignId: string) => {
+      if (!activeBrandId) throw new Error("No active brand");
       const response = await apiRequest(
         "POST",
         `/api/campaigns/${campaignId}/publish`,
@@ -317,7 +323,7 @@ export default function Campaigns() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/campaigns", activeBrandId] });
       toast({
         title: "Success",
         description: "Campaign published successfully!",

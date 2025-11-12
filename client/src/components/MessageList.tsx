@@ -12,6 +12,7 @@ import { Instagram, Mail, Twitter, Star, Archive } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import ConversationPanel from "@/components/ConversationPanel";
+import { useBrand } from "@/contexts/BrandContext";
 
 const platformIcons = {
   instagram: Instagram,
@@ -37,6 +38,7 @@ interface Conversation {
   id: string;
   integrationId: string;
   userId: string;
+  brandId: string;
   metaConversationId: string;
   platform: string;
   contactName: string | null;
@@ -63,6 +65,7 @@ export default function MessageList({
 }: MessageListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeBrandId } = useBrand();
 
   const [activeConversation, setActiveConversation] = useState<{
     id: string;
@@ -70,25 +73,27 @@ export default function MessageList({
     platform: string;
   } | null>(null);
 
-  // ✅ Fetch conversations using TanStack Query
+  // ✅ Fetch conversations using TanStack Query (brand-scoped)
   const { data: conversationsData, isLoading } = useQuery({
-    queryKey: ["/api/conversations", platform],
+    queryKey: ["/api/conversations", activeBrandId, platform],
     queryFn: async () => {
       const res = await fetch("/api/conversations");
       if (!res.ok) throw new Error("Failed to fetch conversations");
       const data = await res.json();
       return data.conversations as Conversation[];
     },
+    enabled: !!activeBrandId,
   });
 
   // ✅ Mark conversation as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (conversationId: string) => {
+      if (!activeBrandId) throw new Error("No active brand");
       await apiRequest("PATCH", `/api/conversations/${conversationId}/read`);
     },
     onSuccess: (_, conversationId) => {
       // Invalidate conversations list to refresh unread counts
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
       // Invalidate messages for this conversation
       queryClient.invalidateQueries({
         queryKey: ["/api/conversations", conversationId, "messages"],
@@ -110,9 +115,9 @@ export default function MessageList({
 
       const { provider, conversationId, message } = event;
 
-      // Update the conversations query cache
+      // Update the conversations query cache with brandId
       queryClient.setQueryData(
-        ["/api/conversations", platform],
+        ["/api/conversations", activeBrandId, platform],
         (oldData: Conversation[] | undefined) => {
           if (!oldData) return oldData;
 
@@ -139,8 +144,8 @@ export default function MessageList({
         }
       );
 
-      // Invalidate to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      // Invalidate to ensure data consistency (brand-scoped)
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
 
       // If this is the active conversation, invalidate its messages
       if (activeConversation?.id === conversationId) {
@@ -155,7 +160,7 @@ export default function MessageList({
         description: `${message.contactName || "Contact"}: ${(message.textContent || "").substring(0, 50)}${message.textContent?.length > 50 ? "..." : ""}`,
       });
     },
-    [toast, queryClient, platform, activeConversation]
+    [toast, queryClient, platform, activeBrandId, activeConversation]
   );
 
   useNewMessageListener(handleNewMessage);

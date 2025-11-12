@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
+import { useBrand } from "@/contexts/BrandContext";
 import {
   Card,
   CardContent,
@@ -75,6 +76,7 @@ interface InvoiceWithCustomer extends Invoice {
 export default function CustomersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeBrandId } = useBrand();
   const [, navigate] = useLocation();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
@@ -88,21 +90,26 @@ export default function CustomersPage() {
   const [dateFilter, setDateFilter] = useState<"current" | "all">("current");
   const { language, isSpanish, toggleLanguage } = useLanguage();
 
-  // Fetch customers
+  // Fetch customers (brand-scoped)
   const { data: customers = [], isLoading: customersLoading } = useQuery<Customer[]>({
-    queryKey: ["/api/customers"],
+    queryKey: ["/api/customers", activeBrandId],
+    enabled: !!activeBrandId,
   });
 
-  // Fetch invoices
+  // Fetch invoices (brand-scoped)
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery<InvoiceWithCustomer[]>({
-    queryKey: ["/api/invoices"],
+    queryKey: ["/api/invoices", activeBrandId],
+    enabled: !!activeBrandId,
   });
 
   // Customer mutations
   const createCustomerMutation = useMutation({
-    mutationFn: async (data: any) => apiRequest("POST", "/api/customers", data),
+    mutationFn: async (data: any) => {
+      if (!activeBrandId) throw new Error("No active brand");
+      return apiRequest("POST", "/api/customers", data);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
       setShowAddCustomer(false);
       toast({ title: "Customer created successfully" });
     },
@@ -112,10 +119,12 @@ export default function CustomersPage() {
   });
 
   const updateCustomerMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) =>
-      apiRequest("PUT", `/api/customers/${id}`, data),
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      if (!activeBrandId) throw new Error("No active brand");
+      return apiRequest("PUT", `/api/customers/${id}`, data);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
       setShowEditCustomer(false);
       setEditingCustomer(null);
       toast({ title: "Customer updated successfully" });
@@ -127,9 +136,13 @@ export default function CustomersPage() {
 
   // Invoice mutations
   const createInvoiceMutation = useMutation({
-    mutationFn: async (data: any) => apiRequest("POST", "/api/invoices", data),
+    mutationFn: async (data: any) => {
+      if (!activeBrandId) throw new Error("No active brand");
+      return apiRequest("POST", "/api/invoices", data);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices", activeBrandId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
       setShowAddInvoice(false);
       toast({ title: "Invoice created successfully" });
     },
@@ -139,10 +152,13 @@ export default function CustomersPage() {
   });
 
   const updateInvoiceMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) =>
-      apiRequest("PUT", `/api/invoices/${id}`, data),
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      if (!activeBrandId) throw new Error("No active brand");
+      return apiRequest("PUT", `/api/invoices/${id}`, data);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices", activeBrandId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
       toast({ title: "Invoice updated successfully" });
     },
     onError: () => {
