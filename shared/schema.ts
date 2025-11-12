@@ -87,6 +87,60 @@ export const brands = pgTable("brands", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Brand memberships - Associates users with brands and their roles
+export const brandMemberships = pgTable(
+  "brand_memberships",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
+    role: varchar("role").notNull().default("viewer"), // owner, admin, editor, viewer
+    status: varchar("status").notNull().default("active"), // active, invited, suspended
+    invitedBy: varchar("invited_by").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    unique("brand_memberships_user_brand_unique").on(
+      table.userId,
+      table.brandId,
+    ),
+    index("brand_memberships_user_idx").on(table.userId),
+    index("brand_memberships_brand_idx").on(table.brandId),
+  ],
+);
+
+// Brand invitations - Invite codes for joining brands
+export const brandInvitations = pgTable(
+  "brand_invitations",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
+    inviteCode: varchar("invite_code").notNull().unique(),
+    email: varchar("email"), // Optional: pre-assign to specific email
+    role: varchar("role").notNull().default("viewer"), // Role to assign when accepted
+    invitedBy: varchar("invited_by")
+      .notNull()
+      .references(() => users.id),
+    status: varchar("status").notNull().default("pending"), // pending, accepted, expired
+    expiresAt: timestamp("expires_at"), // Optional expiration
+    acceptedBy: varchar("accepted_by").references(() => users.id),
+    acceptedAt: timestamp("accepted_at"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [index("brand_invitations_brand_idx").on(table.brandId)],
+);
+
 // Social media accounts connected to users and brands
 export const socialAccounts = pgTable("social_accounts", {
   id: uuid("id")
@@ -120,6 +174,9 @@ export const conversations = pgTable(
     userId: varchar("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
     metaConversationId: text("meta_conversation_id").notNull(), // Meta-specific conversation ID
     platform: varchar("platform").notNull(), // whatsapp, messenger, instagram, threads
     contactName: varchar("contact_name"), // Contact/participant name
@@ -137,6 +194,7 @@ export const conversations = pgTable(
     ),
     index("conversations_integration_idx").on(table.integrationId),
     index("conversations_user_idx").on(table.userId),
+    index("conversations_brand_idx").on(table.brandId),
   ],
 );
 
@@ -172,6 +230,9 @@ export const messages = pgTable(
     integrationId: uuid("integration_id")
       .notNull()
       .references(() => integrations.id, { onDelete: "cascade" }), // Integration that received the message
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
     conversationId: uuid("conversation_id").references(() => conversations.id, {
       onDelete: "cascade",
     }), // Link to conversation
@@ -194,6 +255,7 @@ export const messages = pgTable(
       table.metaMessageId,
     ),
     index("messages_conversation_idx").on(table.conversationId),
+    index("messages_brand_idx").on(table.brandId),
   ],
 );
 
@@ -400,50 +462,64 @@ export const campaignTriggers = pgTable("campaign_triggers", {
 });
 
 // Customers table for business customer management
-export const customers = pgTable("customers", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  name: varchar("name").notNull(),
-  email: varchar("email"),
-  phone: varchar("phone"),
-  company: varchar("company"),
-  address: text("address"),
-  notes: text("notes"),
-  status: varchar("status").default("active"), // active, inactive, prospect
-  totalInvoiced: integer("total_invoiced").default(0),
-  conversationId: uuid("conversation_id").references(() => conversations.id, {
-    onDelete: "set null",
-  }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const customers = pgTable(
+  "customers",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
+    name: varchar("name").notNull(),
+    email: varchar("email"),
+    phone: varchar("phone"),
+    company: varchar("company"),
+    address: text("address"),
+    notes: text("notes"),
+    status: varchar("status").default("active"), // active, inactive, prospect
+    totalInvoiced: integer("total_invoiced").default(0),
+    conversationId: uuid("conversation_id").references(() => conversations.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [index("customers_brand_idx").on(table.brandId)],
+);
 
 // Invoices table for customer invoicing with file uploads
-export const invoices = pgTable("invoices", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  customerId: uuid("customer_id").references(() => customers.id, {
-    onDelete: "cascade",
-  }),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  invoiceNumber: varchar("invoice_number").notNull().unique(),
-  amount: integer("amount").notNull(), // amount in cents
-  currency: varchar("currency").default("USD"),
-  description: text("description"),
-  status: varchar("status").default("pending"), // pending, paid, overdue, cancelled
-  fileUrl: varchar("file_url"), // path to uploaded invoice file
-  dueDate: timestamp("due_date"),
-  paidDate: timestamp("paid_date"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const invoices = pgTable(
+  "invoices",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    customerId: uuid("customer_id").references(() => customers.id, {
+      onDelete: "cascade",
+    }),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
+    invoiceNumber: varchar("invoice_number").notNull().unique(),
+    amount: integer("amount").notNull(), // amount in cents
+    currency: varchar("currency").default("USD"),
+    description: text("description"),
+    status: varchar("status").default("pending"), // pending, paid, overdue, cancelled
+    fileUrl: varchar("file_url"), // path to uploaded invoice file
+    dueDate: timestamp("due_date"),
+    paidDate: timestamp("paid_date"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [index("invoices_brand_idx").on(table.brandId)],
+);
 
 // Team tasks for enhanced team management
 export const teamTasks = pgTable("team_tasks", {
@@ -887,6 +963,32 @@ export const insertBrandSchema = createInsertSchema(brands).omit({
   updatedAt: true,
 });
 export type InsertBrand = z.infer<typeof insertBrandSchema>;
+export type SelectBrand = typeof brands.$inferSelect;
+
+// Brand Memberships insert/select schemas
+export const insertBrandMembershipSchema = createInsertSchema(
+  brandMemberships,
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertBrandMembership = z.infer<
+  typeof insertBrandMembershipSchema
+>;
+export type SelectBrandMembership = typeof brandMemberships.$inferSelect;
+
+// Brand Invitations insert/select schemas
+export const insertBrandInvitationSchema = createInsertSchema(
+  brandInvitations,
+).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertBrandInvitation = z.infer<
+  typeof insertBrandInvitationSchema
+>;
+export type SelectBrandInvitation = typeof brandInvitations.$inferSelect;
 export type Brand = typeof brands.$inferSelect;
 
 // POS Integration types
@@ -1189,30 +1291,37 @@ export const appointmentServices = pgTable("appointment_services", {
 
 // @shared/schema.ts
 // Integration table schema - matches PostgreSQL structure exactly
-export const integrations = pgTable("integrations", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(), // Maps to: user_id
-  provider: varchar("provider").notNull(), // Maps to: provider
-  category: varchar("category").notNull().default("social"),
-  storeName: varchar("store_name").notNull(), // Maps to: store_name
-  storeUrl: varchar("store_url"), // Maps to: store_url
-  pageId: varchar("page_id"), // Maps to: page_id
-  accessToken: text("access_token"), // Maps to: access_token (TEXT, nullable)
-  refreshToken: text("refresh_token"), // Maps to: refresh_token
-  isActive: boolean("is_active").default(true), // Maps to: is_active
-  syncEnabled: boolean("sync_enabled").default(true), // Maps to: sync_enabled
-  lastSyncAt: timestamp("last_sync_at"), // Maps to: last_sync_at
-  hasFetchedHistory: boolean("has_fetched_history").default(false), // For Messenger/Instagram initial sync
-  settings: jsonb("settings").default({}), // Maps to: settings
-  createdAt: timestamp("created_at").defaultNow(), // Maps to: created_at
-  updatedAt: timestamp("updated_at").defaultNow(), // Maps to: updated_at
-  accountName: text("account_name"), // Maps to: account_name
-  accountId: text("account_id"), // Maps to: account_id
-  expiresAt: timestamp("expires_at"), // Maps to: expires_at
-  metadata: jsonb("metadata"), // Maps to: metadata (JSONB for structured data queries)
-});
+export const integrations = pgTable(
+  "integrations",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").notNull(), // Maps to: user_id
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
+    provider: varchar("provider").notNull(), // Maps to: provider
+    category: varchar("category").notNull().default("social"),
+    storeName: varchar("store_name").notNull(), // Maps to: store_name
+    storeUrl: varchar("store_url"), // Maps to: store_url
+    pageId: varchar("page_id"), // Maps to: page_id
+    accessToken: text("access_token"), // Maps to: access_token (TEXT, nullable)
+    refreshToken: text("refresh_token"), // Maps to: refresh_token
+    isActive: boolean("is_active").default(true), // Maps to: is_active
+    syncEnabled: boolean("sync_enabled").default(true), // Maps to: sync_enabled
+    lastSyncAt: timestamp("last_sync_at"), // Maps to: last_sync_at
+    hasFetchedHistory: boolean("has_fetched_history").default(false), // For Messenger/Instagram initial sync
+    settings: jsonb("settings").default({}), // Maps to: settings
+    createdAt: timestamp("created_at").defaultNow(), // Maps to: created_at
+    updatedAt: timestamp("updated_at").defaultNow(), // Maps to: updated_at
+    accountName: text("account_name"), // Maps to: account_name
+    accountId: text("account_id"), // Maps to: account_id
+    expiresAt: timestamp("expires_at"), // Maps to: expires_at
+    metadata: jsonb("metadata"), // Maps to: metadata (JSONB for structured data queries)
+  },
+  (table) => [index("integrations_brand_idx").on(table.brandId)],
+);
 
 // Scheduled Appointments
 export const appointments = pgTable("appointments", {

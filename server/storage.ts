@@ -1,6 +1,8 @@
 import {
   users,
   brands,
+  brandMemberships,
+  brandInvitations,
   socialAccounts,
   conversationThreads,
   conversations,
@@ -31,6 +33,10 @@ import {
   type InsertUser,
   type InsertBrand,
   type Brand,
+  type SelectBrandMembership,
+  type InsertBrandMembership,
+  type SelectBrandInvitation,
+  type InsertBrandInvitation,
   type InsertSocialAccount,
   type SocialAccount,
   type InsertConversationThread,
@@ -399,6 +405,34 @@ export interface IStorage {
   getSocialPostingFrequenciesByUserId(
     userId: string,
   ): Promise<SocialPostingFrequency[]>;
+
+  // Brand Membership operations
+  getBrandMemberships(userId: string): Promise<SelectBrandMembership[]>;
+  getBrandMembershipsByBrand(
+    brandId: string,
+  ): Promise<SelectBrandMembership[]>;
+  createBrandMembership(
+    membership: InsertBrandMembership,
+  ): Promise<SelectBrandMembership>;
+  updateBrandMembershipRole(
+    id: string,
+    role: string,
+  ): Promise<SelectBrandMembership | undefined>;
+  removeBrandMembership(userId: string, brandId: string): Promise<boolean>;
+
+  // Brand Invitation operations
+  createBrandInvitation(
+    invitation: InsertBrandInvitation,
+  ): Promise<SelectBrandInvitation>;
+  validateInviteCode(
+    code: string,
+  ): Promise<SelectBrandInvitation | undefined>;
+  acceptBrandInvitation(
+    code: string,
+    userId: string,
+  ): Promise<SelectBrandMembership>;
+  getBrandInvitations(brandId: string): Promise<SelectBrandInvitation[]>;
+  expireBrandInvitation(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1971,6 +2005,220 @@ export class DatabaseStorage implements IStorage {
       .from(socialPostingFrequency)
       .where(eq(socialPostingFrequency.userId, userId))
       .orderBy(desc(socialPostingFrequency.createdAt));
+  }
+
+  // Brand Membership operations
+  async getBrandMemberships(
+    userId: string,
+  ): Promise<SelectBrandMembership[]> {
+    return await db
+      .select()
+      .from(brandMemberships)
+      .where(eq(brandMemberships.userId, userId))
+      .orderBy(desc(brandMemberships.createdAt));
+  }
+
+  async getBrandMembershipsByBrand(
+    brandId: string,
+  ): Promise<SelectBrandMembership[]> {
+    return await db
+      .select()
+      .from(brandMemberships)
+      .where(eq(brandMemberships.brandId, brandId))
+      .orderBy(desc(brandMemberships.createdAt));
+  }
+
+  async createBrandMembership(
+    membership: InsertBrandMembership,
+  ): Promise<SelectBrandMembership> {
+    const [result] = await db
+      .insert(brandMemberships)
+      .values(membership)
+      .returning();
+    return result;
+  }
+
+  async updateBrandMembershipRole(
+    id: string,
+    role: string,
+  ): Promise<SelectBrandMembership | undefined> {
+    const [result] = await db
+      .update(brandMemberships)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(brandMemberships.id, id))
+      .returning();
+    return result;
+  }
+
+  async removeBrandMembership(
+    userId: string,
+    brandId: string,
+  ): Promise<boolean> {
+    const result = await db
+      .delete(brandMemberships)
+      .where(
+        and(
+          eq(brandMemberships.userId, userId),
+          eq(brandMemberships.brandId, brandId),
+        ),
+      )
+      .returning();
+    return result.length > 0;
+  }
+
+  // Brand Invitation operations
+  async createBrandInvitation(
+    invitation: InsertBrandInvitation,
+  ): Promise<SelectBrandInvitation> {
+    const [result] = await db
+      .insert(brandInvitations)
+      .values(invitation)
+      .returning();
+    return result;
+  }
+
+  async validateInviteCode(
+    code: string,
+  ): Promise<SelectBrandInvitation | undefined> {
+    const [result] = await db
+      .select()
+      .from(brandInvitations)
+      .where(
+        and(
+          eq(brandInvitations.inviteCode, code),
+          eq(brandInvitations.status, "pending"),
+        ),
+      )
+      .limit(1);
+    return result;
+  }
+
+  async acceptBrandInvitation(
+    code: string,
+    userId: string,
+  ): Promise<SelectBrandMembership> {
+    // Validate invitation with expiration check
+    const invitation = await this.validateInviteCode(code);
+    if (!invitation) {
+      throw new Error("Invalid or expired invitation code");
+    }
+
+    // Check if invitation has expired
+    if (invitation.expiresAt && invitation.expiresAt < new Date()) {
+      throw new Error("Invitation code has expired");
+    }
+
+    // Use transaction with uniqueness enforcement
+    try {
+      return await db.transaction(async (tx) => {
+        // Double-check invitation status in transaction
+        const [currentInvitation] = await tx
+          .select()
+          .from(brandInvitations)
+          .where(
+            and(
+              eq(brandInvitations.inviteCode, code),
+              eq(brandInvitations.status, "pending"),
+            ),
+          )
+          .limit(1);
+
+        if (!currentInvitation) {
+          throw new Error("Invitation has already been used or expired");
+        }
+
+        // Check for existing membership inside transaction
+        const [existingMembership] = await tx
+          .select()
+          .from(brandMemberships)
+          .where(
+            and(
+              eq(brandMemberships.userId, userId),
+              eq(brandMemberships.brandId, currentInvitation.brandId),
+            ),
+          )
+          .limit(1);
+
+        // If membership exists, mark invitation as accepted and return membership
+        if (existingMembership) {
+          await tx
+            .update(brandInvitations)
+            .set({
+              status: "accepted",
+              acceptedBy: userId,
+              acceptedAt: new Date(),
+            })
+            .where(eq(brandInvitations.id, currentInvitation.id));
+
+          return existingMembership;
+        }
+
+        // Mark invitation as accepted first (prevents duplicate use)
+        await tx
+          .update(brandInvitations)
+          .set({
+            status: "accepted",
+            acceptedBy: userId,
+            acceptedAt: new Date(),
+          })
+          .where(eq(brandInvitations.id, currentInvitation.id));
+
+        // Create brand membership (unique constraint prevents duplicates)
+        const [membership] = await tx
+          .insert(brandMemberships)
+          .values({
+            userId,
+            brandId: currentInvitation.brandId,
+            role: currentInvitation.role,
+            status: "active",
+            invitedBy: currentInvitation.invitedBy,
+          })
+          .returning();
+
+        return membership;
+      });
+    } catch (error: any) {
+      // Handle unique constraint violation (duplicate membership)
+      if (error?.code === "23505") {
+        // Postgres unique violation
+        // Fetch and return existing membership
+        const [existingMembership] = await db
+          .select()
+          .from(brandMemberships)
+          .where(
+            and(
+              eq(brandMemberships.userId, userId),
+              eq(brandMemberships.brandId, invitation.brandId),
+            ),
+          )
+          .limit(1);
+
+        if (existingMembership) {
+          return existingMembership;
+        }
+      }
+      // Re-throw other errors
+      throw error;
+    }
+  }
+
+  async getBrandInvitations(
+    brandId: string,
+  ): Promise<SelectBrandInvitation[]> {
+    return await db
+      .select()
+      .from(brandInvitations)
+      .where(eq(brandInvitations.brandId, brandId))
+      .orderBy(desc(brandInvitations.createdAt));
+  }
+
+  async expireBrandInvitation(id: string): Promise<boolean> {
+    const result = await db
+      .update(brandInvitations)
+      .set({ status: "expired" })
+      .where(eq(brandInvitations.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
 
