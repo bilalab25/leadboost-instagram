@@ -1,32 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-
-interface Brand {
-  id: string;
-  name: string;
-  industry: string | null;
-  description: string | null;
-  brandColor: string | null;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-}
-
-interface BrandMembership {
-  id: string;
-  userId: string;
-  brandId: string;
-  role: string;
-  status: string;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-  invitedBy: string | null;
-}
+import type { BrandMembershipWithBrand } from "@shared/schema";
 
 interface BrandContextType {
   activeBrandId: string | null;
-  activeMembership: BrandMembership | null;
-  brands: BrandMembership[];
+  activeMembership: BrandMembershipWithBrand | null;
+  memberships: BrandMembershipWithBrand[];
   isLoading: boolean;
   error: Error | null;
   switchBrand: (brandId: string) => void;
@@ -48,35 +28,35 @@ export function BrandProvider({ children }: { children: ReactNode }) {
 
   // Fetch user's brand memberships
   const {
-    data: brands = [],
+    data: memberships = [],
     isLoading,
     error,
     refetch,
-  } = useQuery<BrandMembership[]>({
+  } = useQuery<BrandMembershipWithBrand[]>({
     queryKey: ["/api/brand-memberships"],
   });
 
   // Auto-select first brand if none selected
   useEffect(() => {
-    if (!isLoading && brands.length > 0 && !activeBrandId) {
-      const firstBrand = brands[0];
-      setActiveBrandId(firstBrand.brandId);
-      localStorage.setItem(BRAND_STORAGE_KEY, firstBrand.brandId);
+    if (!isLoading && memberships.length > 0 && !activeBrandId) {
+      const firstMembership = memberships[0];
+      setActiveBrandId(firstMembership.brandId);
+      localStorage.setItem(BRAND_STORAGE_KEY, firstMembership.brandId);
     }
-  }, [brands, activeBrandId, isLoading]);
+  }, [memberships, activeBrandId, isLoading]);
 
   // Validate that activeBrandId is still valid
   useEffect(() => {
-    if (activeBrandId && brands.length > 0) {
-      const isValid = brands.some((m) => m.brandId === activeBrandId);
+    if (activeBrandId && memberships.length > 0) {
+      const isValid = memberships.some((m) => m.brandId === activeBrandId);
       if (!isValid) {
         // Active brand is not in user's memberships, switch to first available
-        const firstBrand = brands[0];
-        setActiveBrandId(firstBrand.brandId);
-        localStorage.setItem(BRAND_STORAGE_KEY, firstBrand.brandId);
+        const firstMembership = memberships[0];
+        setActiveBrandId(firstMembership.brandId);
+        localStorage.setItem(BRAND_STORAGE_KEY, firstMembership.brandId);
       }
     }
-  }, [activeBrandId, brands]);
+  }, [activeBrandId, memberships]);
 
   const switchBrand = (brandId: string) => {
     setActiveBrandId(brandId);
@@ -90,12 +70,12 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   };
 
   const activeMembership =
-    brands.find((m) => m.brandId === activeBrandId) || null;
+    memberships.find((m) => m.brandId === activeBrandId) || null;
 
   const value: BrandContextType = {
     activeBrandId,
     activeMembership,
-    brands,
+    memberships,
     isLoading,
     error: error as Error | null,
     switchBrand,

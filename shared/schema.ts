@@ -978,6 +978,12 @@ export type InsertBrandMembership = z.infer<
 >;
 export type SelectBrandMembership = typeof brandMemberships.$inferSelect;
 
+// Extended type for API response with brand metadata
+export type BrandMembershipWithBrand = SelectBrandMembership & {
+  brandName: string;
+  brandColor: string | null;
+};
+
 // Brand Invitations insert/select schemas
 export const insertBrandInvitationSchema = createInsertSchema(
   brandInvitations,

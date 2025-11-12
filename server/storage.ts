@@ -34,6 +34,7 @@ import {
   type InsertBrand,
   type Brand,
   type SelectBrandMembership,
+  type BrandMembershipWithBrand,
   type InsertBrandMembership,
   type SelectBrandInvitation,
   type InsertBrandInvitation,
@@ -87,7 +88,7 @@ import {
   type SocialPostingFrequency,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, or, sql, gte, lte, SQL } from "drizzle-orm";
+import { eq, and, desc, asc, or, sql, gte, lte, SQL, getTableColumns } from "drizzle-orm";
 import { mapFromDb, mapPartialToDb, mapToDb } from "./mappers/brandDesign";
 
 export interface IStorage {
@@ -407,7 +408,7 @@ export interface IStorage {
   ): Promise<SocialPostingFrequency[]>;
 
   // Brand Membership operations
-  getBrandMemberships(userId: string): Promise<SelectBrandMembership[]>;
+  getBrandMemberships(userId: string): Promise<BrandMembershipWithBrand[]>;
   getBrandMembershipsByBrand(
     brandId: string,
   ): Promise<SelectBrandMembership[]>;
@@ -2016,10 +2017,15 @@ export class DatabaseStorage implements IStorage {
   // Brand Membership operations
   async getBrandMemberships(
     userId: string,
-  ): Promise<SelectBrandMembership[]> {
+  ): Promise<BrandMembershipWithBrand[]> {
     return await db
-      .select()
+      .select({
+        ...getTableColumns(brandMemberships),
+        brandName: brands.name,
+        brandColor: brands.primaryColor,
+      })
       .from(brandMemberships)
+      .innerJoin(brands, eq(brandMemberships.brandId, brands.id))
       .where(eq(brandMemberships.userId, userId))
       .orderBy(desc(brandMemberships.createdAt));
   }
