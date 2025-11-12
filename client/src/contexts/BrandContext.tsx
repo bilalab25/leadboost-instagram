@@ -1,7 +1,14 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import type { BrandMembershipWithBrand } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Brand {
   id: string;
@@ -28,61 +35,76 @@ const BrandContext = createContext<BrandContextType | undefined>(undefined);
 const BRAND_STORAGE_KEY = "campaigner_active_brand";
 
 export function BrandProvider({ children }: { children: ReactNode }) {
+  // 🚨 Ahora esperamos sesión antes de cargar brands
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
   const [activeBrandId, setActiveBrandId] = useState<string | null>(() => {
-    // Load from localStorage on mount
     if (typeof window !== "undefined") {
       return localStorage.getItem(BRAND_STORAGE_KEY);
     }
     return null;
   });
 
-  // Fetch user's brand memberships
+  // 🔥 Cargar memberships SOLO cuando el usuario YA está autenticado
   const {
     data: memberships = [],
-    isLoading,
+    isLoading: membershipsLoading,
     error,
     refetch,
   } = useQuery<BrandMembershipWithBrand[]>({
     queryKey: ["/api/brand-memberships"],
+    enabled: isAuthenticated && !authLoading, // ❤️ clave del fix
   });
 
-  // Auto-select first brand if none selected
+  // 🔄 Auto-select primera brand si no hay activa
   useEffect(() => {
-    if (!isLoading && memberships.length > 0 && !activeBrandId) {
+    if (
+      !authLoading &&
+      isAuthenticated &&
+      !membershipsLoading &&
+      memberships.length > 0 &&
+      !activeBrandId
+    ) {
       const firstMembership = memberships[0];
       setActiveBrandId(firstMembership.brandId);
       localStorage.setItem(BRAND_STORAGE_KEY, firstMembership.brandId);
     }
-  }, [memberships, activeBrandId, isLoading]);
+  }, [
+    memberships,
+    activeBrandId,
+    membershipsLoading,
+    authLoading,
+    isAuthenticated,
+  ]);
 
-  // Validate that activeBrandId is still valid
+  // 🛡 Validar que activeBrandId sigue siendo válida
   useEffect(() => {
-    if (activeBrandId && memberships.length > 0) {
+    if (
+      !authLoading &&
+      isAuthenticated &&
+      activeBrandId &&
+      memberships.length > 0
+    ) {
       const isValid = memberships.some((m) => m.brandId === activeBrandId);
       if (!isValid) {
-        // Active brand is not in user's memberships, switch to first available
         const firstMembership = memberships[0];
         setActiveBrandId(firstMembership.brandId);
         localStorage.setItem(BRAND_STORAGE_KEY, firstMembership.brandId);
       }
     }
-  }, [activeBrandId, memberships]);
+  }, [activeBrandId, memberships, authLoading, isAuthenticated]);
 
   const switchBrand = (brandId: string) => {
     setActiveBrandId(brandId);
     localStorage.setItem(BRAND_STORAGE_KEY, brandId);
-    // Invalidate all queries when brand changes
-    queryClient.invalidateQueries();
+    queryClient.invalidateQueries(); // invalidar queries dependientes
   };
 
-  const refreshBrands = () => {
-    refetch();
-  };
+  const refreshBrands = () => refetch();
 
   const activeMembership =
     memberships.find((m) => m.brandId === activeBrandId) || null;
 
-  // Derive brands array from memberships
   const brands: Brand[] = memberships.map((m) => ({
     id: m.brandId,
     name: m.brandName,
@@ -90,6 +112,8 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     description: m.brandDescription,
     primaryColor: m.brandColor,
   }));
+
+  const isLoading = authLoading || membershipsLoading;
 
   const value: BrandContextType = {
     activeBrandId,
@@ -99,7 +123,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     isLoading,
     error: error as Error | null,
     switchBrand,
-    setActiveBrandId: switchBrand, // Alias for backward compatibility
+    setActiveBrandId: switchBrand,
     refreshBrands,
   };
 
@@ -110,7 +134,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
 
 export function useBrand() {
   const context = useContext(BrandContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useBrand must be used within a BrandProvider");
   }
   return context;
