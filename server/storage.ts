@@ -145,6 +145,7 @@ export interface IStorage {
   // New Conversations operations (using conversations table)
   getOrCreateConversation(params: {
     integrationId: string;
+    brandId: string;
     userId: string;
     metaConversationId: string;
     platform: string;
@@ -152,7 +153,7 @@ export interface IStorage {
     lastMessage?: string;
     lastMessageAt?: Date;
   }): Promise<Conversation>;
-  getConversations(userId: string, limit?: number): Promise<Conversation[]>;
+  getConversationsByBrandId(brandId: string, limit?: number): Promise<Conversation[]>;
   getConversationsByIntegration(integrationId: string): Promise<Conversation[]>;
   getConversationMessages(conversationId: string): Promise<Message[]>;
   updateConversationMetadata(
@@ -170,71 +171,73 @@ export interface IStorage {
 
   // Content plan operations
   createContentPlan(plan: InsertContentPlan): Promise<ContentPlan>;
-  getContentPlansByUserId(userId: string): Promise<ContentPlan[]>;
+  getContentPlansByBrandId(brandId: string): Promise<ContentPlan[]>;
   updateContentPlan(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<ContentPlan>,
   ): Promise<ContentPlan | undefined>;
-  deleteContentPlan(id: string, userId: string): Promise<boolean>;
+  deleteContentPlan(id: string, brandId: string): Promise<boolean>;
 
   // Campaign operations
   createCampaign(campaign: InsertCampaign): Promise<Campaign>;
-  getCampaignsByUserId(userId: string): Promise<Campaign[]>;
+  getCampaignsByBrandId(brandId: string): Promise<Campaign[]>;
   updateCampaign(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<Campaign>,
   ): Promise<Campaign | undefined>;
-  updateCampaignStatus(id: string, status: string): Promise<void>;
-  deleteCampaign(id: string, userId: string): Promise<boolean>;
+  updateCampaignStatus(id: string, brandId: string, status: string): Promise<void>;
+  deleteCampaign(id: string, brandId: string): Promise<boolean>;
 
   // Analytics operations
   createAnalytics(analytics: InsertAnalytics): Promise<Analytics>;
   createAnalyticsEntry(analytics: InsertAnalytics): Promise<Analytics>;
-  getAnalyticsByUserId(userId: string, days?: number): Promise<Analytics[]>;
+  getAnalyticsByBrandId(brandId: string, days?: number): Promise<Analytics[]>;
 
   // Activity log operations
   createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
-  getActivityLogsByUserId(
-    userId: string,
+  getActivityLogsByBrandId(
+    brandId: string,
     limit?: number,
   ): Promise<ActivityLog[]>;
 
   // Customer operations
   createCustomer(customer: InsertCustomer): Promise<Customer>;
-  getCustomersByUserId(userId: string): Promise<Customer[]>;
+  getCustomersByBrandId(brandId: string): Promise<Customer[]>;
   getCustomerByPhone(
-    userId: string,
+    brandId: string,
     phone: string,
   ): Promise<Customer | undefined>;
   getCustomerByName(
-    userId: string,
+    brandId: string,
     name: string,
   ): Promise<Customer | undefined>;
   getCustomerByConversationId(
     conversationId: string,
+    brandId: string,
   ): Promise<Customer | undefined>;
   updateCustomer(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<Customer>,
   ): Promise<Customer | undefined>;
   updateCustomerTotalInvoiced(
     customerId: string,
+    brandId: string,
     amount: number,
   ): Promise<void>;
-  deleteCustomer(id: string, userId: string): Promise<boolean>;
+  deleteCustomer(id: string, brandId: string): Promise<boolean>;
 
   // Invoice operations
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
-  getInvoicesByUserId(
-    userId: string,
+  getInvoicesByBrandId(
+    brandId: string,
     customerId?: string,
   ): Promise<(Invoice & { customer?: Customer })[]>;
   updateInvoice(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<Invoice>,
   ): Promise<Invoice | undefined>;
 
@@ -724,6 +727,7 @@ export class DatabaseStorage implements IStorage {
   // New Conversations operations (using conversations table)
   async getOrCreateConversation(params: {
     integrationId: string;
+    brandId: string;
     userId: string;
     metaConversationId: string;
     platform: string;
@@ -737,6 +741,7 @@ export class DatabaseStorage implements IStorage {
         .insert(conversations)
         .values({
           integrationId: params.integrationId,
+          brandId: params.brandId,
           userId: params.userId,
           metaConversationId: params.metaConversationId,
           platform: params.platform,
@@ -762,18 +767,25 @@ export class DatabaseStorage implements IStorage {
         })
         .returning();
 
+      // Validate that the conversation belongs to the correct brand
+      if (conversation.brandId !== params.brandId) {
+        throw new Error(
+          `Brand mismatch: conversation belongs to brand ${conversation.brandId} but brandId ${params.brandId} was requested`,
+        );
+      }
+
       return conversation;
     });
   }
 
-  async getConversations(
-    userId: string,
+  async getConversationsByBrandId(
+    brandId: string,
     limit?: number,
   ): Promise<Conversation[]> {
     const query = db
       .select()
       .from(conversations)
-      .where(eq(conversations.userId, userId))
+      .where(eq(conversations.brandId, brandId))
       .orderBy(desc(conversations.lastMessageAt));
 
     if (limit && limit > 0) {
@@ -857,31 +869,31 @@ export class DatabaseStorage implements IStorage {
     return newPlan;
   }
 
-  async getContentPlansByUserId(userId: string): Promise<ContentPlan[]> {
+  async getContentPlansByBrandId(brandId: string): Promise<ContentPlan[]> {
     return db
       .select()
       .from(contentPlans)
-      .where(eq(contentPlans.userId, userId))
+      .where(eq(contentPlans.brandId, brandId))
       .orderBy(desc(contentPlans.createdAt));
   }
 
   async updateContentPlan(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<ContentPlan>,
   ): Promise<ContentPlan | undefined> {
     const [updated] = await db
       .update(contentPlans)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(contentPlans.id, id), eq(contentPlans.userId, userId)))
+      .where(and(eq(contentPlans.id, id), eq(contentPlans.brandId, brandId)))
       .returning();
     return updated;
   }
 
-  async deleteContentPlan(id: string, userId: string): Promise<boolean> {
+  async deleteContentPlan(id: string, brandId: string): Promise<boolean> {
     const result = await db
       .delete(contentPlans)
-      .where(and(eq(contentPlans.id, id), eq(contentPlans.userId, userId)));
+      .where(and(eq(contentPlans.id, id), eq(contentPlans.brandId, brandId)));
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -894,39 +906,39 @@ export class DatabaseStorage implements IStorage {
     return newCampaign;
   }
 
-  async getCampaignsByUserId(userId: string): Promise<Campaign[]> {
+  async getCampaignsByBrandId(brandId: string): Promise<Campaign[]> {
     return db
       .select()
       .from(campaigns)
-      .where(eq(campaigns.userId, userId))
+      .where(eq(campaigns.brandId, brandId))
       .orderBy(desc(campaigns.createdAt));
   }
 
   async updateCampaign(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<Campaign>,
   ): Promise<Campaign | undefined> {
     const [updated] = await db
       .update(campaigns)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)))
+      .where(and(eq(campaigns.id, id), eq(campaigns.brandId, brandId)))
       .returning();
     return updated;
   }
 
-  async deleteCampaign(id: string, userId: string): Promise<boolean> {
+  async deleteCampaign(id: string, brandId: string): Promise<boolean> {
     const result = await db
       .delete(campaigns)
-      .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
+      .where(and(eq(campaigns.id, id), eq(campaigns.brandId, brandId)));
     return (result.rowCount ?? 0) > 0;
   }
 
-  async updateCampaignStatus(id: string, status: string): Promise<void> {
+  async updateCampaignStatus(id: string, brandId: string, status: string): Promise<void> {
     await db
       .update(campaigns)
       .set({ status, updatedAt: new Date() })
-      .where(eq(campaigns.id, id));
+      .where(and(eq(campaigns.id, id), eq(campaigns.brandId, brandId)));
   }
 
   // Analytics operations
@@ -938,8 +950,8 @@ export class DatabaseStorage implements IStorage {
     return newAnalytics;
   }
 
-  async getAnalyticsByUserId(
-    userId: string,
+  async getAnalyticsByBrandId(
+    brandId: string,
     days: number = 30,
   ): Promise<Analytics[]> {
     const startDate = new Date();
@@ -949,7 +961,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(analytics)
       .where(
-        and(eq(analytics.userId, userId), gte(analytics.createdAt, startDate)),
+        and(eq(analytics.brandId, brandId), gte(analytics.createdAt, startDate)),
       )
       .orderBy(desc(analytics.createdAt));
   }
@@ -970,14 +982,14 @@ export class DatabaseStorage implements IStorage {
     return newLog;
   }
 
-  async getActivityLogsByUserId(
-    userId: string,
+  async getActivityLogsByBrandId(
+    brandId: string,
     limit: number = 50,
   ): Promise<ActivityLog[]> {
     return db
       .select()
       .from(activityLogs)
-      .where(eq(activityLogs.userId, userId))
+      .where(eq(activityLogs.brandId, brandId))
       .orderBy(desc(activityLogs.createdAt))
       .limit(limit);
   }
@@ -991,73 +1003,75 @@ export class DatabaseStorage implements IStorage {
     return newCustomer;
   }
 
-  async getCustomersByUserId(userId: string): Promise<Customer[]> {
+  async getCustomersByBrandId(brandId: string): Promise<Customer[]> {
     return db
       .select()
       .from(customers)
-      .where(eq(customers.userId, userId))
+      .where(eq(customers.brandId, brandId))
       .orderBy(desc(customers.createdAt));
   }
 
   async getCustomerByPhone(
-    userId: string,
+    brandId: string,
     phone: string,
   ): Promise<Customer | undefined> {
     const [customer] = await db
       .select()
       .from(customers)
-      .where(and(eq(customers.userId, userId), eq(customers.phone, phone)))
+      .where(and(eq(customers.brandId, brandId), eq(customers.phone, phone)))
       .limit(1);
     return customer;
   }
 
   async getCustomerByName(
-    userId: string,
+    brandId: string,
     name: string,
   ): Promise<Customer | undefined> {
     const [customer] = await db
       .select()
       .from(customers)
-      .where(and(eq(customers.userId, userId), eq(customers.name, name)))
+      .where(and(eq(customers.brandId, brandId), eq(customers.name, name)))
       .limit(1);
     return customer;
   }
 
   async getCustomerByConversationId(
     conversationId: string,
+    brandId: string,
   ): Promise<Customer | undefined> {
     const [customer] = await db
       .select()
       .from(customers)
-      .where(eq(customers.conversationId, conversationId))
+      .where(and(eq(customers.conversationId, conversationId), eq(customers.brandId, brandId)))
       .limit(1);
     return customer;
   }
 
   async updateCustomer(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<Customer>,
   ): Promise<Customer | undefined> {
-    console.log("🔎 Updating in DB where:", { id, userId, updates });
+    console.log("🔎 Updating in DB where:", { id, brandId, updates });
 
     const [updated] = await db
       .update(customers)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(customers.id, id), eq(customers.userId, userId)))
+      .where(and(eq(customers.id, id), eq(customers.brandId, brandId)))
       .returning();
     return updated;
   }
 
-  async deleteCustomer(id: string, userId: string): Promise<boolean> {
+  async deleteCustomer(id: string, brandId: string): Promise<boolean> {
     const result = await db
       .delete(customers)
-      .where(and(eq(customers.id, id), eq(customers.userId, userId)));
+      .where(and(eq(customers.id, id), eq(customers.brandId, brandId)));
     return (result.rowCount ?? 0) > 0;
   }
 
   async updateCustomerTotalInvoiced(
     customerId: string,
+    brandId: string,
     amount: number,
   ): Promise<void> {
     await db
@@ -1066,7 +1080,7 @@ export class DatabaseStorage implements IStorage {
         totalInvoiced: sql`${customers.totalInvoiced} + ${amount}`,
         updatedAt: new Date(),
       })
-      .where(eq(customers.id, customerId));
+      .where(and(eq(customers.id, customerId), eq(customers.brandId, brandId)));
   }
 
   // Invoice operations
@@ -1075,11 +1089,11 @@ export class DatabaseStorage implements IStorage {
     return newInvoice;
   }
 
-  async getInvoicesByUserId(
-    userId: string,
+  async getInvoicesByBrandId(
+    brandId: string,
     customerId?: string,
   ): Promise<(Invoice & { customer?: Customer })[]> {
-    const whereConditions = [eq(invoices.userId, userId)];
+    const whereConditions = [eq(invoices.brandId, brandId)];
     if (customerId) {
       whereConditions.push(eq(invoices.customerId, customerId));
     }
@@ -1090,7 +1104,13 @@ export class DatabaseStorage implements IStorage {
         customer: customers,
       })
       .from(invoices)
-      .leftJoin(customers, eq(invoices.customerId, customers.id))
+      .leftJoin(
+        customers,
+        and(
+          eq(invoices.customerId, customers.id),
+          eq(customers.brandId, brandId)
+        )
+      )
       .where(and(...whereConditions));
 
     const results = await query.orderBy(desc(invoices.createdAt));
@@ -1103,13 +1123,13 @@ export class DatabaseStorage implements IStorage {
 
   async updateInvoice(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<Invoice>,
   ): Promise<Invoice | undefined> {
     const [updated] = await db
       .update(invoices)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(invoices.id, id), eq(invoices.userId, userId)))
+      .where(and(eq(invoices.id, id), eq(invoices.brandId, brandId)))
       .returning();
     return updated;
   }
