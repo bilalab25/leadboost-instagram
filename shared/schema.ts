@@ -866,12 +866,16 @@ export const insertMessageAttachmentSchema = createInsertSchema(
 
 export const insertContentPlanSchema = createInsertSchema(contentPlans).omit({
   id: true,
+  userId: true,
+  brandId: true,
   createdAt: true,
   updatedAt: true,
 });
 
 export const insertCampaignSchema = createInsertSchema(campaigns).omit({
   id: true,
+  userId: true,
+  brandId: true,
   createdAt: true,
   updatedAt: true,
 });

@@ -1266,7 +1266,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Por ejemplo: storage.getMessagesByIntegration(integrationId: string, limit?: number)
 
   // Content plans routes
-  app.get("/api/content-plans", async (req: any, res) => {
+  app.get("/api/content-plans", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.brandMembership.brandId;
+      const contentPlans = await storage.getContentPlansByBrandId(brandId);
+      res.json(contentPlans);
+    } catch (error) {
+      console.error("Error fetching content plans:", error);
+      res.status(500).json({ message: "Failed to fetch content plans" });
+    }
+  });
+
+  app.get("/api/content-plans-mock", async (req: any, res) => {
     try {
       // Return mock AI-generated content plans
       const mockContentPlans = [
@@ -1419,12 +1430,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/content-plans/generate",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
         const userId =
           (req.user as any)?.claims?.sub ||
           (req.user as any)?.id ||
           "demo-user";
+        const brandId = req.brandMembership.brandId;
         const { month, year, businessData } = req.body;
 
         const strategy = await generateMonthlyContentStrategy(
@@ -1435,6 +1448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const plan = await storage.createContentPlan({
           userId,
+          brandId,
           title: `Content Plan - ${month}/${year}`,
           month,
           year,
@@ -1447,6 +1461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Log activity
         await storage.createActivityLog({
           userId,
+          brandId,
           action: "generate_content_plan",
           description: `Generated AI content plan for ${month}/${year}`,
           entityType: "content_plan",
@@ -1724,7 +1739,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Campaigns routes
-  app.get("/api/campaigns", async (req: any, res) => {
+  app.get("/api/campaigns", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.brandMembership.brandId;
+      const campaigns = await storage.getCampaignsByBrandId(brandId);
+      res.json(campaigns);
+    } catch (error) {
+      console.error("Error fetching campaigns:", error);
+      res.status(500).json({ message: "Failed to fetch campaigns" });
+    }
+  });
+
+  app.get("/api/campaigns-mock", async (req: any, res) => {
     try {
       // Return mock campaigns
       const mockCampaigns = [
@@ -1846,20 +1872,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/campaigns", async (req: any, res) => {
+  app.post("/api/campaigns", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const campaignData = insertCampaignSchema.parse({
-        ...req.body,
+      const brandId = req.brandMembership.brandId;
+
+      // Validate client-provided data (without userId/brandId)
+      const validatedData = insertCampaignSchema.parse(req.body);
+
+      // Enrich with server-side context
+      const campaignData = {
+        ...validatedData,
+        brandId,
         userId,
-      });
+      };
 
       const campaign = await storage.createCampaign(campaignData);
 
       // Log activity
       await storage.createActivityLog({
         userId,
+        brandId,
         action: "create_campaign",
         description: `Created campaign: ${campaign.title}`,
         entityType: "campaign",
@@ -1876,12 +1910,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/campaigns/generate",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
         const userId =
           (req.user as any)?.claims?.sub ||
           (req.user as any)?.id ||
           "demo-user";
+        const brandId = req.brandMembership.brandId;
         const { prompt, platforms, businessContext } = req.body;
 
         const generatedContent = await generateCampaignContent(
@@ -1892,6 +1928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const campaign = await storage.createCampaign({
           userId,
+          brandId,
           title: `AI Generated Campaign - ${new Date().toLocaleDateString()}`,
           description: prompt,
           platforms,
@@ -1903,6 +1940,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Log activity
         await storage.createActivityLog({
           userId,
+          brandId,
           action: "generate_ai_campaign",
           description: `Generated AI campaign: ${campaign.title}`,
           entityType: "campaign",
@@ -1920,24 +1958,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/campaigns/:id/publish",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
         const userId =
           (req.user as any)?.claims?.sub ||
           (req.user as any)?.id ||
           "demo-user";
+        const brandId = req.brandMembership.brandId;
         const campaignId = req.params.id;
 
-        // Get campaign details
-        const campaigns = await storage.getCampaignsByUserId(userId);
+        // Get campaign details (brand-scoped)
+        const campaigns = await storage.getCampaignsByBrandId(brandId);
         const campaign = campaigns.find((c) => c.id === campaignId);
 
         if (!campaign) {
           return res.status(404).json({ message: "Campaign not found" });
         }
 
-        // Get user's social accounts
-        const socialAccounts = await storage.getSocialAccountsByUserId(userId);
+        // Get brand's social accounts
+        const socialAccounts = await storage.getSocialAccountsByBrandId(brandId);
         const accessTokens = socialAccounts.reduce(
           (acc, account) => {
             if (
@@ -1963,11 +2003,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         // Update campaign status
-        await storage.updateCampaignStatus(campaignId, "published");
+        await storage.updateCampaignStatus(campaignId, brandId, "published");
 
         // Log activity
         await storage.createActivityLog({
           userId,
+          brandId,
           action: "publish_campaign",
           description: `Published campaign: ${campaign.title}`,
           entityType: "campaign",
@@ -2144,7 +2185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/integrations/facebook/connect", isAuthenticated, (req, res) => {
+  app.get("/api/integrations/facebook/connect", isAuthenticated, requireBrand, (req: any, res) => {
     const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
     const clientId = process.env.FB_APP_ID;
 
@@ -2162,9 +2203,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ].join(",");
     console.log("🔐 Facebook OAuth scopes:", scopes);
 
+    // Pass brandId in state along with userId
+    const state = JSON.stringify({ userId: req.user.id, brandId: req.brandMembership.brandId });
     const authUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri,
-    )}&scope=${scopes}&state=${req.user.id}`;
+    )}&scope=${scopes}&state=${encodeURIComponent(state)}`;
 
     res.redirect(authUrl);
   });
@@ -2174,8 +2217,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code, state } = req.query;
       if (!code) return res.status(400).send("Missing code");
 
-      const userId = state || req.user?.id;
+      // Parse state to extract userId and brandId
+      let userId, brandId;
+      try {
+        const parsedState = JSON.parse(decodeURIComponent(state as string));
+        userId = parsedState.userId;
+        brandId = parsedState.brandId;
+      } catch {
+        // Fallback for old state format (just userId)
+        userId = state || req.user?.id;
+      }
+      
       if (!userId) return res.status(401).send("User not authenticated");
+      if (!brandId) return res.status(400).send("Missing brand context");
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
 
@@ -2287,6 +2341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Step 4️⃣ Save Facebook integration
       await storage.createOrUpdateIntegration({
         userId,
+        brandId,
         provider: "facebook",
         category: "social_media",
         storeName: "Facebook",
@@ -2367,6 +2422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Step 8️⃣ Save Instagram integration (store PAGE_ID in account_id)
           await storage.createOrUpdateIntegration({
             userId,
+            brandId,
             provider: "instagram",
             category: "social_media",
             storeName: "Instagram",
@@ -2396,6 +2452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Step 9️⃣ Threads integration
           await storage.createOrUpdateIntegration({
             userId,
+            brandId,
             provider: "threads",
             category: "social_media",
             storeName: "Threads",
@@ -2432,7 +2489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/integrations/whatsapp/connect", isAuthenticated, (req, res) => {
+  app.get("/api/integrations/whatsapp/connect", isAuthenticated, requireBrand, (req: any, res) => {
     // ⚠️ NOTA: El 'redirect_uri' debe coincidir con el configurado en su App de Facebook.
     const redirectUri = `${process.env.APP_URL}/api/integrations/whatsapp/callback`;
     const clientId = process.env.FB_APP_ID;
@@ -2445,10 +2502,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "pages_show_list",
     ].join(",");
 
+    // Pass brandId in state along with userId
+    const state = JSON.stringify({ userId: req.user.id, brandId: req.brandMembership.brandId });
+
     // URL base del Embedded Signup
     const embeddedSignupUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri,
-    )}&scope=${whatsapp_scopes}&state=${req.user.id}&response_type=code&config_id=${process.env.WHATSAPP_CONFIG_ID}`;
+    )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=${process.env.WHATSAPP_CONFIG_ID}`;
     // ^^^ El 'config_id' es CRUCIAL.
 
     console.log("🟢 WhatsApp Embedded Signup URL:", embeddedSignupUrl);
@@ -2460,8 +2520,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code, state } = req.query;
       if (!code) return res.status(400).send("Missing code");
 
-      const userId = state || req.user?.id;
+      // Parse state to extract userId and brandId
+      let userId, brandId;
+      try {
+        const parsedState = JSON.parse(decodeURIComponent(state as string));
+        userId = parsedState.userId;
+        brandId = parsedState.brandId;
+      } catch {
+        // Fallback for old state format (just userId)
+        userId = state || req.user?.id;
+      }
+      
       if (!userId) return res.status(401).send("User not authenticated");
+      if (!brandId) return res.status(400).send("Missing brand context");
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/whatsapp/callback`;
 
@@ -2505,6 +2576,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 4️⃣ Guardar la integración
       await storage.createOrUpdateIntegration({
         userId,
+        brandId,
         provider: "whatsapp",
         category: "messaging",
         storeName: "WhatsApp Business",
@@ -2531,12 +2603,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/integrations", isAuthenticated, async (req, res) => {
+  app.get("/api/integrations", isAuthenticated, requireBrand, async (req, res) => {
     try {
-      const userId = req.user.id;
-      // ✅ Usa el método del storage (más limpio y consistente)
-      const userIntegrations = await storage.getIntegrations(userId);
-      res.status(200).json(userIntegrations);
+      const brandId = req.brandMembership.brandId;
+      const brandIntegrations = await storage.getIntegrationsByBrandId(brandId);
+      res.status(200).json(brandIntegrations);
     } catch (error) {
       console.error("❌ Error fetching integrations:", error);
       res.status(500).json({ error: "Failed to fetch integrations" });
@@ -3732,7 +3803,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes
-  app.get("/api/analytics", isAuthenticated, async (req: any, res) => {
+  app.get("/api/analytics", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.brandMembership.brandId;
+      const analytics = await storage.getAnalyticsByBrandId(brandId);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  app.get("/api/analytics-mock", isAuthenticated, async (req: any, res) => {
     try {
       // Return comprehensive mock analytics
       const mockAnalytics = {
@@ -3889,7 +3971,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Activity logs
-  app.get("/api/activity", async (req: any, res) => {
+  app.get("/api/activity", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.brandMembership.brandId;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      const activityLogs = await storage.getActivityLogsByBrandId(brandId, limit);
+      res.json(activityLogs);
+    } catch (error) {
+      console.error("Error fetching activity logs:", error);
+      res.status(500).json({ message: "Failed to fetch activity logs" });
+    }
+  });
+
+  app.get("/api/activity-mock", async (req: any, res) => {
     try {
       // Return mock activity logs for demo in Spanish
       const mockActivities = [
