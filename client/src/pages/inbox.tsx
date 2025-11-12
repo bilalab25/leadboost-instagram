@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useBrand } from "@/contexts/BrandContext";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import MessageList from "@/components/MessageList";
@@ -24,15 +26,20 @@ export default function Inbox() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const { isSpanish } = useLanguage();
+  const { activeBrandId } = useBrand();
 
-  const [integrations, setIntegrations] = useState<any[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState<string | undefined>(
     undefined,
   );
   const [selectedFlag, setSelectedFlag] = useState<
     "all" | "none" | "important" | "archived"
   >("all");
-  const [loading, setLoading] = useState(false);
+
+  // Fetch integrations using React Query
+  const { data: integrations = [] } = useQuery<any[]>({
+    queryKey: ["/api/integrations", activeBrandId],
+    enabled: !!activeBrandId,
+  });
 
   // Redirección si no autenticado
   useEffect(() => {
@@ -45,22 +52,6 @@ export default function Inbox() {
       setTimeout(() => (window.location.href = "/api/login"), 500);
     }
   }, [isAuthenticated, isLoading, toast]);
-
-  // Cargar integraciones disponibles
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    loadIntegrations();
-  }, [isAuthenticated]);
-
-  async function loadIntegrations() {
-    try {
-      const res = await fetch("/api/integrations");
-      const data = await res.json();
-      setIntegrations(data);
-    } catch (err) {
-      console.error("❌ Error fetching integrations:", err);
-    }
-  }
 
   const handlePlatformSelect = (platform?: string) => {
     setSelectedPlatform(platform);

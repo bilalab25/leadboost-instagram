@@ -3202,13 +3202,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch(
     "/api/conversations/:id/read",
     isAuthenticated,
+    requireBrand,
     async (req, res) => {
       try {
         const { id } = req.params;
-        const userId = req.user.id;
+        const brandId = req.brandMembership.brandId;
 
-        // Verify user has access to this conversation
-        const conversations = await storage.getConversations(userId);
+        // Verify brand has access to this conversation
+        const conversations = await storage.getConversationsByBrandId(brandId);
         const conversation = conversations.find((c) => c.id === id);
 
         if (!conversation) {
@@ -3237,11 +3238,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch(
     "/api/conversations/:id/flag",
     isAuthenticated,
+    requireBrand,
     async (req, res) => {
       try {
         const { id } = req.params;
         const { flag } = req.body;
-        const userId = req.user.id;
+        const brandId = req.brandMembership.brandId;
 
         // Validate flag value
         const validFlags = ["none", "important", "archived"];
@@ -3251,8 +3253,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Verify user has access to this conversation
-        const conversations = await storage.getConversations(userId);
+        // Verify brand has access to this conversation
+        const conversations = await storage.getConversationsByBrandId(brandId);
         const conversation = conversations.find((c) => c.id === id);
 
         if (!conversation) {
