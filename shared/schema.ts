@@ -990,6 +990,8 @@ export type SelectBrandMembership = typeof brandMemberships.$inferSelect;
 export type BrandMembershipWithBrand = SelectBrandMembership & {
   brandName: string;
   brandColor: string | null;
+  brandIndustry: string | null;
+  brandDescription: string | null;
 };
 
 // Brand Invitations insert/select schemas

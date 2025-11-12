@@ -3,13 +3,23 @@ import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import type { BrandMembershipWithBrand } from "@shared/schema";
 
+interface Brand {
+  id: string;
+  name: string;
+  industry: string | null;
+  description: string | null;
+  primaryColor: string | null;
+}
+
 interface BrandContextType {
   activeBrandId: string | null;
   activeMembership: BrandMembershipWithBrand | null;
   memberships: BrandMembershipWithBrand[];
+  brands: Brand[];
   isLoading: boolean;
   error: Error | null;
   switchBrand: (brandId: string) => void;
+  setActiveBrandId: (brandId: string) => void;
   refreshBrands: () => void;
 }
 
@@ -72,13 +82,24 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   const activeMembership =
     memberships.find((m) => m.brandId === activeBrandId) || null;
 
+  // Derive brands array from memberships
+  const brands: Brand[] = memberships.map((m) => ({
+    id: m.brandId,
+    name: m.brandName,
+    industry: m.brandIndustry,
+    description: m.brandDescription,
+    primaryColor: m.brandColor,
+  }));
+
   const value: BrandContextType = {
     activeBrandId,
     activeMembership,
     memberships,
+    brands,
     isLoading,
     error: error as Error | null,
     switchBrand,
+    setActiveBrandId: switchBrand, // Alias for backward compatibility
     refreshBrands,
   };
 
