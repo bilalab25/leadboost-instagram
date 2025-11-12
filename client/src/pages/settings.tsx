@@ -35,11 +35,13 @@ import {
   MessageSquareText, // Para Threads (icono genérico)
   Camera,
   MessageCircle, // Para WhatsApp
+  Building2, // For Brands
 } from "lucide-react";
 import AccountTab from "@/components/settings/AccountTab";
 import PaymentMethodTab from "@/components/settings/PaymentMethodsTab";
 import HelpChatbot from "@/components/HelpChatbot";
 import IntegrationsTab from "@/components/settings/IntegrationsTab";
+import BrandsTab from "@/components/settings/BrandsTab";
 import { useAuth } from "@/hooks/useAuth";
 import {
   EmailAuthProvider,
@@ -1215,13 +1217,20 @@ export default function Settings() {
               </div>
 
               <Tabs defaultValue="account-information" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger
                     value="account-information"
                     data-testid="tab-account-information"
                   >
                     <User className="mr-2 h-4 w-4" />
                     {isSpanish ? "Cuenta" : "Account"}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="brands"
+                    data-testid="tab-brands"
+                  >
+                    <Building2 className="mr-2 h-4 w-4" />
+                    {isSpanish ? "Marcas" : "Brands"}
                   </TabsTrigger>
                   <TabsTrigger
                     value="payment-methods"
@@ -1264,6 +1273,11 @@ export default function Settings() {
                     handleToggleTwoFactorAuth={handleToggleTwoFactorAuth}
                     handleDeleteAccount={handleDeleteAccount}
                   />
+                </TabsContent>
+
+                {/* Brands Tab */}
+                <TabsContent value="brands" className="space-y-6">
+                  <BrandsTab />
                 </TabsContent>
 
                 {/* Payment Methods Tab */}

@@ -4,6 +4,7 @@ import { Server as SocketIOServer } from "socket.io";
 import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
+import { requireBrand, requireRole } from "./middleware";
 import {
   logFacebookRequest,
   logFacebookResponse,
@@ -51,6 +52,7 @@ import { db } from "./db";
 import { brandDesigns } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import dayjs from "dayjs";
+import { nanoid } from "nanoid";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -707,7 +709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         industry: industry || null,
         description: description || null,
-        brandColor: brandColor || null,
+        primaryColor: brandColor || null,
       });
 
       // Create brand membership with owner role
@@ -758,6 +760,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   );
+
+  // Get brand members (requires brand access)
+  app.get("/api/brands/:brandId/members", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const { brandId } = req.params;
+      const members = await storage.getBrandMembershipsByBrand(brandId);
+      
+      // TODO: Join with users table to include user details (name, email)
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching brand members:", error);
+      res.status(500).json({ message: "Failed to fetch brand members" });
+    }
+  });
+
+  // Create brand invitation (requires admin/owner role)
+  app.post("/api/brand-invitations", isAuthenticated, requireBrand, requireRole("admin"), async (req: any, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const { brandId } = req.query;
+      const { role, email } = req.body;
+
+      if (!role || !["viewer", "editor", "admin"].includes(role)) {
+        return res.status(400).json({ message: "Valid role is required (viewer, editor, or admin)" });
+      }
+
+      // Generate unique invite code
+      const inviteCode = nanoid(10);
+      
+      // Set expiration to 7 days from now
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      const invitation = await storage.createBrandInvitation({
+        brandId: brandId as string,
+        inviteCode,
+        role,
+        invitedBy: userId,
+        email: email || null,
+        expiresAt,
+        status: "pending",
+      });
+
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error creating brand invitation:", error);
+      res.status(500).json({ message: "Failed to create invitation" });
+    }
+  });
+
+  // Get brand invitations (requires brand access)
+  app.get("/api/brand-invitations/:brandId", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const { brandId } = req.params;
+      const invitations = await storage.getBrandInvitations(brandId);
+      res.json(invitations);
+    } catch (error) {
+      console.error("Error fetching brand invitations:", error);
+      res.status(500).json({ message: "Failed to fetch invitations" });
+    }
+  });
+
+  // Update brand member role (requires owner role)
+  app.patch("/api/brand-memberships/:membershipId/role", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const { membershipId } = req.params;
+      const { role } = req.body;
+
+      if (!role || !["viewer", "editor", "admin", "owner"].includes(role)) {
+        return res.status(400).json({ message: "Valid role is required" });
+      }
+
+      // First, get the target membership to verify brandId
+      const targetMembership = await storage.getBrandMembershipById(membershipId);
+      if (!targetMembership) {
+        return res.status(404).json({ message: "Membership not found" });
+      }
+
+      // Verify the acting user is an owner of this brand
+      const actorMembership = await storage.getUserBrandMembership(userId, targetMembership.brandId);
+      if (!actorMembership || actorMembership.role !== "owner") {
+        return res.status(403).json({ message: "Only brand owners can change member roles" });
+      }
+
+      // Prevent demoting the last owner
+      if (targetMembership.role === "owner" && role !== "owner") {
+        const allMembers = await storage.getBrandMembershipsByBrand(targetMembership.brandId);
+        const ownerCount = allMembers.filter(m => m.role === "owner").length;
+        if (ownerCount <= 1) {
+          return res.status(400).json({ message: "Cannot demote the last owner of the brand" });
+        }
+      }
+
+      const updatedMembership = await storage.updateBrandMembershipRole(membershipId, role);
+      res.json(updatedMembership);
+    } catch (error) {
+      console.error("Error updating member role:", error);
+      res.status(500).json({ message: "Failed to update member role" });
+    }
+  });
+
+  // Remove brand member (requires owner/admin role)
+  app.delete("/api/brand-memberships/:membershipId", isAuthenticated, async (req: any, res) => {
+    try {
+      const actorUserId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const { membershipId } = req.params;
+      
+      // Get the target membership
+      const targetMembership = await storage.getBrandMembershipById(membershipId);
+      if (!targetMembership) {
+        return res.status(404).json({ message: "Membership not found" });
+      }
+
+      // Verify the acting user is an admin/owner of this brand
+      const actorMembership = await storage.getUserBrandMembership(actorUserId, targetMembership.brandId);
+      if (!actorMembership || !["admin", "owner"].includes(actorMembership.role)) {
+        return res.status(403).json({ message: "Only brand admins/owners can remove members" });
+      }
+
+      // Prevent removing the last owner
+      if (targetMembership.role === "owner") {
+        const allMembers = await storage.getBrandMembershipsByBrand(targetMembership.brandId);
+        const ownerCount = allMembers.filter(m => m.role === "owner").length;
+        if (ownerCount <= 1) {
+          return res.status(400).json({ message: "Cannot remove the last owner of the brand" });
+        }
+      }
+
+      const success = await storage.removeBrandMembership(targetMembership.userId, targetMembership.brandId);
+      res.json({ success });
+    } catch (error) {
+      console.error("Error removing brand member:", error);
+      res.status(500).json({ message: "Failed to remove member" });
+    }
+  });
+
+  // Expire brand invitation (requires admin/owner role)
+  app.post("/api/brand-invitations/:invitationId/expire", isAuthenticated, async (req: any, res) => {
+    try {
+      const actorUserId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const { invitationId } = req.params;
+
+      // Get the invitation to verify brandId
+      const invitation = await storage.getBrandInvitationById(invitationId);
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+
+      // Verify the acting user is an admin/owner of this brand
+      const actorMembership = await storage.getUserBrandMembership(actorUserId, invitation.brandId);
+      if (!actorMembership || !["admin", "owner"].includes(actorMembership.role)) {
+        return res.status(403).json({ message: "Only brand admins/owners can expire invitations" });
+      }
+
+      const success = await storage.expireBrandInvitation(invitationId);
+      res.json({ success });
+    } catch (error) {
+      console.error("Error expiring invitation:", error);
+      res.status(500).json({ message: "Failed to expire invitation" });
+    }
+  });
 
   // Demo data endpoint
   app.post(

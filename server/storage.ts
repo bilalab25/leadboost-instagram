@@ -419,6 +419,11 @@ export interface IStorage {
     role: string,
   ): Promise<SelectBrandMembership | undefined>;
   removeBrandMembership(userId: string, brandId: string): Promise<boolean>;
+  getBrandMembershipById(id: string): Promise<SelectBrandMembership | undefined>;
+  getUserBrandMembership(
+    userId: string,
+    brandId: string,
+  ): Promise<SelectBrandMembership | undefined>;
 
   // Brand Invitation operations
   createBrandInvitation(
@@ -433,6 +438,7 @@ export interface IStorage {
   ): Promise<SelectBrandMembership>;
   getBrandInvitations(brandId: string): Promise<SelectBrandInvitation[]>;
   expireBrandInvitation(id: string): Promise<boolean>;
+  getBrandInvitationById(id: string): Promise<SelectBrandInvitation | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2066,6 +2072,34 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
+  async getBrandMembershipById(
+    id: string,
+  ): Promise<SelectBrandMembership | undefined> {
+    const [result] = await db
+      .select()
+      .from(brandMemberships)
+      .where(eq(brandMemberships.id, id))
+      .limit(1);
+    return result;
+  }
+
+  async getUserBrandMembership(
+    userId: string,
+    brandId: string,
+  ): Promise<SelectBrandMembership | undefined> {
+    const [result] = await db
+      .select()
+      .from(brandMemberships)
+      .where(
+        and(
+          eq(brandMemberships.userId, userId),
+          eq(brandMemberships.brandId, brandId),
+        ),
+      )
+      .limit(1);
+    return result;
+  }
+
   // Brand Invitation operations
   async createBrandInvitation(
     invitation: InsertBrandInvitation,
@@ -2219,6 +2253,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(brandInvitations.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  async getBrandInvitationById(
+    id: string,
+  ): Promise<SelectBrandInvitation | undefined> {
+    const [result] = await db
+      .select()
+      .from(brandInvitations)
+      .where(eq(brandInvitations.id, id))
+      .limit(1);
+    return result;
   }
 }
 
