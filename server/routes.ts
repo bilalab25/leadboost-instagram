@@ -1280,77 +1280,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (req.user as any)?.id ||
           "demo-user";
 
-        // Fetch user's integrations
         const integrations = await storage.getIntegrationsByUserId(userId);
-
-        // Filter for Facebook and Instagram only
-        const relevantIntegrations = integrations.filter(
-          (integration: any) =>
-            (integration.provider === "facebook" ||
-              integration.provider === "instagram") &&
-            integration.isActive,
+        const active = integrations.filter(
+          (i: any) =>
+            ["facebook", "instagram"].includes(i.provider) && i.isActive,
         );
 
-        if (relevantIntegrations.length === 0) {
+        if (active.length === 0) {
           return res.status(400).json({
             message: "No active Facebook or Instagram integrations found",
           });
         }
 
         console.log(
-          "[AI Suggestions] Processing insights for",
-          relevantIntegrations.length,
-          "integrations",
+          `[AI Suggestions] Processing ${active.length} integrations`,
         );
-
         const recommendations = [];
 
-        // Process each integration
-        for (const integration of relevantIntegrations) {
+        for (const integration of active) {
           try {
+            // 🔹 FACEBOOK
             if (integration.provider === "facebook") {
-              // Facebook Insights API call
-              const insightsUrl = `https://graph.facebook.com/v24.0/${integration.accountId}/insights?metric=page_media_view,page_post_engagements,page_posts_impressions_unique&period=month&access_token=${integration.accessToken}`;
+              const url = `https://graph.facebook.com/v24.0/${integration.accountId}/insights?metric=page_impressions,page_post_engagements,page_posts_impressions_unique&period=day&access_token=${integration.accessToken}`;
+              const resFB = await fetch(url);
+              const dataFB = await resFB.json();
 
-              const response = await fetch(insightsUrl);
-              const data = await response.json();
-
-              console.log(
-                "[AI Suggestions] Facebook insights response:",
-                JSON.stringify(data, null, 2),
-              );
-
-              // Calculate metrics
-              const fbData = data.data || [];
-              const getMetric = (name: string) => {
-                const metric = fbData.find((m: any) => m.name === name);
-                return metric?.values?.map((v: any) => v.value) || [];
-              };
-              const avg = (arr: number[]) =>
-                arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+              const metrics = dataFB.data || [];
+              const getMetric = (n: string) =>
+                metrics
+                  .find((m: any) => m.name === n)
+                  ?.values?.map((v: any) => v.value) || [];
+              const avg = (a: number[]) =>
+                a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
 
               const avgEng = avg(getMetric("page_post_engagements"));
               const avgReach = avg(getMetric("page_posts_impressions_unique"));
-              const avgViews = avg(getMetric("page_media_view"));
+              const avgImpressions = avg(getMetric("page_impressions"));
+              const engagementRate = avgEng / (avgReach || 1);
 
-              // Calculate engagement rate
-              const rate = avgEng / (avgReach || 1);
-
-              // Determine frequency based on engagement
+              // 🧠 Dynamic frequency rules
               let frequency = "1 publicación por semana";
-              if (rate > 0.05) frequency = "3 publicaciones por semana";
-              if (rate > 0.08) frequency = "5 publicaciones por semana";
+              if (engagementRate > 0.05)
+                frequency = "3 publicaciones por semana";
+              if (engagementRate > 0.08)
+                frequency = "5 publicaciones por semana";
 
-              // Determine days based on frequency
               let days = ["wed"];
               if (frequency.includes("3")) days = ["mon", "wed", "fri"];
               if (frequency.includes("5"))
                 days = ["mon", "tue", "wed", "thu", "fri"];
 
-              // Determine hours based on engagement
-              let hours = ["12:00", "14:00"];
-              if (rate > 0.05) hours = ["11:00", "13:00"];
-              if (rate > 0.08) hours = ["10:00", "12:00"];
+              // ⏰ Dynamic hours (randomized around realistic social windows)
+              const baseHours = [10, 11, 12, 13, 14, 15];
+              const bestHour =
+                baseHours[
+                  Math.floor((engagementRate * 100) % baseHours.length)
+                ];
+              const hours = [
+                `${String(bestHour).padStart(2, "0")}:00`,
+                `${String(bestHour + 2).padStart(2, "0")}:00`,
+              ];
 
               recommendations.push({
                 platform: "facebook",
@@ -1358,84 +1347,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 days_week: days,
                 best_hours: hours,
                 insights_data: {
-                  avg_engagement_rate: rate,
+                  avg_engagement_rate: engagementRate,
                   avg_reach: avgReach,
-                  avg_views: avgViews,
+                  avg_views: avgImpressions,
                 },
               });
-            } else if (integration.provider === "instagram") {
-              // Instagram Insights API calls (2 separate calls)
-              const insights1Url = `https://graph.facebook.com/v24.0/${integration.accountId}/insights?metric=reach,profile_views,accounts_engaged,total_interactions&period=day&access_token=${integration.accessToken}`;
-              const insights2Url = `https://graph.facebook.com/v24.0/${integration.accountId}/insights?metric=follower_count&period=day&access_token=${integration.accessToken}`;
+            }
 
-              const [response1, response2] = await Promise.all([
-                fetch(insights1Url),
-                fetch(insights2Url),
-              ]);
+            // 🔹 INSTAGRAM
+            else if (integration.provider === "instagram") {
+              const mediaUrl = `https://graph.facebook.com/v24.0/${integration.accountId}/media?fields=id,timestamp,caption,insights.metric(impressions,reach,likes,comments,saved,total_interactions)&limit=25&access_token=${integration.accessToken}`;
+              const resIG = await fetch(mediaUrl);
+              const dataIG = await resIG.json();
 
-              const [data1, data2] = await Promise.all([
-                response1.json(),
-                response2.json(),
-              ]);
+              const posts = dataIG.data || [];
 
-              console.log(
-                "[AI Suggestions] Instagram insights1 response:",
-                JSON.stringify(data1, null, 2),
-              );
-              console.log(
-                "[AI Suggestions] Instagram insights2 response:",
-                JSON.stringify(data2, null, 2),
-              );
+              const parsed = posts.map((p: any) => {
+                const d = p.insights?.data || [];
+                const get = (n: string) =>
+                  d.find((m: any) => m.name === n)?.values?.[0]?.value || 0;
+                const reach = get("reach");
+                const total = get("total_interactions");
+                const engagementRate = total / (reach || 1);
+                const hour = new Date(p.timestamp).getUTCHours();
+                return {
+                  reach,
+                  total,
+                  engagementRate,
+                  hour,
+                  timestamp: p.timestamp,
+                };
+              });
 
-              // Combine metrics from both calls
-              const metrics = [...(data1.data || []), ...(data2.data || [])];
-              const getMetric = (name: string) => {
-                const metric = metrics.find((m: any) => m.name === name);
-                return metric?.values?.map((v: any) => v.value) || [];
-              };
-              const avg = (arr: number[]) =>
-                arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+              if (parsed.length === 0)
+                throw new Error("No valid Instagram posts found for insights");
 
-              const avgReach = avg(getMetric("reach"));
-              const avgProfileViews = avg(getMetric("profile_views"));
-              const avgAccountsEngaged = avg(getMetric("accounts_engaged"));
-              const avgInteractions = avg(getMetric("total_interactions"));
-              const avgFollowers = avg(getMetric("follower_count"));
+              const avg = (a: number[]) =>
+                a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+              const avgReach = avg(parsed.map((p) => p.reach));
+              const avgInteractions = avg(parsed.map((p) => p.total));
+              const avgER = avg(parsed.map((p) => p.engagementRate));
 
-              const engagementRate = avgAccountsEngaged / (avgReach || 1);
-              const interactionRate = avgInteractions / (avgReach || 1);
+              // 📅 Identify top 3 days by engagement
+              const byDay = parsed.reduce((acc: any, p) => {
+                const day = new Date(p.timestamp).getDay(); // 0=Sun
+                acc[day] = acc[day] || { er: [] };
+                acc[day].er.push(p.engagementRate);
+                return acc;
+              }, {});
+              const avgByDay = Object.entries(byDay).map(([day, val]: any) => ({
+                day,
+                avg: avg(val.er),
+              }));
+              const topDays = avgByDay
+                .sort((a, b) => b.avg - a.avg)
+                .slice(0, 3)
+                .map(
+                  (d) =>
+                    ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][+d.day],
+                );
 
-              // Determine frequency
+              // ⏰ Dynamic hours based on high-engagement posts
+              const topPosts = parsed
+                .sort((a, b) => b.engagementRate - a.engagementRate)
+                .slice(0, Math.max(3, parsed.length * 0.2));
+              const avgHour =
+                Math.round(avg(topPosts.map((p) => p.hour))) || 12;
+              const hours = [
+                `${String(avgHour - 1 < 0 ? 0 : avgHour - 1).padStart(2, "0")}:00`,
+                `${String(avgHour + 1 > 23 ? 23 : avgHour + 1).padStart(2, "0")}:00`,
+              ];
+
+              // 📊 Determine posting frequency
               let frequency = "1 publicación por semana";
-              if (engagementRate > 0.04 || interactionRate > 0.03)
-                frequency = "3 publicaciones por semana";
-              if (engagementRate > 0.08 || interactionRate > 0.06)
-                frequency = "5 publicaciones por semana";
-
-              // Determine days based on frequency
-              let days = ["wed"];
-              if (frequency.includes("3")) days = ["tue", "thu", "sat"];
-              if (frequency.includes("5"))
-                days = ["mon", "tue", "wed", "thu", "fri"];
-
-              // Determine hours based on engagement
-              let hours = ["10:00", "12:00"];
-              if (engagementRate > 0.05) hours = ["11:00", "13:00"];
-              if (engagementRate > 0.08) hours = ["09:00", "11:00"];
+              if (avgER > 0.04) frequency = "3 publicaciones por semana";
+              if (avgER > 0.08) frequency = "5 publicaciones por semana";
 
               recommendations.push({
                 platform: "instagram",
                 frequency_days: frequency,
-                days_week: days,
+                days_week: topDays.length ? topDays : ["wed"],
                 best_hours: hours,
                 insights_data: {
-                  avg_engagement_rate: engagementRate,
+                  avg_engagement_rate: avgER,
                   avg_reach: avgReach,
-                  avg_profile_views: avgProfileViews,
-                  avg_accounts_engaged: avgAccountsEngaged,
                   avg_interactions: avgInteractions,
-                  avg_followers: avgFollowers,
-                  interaction_rate: interactionRate,
                 },
               });
             }
@@ -1444,17 +1440,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               `[AI Suggestions] Error processing ${integration.provider}:`,
               integrationError,
             );
-            // Continue with other integrations even if one fails
           }
         }
 
-        if (recommendations.length === 0) {
+        if (!recommendations.length) {
           return res.status(500).json({
             message: "Failed to generate recommendations from any platform",
           });
         }
 
-        // Return in the same format as before
         const result = [
           {
             user_id: userId,
@@ -1463,9 +1457,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ];
 
         console.log(
-          "[AI Suggestions] Generated recommendations:",
+          "[AI Suggestions] ✅ Generated recommendations:",
           JSON.stringify(result, null, 2),
         );
+
         res.json(result);
       } catch (error) {
         console.error("❌ Error fetching AI suggestions:", error);
@@ -2781,11 +2776,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get user's integrations to check if initial sync is needed
       const integrations = await storage.getIntegrations(userId);
-      
+
       // Perform initial sync for integrations that haven't fetched history yet
       for (const integration of integrations) {
         const provider = integration.provider;
-        
+
         // Only sync for Meta platforms (Facebook, Instagram, Threads)
         if (
           (provider === "facebook" ||
@@ -2796,7 +2791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(
             `🔄 [Initial Sync] Starting initial sync for ${provider} (${integration.accountName})`,
           );
-          
+
           try {
             await performInitialSync(userId, integration, provider);
             await storage.markIntegrationAsFetched(integration.id);
