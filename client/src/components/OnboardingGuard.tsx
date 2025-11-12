@@ -17,16 +17,30 @@ export default function OnboardingGuard({ children }: OnboardingGuardProps) {
     // 3. On public pages
     if (isLoading) return;
     if (location === "/onboarding") return;
-    if (location === "/" || location === "/login" || location === "/pricing" || location === "/privacy-policy" || location === "/spanish-preview") return;
+    if (
+      location === "/" ||
+      location === "/login" ||
+      location === "/pricing" ||
+      location === "/privacy-policy" ||
+      location === "/spanish-preview"
+    )
+      return;
 
     // Redirect to onboarding if user has no brands
-    if (brands.length === 0) {
+    if (brands?.length === 0) {
       setLocation("/onboarding");
     }
   }, [brands, isLoading, location, setLocation, activeBrandId]);
 
   // Show loading state while checking brands
-  if (isLoading && location !== "/" && location !== "/login" && location !== "/pricing" && location !== "/privacy-policy" && location !== "/spanish-preview") {
+  if (
+    isLoading &&
+    location !== "/" &&
+    location !== "/login" &&
+    location !== "/pricing" &&
+    location !== "/privacy-policy" &&
+    location !== "/spanish-preview"
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
