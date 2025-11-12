@@ -897,6 +897,8 @@ export const insertCustomerSchema = createInsertSchema(customers).omit({
 export const insertInvoiceSchema = createInsertSchema(invoices)
   .omit({
     id: true,
+    userId: true,
+    brandId: true,
     createdAt: true,
     updatedAt: true,
   })

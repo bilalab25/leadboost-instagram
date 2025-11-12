@@ -4320,11 +4320,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Invoice management routes
-  app.get("/api/invoices", isAuthenticated, async (req: any, res) => {
+  app.get("/api/invoices", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const invoices = await storage.getInvoicesByUserId(userId);
+      const brandId = req.brandMembership.brandId;
+      const invoices = await storage.getInvoicesByBrandId(brandId);
       res.json(invoices);
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -4332,14 +4331,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/invoices", isAuthenticated, async (req: any, res) => {
+  app.post("/api/invoices", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const invoiceData = insertInvoiceSchema.parse({
-        ...req.body,
+      const brandId = req.brandMembership.brandId;
+
+      // Validate client-provided data (without userId/brandId)
+      const validatedData = insertInvoiceSchema.parse(req.body);
+
+      // Enrich with server-side context (brandId for tenancy, userId for audit)
+      const invoiceData = {
+        ...validatedData,
+        brandId,
         userId,
-      });
+      };
 
       const invoice = await storage.createInvoice(invoiceData);
 
@@ -4347,6 +4353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (invoice.customerId) {
         await storage.updateCustomerTotalInvoiced(
           invoice.customerId,
+          brandId,
           invoice.amount,
         );
       }
@@ -4354,6 +4361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log activity
       await storage.createActivityLog({
         userId,
+        brandId,
         action: "invoice_created",
         description: `Created invoice ${invoice.invoiceNumber}`,
         entityType: "invoice",
@@ -4367,19 +4375,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/invoices/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/invoices/:id", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.brandMembership.brandId;
       const invoiceId = req.params.id;
-      const updates = req.body;
+
+      // Sanitize client input using partial schema (prevents userId/brandId spoofing)
+      const updateInvoiceSchema = insertInvoiceSchema.partial();
+      const validatedUpdates = updateInvoiceSchema.parse(req.body);
 
       // Handle file upload URL processing
-      if (updates.fileUrl) {
+      if (validatedUpdates.fileUrl) {
         const objectStorageService = new ObjectStorageService();
-        updates.fileUrl =
+        validatedUpdates.fileUrl =
           await objectStorageService.trySetObjectEntityAclPolicy(
-            updates.fileUrl,
+            validatedUpdates.fileUrl,
             {
               owner: userId,
               visibility: "private",
@@ -4387,7 +4399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
       }
 
-      const invoice = await storage.updateInvoice(invoiceId, userId, updates);
+      const invoice = await storage.updateInvoice(invoiceId, brandId, validatedUpdates);
       if (!invoice) {
         return res.status(404).json({ message: "Invoice not found" });
       }
@@ -4395,6 +4407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log activity
       await storage.createActivityLog({
         userId,
+        brandId,
         action: "invoice_updated",
         description: `Updated invoice ${invoice.invoiceNumber}`,
         entityType: "invoice",
