@@ -202,22 +202,26 @@ export default function ConversationPanel({
     loadMessages();
   }, [conversationId, platform, toast]);
 
+  // ✅ Mark conversation as read mutation (using new conversation API)
+  const markAsReadMutation = useMutation({
+    mutationFn: async (convId: string) => {
+      if (!activeBrandId) throw new Error("No active brand");
+      await apiRequest("PATCH", `/api/conversations/${convId}/read`);
+    },
+    onSuccess: (_, convId) => {
+      // Invalidate conversations list to refresh unread counts
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
+    },
+    onError: (error: Error) => {
+      console.error("❌ Error marking conversation as read:", error);
+    },
+  });
+
   // 🔹 Mark messages as read when conversation is opened
   useEffect(() => {
-    async function markAsRead() {
-      if (!platform || !conversationId) return;
-
-      try {
-        await fetch(`/api/messages/${platform}/${conversationId}/mark-read`, {
-          method: "POST",
-        });
-      } catch (err) {
-        console.error("❌ Error marking messages as read:", err);
-      }
-    }
-
-    markAsRead();
-  }, [conversationId, platform]);
+    if (!conversationId) return;
+    markAsReadMutation.mutate(conversationId);
+  }, [conversationId]);
 
   // ✅ Socket.IO: Listen for new messages in real-time for this conversation
   const handleNewMessage = useCallback(

@@ -3456,10 +3456,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/:provider/conversations/:conversationId/messages",
     isAuthenticated,
+    requireBrand,
     async (req, res) => {
       try {
         const { provider, conversationId } = req.params;
         const userId = req.user.id;
+        const brandId = req.brandMembership.brandId;
         const { content } = req.body;
 
         console.log("\n=============================");
@@ -3467,6 +3469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("🧠 Provider:", provider);
         console.log("💬 Conversation ID:", conversationId);
         console.log("👤 Authenticated user:", userId);
+        console.log("🏢 Brand ID:", brandId);
         console.log("✉️ Message content:", content);
         console.log("=============================\n");
 
@@ -3474,16 +3477,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Message content is required" });
         }
 
-        const integrations = await storage.getIntegrations(userId);
+        const integrations = await storage.getIntegrationsByBrandId(brandId);
         const integration = integrations.find((i) => i.provider === provider);
 
         if (!integration) {
           console.warn(
-            `⚠️ No ${provider} integration found for user ${userId}`,
+            `⚠️ No ${provider} integration found for brand ${brandId}`,
           );
           return res
             .status(404)
-            .json({ error: `No ${provider} integration found for user` });
+            .json({ error: `No ${provider} integration found for brand` });
         }
 
         let url, payload, recipientId, metaConversationId;
