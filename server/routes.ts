@@ -327,6 +327,7 @@ async function performInitialSync(
     ] of conversationMetadata.entries()) {
       const conversation = await storage.getOrCreateConversation({
         integrationId: integration.id,
+        brandId: integration.brandId,
         userId,
         metaConversationId,
         platform: provider,
@@ -2632,6 +2633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     // Get or create conversation
                     const conversation = await storage.getOrCreateConversation({
                       integrationId: integration.id,
+                      brandId: integration.brandId,
                       userId: integration.userId,
                       metaConversationId,
                       platform: "whatsapp",
@@ -2731,6 +2733,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   // Get or create conversation
                   const conversation = await storage.getOrCreateConversation({
                     integrationId: integration.id,
+                    brandId: integration.brandId,
                     userId: integration.userId,
                     metaConversationId: metaConversationId || "",
                     platform,
