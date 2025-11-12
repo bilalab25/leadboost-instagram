@@ -673,6 +673,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Brand memberships endpoint
+  app.get("/api/brand-memberships", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+
+      const memberships = await storage.getBrandMemberships(userId);
+
+      // TODO: Join with brands table to include brand details
+      // For now, returning memberships only
+      res.json(memberships);
+    } catch (error) {
+      console.error("Error fetching brand memberships:", error);
+      res.status(500).json({ message: "Failed to fetch brand memberships" });
+    }
+  });
+
   // Demo data endpoint
   app.post(
     "/api/populate-demo-data",
