@@ -2779,6 +2779,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Get user's integrations to check if initial sync is needed
+      const integrations = await storage.getIntegrations(userId);
+      
+      // Perform initial sync for integrations that haven't fetched history yet
+      for (const integration of integrations) {
+        const provider = integration.provider;
+        
+        // Only sync for Meta platforms (Facebook, Instagram, Threads)
+        if (
+          (provider === "facebook" ||
+            provider === "instagram" ||
+            provider === "threads") &&
+          !integration.hasFetchedHistory
+        ) {
+          console.log(
+            `🔄 [Initial Sync] Starting initial sync for ${provider} (${integration.accountName})`,
+          );
+          
+          try {
+            await performInitialSync(userId, integration, provider);
+            await storage.markIntegrationAsFetched(integration.id);
+            console.log(
+              `✅ [Initial Sync] Completed for ${provider} (${integration.accountName})`,
+            );
+          } catch (syncError) {
+            console.error(
+              `❌ [Initial Sync] Failed for ${provider}:`,
+              syncError,
+            );
+            // Continue with other integrations even if one fails
+          }
+        }
+      }
+
       const conversations = await storage.getConversations(userId, limit);
 
       console.log(
