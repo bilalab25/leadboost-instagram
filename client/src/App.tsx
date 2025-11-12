@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { BrandProvider } from "@/contexts/BrandContext";
+import OnboardingGuard from "@/components/OnboardingGuard";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
@@ -31,6 +32,7 @@ import Settings from "./pages/settings";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import FlowBuilder from "@/pages/flow-builder";
 import FlowsDashboard from "@/pages/flows-dashboard";
+import Onboarding from "@/pages/onboarding";
 
 
 function Router() {
@@ -45,6 +47,8 @@ function Router() {
 
       {/* Rutas de la aplicación - PROTEGIDAS por PrivateRoute */}
       {/* Si el usuario no está autenticado, PrivateRoute lo redirigirá a /login */}
+      {/* Onboarding is a special case - requires auth but not brands */}
+      <Route path="/onboarding" component={Onboarding} />
       <PrivateRoute path="/home" component={Home} />
       <PrivateRoute path="/dashboard" component={Dashboard} />
       <PrivateRoute path="/inbox" component={Inbox} />
@@ -76,10 +80,12 @@ function App() {
     <LanguageProvider>
       <QueryClientProvider client={queryClient}>
         <BrandProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <OnboardingGuard>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </OnboardingGuard>
         </BrandProvider>
       </QueryClientProvider>
     </LanguageProvider>

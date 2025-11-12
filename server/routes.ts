@@ -690,6 +690,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new brand endpoint
+  app.post("/api/brands/create", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const { name, industry, description, brandColor } = req.body;
+
+      if (!name) {
+        return res.status(400).json({ message: "Brand name is required" });
+      }
+
+      // Create brand
+      const brand = await storage.createBrand({
+        userId,
+        name,
+        industry: industry || null,
+        description: description || null,
+        brandColor: brandColor || null,
+      });
+
+      // Create brand membership with owner role
+      const membership = await storage.createBrandMembership({
+        userId,
+        brandId: brand.id,
+        role: "owner",
+        status: "active",
+        invitedBy: null,
+      });
+
+      res.json({ brand, membership });
+    } catch (error) {
+      console.error("Error creating brand:", error);
+      res.status(500).json({ message: "Failed to create brand" });
+    }
+  });
+
+  // Accept brand invitation endpoint
+  app.post(
+    "/api/brand-invitations/accept",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const { inviteCode } = req.body;
+
+        if (!inviteCode) {
+          return res
+            .status(400)
+            .json({ message: "Invite code is required" });
+        }
+
+        const membership = await storage.acceptBrandInvitation(
+          inviteCode,
+          userId,
+        );
+
+        res.json({ membership });
+      } catch (error: any) {
+        console.error("Error accepting brand invitation:", error);
+        res
+          .status(400)
+          .json({ message: error.message || "Failed to accept invitation" });
+      }
+    },
+  );
+
   // Demo data endpoint
   app.post(
     "/api/populate-demo-data",

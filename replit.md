@@ -5,6 +5,12 @@
 CampAIgner is a comprehensive social media management platform that unifies customer communications across multiple channels (Instagram, WhatsApp, Email, TikTok) and leverages AI to generate intelligent content strategies. The application provides a centralized dashboard for managing messages, creating content plans, running campaigns, and analyzing performance metrics.
 
 Key features include:
+- **Multi-Tenant Brand Management** with:
+  - Brand memberships with role-based access (owner/admin/editor/viewer)
+  - Brand invitation system with secure invite codes
+  - Onboarding flow for creating or joining brands
+  - Brand context provider for managing active brand state
+  - Authorization middleware for brand-scoped API access
 - **Multi-Platform Unified Inbox** with:
   - Concurrent message aggregation from Facebook, Instagram, Threads, and WhatsApp
   - **Hybrid Synchronization Strategy**:
