@@ -29,7 +29,9 @@ export default function Inbox() {
   const [selectedPlatform, setSelectedPlatform] = useState<string | undefined>(
     undefined,
   );
-  const [selectedFlag, setSelectedFlag] = useState<'all' | 'none' | 'important' | 'archived'>('all');
+  const [selectedFlag, setSelectedFlag] = useState<
+    "all" | "none" | "important" | "archived"
+  >("all");
   const [loading, setLoading] = useState(false);
 
   // Redirección si no autenticado
@@ -123,7 +125,7 @@ export default function Inbox() {
                   All
                 </Button>
 
-                {integrations.map((integration) => {
+                {integrations?.map((integration) => {
                   const provider = integration.provider;
                   const isActive = selectedPlatform === provider;
 
@@ -171,29 +173,39 @@ export default function Inbox() {
                 {/* Flag Filter Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" data-testid="button-flag-filter">
-                      {selectedFlag === 'important' && <Star className="h-4 w-4 text-yellow-500" />}
-                      {selectedFlag === 'archived' && <Archive className="h-4 w-4 text-gray-500" />}
-                      {(selectedFlag === 'all' || selectedFlag === 'none') && <Filter className="h-4 w-4" />}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      data-testid="button-flag-filter"
+                    >
+                      {selectedFlag === "important" && (
+                        <Star className="h-4 w-4 text-yellow-500" />
+                      )}
+                      {selectedFlag === "archived" && (
+                        <Archive className="h-4 w-4 text-gray-500" />
+                      )}
+                      {(selectedFlag === "all" || selectedFlag === "none") && (
+                        <Filter className="h-4 w-4" />
+                      )}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
-                      onClick={() => setSelectedFlag('all')}
+                    <DropdownMenuItem
+                      onClick={() => setSelectedFlag("all")}
                       data-testid="filter-option-all"
                     >
                       <Flag className="h-4 w-4 mr-2 text-gray-400" />
                       {isSpanish ? "Todas" : "All"}
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => setSelectedFlag('important')}
+                    <DropdownMenuItem
+                      onClick={() => setSelectedFlag("important")}
                       data-testid="filter-option-important"
                     >
                       <Star className="h-4 w-4 mr-2 text-yellow-500" />
                       {isSpanish ? "Importantes" : "Important"}
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => setSelectedFlag('archived')}
+                    <DropdownMenuItem
+                      onClick={() => setSelectedFlag("archived")}
                       data-testid="filter-option-archived"
                     >
                       <Archive className="h-4 w-4 mr-2 text-gray-500" />
@@ -207,7 +219,11 @@ export default function Inbox() {
 
           {/* WhatsApp-style Split View */}
           <div className="flex-1 flex overflow-hidden">
-            <MessageList showHeader={false} platform={selectedPlatform} flagFilter={selectedFlag} />
+            <MessageList
+              showHeader={false}
+              platform={selectedPlatform}
+              flagFilter={selectedFlag}
+            />
           </div>
         </div>
       </div>

@@ -3084,8 +3084,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // ✅ NEW: Get all conversations for authenticated user
-  app.get("/api/conversations", isAuthenticated, async (req, res) => {
+  app.get("/api/conversations", isAuthenticated, requireBrand, async (req, res) => {
     try {
+      const brandId = req.brandMembership.brandId;
       const userId = req.user.id;
       const limitParam = req.query.limit;
 
@@ -3098,8 +3099,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Get user's integrations to check if initial sync is needed
-      const integrations = await storage.getIntegrations(userId);
+      // Get brand's integrations to check if initial sync is needed
+      const integrations = await storage.getIntegrationsByBrandId(brandId);
 
       // Perform initial sync for integrations that haven't fetched history yet
       for (const integration of integrations) {
@@ -3132,10 +3133,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const conversations = await storage.getConversations(userId, limit);
+      const conversations = await storage.getConversationsByBrandId(brandId, limit);
 
       console.log(
-        `📋 Retrieved ${conversations.length} conversations for user ${userId}${limit ? ` (limit: ${limit})` : ""}`,
+        `📋 Retrieved ${conversations.length} conversations for brand ${brandId}${limit ? ` (limit: ${limit})` : ""}`,
       );
       res.json({ conversations });
     } catch (err) {
@@ -3145,20 +3146,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ✅ NEW: Get a single conversation by ID
-  app.get("/api/conversations/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/conversations/:id", isAuthenticated, requireBrand, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.id;
+      const brandId = req.brandMembership.brandId;
 
-      // Verify user has access to this conversation
-      const conversations = await storage.getConversations(userId);
+      // Verify brand has access to this conversation
+      const conversations = await storage.getConversationsByBrandId(brandId);
       const conversation = conversations.find((c) => c.id === id);
 
       if (!conversation) {
         return res.status(404).json({ error: "Conversation not found" });
       }
 
-      console.log(`📝 Retrieved conversation ${id} for user ${userId}`);
+      console.log(`📝 Retrieved conversation ${id} for brand ${brandId}`);
       res.json({ conversation });
     } catch (err) {
       console.error("❌ Error fetching conversation:", err);
@@ -3170,13 +3171,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/conversations/:id/messages",
     isAuthenticated,
+    requireBrand,
     async (req, res) => {
       try {
         const { id } = req.params;
-        const userId = req.user.id;
+        const brandId = req.brandMembership.brandId;
 
-        // Verify user has access to this conversation
-        const conversations = await storage.getConversations(userId);
+        // Verify brand has access to this conversation
+        const conversations = await storage.getConversationsByBrandId(brandId);
         const conversation = conversations.find((c) => c.id === id);
 
         if (!conversation) {

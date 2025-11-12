@@ -27,7 +27,7 @@ export default function OnboardingGuard({ children }: OnboardingGuardProps) {
       return;
 
     // Redirect to onboarding if user has no brands
-    if (brands?.length === 0) {
+    if (brands && brands.length === 0) {
       setLocation("/onboarding");
     }
   }, [brands, isLoading, location, setLocation, activeBrandId]);
