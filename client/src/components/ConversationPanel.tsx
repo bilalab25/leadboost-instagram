@@ -38,6 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { Customer } from "@shared/schema";
 import { useBrand } from "@/contexts/BrandContext";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Message {
   id: string;
@@ -111,7 +112,7 @@ export default function ConversationPanel({
     queryKey: ["/api/customers/by-conversation", activeBrandId, conversationId],
     queryFn: async () => {
       const res = await fetch(
-        `/api/customers/by-conversation/${conversationId}`,
+        `/api/customers/by-conversation/${conversationId}?brandId=${activeBrandId}`,
       );
       if (!res.ok) {
         if (res.status === 404) return null;
@@ -214,7 +215,10 @@ export default function ConversationPanel({
   const markAsReadMutation = useMutation({
     mutationFn: async (convId: string) => {
       if (!activeBrandId) throw new Error("No active brand");
-      await apiRequest("PATCH", `/api/conversations/${convId}/read`);
+      await apiRequest(
+        "PATCH",
+        `/api/conversations/${convId}/read?brandId=${activeBrandId}`,
+      );
     },
     onSuccess: (_, convId) => {
       // Invalidate conversations list to refresh unread counts
@@ -275,17 +279,19 @@ export default function ConversationPanel({
 
   useNewMessageListener(handleNewMessage);
 
-  // 🔹 Enviar mensaje
   // 🏁 Mutation to update conversation flag
   const updateFlagMutation = useMutation({
     mutationFn: async (flag: "none" | "important" | "archived") => {
       if (!activeBrandId) throw new Error("No active brand");
 
-      const res = await fetch(`/api/conversations/${conversationId}/flag`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ flag }),
-      });
+      const res = await fetch(
+        `/api/conversations/${conversationId}/flag?brandId=${activeBrandId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ flag }),
+        },
+      );
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Error updating flag");
@@ -327,7 +333,7 @@ export default function ConversationPanel({
         }
       }
 
-      const res = await fetch(`/api/customers`, {
+      const res = await fetch(`/api/customers?brandId=${activeBrandId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -354,7 +360,7 @@ export default function ConversationPanel({
       });
       queryClient.invalidateQueries({
         queryKey: [
-          "/api/customers/by-conversation",
+          `/api/customers/by-conversation?brandId=${activeBrandId}`,
           activeBrandId,
           conversationId,
         ],
@@ -389,11 +395,14 @@ export default function ConversationPanel({
       // ⚙️ Usa metaConversationId si existe (para Facebook)
       const targetConversationId = metaConversationId || conversationId;
       const res = await fetch(
-        `/api/${platform}/conversations/${targetConversationId}/messages`,
+        `/api/${platform}/conversations/${targetConversationId}/messages?brandId=${activeBrandId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: data.content }),
+          body: JSON.stringify({
+            content: data.content,
+            conversationId: conversationId,
+          }),
         },
       );
 

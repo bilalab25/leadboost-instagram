@@ -61,6 +61,7 @@ import { translations } from "@/lib/translations";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
 import boosty from "./boosty.png";
 import HelpChatbot from "@/components/HelpChatbot";
+import { useBrand } from "@/contexts/BrandContext";
 
 interface DashboardStats {
   unreadMessages: number;
@@ -80,6 +81,7 @@ interface ActivityLog {
 export default function Dashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { activeBrandId } = useBrand();
   const queryClient = useQueryClient();
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const t = translations[language]; // Use current language setting
@@ -169,7 +171,10 @@ export default function Dashboard() {
     useQuery({
       queryKey: ["/api/conversations", { limit: 5 }],
       queryFn: async () => {
-        const res = await apiRequest("GET", "/api/conversations?limit=5");
+        const res = await apiRequest(
+          "GET",
+          `/api/conversations?brandId=${activeBrandId}&limit=5`,
+        );
         return res.json();
       },
     });
@@ -647,14 +652,15 @@ export default function Dashboard() {
                                             {platform.name}
                                           </Badge>
                                           {/* Flag Icon */}
-                                          {conversation.flag === 'important' && (
-                                            <Star 
+                                          {conversation.flag ===
+                                            "important" && (
+                                            <Star
                                               className="w-3 h-3 text-yellow-500 fill-yellow-500"
                                               aria-label="Important"
                                             />
                                           )}
-                                          {conversation.flag === 'archived' && (
-                                            <Archive 
+                                          {conversation.flag === "archived" && (
+                                            <Archive
                                               className="w-3 h-3 text-gray-500"
                                               aria-label="Archived"
                                             />

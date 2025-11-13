@@ -91,14 +91,26 @@ export default function CustomersPage() {
   const { language, isSpanish, toggleLanguage } = useLanguage();
 
   // Fetch customers (brand-scoped)
-  const { data: customers = [], isLoading: customersLoading } = useQuery<Customer[]>({
+  const { data: customers = [], isLoading: customersLoading } = useQuery({
     queryKey: ["/api/customers", activeBrandId],
+    queryFn: async () => {
+      const res = await fetch(`/api/customers?brandId=${activeBrandId}`);
+      if (!res.ok) throw new Error("Failed to fetch customers");
+      return res.json();
+    },
     enabled: !!activeBrandId,
   });
 
   // Fetch invoices (brand-scoped)
-  const { data: invoices = [], isLoading: invoicesLoading } = useQuery<InvoiceWithCustomer[]>({
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery<
+    InvoiceWithCustomer[]
+  >({
     queryKey: ["/api/invoices", activeBrandId],
+    queryFn: async () => {
+      const res = await fetch(`/api/invoices?brandId=${activeBrandId}`);
+      if (!res.ok) throw new Error("Failed to fetch customers");
+      return res.json();
+    },
     enabled: !!activeBrandId,
   });
 
@@ -106,10 +118,17 @@ export default function CustomersPage() {
   const createCustomerMutation = useMutation({
     mutationFn: async (data: any) => {
       if (!activeBrandId) throw new Error("No active brand");
-      return apiRequest("POST", "/api/customers", data);
+
+      return apiRequest(
+        "POST",
+        `/api/customers?brandId=${activeBrandId}`,
+        data,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/customers", activeBrandId],
+      });
       setShowAddCustomer(false);
       toast({ title: "Customer created successfully" });
     },
@@ -121,10 +140,17 @@ export default function CustomersPage() {
   const updateCustomerMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       if (!activeBrandId) throw new Error("No active brand");
-      return apiRequest("PUT", `/api/customers/${id}`, data);
+
+      return apiRequest(
+        "PUT",
+        `/api/customers/${id}?brandId=${activeBrandId}`,
+        data,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/customers", activeBrandId],
+      });
       setShowEditCustomer(false);
       setEditingCustomer(null);
       toast({ title: "Customer updated successfully" });
@@ -138,11 +164,16 @@ export default function CustomersPage() {
   const createInvoiceMutation = useMutation({
     mutationFn: async (data: any) => {
       if (!activeBrandId) throw new Error("No active brand");
-      return apiRequest("POST", "/api/invoices", data);
+
+      return apiRequest("POST", `/api/invoices?brandId=${activeBrandId}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices", activeBrandId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/invoices", activeBrandId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/customers", activeBrandId],
+      });
       setShowAddInvoice(false);
       toast({ title: "Invoice created successfully" });
     },
@@ -154,11 +185,20 @@ export default function CustomersPage() {
   const updateInvoiceMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       if (!activeBrandId) throw new Error("No active brand");
-      return apiRequest("PUT", `/api/invoices/${id}`, data);
+
+      return apiRequest(
+        "PUT",
+        `/api/invoices/${id}?brandId=${activeBrandId}`,
+        data,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices", activeBrandId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/invoices", activeBrandId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/customers", activeBrandId],
+      });
       toast({ title: "Invoice updated successfully" });
     },
     onError: () => {
@@ -224,17 +264,15 @@ export default function CustomersPage() {
     }
   };
 
-  const handleFileUploadComplete =
-    (invoiceId: string) =>
-    (result: any) => {
-      if (result.successful && result.successful[0]) {
-        const fileUrl = result.successful[0].uploadURL;
-        updateInvoiceMutation.mutate({
-          id: invoiceId,
-          data: { fileUrl },
-        });
-      }
-    };
+  const handleFileUploadComplete = (invoiceId: string) => (result: any) => {
+    if (result.successful && result.successful[0]) {
+      const fileUrl = result.successful[0].uploadURL;
+      updateInvoiceMutation.mutate({
+        id: invoiceId,
+        data: { fileUrl },
+      });
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const variants: Record<
@@ -262,13 +300,16 @@ export default function CustomersPage() {
   // Helper function to check if date is in current month
   const isInCurrentMonth = (date: Date) => {
     const now = new Date();
-    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    return (
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear()
+    );
   };
 
   // Filter invoices based on date filter
   const filteredInvoices = useMemo(() => {
     if (dateFilter === "all") return invoices;
-    
+
     return invoices.filter((inv: InvoiceWithCustomer) => {
       const createdDate = new Date(inv.createdAt);
       return isInCurrentMonth(createdDate);
@@ -278,25 +319,33 @@ export default function CustomersPage() {
   // Filter customers who have invoices in the selected period
   const filteredCustomers = useMemo(() => {
     if (dateFilter === "all") return customers;
-    
+
     const customerIdsWithInvoices = new Set(
-      filteredInvoices.map((inv: InvoiceWithCustomer) => inv.customerId)
+      filteredInvoices.map((inv: InvoiceWithCustomer) => inv.customerId),
     );
-    
-    return customers.filter((customer: Customer) => 
-      customerIdsWithInvoices.has(customer.id)
+
+    return customers.filter((customer: Customer) =>
+      customerIdsWithInvoices.has(customer.id),
     );
   }, [customers, filteredInvoices, dateFilter]);
 
   // Calculate total revenue based on filter
   const totalRevenue = useMemo(() => {
-    const paidInvoices = filteredInvoices.filter((inv: InvoiceWithCustomer) => inv.status === "paid");
-    return paidInvoices.reduce((sum: number, inv: InvoiceWithCustomer) => sum + inv.amount, 0);
+    const paidInvoices = filteredInvoices.filter(
+      (inv: InvoiceWithCustomer) => inv.status === "paid",
+    );
+    return paidInvoices.reduce(
+      (sum: number, inv: InvoiceWithCustomer) => sum + inv.amount,
+      0,
+    );
   }, [filteredInvoices]);
 
   // Get current month name for display
   const currentMonthName = useMemo(() => {
-    return new Date().toLocaleString("default", { month: "long", year: "numeric" });
+    return new Date().toLocaleString("default", {
+      month: "long",
+      year: "numeric",
+    });
   }, []);
 
   if (customersLoading || invoicesLoading) {
@@ -558,7 +607,7 @@ export default function CustomersPage() {
                     All Time
                   </Button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -567,7 +616,9 @@ export default function CustomersPage() {
                           Total Customers
                         </CardTitle>
                         <CardDescription className="text-xs mt-1">
-                          {dateFilter === "current" ? "with invoices in " + currentMonthName : "All Time"}
+                          {dateFilter === "current"
+                            ? "with invoices in " + currentMonthName
+                            : "All Time"}
                         </CardDescription>
                       </div>
                       <User className="h-4 w-4 text-muted-foreground" />
@@ -589,7 +640,9 @@ export default function CustomersPage() {
                           Total Invoices
                         </CardTitle>
                         <CardDescription className="text-xs mt-1">
-                          {dateFilter === "current" ? currentMonthName : "All Time"}
+                          {dateFilter === "current"
+                            ? currentMonthName
+                            : "All Time"}
                         </CardDescription>
                       </div>
                       <FileText className="h-4 w-4 text-muted-foreground" />
@@ -611,7 +664,9 @@ export default function CustomersPage() {
                           Total Revenue
                         </CardTitle>
                         <CardDescription className="text-xs mt-1">
-                          {dateFilter === "current" ? currentMonthName : "All Time"}
+                          {dateFilter === "current"
+                            ? currentMonthName
+                            : "All Time"}
                         </CardDescription>
                       </div>
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -731,14 +786,24 @@ export default function CustomersPage() {
                                     </Button>
                                     <Button
                                       size="sm"
-                                      variant={selectedCustomer?.id === customer.id ? "default" : "outline"}
-                                      onClick={() => setSelectedCustomer(
-                                        selectedCustomer?.id === customer.id ? null : customer
-                                      )}
+                                      variant={
+                                        selectedCustomer?.id === customer.id
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      onClick={() =>
+                                        setSelectedCustomer(
+                                          selectedCustomer?.id === customer.id
+                                            ? null
+                                            : customer,
+                                        )
+                                      }
                                       data-testid={`button-view-customer-${customer.id}`}
                                     >
                                       <Eye className="w-4 h-4 mr-1" />
-                                      {selectedCustomer?.id === customer.id ? "Hide" : "View"}
+                                      {selectedCustomer?.id === customer.id
+                                        ? "Hide"
+                                        : "View"}
                                     </Button>
                                   </div>
                                 </TableCell>
@@ -764,47 +829,68 @@ export default function CustomersPage() {
                         </div>
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <h3 className="font-bold text-lg text-gray-900">{selectedCustomer.name}</h3>
+                            <h3 className="font-bold text-lg text-gray-900">
+                              {selectedCustomer.name}
+                            </h3>
                             <div className="mt-2 space-y-1 text-sm text-gray-700">
                               {selectedCustomer.email && (
                                 <p className="flex items-center gap-2">
-                                  <span className="font-medium">Email:</span> {selectedCustomer.email}
+                                  <span className="font-medium">Email:</span>{" "}
+                                  {selectedCustomer.email}
                                 </p>
                               )}
                               {selectedCustomer.phone && (
                                 <p className="flex items-center gap-2">
-                                  <span className="font-medium">Phone:</span> {selectedCustomer.phone}
+                                  <span className="font-medium">Phone:</span>{" "}
+                                  {selectedCustomer.phone}
                                 </p>
                               )}
                             </div>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Company & Address</p>
+                            <p className="text-sm text-gray-600">
+                              Company & Address
+                            </p>
                             <div className="mt-2 space-y-1 text-sm text-gray-700">
                               {selectedCustomer.company && (
                                 <p className="flex items-center gap-2">
-                                  <span className="font-medium">Company:</span> {selectedCustomer.company}
+                                  <span className="font-medium">Company:</span>{" "}
+                                  {selectedCustomer.company}
                                 </p>
                               )}
                               {selectedCustomer.address && (
                                 <p className="flex items-center gap-2">
-                                  <span className="font-medium">Address:</span> {selectedCustomer.address}
+                                  <span className="font-medium">Address:</span>{" "}
+                                  {selectedCustomer.address}
                                 </p>
                               )}
                             </div>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Revenue & Status</p>
+                            <p className="text-sm text-gray-600">
+                              Revenue & Status
+                            </p>
                             <div className="mt-2 space-y-2">
                               <div className="bg-white rounded-lg p-3 border border-blue-200">
-                                <p className="text-xs text-gray-600">Total Revenue</p>
-                                <p className="text-2xl font-bold text-blue-600" data-testid="text-customer-banner-revenue">
-                                  {formatCurrency(selectedCustomer.totalInvoiced || 0)}
+                                <p className="text-xs text-gray-600">
+                                  Total Revenue
+                                </p>
+                                <p
+                                  className="text-2xl font-bold text-blue-600"
+                                  data-testid="text-customer-banner-revenue"
+                                >
+                                  {formatCurrency(
+                                    selectedCustomer.totalInvoiced || 0,
+                                  )}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium text-gray-600">Status:</span>
-                                {getStatusBadge(selectedCustomer.status || "active")}
+                                <span className="text-xs font-medium text-gray-600">
+                                  Status:
+                                </span>
+                                {getStatusBadge(
+                                  selectedCustomer.status || "active",
+                                )}
                               </div>
                             </div>
                           </div>
@@ -812,8 +898,12 @@ export default function CustomersPage() {
                       </div>
                       {selectedCustomer.notes && (
                         <div className="mt-4 pt-4 border-t border-blue-200">
-                          <p className="text-xs font-medium text-gray-600 mb-1">Notes:</p>
-                          <p className="text-sm text-gray-700">{selectedCustomer.notes}</p>
+                          <p className="text-xs font-medium text-gray-600 mb-1">
+                            Notes:
+                          </p>
+                          <p className="text-sm text-gray-700">
+                            {selectedCustomer.notes}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -821,90 +911,96 @@ export default function CustomersPage() {
                     {/* Invoices Table */}
                     <div>
                       <div className="p-6 pb-2">
-                        <CardTitle>Invoices for {selectedCustomer.name}</CardTitle>
+                        <CardTitle>
+                          Invoices for {selectedCustomer.name}
+                        </CardTitle>
                         <CardDescription>
                           Manage invoices and upload files for this customer
                         </CardDescription>
                       </div>
                       <div className="p-6 pt-4">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Invoice #</TableHead>
-                          <TableHead>Amount</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Due Date</TableHead>
-                          <TableHead>File</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {invoices
-                          .filter(
-                            (invoice: InvoiceWithCustomer) =>
-                              invoice.customerId === selectedCustomer.id,
-                          )
-                          .map((invoice: InvoiceWithCustomer) => (
-                            <TableRow
-                              key={invoice.id}
-                              data-testid={`row-invoice-${invoice.id}`}
-                            >
-                              <TableCell
-                                className="font-medium"
-                                data-testid={`text-invoice-number-${invoice.id}`}
-                              >
-                                {invoice.invoiceNumber}
-                              </TableCell>
-                              <TableCell
-                                data-testid={`text-invoice-amount-${invoice.id}`}
-                              >
-                                {formatCurrency(invoice.amount)}
-                              </TableCell>
-                              <TableCell>
-                                {getStatusBadge(invoice.status || "pending")}
-                              </TableCell>
-                              <TableCell
-                                data-testid={`text-invoice-due-${invoice.id}`}
-                              >
-                                {invoice.dueDate
-                                  ? new Date(
-                                      invoice.dueDate,
-                                    ).toLocaleDateString()
-                                  : "-"}
-                              </TableCell>
-                              <TableCell>
-                                {invoice.fileUrl ? (
-                                  <a
-                                    href={invoice.fileUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline"
-                                  >
-                                    View File
-                                  </a>
-                                ) : (
-                                  <span className="text-gray-500">No file</span>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <ObjectUploader
-                                  maxNumberOfFiles={1}
-                                  maxFileSize={10485760} // 10MB
-                                  onGetUploadParameters={() =>
-                                    handleFileUpload(invoice.id)
-                                  }
-                                  onComplete={handleFileUploadComplete(
-                                    invoice.id,
-                                  )}
-                                  buttonClassName="h-8 px-2 text-xs"
-                                >
-                                  Upload
-                                </ObjectUploader>
-                              </TableCell>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Invoice #</TableHead>
+                              <TableHead>Amount</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Due Date</TableHead>
+                              <TableHead>File</TableHead>
+                              <TableHead>Actions</TableHead>
                             </TableRow>
-                          ))}
-                      </TableBody>
-                    </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {invoices
+                              .filter(
+                                (invoice: InvoiceWithCustomer) =>
+                                  invoice.customerId === selectedCustomer.id,
+                              )
+                              .map((invoice: InvoiceWithCustomer) => (
+                                <TableRow
+                                  key={invoice.id}
+                                  data-testid={`row-invoice-${invoice.id}`}
+                                >
+                                  <TableCell
+                                    className="font-medium"
+                                    data-testid={`text-invoice-number-${invoice.id}`}
+                                  >
+                                    {invoice.invoiceNumber}
+                                  </TableCell>
+                                  <TableCell
+                                    data-testid={`text-invoice-amount-${invoice.id}`}
+                                  >
+                                    {formatCurrency(invoice.amount)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {getStatusBadge(
+                                      invoice.status || "pending",
+                                    )}
+                                  </TableCell>
+                                  <TableCell
+                                    data-testid={`text-invoice-due-${invoice.id}`}
+                                  >
+                                    {invoice.dueDate
+                                      ? new Date(
+                                          invoice.dueDate,
+                                        ).toLocaleDateString()
+                                      : "-"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {invoice.fileUrl ? (
+                                      <a
+                                        href={invoice.fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-primary hover:underline"
+                                      >
+                                        View File
+                                      </a>
+                                    ) : (
+                                      <span className="text-gray-500">
+                                        No file
+                                      </span>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    <ObjectUploader
+                                      maxNumberOfFiles={1}
+                                      maxFileSize={10485760} // 10MB
+                                      onGetUploadParameters={() =>
+                                        handleFileUpload(invoice.id)
+                                      }
+                                      onComplete={handleFileUploadComplete(
+                                        invoice.id,
+                                      )}
+                                      buttonClassName="h-8 px-2 text-xs"
+                                    >
+                                      Upload
+                                    </ObjectUploader>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
                       </div>
                     </div>
                   </CardContent>

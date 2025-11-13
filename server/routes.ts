@@ -2944,6 +2944,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                   const messageData = {
                     userId: integration.userId,
+                    brandId: integration.brandId,
                     integrationId: integration.id,
                     conversationId: conversation.id,
                     platform,
@@ -3604,6 +3605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { provider, conversationId } = req.params;
         const userId = req.user.id;
         const brandId = req.brandMembership.brandId;
+        const messageConversationId = req.body.conversationId;
         const { content } = req.body;
 
         console.log("\n=============================");
@@ -3873,6 +3875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (messageId) {
           await storage.createMessage({
             userId,
+            brandId: integration.brandId,
             integrationId: integration.id,
             platform: provider,
             metaMessageId: messageId,
@@ -3884,6 +3887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             isRead: true,
             timestamp: new Date(),
             rawPayload: apiResponse,
+            conversationId: messageConversationId,
           });
 
           console.log(

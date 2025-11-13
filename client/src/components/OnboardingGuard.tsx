@@ -1,46 +1,34 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useBrand } from "@/contexts/BrandContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface OnboardingGuardProps {
   children: React.ReactNode;
 }
 
 export default function OnboardingGuard({ children }: OnboardingGuardProps) {
-  const { brands, isLoading, activeBrandId } = useBrand();
+  const { brands, isLoading } = useBrand();
+  const { user, loading: authLoading } = useAuth();
   const [location, setLocation] = useLocation();
 
-  useEffect(() => {
-    // Don't redirect if:
-    // 1. Still loading brands
-    // 2. Already on onboarding page
-    // 3. On public pages
-    if (isLoading) return;
-    if (location === "/onboarding") return;
-    if (
-      location === "/" ||
-      location === "/login" ||
-      location === "/pricing" ||
-      location === "/privacy-policy" ||
-      location === "/spanish-preview"
-    )
-      return;
+  const isPublicRoute =
+    location === "/" ||
+    location === "/login" ||
+    location === "/pricing" ||
+    location === "/privacy-policy" ||
+    location === "/spanish-preview";
 
-    // Redirect to onboarding if user has no brands
+  useEffect(() => {
+    if (authLoading || isLoading) return;
+    if (!user) return; // 👈 EVITA EL LOOP
+    if (isPublicRoute || location === "/onboarding") return;
     if (brands && brands.length === 0) {
       setLocation("/onboarding");
     }
-  }, [brands, isLoading, location, setLocation, activeBrandId]);
+  }, [authLoading, isLoading, user, brands, location]);
 
-  // Show loading state while checking brands
-  if (
-    isLoading &&
-    location !== "/" &&
-    location !== "/login" &&
-    location !== "/pricing" &&
-    location !== "/privacy-policy" &&
-    location !== "/spanish-preview"
-  ) {
+  if ((authLoading || isLoading) && !isPublicRoute) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
