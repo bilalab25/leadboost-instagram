@@ -54,14 +54,14 @@ interface MessageListProps {
   limit?: number;
   showHeader?: boolean;
   platform?: string;
-  flagFilter?: 'all' | 'none' | 'important' | 'archived';
+  flagFilter?: "all" | "none" | "important" | "archived";
 }
 
 export default function MessageList({
   limit = 50,
   showHeader = true,
   platform,
-  flagFilter = 'all',
+  flagFilter = "all",
 }: MessageListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -75,12 +75,15 @@ export default function MessageList({
 
   // ✅ Fetch conversations using TanStack Query (brand-scoped)
   const { data: conversationsData, isLoading } = useQuery({
-    queryKey: ["/api/conversations", activeBrandId, platform],
+    queryKey: ["/api/conversations", activeBrandId],
     queryFn: async () => {
-      const res = await fetch("/api/conversations");
+      const url = `/api/conversations?brandId=${activeBrandId}`;
+
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch conversations");
+
       const data = await res.json();
-      return data.conversations as Conversation[];
+      return data.conversations;
     },
     enabled: !!activeBrandId,
   });
@@ -93,7 +96,9 @@ export default function MessageList({
     },
     onSuccess: (_, conversationId) => {
       // Invalidate conversations list to refresh unread counts
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", activeBrandId],
+      });
       // Invalidate messages for this conversation
       queryClient.invalidateQueries({
         queryKey: ["/api/conversations", conversationId, "messages"],
@@ -123,7 +128,7 @@ export default function MessageList({
 
           // Find if conversation already exists
           const existingIndex = oldData.findIndex(
-            (c) => c.metaConversationId === conversationId
+            (c) => c.metaConversationId === conversationId,
           );
 
           if (existingIndex >= 0) {
@@ -141,11 +146,13 @@ export default function MessageList({
           }
 
           return oldData;
-        }
+        },
       );
 
       // Invalidate to ensure data consistency (brand-scoped)
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", activeBrandId],
+      });
 
       // If this is the active conversation, invalidate its messages
       if (activeConversation?.id === conversationId) {
@@ -160,7 +167,7 @@ export default function MessageList({
         description: `${message.contactName || "Contact"}: ${(message.textContent || "").substring(0, 50)}${message.textContent?.length > 50 ? "..." : ""}`,
       });
     },
-    [toast, queryClient, platform, activeBrandId, activeConversation]
+    [toast, queryClient, platform, activeBrandId, activeConversation],
   );
 
   useNewMessageListener(handleNewMessage);
@@ -170,11 +177,11 @@ export default function MessageList({
   let filteredConversations = platform
     ? conversations.filter((c) => c.platform === platform)
     : conversations;
-  
+
   // Apply flag filter
-  if (flagFilter !== 'all') {
-    filteredConversations = filteredConversations.filter((c) => 
-      c.flag === flagFilter || (!c.flag && flagFilter === 'none')
+  if (flagFilter !== "all") {
+    filteredConversations = filteredConversations.filter(
+      (c) => c.flag === flagFilter || (!c.flag && flagFilter === "none"),
     );
   }
 
@@ -183,7 +190,7 @@ export default function MessageList({
     .sort(
       (a, b) =>
         new Date(b.lastMessageAt).getTime() -
-        new Date(a.lastMessageAt).getTime()
+        new Date(a.lastMessageAt).getTime(),
     )
     .slice(0, limit);
 
@@ -233,14 +240,21 @@ export default function MessageList({
                   className={cn(
                     "p-4 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100",
                     // Important conversations get yellow background
-                    conversation.flag === "important" && hasUnread && "bg-amber-50 border-l-4 border-l-yellow-500",
-                    conversation.flag === "important" && !hasUnread && "bg-white border-l-4 border-l-yellow-400",
+                    conversation.flag === "important" &&
+                      hasUnread &&
+                      "bg-amber-50 border-l-4 border-l-yellow-500",
+                    conversation.flag === "important" &&
+                      !hasUnread &&
+                      "bg-white border-l-4 border-l-yellow-400",
                     // Archived conversations are muted (no unread highlight)
-                    conversation.flag === "archived" && "bg-gray-50 border-l-4 border-l-gray-300 opacity-75",
+                    conversation.flag === "archived" &&
+                      "bg-gray-50 border-l-4 border-l-gray-300 opacity-75",
                     // Normal conversations (no flag)
-                    (!conversation.flag || conversation.flag === "none") && hasUnread && "bg-blue-50/50",
+                    (!conversation.flag || conversation.flag === "none") &&
+                      hasUnread &&
+                      "bg-blue-50/50",
                     // Active conversation highlight
-                    isActive && "bg-gray-100 border-l-4 border-l-primary"
+                    isActive && "bg-gray-100 border-l-4 border-l-primary",
                   )}
                   onClick={() => {
                     setActiveConversation({
@@ -260,14 +274,16 @@ export default function MessageList({
                     <div className="flex-shrink-0 relative">
                       <Avatar className="h-12 w-12">
                         <AvatarFallback className="bg-primary/10 text-primary">
-                          {(conversation.contactName || "?").charAt(0).toUpperCase()}
+                          {(conversation.contactName || "?")
+                            .charAt(0)
+                            .toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       {PlatformIcon && (
                         <div
                           className={cn(
                             "absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
-                            platformBg
+                            platformBg,
                           )}
                         >
                           <PlatformIcon className="text-white text-xs h-3 w-3" />
@@ -281,7 +297,7 @@ export default function MessageList({
                           className={cn(
                             "text-sm text-gray-900 truncate",
                             hasUnread && "font-semibold",
-                            conversation.flag === "archived" && "text-gray-500"
+                            conversation.flag === "archived" && "text-gray-500",
                           )}
                         >
                           {conversation.contactName || "Contact"}
@@ -290,20 +306,20 @@ export default function MessageList({
                         <div className="flex items-center gap-2">
                           {/* Flag icon */}
                           {conversation.flag === "important" && (
-                            <Star 
-                              className="h-4 w-4 text-yellow-500 fill-yellow-500" 
+                            <Star
+                              className="h-4 w-4 text-yellow-500 fill-yellow-500"
                               data-testid={`flag-icon-important-${conversation.id}`}
                               aria-label="Important conversation"
                             />
                           )}
                           {conversation.flag === "archived" && (
-                            <Archive 
-                              className="h-4 w-4 text-gray-400" 
+                            <Archive
+                              className="h-4 w-4 text-gray-400"
                               data-testid={`flag-icon-archived-${conversation.id}`}
                               aria-label="Archived conversation"
                             />
                           )}
-                          
+
                           {hasUnread && (
                             <Badge
                               className="bg-primary text-white text-xs h-5 min-w-5 flex items-center justify-center rounded-full px-1.5"
@@ -312,16 +328,19 @@ export default function MessageList({
                               {conversation.unreadCount}
                             </Badge>
                           )}
-                          <span className={cn(
-                            "text-xs text-gray-500",
-                            conversation.flag === "archived" && "text-gray-400"
-                          )}>
+                          <span
+                            className={cn(
+                              "text-xs text-gray-500",
+                              conversation.flag === "archived" &&
+                                "text-gray-400",
+                            )}
+                          >
                             {formatDistanceToNow(
                               new Date(conversation.lastMessageAt),
                               {
                                 addSuffix: false,
                                 locale: es,
-                              }
+                              },
                             )}
                           </span>
                         </div>
@@ -330,7 +349,7 @@ export default function MessageList({
                       <p
                         className={cn(
                           "text-sm text-gray-600 line-clamp-2",
-                          hasUnread && "font-medium text-gray-900"
+                          hasUnread && "font-medium text-gray-900",
                         )}
                       >
                         {conversation.lastMessage || "(no message)"}

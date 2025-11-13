@@ -1765,8 +1765,17 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // ✅ Función corregida y completa
+  // ✅ Función corregida y completa con brandId
   async createOrUpdateIntegration(data: any) {
+    if (!data.brandId) {
+      throw new Error(
+        `brandId is required in createOrUpdateIntegration for provider=${data.provider} user=${data.userId}`,
+      );
+    }
+
+    const now = new Date();
+
+    // 👇 Ahora buscamos por userId + brandId + provider
     const existing = await db
       .select()
       .from(integrations)
@@ -1774,13 +1783,13 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(integrations.provider, data.provider),
           eq(integrations.userId, data.userId),
+          eq(integrations.brandId, data.brandId),
         ),
       );
 
-    const now = new Date();
-
     const baseData = {
       userId: data.userId,
+      brandId: data.brandId, // 🔥 CLAVE
       provider: data.provider,
       category: data.category ?? "social_media",
       storeName: data.storeName ?? null,
@@ -1791,7 +1800,7 @@ export class DatabaseStorage implements IStorage {
       accessToken: data.accessToken ?? null,
       refreshToken: data.refreshToken ?? null,
       settings: data.settings ?? {},
-      metadata: data.metadata ?? {}, // 👈 importante si tu columna es JSONB
+      metadata: data.metadata ?? {},
       expiresAt: data.expiresAt ?? null,
       lastSyncAt: data.lastSyncAt ?? null,
       isActive: data.isActive ?? true,
@@ -1801,7 +1810,7 @@ export class DatabaseStorage implements IStorage {
 
     if (existing.length > 0) {
       console.log(
-        `🔄 Updating integration for ${data.provider} (user: ${data.userId})`,
+        `🔄 Updating integration for ${data.provider} (user: ${data.userId}, brand: ${data.brandId})`,
       );
       await db
         .update(integrations)
@@ -1810,11 +1819,12 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(integrations.provider, data.provider),
             eq(integrations.userId, data.userId),
+            eq(integrations.brandId, data.brandId),
           ),
         );
     } else {
       console.log(
-        `🆕 Creating new integration for ${data.provider} (user: ${data.userId})`,
+        `🆕 Creating new integration for ${data.provider} (user: ${data.userId}, brand: ${data.brandId})`,
       );
       await db.insert(integrations).values({
         ...baseData,
@@ -1954,6 +1964,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(integrations)
       .where(eq(integrations.userId, userId))
+      .orderBy(desc(integrations.createdAt));
+  }
+
+  async getIntegrationsByBrandId(brandId: string): Promise<Integration[]> {
+    return await db
+      .select()
+      .from(integrations)
+      .where(eq(integrations.brandId, brandId))
       .orderBy(desc(integrations.createdAt));
   }
 

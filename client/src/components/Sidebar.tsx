@@ -32,6 +32,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig"; // Asegúrate de que la ruta a firebaseConfig sea correcta
+import { useBrand } from "@/contexts/BrandContext";
 
 interface SocialAccount {
   id: string;
@@ -86,17 +87,19 @@ export default function Sidebar() {
     { name: t.sidebar.settings, href: "/settings", icon: Settings },
   ];
 
+  const { activeBrandId } = useBrand();
+
   const { data: integrations, isLoading } = useQuery({
-    queryKey: ["/api/integrations"],
+    enabled: !!activeBrandId, // ⬅ importante
+    queryKey: ["integrations", activeBrandId],
     queryFn: async () => {
-      const res = await fetch("/api/integrations");
+      const res = await fetch(`/api/integrations?brandId=${activeBrandId}`);
       if (!res.ok) throw new Error("Failed to fetch integrations");
       return res.json();
     },
     retry: false,
   });
 
-  // 🔍 Filtramos las cuentas sociales y de mensajería (WhatsApp, Instagram, TikTok, etc.)
   const socialAccounts = (integrations || []).filter(
     (intg) =>
       intg.category === "social" ||

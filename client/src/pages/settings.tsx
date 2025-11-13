@@ -50,6 +50,7 @@ import {
   updatePassword,
 } from "firebase/auth";
 import { useQuery } from "@tanstack/react-query";
+import { useBrand } from "@/contexts/BrandContext";
 
 // --- Interfaces (solo para tipado de datos simulados) ---
 interface PaymentMethod {
@@ -700,10 +701,12 @@ const initialNotificationSettings: NotificationSettings = {
 };
 
 export default function Settings() {
+  const { activeBrandId } = useBrand();
   const { isSpanish, toggleLanguage } = useLanguage(); // Assuming useLanguage hook is available
   const { toast } = useToast(); // Assuming useToast hook is available
   const { user, isAuthenticated, isLoading } = useAuth();
-
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [integrationsLoading, setIntegrationsLoading] = useState(false);
   // States para Payment Methods
   const [paymentMethods, setPaymentMethods] =
     useState<PaymentMethod[]>(dummyPaymentMethods);
@@ -727,15 +730,6 @@ export default function Settings() {
   const [twoFactorAuthEnabled, setTwoFactorAuthEnabled] = useState(
     dummyAccountInfo.twoFactorAuthEnabled,
   );
-
-  // States para Integrations
-  const {
-    data: integrations = [],
-    isLoading: integrationsLoading,
-    refetch: refetchIntegrations,
-  } = useQuery<Integration[]>({
-    queryKey: ["/api/integrations"],
-  });
 
   const [isAddIntegrationDialogOpen, setIsAddIntegrationDialogOpen] =
     useState(false);
@@ -1172,9 +1166,11 @@ export default function Settings() {
   }, [user]);
 
   useEffect(() => {
+    if (!activeBrandId) return;
     const fetchIntegrations = async () => {
       try {
-        const res = await fetch("/api/integrations");
+        setIntegrationsLoading(true);
+        const res = await fetch(`/api/integrations?brandId=${activeBrandId}`);
         if (!res.ok) throw new Error("Failed to fetch integrations");
 
         const data = await res.json();
@@ -1187,6 +1183,8 @@ export default function Settings() {
         }
       } catch (error) {
         console.error("❌ Error fetching integrations:", error);
+      } finally {
+        setIntegrationsLoading(false);
       }
     };
 
@@ -1225,10 +1223,7 @@ export default function Settings() {
                     <User className="mr-2 h-4 w-4" />
                     {isSpanish ? "Cuenta" : "Account"}
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="brands"
-                    data-testid="tab-brands"
-                  >
+                  <TabsTrigger value="brands" data-testid="tab-brands">
                     <Building2 className="mr-2 h-4 w-4" />
                     {isSpanish ? "Marcas" : "Brands"}
                   </TabsTrigger>
@@ -1339,7 +1334,6 @@ export default function Settings() {
                     integrationsLoading={integrationsLoading}
                     handleDeleteIntegration={handleDeleteIntegration}
                     handleSyncProducts={handleSyncProducts}
-                    refetchIntegrations={refetchIntegrations}
                   />
                 </TabsContent>
 

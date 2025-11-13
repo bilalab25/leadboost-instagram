@@ -301,6 +301,7 @@ async function performInitialSync(
         // ✅ Save Meta Conversation ID here (conversationId will be added later)
         messagesToInsert.push({
           userId,
+          brandId: integration.brandId,
           integrationId: integration.id,
           platform: provider,
           metaMessageId: m.id,
@@ -2350,14 +2351,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "instagram_manage_insights",
         "pages_read_user_content",
       ].join(",");
+
       console.log("🔐 Facebook OAuth scopes:", scopes);
 
-      // Pass brandId in state along with userId
-      const stateObj = JSON.stringify({
+      // -------------------------------------
+      // 🔥 CORRECTO: stringify SOLO UNA VEZ
+      // -------------------------------------
+      const statePayload = {
         userId: req.user.id,
         brandId: req.brandMembership.brandId,
-      });
-      const state = Buffer.from(JSON.stringify(stateObj)).toString("base64");
+      };
+
+      const state = Buffer.from(JSON.stringify(statePayload)).toString(
+        "base64",
+      );
+
       const authUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri,
       )}&scope=${scopes}&state=${state}`;
@@ -2369,21 +2377,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/integrations/facebook/callback", async (req, res) => {
     try {
       const { code, state } = req.query;
-      console.log("🔍 RAW STATE:", state);
       if (!code) return res.status(400).send("Missing code");
       if (!state) return res.status(400).send("Missing OAuth state");
 
       // ------------------------------------------------------------
       // 1️⃣ Decodificar el state correctamente (Base64)
       // ------------------------------------------------------------
-      let userId: string;
-      let brandId: string;
+      let userId: null;
+      let brandId: null;
 
       try {
-        let normalizedState = (state as string).replace(/ /g, "+");
-
-        const decoded = Buffer.from(normalizedState, "base64").toString("utf8");
-        const parsed = JSON.parse(decoded);
+        const decoded = Buffer.from(state as string, "base64").toString("utf8");
+        const parsed = JSON.parse(decoded); // ahora parsed es { userId, brandId }
 
         userId = parsed.userId;
         brandId = parsed.brandId;
@@ -2727,22 +2732,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get(
-    "/api/integrations",
-    isAuthenticated,
-    requireBrand,
-    async (req, res) => {
-      try {
-        const brandId = req.brandMembership.brandId;
-        const brandIntegrations =
-          await storage.getIntegrationsByBrandId(brandId);
-        res.status(200).json(brandIntegrations);
-      } catch (error) {
-        console.error("❌ Error fetching integrations:", error);
-        res.status(500).json({ error: "Failed to fetch integrations" });
-      }
-    },
-  );
+  app.get("/api/integrations", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.query.brandId;
+      const brandIntegrations = await storage.getIntegrationsByBrandId(brandId);
+      res.status(200).json(brandIntegrations);
+    } catch (error) {
+      console.error("❌ Error fetching integrations:", error);
+      res.status(500).json({ error: "Failed to fetch integrations" });
+    }
+  });
 
   app.get("/api/webhooks/meta", async (req, res) => {
     try {

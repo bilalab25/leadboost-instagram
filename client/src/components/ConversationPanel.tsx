@@ -101,14 +101,18 @@ export default function ConversationPanel({
   // Mantener el estado, pero ahora solo se usará para la lógica de visualización y deshabilitación
   const [canSendFacebookMessage, setCanSendFacebookMessage] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [conversationFlag, setConversationFlag] = useState<'none' | 'important' | 'archived'>('none');
+  const [conversationFlag, setConversationFlag] = useState<
+    "none" | "important" | "archived"
+  >("none");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch linked customer for this conversation (brand-scoped)
   const { data: linkedCustomer } = useQuery<Customer>({
     queryKey: ["/api/customers/by-conversation", activeBrandId, conversationId],
     queryFn: async () => {
-      const res = await fetch(`/api/customers/by-conversation/${conversationId}`);
+      const res = await fetch(
+        `/api/customers/by-conversation/${conversationId}`,
+      );
       if (!res.ok) {
         if (res.status === 404) return null;
         throw new Error("Failed to fetch customer");
@@ -129,13 +133,17 @@ export default function ConversationPanel({
         if (!conversationId) return;
 
         // Fetch conversation details first to get the flag
-        const conversationRes = await fetch(`/api/conversations/${conversationId}`);
+        const conversationRes = await fetch(
+          `/api/conversations/${conversationId}?brandId=${activeBrandId}`,
+        );
         const conversationData = await conversationRes.json();
         if (conversationData.conversation) {
-          setConversationFlag(conversationData.conversation.flag || 'none');
+          setConversationFlag(conversationData.conversation.flag || "none");
         }
 
-        const res = await fetch(`/api/conversations/${conversationId}/messages`);
+        const res = await fetch(
+          `/api/conversations/${conversationId}/messages?brandId=${activeBrandId}`,
+        );
         const data = await res.json();
 
         console.log("DATA, trayendo todos los mensajes: ", data);
@@ -210,7 +218,9 @@ export default function ConversationPanel({
     },
     onSuccess: (_, convId) => {
       // Invalidate conversations list to refresh unread counts
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", activeBrandId],
+      });
     },
     onError: (error: Error) => {
       console.error("❌ Error marking conversation as read:", error);
@@ -268,9 +278,9 @@ export default function ConversationPanel({
   // 🔹 Enviar mensaje
   // 🏁 Mutation to update conversation flag
   const updateFlagMutation = useMutation({
-    mutationFn: async (flag: 'none' | 'important' | 'archived') => {
+    mutationFn: async (flag: "none" | "important" | "archived") => {
       if (!activeBrandId) throw new Error("No active brand");
-      
+
       const res = await fetch(`/api/conversations/${conversationId}/flag`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -284,7 +294,9 @@ export default function ConversationPanel({
     },
     onSuccess: (data) => {
       setConversationFlag(data.conversation.flag);
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", activeBrandId],
+      });
       toast({
         title: "Flag updated",
         description: `Conversation marked as ${data.conversation.flag}`,
@@ -303,13 +315,13 @@ export default function ConversationPanel({
   const createLeadMutation = useMutation({
     mutationFn: async () => {
       if (!activeBrandId) throw new Error("No active brand");
-      
+
       // Extract phone number from metaConversationId for WhatsApp
       let phone = null;
       if (platform === "whatsapp" && metaConversationId) {
         // metaConversationId format: "PHONE_NUMBER_ID_SENDER_PHONE"
         // Extract the sender phone (everything after the last underscore)
-        const parts = metaConversationId.split('_');
+        const parts = metaConversationId.split("_");
         if (parts.length >= 2) {
           phone = parts[parts.length - 1]; // Get the last part (sender's phone)
         }
@@ -318,11 +330,11 @@ export default function ConversationPanel({
       const res = await fetch(`/api/customers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           name: participantName || "Unknown Contact",
           phone,
           platform,
-          conversationId // Pass the database conversation ID
+          conversationId, // Pass the database conversation ID
         }),
       });
 
@@ -337,8 +349,16 @@ export default function ConversationPanel({
       return result;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers", activeBrandId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/customers/by-conversation", activeBrandId, conversationId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/customers", activeBrandId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "/api/customers/by-conversation",
+          activeBrandId,
+          conversationId,
+        ],
+      });
       toast({
         title: "Lead Created!",
         description: `${data.name} has been added to your customers`,
@@ -346,11 +366,18 @@ export default function ConversationPanel({
     },
     onError: (error: Error) => {
       toast({
-        title: error.message === "Customer already exists" ? "Already a Customer" : "Error",
-        description: error.message === "Customer already exists" 
-          ? "This contact is already in your customer list" 
-          : error.message,
-        variant: error.message === "Customer already exists" ? "default" : "destructive",
+        title:
+          error.message === "Customer already exists"
+            ? "Already a Customer"
+            : "Error",
+        description:
+          error.message === "Customer already exists"
+            ? "This contact is already in your customer list"
+            : error.message,
+        variant:
+          error.message === "Customer already exists"
+            ? "default"
+            : "destructive",
       });
     },
   });
@@ -358,7 +385,7 @@ export default function ConversationPanel({
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string }) => {
       if (!activeBrandId) throw new Error("No active brand");
-      
+
       // ⚙️ Usa metaConversationId si existe (para Facebook)
       const targetConversationId = metaConversationId || conversationId;
       const res = await fetch(
@@ -399,8 +426,12 @@ export default function ConversationPanel({
         title: "✅ Mensaje enviado",
         description: `Tu mensaje fue enviado correctamente a ${platform}.`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationId, "messages"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", activeBrandId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversations", conversationId, "messages"],
+      });
     },
 
     onError: (error: Error) => {
@@ -460,227 +491,238 @@ export default function ConversationPanel({
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3 flex-1">
-          <div className="relative">
-            <Avatar className="h-10 w-10">
-              <AvatarImage alt={displayName} />
-              <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            {PlatformIcon && (
-              <div
-                className={cn(
-                  "absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
-                  platformBg,
-                )}
-              >
-                <PlatformIcon className="text-white text-xs h-3 w-3" />
-              </div>
-            )}
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{displayName}</h3>
-            <p className="text-xs text-gray-500 capitalize">
-              {displayPlatform}
-            </p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-1">
-          {/* Create Lead Button - disabled if customer exists */}
-          {!linkedCustomer && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => createLeadMutation.mutate()}
-              disabled={createLeadMutation.isPending}
-              data-testid="button-create-lead"
-              title="Create Lead"
-            >
-              <UserPlus className="h-4 w-4 text-green-600" />
-            </Button>
-          )}
-
-          {/* Flag Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                disabled={updateFlagMutation.isPending}
-                data-testid="button-flag-dropdown"
-              >
-                {conversationFlag === 'important' && <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
-                {conversationFlag === 'archived' && <Archive className="h-4 w-4 text-gray-500" />}
-                {conversationFlag === 'none' && <Flag className="h-4 w-4 text-gray-400" />}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                onClick={() => updateFlagMutation.mutate('none')}
-                data-testid="flag-option-none"
-              >
-                <Flag className="h-4 w-4 mr-2 text-gray-400" />
-                None
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => updateFlagMutation.mutate('important')}
-                data-testid="flag-option-important"
-              >
-                <Star className="h-4 w-4 mr-2 text-yellow-500" />
-                Important
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => updateFlagMutation.mutate('archived')}
-                data-testid="flag-option-archived"
-              >
-                <Archive className="h-4 w-4 mr-2 text-gray-500" />
-                Archived
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {isDrawer && (
-          <Button variant="ghost" size="sm" onClick={onClose} data-testid="button-close-panel">
-            <X className="h-5 w-5" />
-          </Button>
-        )}
-      </div>
-
-      {/* Mensajes */}
-      {/* ... (código de mensajes sin cambios) */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-        {loading ? (
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-start space-x-2">
-                <Skeleton className="h-8 w-8 rounded-full" />
-                <Skeleton className="h-16 w-64 rounded-2xl" />
-              </div>
-            ))}
-            <div className="flex items-center justify-center pt-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-600"></div>
-            </div>
-          </div>
-        ) : !messages.length ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-500 text-sm">No hay mensajes aún</p>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex items-end space-x-2",
-                message.direction === "outbound" &&
-                  "flex-row-reverse space-x-reverse",
-              )}
-            >
-              {message.direction === "inbound" && (
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-                </Avatar>
-              )}
-              <div
-                className={cn(
-                  "flex flex-col max-w-[70%]",
-                  message.direction === "outbound" && "items-end",
-                )}
-              >
+          <div className="flex items-center space-x-3 flex-1">
+            <div className="relative">
+              <Avatar className="h-10 w-10">
+                <AvatarImage alt={displayName} />
+                <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              {PlatformIcon && (
                 <div
                   className={cn(
-                    "px-4 py-2 rounded-2xl",
-                    message.direction === "inbound"
-                      ? "bg-white text-gray-900"
-                      : "bg-primary text-white",
+                    "absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white",
+                    platformBg,
                   )}
                 >
-                  <div className="space-y-2">
-                    {message.content && (
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {message.content}
-                      </p>
+                  <PlatformIcon className="text-white text-xs h-3 w-3" />
+                </div>
+              )}
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">{displayName}</h3>
+              <p className="text-xs text-gray-500 capitalize">
+                {displayPlatform}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1">
+            {/* Create Lead Button - disabled if customer exists */}
+            {!linkedCustomer && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => createLeadMutation.mutate()}
+                disabled={createLeadMutation.isPending}
+                data-testid="button-create-lead"
+                title="Create Lead"
+              >
+                <UserPlus className="h-4 w-4 text-green-600" />
+              </Button>
+            )}
+
+            {/* Flag Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={updateFlagMutation.isPending}
+                  data-testid="button-flag-dropdown"
+                >
+                  {conversationFlag === "important" && (
+                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                  )}
+                  {conversationFlag === "archived" && (
+                    <Archive className="h-4 w-4 text-gray-500" />
+                  )}
+                  {conversationFlag === "none" && (
+                    <Flag className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => updateFlagMutation.mutate("none")}
+                  data-testid="flag-option-none"
+                >
+                  <Flag className="h-4 w-4 mr-2 text-gray-400" />
+                  None
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => updateFlagMutation.mutate("important")}
+                  data-testid="flag-option-important"
+                >
+                  <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                  Important
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => updateFlagMutation.mutate("archived")}
+                  data-testid="flag-option-archived"
+                >
+                  <Archive className="h-4 w-4 mr-2 text-gray-500" />
+                  Archived
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {isDrawer && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              data-testid="button-close-panel"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
+
+        {/* Mensajes */}
+        {/* ... (código de mensajes sin cambios) */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          {loading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-start space-x-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-16 w-64 rounded-2xl" />
+                </div>
+              ))}
+              <div className="flex items-center justify-center pt-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-600"></div>
+              </div>
+            </div>
+          ) : !messages.length ? (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-gray-500 text-sm">No hay mensajes aún</p>
+            </div>
+          ) : (
+            messages.map((message) => (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex items-end space-x-2",
+                  message.direction === "outbound" &&
+                    "flex-row-reverse space-x-reverse",
+                )}
+              >
+                {message.direction === "inbound" && (
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                )}
+                <div
+                  className={cn(
+                    "flex flex-col max-w-[70%]",
+                    message.direction === "outbound" && "items-end",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "px-4 py-2 rounded-2xl",
+                      message.direction === "inbound"
+                        ? "bg-white text-gray-900"
+                        : "bg-primary text-white",
                     )}
-                    {message.imageUrl && (
-                      <img
-                        src={message.imageUrl}
-                        alt="Imagen adjunta"
-                        className="rounded-lg max-w-xs border border-gray-200 cursor-pointer transition-transform hover:scale-[1.02]"
-                        loading="lazy"
-                        onClick={() => setPreviewImage(message.imageUrl!)}
-                      />
+                  >
+                    <div className="space-y-2">
+                      {message.content && (
+                        <p className="text-sm whitespace-pre-wrap break-words">
+                          {message.content}
+                        </p>
+                      )}
+                      {message.imageUrl && (
+                        <img
+                          src={message.imageUrl}
+                          alt="Imagen adjunta"
+                          className="rounded-lg max-w-xs border border-gray-200 cursor-pointer transition-transform hover:scale-[1.02]"
+                          loading="lazy"
+                          onClick={() => setPreviewImage(message.imageUrl!)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1 mt-1 px-2">
+                    <span className="text-xs text-gray-500">
+                      {formatDistanceToNow(new Date(message.createdAt), {
+                        addSuffix: true,
+                        locale: es,
+                      })}
+                    </span>
+                    {message.direction === "outbound" && (
+                      <span className="text-xs text-gray-500">
+                        <CheckCheck className="h-3 w-3 text-primary" />
+                      </span>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center space-x-1 mt-1 px-2">
-                  <span className="text-xs text-gray-500">
-                    {formatDistanceToNow(new Date(message.createdAt), {
-                      addSuffix: true,
-                      locale: es,
-                    })}
-                  </span>
-                  {message.direction === "outbound" && (
-                    <span className="text-xs text-gray-500">
-                      <CheckCheck className="h-3 w-3 text-primary" />
-                    </span>
-                  )}
-                </div>
               </div>
-            </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Composer MODIFICADO */}
-      <div className="bg-white border-t border-gray-200 p-4">
-        {/* Bloque de alerta de 24 horas */}
-        {isFacebookConversation && !canSendFacebookMessage && (
-          <div className="mb-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg flex items-center space-x-2">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
-            <p className="text-sm text-yellow-800">
-              **Restricción de 24 h:** Han pasado más de 24 horas desde el
-              último mensaje del usuario. Solo se pueden enviar mensajes de
-              respuesta estándar dentro de este plazo.
-            </p>
-          </div>
-        )}
-
-        <div className="flex items-end space-x-2">
-          <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
-            <textarea
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder={
-                isFacebookConversation && !canSendFacebookMessage
-                  ? "No se puede responder (Restricción de 24 h)"
-                  : "Escribe un mensaje..."
-              }
-              className={cn(
-                "w-full bg-transparent border-none outline-none resize-none text-sm max-h-32",
-                isFacebookConversation &&
-                  !canSendFacebookMessage &&
-                  "cursor-not-allowed text-gray-500",
-              )}
-              rows={1}
-              disabled={isFacebookConversation && !canSendFacebookMessage} // Deshabilitar el input
-            />
-          </div>
-          <Button
-            onClick={handleSendMessage}
-            disabled={
-              !messageText.trim() ||
-              sendMessageMutation.isPending ||
-              (isFacebookConversation && !canSendFacebookMessage) // Deshabilitar el botón
-            }
-            className="rounded-full"
-            size="icon"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+            ))
+          )}
+          <div ref={messagesEndRef} />
         </div>
-      </div>
+
+        {/* Composer MODIFICADO */}
+        <div className="bg-white border-t border-gray-200 p-4">
+          {/* Bloque de alerta de 24 horas */}
+          {isFacebookConversation && !canSendFacebookMessage && (
+            <div className="mb-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+              <p className="text-sm text-yellow-800">
+                **Restricción de 24 h:** Han pasado más de 24 horas desde el
+                último mensaje del usuario. Solo se pueden enviar mensajes de
+                respuesta estándar dentro de este plazo.
+              </p>
+            </div>
+          )}
+
+          <div className="flex items-end space-x-2">
+            <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
+              <textarea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder={
+                  isFacebookConversation && !canSendFacebookMessage
+                    ? "No se puede responder (Restricción de 24 h)"
+                    : "Escribe un mensaje..."
+                }
+                className={cn(
+                  "w-full bg-transparent border-none outline-none resize-none text-sm max-h-32",
+                  isFacebookConversation &&
+                    !canSendFacebookMessage &&
+                    "cursor-not-allowed text-gray-500",
+                )}
+                rows={1}
+                disabled={isFacebookConversation && !canSendFacebookMessage} // Deshabilitar el input
+              />
+            </div>
+            <Button
+              onClick={handleSendMessage}
+              disabled={
+                !messageText.trim() ||
+                sendMessageMutation.isPending ||
+                (isFacebookConversation && !canSendFacebookMessage) // Deshabilitar el botón
+              }
+              className="rounded-full"
+              size="icon"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
         {/* Image Preview Modal */}
         {previewImage && (
@@ -703,7 +745,9 @@ export default function ConversationPanel({
         <div className="p-6 border-b border-gray-200 flex flex-col items-center">
           <Avatar className="h-20 w-20 mb-3">
             <AvatarImage alt={displayName} />
-            <AvatarFallback className="text-2xl">{displayName.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="text-2xl">
+              {displayName.charAt(0)}
+            </AvatarFallback>
           </Avatar>
           <h3 className="font-semibold text-lg text-gray-900">{displayName}</h3>
           <div className="flex items-center gap-2 mt-1">
@@ -717,7 +761,9 @@ export default function ConversationPanel({
                 <PlatformIcon className="text-white text-xs h-3 w-3" />
               </div>
             )}
-            <p className="text-sm text-gray-500 capitalize">{displayPlatform}</p>
+            <p className="text-sm text-gray-500 capitalize">
+              {displayPlatform}
+            </p>
           </div>
         </div>
 
@@ -725,14 +771,16 @@ export default function ConversationPanel({
         {linkedCustomer ? (
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-gray-900">Customer Information</h4>
+              <h4 className="font-semibold text-gray-900">
+                Customer Information
+              </h4>
               <Badge
                 variant={
                   linkedCustomer.status === "active"
                     ? "default"
                     : linkedCustomer.status === "inactive"
-                    ? "secondary"
-                    : "outline"
+                      ? "secondary"
+                      : "outline"
                 }
               >
                 {linkedCustomer.status}
@@ -741,52 +789,78 @@ export default function ConversationPanel({
 
             {linkedCustomer.email && (
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase">Email</label>
-                <p className="text-sm text-gray-900 mt-1">{linkedCustomer.email}</p>
+                <label className="text-xs font-medium text-gray-500 uppercase">
+                  Email
+                </label>
+                <p className="text-sm text-gray-900 mt-1">
+                  {linkedCustomer.email}
+                </p>
               </div>
             )}
 
             {linkedCustomer.phone && (
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase">Phone</label>
-                <p className="text-sm text-gray-900 mt-1">{linkedCustomer.phone}</p>
+                <label className="text-xs font-medium text-gray-500 uppercase">
+                  Phone
+                </label>
+                <p className="text-sm text-gray-900 mt-1">
+                  {linkedCustomer.phone}
+                </p>
               </div>
             )}
 
             {linkedCustomer.company && (
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase">Company</label>
-                <p className="text-sm text-gray-900 mt-1">{linkedCustomer.company}</p>
-              </div>
-            )}
-
-            {linkedCustomer.totalInvoiced !== undefined && linkedCustomer.totalInvoiced !== null && (
-              <div>
-                <label className="text-xs font-medium text-gray-500 uppercase">Total Invoiced</label>
-                <p className="text-base font-semibold text-gray-900 mt-1">
-                  ${(linkedCustomer.totalInvoiced / 100).toFixed(2)}
+                <label className="text-xs font-medium text-gray-500 uppercase">
+                  Company
+                </label>
+                <p className="text-sm text-gray-900 mt-1">
+                  {linkedCustomer.company}
                 </p>
               </div>
             )}
 
+            {linkedCustomer.totalInvoiced !== undefined &&
+              linkedCustomer.totalInvoiced !== null && (
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase">
+                    Total Invoiced
+                  </label>
+                  <p className="text-base font-semibold text-gray-900 mt-1">
+                    ${(linkedCustomer.totalInvoiced / 100).toFixed(2)}
+                  </p>
+                </div>
+              )}
+
             {linkedCustomer.address && (
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase">Address</label>
-                <p className="text-sm text-gray-900 mt-1">{linkedCustomer.address}</p>
+                <label className="text-xs font-medium text-gray-500 uppercase">
+                  Address
+                </label>
+                <p className="text-sm text-gray-900 mt-1">
+                  {linkedCustomer.address}
+                </p>
               </div>
             )}
 
             {linkedCustomer.notes && (
               <div>
-                <label className="text-xs font-medium text-gray-500 uppercase">Notes</label>
-                <p className="text-sm text-gray-700 mt-1">{linkedCustomer.notes}</p>
+                <label className="text-xs font-medium text-gray-500 uppercase">
+                  Notes
+                </label>
+                <p className="text-sm text-gray-700 mt-1">
+                  {linkedCustomer.notes}
+                </p>
               </div>
             )}
 
             <div className="pt-4 border-t border-gray-200">
-              <label className="text-xs font-medium text-gray-500 uppercase">Customer Since</label>
+              <label className="text-xs font-medium text-gray-500 uppercase">
+                Customer Since
+              </label>
               <p className="text-sm text-gray-600 mt-1">
-                {linkedCustomer.createdAt && new Date(linkedCustomer.createdAt).toLocaleDateString()}
+                {linkedCustomer.createdAt &&
+                  new Date(linkedCustomer.createdAt).toLocaleDateString()}
               </p>
             </div>
           </div>
