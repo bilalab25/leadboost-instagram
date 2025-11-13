@@ -526,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Brand management routes
-  app.get("/api/brands", async (req: any, res) => {
+  app.get("/api/brands-mock", async (req: any, res) => {
     try {
       // Return Said's Renuve brands
       const mockBrands = [
@@ -679,16 +679,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Brand memberships endpoint
   app.get("/api/brand-memberships", isAuthenticated, async (req: any, res) => {
     try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      console.log("─────────────────────────────────────────────");
+      console.log("🔥 [BRAND-MEMBERSHIPS] Incoming request");
+
+      // Log del req.user COMPLETO
+      console.log("👤 req.user:", JSON.stringify(req.user, null, 2));
+
+      const claimsSub = (req.user as any)?.claims?.sub;
+      const userIdField = (req.user as any)?.id;
+      const fallback = "demo-user";
+
+      console.log("🔍 Extracted IDs:");
+      console.log("   • claims.sub:", claimsSub);
+      console.log("   • user.id:", userIdField);
+
+      const userId = claimsSub || userIdField || fallback;
+
+      console.log("👉 Final userId used for membership lookup:", userId);
+
+      console.log("📡 Querying getBrandMemberships(userId)…");
 
       const memberships = await storage.getBrandMemberships(userId);
 
-      // TODO: Join with brands table to include brand details
-      // For now, returning memberships only
+      console.log("📦 Result from getBrandMemberships:");
+      console.log(JSON.stringify(memberships, null, 2));
+
+      if (memberships.length === 0) {
+        console.log(
+          "⚠️ No memberships found. This usually means userId mismatched with DB.",
+        );
+      } else {
+        console.log("✅ Memberships found:", memberships.length);
+      }
+
+      console.log("─────────────────────────────────────────────");
+
       res.json(memberships);
     } catch (error) {
-      console.error("Error fetching brand memberships:", error);
+      console.error("❌ Error fetching brand memberships:", error);
       res.status(500).json({ message: "Failed to fetch brand memberships" });
     }
   });
@@ -742,9 +770,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { inviteCode } = req.body;
 
         if (!inviteCode) {
-          return res
-            .status(400)
-            .json({ message: "Invite code is required" });
+          return res.status(400).json({ message: "Invite code is required" });
         }
 
         const membership = await storage.acceptBrandInvitation(
@@ -763,166 +789,267 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Get brand members (requires brand access)
-  app.get("/api/brands/:brandId/members", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const { brandId } = req.params;
-      const members = await storage.getBrandMembershipsByBrand(brandId);
-      
-      // TODO: Join with users table to include user details (name, email)
-      res.json(members);
-    } catch (error) {
-      console.error("Error fetching brand members:", error);
-      res.status(500).json({ message: "Failed to fetch brand members" });
-    }
-  });
+  app.get(
+    "/api/brands/:brandId/members",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
+        const memberships = await storage.getBrandMembershipsByBrand(brandId);
+        const userIds = memberships.map((m) => m.userId).filter(Boolean);
+        const users = await storage.getUsersByIds(userIds);
+        const result = memberships.map((m) => {
+          const user = users.find((u) => u.id === m.userId);
+
+          return {
+            ...m,
+            user: user
+              ? {
+                  id: user.id,
+                  firebaseUid: user.firebaseUid,
+                  email: user.email,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  avatarUrl: user.avatarUrl,
+                }
+              : null,
+          };
+        });
+        console.log("Brand members:", result);
+        res.json(result);
+      } catch (error) {
+        console.error("Error fetching brand members:", error);
+        res.status(500).json({ message: "Failed to fetch brand members" });
+      }
+    },
+  );
 
   // Create brand invitation (requires admin/owner role)
-  app.post("/api/brand-invitations", isAuthenticated, requireBrand, requireRole("admin"), async (req: any, res) => {
-    try {
-      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const { brandId } = req.query;
-      const { role, email } = req.body;
+  app.post(
+    "/api/brand-invitations",
+    isAuthenticated,
+    requireBrand,
+    requireRole("admin"),
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const { brandId } = req.query;
+        const { role, email } = req.body;
 
-      if (!role || !["viewer", "editor", "admin"].includes(role)) {
-        return res.status(400).json({ message: "Valid role is required (viewer, editor, or admin)" });
+        if (!role || !["viewer", "editor", "admin"].includes(role)) {
+          return res.status(400).json({
+            message: "Valid role is required (viewer, editor, or admin)",
+          });
+        }
+
+        // Generate unique invite code
+        const inviteCode = nanoid(10);
+
+        // Set expiration to 7 days from now
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        const invitation = await storage.createBrandInvitation({
+          brandId: brandId as string,
+          inviteCode,
+          role,
+          invitedBy: userId,
+          email: email || null,
+          expiresAt,
+          status: "pending",
+        });
+
+        res.json(invitation);
+      } catch (error) {
+        console.error("Error creating brand invitation:", error);
+        res.status(500).json({ message: "Failed to create invitation" });
       }
-
-      // Generate unique invite code
-      const inviteCode = nanoid(10);
-      
-      // Set expiration to 7 days from now
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
-
-      const invitation = await storage.createBrandInvitation({
-        brandId: brandId as string,
-        inviteCode,
-        role,
-        invitedBy: userId,
-        email: email || null,
-        expiresAt,
-        status: "pending",
-      });
-
-      res.json(invitation);
-    } catch (error) {
-      console.error("Error creating brand invitation:", error);
-      res.status(500).json({ message: "Failed to create invitation" });
-    }
-  });
+    },
+  );
 
   // Get brand invitations (requires brand access)
-  app.get("/api/brand-invitations/:brandId", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const { brandId } = req.params;
-      const invitations = await storage.getBrandInvitations(brandId);
-      res.json(invitations);
-    } catch (error) {
-      console.error("Error fetching brand invitations:", error);
-      res.status(500).json({ message: "Failed to fetch invitations" });
-    }
-  });
+  app.get(
+    "/api/brand-invitations/:brandId",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
+        const invitations = await storage.getBrandInvitations(brandId);
+        res.json(invitations);
+      } catch (error) {
+        console.error("Error fetching brand invitations:", error);
+        res.status(500).json({ message: "Failed to fetch invitations" });
+      }
+    },
+  );
 
   // Update brand member role (requires owner role)
-  app.patch("/api/brand-memberships/:membershipId/role", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const { membershipId } = req.params;
-      const { role } = req.body;
+  app.patch(
+    "/api/brand-memberships/:membershipId/role",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const { membershipId } = req.params;
+        const { role } = req.body;
 
-      if (!role || !["viewer", "editor", "admin", "owner"].includes(role)) {
-        return res.status(400).json({ message: "Valid role is required" });
-      }
-
-      // First, get the target membership to verify brandId
-      const targetMembership = await storage.getBrandMembershipById(membershipId);
-      if (!targetMembership) {
-        return res.status(404).json({ message: "Membership not found" });
-      }
-
-      // Verify the acting user is an owner of this brand
-      const actorMembership = await storage.getUserBrandMembership(userId, targetMembership.brandId);
-      if (!actorMembership || actorMembership.role !== "owner") {
-        return res.status(403).json({ message: "Only brand owners can change member roles" });
-      }
-
-      // Prevent demoting the last owner
-      if (targetMembership.role === "owner" && role !== "owner") {
-        const allMembers = await storage.getBrandMembershipsByBrand(targetMembership.brandId);
-        const ownerCount = allMembers.filter(m => m.role === "owner").length;
-        if (ownerCount <= 1) {
-          return res.status(400).json({ message: "Cannot demote the last owner of the brand" });
+        if (!role || !["viewer", "editor", "admin", "owner"].includes(role)) {
+          return res.status(400).json({ message: "Valid role is required" });
         }
-      }
 
-      const updatedMembership = await storage.updateBrandMembershipRole(membershipId, role);
-      res.json(updatedMembership);
-    } catch (error) {
-      console.error("Error updating member role:", error);
-      res.status(500).json({ message: "Failed to update member role" });
-    }
-  });
+        // First, get the target membership to verify brandId
+        const targetMembership =
+          await storage.getBrandMembershipById(membershipId);
+        if (!targetMembership) {
+          return res.status(404).json({ message: "Membership not found" });
+        }
+
+        // Verify the acting user is an owner of this brand
+        const actorMembership = await storage.getUserBrandMembership(
+          userId,
+          targetMembership.brandId,
+        );
+        if (!actorMembership || actorMembership.role !== "owner") {
+          return res
+            .status(403)
+            .json({ message: "Only brand owners can change member roles" });
+        }
+
+        // Prevent demoting the last owner
+        if (targetMembership.role === "owner" && role !== "owner") {
+          const allMembers = await storage.getBrandMembershipsByBrand(
+            targetMembership.brandId,
+          );
+          const ownerCount = allMembers.filter(
+            (m) => m.role === "owner",
+          ).length;
+          if (ownerCount <= 1) {
+            return res
+              .status(400)
+              .json({ message: "Cannot demote the last owner of the brand" });
+          }
+        }
+
+        const updatedMembership = await storage.updateBrandMembershipRole(
+          membershipId,
+          role,
+        );
+        res.json(updatedMembership);
+      } catch (error) {
+        console.error("Error updating member role:", error);
+        res.status(500).json({ message: "Failed to update member role" });
+      }
+    },
+  );
 
   // Remove brand member (requires owner/admin role)
-  app.delete("/api/brand-memberships/:membershipId", isAuthenticated, async (req: any, res) => {
-    try {
-      const actorUserId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const { membershipId } = req.params;
-      
-      // Get the target membership
-      const targetMembership = await storage.getBrandMembershipById(membershipId);
-      if (!targetMembership) {
-        return res.status(404).json({ message: "Membership not found" });
-      }
+  app.delete(
+    "/api/brand-memberships/:membershipId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const actorUserId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const { membershipId } = req.params;
 
-      // Verify the acting user is an admin/owner of this brand
-      const actorMembership = await storage.getUserBrandMembership(actorUserId, targetMembership.brandId);
-      if (!actorMembership || !["admin", "owner"].includes(actorMembership.role)) {
-        return res.status(403).json({ message: "Only brand admins/owners can remove members" });
-      }
-
-      // Prevent removing the last owner
-      if (targetMembership.role === "owner") {
-        const allMembers = await storage.getBrandMembershipsByBrand(targetMembership.brandId);
-        const ownerCount = allMembers.filter(m => m.role === "owner").length;
-        if (ownerCount <= 1) {
-          return res.status(400).json({ message: "Cannot remove the last owner of the brand" });
+        // Get the target membership
+        const targetMembership =
+          await storage.getBrandMembershipById(membershipId);
+        if (!targetMembership) {
+          return res.status(404).json({ message: "Membership not found" });
         }
-      }
 
-      const success = await storage.removeBrandMembership(targetMembership.userId, targetMembership.brandId);
-      res.json({ success });
-    } catch (error) {
-      console.error("Error removing brand member:", error);
-      res.status(500).json({ message: "Failed to remove member" });
-    }
-  });
+        // Verify the acting user is an admin/owner of this brand
+        const actorMembership = await storage.getUserBrandMembership(
+          actorUserId,
+          targetMembership.brandId,
+        );
+        if (
+          !actorMembership ||
+          !["admin", "owner"].includes(actorMembership.role)
+        ) {
+          return res
+            .status(403)
+            .json({ message: "Only brand admins/owners can remove members" });
+        }
+
+        // Prevent removing the last owner
+        if (targetMembership.role === "owner") {
+          const allMembers = await storage.getBrandMembershipsByBrand(
+            targetMembership.brandId,
+          );
+          const ownerCount = allMembers.filter(
+            (m) => m.role === "owner",
+          ).length;
+          if (ownerCount <= 1) {
+            return res
+              .status(400)
+              .json({ message: "Cannot remove the last owner of the brand" });
+          }
+        }
+
+        const success = await storage.removeBrandMembership(
+          targetMembership.userId,
+          targetMembership.brandId,
+        );
+        res.json({ success });
+      } catch (error) {
+        console.error("Error removing brand member:", error);
+        res.status(500).json({ message: "Failed to remove member" });
+      }
+    },
+  );
 
   // Expire brand invitation (requires admin/owner role)
-  app.post("/api/brand-invitations/:invitationId/expire", isAuthenticated, async (req: any, res) => {
-    try {
-      const actorUserId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const { invitationId } = req.params;
+  app.post(
+    "/api/brand-invitations/:invitationId/expire",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const actorUserId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const { invitationId } = req.params;
 
-      // Get the invitation to verify brandId
-      const invitation = await storage.getBrandInvitationById(invitationId);
-      if (!invitation) {
-        return res.status(404).json({ message: "Invitation not found" });
+        // Get the invitation to verify brandId
+        const invitation = await storage.getBrandInvitationById(invitationId);
+        if (!invitation) {
+          return res.status(404).json({ message: "Invitation not found" });
+        }
+
+        // Verify the acting user is an admin/owner of this brand
+        const actorMembership = await storage.getUserBrandMembership(
+          actorUserId,
+          invitation.brandId,
+        );
+        if (
+          !actorMembership ||
+          !["admin", "owner"].includes(actorMembership.role)
+        ) {
+          return res.status(403).json({
+            message: "Only brand admins/owners can expire invitations",
+          });
+        }
+
+        const success = await storage.expireBrandInvitation(invitationId);
+        res.json({ success });
+      } catch (error) {
+        console.error("Error expiring invitation:", error);
+        res.status(500).json({ message: "Failed to expire invitation" });
       }
-
-      // Verify the acting user is an admin/owner of this brand
-      const actorMembership = await storage.getUserBrandMembership(actorUserId, invitation.brandId);
-      if (!actorMembership || !["admin", "owner"].includes(actorMembership.role)) {
-        return res.status(403).json({ message: "Only brand admins/owners can expire invitations" });
-      }
-
-      const success = await storage.expireBrandInvitation(invitationId);
-      res.json({ success });
-    } catch (error) {
-      console.error("Error expiring invitation:", error);
-      res.status(500).json({ message: "Failed to expire invitation" });
-    }
-  });
+    },
+  );
 
   // Demo data endpoint
   app.post(
@@ -1266,16 +1393,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Por ejemplo: storage.getMessagesByIntegration(integrationId: string, limit?: number)
 
   // Content plans routes
-  app.get("/api/content-plans", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandMembership.brandId;
-      const contentPlans = await storage.getContentPlansByBrandId(brandId);
-      res.json(contentPlans);
-    } catch (error) {
-      console.error("Error fetching content plans:", error);
-      res.status(500).json({ message: "Failed to fetch content plans" });
-    }
-  });
+  app.get(
+    "/api/content-plans",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+        const contentPlans = await storage.getContentPlansByBrandId(brandId);
+        res.json(contentPlans);
+      } catch (error) {
+        console.error("Error fetching content plans:", error);
+        res.status(500).json({ message: "Failed to fetch content plans" });
+      }
+    },
+  );
 
   app.get("/api/content-plans-mock", async (req: any, res) => {
     try {
@@ -1739,16 +1871,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Campaigns routes
-  app.get("/api/campaigns", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandMembership.brandId;
-      const campaigns = await storage.getCampaignsByBrandId(brandId);
-      res.json(campaigns);
-    } catch (error) {
-      console.error("Error fetching campaigns:", error);
-      res.status(500).json({ message: "Failed to fetch campaigns" });
-    }
-  });
+  app.get(
+    "/api/campaigns",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+        const campaigns = await storage.getCampaignsByBrandId(brandId);
+        res.json(campaigns);
+      } catch (error) {
+        console.error("Error fetching campaigns:", error);
+        res.status(500).json({ message: "Failed to fetch campaigns" });
+      }
+    },
+  );
 
   app.get("/api/campaigns-mock", async (req: any, res) => {
     try {
@@ -1872,40 +2009,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/campaigns", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandId = req.brandMembership.brandId;
+  app.post(
+    "/api/campaigns",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.brandMembership.brandId;
 
-      // Validate client-provided data (without userId/brandId)
-      const validatedData = insertCampaignSchema.parse(req.body);
+        // Validate client-provided data (without userId/brandId)
+        const validatedData = insertCampaignSchema.parse(req.body);
 
-      // Enrich with server-side context
-      const campaignData = {
-        ...validatedData,
-        brandId,
-        userId,
-      };
+        // Enrich with server-side context
+        const campaignData = {
+          ...validatedData,
+          brandId,
+          userId,
+        };
 
-      const campaign = await storage.createCampaign(campaignData);
+        const campaign = await storage.createCampaign(campaignData);
 
-      // Log activity
-      await storage.createActivityLog({
-        userId,
-        brandId,
-        action: "create_campaign",
-        description: `Created campaign: ${campaign.title}`,
-        entityType: "campaign",
-        entityId: campaign.id,
-      });
+        // Log activity
+        await storage.createActivityLog({
+          userId,
+          brandId,
+          action: "create_campaign",
+          description: `Created campaign: ${campaign.title}`,
+          entityType: "campaign",
+          entityId: campaign.id,
+        });
 
-      res.json(campaign);
-    } catch (error) {
-      console.error("Error creating campaign:", error);
-      res.status(500).json({ message: "Failed to create campaign" });
-    }
-  });
+        res.json(campaign);
+      } catch (error) {
+        console.error("Error creating campaign:", error);
+        res.status(500).json({ message: "Failed to create campaign" });
+      }
+    },
+  );
 
   app.post(
     "/api/campaigns/generate",
@@ -1977,7 +2121,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Get brand's social accounts
-        const socialAccounts = await storage.getSocialAccountsByBrandId(brandId);
+        const socialAccounts =
+          await storage.getSocialAccountsByBrandId(brandId);
         const accessTokens = socialAccounts.reduce(
           (acc, account) => {
             if (
@@ -2185,32 +2330,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/integrations/facebook/connect", isAuthenticated, requireBrand, (req: any, res) => {
-    const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
-    const clientId = process.env.FB_APP_ID;
+  app.get(
+    "/api/integrations/facebook/connect",
+    isAuthenticated,
+    requireBrand,
+    (req: any, res) => {
+      const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
+      const clientId = process.env.FB_APP_ID;
 
-    const scopes = [
-      "pages_show_list",
-      "pages_read_engagement",
-      "pages_manage_metadata",
-      "pages_manage_posts",
-      "pages_messaging",
-      "instagram_basic",
-      "instagram_manage_messages",
-      "read_insights",
-      "instagram_manage_insights",
-      "pages_read_user_content",
-    ].join(",");
-    console.log("🔐 Facebook OAuth scopes:", scopes);
+      const scopes = [
+        "pages_show_list",
+        "pages_read_engagement",
+        "pages_manage_metadata",
+        "pages_manage_posts",
+        "pages_messaging",
+        "instagram_basic",
+        "instagram_manage_messages",
+        "read_insights",
+        "instagram_manage_insights",
+        "pages_read_user_content",
+      ].join(",");
+      console.log("🔐 Facebook OAuth scopes:", scopes);
 
-    // Pass brandId in state along with userId
-    const state = JSON.stringify({ userId: req.user.id, brandId: req.brandMembership.brandId });
-    const authUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-      redirectUri,
-    )}&scope=${scopes}&state=${encodeURIComponent(state)}`;
+      // Pass brandId in state along with userId
+      const state = JSON.stringify({
+        userId: req.user.id,
+        brandId: req.brandMembership.brandId,
+      });
+      const authUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+        redirectUri,
+      )}&scope=${scopes}&state=${encodeURIComponent(state)}`;
 
-    res.redirect(authUrl);
-  });
+      res.redirect(authUrl);
+    },
+  );
 
   app.get("/api/integrations/facebook/callback", async (req, res) => {
     try {
@@ -2227,7 +2380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Fallback for old state format (just userId)
         userId = state || req.user?.id;
       }
-      
+
       if (!userId) return res.status(401).send("User not authenticated");
       if (!brandId) return res.status(400).send("Missing brand context");
 
@@ -2489,31 +2642,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/integrations/whatsapp/connect", isAuthenticated, requireBrand, (req: any, res) => {
-    // ⚠️ NOTA: El 'redirect_uri' debe coincidir con el configurado en su App de Facebook.
-    const redirectUri = `${process.env.APP_URL}/api/integrations/whatsapp/callback`;
-    const clientId = process.env.FB_APP_ID;
+  app.get(
+    "/api/integrations/whatsapp/connect",
+    isAuthenticated,
+    requireBrand,
+    (req: any, res) => {
+      // ⚠️ NOTA: El 'redirect_uri' debe coincidir con el configurado en su App de Facebook.
+      const redirectUri = `${process.env.APP_URL}/api/integrations/whatsapp/callback`;
+      const clientId = process.env.FB_APP_ID;
 
-    // **Los scopes necesarios para gestionar WhatsApp Business (WABA)**
-    const whatsapp_scopes = [
-      "whatsapp_business_management", // Para crear y gestionar WABA
-      "whatsapp_business_messaging", // Para enviar y recibir mensajes
-      "business_management", // Para interactuar con Meta Business Accounts
-      "pages_show_list",
-    ].join(",");
+      // **Los scopes necesarios para gestionar WhatsApp Business (WABA)**
+      const whatsapp_scopes = [
+        "whatsapp_business_management", // Para crear y gestionar WABA
+        "whatsapp_business_messaging", // Para enviar y recibir mensajes
+        "business_management", // Para interactuar con Meta Business Accounts
+        "pages_show_list",
+      ].join(",");
 
-    // Pass brandId in state along with userId
-    const state = JSON.stringify({ userId: req.user.id, brandId: req.brandMembership.brandId });
+      // Pass brandId in state along with userId
+      const state = JSON.stringify({
+        userId: req.user.id,
+        brandId: req.brandMembership.brandId,
+      });
 
-    // URL base del Embedded Signup
-    const embeddedSignupUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-      redirectUri,
-    )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=${process.env.WHATSAPP_CONFIG_ID}`;
-    // ^^^ El 'config_id' es CRUCIAL.
+      // URL base del Embedded Signup
+      const embeddedSignupUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+        redirectUri,
+      )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=${process.env.WHATSAPP_CONFIG_ID}`;
+      // ^^^ El 'config_id' es CRUCIAL.
 
-    console.log("🟢 WhatsApp Embedded Signup URL:", embeddedSignupUrl);
-    res.redirect(embeddedSignupUrl);
-  });
+      console.log("🟢 WhatsApp Embedded Signup URL:", embeddedSignupUrl);
+      res.redirect(embeddedSignupUrl);
+    },
+  );
 
   app.get("/api/integrations/whatsapp/callback", async (req, res) => {
     try {
@@ -2530,7 +2691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Fallback for old state format (just userId)
         userId = state || req.user?.id;
       }
-      
+
       if (!userId) return res.status(401).send("User not authenticated");
       if (!brandId) return res.status(400).send("Missing brand context");
 
@@ -2603,16 +2764,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/integrations", isAuthenticated, requireBrand, async (req, res) => {
-    try {
-      const brandId = req.brandMembership.brandId;
-      const brandIntegrations = await storage.getIntegrationsByBrandId(brandId);
-      res.status(200).json(brandIntegrations);
-    } catch (error) {
-      console.error("❌ Error fetching integrations:", error);
-      res.status(500).json({ error: "Failed to fetch integrations" });
-    }
-  });
+  app.get(
+    "/api/integrations",
+    isAuthenticated,
+    requireBrand,
+    async (req, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+        const brandIntegrations =
+          await storage.getIntegrationsByBrandId(brandId);
+        res.status(200).json(brandIntegrations);
+      } catch (error) {
+        console.error("❌ Error fetching integrations:", error);
+        res.status(500).json({ error: "Failed to fetch integrations" });
+      }
+    },
+  );
 
   app.get("/api/webhooks/meta", async (req, res) => {
     try {
@@ -3084,88 +3251,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // ✅ NEW: Get all conversations for authenticated user
-  app.get("/api/conversations", isAuthenticated, requireBrand, async (req, res) => {
-    try {
-      const brandId = req.brandMembership.brandId;
-      const userId = req.user.id;
-      const limitParam = req.query.limit;
+  app.get(
+    "/api/conversations",
+    isAuthenticated,
+    requireBrand,
+    async (req, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+        const userId = req.user.id;
+        const limitParam = req.query.limit;
 
-      // Parse and validate limit parameter
-      let limit: number | undefined;
-      if (limitParam) {
-        const parsed = parseInt(limitParam as string, 10);
-        if (!isNaN(parsed) && parsed > 0) {
-          limit = parsed;
-        }
-      }
-
-      // Get brand's integrations to check if initial sync is needed
-      const integrations = await storage.getIntegrationsByBrandId(brandId);
-
-      // Perform initial sync for integrations that haven't fetched history yet
-      for (const integration of integrations) {
-        const provider = integration.provider;
-
-        // Only sync for Meta platforms (Facebook, Instagram, Threads)
-        if (
-          (provider === "facebook" ||
-            provider === "instagram" ||
-            provider === "threads") &&
-          !integration.hasFetchedHistory
-        ) {
-          console.log(
-            `🔄 [Initial Sync] Starting initial sync for ${provider} (${integration.accountName})`,
-          );
-
-          try {
-            await performInitialSync(userId, integration, provider);
-            await storage.markIntegrationAsFetched(integration.id);
-            console.log(
-              `✅ [Initial Sync] Completed for ${provider} (${integration.accountName})`,
-            );
-          } catch (syncError) {
-            console.error(
-              `❌ [Initial Sync] Failed for ${provider}:`,
-              syncError,
-            );
-            // Continue with other integrations even if one fails
+        // Parse and validate limit parameter
+        let limit: number | undefined;
+        if (limitParam) {
+          const parsed = parseInt(limitParam as string, 10);
+          if (!isNaN(parsed) && parsed > 0) {
+            limit = parsed;
           }
         }
+
+        // Get brand's integrations to check if initial sync is needed
+        const integrations = await storage.getIntegrationsByBrandId(brandId);
+
+        // Perform initial sync for integrations that haven't fetched history yet
+        for (const integration of integrations) {
+          const provider = integration.provider;
+
+          // Only sync for Meta platforms (Facebook, Instagram, Threads)
+          if (
+            (provider === "facebook" ||
+              provider === "instagram" ||
+              provider === "threads") &&
+            !integration.hasFetchedHistory
+          ) {
+            console.log(
+              `🔄 [Initial Sync] Starting initial sync for ${provider} (${integration.accountName})`,
+            );
+
+            try {
+              await performInitialSync(userId, integration, provider);
+              await storage.markIntegrationAsFetched(integration.id);
+              console.log(
+                `✅ [Initial Sync] Completed for ${provider} (${integration.accountName})`,
+              );
+            } catch (syncError) {
+              console.error(
+                `❌ [Initial Sync] Failed for ${provider}:`,
+                syncError,
+              );
+              // Continue with other integrations even if one fails
+            }
+          }
+        }
+
+        const conversations = await storage.getConversationsByBrandId(
+          brandId,
+          limit,
+        );
+
+        console.log(
+          `📋 Retrieved ${conversations.length} conversations for brand ${brandId}${limit ? ` (limit: ${limit})` : ""}`,
+        );
+        res.json({ conversations });
+      } catch (err) {
+        console.error("❌ Error fetching conversations:", err);
+        res.status(500).json({ error: "Failed to fetch conversations" });
       }
-
-      const conversations = await storage.getConversationsByBrandId(brandId, limit);
-
-      console.log(
-        `📋 Retrieved ${conversations.length} conversations for brand ${brandId}${limit ? ` (limit: ${limit})` : ""}`,
-      );
-      res.json({ conversations });
-    } catch (err) {
-      console.error("❌ Error fetching conversations:", err);
-      res.status(500).json({ error: "Failed to fetch conversations" });
-    }
-  });
+    },
+  );
 
   // ✅ NEW: Get a single conversation by ID
-  app.get("/api/conversations/:id", isAuthenticated, requireBrand, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const brandId = req.brandMembership.brandId;
+  app.get(
+    "/api/conversations/:id",
+    isAuthenticated,
+    requireBrand,
+    async (req, res) => {
+      try {
+        const { id } = req.params;
+        const brandId = req.brandMembership.brandId;
 
-      // Verify brand has access to this conversation
-      const conversations = await storage.getConversationsByBrandId(brandId);
-      const conversation = conversations.find((c) => c.id === id);
+        // Verify brand has access to this conversation
+        const conversations = await storage.getConversationsByBrandId(brandId);
+        const conversation = conversations.find((c) => c.id === id);
 
-      if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found" });
+        if (!conversation) {
+          return res.status(404).json({ error: "Conversation not found" });
+        }
+
+        console.log(`📝 Retrieved conversation ${id} for brand ${brandId}`);
+        res.json({ conversation });
+      } catch (err) {
+        console.error("❌ Error fetching conversation:", err);
+        res.status(500).json({ error: "Failed to fetch conversation" });
       }
-
-      console.log(`📝 Retrieved conversation ${id} for brand ${brandId}`);
-      res.json({ conversation });
-    } catch (err) {
-      console.error("❌ Error fetching conversation:", err);
-      res.status(500).json({ error: "Failed to fetch conversation" });
-    }
-  });
+    },
+  );
 
   // ✅ NEW: Get all messages for a specific conversation
   app.get(
@@ -3810,16 +3990,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes
-  app.get("/api/analytics", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandMembership.brandId;
-      const analytics = await storage.getAnalyticsByBrandId(brandId);
-      res.json(analytics);
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-      res.status(500).json({ message: "Failed to fetch analytics" });
-    }
-  });
+  app.get(
+    "/api/analytics",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+        const analytics = await storage.getAnalyticsByBrandId(brandId);
+        res.json(analytics);
+      } catch (error) {
+        console.error("Error fetching analytics:", error);
+        res.status(500).json({ message: "Failed to fetch analytics" });
+      }
+    },
+  );
 
   app.get("/api/analytics-mock", isAuthenticated, async (req: any, res) => {
     try {
@@ -3978,17 +4163,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Activity logs
-  app.get("/api/activity", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandMembership.brandId;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
-      const activityLogs = await storage.getActivityLogsByBrandId(brandId, limit);
-      res.json(activityLogs);
-    } catch (error) {
-      console.error("Error fetching activity logs:", error);
-      res.status(500).json({ message: "Failed to fetch activity logs" });
-    }
-  });
+  app.get(
+    "/api/activity",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+        const limit = req.query.limit
+          ? parseInt(req.query.limit as string)
+          : 20;
+        const activityLogs = await storage.getActivityLogsByBrandId(
+          brandId,
+          limit,
+        );
+        res.json(activityLogs);
+      } catch (error) {
+        console.error("Error fetching activity logs:", error);
+        res.status(500).json({ message: "Failed to fetch activity logs" });
+      }
+    },
+  );
 
   app.get("/api/activity-mock", async (req: any, res) => {
     try {
@@ -4253,17 +4448,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Customer management routes
-  app.get("/api/customers", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandMembership.brandId;
+  app.get(
+    "/api/customers",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
 
-      const customers = await storage.getCustomersByBrandId(brandId);
-      res.json(customers);
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-      res.status(500).json({ message: "Failed to fetch customers" });
-    }
-  });
+        const customers = await storage.getCustomersByBrandId(brandId);
+        res.json(customers);
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+        res.status(500).json({ message: "Failed to fetch customers" });
+      }
+    },
+  );
 
   app.get(
     "/api/customers/by-conversation/:conversationId",
@@ -4273,8 +4473,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const brandId = req.brandMembership.brandId;
         const conversationId = req.params.conversationId;
-        const customer =
-          await storage.getCustomerByConversationId(conversationId, brandId);
+        const customer = await storage.getCustomerByConversationId(
+          conversationId,
+          brandId,
+        );
 
         if (!customer) {
           return res.status(404).json({ message: "Customer not found" });
@@ -4288,239 +4490,283 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.post("/api/customers", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandId = req.brandMembership.brandId;
-      const { name, phone, platform, conversationId } = req.body;
+  app.post(
+    "/api/customers",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.brandMembership.brandId;
+        const { name, phone, platform, conversationId } = req.body;
 
-      if (!name) {
-        return res.status(400).json({ message: "Customer name is required" });
-      }
+        if (!name) {
+          return res.status(400).json({ message: "Customer name is required" });
+        }
 
-      // Check if customer already exists (by phone for WhatsApp, by name for others)
-      let existingCustomer;
-      if (phone && platform === "whatsapp") {
-        existingCustomer = await storage.getCustomerByPhone(brandId, phone);
-      } else if (phone) {
-        existingCustomer = await storage.getCustomerByPhone(brandId, phone);
-      } else {
-        existingCustomer = await storage.getCustomerByName(brandId, name);
-      }
+        // Check if customer already exists (by phone for WhatsApp, by name for others)
+        let existingCustomer;
+        if (phone && platform === "whatsapp") {
+          existingCustomer = await storage.getCustomerByPhone(brandId, phone);
+        } else if (phone) {
+          existingCustomer = await storage.getCustomerByPhone(brandId, phone);
+        } else {
+          existingCustomer = await storage.getCustomerByName(brandId, name);
+        }
 
-      if (existingCustomer) {
-        return res.status(409).json({
-          message: "Customer already exists",
-          customer: existingCustomer,
+        if (existingCustomer) {
+          return res.status(409).json({
+            message: "Customer already exists",
+            customer: existingCustomer,
+          });
+        }
+
+        // Validate client-provided data (without userId/brandId/totalInvoiced/status)
+        const validatedData = insertCustomerSchema.parse({
+          name,
+          phone: phone || null,
+          email: req.body.email || null,
+          company: req.body.company || null,
+          address: req.body.address || null,
+          notes:
+            req.body.notes ||
+            (platform ? `Lead created from ${platform} conversation` : null),
+          conversationId: conversationId || null,
         });
+
+        // Enrich with server-side context (brandId, userId, totalInvoiced, status)
+        const customerData = {
+          ...validatedData,
+          brandId,
+          userId,
+          totalInvoiced: 0, // Server-controlled: always start at 0
+          status: platform ? "prospect" : "active", // Server-controlled: prospect for platform leads, active otherwise
+        };
+
+        const customer = await storage.createCustomer(customerData);
+
+        // Log activity
+        await storage.createActivityLog({
+          userId,
+          brandId,
+          action: "customer_created",
+          description: `Created customer: ${customer.name}${phone ? ` (${phone})` : ""}`,
+          entityType: "customer",
+          entityId: customer.id,
+        });
+
+        res.json(customer);
+      } catch (error) {
+        console.error("Error creating customer:", error);
+        res.status(500).json({ message: "Failed to create customer" });
       }
+    },
+  );
 
-      // Validate client-provided data (without userId/brandId/totalInvoiced/status)
-      const validatedData = insertCustomerSchema.parse({
-        name,
-        phone: phone || null,
-        email: req.body.email || null,
-        company: req.body.company || null,
-        address: req.body.address || null,
-        notes:
-          req.body.notes ||
-          (platform ? `Lead created from ${platform} conversation` : null),
-        conversationId: conversationId || null,
-      });
+  app.put(
+    "/api/customers/:id",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.brandMembership.brandId;
+        const customerId = req.params.id;
+        const updates = req.body;
+        const customer = await storage.updateCustomer(
+          customerId,
+          brandId,
+          updates,
+        );
 
-      // Enrich with server-side context (brandId, userId, totalInvoiced, status)
-      const customerData = {
-        ...validatedData,
-        brandId,
-        userId,
-        totalInvoiced: 0, // Server-controlled: always start at 0
-        status: platform ? "prospect" : "active", // Server-controlled: prospect for platform leads, active otherwise
-      };
+        if (!customer) {
+          return res.status(404).json({ message: "Customer not found" });
+        }
 
-      const customer = await storage.createCustomer(customerData);
+        await storage.createActivityLog({
+          userId,
+          brandId,
+          action: "customer_updated",
+          description: `Updated customer: ${customer.name}`,
+          entityType: "customer",
+          entityId: customer.id,
+        });
 
-      // Log activity
-      await storage.createActivityLog({
-        userId,
-        brandId,
-        action: "customer_created",
-        description: `Created customer: ${customer.name}${phone ? ` (${phone})` : ""}`,
-        entityType: "customer",
-        entityId: customer.id,
-      });
-
-      res.json(customer);
-    } catch (error) {
-      console.error("Error creating customer:", error);
-      res.status(500).json({ message: "Failed to create customer" });
-    }
-  });
-
-  app.put("/api/customers/:id", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandId = req.brandMembership.brandId;
-      const customerId = req.params.id;
-      const updates = req.body;
-      const customer = await storage.updateCustomer(
-        customerId,
-        brandId,
-        updates,
-      );
-
-      if (!customer) {
-        return res.status(404).json({ message: "Customer not found" });
+        res.json(customer);
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Failed to update customer", error: error.message });
       }
+    },
+  );
 
-      await storage.createActivityLog({
-        userId,
-        brandId,
-        action: "customer_updated",
-        description: `Updated customer: ${customer.name}`,
-        entityType: "customer",
-        entityId: customer.id,
-      });
+  app.delete(
+    "/api/customers/:id",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.brandMembership.brandId;
+        const customerId = req.params.id;
 
-      res.json(customer);
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Failed to update customer", error: error.message });
-    }
-  });
+        const success = await storage.deleteCustomer(customerId, brandId);
+        if (!success) {
+          return res.status(404).json({ message: "Customer not found" });
+        }
 
-  app.delete("/api/customers/:id", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandId = req.brandMembership.brandId;
-      const customerId = req.params.id;
+        // Log activity
+        await storage.createActivityLog({
+          userId,
+          brandId,
+          action: "customer_deleted",
+          description: `Deleted customer`,
+          entityType: "customer",
+          entityId: customerId,
+        });
 
-      const success = await storage.deleteCustomer(customerId, brandId);
-      if (!success) {
-        return res.status(404).json({ message: "Customer not found" });
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error deleting customer:", error);
+        res.status(500).json({ message: "Failed to delete customer" });
       }
-
-      // Log activity
-      await storage.createActivityLog({
-        userId,
-        brandId,
-        action: "customer_deleted",
-        description: `Deleted customer`,
-        entityType: "customer",
-        entityId: customerId,
-      });
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting customer:", error);
-      res.status(500).json({ message: "Failed to delete customer" });
-    }
-  });
+    },
+  );
 
   // Invoice management routes
-  app.get("/api/invoices", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandMembership.brandId;
-      const invoices = await storage.getInvoicesByBrandId(brandId);
-      res.json(invoices);
-    } catch (error) {
-      console.error("Error fetching invoices:", error);
-      res.status(500).json({ message: "Failed to fetch invoices" });
-    }
-  });
+  app.get(
+    "/api/invoices",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+        const invoices = await storage.getInvoicesByBrandId(brandId);
+        res.json(invoices);
+      } catch (error) {
+        console.error("Error fetching invoices:", error);
+        res.status(500).json({ message: "Failed to fetch invoices" });
+      }
+    },
+  );
 
-  app.post("/api/invoices", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandId = req.brandMembership.brandId;
+  app.post(
+    "/api/invoices",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.brandMembership.brandId;
 
-      // Validate client-provided data (without userId/brandId)
-      const validatedData = insertInvoiceSchema.parse(req.body);
+        // Validate client-provided data (without userId/brandId)
+        const validatedData = insertInvoiceSchema.parse(req.body);
 
-      // Enrich with server-side context (brandId for tenancy, userId for audit)
-      const invoiceData = {
-        ...validatedData,
-        brandId,
-        userId,
-      };
-
-      const invoice = await storage.createInvoice(invoiceData);
-
-      // Update customer total invoiced amount
-      if (invoice.customerId) {
-        await storage.updateCustomerTotalInvoiced(
-          invoice.customerId,
+        // Enrich with server-side context (brandId for tenancy, userId for audit)
+        const invoiceData = {
+          ...validatedData,
           brandId,
-          invoice.amount,
-        );
-      }
+          userId,
+        };
 
-      // Log activity
-      await storage.createActivityLog({
-        userId,
-        brandId,
-        action: "invoice_created",
-        description: `Created invoice ${invoice.invoiceNumber}`,
-        entityType: "invoice",
-        entityId: invoice.id,
-      });
+        const invoice = await storage.createInvoice(invoiceData);
 
-      res.json(invoice);
-    } catch (error) {
-      console.error("Error creating invoice:", error);
-      res.status(500).json({ message: "Failed to create invoice" });
-    }
-  });
-
-  app.put("/api/invoices/:id", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandId = req.brandMembership.brandId;
-      const invoiceId = req.params.id;
-
-      // Sanitize client input using partial schema (prevents userId/brandId spoofing)
-      const updateInvoiceSchema = insertInvoiceSchema.partial();
-      const validatedUpdates = updateInvoiceSchema.parse(req.body);
-
-      // Handle file upload URL processing
-      if (validatedUpdates.fileUrl) {
-        const objectStorageService = new ObjectStorageService();
-        validatedUpdates.fileUrl =
-          await objectStorageService.trySetObjectEntityAclPolicy(
-            validatedUpdates.fileUrl,
-            {
-              owner: userId,
-              visibility: "private",
-            },
+        // Update customer total invoiced amount
+        if (invoice.customerId) {
+          await storage.updateCustomerTotalInvoiced(
+            invoice.customerId,
+            brandId,
+            invoice.amount,
           );
+        }
+
+        // Log activity
+        await storage.createActivityLog({
+          userId,
+          brandId,
+          action: "invoice_created",
+          description: `Created invoice ${invoice.invoiceNumber}`,
+          entityType: "invoice",
+          entityId: invoice.id,
+        });
+
+        res.json(invoice);
+      } catch (error) {
+        console.error("Error creating invoice:", error);
+        res.status(500).json({ message: "Failed to create invoice" });
       }
+    },
+  );
 
-      const invoice = await storage.updateInvoice(invoiceId, brandId, validatedUpdates);
-      if (!invoice) {
-        return res.status(404).json({ message: "Invoice not found" });
+  app.put(
+    "/api/invoices/:id",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.brandMembership.brandId;
+        const invoiceId = req.params.id;
+
+        // Sanitize client input using partial schema (prevents userId/brandId spoofing)
+        const updateInvoiceSchema = insertInvoiceSchema.partial();
+        const validatedUpdates = updateInvoiceSchema.parse(req.body);
+
+        // Handle file upload URL processing
+        if (validatedUpdates.fileUrl) {
+          const objectStorageService = new ObjectStorageService();
+          validatedUpdates.fileUrl =
+            await objectStorageService.trySetObjectEntityAclPolicy(
+              validatedUpdates.fileUrl,
+              {
+                owner: userId,
+                visibility: "private",
+              },
+            );
+        }
+
+        const invoice = await storage.updateInvoice(
+          invoiceId,
+          brandId,
+          validatedUpdates,
+        );
+        if (!invoice) {
+          return res.status(404).json({ message: "Invoice not found" });
+        }
+
+        // Log activity
+        await storage.createActivityLog({
+          userId,
+          brandId,
+          action: "invoice_updated",
+          description: `Updated invoice ${invoice.invoiceNumber}`,
+          entityType: "invoice",
+          entityId: invoice.id,
+        });
+
+        res.json(invoice);
+      } catch (error) {
+        console.error("Error updating invoice:", error);
+        res.status(500).json({ message: "Failed to update invoice" });
       }
-
-      // Log activity
-      await storage.createActivityLog({
-        userId,
-        brandId,
-        action: "invoice_updated",
-        description: `Updated invoice ${invoice.invoiceNumber}`,
-        entityType: "invoice",
-        entityId: invoice.id,
-      });
-
-      res.json(invoice);
-    } catch (error) {
-      console.error("Error updating invoice:", error);
-      res.status(500).json({ message: "Failed to update invoice" });
-    }
-  });
+    },
+  );
 
   // Team task management routes
   app.get("/api/team-tasks", isAuthenticated, async (req: any, res) => {

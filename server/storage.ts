@@ -88,7 +88,19 @@ import {
   type SocialPostingFrequency,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, or, sql, gte, lte, SQL, getTableColumns } from "drizzle-orm";
+import {
+  eq,
+  and,
+  desc,
+  asc,
+  or,
+  sql,
+  gte,
+  lte,
+  SQL,
+  getTableColumns,
+  inArray,
+} from "drizzle-orm";
 import { mapFromDb, mapPartialToDb, mapToDb } from "./mappers/brandDesign";
 
 export interface IStorage {
@@ -153,7 +165,10 @@ export interface IStorage {
     lastMessage?: string;
     lastMessageAt?: Date;
   }): Promise<Conversation>;
-  getConversationsByBrandId(brandId: string, limit?: number): Promise<Conversation[]>;
+  getConversationsByBrandId(
+    brandId: string,
+    limit?: number,
+  ): Promise<Conversation[]>;
   getConversationsByIntegration(integrationId: string): Promise<Conversation[]>;
   getConversationMessages(conversationId: string): Promise<Message[]>;
   updateConversationMetadata(
@@ -187,7 +202,11 @@ export interface IStorage {
     brandId: string,
     updates: Partial<Campaign>,
   ): Promise<Campaign | undefined>;
-  updateCampaignStatus(id: string, brandId: string, status: string): Promise<void>;
+  updateCampaignStatus(
+    id: string,
+    brandId: string,
+    status: string,
+  ): Promise<void>;
   deleteCampaign(id: string, brandId: string): Promise<boolean>;
 
   // Analytics operations
@@ -412,9 +431,7 @@ export interface IStorage {
 
   // Brand Membership operations
   getBrandMemberships(userId: string): Promise<BrandMembershipWithBrand[]>;
-  getBrandMembershipsByBrand(
-    brandId: string,
-  ): Promise<SelectBrandMembership[]>;
+  getBrandMembershipsByBrand(brandId: string): Promise<SelectBrandMembership[]>;
   createBrandMembership(
     membership: InsertBrandMembership,
   ): Promise<SelectBrandMembership>;
@@ -423,7 +440,9 @@ export interface IStorage {
     role: string,
   ): Promise<SelectBrandMembership | undefined>;
   removeBrandMembership(userId: string, brandId: string): Promise<boolean>;
-  getBrandMembershipById(id: string): Promise<SelectBrandMembership | undefined>;
+  getBrandMembershipById(
+    id: string,
+  ): Promise<SelectBrandMembership | undefined>;
   getUserBrandMembership(
     userId: string,
     brandId: string,
@@ -433,16 +452,16 @@ export interface IStorage {
   createBrandInvitation(
     invitation: InsertBrandInvitation,
   ): Promise<SelectBrandInvitation>;
-  validateInviteCode(
-    code: string,
-  ): Promise<SelectBrandInvitation | undefined>;
+  validateInviteCode(code: string): Promise<SelectBrandInvitation | undefined>;
   acceptBrandInvitation(
     code: string,
     userId: string,
   ): Promise<SelectBrandMembership>;
   getBrandInvitations(brandId: string): Promise<SelectBrandInvitation[]>;
   expireBrandInvitation(id: string): Promise<boolean>;
-  getBrandInvitationById(id: string): Promise<SelectBrandInvitation | undefined>;
+  getBrandInvitationById(
+    id: string,
+  ): Promise<SelectBrandInvitation | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -463,6 +482,12 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .where(eq(users.firebaseUid, firebaseUid));
     return user;
+  }
+
+  async getUsersByIds(userIds: string[]): Promise<User[]> {
+    if (userIds.length === 0) return [];
+
+    return await db.select().from(users).where(inArray(users.id, userIds));
   }
 
   async createUser(userData: InsertUser): Promise<User> {
@@ -934,7 +959,11 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
-  async updateCampaignStatus(id: string, brandId: string, status: string): Promise<void> {
+  async updateCampaignStatus(
+    id: string,
+    brandId: string,
+    status: string,
+  ): Promise<void> {
     await db
       .update(campaigns)
       .set({ status, updatedAt: new Date() })
@@ -961,7 +990,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(analytics)
       .where(
-        and(eq(analytics.brandId, brandId), gte(analytics.createdAt, startDate)),
+        and(
+          eq(analytics.brandId, brandId),
+          gte(analytics.createdAt, startDate),
+        ),
       )
       .orderBy(desc(analytics.createdAt));
   }
@@ -1042,7 +1074,12 @@ export class DatabaseStorage implements IStorage {
     const [customer] = await db
       .select()
       .from(customers)
-      .where(and(eq(customers.conversationId, conversationId), eq(customers.brandId, brandId)))
+      .where(
+        and(
+          eq(customers.conversationId, conversationId),
+          eq(customers.brandId, brandId),
+        ),
+      )
       .limit(1);
     return customer;
   }
@@ -1108,8 +1145,8 @@ export class DatabaseStorage implements IStorage {
         customers,
         and(
           eq(invoices.customerId, customers.id),
-          eq(customers.brandId, brandId)
-        )
+          eq(customers.brandId, brandId),
+        ),
       )
       .where(and(...whereConditions));
 
@@ -2264,9 +2301,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBrandInvitations(
-    brandId: string,
-  ): Promise<SelectBrandInvitation[]> {
+  async getBrandInvitations(brandId: string): Promise<SelectBrandInvitation[]> {
     return await db
       .select()
       .from(brandInvitations)
