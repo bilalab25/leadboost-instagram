@@ -228,7 +228,7 @@ export default function BrandsTab() {
   // UI
   // ----------------------
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-5">
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
@@ -411,121 +411,109 @@ export default function BrandsTab() {
         </div>
       </div>
 
-      {/* BRAND LIST */}
-      {/* BRAND LIST */}
-      <div className="grid gap-4">
+      {/* BRAND LIST — Linear Style */}
+      <div className="space-y-3">
         {brands.map((brand) => {
           const membership = memberships.find((m) => m.brandId === brand.id);
-
-          console.log("────────────────────────────────────────");
-          console.log("🧩 Brand:", {
-            id: brand.id,
-            name: brand.name,
-            primaryColor: brand.primaryColor,
-          });
-          console.log("➡️ membership for this brand:", membership);
-          console.log("➡️ activeBrandId:", activeBrandId);
-
-          const isActiveBug = brand.id === membership; // <-- EL BUG ORIGINAL
-          const isActiveCorrect = brand.id === activeBrandId; // <-- Para comparar
-
-          console.log("❓ isActiveBug (brand.id === membership):", isActiveBug);
-          console.log(
-            "❓ isActiveCorrect (brand.id === activeBrandId):",
-            isActiveCorrect,
-          );
-
-          console.log(
-            "🔍 Should show Manage Members?",
-            membership && ["owner", "admin"].includes(membership.role),
-          );
+          const isActive = brand.id === activeBrandId;
 
           return (
-            <Card
+            <div
               key={brand.id}
-              className={isActiveBug ? "border-indigo-500 border-2" : ""}
+              className={`
+                relative border rounded-2xl px-6 py-5 transition-all cursor-pointer
+                bg-white shadow-sm hover:shadow-md
+                ${isActive ? "border-brand-500 shadow-[0_0_0_2px_rgba(99,102,241,0.2)]" : "border-gray-200"}
+              `}
+              onClick={() => {
+                if (!isActive) setActiveBrandId(brand.id);
+              }}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl"
-                      style={{
-                        backgroundColor: brand.primaryColor || "#6366f1",
-                      }}
-                    >
-                      {brand.name.charAt(0).toUpperCase()}
-                    </div>
-
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {brand.name}
-                        {isActiveBug && <Badge>Active</Badge>}
-                      </CardTitle>
-                      <CardDescription>
-                        {brand.industry || "No industry specified"}
-                      </CardDescription>
-                    </div>
+              <div className="flex items-center justify-between">
+                {/* LEFT: Brand Info */}
+                <div className="flex items-center gap-5">
+                  {/* Brand Color Avatar - bigger */}
+                  <div
+                    className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-semibold shadow-sm"
+                    style={{ backgroundColor: brand.primaryColor || "#6366f1" }}
+                  >
+                    {brand.name.charAt(0)}
                   </div>
 
-                  <div>
-                    {membership && (
-                      <Badge
-                        variant={getRoleBadgeVariant(membership.role)}
-                        className="flex items-center gap-1"
-                      >
-                        {getRoleIcon(membership.role)}
-                        {membership.role}
-                      </Badge>
-                    )}
+                  {/* Name + Role */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-semibold text-gray-900">
+                        {brand.name}
+                      </span>
+
+                      {isActive && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200">
+                          Active
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <span>{brand.industry || "No industry specified"}</span>
+                      <span className="text-gray-300">•</span>
+                      <span className="capitalize flex items-center gap-1">
+                        {getRoleIcon(membership?.role || "")}
+                        {membership?.role}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </CardHeader>
 
-              <CardContent>
-                <div className="flex gap-2">
-                  {!isActiveBug && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setActiveBrandId(brand.id)}
-                    >
-                      Switch
-                    </Button>
-                  )}
-
+                {/* RIGHT: Always visible action buttons */}
+                <div className="flex items-center gap-3">
+                  {/* Manage Members */}
                   {membership &&
                     ["owner", "admin"].includes(membership.role) && (
                       <Button
                         variant="outline"
-                        onClick={() => {
-                          console.log(
-                            "👥 Opening Manage Members for:",
-                            brand.id,
-                          );
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedBrandId(brand.id);
                           setManageDialogOpen(true);
                         }}
+                        className="border-gray-300 text-gray-700 hover:bg-gray-100"
                       >
-                        <Users className="h-4 w-4 mr-2" />
-                        Manage Members
+                        <Users className="w-4 h-4 mr-1" />
+                        Manage
                       </Button>
                     )}
+
+                  {/* Set Active */}
+                  {!isActive && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveBrandId(brand.id);
+                      }}
+                      className="bg-brand-600 hover:bg-brand-700 text-white shadow-sm"
+                    >
+                      Set Active
+                    </Button>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
 
+        {/* Empty State */}
         {brands.length === 0 && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Building2 className="h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No brands yet</h3>
-              <p className="text-gray-600 text-center mb-4">
-                Create a new brand or join an existing one to get started
-              </p>
-            </CardContent>
-          </Card>
+          <div className="border border-gray-200 rounded-xl p-10 text-center bg-white shadow-sm">
+            <Building2 className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600 mb-4">No brands yet</p>
+            <p className="text-sm text-gray-500">
+              Create or join a brand to get started.
+            </p>
+          </div>
         )}
       </div>
 
@@ -556,82 +544,28 @@ function ManageMembersDialog({
   const [inviteEmail, setInviteEmail] = useState("");
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
 
-  //if (!brandId) return null;
-
-  // ----------------------
-  // MEMBERS
-  // ----------------------
   const { data: members = [], isLoading: membersLoading } = useQuery<
     BrandMembership[]
   >({
     queryKey: ["brand-members", brandId],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/brands/${brandId}/members`);
-      const membersData = await res.json();
-      return membersData;
+      return res.json();
     },
     enabled: !!brandId && isOpen,
   });
 
-  // ----------------------
-  // INVITATIONS
-  // ----------------------
   const { data: invitations = [], isLoading: invLoading } = useQuery<
     BrandInvitation[]
   >({
     queryKey: ["brand-invitations", brandId],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/brand-invitations/${brandId}`);
-
       return res.json();
     },
     enabled: !!brandId && isOpen,
   });
 
-  // ----------------------
-  // CREATE INVITATION (Función con fetch nativo)
-  // ----------------------
-  const handleGenerateCode = async () => {
-    if (!brandId) return;
-
-    try {
-      const response = await fetch(
-        `/api/brand-invitations?brandId=${brandId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            role: inviteRole,
-            email: inviteEmail || null,
-          }),
-        },
-      );
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Server failed to generate code");
-      }
-      const data: BrandInvitation = await response.json();
-      setGeneratedCode(data.inviteCode);
-      setInviteEmail("");
-      toast({
-        title: "Invitation created",
-        description: "Copy the code and share it.",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["brand-invitations", brandId],
-      });
-    } catch (error) {
-      console.error("Error generating code:", error);
-      toast({
-        title: "Failed to generate invitation",
-        description:
-          error instanceof Error ? error.message : "An unknown error occurred.",
-        variant: "destructive",
-      });
-    }
-  };
   const updateRoleMutation = useMutation({
     mutationFn: async ({
       membershipId,
@@ -645,71 +579,89 @@ function ManageMembersDialog({
       }),
     onSuccess: () => {
       toast({ title: "Role updated" });
-      queryClient.invalidateQueries(["brand-members", brandId]);
     },
   });
 
-  // ----------------------
-  // REMOVE MEMBER
-  // ----------------------
   const removeMemberMutation = useMutation({
     mutationFn: async (membershipId: string) =>
       apiRequest("DELETE", `/api/brand-memberships/${membershipId}`),
     onSuccess: () => {
       toast({ title: "Member removed" });
-      queryClient.invalidateQueries(["brand-members", brandId]);
     },
   });
 
-  // ----------------------
-  // REVOKE INVITATION
-  // ----------------------
   const revokeInviteMutation = useMutation({
     mutationFn: async (invId: string) =>
       apiRequest("POST", `/api/brand-invitations/${invId}/expire`),
     onSuccess: () => {
       toast({ title: "Invitation revoked" });
-      queryClient.invalidateQueries(["brand-invitations", brandId]);
     },
   });
 
-  // ----------------------
-  // ROLE ICON
-  // ----------------------
+  const handleGenerateCode = async () => {
+    if (!brandId) return;
+
+    try {
+      const response = await fetch(
+        `/api/brand-invitations?brandId=${brandId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            role: inviteRole,
+            email: inviteEmail || null,
+          }),
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to generate code");
+
+      const data: BrandInvitation = await response.json();
+      setGeneratedCode(data.inviteCode);
+      setInviteEmail("");
+      toast({ title: "Invitation created" });
+    } catch (error) {
+      toast({ title: "Error creating invitation", variant: "destructive" });
+    }
+  };
+
   const getRoleIcon = (role: string) =>
     ({
-      owner: <Crown className="h-4 w-4" />,
-      admin: <Shield className="h-4 w-4" />,
-      editor: <Edit className="h-4 w-4" />,
-      viewer: <Eye className="h-4 w-4" />,
+      owner: <Crown className="w-4 h-4" />,
+      admin: <Shield className="w-4 h-4" />,
+      editor: <Edit className="w-4 h-4" />,
+      viewer: <Eye className="w-4 h-4" />,
     })[role] || null;
 
-  // ----------------------
-  // UI DIALOG
-  // ----------------------
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-2xl px-6 py-5">
         <DialogHeader>
-          <DialogTitle>Manage Team Members</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
+            Team Members
+          </DialogTitle>
+          <DialogDescription className="text-gray-500">
+            Manage your team, roles and invitations.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* ---------------------------------- */}
-          {/* CREATE INVITATION */}
-          {/* ---------------------------------- */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Generate Invitation</CardTitle>
-            </CardHeader>
+        <div className="space-y-8 mt-5">
+          {/* ------------------------ */}
+          {/* INVITE SECTION */}
+          {/* ------------------------ */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-gray-900">
+              Invite someone
+            </h3>
 
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Role */}
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm">Role</label>
+                  <label className="text-xs font-medium text-gray-600">
+                    Role
+                  </label>
                   <Select value={inviteRole} onValueChange={setInviteRole}>
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -720,169 +672,176 @@ function ManageMembersDialog({
                   </Select>
                 </div>
 
-                {/* Email */}
                 <div>
-                  <label className="text-sm">Email (optional)</label>
+                  <label className="text-xs font-medium text-gray-600">
+                    Email (optional)
+                  </label>
                   <Input
-                    placeholder="member@example.com"
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="email@company.com"
+                    className="mt-1"
                   />
                 </div>
               </div>
 
-              <Button onClick={handleGenerateCode}>Generate Code</Button>
+              <Button onClick={handleGenerateCode} className="w-full">
+                Generate invite code
+              </Button>
 
               {generatedCode && (
-                <div className="flex items-center gap-2 bg-gray-100 p-3 rounded">
-                  <code className="flex-1">{generatedCode}</code>
+                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-2 mt-2">
+                  <code className="flex-1 text-sm">{generatedCode}</code>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => navigator.clipboard.writeText(generatedCode)}
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy className="w-4 h-4" />
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* ---------------------------------- */}
+          {/* ------------------------ */}
           {/* MEMBERS LIST */}
-          {/* ---------------------------------- */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Team Members</CardTitle>
-            </CardHeader>
+          {/* ------------------------ */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-gray-900">Members</h3>
 
-            <CardContent>
+            <div className="space-y-2">
               {membersLoading ? (
-                <p>Loading members…</p>
+                <p className="text-gray-500 text-sm">Loading members...</p>
               ) : members.length === 0 ? (
-                <p className="text-gray-600">No members yet.</p>
+                <p className="text-gray-500 text-sm">No members yet.</p>
               ) : (
-                <div className="space-y-2">
-                  {members.map((m) => (
-                    <div
-                      key={m.id}
-                      className="p-3 border rounded flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        {/* Avatar */}
-                        <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
-                          {(m.user?.firstName || m.userId || "??")
-                            .slice(0, 2)
-                            .toUpperCase()}
-                        </div>
-
-                        <div>
-                          <p className="font-medium">
-                            {m.user?.firstName
-                              ? `${m.user.firstName} ${m.user.lastName || ""}`
-                              : m.userId}
-                          </p>
-
-                          <div className="flex gap-1 items-center text-sm">
-                            {getRoleIcon(m.role)}
-                            <span>{m.role}</span>
-                          </div>
-                        </div>
+                members.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between py-2 px-3 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold text-sm">
+                        {(m.user?.firstName || m.userId || "??")
+                          .slice(0, 2)
+                          .toUpperCase()}
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {/* Only non-owner can be updated */}
-                        {m.role !== "owner" && (
-                          <>
-                            <Select
-                              value={m.role}
-                              onValueChange={(role) =>
-                                updateRoleMutation.mutate({
-                                  membershipId: m.id,
-                                  role,
-                                })
-                              }
-                            >
-                              <SelectTrigger className="w-32">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="viewer">Viewer</SelectItem>
-                                <SelectItem value="editor">Editor</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                              </SelectContent>
-                            </Select>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {m.user?.firstName
+                            ? `${m.user.firstName} ${m.user.lastName || ""}`
+                            : m.userId}
+                        </p>
 
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeMemberMutation.mutate(m.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </>
-                        )}
-
-                        {m.role === "owner" && <Badge>Owner</Badge>}
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          {getRoleIcon(m.role)}
+                          <span className="capitalize">{m.role}</span>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    {/* ROLE + ACTIONS */}
+                    {m.role !== "owner" && (
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={m.role}
+                          onValueChange={(role) =>
+                            updateRoleMutation.mutate({
+                              membershipId: m.id,
+                              role,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="w-28 h-8 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="viewer">Viewer</SelectItem>
+                            <SelectItem value="editor">Editor</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeMemberMutation.mutate(m.id)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+
+                    {m.role === "owner" && (
+                      <Badge className="text-xs bg-gray-100 text-gray-700">
+                        Owner
+                      </Badge>
+                    )}
+                  </div>
+                ))
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* ---------------------------------- */}
-          {/* PENDING INVITES */}
-          {/* ---------------------------------- */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Invitations</CardTitle>
-            </CardHeader>
+          {/* ------------------------ */}
+          {/* INVITATIONS LIST */}
+          {/* ------------------------ */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-gray-900">
+              Pending Invitations
+            </h3>
 
-            <CardContent>
+            <div className="space-y-2">
               {invLoading ? (
-                <p>Loading invitations…</p>
+                <p className="text-gray-500 text-sm">Loading invitations…</p>
               ) : invitations.filter((i) => i.status === "pending").length ===
                 0 ? (
-                <p className="text-gray-600">No pending invitations.</p>
+                <p className="text-gray-500 text-sm">No pending invitations.</p>
               ) : (
                 invitations
                   .filter((i) => i.status === "pending")
                   .map((i) => (
                     <div
                       key={i.id}
-                      className="p-3 border rounded flex items-center justify-between"
+                      className="flex items-center justify-between py-2 px-3 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition"
                     >
                       <div>
-                        <div className="flex gap-2 items-center">
-                          <code className="bg-gray-100 px-2 py-1 rounded">
+                        <div className="flex items-center gap-2">
+                          <code className="px-2 py-1 bg-gray-100 rounded font-mono text-sm">
                             {i.inviteCode}
                           </code>
-                          <Badge variant="outline">{i.role}</Badge>
+                          <Badge variant="outline" className="capitalize">
+                            {i.role}
+                          </Badge>
                         </div>
 
                         {i.email && (
-                          <p className="text-sm text-gray-600">{i.email}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {i.email}
+                          </p>
                         )}
 
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-400 mt-0.5">
                           Expires: {new Date(i.expiresAt).toLocaleDateString()}
                         </p>
                       </div>
 
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => revokeInviteMutation.mutate(i.id)}
+                        className="text-red-600 hover:bg-red-50"
                       >
-                        Revoke
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   ))
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
