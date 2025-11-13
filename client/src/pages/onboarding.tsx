@@ -8,10 +8,23 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useBrand } from "@/contexts/BrandContext";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, UserPlus, Sparkles } from "lucide-react";
 
@@ -36,13 +49,6 @@ export default function Onboarding() {
   const { refreshBrands } = useBrand();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      setLocation("/login");
-    }
-  }, [isAuthenticated, authLoading, setLocation]);
-
   // Show loading while checking authentication
   if (authLoading) {
     return (
@@ -55,10 +61,11 @@ export default function Onboarding() {
     );
   }
 
-  // Don't render if not authenticated (will redirect)
-  if (!isAuthenticated) {
-    return null;
-  }
+  // Anteriormente, este bloque causaba un renderizado redundante o un bucle:
+  // if (!isAuthenticated) {
+  //   setLocation("/login");
+  //   return null;
+  // }
 
   const createForm = useForm<CreateBrandForm>({
     resolver: zodResolver(createBrandSchema),
@@ -102,7 +109,11 @@ export default function Onboarding() {
 
   const joinBrandMutation = useMutation({
     mutationFn: async (data: JoinBrandForm) => {
-      const res = await apiRequest("POST", "/api/brand-invitations/accept", data);
+      const res = await apiRequest(
+        "POST",
+        "/api/brand-invitations/accept",
+        data,
+      );
       return await res.json();
     },
     onSuccess: () => {
@@ -161,7 +172,8 @@ export default function Onboarding() {
                   <CardTitle className="text-2xl">Create a Brand</CardTitle>
                 </div>
                 <CardDescription className="text-base">
-                  Start fresh by creating your own brand and inviting team members
+                  Start fresh by creating your own brand and inviting team
+                  members
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -233,7 +245,10 @@ export default function Onboarding() {
           </CardHeader>
           <CardContent>
             <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+              <form
+                onSubmit={createForm.handleSubmit(onCreateSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={createForm.control}
                   name="name"
@@ -329,7 +344,9 @@ export default function Onboarding() {
                     disabled={createBrandMutation.isPending}
                     data-testid="button-create-brand"
                   >
-                    {createBrandMutation.isPending ? "Creating..." : "Create Brand"}
+                    {createBrandMutation.isPending
+                      ? "Creating..."
+                      : "Create Brand"}
                   </Button>
                 </div>
               </form>
@@ -352,7 +369,10 @@ export default function Onboarding() {
           </CardHeader>
           <CardContent>
             <Form {...joinForm}>
-              <form onSubmit={joinForm.handleSubmit(onJoinSubmit)} className="space-y-4">
+              <form
+                onSubmit={joinForm.handleSubmit(onJoinSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={joinForm.control}
                   name="inviteCode"

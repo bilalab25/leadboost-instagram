@@ -40,6 +40,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
+import { useBrand } from "@/contexts/BrandContext";
 
 interface Integration {
   id: string;
@@ -75,17 +76,29 @@ export default function IntegrationsTab({
   handleDeleteIntegration,
 }) {
   const { isSpanish } = useLanguage(); // Assuming useLanguage hook is available
+  const { brands, refreshBrands, activeBrandId, setActiveBrandId } = useBrand();
 
   // 🔄 Unified connection handler for all Meta integrations
   const handleConnect = (provider: string) => {
+    const brandId = activeBrandId;
+
+    if (!brandId) {
+      alert(
+        isSpanish
+          ? "Selecciona una marca antes de conectar."
+          : "Select a brand before connecting.",
+      );
+      return;
+    }
+
     let url = "";
 
     if (["facebook", "instagram", "threads"].includes(provider)) {
       // 🔁 Facebook, Instagram, and Threads all use Facebook OAuth flow
-      url = "/api/integrations/facebook/connect";
+      url = `/api/integrations/facebook/connect?brandId=${brandId}`;
     } else if (provider === "whatsapp") {
       // ✅ WhatsApp AHORA usa el flujo OAuth/Embedded Signup (GET redirect)
-      url = "/api/integrations/whatsapp/connect"; // <-- Cambiado a GET
+      url = `/api/integrations/whatsapp/connect?brandId=${brandId}`; // <-- Cambiado a GET
     } else {
       alert(
         isSpanish

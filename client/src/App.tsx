@@ -34,7 +34,6 @@ import FlowBuilder from "@/pages/flow-builder";
 import FlowsDashboard from "@/pages/flows-dashboard";
 import Onboarding from "@/pages/onboarding";
 
-
 function Router() {
   return (
     <Switch>
@@ -48,7 +47,7 @@ function Router() {
       {/* Rutas de la aplicación - PROTEGIDAS por PrivateRoute */}
       {/* Si el usuario no está autenticado, PrivateRoute lo redirigirá a /login */}
       {/* Onboarding is a special case - requires auth but not brands */}
-      <Route path="/onboarding" component={Onboarding} />
+      <PrivateRoute path="/onboarding" component={Onboarding} />
       <PrivateRoute path="/home" component={Home} />
       <PrivateRoute path="/dashboard" component={Dashboard} />
       <PrivateRoute path="/inbox" component={Inbox} />
@@ -67,7 +66,6 @@ function Router() {
       <PrivateRoute path="/settings" component={Settings} />
       <PrivateRoute path="/flows-dashboard" component={FlowsDashboard} />
       <PrivateRoute path="/flow-builder/:id" component={FlowBuilder} />
-
 
       {/* Ruta 404 para cualquier otra ruta no definida */}
       <Route component={NotFound} />
