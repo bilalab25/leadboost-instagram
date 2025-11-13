@@ -31,12 +31,12 @@ interface BrandContextType {
 }
 
 const BrandContext = createContext<BrandContextType | undefined>(undefined);
-
 const BRAND_STORAGE_KEY = "campaigner_active_brand";
 
 export function BrandProvider({ children }: { children: ReactNode }) {
   // 🚨 Ahora esperamos sesión antes de cargar brands
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth(); // ⭐ Cambiado: Agregamos 'user'
+  const userId = user?.id || "guest"; // ⭐ Nuevo: Clave única para la caché
 
   const [activeBrandId, setActiveBrandId] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
@@ -52,8 +52,11 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     error,
     refetch,
   } = useQuery<BrandMembershipWithBrand[]>({
-    queryKey: ["/api/brand-memberships"],
-    enabled: isAuthenticated && !authLoading, // ❤️ clave del fix
+    // 🔑 CLAVE MODIFICADA: Si el userId cambia, React Query ignora la caché anterior.
+    queryKey: ["/api/brand-memberships", userId],
+
+    // La query solo se habilita si el usuario está autenticado, tenemos su ID y no está cargando la autenticación
+    enabled: isAuthenticated && !!userId && !authLoading,
   });
 
   // 🔄 Auto-select primera brand si no hay activa
@@ -97,11 +100,12 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   const switchBrand = (brandId: string) => {
     setActiveBrandId(brandId);
     localStorage.setItem(BRAND_STORAGE_KEY, brandId);
-    queryClient.invalidateQueries(); // invalidar queries dependientes
+    // Ya no es estrictamente necesario invalidar TODAS las queries,
+    // pero es una buena práctica invalidar el queryKey específico si hubieran otras dependencias.
+    // queryClient.invalidateQueries({ queryKey: ["/api/brand-memberships", userId] });
   };
 
   const refreshBrands = () => refetch();
-
   const activeMembership =
     memberships.find((m) => m.brandId === activeBrandId) || null;
 
