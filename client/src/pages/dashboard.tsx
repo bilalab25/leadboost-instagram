@@ -169,14 +169,16 @@ export default function Dashboard() {
   // 🔹 Últimos mensajes unificados
   const { data: latestConversationsData, isLoading: conversationsLoading } =
     useQuery({
-      queryKey: ["/api/conversations", { limit: 5 }],
+      queryKey: ["/api/conversations", activeBrandId, { limit: 5 }],
       queryFn: async () => {
+        if (!activeBrandId) return { conversations: [] };
         const res = await apiRequest(
           "GET",
           `/api/conversations?brandId=${activeBrandId}&limit=5`,
         );
         return res.json();
       },
+      enabled: !!activeBrandId, // crucial
     });
 
   const latestConversations = latestConversationsData?.conversations || [];

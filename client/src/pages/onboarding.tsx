@@ -46,8 +46,14 @@ export default function Onboarding() {
   const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { refreshBrands } = useBrand();
+  const { refreshBrands, brands } = useBrand();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (brands.length > 0) {
+      setLocation("/dashboard");
+    }
+  }, [brands, setLocation]);
 
   // Show loading while checking authentication
   if (authLoading) {
@@ -96,7 +102,6 @@ export default function Onboarding() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/brand-memberships"] });
       refreshBrands();
-      setTimeout(() => setLocation("/dashboard"), 500);
     },
     onError: (error: any) => {
       toast({

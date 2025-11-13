@@ -59,20 +59,22 @@ export function BrandProvider({ children }: { children: ReactNode }) {
   const noUser = !isAuthenticated || !userId;
 
   useEffect(() => {
-    if (
-      noUser ||
-      membershipsLoading ||
-      memberships.length === 0 ||
-      activeBrandId
-    ) {
+    if (noUser || membershipsLoading) return;
+
+    if (memberships.length === 0) {
+      setActiveBrandId(null);
+      localStorage.removeItem(BRAND_STORAGE_KEY);
       return;
     }
 
-    // Auto-select first brand
-    const first = memberships[0];
-    setActiveBrandId(first.brandId);
-    localStorage.setItem(BRAND_STORAGE_KEY, first.brandId);
-  }, [noUser, memberships, membershipsLoading]);
+    const brandExists = memberships.some((m) => m.brandId === activeBrandId);
+
+    if (!brandExists) {
+      const first = memberships[0];
+      setActiveBrandId(first.brandId);
+      localStorage.setItem(BRAND_STORAGE_KEY, first.brandId);
+    }
+  }, [noUser, memberships, membershipsLoading, activeBrandId]);
 
   const switchBrand = (brandId: string) => {
     setActiveBrandId(brandId);
