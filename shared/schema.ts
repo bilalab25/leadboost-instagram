@@ -1105,7 +1105,7 @@ export const brandDesigns = pgTable("brand_designs", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, {
+  brandId: uuid("brand_id").references(() => brands.id, {
     onDelete: "cascade",
   }),
   brandStyle: varchar("brand_style"), // minimalist, luxury, etc.

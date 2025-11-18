@@ -381,13 +381,13 @@ export interface IStorage {
 
   // Brand design operations
   createBrandDesign(design: InsertBrandDesign): Promise<BrandDesign>;
-  getBrandDesignByUserId(userId: string): Promise<BrandDesign | undefined>;
+  getBrandDesignByBrandId(brandId: string): Promise<BrandDesign | undefined>;
   updateBrandDesign(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<BrandDesign>,
   ): Promise<BrandDesign | undefined>;
-  deleteBrandDesign(id: string, userId: string): Promise<boolean>;
+  deleteBrandDesign(id: string, brandId: string): Promise<boolean>;
 
   // Campaign design operations
   createCampaignDesign(design: InsertCampaignDesign): Promise<CampaignDesign>;
@@ -1606,26 +1606,26 @@ export class DatabaseStorage implements IStorage {
 
   async updateBrandDesign(
     id: string,
-    userId: string,
+    brandId: string,
     updates: Partial<BrandDesign>,
   ): Promise<BrandDesign | undefined> {
-    const mapped = mapPartialToDb({ ...updates, userId }); // ✅ nuevo mapper parcial
+    const mapped = mapPartialToDb({ ...updates, brandId }); // ✅ nuevo mapper parcial
     const [updated] = await db
       .update(brandDesigns)
       .set({ ...mapped, updatedAt: new Date() })
-      .where(and(eq(brandDesigns.id, id), eq(brandDesigns.userId, userId)))
+      .where(and(eq(brandDesigns.id, id), eq(brandDesigns.brandId, brandId)))
       .returning();
 
     return updated ? mapFromDb(updated) : undefined;
   }
 
-  async getBrandDesignByUserId(
-    userId: string,
+  async getBrandDesignByBrandId(
+    brandId: string,
   ): Promise<BrandDesign | undefined> {
     const [design] = await db
       .select()
       .from(brandDesigns)
-      .where(eq(brandDesigns.userId, userId))
+      .where(eq(brandDesigns.brandId, brandId))
       .orderBy(desc(brandDesigns.createdAt))
       .limit(1);
 
@@ -1633,10 +1633,10 @@ export class DatabaseStorage implements IStorage {
     return mapFromDb(design);
   }
 
-  async deleteBrandDesign(id: string, userId: string): Promise<boolean> {
+  async deleteBrandDesign(id: string, brandId: string): Promise<boolean> {
     const result = await db
       .delete(brandDesigns)
-      .where(and(eq(brandDesigns.id, id), eq(brandDesigns.userId, userId)));
+      .where(and(eq(brandDesigns.id, id), eq(brandDesigns.brandId, brandId)));
     return (result.rowCount ?? 0) > 0;
   }
 

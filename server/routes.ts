@@ -5440,11 +5440,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Brand Design routes
-  app.get("/api/brand-design", isAuthenticated, async (req: any, res) => {
+  app.get("/api/brand-design", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandDesign = await storage.getBrandDesignByUserId(userId);
+      const brandId = req.brandId;
+      const brandDesign = await storage.getBrandDesignByBrandId(brandId);
 
       if (!brandDesign) {
         // Return default structure if no brand design exists
@@ -5464,19 +5463,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/brand-design", isAuthenticated, async (req, res) => {
+  app.post("/api/brand-design", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const designData = { ...req.body, userId };
+      const brandId = req.brandId;
+      const designData = { ...req.body, brandId };
       console.log("REQ BODY DESIGN DATA:", JSON.stringify(req.body, null, 2));
 
-      const existingDesign = await storage.getBrandDesignByUserId(userId);
+      const existingDesign = await storage.getBrandDesignByBrandId(brandId);
 
       if (existingDesign) {
         const updated = await storage.updateBrandDesign(
           existingDesign.id,
-          userId,
+          brandId,
           designData,
         );
         res.json(updated);
@@ -5528,14 +5526,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete(
     "/api/brand-design/logo/:type",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.brandId;
       const { type } = req.params; // whiteLogo | blackLogo | whiteFavicon | blackFavicon
       const { brandDesignId } = req.query;
 
       console.log("[Server] ➡️ DELETE /api/brand-design/logo/:type", {
-        userId,
+        brandId,
         type,
         brandDesignId,
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -5548,8 +5546,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "brandDesignId is required" });
         }
 
-        // Obtén por userId para validar ownership (o trae por id y valida userId)
-        const brandDesign = await storage.getBrandDesignByUserId(userId);
+        // Get brand design by brandId to validate ownership
+        const brandDesign = await storage.getBrandDesignByBrandId(brandId);
         console.log("[Server] 🔎 brandDesign", {
           found: !!brandDesign,
           id: brandDesign?.id,
@@ -5627,7 +5625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .where(
             and(
               eq(brandDesigns.id, brandDesignId),
-              eq(brandDesigns.userId, userId),
+              eq(brandDesigns.brandId, brandId),
             ),
           )
           .returning();
@@ -5647,16 +5645,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/brand-design/connect-canva",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+        const brandId = req.brandId;
 
         // In a real implementation, this would handle Canva OAuth flow
         // For now, we'll simulate the connection by returning the existing design
-        const existingDesign = await storage.getBrandDesignByUserId(userId);
+        const existingDesign = await storage.getBrandDesignByBrandId(brandId);
 
         if (existingDesign) {
           res.json({
@@ -5680,14 +5676,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Upload de un asset
-  app.post("/api/brand-assets", isAuthenticated, async (req: any, res) => {
+  app.post("/api/brand-assets", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
+      const brandId = req.brandId;
       const { brandDesignId, url, name, category, assetType, publicId } =
         req.body;
       console.log("📥 BODY recibido:", req.body);
       if (!brandDesignId || !url || !name) {
         return res.status(400).json({ error: "Missing required fields" });
       }
+      
+      // Verify the brand design belongs to this brand
+      const brandDesign = await storage.getBrandDesignByBrandId(brandId);
+      if (!brandDesign || brandDesign.id !== brandDesignId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+      
       const newAsset = await storage.createBrandAsset({
         brandDesignId,
         url,
@@ -5705,14 +5709,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/brand-assets?brandDesignId=<uuid>
-  app.get("/api/brand-assets", isAuthenticated, async (req: any, res) => {
+  app.get("/api/brand-assets", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
+      const brandId = req.brandId;
       console.log("🛣ch�  GET /api/brand-assets");
       console.log("🧭  req.query:", req.query, "req.params:", req.params);
       const { brandDesignId } = req.query;
       if (!brandDesignId) {
         return res.status(400).json({ message: "brandDesignId is required" });
       }
+      
+      // Verify the brand design belongs to this brand
+      const brandDesign = await storage.getBrandDesignByBrandId(brandId);
+      if (!brandDesign || brandDesign.id !== brandDesignId) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+      
       const assets = await storage.getAssetsByBrandDesignId(
         String(brandDesignId),
       );
@@ -5731,12 +5743,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete(
     "/api/brand-assets/:id",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+        const brandId = req.brandId;
         const assetId = req.params.id;
         const { brandDesignId } = req.query;
 
@@ -5744,8 +5754,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "brandDesignId is required" });
         }
 
-        // Verify ownership: check if the brandDesign belongs to the current user
-        const brandDesign = await storage.getBrandDesignByUserId(userId);
+        // Verify ownership: check if the brandDesign belongs to the current brand
+        const brandDesign = await storage.getBrandDesignByBrandId(brandId);
         if (!brandDesign || brandDesign.id !== brandDesignId) {
           return res
             .status(403)
