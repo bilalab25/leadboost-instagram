@@ -2,7 +2,7 @@
 import { BrandDesign, InsertBrandDesign } from "@shared/schema";
 
 export function mapToDb(data: any): InsertBrandDesign {
-  const mapped = {
+  return {
     brandId: data.brandId,
     brandStyle: data.brandStyle,
     colorPrimary: data.colorPalette?.primary || null,
@@ -21,9 +21,6 @@ export function mapToDb(data: any): InsertBrandDesign {
     assets: data.brandKit?.assets || [],
     isDesignStudioEnabled: data.isDesignStudioEnabled ?? false,
   };
-  console.log("[Mapper] mapToDb input brandId:", data.brandId);
-  console.log("[Mapper] mapToDb output:", mapped);
-  return mapped;
 }
 
 export function mapPartialToDb(data: any): Partial<InsertBrandDesign> {

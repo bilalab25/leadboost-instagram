@@ -67,6 +67,16 @@ Key features include:
   - Node editing panel for message/action/condition configuration
   - Flow execution simulator with visual animation
   - localStorage persistence (database-ready architecture)
+- **Brand Studio** (Brand-Based Architecture):
+  - **Database Schema**: brand_designs and brand_assets tables with brandId foreign keys
+  - **Migration**: Successfully migrated from user-based to brand-based architecture (Nov 2025)
+  - **Brand Designs**: Each brand has independent design settings (colors, fonts, logos)
+  - **Brand Assets**: Cloudinary-based asset management per brand with category organization
+  - **Authorization**: All routes protected with requireBrand middleware
+  - **React Query Security**: All queries include activeBrandId in queryKeys with enabled guards
+  - **Cache Invalidation**: Proper queryClient.invalidateQueries patterns for real-time UI updates
+  - **Middleware Fix**: requireBrand now sets both req.brandMembership and req.brandId
+  - **Mapper Functions**: Handle brandId correctly in mapToDb and mapPartialToDb
 - 30-Day Planner with AI-suggested posting frequency scheduler
 
 ## User Preferences
