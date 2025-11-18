@@ -218,11 +218,11 @@ export default function BrandStudio() {
     queryKey: ["/api/brand-assets", activeBrandId, brandDesign?.id],
     enabled: !!activeBrandId && !!brandDesign?.id,
     queryFn: async () => {
-      console.log("🔎 QueryFn brand-assets → brandDesign.id:", brandDesign?.id);
-      const res = await apiRequest("GET", "/api/brand-assets", {
-        brandId: activeBrandId,
-        brandDesignId: brandDesign!.id,
-      });
+      const url = `/api/brand-assets?brandId=${activeBrandId}&brandDesignId=${brandDesign!.id}`;
+
+      console.log("🌐 GET", url);
+
+      const res = await apiRequest("GET", url);
 
       const text = await res.text();
       console.log("⬅️ RAW RESPONSE /api/brand-assets:", text);
@@ -230,6 +230,7 @@ export default function BrandStudio() {
       if (!res.ok) {
         throw new Error(`HTTP ${res.status} - ${text}`);
       }
+
       return JSON.parse(text);
     },
     retry: false,
@@ -702,7 +703,7 @@ export default function BrandStudio() {
 
         // Refresh the assets list
         await queryClient.invalidateQueries({
-          queryKey: ["/api/brand-assets", activeBrandId, brandDesign?.id],
+          queryKey: ["/api/brand-assets", brandDesign?.id],
         });
       } else {
         const error = await res.json();
