@@ -83,7 +83,15 @@ Key features include:
   - **Cache Invalidation**: Proper queryClient.invalidateQueries patterns for real-time UI updates
   - **Middleware Fix**: requireBrand now sets both req.brandMembership and req.brandId
   - **Mapper Functions**: Handle brandId correctly in mapToDb and mapPartialToDb
-- 30-Day Planner with AI-suggested posting frequency scheduler
+- **Posting Frequency Management** (Brand-Based):
+  - **Database Schema**: social_posting_frequency table with brandId foreign key (nullable for backward compatibility)
+  - **Multi-Layer Validation**: Route-level, storage-level, and payload-level brandId validation prevents data leakage
+  - **Storage Layer**: getSocialPostingFrequenciesByBrand and saveSocialPostingFrequencies methods with explicit brandId guards
+  - **API Routes**: GET/POST /api/posting-frequency protected with requireBrand middleware
+  - **Frontend**: PostingFrequencyModal uses useBrand hook with brand-scoped React Query keys
+  - **Data Integrity**: New records MUST have brandId (enforced by runtime validation), legacy records remain isolated
+  - **AI Suggestions**: Integrated with n8n for AI-powered posting frequency recommendations based on Meta engagement data
+- 30-Day Planner with brand-specific AI-suggested posting frequency scheduler
 
 ## User Preferences
 
