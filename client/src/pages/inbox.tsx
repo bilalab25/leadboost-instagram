@@ -7,7 +7,7 @@ import TopHeader from "@/components/TopHeader";
 import MessageList from "@/components/MessageList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Filter, Search, Star, Archive, Flag } from "lucide-react";
+import { Filter, Search, Star, Archive, Flag, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import HelpChatbot from "@/components/HelpChatbot";
 import { Instagram, Mail, Twitter } from "lucide-react";
@@ -34,6 +34,7 @@ export default function Inbox() {
   const [selectedFlag, setSelectedFlag] = useState<
     "all" | "none" | "important" | "archived"
   >("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   // Redirección si no autenticado
@@ -168,9 +169,20 @@ export default function Inbox() {
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder={isSpanish ? "Buscar..." : "Search..."}
-                    className="pl-10 w-64"
+                    className="pl-10 pr-10 w-64"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     data-testid="input-search-messages"
                   />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                      data-testid="button-clear-search"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
                 {/* Flag Filter Dropdown */}
                 <DropdownMenu>
@@ -225,6 +237,7 @@ export default function Inbox() {
               showHeader={false}
               platform={selectedPlatform}
               flagFilter={selectedFlag}
+              searchQuery={searchQuery}
             />
           </div>
         </div>

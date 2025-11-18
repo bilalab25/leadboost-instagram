@@ -55,6 +55,7 @@ interface MessageListProps {
   showHeader?: boolean;
   platform?: string;
   flagFilter?: "all" | "none" | "important" | "archived";
+  searchQuery?: string;
 }
 
 export default function MessageList({
@@ -62,6 +63,7 @@ export default function MessageList({
   showHeader = true,
   platform,
   flagFilter = "all",
+  searchQuery = "",
 }: MessageListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -183,6 +185,16 @@ export default function MessageList({
     filteredConversations = filteredConversations.filter(
       (c) => c.flag === flagFilter || (!c.flag && flagFilter === "none"),
     );
+  }
+
+  // Apply search filter
+  if (searchQuery && searchQuery.trim() !== "") {
+    const query = searchQuery.toLowerCase().trim();
+    filteredConversations = filteredConversations.filter((c) => {
+      const contactName = (c.contactName || "").toLowerCase();
+      const lastMessage = (c.lastMessage || "").toLowerCase();
+      return contactName.includes(query) || lastMessage.includes(query);
+    });
   }
 
   // Sort by most recent and limit
