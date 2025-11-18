@@ -1425,7 +1425,6 @@ export const socialPostingFrequency = pgTable("social_posting_frequency", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   brandId: uuid("brand_id")
-    .notNull()
     .references(() => brands.id, { onDelete: "cascade" }),
   platform: text("platform").notNull(), // facebook, instagram, etc.
   frequencyDays: integer("frequency_days").notNull(), // posts per week

@@ -1610,10 +1610,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Social Posting Frequency routes
-  app.post("/api/posting-frequency", isAuthenticated, async (req: any, res) => {
+  app.post("/api/posting-frequency", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.brandId;
       const { schedules } = req.body;
 
       if (!schedules || !Array.isArray(schedules)) {
@@ -1623,6 +1624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Convert schedules to database format
       const frequencies = schedules.map((schedule: any) => ({
         userId,
+        brandId,
         platform: schedule.platform,
         frequencyDays: schedule.postsPerWeek,
         daysWeek: schedule.selectedDays,
@@ -1633,15 +1635,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       // Save to database
-      await storage.saveSocialPostingFrequencies(frequencies);
+      await storage.saveSocialPostingFrequencies(brandId, frequencies);
 
       // Log activity
       await storage.createActivityLog({
         userId,
+        brandId,
         action: "save_posting_frequency",
         description: `Saved posting frequency for ${schedules.length} platforms`,
         entityType: "posting_frequency",
-        entityId: userId,
+        entityId: brandId,
       });
 
       res.json({
@@ -1654,13 +1657,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/posting-frequency", isAuthenticated, async (req: any, res) => {
+  app.get("/api/posting-frequency", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.brandId;
 
       const frequencies =
-        await storage.getSocialPostingFrequenciesByUserId(userId);
+        await storage.getSocialPostingFrequenciesByBrand(brandId);
       res.json(frequencies);
     } catch (error) {
       console.error("Error fetching posting frequency:", error);

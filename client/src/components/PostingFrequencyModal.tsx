@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useBrand } from "@/contexts/BrandContext";
 import {
   Dialog,
   DialogContent,
@@ -74,17 +75,24 @@ export default function PostingFrequencyModal({
 }: PostingFrequencyModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeBrandId } = useBrand();
 
   // Fetch user's connected integrations
   const { data: integrations = [], isLoading: integrationsLoading } = useQuery<any[]>({
     queryKey: ["/api/integrations"],
-    enabled: isOpen, // Only fetch when modal is open
+    enabled: isOpen && !!activeBrandId, // Only fetch when modal is open and brand is selected
   });
 
-  // Fetch saved posting frequencies from database
+  // Fetch saved posting frequencies from database (brand-specific)
   const { data: savedFrequencies = [], isLoading: frequenciesLoading } = useQuery<any[]>({
-    queryKey: ["/api/posting-frequency"],
-    enabled: isOpen, // Only fetch when modal is open
+    queryKey: ["/api/posting-frequency", activeBrandId],
+    queryFn: async () => {
+      const url = `/api/posting-frequency?brandId=${activeBrandId}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch posting frequencies");
+      return res.json();
+    },
+    enabled: isOpen && !!activeBrandId, // Only fetch when modal is open and brand is selected
   });
 
   // Fetch AI suggestions from n8n (only when needed)
@@ -295,16 +303,17 @@ export default function PostingFrequencyModal({
   // Mutation to save posting frequency to database
   const saveFrequencyMutation = useMutation({
     mutationFn: async (schedules: PlatformSchedule[]) => {
-      const response = await apiRequest("POST", "/api/posting-frequency", {
+      if (!activeBrandId) throw new Error("No active brand selected");
+      const response = await apiRequest("POST", `/api/posting-frequency?brandId=${activeBrandId}`, {
         schedules,
       });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/posting-frequency"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/posting-frequency", activeBrandId] });
       toast({
         title: "Success!",
-        description: "Posting frequency saved to database successfully.",
+        description: "Posting frequency saved successfully for this brand.",
       });
       onSaveSchedule(schedules);
       onClose();
