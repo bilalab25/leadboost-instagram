@@ -1596,11 +1596,14 @@ export class DatabaseStorage implements IStorage {
 
   // Brand design operations
   async createBrandDesign(design: InsertBrandDesign): Promise<BrandDesign> {
+    console.log("[Storage] createBrandDesign input:", design);
     const mapped = mapToDb(design);
+    console.log("[Storage] createBrandDesign mapped:", mapped);
     const [brandDesign] = await db
       .insert(brandDesigns)
       .values(mapped)
       .returning();
+    console.log("[Storage] createBrandDesign result:", brandDesign);
     return mapFromDb(brandDesign);
   }
 
