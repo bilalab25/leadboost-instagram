@@ -37,6 +37,12 @@ Key features include:
     - Toast notifications for new messages
     - Automatic unread badge increments
     - Works for WhatsApp, Messenger, and Instagram
+  - **Search Functionality**:
+    - Real-time search across conversations
+    - Searches both contact names and message content
+    - Case-insensitive partial matching
+    - Clear button for quick reset
+    - Works in conjunction with platform and flag filters
   - Platform-specific fetch helpers with normalized message format
   - Universal GET endpoint supporting all connected providers
   - Diagnostic logging for request/response tracking
