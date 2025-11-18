@@ -423,10 +423,11 @@ export interface IStorage {
 
   // Social Posting Frequency operations
   saveSocialPostingFrequencies(
+    brandId: string,
     frequencies: InsertSocialPostingFrequency[],
   ): Promise<void>;
-  getSocialPostingFrequenciesByUserId(
-    userId: string,
+  getSocialPostingFrequenciesByBrand(
+    brandId: string,
   ): Promise<SocialPostingFrequency[]>;
 
   // Brand Membership operations
@@ -2062,30 +2063,28 @@ export class DatabaseStorage implements IStorage {
 
   // Social Posting Frequency operations
   async saveSocialPostingFrequencies(
+    brandId: string,
     frequencies: InsertSocialPostingFrequency[],
   ): Promise<void> {
     if (!frequencies || frequencies.length === 0) return;
 
-    // Delete existing frequencies for this user to avoid duplicates
-    const userId = frequencies[0]?.userId;
-    if (userId) {
-      await db
-        .delete(socialPostingFrequency)
-        .where(eq(socialPostingFrequency.userId, userId))
-        .execute();
-    }
+    // Delete existing frequencies for this brand to avoid duplicates
+    await db
+      .delete(socialPostingFrequency)
+      .where(eq(socialPostingFrequency.brandId, brandId))
+      .execute();
 
     // Insert new frequencies
     await db.insert(socialPostingFrequency).values(frequencies).execute();
   }
 
-  async getSocialPostingFrequenciesByUserId(
-    userId: string,
+  async getSocialPostingFrequenciesByBrand(
+    brandId: string,
   ): Promise<SocialPostingFrequency[]> {
     return await db
       .select()
       .from(socialPostingFrequency)
-      .where(eq(socialPostingFrequency.userId, userId))
+      .where(eq(socialPostingFrequency.brandId, brandId))
       .orderBy(desc(socialPostingFrequency.createdAt));
   }
 
