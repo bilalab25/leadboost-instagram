@@ -17,6 +17,7 @@ declare global {
   namespace Express {
     interface Request {
       brandMembership?: SelectBrandMembership;
+      brandId?: string;
     }
   }
 }
@@ -72,8 +73,9 @@ export const requireBrand = async (
         .json({ error: "Your brand membership is not active" });
     }
 
-    // Attach membership to request for downstream use
+    // Attach membership and brandId to request for downstream use
     req.brandMembership = membership;
+    (req as any).brandId = brandId;
 
     next();
   } catch (error) {

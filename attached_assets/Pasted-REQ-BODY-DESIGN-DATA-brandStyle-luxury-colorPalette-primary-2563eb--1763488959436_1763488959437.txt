@@ -1,0 +1,117 @@
+REQ BODY DESIGN DATA: {
+  "brandStyle": "luxury",
+  "colorPalette": {
+    "primary": "#2563eb",
+    "accent1": "#60a5fa",
+    "accent2": "#1e40af",
+    "text1": "#333333",
+    "text2": "#666666"
+  },
+  "typography": {
+    "primary": "Roboto",
+    "secondary": "Open Sans",
+    "customFonts": []
+  },
+  "logoUrl": null,
+  "whiteLogoUrl": null,
+  "blackLogoUrl": null,
+  "whiteFaviconUrl": null,
+  "blackFaviconUrl": null,
+  "brandKit": {
+    "assets": []
+  },
+  "brandId": "247e7a68-7de1-4642-baa8-b49853bb5b7d",
+  "colorAccent3": null,
+  "colorAccent4": null,
+  "colorText3": null,
+  "colorText4": null
+}
+[Storage] createBrandDesign input: {
+  brandStyle: 'luxury',
+  colorPalette: {
+    primary: '#2563eb',
+    accent1: '#60a5fa',
+    accent2: '#1e40af',
+    text1: '#333333',
+    text2: '#666666'
+  },
+  typography: { primary: 'Roboto', secondary: 'Open Sans', customFonts: [] },
+  logoUrl: null,
+  whiteLogoUrl: null,
+  blackLogoUrl: null,
+  whiteFaviconUrl: null,
+  blackFaviconUrl: null,
+  brandKit: { assets: [] },
+  brandId: undefined,
+  colorAccent3: null,
+  colorAccent4: null,
+  colorText3: null,
+  colorText4: null
+}
+[Mapper] mapToDb input brandId: undefined
+[Mapper] mapToDb output: {
+  brandId: undefined,
+  brandStyle: 'luxury',
+  colorPrimary: '#2563eb',
+  colorAccent1: '#60a5fa',
+  colorAccent2: '#1e40af',
+  colorText1: '#333333',
+  colorText2: '#666666',
+  fontPrimary: 'Roboto',
+  fontSecondary: 'Open Sans',
+  customFonts: [],
+  logoUrl: null,
+  whiteLogoUrl: null,
+  blackLogoUrl: null,
+  whiteFaviconUrl: null,
+  blackFaviconUrl: null,
+  assets: [],
+  isDesignStudioEnabled: false
+}
+[Storage] createBrandDesign mapped: {
+  brandId: undefined,
+  brandStyle: 'luxury',
+  colorPrimary: '#2563eb',
+  colorAccent1: '#60a5fa',
+  colorAccent2: '#1e40af',
+  colorText1: '#333333',
+  colorText2: '#666666',
+  fontPrimary: 'Roboto',
+  fontSecondary: 'Open Sans',
+  customFonts: [],
+  logoUrl: null,
+  whiteLogoUrl: null,
+  blackLogoUrl: null,
+  whiteFaviconUrl: null,
+  blackFaviconUrl: null,
+  assets: [],
+  isDesignStudioEnabled: false
+}
+[Storage] createBrandDesign result: {
+  id: '330912cc-9f66-4db8-b245-eed47d61c5bc',
+  brandId: null,
+  brandStyle: 'luxury',
+  colorPrimary: '#2563eb',
+  colorAccent1: '#60a5fa',
+  colorAccent2: '#1e40af',
+  colorAccent3: null,
+  colorAccent4: null,
+  colorText1: '#333333',
+  colorText2: '#666666',
+  colorText3: null,
+  colorText4: null,
+  fontPrimary: 'Roboto',
+  fontSecondary: 'Open Sans',
+  customFonts: [],
+  logoUrl: null,
+  whiteLogoUrl: null,
+  blackLogoUrl: null,
+  whiteFaviconUrl: null,
+  blackFaviconUrl: null,
+  assets: [],
+  isDesignStudioEnabled: false,
+  createdAt: 2025-11-18T18:02:09.242Z,
+  updatedAt: 2025-11-18T18:02:09.242Z
+}
+6:02:09 PM [express] POST /api/brand-design 200 in 475ms :: {"id":"330912cc-9f66-4db8-b245-eed47d61c5bc","brandId":null,"brandStyle":"luxury","colorPrimary":"#2563eb","colorAccent1":"#60a5fa","colorAccent2":"#1e40af","colorAccent3":null,"colorAccent4":null,"colorText1":"#333333","colorText2":"#666666","colorText3":null,"colorText4":null,"fontPrimary":"Roboto","fontSecondary":"Open Sans","customFonts":[],"logoUrl":null,"whiteLogoUrl":null,"blackLogoUrl":null,"whiteFaviconUrl":null,"blackFaviconUrl":null,"assets":[],"isDesignStudioEnabled":false,"createdAt":"2025-11-18T18:02:09.242Z","updatedAt":"2025-11-18T18:02:09.242Z"}
+6:02:09 PM [express] GET /api/brand-design 200 in 349ms :: {"isCanvaConnected":false,"brandStyle":null,"colorPalette":null,"typography":null,"logoUrl":null}
