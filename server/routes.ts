@@ -1617,6 +1617,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const brandId = req.brandId;
       const { schedules } = req.body;
 
+      // Explicit validation for brandId
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
       if (!schedules || !Array.isArray(schedules)) {
         return res.status(400).json({ message: "Invalid schedules data" });
       }
@@ -1624,7 +1629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Convert schedules to database format
       const frequencies = schedules.map((schedule: any) => ({
         userId,
-        brandId,
+        brandId, // Ensure brandId is set for each frequency
         platform: schedule.platform,
         frequencyDays: schedule.postsPerWeek,
         daysWeek: schedule.selectedDays,
@@ -1634,7 +1639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         insightsData: null,
       }));
 
-      // Save to database
+      // Save to database (with validation inside)
       await storage.saveSocialPostingFrequencies(brandId, frequencies);
 
       // Log activity
@@ -1660,6 +1665,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/posting-frequency", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const brandId = req.brandId;
+
+      // Explicit validation for brandId
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
 
       const frequencies =
         await storage.getSocialPostingFrequenciesByBrand(brandId);

@@ -2066,7 +2066,16 @@ export class DatabaseStorage implements IStorage {
     brandId: string,
     frequencies: InsertSocialPostingFrequency[],
   ): Promise<void> {
+    if (!brandId) {
+      throw new Error("brandId is required to save posting frequencies");
+    }
     if (!frequencies || frequencies.length === 0) return;
+
+    // Validate that all frequencies have brandId
+    const invalidFrequencies = frequencies.filter(f => !f.brandId);
+    if (invalidFrequencies.length > 0) {
+      throw new Error("All posting frequencies must have a brandId");
+    }
 
     // Delete existing frequencies for this brand to avoid duplicates
     await db
@@ -2081,6 +2090,9 @@ export class DatabaseStorage implements IStorage {
   async getSocialPostingFrequenciesByBrand(
     brandId: string,
   ): Promise<SocialPostingFrequency[]> {
+    if (!brandId) {
+      throw new Error("brandId is required to fetch posting frequencies");
+    }
     return await db
       .select()
       .from(socialPostingFrequency)
