@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { apiRequest } from "@/lib/queryClient";
+import { useBrand } from "@/contexts/BrandContext";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import { Button } from "@/components/ui/button";
@@ -143,6 +144,7 @@ export default function BrandStudio() {
   const { toast } = useToast();
   const { isSpanish } = useLanguage();
   const queryClient = useQueryClient();
+  const { activeBrandId } = useBrand();
 
   const [selectedStyle, setSelectedStyle] = useState<string>("");
   // Replaced customColors with individual states for explicit control
@@ -198,7 +200,8 @@ export default function BrandStudio() {
 
   // Fetch brand design
   const { data: brandDesign, isLoading } = useQuery<BrandDesign>({
-    queryKey: ["/api/brand-design"],
+    queryKey: ["/api/brand-design", activeBrandId],
+    enabled: !!activeBrandId,
     retry: false,
   });
 
@@ -208,8 +211,8 @@ export default function BrandStudio() {
     isFetching: isAssetsFetching,
     error: assetsError,
   } = useQuery<BrandAsset[]>({
-    queryKey: ["/api/brand-assets", brandDesign?.id],
-    enabled: !!brandDesign?.id, // 👈 si brandDesign.id es undefined, nunca corre
+    queryKey: ["/api/brand-assets", activeBrandId, brandDesign?.id],
+    enabled: !!activeBrandId && !!brandDesign?.id,
     queryFn: async () => {
       console.log("🔎 QueryFn brand-assets → brandDesign.id:", brandDesign?.id);
       const url = `/api/brand-assets?brandDesignId=${brandDesign!.id}`;
@@ -299,7 +302,7 @@ export default function BrandStudio() {
     // ✅ usa la referencia capturada, no 'e'
     inputEl.value = "";
     await queryClient.invalidateQueries({
-      queryKey: ["/api/brand-assets", brandDesign.id],
+      queryKey: ["/api/brand-assets", activeBrandId, brandDesign.id],
     });
   };
 
@@ -460,6 +463,7 @@ export default function BrandStudio() {
   // Design Studio activation
   const activateDesignStudioMutation = useMutation({
     mutationFn: async () => {
+      if (!activeBrandId) throw new Error("No active brand");
       // Activate native LeadBoost Design Studio
       const response = await apiRequest(
         "POST",
@@ -468,7 +472,7 @@ export default function BrandStudio() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/brand-design"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/brand-design", activeBrandId] });
       toast({
         title: isSpanish ? "¡Activado!" : "Activated!",
         description: isSpanish
@@ -481,6 +485,7 @@ export default function BrandStudio() {
   // Save brand design
   const saveBrandDesignMutation = useMutation({
     mutationFn: async (designData: any) => {
+      if (!activeBrandId) throw new Error("No active brand");
       const response = await apiRequest(
         "POST",
         "/api/brand-design",
@@ -489,7 +494,7 @@ export default function BrandStudio() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/brand-design"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/brand-design", activeBrandId] });
       toast({
         title: isSpanish ? "¡Guardado!" : "Saved!",
         description: isSpanish
