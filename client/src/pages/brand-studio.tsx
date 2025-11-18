@@ -153,13 +153,13 @@ export default function BrandStudio() {
   const [accentColor2, setAccentColor2] = useState<string>("#1e40af"); // Default dark blue
   const [text1Color, setText1Color] = useState<string>("#333333"); // Default text1
   const [text2Color, setText2Color] = useState<string>("#666666"); // Default text2
-  
+
   // Optional additional colors (can be dynamically added)
   const [accentColor3, setAccentColor3] = useState<string | null>(null);
   const [accentColor4, setAccentColor4] = useState<string | null>(null);
   const [text3Color, setText3Color] = useState<string | null>(null);
   const [text4Color, setText4Color] = useState<string | null>(null);
-  
+
   // Control visibility of optional colors
   const [showAccentColor3, setShowAccentColor3] = useState(false);
   const [showAccentColor4, setShowAccentColor4] = useState(false);
@@ -198,11 +198,15 @@ export default function BrandStudio() {
   const [currentAssetUploadCategory, setCurrentAssetUploadCategory] =
     useState<string>(assetCategories[0].value); // Default category for new uploads
 
-  // Fetch brand design
   const { data: brandDesign, isLoading } = useQuery<BrandDesign>({
     queryKey: ["/api/brand-design", activeBrandId],
     enabled: !!activeBrandId,
     retry: false,
+    queryFn: async () => {
+      const res = await fetch(`/api/brand-design?brandId=${activeBrandId}`);
+      if (!res.ok) throw new Error("Failed to fetch brand design");
+      return res.json();
+    },
   });
 
   const {
@@ -349,7 +353,7 @@ export default function BrandStudio() {
             brandDesign.colorText2 ||
             "#666666",
         );
-        
+
         // Initialize optional colors if they exist
         if (brandDesign.colorAccent3) {
           setAccentColor3(brandDesign.colorAccent3);
@@ -472,7 +476,9 @@ export default function BrandStudio() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/brand-design", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/brand-design", activeBrandId],
+      });
       toast({
         title: isSpanish ? "¡Activado!" : "Activated!",
         description: isSpanish
@@ -488,13 +494,15 @@ export default function BrandStudio() {
       if (!activeBrandId) throw new Error("No active brand");
       const response = await apiRequest(
         "POST",
-        "/api/brand-design",
+        `/api/brand-design?brandId=${activeBrandId}`,
         designData,
       );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/brand-design", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/brand-design", activeBrandId],
+      });
       toast({
         title: isSpanish ? "¡Guardado!" : "Saved!",
         description: isSpanish
@@ -581,6 +589,7 @@ export default function BrandStudio() {
             assetType: asset.assetType,
           })),
         },
+        brandId: activeBrandId,
       };
 
       // Add optional colors (send null if removed to clear database)

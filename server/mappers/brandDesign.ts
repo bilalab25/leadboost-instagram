@@ -3,7 +3,7 @@ import { BrandDesign, InsertBrandDesign } from "@shared/schema";
 
 export function mapToDb(data: any): InsertBrandDesign {
   return {
-    userId: data.userId,
+    brandId: data.brandId,
     brandStyle: data.brandStyle,
     colorPrimary: data.colorPalette?.primary || null,
     colorAccent1: data.colorPalette?.accent1 || null,
@@ -25,7 +25,7 @@ export function mapToDb(data: any): InsertBrandDesign {
 
 export function mapPartialToDb(data: any): Partial<InsertBrandDesign> {
   const m: Partial<InsertBrandDesign> = {};
-  if (data.userId !== undefined) m.userId = data.userId;
+  if (data.brandId !== undefined) m.brandId = data.brandId;
   if (data.brandStyle !== undefined) m.brandStyle = data.brandStyle;
 
   if (data.colorPalette?.primary !== undefined)
