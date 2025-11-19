@@ -1610,75 +1610,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Social Posting Frequency routes
-  app.post("/api/posting-frequency", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandId = req.brandId;
-      const { schedules } = req.body;
+  app.post(
+    "/api/posting-frequency",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.brandId;
+        const { schedules } = req.body;
 
-      // Explicit validation for brandId
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
+        // Explicit validation for brandId
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        if (!schedules || !Array.isArray(schedules)) {
+          return res.status(400).json({ message: "Invalid schedules data" });
+        }
+
+        // Convert schedules to database format
+        const frequencies = schedules.map((schedule: any) => ({
+          userId,
+          brandId, // Ensure brandId is set for each frequency
+          platform: schedule.platform,
+          frequencyDays: schedule.postsPerWeek,
+          daysWeek: schedule.selectedDays,
+          source: "custom",
+          status: "accepted",
+          confidenceScore: null,
+          insightsData: null,
+        }));
+
+        // Save to database (with validation inside)
+        await storage.saveSocialPostingFrequencies(brandId, frequencies);
+
+        // Log activity
+        await storage.createActivityLog({
+          userId,
+          brandId,
+          action: "save_posting_frequency",
+          description: `Saved posting frequency for ${schedules.length} platforms`,
+          entityType: "posting_frequency",
+          entityId: brandId,
+        });
+
+        res.json({
+          success: true,
+          message: "Posting frequency saved successfully",
+        });
+      } catch (error) {
+        console.error("Error saving posting frequency:", error);
+        res.status(500).json({ message: "Failed to save posting frequency" });
       }
+    },
+  );
 
-      if (!schedules || !Array.isArray(schedules)) {
-        return res.status(400).json({ message: "Invalid schedules data" });
+  app.get(
+    "/api/posting-frequency",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+
+        // Explicit validation for brandId
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        const frequencies =
+          await storage.getSocialPostingFrequenciesByBrand(brandId);
+        res.json(frequencies);
+      } catch (error) {
+        console.error("Error fetching posting frequency:", error);
+        res.status(500).json({ message: "Failed to fetch posting frequency" });
       }
-
-      // Convert schedules to database format
-      const frequencies = schedules.map((schedule: any) => ({
-        userId,
-        brandId, // Ensure brandId is set for each frequency
-        platform: schedule.platform,
-        frequencyDays: schedule.postsPerWeek,
-        daysWeek: schedule.selectedDays,
-        source: "custom",
-        status: "accepted",
-        confidenceScore: null,
-        insightsData: null,
-      }));
-
-      // Save to database (with validation inside)
-      await storage.saveSocialPostingFrequencies(brandId, frequencies);
-
-      // Log activity
-      await storage.createActivityLog({
-        userId,
-        brandId,
-        action: "save_posting_frequency",
-        description: `Saved posting frequency for ${schedules.length} platforms`,
-        entityType: "posting_frequency",
-        entityId: brandId,
-      });
-
-      res.json({
-        success: true,
-        message: "Posting frequency saved successfully",
-      });
-    } catch (error) {
-      console.error("Error saving posting frequency:", error);
-      res.status(500).json({ message: "Failed to save posting frequency" });
-    }
-  });
-
-  app.get("/api/posting-frequency", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandId;
-
-      // Explicit validation for brandId
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
-      }
-
-      const frequencies =
-        await storage.getSocialPostingFrequenciesByBrand(brandId);
-      res.json(frequencies);
-    } catch (error) {
-      console.error("Error fetching posting frequency:", error);
-      res.status(500).json({ message: "Failed to fetch posting frequency" });
-    }
-  });
+    },
+  );
 
   // Get AI-powered posting frequency suggestions (using Graph API directly)
   app.post(
@@ -2633,9 +2645,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // **Los scopes necesarios para gestionar WhatsApp Business (WABA)**
       const whatsapp_scopes = [
-        "whatsapp_business_management", // Para crear y gestionar WABA
-        "whatsapp_business_messaging", // Para enviar y recibir mensajes
-        "business_management", // Para interactuar con Meta Business Accounts
+        "whatsapp_business_management",
+        "whatsapp_business_messaging",
+        "business_management",
         "pages_show_list",
       ].join(",");
 
@@ -2648,7 +2660,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // URL base del Embedded Signup
       const embeddedSignupUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri,
-      )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=${process.env.WHATSAPP_CONFIG_ID}`;
+      )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=1846416285966221&auth_type=rerequest`;
+
       // ^^^ El 'config_id' es CRUCIAL.
 
       console.log("🟢 WhatsApp Embedded Signup URL:", embeddedSignupUrl);
@@ -2661,15 +2674,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code, state } = req.query;
       if (!code) return res.status(400).send("Missing code");
 
-      // Parse state to extract userId and brandId
-      let userId, brandId;
+      // 0️⃣ State: recuperar userId y brandId
+      let userId: string | undefined;
+      let brandId: string | undefined;
+
       try {
         const parsedState = JSON.parse(decodeURIComponent(state as string));
         userId = parsedState.userId;
         brandId = parsedState.brandId;
       } catch {
-        // Fallback for old state format (just userId)
-        userId = state || req.user?.id;
+        // Fallback legacy: state era solo userId
+        userId = (state as string) || (req as any).user?.id;
       }
 
       if (!userId) return res.status(401).send("User not authenticated");
@@ -2677,44 +2692,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/whatsapp/callback`;
 
-      // 1️⃣ Intercambiar el código por el Token de Usuario
+      // 1️⃣ Intercambiar el code por el access_token (token de Embedded Signup)
       const tokenResponse = await fetch(
-        `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${encodeURIComponent(
+        `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${
+          process.env.FB_APP_ID
+        }&redirect_uri=${encodeURIComponent(
           redirect_uri,
         )}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`,
       );
       const tokenData = await tokenResponse.json();
 
-      if (tokenData.error) throw new Error(tokenData.error.message);
+      if (tokenData.error) {
+        console.error("❌ Error exchanging code:", tokenData.error);
+        throw new Error(tokenData.error.message || "Error exchanging code");
+      }
 
-      const userAccessToken = tokenData.access_token;
+      const userAccessToken = tokenData.access_token as string;
+      console.log("✅ Token exchange OK");
 
-      // 2️⃣ Obtener el ID de la cuenta de negocio de WhatsApp (WABA ID)
-      // La información del WABA se obtiene del user ID si el usuario ha completado el Embedded Signup.
-      const businessAccountResponse = await fetch(
-        `https://graph.facebook.com/v24.0/me?fields=whatsapp_business_account&access_token=${userAccessToken}`,
+      // 2️⃣ Usar debug_token para sacar WABA ID (Embedded Signup way)
+      const debugRes = await fetch(
+        `https://graph.facebook.com/v24.0/debug_token?input_token=${userAccessToken}&access_token=${process.env.FB_APP_ID}|${process.env.FB_APP_SECRET}`,
       );
-      const businessAccountData = await businessAccountResponse.json();
+      const debugData = await debugRes.json();
+      console.log("🔍 Debug token:", JSON.stringify(debugData, null, 2));
 
-      const wabaId = businessAccountData.whatsapp_business_account?.id;
+      if (debugData.error) {
+        console.error("❌ debug_token error:", debugData.error);
+        throw new Error(debugData.error.message || "Error in debug_token");
+      }
+
+      const granularScopes = debugData.data?.granular_scopes ?? [];
+
+      let wabaId: string | null = null;
+      let businessId: string | null = null;
+
+      for (const scopeInfo of granularScopes) {
+        const scope = scopeInfo.scope;
+        const targets = Array.isArray(scopeInfo.target_ids)
+          ? scopeInfo.target_ids
+          : [];
+
+        // Según la doc de Embedded Signup, los scopes de WhatsApp traen como target_ids
+        // los IDs relevantes (WABA y/o Business). :contentReference[oaicite:1]{index=1}
+        if (
+          !wabaId &&
+          (scope === "whatsapp_business_management" ||
+            scope === "whatsapp_business_messaging") &&
+          targets.length > 0
+        ) {
+          wabaId = targets[0]; // primer WABA compartido
+        }
+
+        if (
+          !businessId &&
+          scope === "business_management" &&
+          targets.length > 0
+        ) {
+          businessId = targets[0]; // Business Manager ID asociado
+        }
+      }
+
+      console.log("📌 Parsed from granular_scopes →", { wabaId, businessId });
+
+      // 3️⃣ Fallback opcional (por si algún día cambian granular_scopes)
+      //    Dejé tu intento por /me y /me/businesses como backup, pero ya no es el camino principal.
+      if (!wabaId) {
+        console.warn(
+          "⚠️ WABA ID not found in granular_scopes. Trying legacy fallbacks (/me, /me/businesses)...",
+        );
+
+        try {
+          const directRes = await fetch(
+            `https://graph.facebook.com/v24.0/me?fields=whatsapp_business_account&access_token=${userAccessToken}`,
+          );
+          const directData = await directRes.json();
+          console.log("Legacy /me WABA data:", directData);
+
+          wabaId = directData.whatsapp_business_account?.id || null;
+        } catch (e) {
+          console.warn("Legacy /me WABA check failed:", e);
+        }
+
+        if (!wabaId) {
+          try {
+            const businessAccountsRes = await fetch(
+              `https://graph.facebook.com/v24.0/me/businesses?fields=id,name&access_token=${userAccessToken}`,
+            );
+            const businessAccountsData = await businessAccountsRes.json();
+            console.log("Legacy /me/businesses:", businessAccountsData);
+
+            const businessAccount = businessAccountsData.data?.[0];
+
+            if (businessAccount?.id) {
+              const wabaRes = await fetch(
+                `https://graph.facebook.com/v24.0/${businessAccount.id}/owned_whatsapp_business_accounts?access_token=${userAccessToken}`,
+              );
+              const wabaData = await wabaRes.json();
+              console.log("Legacy owned_whatsapp_business_accounts:", wabaData);
+
+              wabaId = wabaData.data?.[0]?.id || null;
+            }
+          } catch (e) {
+            console.error("Legacy /me/businesses fallback failed:", e);
+          }
+        }
+      }
 
       if (!wabaId) {
-        console.error("❌ WABA ID not found after Embedded Signup.");
+        console.error(
+          "❌ FINAL ERROR: WABA ID could not be found via granular_scopes or fallbacks.",
+        );
         return res
           .status(400)
           .send("WhatsApp Business Account not linked or created.");
       }
 
-      console.log(`🟢 WABA ID successfully linked: ${wabaId}`);
+      console.log(`🟢 Final WABA ID: ${wabaId}`);
+      if (businessId) {
+        console.log(`🟢 Business ID (from debug_token): ${businessId}`);
+      }
 
-      // 3️⃣ (Opcional pero recomendado) Obtener el número de teléfono asociado
+      // 4️⃣ Obtener el número de teléfono asociado al WABA
       const phoneNumbersRes = await fetch(
         `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?access_token=${userAccessToken}`,
       );
       const phoneData = await phoneNumbersRes.json();
-      const phoneNumber = phoneData.data?.[0]; // Obtener el primer número de teléfono
+      console.log("📞 Phone numbers data:", phoneData);
 
-      // 4️⃣ Guardar la integración
+      const phoneNumber = phoneData.data?.[0] || null;
+
+      // 5️⃣ Guardar la integración en tu storage
       await storage.createOrUpdateIntegration({
         userId,
         brandId,
@@ -2725,10 +2833,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? `https://wa.me/${phoneNumber.display_phone_number.replace(/\D/g, "")}`
           : null,
         accountId: wabaId,
-        accessToken: userAccessToken, // Guardar el token de usuario (o mejor, intercambiarlo por uno de larga duración si es necesario)
+        accessToken: userAccessToken,
         accountName: phoneNumber?.display_phone_number || `WABA ${wabaId}`,
         metadata: {
-          wabaId: wabaId,
+          wabaId,
+          businessId,
           phoneNumberId: phoneNumber?.id,
           phoneNumber: phoneNumber?.display_phone_number,
         },
@@ -2736,11 +2845,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         syncEnabled: true,
       });
 
-      console.log(`✅ WhatsApp connected: ${wabaId}`);
+      console.log(`✅ WhatsApp connected for brand ${brandId}: ${wabaId}`);
       res.redirect(`/settings?connected=whatsapp`);
-    } catch (err) {
-      console.error("❌ WhatsApp callback error:", err.message);
-      res.status(500).send("Error in WhatsApp callback");
+    } catch (err: any) {
+      console.error("❌ WhatsApp callback error:", err.message || err);
+      res
+        .status(500)
+        .send(`Error in WhatsApp callback: ${err.message || "Unknown error"}`);
     }
   });
 
@@ -5452,53 +5563,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Brand Design routes
-  app.get("/api/brand-design", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandId;
-      const brandDesign = await storage.getBrandDesignByBrandId(brandId);
+  app.get(
+    "/api/brand-design",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const brandDesign = await storage.getBrandDesignByBrandId(brandId);
 
-      if (!brandDesign) {
-        // Return default structure if no brand design exists
-        return res.json({
-          isCanvaConnected: false,
-          brandStyle: null,
-          colorPalette: null,
-          typography: null,
-          logoUrl: null,
-        });
+        if (!brandDesign) {
+          // Return default structure if no brand design exists
+          return res.json({
+            isCanvaConnected: false,
+            brandStyle: null,
+            colorPalette: null,
+            typography: null,
+            logoUrl: null,
+          });
+        }
+
+        res.json(brandDesign);
+      } catch (error) {
+        console.error("Error fetching brand design:", error);
+        res.status(500).json({ message: "Failed to fetch brand design" });
       }
+    },
+  );
 
-      res.json(brandDesign);
-    } catch (error) {
-      console.error("Error fetching brand design:", error);
-      res.status(500).json({ message: "Failed to fetch brand design" });
-    }
-  });
+  app.post(
+    "/api/brand-design",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const designData = { ...req.body, brandId };
+        console.log("REQ BODY DESIGN DATA:", JSON.stringify(req.body, null, 2));
 
-  app.post("/api/brand-design", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandId;
-      const designData = { ...req.body, brandId };
-      console.log("REQ BODY DESIGN DATA:", JSON.stringify(req.body, null, 2));
+        const existingDesign = await storage.getBrandDesignByBrandId(brandId);
 
-      const existingDesign = await storage.getBrandDesignByBrandId(brandId);
-
-      if (existingDesign) {
-        const updated = await storage.updateBrandDesign(
-          existingDesign.id,
-          brandId,
-          designData,
-        );
-        res.json(updated);
-      } else {
-        const newDesign = await storage.createBrandDesign(designData);
-        res.json(newDesign);
+        if (existingDesign) {
+          const updated = await storage.updateBrandDesign(
+            existingDesign.id,
+            brandId,
+            designData,
+          );
+          res.json(updated);
+        } else {
+          const newDesign = await storage.createBrandDesign(designData);
+          res.json(newDesign);
+        }
+      } catch (error) {
+        console.error("Error saving brand design:", error);
+        res.status(500).json({ message: "Failed to save brand design" });
       }
-    } catch (error) {
-      console.error("Error saving brand design:", error);
-      res.status(500).json({ message: "Failed to save brand design" });
-    }
-  });
+    },
+  );
 
   // utils/cloudinaryPublicId.ts
   function extractPublicIdFromUrl(url: string): string | null {
@@ -5688,68 +5809,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Upload de un asset
-  app.post("/api/brand-assets", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandId;
-      const { brandDesignId, url, name, category, assetType, publicId } =
-        req.body;
-      console.log("📥 BODY recibido:", req.body);
-      if (!brandDesignId || !url || !name) {
-        return res.status(400).json({ error: "Missing required fields" });
+  app.post(
+    "/api/brand-assets",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const { brandDesignId, url, name, category, assetType, publicId } =
+          req.body;
+        console.log("📥 BODY recibido:", req.body);
+        if (!brandDesignId || !url || !name) {
+          return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // Verify the brand design belongs to this brand
+        const brandDesign = await storage.getBrandDesignByBrandId(brandId);
+        if (!brandDesign || brandDesign.id !== brandDesignId) {
+          return res.status(403).json({ error: "Unauthorized" });
+        }
+
+        const newAsset = await storage.createBrandAsset({
+          brandDesignId,
+          url,
+          name,
+          category,
+          assetType,
+          publicId,
+        });
+        console.log("✅ Insertado en DB:", newAsset);
+        res.json(newAsset);
+      } catch (error) {
+        console.error("Error uploading asset:", error);
+        res.status(500).json({ message: "Failed to upload asset" });
       }
-      
-      // Verify the brand design belongs to this brand
-      const brandDesign = await storage.getBrandDesignByBrandId(brandId);
-      if (!brandDesign || brandDesign.id !== brandDesignId) {
-        return res.status(403).json({ error: "Unauthorized" });
-      }
-      
-      const newAsset = await storage.createBrandAsset({
-        brandDesignId,
-        url,
-        name,
-        category,
-        assetType,
-        publicId,
-      });
-      console.log("✅ Insertado en DB:", newAsset);
-      res.json(newAsset);
-    } catch (error) {
-      console.error("Error uploading asset:", error);
-      res.status(500).json({ message: "Failed to upload asset" });
-    }
-  });
+    },
+  );
 
   // GET /api/brand-assets?brandDesignId=<uuid>
-  app.get("/api/brand-assets", isAuthenticated, requireBrand, async (req: any, res) => {
-    try {
-      const brandId = req.brandId;
-      console.log("🛣ch�  GET /api/brand-assets");
-      console.log("🧭  req.query:", req.query, "req.params:", req.params);
-      const { brandDesignId } = req.query;
-      if (!brandDesignId) {
-        return res.status(400).json({ message: "brandDesignId is required" });
+  app.get(
+    "/api/brand-assets",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        console.log("🛣ch�  GET /api/brand-assets");
+        console.log("🧭  req.query:", req.query, "req.params:", req.params);
+        const { brandDesignId } = req.query;
+        if (!brandDesignId) {
+          return res.status(400).json({ message: "brandDesignId is required" });
+        }
+
+        // Verify the brand design belongs to this brand
+        const brandDesign = await storage.getBrandDesignByBrandId(brandId);
+        if (!brandDesign || brandDesign.id !== brandDesignId) {
+          return res.status(403).json({ error: "Unauthorized" });
+        }
+
+        const assets = await storage.getAssetsByBrandDesignId(
+          String(brandDesignId),
+        );
+        console.log(
+          `📦 ${assets.length} asset(s) encontrados para`,
+          brandDesignId,
+        );
+        res.json(assets);
+      } catch (error) {
+        console.error("Error fetching brand assets:", error);
+        res.status(500).json({ message: "Failed to fetch brand assets" });
       }
-      
-      // Verify the brand design belongs to this brand
-      const brandDesign = await storage.getBrandDesignByBrandId(brandId);
-      if (!brandDesign || brandDesign.id !== brandDesignId) {
-        return res.status(403).json({ error: "Unauthorized" });
-      }
-      
-      const assets = await storage.getAssetsByBrandDesignId(
-        String(brandDesignId),
-      );
-      console.log(
-        `📦 ${assets.length} asset(s) encontrados para`,
-        brandDesignId,
-      );
-      res.json(assets);
-    } catch (error) {
-      console.error("Error fetching brand assets:", error);
-      res.status(500).json({ message: "Failed to fetch brand assets" });
-    }
-  });
+    },
+  );
 
   // DELETE /api/brand-assets/:id
   app.delete(
