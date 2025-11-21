@@ -27,6 +27,7 @@ import {
   campaignDesigns,
   integrations,
   socialPostingFrequency,
+  conversationHistory,
   // Asegúrate de que estos tipos en @shared/schema incluyan firebaseUid y hagan password, email, firstName, lastName opcionales/nullable
   type User,
   type UpsertUser, // Asumo que UpsertUser es para operaciones de upsert, no para updateUser
@@ -86,6 +87,8 @@ import {
   type Integration,
   type InsertSocialPostingFrequency,
   type SocialPostingFrequency,
+  type InsertConversationHistory,
+  type ConversationHistory,
 } from "@shared/schema";
 import { db } from "./db";
 import {
@@ -2098,6 +2101,46 @@ export class DatabaseStorage implements IStorage {
       .from(socialPostingFrequency)
       .where(eq(socialPostingFrequency.brandId, brandId))
       .orderBy(desc(socialPostingFrequency.createdAt));
+  }
+
+  // Conversation History operations
+  async saveConversationHistory(
+    data: InsertConversationHistory,
+  ): Promise<ConversationHistory> {
+    if (!data.brandId) {
+      throw new Error("brandId is required to save conversation history");
+    }
+    if (!data.userId) {
+      throw new Error("userId is required to save conversation history");
+    }
+
+    const [result] = await db
+      .insert(conversationHistory)
+      .values(data)
+      .returning();
+    return result;
+  }
+
+  async getConversationHistoryByBrand(
+    brandId: string,
+    limit: number = 100,
+  ): Promise<ConversationHistory[]> {
+    if (!brandId) {
+      throw new Error("brandId is required to fetch conversation history");
+    }
+    return await db
+      .select()
+      .from(conversationHistory)
+      .where(eq(conversationHistory.brandId, brandId))
+      .orderBy(desc(conversationHistory.createdAt))
+      .limit(limit);
+  }
+
+  async deleteConversationHistory(id: string): Promise<void> {
+    await db
+      .delete(conversationHistory)
+      .where(eq(conversationHistory.id, id))
+      .execute();
   }
 
   // Brand Membership operations
