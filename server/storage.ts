@@ -2136,10 +2136,23 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async deleteConversationHistory(id: string): Promise<void> {
+  async deleteConversationHistory(id: string, brandId: string): Promise<void> {
+    if (!id) {
+      throw new Error("id is required to delete conversation history");
+    }
+    if (!brandId) {
+      throw new Error("brandId is required to delete conversation history");
+    }
+    
+    // Delete only if both id and brandId match (prevents cross-tenant deletion)
     await db
       .delete(conversationHistory)
-      .where(eq(conversationHistory.id, id))
+      .where(
+        and(
+          eq(conversationHistory.id, id),
+          eq(conversationHistory.brandId, brandId)
+        )
+      )
       .execute();
   }
 

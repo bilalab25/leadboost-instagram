@@ -1978,9 +1978,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete(
     "/api/conversation-history/:id",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
         const { id } = req.params;
+        const brandId = req.brandId;
+
+        // Explicit validation for brandId
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
 
         if (!id) {
           return res
@@ -1988,7 +1995,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ message: "Conversation history ID is required" });
         }
 
-        await storage.deleteConversationHistory(id);
+        // Delete with brand validation to prevent cross-tenant deletion
+        await storage.deleteConversationHistory(id, brandId);
         res.json({
           success: true,
           message: "Conversation history deleted successfully",
