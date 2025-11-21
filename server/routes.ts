@@ -1895,6 +1895,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Conversation History routes
+  app.post(
+    "/api/conversation-history",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.brandId;
+        const { role, contentType, content, metadata } = req.body;
+
+        // Explicit validation for brandId
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        // Validate required fields
+        if (!role || !contentType || !content) {
+          return res.status(400).json({
+            message: "role, contentType, and content are required",
+          });
+        }
+
+        // Save conversation history
+        const historyEntry = await storage.saveConversationHistory({
+          brandId,
+          userId,
+          role,
+          contentType,
+          content,
+          metadata,
+        });
+
+        res.json({
+          success: true,
+          message: "Conversation history saved successfully",
+          data: historyEntry,
+        });
+      } catch (error) {
+        console.error("Error saving conversation history:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to save conversation history" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/conversation-history",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const limit = req.query.limit
+          ? parseInt(req.query.limit as string)
+          : 100;
+
+        // Explicit validation for brandId
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        const history = await storage.getConversationHistoryByBrand(
+          brandId,
+          limit,
+        );
+        res.json(history);
+      } catch (error) {
+        console.error("Error fetching conversation history:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch conversation history" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/conversation-history/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+
+        if (!id) {
+          return res
+            .status(400)
+            .json({ message: "Conversation history ID is required" });
+        }
+
+        await storage.deleteConversationHistory(id);
+        res.json({
+          success: true,
+          message: "Conversation history deleted successfully",
+        });
+      } catch (error) {
+        console.error("Error deleting conversation history:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to delete conversation history" });
+      }
+    },
+  );
+
   // Campaigns routes
   app.get(
     "/api/campaigns",
