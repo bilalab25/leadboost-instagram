@@ -275,6 +275,32 @@ export const messageAttachments = pgTable("message_attachments", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Conversation history between user and AI agent
+export const conversationHistory = pgTable(
+  "conversation_history",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: varchar("role").notNull(), // "user" or "agent"
+    contentType: varchar("content_type").notNull(), // "text" or "image"
+    content: text("content").notNull(), // Message text or image URL
+    metadata: jsonb("metadata"), // Additional data (image dimensions, etc.)
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("conversation_history_brand_idx").on(table.brandId),
+    index("conversation_history_user_idx").on(table.userId),
+    index("conversation_history_created_idx").on(table.createdAt),
+  ],
+);
+
 // AI-generated content plans per brand
 export const contentPlans = pgTable("content_plans", {
   id: uuid("id")
@@ -1517,3 +1543,16 @@ export type InsertSocialPostingFrequency = z.infer<
   typeof insertSocialPostingFrequencySchema
 >;
 export type SocialPostingFrequency = typeof socialPostingFrequency.$inferSelect;
+
+// Conversation History schemas
+export const insertConversationHistorySchema = createInsertSchema(
+  conversationHistory,
+).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertConversationHistory = z.infer<
+  typeof insertConversationHistorySchema
+>;
+export type ConversationHistory = typeof conversationHistory.$inferSelect;
