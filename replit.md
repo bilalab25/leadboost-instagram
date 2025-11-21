@@ -91,6 +91,14 @@ Key features include:
   - **Frontend**: PostingFrequencyModal uses useBrand hook with brand-scoped React Query keys
   - **Data Integrity**: New records MUST have brandId (enforced by runtime validation), legacy records remain isolated
   - **AI Suggestions**: Integrated with n8n for AI-powered posting frequency recommendations based on Meta engagement data
+- **Conversation History** (Brand-Based):
+  - **Database Schema**: conversation_history table with uuid primary key and brandId/userId foreign keys
+  - **Fields**: role (user/agent), contentType (text/image), content (message or image URL), metadata (JSON)
+  - **Indexes**: Optimized with indexes on brandId, userId, and createdAt for efficient queries
+  - **Storage Layer**: saveConversationHistory, getConversationHistoryByBrand, deleteConversationHistory methods
+  - **API Routes**: POST/GET/DELETE /api/conversation-history with requireBrand middleware
+  - **Security**: Multi-layer validation prevents cross-tenant data access - DELETE enforces both id AND brandId match
+  - **Data Retrieval**: Configurable limit parameter (default 100) for conversation history pagination
 - 30-Day Planner with brand-specific AI-suggested posting frequency scheduler
 
 ## User Preferences
