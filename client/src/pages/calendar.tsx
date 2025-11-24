@@ -94,6 +94,7 @@ export default function ContentCalendar() {
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
   const [suggestedPosts, setSuggestedPosts] = useState<ContentPost[]>([]);
   const [showGeneratingLoader, setShowGeneratingLoader] = useState(false);
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
 
   // Helper function to convert day name to dates in current month
   const getDatesForDayOfWeek = (dayName: string): Date[] => {
@@ -159,72 +160,85 @@ export default function ContentCalendar() {
     return posts;
   };
 
+  // Polling query for job status
+  const jobStatusQuery = useQuery({
+    queryKey: ["/api/post-generator/jobs", currentJobId],
+    queryFn: async () => {
+      if (!currentJobId) return null;
+      const response = await fetch(`/api/post-generator/jobs/${currentJobId}`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch job status");
+      return response.json();
+    },
+    refetchInterval: currentJobId ? 2000 : false, // Poll every 2 seconds when jobId exists
+    enabled: !!currentJobId,
+  });
+
+  // Effect to handle job completion
+  useEffect(() => {
+    const job = jobStatusQuery.data;
+    if (!job || !currentJobId) return;
+
+    if (job.status === "completed" && job.result) {
+      setShowGeneratingLoader(false);
+      const newPosts = parseWebhookResponse(job.result);
+      setSuggestedPosts(newPosts);
+      setAiSuggestions(job);
+
+      toast({
+        title: `✨ AI Generated ${newPosts.length} Suggestions!`,
+        description: `${newPosts.length} posts ready for your approval across ${new Set(newPosts.map(p => p.platform)).size} platforms.`,
+      });
+
+      setCurrentJobId(null); // Stop polling
+    } else if (job.status === "failed") {
+      setShowGeneratingLoader(false);
+      toast({
+        title: "Generation Failed",
+        description: job.error || "Failed to generate post suggestions",
+        variant: "destructive",
+      });
+      setCurrentJobId(null);
+    }
+  }, [jobStatusQuery.data, currentJobId]);
+
   // AI Post Generator Mutation
   const generatePostsMutation = useMutation({
     mutationFn: async () => {
       if (!activeBrandId) {
         throw new Error("No brand selected");
       }
-      const controller = new AbortController();
-      // 12 minute timeout for webhook processing
-      const timeoutId = setTimeout(() => controller.abort(), 12 * 60 * 1000);
-      
-      try {
-        const response = await fetch(`/api/post-generator/${activeBrandId}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          const text = (await response.text()) || response.statusText;
-          throw new Error(`${response.status}: ${text}`);
-        }
-        
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
+
+      const response = await fetch(`/api/post-generator/${activeBrandId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const text = (await response.text()) || response.statusText;
+        throw new Error(`${response.status}: ${text}`);
       }
+
+      const data = await response.json();
+      return data;
     },
     onMutate: () => {
       setShowGeneratingLoader(true);
     },
     onSuccess: (data) => {
-      setShowGeneratingLoader(false);
-      setAiSuggestions(data);
-      
-      // Parse the webhook response if it exists
-      const webhookResponse = data?.webhook_response;
-      if (webhookResponse && Array.isArray(webhookResponse)) {
-        const newPosts = parseWebhookResponse(webhookResponse);
-        setSuggestedPosts(newPosts);
-        
-        toast({
-          title: `✨ AI Generated ${newPosts.length} Suggestions!`,
-          description: `${newPosts.length} posts ready for your approval across ${new Set(newPosts.map(p => p.platform)).size} platforms.`,
-        });
-      } else {
-        toast({
-          title: "AI Suggestions Generated! ✨",
-          description: "Your AI-powered posting schedule has been sent for analysis.",
-        });
+      // Start polling with the jobId
+      if (data.jobId) {
+        setCurrentJobId(data.jobId);
+        console.log("Job started with ID:", data.jobId);
       }
-      console.log("AI Post Generation Response:", data);
     },
     onError: (error: any) => {
       setShowGeneratingLoader(false);
-      // Don't show error for abort/timeout errors
-      if (error.name === "AbortError" || error.message.includes("timeout")) {
-        console.log("Request timeout or cancelled");
-        return;
-      }
       toast({
         title: "Generation Failed",
-        description: error.message || "Failed to generate post suggestions",
+        description: error.message || "Failed to start post generation",
         variant: "destructive",
       });
     },
