@@ -1660,6 +1660,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(brandAssets.createdAt));
   }
 
+  // Obtener assets por brandId (via brandDesign)
+  async getAssetsByBrandId(brandId: string): Promise<BrandAsset[]> {
+    // First get the brand design for this brand
+    const design = await this.getBrandDesignByBrandId(brandId);
+    if (!design || !design.id) {
+      return [];
+    }
+    
+    // Then get all assets for that design
+    return this.getAssetsByBrandDesignId(design.id);
+  }
+
   // Eliminar asset
   async deleteBrandAsset(
     id: string,

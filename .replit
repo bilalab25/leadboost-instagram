@@ -100,3 +100,8 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_log_in_with_replit:1.0.0", "javascript_database:1.0.0", "javascript_openai:1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+N8N_POST_GENERATOR_WEBHOOK_URL = "https://leadboostinc.app.n8n.cloud/webhook-test/Post-Generator"

@@ -2010,6 +2010,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Post Generator - Send brand data to n8n webhook
+  app.post(
+    "/api/post-generator/:brandId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        // Fetch all necessary data from database
+        const brand = await storage.getBrandById(brandId, userId);
+        if (!brand) {
+          return res.status(404).json({ message: "Brand not found" });
+        }
+
+        const brandDesign = await storage.getBrandDesignByBrandId(brandId);
+        const brandAssets = await storage.getAssetsByBrandId(brandId);
+        const contentPlans = await storage.getContentPlansByBrandId(brandId);
+        const postingFrequencies =
+          await storage.getSocialPostingFrequenciesByBrand(brandId);
+
+        // Build insights array from contentPlans and posting frequencies
+        const insights: any[] = [];
+
+        // Add insights from content plans
+        contentPlans.forEach((plan) => {
+          if (plan.insights) {
+            insights.push({
+              source: "content_plan",
+              title: plan.title,
+              month: plan.month,
+              year: plan.year,
+              data: plan.insights,
+            });
+          }
+        });
+
+        // Add insights from posting frequencies
+        postingFrequencies.forEach((freq) => {
+          if (freq.insightsData) {
+            insights.push({
+              source: "posting_frequency",
+              platform: freq.platform,
+              frequency_days: freq.frequencyDays,
+              days_week: freq.daysWeek,
+              confidence_score: freq.confidenceScore,
+              data: freq.insightsData,
+            });
+          }
+        });
+
+        // Build brand_assets array
+        const brand_assets = brandAssets.map((asset) => ({
+          id: asset.id,
+          url: asset.url,
+          name: asset.name,
+          category: asset.category,
+          asset_type: asset.assetType,
+        }));
+
+        // Build brand_design array (single object in array)
+        const brand_design = brandDesign
+          ? [
+              {
+                brand_style: brandDesign.brandStyle,
+                color_primary: brandDesign.colorPrimary,
+                color_accent1: brandDesign.colorAccent1,
+                color_accent2: brandDesign.colorAccent2,
+                color_accent3: brandDesign.colorAccent3,
+                color_accent4: brandDesign.colorAccent4,
+                color_text1: brandDesign.colorText1,
+                color_text2: brandDesign.colorText2,
+                color_text3: brandDesign.colorText3,
+                color_text4: brandDesign.colorText4,
+                font_primary: brandDesign.fontPrimary,
+                font_secondary: brandDesign.fontSecondary,
+                logo_url: brandDesign.logoUrl,
+                logo_primary_url: brandDesign.logoPrimaryUrl,
+                logo_secondary_url: brandDesign.logoSecondaryUrl,
+                logo_icon_url: brandDesign.logoIconUrl,
+              },
+            ]
+          : [];
+
+        // Build the exact JSON structure required by n8n webhook
+        const webhookPayload = {
+          nombre_brand: brand.name,
+          brand_description: brand.description || "",
+          Insights: insights,
+          Brand_assets: brand_assets,
+          Brand_design: brand_design,
+        };
+
+        // Get webhook URL from environment variable
+        const webhookUrl = process.env.N8N_POST_GENERATOR_WEBHOOK_URL;
+        if (!webhookUrl) {
+          return res.status(500).json({
+            message:
+              "Webhook URL not configured. Please set N8N_POST_GENERATOR_WEBHOOK_URL environment variable.",
+          });
+        }
+
+        console.log(
+          `[Post Generator] Sending data to n8n webhook for brand: ${brand.name}`,
+        );
+        console.log(
+          `[Post Generator] Payload:`,
+          JSON.stringify(webhookPayload, null, 2),
+        );
+
+        // Send POST request to n8n webhook
+        const webhookResponse = await fetch(webhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(webhookPayload),
+        });
+
+        if (!webhookResponse.ok) {
+          const errorText = await webhookResponse.text();
+          console.error(`[Post Generator] Webhook error:`, errorText);
+          return res.status(webhookResponse.status).json({
+            message: "Failed to send data to n8n webhook",
+            error: errorText,
+          });
+        }
+
+        const webhookResult = await webhookResponse.json();
+        console.log(
+          `[Post Generator] Webhook response:`,
+          JSON.stringify(webhookResult, null, 2),
+        );
+
+        // Return success response with webhook result
+        res.json({
+          success: true,
+          message: "Data sent to n8n webhook successfully",
+          webhook_response: webhookResult,
+          payload: webhookPayload,
+        });
+      } catch (error) {
+        console.error("[Post Generator] Error:", error);
+        res.status(500).json({
+          message: "Failed to process post generator request",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
   // Campaigns routes
   app.get(
     "/api/campaigns",
