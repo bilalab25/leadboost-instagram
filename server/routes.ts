@@ -2198,10 +2198,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { getPostGeneratorJob, updatePostGeneratorJob } = await import(
         "./storage/postGeneratorJobs"
       );
+      const { createAiGeneratedPost } = await import("./storage/aiGeneratedPosts");
 
       const job = await getPostGeneratorJob(jobId);
       if (!job) {
         return res.status(404).json({ message: "Job not found" });
+      }
+
+      // If result contains posts, save them
+      if (result && Array.isArray(result)) {
+        for (const platformData of result) {
+          const platform = platformData.platform;
+          const publicaciones = platformData.publicaciones || [];
+
+          for (const pub of publicaciones) {
+            await createAiGeneratedPost({
+              jobId,
+              brandId: job.brandId,
+              platform,
+              titulo: pub.titulo,
+              content: pub.copy,
+              imageUrl: pub.imagen_url,
+              cloudinaryPublicId: pub.cloudinary_public_id,
+              dia: pub.dia || "monday",
+              hashtags: pub.hashtags,
+              status: "pending",
+            });
+          }
+        }
       }
 
       await updatePostGeneratorJob(jobId, {
@@ -2220,6 +2244,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Update AI Generated Post Status
+  app.patch(
+    "/api/ai-posts/:postId/status",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { postId } = req.params;
+        const { status } = req.body;
+        const brandId = req.brandId;
+
+        if (!status || !["accepted", "rejected"].includes(status)) {
+          return res.status(400).json({ message: "Invalid status" });
+        }
+
+        const { updateAiGeneratedPostStatus } = await import("./storage/aiGeneratedPosts");
+
+        const updated = await updateAiGeneratedPostStatus(postId, status);
+        if (!updated || updated.brandId !== brandId) {
+          return res.status(404).json({ message: "Post not found" });
+        }
+
+        res.json(updated);
+      } catch (error) {
+        console.error("[AI Posts] Error:", error);
+        res.status(500).json({
+          message: "Failed to update post status",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
+  // Get AI Generated Posts for brand (with optional status filter)
+  app.get(
+    "/api/ai-posts",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const { status } = req.query;
+
+        const { getAiGeneratedPostsByBrand } = await import("./storage/aiGeneratedPosts");
+
+        const posts = await getAiGeneratedPostsByBrand(brandId, status);
+        res.json(posts);
+      } catch (error) {
+        console.error("[AI Posts] Error:", error);
+        res.status(500).json({
+          message: "Failed to fetch AI posts",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
 
   // Get Post Generator Job Status
   app.get("/api/post-generator/jobs/:jobId", isAuthenticated, async (req: any, res) => {

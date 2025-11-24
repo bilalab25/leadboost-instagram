@@ -1,0 +1,156 @@
+[
+  {
+    "platform": "instagram",
+    "publicaciones": [
+      {
+        "titulo": "El Rey del Sabor",
+        "copy": "Nuestra creación más audaz, lista para conquistar tu paladar. ¡Sabor que impacta!",
+        "tipo_imagen": "Primer plano de un uramaki explosivo con salsa roja (#ff2600) en un plato negro, con iluminación dramática.",
+        "dia": "sunday",
+        "hashtags": "#107Sushi #SushiBold #SaborIntenso #DomingoDeSushi #ComidaJaponesa",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011159/hapw25o3thgq9gmksyta.png",
+        "cloudinary_public_id": "hapw25o3thgq9gmksyta"
+      },
+      {
+        "titulo": "Frescura Sin Concesiones",
+        "copy": "La calidad empieza aquí. Ingredientes premium para un sabor inigualable.",
+        "tipo_imagen": "Composición audaz de pescado fresco y vibrante (atún, salmón) sobre hielo, con toques de amarillo (#ffd478).",
+        "dia": "wednesday",
+        "hashtags": "#IngredientesFrescos #Calidad107 #SashimiPerfecto #DelMarATuMesa #SushiLover",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011161/zej8xqi5vlmyq9n1nirh.png",
+        "cloudinary_public_id": "zej8xqi5vlmyq9n1nirh"
+      },
+      {
+        "titulo": "Tu Noche, Nuestro Sabor",
+        "copy": "Prepara el fin de semana con la experiencia 107. ¡Reserva tu mesa ahora!",
+        "tipo_imagen": "Ambiente del restaurante con luces cálidas y siluetas de clientes disfrutando, enfocado en una mesa con platos de sushi y un toque de rojo (#ff2600) en la decoración.",
+        "dia": "friday",
+        "hashtags": "#NocheDeSushi #ViernesDeSabor #Experiencia107 #CenaJaponesa #PlanDeFinDeSemana",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011162/kkko3unzop5ibhq4niec.png",
+        "cloudinary_public_id": "kkko3unzop5ibhq4niec"
+      },
+      {
+        "titulo": "La Obra Maestra del Chef",
+        "copy": "Descubre la innovación en cada bocado. Una creación exclusiva que te sorprenderá.",
+        "tipo_imagen": "Manos de chef en acción, presentando un plato de sushi artísticamente dispuesto con detalles en rojo y dorado, fondo oscuro.",
+        "dia": "sunday",
+        "hashtags": "#ChefSpecial #SushiCreativo #107Experiencia #SaborUnico #ArteCulinario",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011164/kaikknuom5qo8u3md1qq.png",
+        "cloudinary_public_id": "kaikknuom5qo8u3md1qq"
+      },
+      {
+        "titulo": "Explosión de Nigiris",
+        "copy": "La simplicidad elevada a la perfección. Cada pieza, una revelación.",
+        "tipo_imagen": "Serie de nigiris coloridos y brillantes en fila, con un contraste marcado de luz y sombra.",
+        "dia": "tuesday",
+        "hashtags": "#NigiriLove #PerfecciónJaponesa #TexturaYSabor #SushiPuro #DeliciaCulinaria",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011166/qtpplfmw5ayefcgbbiae.png",
+        "cloudinary_public_id": "qtpplfmw5ayefcgbbiae"
+      },
+      {
+        "titulo": "Sabor 107, Donde Quieras",
+        "copy": "¿Antojo? Llevamos la audacia de nuestro sabor directo a tu puerta. ¡Pide ya!",
+        "tipo_imagen": "Una caja de delivery abierta mostrando un festín de sushi, con el logo 107 prominente y colores vivos.",
+        "dia": "thursday",
+        "hashtags": "#SushiADomicilio #DeliverySushi #AntojoJapones #107AtuCasa #ComodidadYCalidad",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011168/h3spuxth2kdalbrmgbgt.png",
+        "cloudinary_public_id": "h3spuxth2kdalbrmgbgt"
+      },
+      {
+        "titulo": "¡Tu Favorito nos Impulsa!",
+        "copy": "Vemos tu pasión por el buen sushi. ¿Cuál es tu elección audaz de hoy?",
+        "tipo_imagen": "Un grupo de amigos brindando con bebidas y platos de sushi vibrantes en primer plano, con el restaurante de fondo.",
+        "dia": "sunday",
+        "hashtags": "#Comunidad107 #SushiLovers #MomentosInolvidables #DomingoPerfecto #ComparteTuSabor",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011169/kiezkwzgvyfgrlg7d42v.png",
+        "cloudinary_public_id": "kiezkwzgvyfgrlg7d42v"
+      },
+      {
+        "titulo": "La Combinación Perfecta",
+        "copy": "Realza tu experiencia con nuestra selección de bebidas. ¡Un maridaje audaz!",
+        "tipo_imagen": "Un plato de sushi exquisito junto a una copa de sake o un cóctel con tonos rojos o dorados, con fondo desenfocado.",
+        "dia": "wednesday",
+        "hashtags": "#SakeSushi #MaridajePerfecto #BebidasJaponesas #107Drinks #ExperienciaGourmet",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011171/rv9ghjnp9ydua4jsdfvy.png",
+        "cloudinary_public_id": "rv9ghjnp9ydua4jsdfvy"
+      },
+      {
+        "titulo": "¡Nueva Sensación Picante!",
+        "copy": "¿Listo para el reto? Descubre nuestro nuevo roll con un toque audaz de picante.",
+        "tipo_imagen": "Primer plano de un nuevo roll de sushi con ingredientes exóticos y un detalle de chile rojo, sobre una tabla de madera oscura.",
+        "dia": "friday",
+        "hashtags": "#NuevoEn107 #SushiPicante #EdicionLimitada #AtréveteASaborear #DescubreTuFavorito",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011173/llp3f2k4gu31nrlyzwki.png",
+        "cloudinary_public_id": "llp3f2k4gu31nrlyzwki"
+      },
+      {
+        "titulo": "Tradición con Carácter",
+        "copy": "Honramos el legado japonés con un espíritu audaz y una pasión inquebrantable por el sabor.",
+        "tipo_imagen": "Un mosaico dinámico de imágenes: un chef concentrado, un plato clásico de sushi, y un elemento gráfico con el logo 107 y los colores de la marca.",
+        "dia": "sunday",
+        "hashtags": "#Filosofía107 #RaícesJaponesas #SaborAuténtico #TradiciónModerna #CulturaCulinaria",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011175/c92ipevm4mfxgpfj4v77.png",
+        "cloudinary_public_id": "c92ipevm4mfxgpfj4v77"
+      },
+      {
+        "titulo": "El Oro Rojo del Pacífico",
+        "copy": "Nuestro atún fresco es la joya de la corona. Sabor intenso que te dejará sin aliento.",
+        "tipo_imagen": "Primer plano macro de láminas de atún rojo brillante y fresco, con un sutil reflejo dorado.",
+        "dia": "tuesday",
+        "hashtags": "#AtunFresco #SaborPremium #DeliciasDelMar #IngredienteEstrella #CalidadSuprema",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011177/pwosx6swvafqujsspffa.png",
+        "cloudinary_public_id": "pwosx6swvafqujsspffa"
+      },
+      {
+        "titulo": "Tu Mesa Te Espera",
+        "copy": "El mes se acaba, pero el sabor nunca. ¡Asegura tu próxima experiencia 107!",
+        "tipo_imagen": "Vista aérea de una mesa de sushi repleta y colorida en el restaurante, invitando a la abundancia, con énfasis en el rojo y amarillo.",
+        "dia": "friday",
+        "hashtags": "#FindelMes #ReservaAhora #NoTeLoPierdas #ExperienciaGourmet #107Sushi",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011178/jghegnxojm6ijl5t2uey.png",
+        "cloudinary_public_id": "jghegnxojm6ijl5t2uey"
+      }
+    ]
+  },
+  {
+    "platform": "facebook",
+    "publicaciones": [
+      {
+        "titulo": "Sabor Tradicional, Actitud BOLD.",
+        "copy": "Descubre la perfección de nuestros rolls. Cada bocado, una explosión japonesa.",
+        "tipo_imagen": "Primer plano dramático de un nigiri o maki con iluminación intensa. Fondo oscuro con acentos en #ff2600. Tipografía Roboto bold.",
+        "dia": "wednesday",
+        "hashtags": "#107Sushi #SushiBold #SaborJapones #CocinaTradicional #ExperienciaSushi",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011296/wckw66hrpf4mb5pkdq5c.png",
+        "cloudinary_public_id": "wckw66hrpf4mb5pkdq5c"
+      },
+      {
+        "titulo": "El Arte del Wasabi Fresco.",
+        "copy": "En 107 Sushi, cada detalle cuenta. La intensidad justa para realzar tu experiencia.",
+        "tipo_imagen": "Imagen artística de wasabi rallado o una pequeña porción junto a sashimi, con un toque de amarillo #ffd478. Tipografía Open Sans.",
+        "dia": "wednesday",
+        "hashtags": "#WasabiLover #IngredientesFrescos #107Sushi #SaborAutentico #JaponEnTuMesa",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011298/w1jjstrjfythhscnsas1.png",
+        "cloudinary_public_id": "w1jjstrjfythhscnsas1"
+      },
+      {
+        "titulo": "¿Listo para un Festín?",
+        "copy": "Tu mesa te espera. Sumérgete en la cultura culinaria japonesa, estilo 107.",
+        "tipo_imagen": "Vista aérea de una mesa llena de varios platos de sushi y acompañamientos. Elementos visuales con acentos en #ff2600 y #000000. Tipografía Roboto bold.",
+        "dia": "wednesday",
+        "hashtags": "#Visita107Sushi #CenaJaponesa #AmbienteBold #SushiTime #DondeComerSushi",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011300/hfqgwdmehlkjeqam83gz.png",
+        "cloudinary_public_id": "hfqgwdmehlkjeqam83gz"
+      },
+      {
+        "titulo": "Maestría en Cada Corte.",
+        "copy": "La precisión de nuestros chefs transforma cada plato en una obra de arte. Tradición que se siente.",
+        "tipo_imagen": "Un chef en acción, preparando sushi con enfoque en las manos y el producto. Iluminación contrastada, usando sombras y luces para un efecto 'bold'. Detalles en #ffd478.",
+        "dia": "wednesday",
+        "hashtags": "#ChefSushi #ArteCulinario #107Sushi #SaborAuténtico #GastronomiaJaponesa",
+        "imagen_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764011302/f9vnjvpxke3nfyphgkxs.png",
+        "cloudinary_public_id": "f9vnjvpxke3nfyphgkxs"
+      }
+    ]
+  }
+]

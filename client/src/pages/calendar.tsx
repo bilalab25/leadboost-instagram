@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBrand } from "@/contexts/BrandContext";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,6 +95,7 @@ export default function ContentCalendar() {
   const [suggestedPosts, setSuggestedPosts] = useState<ContentPost[]>([]);
   const [showGeneratingLoader, setShowGeneratingLoader] = useState(false);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [aiPendingPosts, setAiPendingPosts] = useState<any[]>([]);
 
   // Helper function to convert day name to dates in current month
   const getDatesForDayOfWeek = (dayName: string): Date[] => {
@@ -140,7 +141,7 @@ export default function ContentCalendar() {
 
         // Create a post for each occurrence of that day in the month
         datesForDay.forEach((date, index) => {
-          const hour = 10 + (index * 2); // Stagger posts by 2 hours
+          const hour = 10 + index * 2; // Stagger posts by 2 hours
           const scheduledDate = new Date(date);
           scheduledDate.setHours(hour, 0, 0, 0);
 
@@ -188,7 +189,7 @@ export default function ContentCalendar() {
 
       toast({
         title: `✨ AI Generated ${newPosts.length} Suggestions!`,
-        description: `${newPosts.length} posts ready for your approval across ${new Set(newPosts.map(p => p.platform)).size} platforms.`,
+        description: `${newPosts.length} posts ready for your approval across ${new Set(newPosts.map((p) => p.platform)).size} platforms.`,
       });
 
       setCurrentJobId(null); // Stop polling
@@ -460,7 +461,10 @@ export default function ContentCalendar() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => generatePostsMutation.mutate()}
-                                disabled={generatePostsMutation.isPending || !activeBrandId}
+                                disabled={
+                                  generatePostsMutation.isPending ||
+                                  !activeBrandId
+                                }
                                 data-testid="button-generate-ai-posts"
                               >
                                 {generatePostsMutation.isPending ? (
@@ -470,7 +474,8 @@ export default function ContentCalendar() {
                                   </>
                                 ) : (
                                   <>
-                                    <Sparkles className="w-4 h-4 mr-1" /> AI Suggestions
+                                    <Sparkles className="w-4 h-4 mr-1" /> AI
+                                    Suggestions
                                   </>
                                 )}
                               </Button>
@@ -714,7 +719,9 @@ export default function ContentCalendar() {
                         <CardContent>
                           <div className="space-y-4">
                             <div className="text-sm text-gray-700">
-                              <p className="font-medium mb-2">Your AI-powered posting recommendations:</p>
+                              <p className="font-medium mb-2">
+                                Your AI-powered posting recommendations:
+                              </p>
                               <div className="bg-white rounded-lg p-3 border">
                                 <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-96">
                                   {JSON.stringify(aiSuggestions, null, 2)}
@@ -843,7 +850,10 @@ export default function ContentCalendar() {
 
       {/* AI Generation Loading Modal */}
       <Dialog open={showGeneratingLoader} onOpenChange={() => {}}>
-        <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent
+          className="max-w-md"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <div className="flex flex-col items-center justify-center py-8">
             <div className="mb-6">
               <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-primary"></div>
@@ -852,13 +862,17 @@ export default function ContentCalendar() {
               🤖 Generating AI Posts
             </DialogTitle>
             <p className="text-center text-gray-600 mb-4">
-              Our AI is analyzing your brand data and creating personalized post suggestions...
+              Our AI is analyzing your brand data and creating personalized post
+              suggestions...
             </p>
             <p className="text-center text-sm text-gray-500 mb-4">
               This may take up to 10 minutes. Please don't close this window.
             </p>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: "66%" }}></div>
+              <div
+                className="bg-primary h-2 rounded-full animate-pulse"
+                style={{ width: "66%" }}
+              ></div>
             </div>
           </div>
         </DialogContent>

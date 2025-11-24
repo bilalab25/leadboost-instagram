@@ -1478,6 +1478,29 @@ export const postGeneratorJobs = pgTable("post_generator_jobs", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// AI Generated Posts - Posts suggested by n8n AI that user can accept/reject
+export const aiGeneratedPosts = pgTable("ai_generated_posts", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  jobId: uuid("job_id")
+    .notNull()
+    .references(() => postGeneratorJobs.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id")
+    .notNull()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(), // instagram, facebook, etc.
+  titulo: text("titulo").notNull(),
+  content: text("content"), // copy
+  imageUrl: text("image_url"),
+  cloudinaryPublicId: text("cloudinary_public_id"),
+  dia: text("dia").notNull(), // day of week: sunday, monday, etc.
+  hashtags: text("hashtags"),
+  status: text("status").notNull().default("pending"), // pending | accepted | rejected
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Chatbot schemas
 export const insertChatbotConfigSchema = createInsertSchema(
   chatbotConfigs,
