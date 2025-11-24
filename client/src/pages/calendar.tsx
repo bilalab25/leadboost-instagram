@@ -93,6 +93,7 @@ export default function ContentCalendar() {
   }> | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
   const [suggestedPosts, setSuggestedPosts] = useState<ContentPost[]>([]);
+  const [showGeneratingLoader, setShowGeneratingLoader] = useState(false);
 
   // Helper function to convert day name to dates in current month
   const getDatesForDayOfWeek = (dayName: string): Date[] => {
@@ -164,11 +165,36 @@ export default function ContentCalendar() {
       if (!activeBrandId) {
         throw new Error("No brand selected");
       }
-      const response = await apiRequest("POST", `/api/post-generator/${activeBrandId}`);
-      const data = await response.json();
-      return data;
+      const controller = new AbortController();
+      // 12 minute timeout for webhook processing
+      const timeoutId = setTimeout(() => controller.abort(), 12 * 60 * 1000);
+      
+      try {
+        const response = await fetch(`/api/post-generator/${activeBrandId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const text = (await response.text()) || response.statusText;
+          throw new Error(`${response.status}: ${text}`);
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    },
+    onMutate: () => {
+      setShowGeneratingLoader(true);
     },
     onSuccess: (data) => {
+      setShowGeneratingLoader(false);
       setAiSuggestions(data);
       
       // Parse the webhook response if it exists
@@ -190,6 +216,12 @@ export default function ContentCalendar() {
       console.log("AI Post Generation Response:", data);
     },
     onError: (error: any) => {
+      setShowGeneratingLoader(false);
+      // Don't show error for abort/timeout errors
+      if (error.name === "AbortError" || error.message.includes("timeout")) {
+        console.log("Request timeout or cancelled");
+        return;
+      }
       toast({
         title: "Generation Failed",
         description: error.message || "Failed to generate post suggestions",
@@ -794,6 +826,29 @@ export default function ContentCalendar() {
         currentSchedule={postingSchedule}
         onSaveSchedule={handleSavePostingSchedule}
       />
+
+      {/* AI Generation Loading Modal */}
+      <Dialog open={showGeneratingLoader} onOpenChange={() => {}}>
+        <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="mb-6">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-primary"></div>
+            </div>
+            <DialogTitle className="text-center text-xl mb-2">
+              🤖 Generating AI Posts
+            </DialogTitle>
+            <p className="text-center text-gray-600 mb-4">
+              Our AI is analyzing your brand data and creating personalized post suggestions...
+            </p>
+            <p className="text-center text-sm text-gray-500 mb-4">
+              This may take up to 10 minutes. Please don't close this window.
+            </p>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: "66%" }}></div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
