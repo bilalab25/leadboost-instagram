@@ -98,9 +98,7 @@ export default function ContentCalendar() {
       if (!activeBrandId) {
         throw new Error("No brand selected");
       }
-      return await apiRequest(`/api/post-generator/${activeBrandId}`, {
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/post-generator/${activeBrandId}`);
     },
     onSuccess: (data) => {
       toast({
