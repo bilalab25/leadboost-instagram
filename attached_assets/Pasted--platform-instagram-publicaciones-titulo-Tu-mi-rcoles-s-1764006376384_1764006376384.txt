@@ -1,0 +1,112 @@
+[
+  {
+    "platform": "instagram",
+    "publicaciones": [
+      {
+        "titulo": "¡Tu miércoles sabe a sushi!",
+        "copy": "Rollos frescos, sabores que explotan y la mejor compañía. ¿Ya sabes cuál vas a pedir hoy?",
+        "tipo_imagen": "Fotografía de un plato de sushi variado y colorido, con foco en el detalle. Fondo desenfocado y luces suaves. Un pequeño acento gráfico en color #ffe13f. Texto superpuesto 'Miércoles de Sushi' en color #000000, usando tipografía 'Roboto Condensed' en negrita.",
+        "dia": "wednesday",
+        "hashtags": [
+          "#107SushiRamen",
+          "#SushiTime",
+          "#MiércolesDeSushi",
+          "#ComidaJaponesa",
+          "#FunFood",
+          "#SushiLover"
+        ],
+        "imagen_url": "https://res.cloudinary.com/deprs1wax/image/upload/v1762994537/vdeophmz4vedvhm94qpc.png",
+        "cloudinary_public_id": "vdeophmz4vedvhm94qpc"
+      },
+      {
+        "titulo": "¡Calentando tu miércoles!",
+        "copy": "¿Frío? ¡Nuestro ramen es el abrazo que necesitas! Calientito, sabroso y perfecto para mitad de semana.",
+        "tipo_imagen": "Primer plano de un tazón de ramen humeante, mostrando fideos, huevo y toppings vibrantes. El vapor es visible. Un rayo de luz naranja #ff2600 ilumina sutilmente el plato. Texto 'Ramen Vibes' en color #000000, usando tipografía 'Lato' en un estilo ligero y amigable.",
+        "dia": "wednesday",
+        "hashtags": [
+          "#107SushiRamen",
+          "#RamenLove",
+          "#MiércolesDeRamen",
+          "#SopaJaponesa",
+          "#ConfortFood",
+          "#RamenBowl"
+        ],
+        "imagen_url": "https://res.cloudinary.com/deprs1wax/image/upload/v1762994538/ey61ugobzrbapgfyf8j6.png",
+        "cloudinary_public_id": "ey61ugobzrbapgfyf8j6"
+      },
+      {
+        "titulo": "¡El dúo dinámico te espera!",
+        "copy": "¿Sushi o Ramen? ¿Por qué elegir cuando puedes tener ambos? ¡Ven a vivir la experiencia 107!",
+        "tipo_imagen": "Diseño en formato collage o dividido, con una sección mostrando un plato de sushi vibrante y la otra un tazón de ramen apetitoso. Un elemento gráfico divisor en color #ff2600. Texto 'Sushi & Ramen Fest' en color #ffffff sobre una franja #000000, usando tipografía 'Roboto Condensed' audaz.",
+        "dia": "wednesday",
+        "hashtags": [
+          "#107SushiRamen",
+          "#SushiYRamen",
+          "#FoodCombo",
+          "#GastronomíaJaponesa",
+          "#MiércolesFoodie",
+          "#Experiencia107"
+        ],
+        "imagen_url": "https://res.cloudinary.com/deprs1wax/image/upload/v1762994540/egn22vcnrzpb0zpysqnn.png",
+        "cloudinary_public_id": "egn22vcnrzpb0zpysqnn"
+      },
+      {
+        "titulo": "¡Tu sonrisa es nuestro ingrediente secreto!",
+        "copy": "En 107, cada platillo viene con una pizca de alegría. ¡Ven a disfrutar un momento divertido y delicioso!",
+        "tipo_imagen": "Ilustración digital estilo 'fun cartoon' con personajes estilizados de sushi y ramen con expresiones felices, sobre un fondo vibrante con degradado de #ff2600 a #ffe13f. Texto 'Disfruta el sabor fun!' en color #000000, usando tipografía 'Lato' con un estilo juguetón.",
+        "dia": "wednesday",
+        "hashtags": [
+          "#107SushiRamen",
+          "#FunFood",
+          "#MomentosFelices",
+          "#ComidaConAmigos",
+          "#Vibra107",
+          "#MiércolesDivertido"
+        ],
+        "imagen_url": "https://res.cloudinary.com/deprs1wax/image/upload/v1762994542/qmrwiwhfofbuwfzjz8az.png",
+        "cloudinary_public_id": "qmrwiwhfofbuwfzjz8az"
+      }
+    ]
+  },
+  {
+    "platform": "facebook",
+    "publicaciones": [
+      {
+        "titulo": "¿Listo para un Festín Fun?",
+        "copy": "Tu dosis semanal de sabor y diversión la encuentras aquí. ¡Ven a disfrutar!",
+        "tipo_imagen": "Ilustración vibrante y estilo cómic de un ramen humeante y unos rollos de sushi sonriendo. Fondo degradado de color #ff2600 a color #ffe13f. Título '107 Sushi & Ramen' en tipografía 'Roboto Condensed:700' color #000000 con sombra blanca.",
+        "dia": "wednesday",
+        "hashtags": "#107SushiRamen #ComidaFun #SushiTime #RamenLover #MiércolesDeSabor",
+        "imagen_url": "https://res.cloudinary.com/deprs1wax/image/upload/v1762995290/qc88brocqjgwxufnvg4z.png",
+        "cloudinary_public_id": "qc88brocqjgwxufnvg4z"
+      },
+      {
+        "titulo": "¡Sopa para el Alma!",
+        "copy": "Caliente, deliciosa y justo lo que necesitas. Nuestro ramen te espera para abrazarte.",
+        "tipo_imagen": "Fotografía de un tazón de ramen con ingredientes coloridos, perspectiva cenital. Elementos gráficos pop-art en los bordes con burbujas de texto. Paleta de colores principal: #ff2600, #ffe13f, #000000. Título '¡Sopa para el Alma!' en tipografía 'Roboto Condensed:700' color #ffffff sobre una franja roja (#ff2600).",
+        "dia": "wednesday",
+        "hashtags": "#RamenGoals #CalentitoYDeli #SopaParaElAlma #107Ramen #MiércolesDeRamen",
+        "imagen_url": "https://res.cloudinary.com/deprs1wax/image/upload/v1762995292/kb95ayawv4xg6ejf0jue.png",
+        "cloudinary_public_id": "kb95ayawv4xg6ejf0jue"
+      },
+      {
+        "titulo": "¡Rollos que Enamoran!",
+        "copy": "Desde clásicos hasta creaciones únicas, cada bocado es una explosión de sabor. ¿Cuál es tu favorito?",
+        "tipo_imagen": "Collage dinámico de diferentes tipos de sushi (maki, nigiri, sashimi) en un plato creativo. Fondo color #ffe13f con salpicaduras de rojo (#ff2600) y negro (#000000). Pregunta '¿Cuál es tu favorito?' en tipografía 'Lato:300' color #000000.",
+        "dia": "wednesday",
+        "hashtags": "#SushiLover #RollosDeSushi #SushiAddict #107Sushi #MiércolesDeSushi",
+        "imagen_url": "https://res.cloudinary.com/deprs1wax/image/upload/v1762995293/opam1uazddbcfamvwa1t.png",
+        "cloudinary_public_id": "opam1uazddbcfamvwa1t"
+      },
+      {
+        "titulo": "¡Tu Momento 107!",
+        "copy": "Ven, come, diviértete y comparte tu experiencia con nosotros. ¡Te esperamos con los brazos abiertos!",
+        "tipo_imagen": "Ilustración divertida de un personaje tipo manga comiendo sushi y ramen felizmente. El personaje puede tener los colores #ff2600, #ffe13f. Texto '¡Tu Momento 107!' en tipografía 'Roboto Condensed:700' color #000000 sobre un fondo amarillo vibrante (#ffe13f) con detalles en rojo.",
+        "dia": "wednesday",
+        "hashtags": "#Experiencia107 #Visita107 #ComparteTuMomento #SushiYRamen #MiércolesDeDiversión",
+        "imagen_url": "https://res.cloudinary.com/deprs1wax/image/upload/v1762995295/daesgr29uk928chnxaqn.png",
+        "cloudinary_public_id": "daesgr29uk928chnxaqn"
+      }
+    ]
+  }
+]

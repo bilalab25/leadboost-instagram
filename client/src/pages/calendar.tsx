@@ -92,6 +92,71 @@ export default function ContentCalendar() {
     selectedDays: string[];
   }> | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
+  const [suggestedPosts, setSuggestedPosts] = useState<ContentPost[]>([]);
+
+  // Helper function to convert day name to dates in current month
+  const getDatesForDayOfWeek = (dayName: string): Date[] => {
+    const dayMap: { [key: string]: number } = {
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+    };
+
+    const targetDay = dayMap[dayName.toLowerCase()];
+    if (targetDay === undefined) return [];
+
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const dates: Date[] = [];
+
+    let current = new Date(monthStart);
+    while (current <= monthEnd) {
+      if (current.getDay() === targetDay) {
+        dates.push(new Date(current));
+      }
+      current.setDate(current.getDate() + 1);
+    }
+
+    return dates;
+  };
+
+  // Helper function to convert webhook response to ContentPost[]
+  const parseWebhookResponse = (webhookData: any[]): ContentPost[] => {
+    const posts: ContentPost[] = [];
+    let postId = Math.floor(Math.random() * 10000);
+
+    webhookData.forEach((platformData) => {
+      const platform = platformData.platform;
+      const publicaciones = platformData.publicaciones || [];
+
+      publicaciones.forEach((pub: any) => {
+        const datesForDay = getDatesForDayOfWeek(pub.dia || "monday");
+
+        // Create a post for each occurrence of that day in the month
+        datesForDay.forEach((date, index) => {
+          const hour = 10 + (index * 2); // Stagger posts by 2 hours
+          const scheduledDate = new Date(date);
+          scheduledDate.setHours(hour, 0, 0, 0);
+
+          posts.push({
+            id: `ai-${postId++}`,
+            title: pub.titulo,
+            platform: platform,
+            scheduledFor: scheduledDate.toISOString(),
+            status: "draft",
+            content: pub.copy,
+            imageUrl: pub.imagen_url,
+          });
+        });
+      });
+    });
+
+    return posts;
+  };
 
   // AI Post Generator Mutation
   const generatePostsMutation = useMutation({
@@ -105,10 +170,23 @@ export default function ContentCalendar() {
     },
     onSuccess: (data) => {
       setAiSuggestions(data);
-      toast({
-        title: "AI Suggestions Generated! ✨",
-        description: "Your AI-powered posting schedule is ready to review.",
-      });
+      
+      // Parse the webhook response if it exists
+      const webhookResponse = data?.webhook_response;
+      if (webhookResponse && Array.isArray(webhookResponse)) {
+        const newPosts = parseWebhookResponse(webhookResponse);
+        setSuggestedPosts(newPosts);
+        
+        toast({
+          title: `✨ AI Generated ${newPosts.length} Suggestions!`,
+          description: `${newPosts.length} posts ready for your approval across ${new Set(newPosts.map(p => p.platform)).size} platforms.`,
+        });
+      } else {
+        toast({
+          title: "AI Suggestions Generated! ✨",
+          description: "Your AI-powered posting schedule has been sent for analysis.",
+        });
+      }
       console.log("AI Post Generation Response:", data);
     },
     onError: (error: any) => {
