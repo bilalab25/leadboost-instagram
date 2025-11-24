@@ -1463,6 +1463,21 @@ export const socialPostingFrequency = pgTable("social_posting_frequency", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Post Generator Jobs - Async job tracking for long-running n8n workflows
+export const postGeneratorJobs = pgTable("post_generator_jobs", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"), // pending | processing | completed | failed
+  result: jsonb("result"),
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Chatbot schemas
 export const insertChatbotConfigSchema = createInsertSchema(
   chatbotConfigs,

@@ -1,0 +1,99 @@
+🗄️  getAssetsByBrandDesignId: 32eef4a4-d3ff-406d-9794-686799e30f4c
+[Post Generator] Sending data to n8n webhook for brand: 107 Sushi
+[Post Generator] Payload: {
+  "nombre_brand": "107 Sushi",
+  "brand_description": "Restaurante tradicional de comida japonesa",
+  "Insights": [
+    {
+      "source": "posting_frequency",
+      "platform": "instagram",
+      "frequency_days": 3,
+      "days_week": [
+        "sunday",
+        "saturday",
+        "tuesday"
+      ],
+      "confidence_score": null,
+      "status": "accepted",
+      "insights_data": null
+    },
+    {
+      "source": "posting_frequency",
+      "platform": "facebook",
+      "frequency_days": 1,
+      "days_week": [
+        "wednesday"
+      ],
+      "confidence_score": null,
+      "status": "accepted",
+      "insights_data": null
+    },
+    {
+      "source": "posting_frequency",
+      "platform": "facebook",
+      "frequency_days": 1,
+      "days_week": [
+        "wednesday"
+      ],
+      "confidence_score": null,
+      "status": "accepted",
+      "insights_data": null
+    }
+  ],
+  "Brand_assets": [
+    {
+      "id": "97a39794-ab5e-4af9-8415-98d779ab5882",
+      "url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764009955/brand-assets/y1qdxluhsye0o66kpbip.jpg",
+      "name": "sushi_5.jpg",
+      "category": "product_images",
+      "asset_type": "image"
+    },
+    {
+      "id": "56a663bf-ca54-4dc7-af74-fe5fb164adf5",
+      "url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764009945/brand-assets/a5bvc3xccjuou5uzm295.jpg",
+      "name": "sushi_2.jpg",
+      "category": "product_images",
+      "asset_type": "image"
+    },
+    {
+      "id": "4446ff97-6208-4394-97d0-84797279602d",
+      "url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1763492098/brand-assets/bkxbnq3kleosoojmm6kp.jpg",
+      "name": "sushi_1.jpg",
+      "category": "product_images",
+      "asset_type": "image"
+    },
+    {
+      "id": "03de97ed-1625-46d1-b84e-710f4d9b4292",
+      "url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1763490528/brand-assets/s6npz3jpnax8mamfydaa.jpg",
+      "name": "suhsi_3.jpg",
+      "category": "product_images",
+      "asset_type": "image"
+    }
+  ],
+  "Brand_design": [
+    {
+      "brand_style": "bold",
+      "color_primary": "#ff2600",
+      "color_accent1": "#ffd478",
+      "color_accent2": "#000000",
+      "color_accent3": null,
+      "color_accent4": null,
+      "color_text1": "#333333",
+      "color_text2": "#666666",
+      "color_text3": null,
+      "color_text4": null,
+      "font_primary": "Roboto",
+      "font_secondary": "Open Sans",
+      "logo_url": "https://res.cloudinary.com/dgujs7cy9/image/upload/v1763490415/brand-assets/plkkf8duicdms7gr7lig.jpg"
+    }
+  ]
+}
+[Post Generator] Webhook error: <!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en-US"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en-US"> <!--<![endif]-->
+<head>
+
+
+<title>leadboostinc.app.n8n.cloud | 524: A timeout occurred</title>

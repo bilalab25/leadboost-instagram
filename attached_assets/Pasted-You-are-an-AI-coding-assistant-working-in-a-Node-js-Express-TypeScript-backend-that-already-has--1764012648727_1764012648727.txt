@@ -1,0 +1,110 @@
+You are an AI coding assistant working in a Node.js + Express + TypeScript backend that already has:
+
+- An `app` Express instance.
+- Middleware: `isAuthenticated`, `requireBrand`.
+- A `storage` module with functions like:
+  - `getBrandByIdOnly(brandId)`
+  - `getBrandDesignByBrandId(brandId)`
+  - `getAssetsByBrandId(brandId)`
+  - `getContentPlansByBrandId(brandId)`
+  - `getSocialPostingFrequenciesByBrand(brandId)`
+- A current POST endpoint `/api/post-generator/:brandId` that:
+  - Fetches brand data.
+  - Builds a JSON payload.
+  - Sends that payload to an n8n webhook using `fetch`.
+  - Waits for the n8n webhook response before replying to the client.
+
+Goal:
+Refactor this logic to use an asynchronous job-based architecture to avoid timeouts (e.g., Cloudflare 524), because the n8n workflow can take about 10 minutes to complete.
+
+Requirements:
+
+1. Create a new TypeScript type for the post generator job:
+   - File: `src/types/PostGeneratorJob.ts`
+   - Type:
+     - `PostGeneratorJobStatus = "pending" | "processing" | "completed" | "failed"`
+     - `PostGeneratorJob` with:
+       - `id: string` (uuid)
+       - `brandId: string`
+       - `status: PostGeneratorJobStatus`
+       - `result: any | null`
+       - `error: string | null`
+       - `createdAt: string` (ISO)
+       - `updatedAt: string` (ISO)
+
+2. Implement a storage helper for jobs:
+   - File: `src/storage/postGeneratorJobs.ts`
+   - Use the existing DB abstraction (e.g., `db` or whatever is already used).
+   - Expose these async functions:
+     - `createPostGeneratorJob(brandId: string): Promise<PostGeneratorJob>`
+       - Generates a uuid.
+       - Sets `status` to `"pending"`.
+       - Sets `result` and `error` to `null`.
+       - Sets `createdAt` and `updatedAt` to `new Date().toISOString()`.
+       - Saves the job in the DB and returns it.
+     - `updatePostGeneratorJob(jobId: string, updates: Partial<Omit<PostGeneratorJob, "id" | "brandId" | "createdAt">>): Promise<PostGeneratorJob | null>`
+       - Loads existing job.
+       - Applies changes from `updates`.
+       - Updates `updatedAt`.
+       - Saves and returns the updated job, or `null` if it does not exist.
+     - `getPostGeneratorJob(jobId: string): Promise<PostGeneratorJob | null>`
+       - Fetches a job by id.
+
+3. Refactor the POST endpoint `/api/post-generator/:brandId`:
+   - File: where the existing endpoint currently lives (e.g., `src/server/routes/postGeneratorRoutes.ts`).
+   - Keep using `isAuthenticated` and `requireBrand`.
+   - Steps:
+     1) Extract `brandId` from `req.params.brandId` and use `req.brandId` as fallback (already set by `requireBrand`).
+     2) Call `createPostGeneratorJob(validatedBrandId)` to create a job with status `"pending"`.
+     3) Fetch brand, brand design, assets, content plans and posting frequencies using the existing `storage` functions.
+     4) Build the same payload currently sent to n8n, but now include:
+        - `jobId` (the newly created job id).
+        - `brandId`.
+        - `callback_url`, coming from environment variable `POST_GENERATOR_CALLBACK_URL`.
+     5) Get the n8n webhook URL from `process.env.N8N_POST_GENERATOR_WEBHOOK_URL`.
+        - If not present, return HTTP 500.
+     6) Call `fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(webhookPayload) })`:
+        - Do NOT `await` this call in a blocking way for the client response.
+        - Fire and forget:
+          - Attach `.then()` to log the response status.
+          - Attach `.catch()` to log and mark the job as `"failed"` if the call to n8n cannot be sent at all (optional).
+     7) Immediately return a JSON response to the client:
+        - `{ success: true, message: "Post generator job started", jobId: job.id, status: job.status }`.
+
+4. Add a callback endpoint for n8n:
+   - Route: `POST /api/post-generator/callback`
+   - No auth required (or use a simple shared secret if the existing architecture already supports it).
+   - Body JSON structure:
+     - `jobId: string` (required)
+     - `status?: "completed" | "failed" | "processing"` (optional, default `"completed"`)
+     - `result?: any`
+     - `error?: string`
+   - Behavior:
+     1) Validate that `jobId` is present.
+     2) Use `getPostGeneratorJob(jobId)`. If not found, return HTTP 404.
+     3) Update the job with:
+        - `status` (from body or `"completed"` if not provided)
+        - `result` (from body if provided)
+        - `error` (from body if provided, or `null` otherwise)
+     4) Log the update and return `{ success: true }`.
+
+5. Add a status endpoint to allow the frontend to poll:
+   - Route: `GET /api/post-generator/jobs/:jobId`
+   - Use `isAuthenticated` middleware.
+   - Behavior:
+     1) Extract `jobId` from `req.params`.
+     2) Call `getPostGeneratorJob(jobId)`.
+        - If not found, return HTTP 404.
+        - Otherwise, return the job as JSON.
+
+6. Do not modify the existing general-purpose `apiRequest` helper or other unrelated endpoints. Only add the new files and refactor the specific post generator endpoint.
+
+7. Ensure all new/modified TypeScript files compile correctly and follow the existing code style (imports, export style, etc.).
+
+Return the FULL code for:
+- `src/types/PostGeneratorJob.ts`
+- `src/storage/postGeneratorJobs.ts`
+- The updated server file containing the routes:
+  - `POST /api/post-generator/:brandId`
+  - `POST /api/post-generator/callback`
+  - `GET /api/post-generator/jobs/:jobId`
