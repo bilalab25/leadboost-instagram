@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useBrand } from "@/contexts/BrandContext";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,6 +16,7 @@ import {
   Image as ImageIcon,
   Wand2,
   Settings,
+  Sparkles,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Instagram } from "lucide-react";
@@ -74,6 +78,7 @@ const statusColors = {
 export default function ContentCalendar() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const { activeBrandId } = useBrand();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -86,6 +91,32 @@ export default function ContentCalendar() {
     postsPerWeek: number;
     selectedDays: string[];
   }> | null>(null);
+
+  // AI Post Generator Mutation
+  const generatePostsMutation = useMutation({
+    mutationFn: async () => {
+      if (!activeBrandId) {
+        throw new Error("No brand selected");
+      }
+      return await apiRequest(`/api/post-generator/${activeBrandId}`, {
+        method: "POST",
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "AI Suggestions Generated! ✨",
+        description: "Your posting schedule has been sent to our AI for analysis.",
+      });
+      console.log("AI Post Generation Response:", data);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate post suggestions",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleToggle = () => {
     setIsPaused((prev) => {
@@ -297,6 +328,25 @@ export default function ContentCalendar() {
                               >
                                 <Settings className="w-4 h-4 mr-1" /> Set
                                 Posting Frequency
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => generatePostsMutation.mutate()}
+                                disabled={generatePostsMutation.isPending || !activeBrandId}
+                                data-testid="button-generate-ai-posts"
+                              >
+                                {generatePostsMutation.isPending ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-1"></div>
+                                    Generating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-4 h-4 mr-1" /> AI Suggestions
+                                  </>
+                                )}
                               </Button>
 
                               <Button
