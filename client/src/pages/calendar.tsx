@@ -91,6 +91,7 @@ export default function ContentCalendar() {
     postsPerWeek: number;
     selectedDays: string[];
   }> | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<any>(null);
 
   // AI Post Generator Mutation
   const generatePostsMutation = useMutation({
@@ -98,12 +99,15 @@ export default function ContentCalendar() {
       if (!activeBrandId) {
         throw new Error("No brand selected");
       }
-      return await apiRequest("POST", `/api/post-generator/${activeBrandId}`);
+      const response = await apiRequest("POST", `/api/post-generator/${activeBrandId}`);
+      const data = await response.json();
+      return data;
     },
     onSuccess: (data) => {
+      setAiSuggestions(data);
       toast({
         title: "AI Suggestions Generated! ✨",
-        description: "Your posting schedule has been sent to our AI for analysis.",
+        description: "Your AI-powered posting schedule is ready to review.",
       });
       console.log("AI Post Generation Response:", data);
     },
@@ -573,6 +577,39 @@ export default function ContentCalendar() {
                         </div>
                       </CardContent>
                     </Card>
+
+                    {/* AI Suggestions Card */}
+                    {aiSuggestions && (
+                      <Card className="border-2 border-brand-200 bg-brand-50/30">
+                        <CardHeader>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-brand-600" />
+                            AI Suggestions
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="text-sm text-gray-700">
+                              <p className="font-medium mb-2">Your AI-powered posting recommendations:</p>
+                              <div className="bg-white rounded-lg p-3 border">
+                                <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-96">
+                                  {JSON.stringify(aiSuggestions, null, 2)}
+                                </pre>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => setAiSuggestions(null)}
+                              data-testid="button-clear-ai-suggestions"
+                            >
+                              Clear Suggestions
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
                 </div>
               </div>
