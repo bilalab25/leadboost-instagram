@@ -2058,16 +2058,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Add insights from posting frequencies
         postingFrequencies.forEach((freq) => {
-          if (freq.insightsData) {
-            insights.push({
-              source: "posting_frequency",
-              platform: freq.platform,
-              frequency_days: freq.frequencyDays,
-              days_week: freq.daysWeek,
-              confidence_score: freq.confidenceScore,
-              data: freq.insightsData,
-            });
-          }
+          insights.push({
+            source: "posting_frequency",
+            platform: freq.platform,
+            frequency_days: freq.frequencyDays,
+            days_week: freq.daysWeek,
+            confidence_score: freq.confidenceScore,
+            status: freq.status,
+            insights_data: freq.insightsData,
+          });
         });
 
         // Build brand_assets array
