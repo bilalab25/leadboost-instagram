@@ -550,6 +550,15 @@ export class DatabaseStorage implements IStorage {
     return brand;
   }
 
+  // Get brand by ID only (use when requireBrand middleware already validated access)
+  async getBrandByIdOnly(id: string): Promise<Brand | undefined> {
+    const [brand] = await db
+      .select()
+      .from(brands)
+      .where(eq(brands.id, id));
+    return brand;
+  }
+
   async updateBrand(
     id: string,
     userId: string,

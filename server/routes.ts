@@ -2014,29 +2014,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/post-generator/:brandId",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const { brandId } = req.params;
-        const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+        // requireBrand middleware already validated access - use params.brandId
+        const brandId = req.params.brandId;
+        
+        // req.brandId is also set by requireBrand middleware as backup
+        const validatedBrandId = req.brandId || brandId;
 
-        if (!brandId) {
+        if (!validatedBrandId) {
           return res.status(400).json({ message: "Brand ID is required" });
         }
 
         // Fetch all necessary data from database
-        const brand = await storage.getBrandById(brandId, userId);
+        // Brand access is already validated by requireBrand middleware
+        const brand = await storage.getBrandByIdOnly(validatedBrandId);
         if (!brand) {
           return res.status(404).json({ message: "Brand not found" });
         }
 
-        const brandDesign = await storage.getBrandDesignByBrandId(brandId);
-        const brandAssets = await storage.getAssetsByBrandId(brandId);
-        const contentPlans = await storage.getContentPlansByBrandId(brandId);
+        const brandDesign = await storage.getBrandDesignByBrandId(validatedBrandId);
+        const brandAssets = await storage.getAssetsByBrandId(validatedBrandId);
+        const contentPlans = await storage.getContentPlansByBrandId(validatedBrandId);
         const postingFrequencies =
-          await storage.getSocialPostingFrequenciesByBrand(brandId);
+          await storage.getSocialPostingFrequenciesByBrand(validatedBrandId);
 
         // Build insights array from contentPlans and posting frequencies
         const insights: any[] = [];
