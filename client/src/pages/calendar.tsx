@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBrand } from "@/contexts/BrandContext";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -203,6 +203,23 @@ export default function ContentCalendar() {
       setCurrentJobId(null);
     }
   }, [jobStatusQuery.data, currentJobId]);
+
+  // Mutation to update AI post status
+  const updatePostStatusMutation = useMutation({
+    mutationFn: async ({ postId, status }: { postId: string; status: "accepted" | "rejected" }) => {
+      const response = await fetch(`/api/ai-posts/${postId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error("Failed to update post status");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-posts"] });
+    },
+  });
 
   // AI Post Generator Mutation
   const generatePostsMutation = useMutation({
@@ -708,35 +725,99 @@ export default function ContentCalendar() {
                     </Card>
 
                     {/* AI Suggestions Card */}
-                    {aiSuggestions && (
-                      <Card className="border-2 border-brand-200 bg-brand-50/30">
+                    {aiPendingPosts.length > 0 && (
+                      <Card className="border-2 border-brand-200 bg-brand-50/30 lg:col-span-3">
                         <CardHeader>
                           <CardTitle className="text-lg flex items-center gap-2">
                             <Sparkles className="w-5 h-5 text-brand-600" />
-                            AI Suggestions
+                            AI Suggested Posts ({aiPendingPosts.length})
                           </CardTitle>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Review and approve/reject AI-generated posts before publishing
+                          </p>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-4">
-                            <div className="text-sm text-gray-700">
-                              <p className="font-medium mb-2">
-                                Your AI-powered posting recommendations:
-                              </p>
-                              <div className="bg-white rounded-lg p-3 border">
-                                <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-96">
-                                  {JSON.stringify(aiSuggestions, null, 2)}
-                                </pre>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {aiPendingPosts.map((post) => (
+                              <div
+                                key={post.id}
+                                className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white"
+                              >
+                                {/* Image */}
+                                {post.imageUrl && (
+                                  <img
+                                    src={post.imageUrl}
+                                    alt={post.titulo}
+                                    className="w-full h-48 object-cover"
+                                  />
+                                )}
+
+                                {/* Content */}
+                                <div className="p-4 space-y-3">
+                                  {/* Platform Badge */}
+                                  <div className="flex items-start justify-between gap-2">
+                                    <Badge className={platformColors[post.platform as keyof typeof platformColors] || "bg-gray-100"}>
+                                      {post.platform}
+                                    </Badge>
+                                    <span className="text-xs text-gray-500 capitalize">
+                                      {post.dia}
+                                    </span>
+                                  </div>
+
+                                  {/* Title */}
+                                  <h4 className="font-semibold text-sm line-clamp-2">
+                                    {post.titulo}
+                                  </h4>
+
+                                  {/* Content */}
+                                  <p className="text-sm text-gray-600 line-clamp-3">
+                                    {post.content}
+                                  </p>
+
+                                  {/* Hashtags */}
+                                  {post.hashtags && (
+                                    <p className="text-xs text-blue-600 line-clamp-1">
+                                      {post.hashtags}
+                                    </p>
+                                  )}
+
+                                  {/* Action Buttons */}
+                                  <div className="flex gap-2 pt-2 border-t">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="flex-1 text-red-600 hover:text-red-700"
+                                      onClick={() =>
+                                        updatePostStatusMutation.mutate({
+                                          postId: post.id,
+                                          status: "rejected",
+                                        })
+                                      }
+                                      disabled={updatePostStatusMutation.isPending}
+                                      data-testid={`button-reject-post-${post.id}`}
+                                    >
+                                      <XCircle className="w-4 h-4 mr-1" />
+                                      Reject
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      className="flex-1 bg-green-600 hover:bg-green-700"
+                                      onClick={() =>
+                                        updatePostStatusMutation.mutate({
+                                          postId: post.id,
+                                          status: "accepted",
+                                        })
+                                      }
+                                      disabled={updatePostStatusMutation.isPending}
+                                      data-testid={`button-accept-post-${post.id}`}
+                                    >
+                                      <CheckCircle className="w-4 h-4 mr-1" />
+                                      Accept
+                                    </Button>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="w-full"
-                              onClick={() => setAiSuggestions(null)}
-                              data-testid="button-clear-ai-suggestions"
-                            >
-                              Clear Suggestions
-                            </Button>
+                            ))}
                           </div>
                         </CardContent>
                       </Card>
