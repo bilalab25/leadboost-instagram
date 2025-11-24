@@ -99,6 +99,19 @@ Key features include:
   - **API Routes**: POST/GET/DELETE /api/conversation-history with requireBrand middleware
   - **Security**: Multi-layer validation prevents cross-tenant data access - DELETE enforces both id AND brandId match
   - **Data Retrieval**: Configurable limit parameter (default 100) for conversation history pagination
+- **AI Post Generator Integration** (Brand-Based):
+  - **Webhook Endpoint**: POST /api/post-generator/:brandId sends comprehensive brand data to n8n for AI-powered post generation
+  - **Authorization**: Protected with isAuthenticated + requireBrand middleware (all roles: owner/admin/editor/viewer)
+  - **Data Aggregation**: Fetches and combines brands, brand_designs, brand_assets, content_plans, posting_frequencies
+  - **JSON Payload Structure**:
+    - nombre_brand: Brand name
+    - brand_description: Brand description
+    - Insights: Array of content plans and posting frequencies
+    - Brand_assets: Array of Cloudinary URLs with categories
+    - Brand_design: Array containing logo, colors, and fonts
+  - **Storage Layer**: getBrandByIdOnly() for safe brand fetching after requireBrand validation
+  - **Environment Variables**: N8N_POST_GENERATOR_WEBHOOK_URL for webhook integration
+  - **Security**: Multi-layer brand validation, collaborator access enabled, prevents cross-brand data leakage
 - 30-Day Planner with brand-specific AI-suggested posting frequency scheduler
 
 ## User Preferences
