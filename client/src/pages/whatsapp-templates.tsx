@@ -203,105 +203,88 @@ interface PhonePreviewProps {
 }
 
 function PhonePreview({ headerType, headerContent, body, footer, buttonType, buttonText }: PhonePreviewProps) {
-  const currentTime = new Date().toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit',
-    hour12: true 
-  });
-
   return (
     <div className="flex flex-col items-center" data-testid="phone-preview-container">
-      <div 
-        className="relative w-[260px] h-[520px] bg-gradient-to-b from-gray-800 via-gray-900 to-gray-800 rounded-[45px] p-2 shadow-2xl border-4 border-gray-700"
-      >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-b-xl z-10" />
-        
-        <div 
-          className="w-full h-full rounded-[38px] overflow-hidden flex flex-col bg-[#efeae2]"
-        >
-          <div className="bg-[#075E54] text-white px-3 py-2.5 flex items-center gap-2 shadow-md">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
-              <SiWhatsapp className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">WhatsApp Business</p>
-              <p className="text-[10px] text-green-200">online</p>
-            </div>
-            <span className="text-[10px] opacity-80">{currentTime}</span>
+      <div className="w-[240px] border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+        <div className="bg-[#075E54] text-white px-3 py-2 flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center">
+            <SiWhatsapp className="w-4 h-4 text-[#075E54]" />
           </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium truncate">Business</p>
+            <p className="text-[9px] text-green-200">online</p>
+          </div>
+        </div>
 
-          <div className="flex-1 p-2.5 overflow-y-auto overflow-x-hidden">
-            <div className="flex justify-end mb-2">
-              <div 
-                className="max-w-[90%] bg-[#dcf8c6] rounded-lg rounded-tr-none p-2 shadow-sm break-words"
-                style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
-                data-testid="phone-preview-message"
-              >
-                {headerType === "TEXT" && headerContent && (
-                  <p className="font-bold text-xs text-gray-800 mb-1 break-words" data-testid="phone-preview-header">
-                    {headerContent}
-                  </p>
-                )}
-                {headerType === "IMAGE" && (
-                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-20 rounded mb-2 flex items-center justify-center">
-                    <ImageIcon className="w-5 h-5 text-gray-400" />
-                  </div>
-                )}
-                {headerType === "VIDEO" && (
-                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-20 rounded mb-2 flex items-center justify-center">
-                    <Video className="w-5 h-5 text-gray-400" />
-                  </div>
-                )}
-                {headerType === "DOCUMENT" && (
-                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-14 rounded mb-2 flex items-center justify-center gap-1.5">
-                    <File className="w-4 h-4 text-gray-400" />
-                    <span className="text-[10px] text-gray-500">Document</span>
-                  </div>
-                )}
-                
-                <p 
-                  className="text-xs text-gray-800 break-words" 
-                  style={{ wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}
-                  data-testid="phone-preview-body"
-                >
-                  {body || "Your message will appear here..."}
+        <div className="bg-[#e5ddd5] p-3 min-h-[280px]">
+          <div className="flex justify-end">
+            <div 
+              className="max-w-[95%] bg-[#dcf8c6] rounded-lg p-2 shadow-sm"
+              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
+              data-testid="phone-preview-message"
+            >
+              {headerType === "TEXT" && headerContent && (
+                <p className="font-semibold text-[11px] text-gray-800 mb-1" data-testid="phone-preview-header">
+                  {headerContent}
                 </p>
-                
-                {footer && (
-                  <p className="text-[10px] text-gray-500 mt-1 break-words" data-testid="phone-preview-footer">
-                    {footer}
-                  </p>
-                )}
-                
-                <div className="flex justify-end mt-0.5">
-                  <span className="text-[9px] text-gray-400">
-                    {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                  </span>
+              )}
+              {headerType === "IMAGE" && (
+                <div className="bg-gray-200 h-16 rounded mb-2 flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4 text-gray-400" />
                 </div>
+              )}
+              {headerType === "VIDEO" && (
+                <div className="bg-gray-200 h-16 rounded mb-2 flex items-center justify-center">
+                  <Video className="w-4 h-4 text-gray-400" />
+                </div>
+              )}
+              {headerType === "DOCUMENT" && (
+                <div className="bg-gray-200 h-12 rounded mb-2 flex items-center justify-center gap-1">
+                  <File className="w-3 h-3 text-gray-400" />
+                  <span className="text-[9px] text-gray-500">Document</span>
+                </div>
+              )}
+              
+              <p 
+                className="text-[11px] text-gray-800" 
+                style={{ wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}
+                data-testid="phone-preview-body"
+              >
+                {body || "Your message will appear here..."}
+              </p>
+              
+              {footer && (
+                <p className="text-[9px] text-gray-500 mt-1" data-testid="phone-preview-footer">
+                  {footer}
+                </p>
+              )}
+              
+              <div className="flex justify-end mt-0.5">
+                <span className="text-[8px] text-gray-400">
+                  {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                </span>
               </div>
             </div>
-
-            {buttonType && buttonType !== "NONE" && buttonText && (
-              <div className="flex justify-end">
-                <div className="max-w-[90%] w-full">
-                  <button 
-                    className="w-full bg-white/90 backdrop-blur border border-[#25D366]/30 text-[#25D366] rounded-lg py-1.5 px-3 text-xs font-medium shadow-sm hover:bg-white transition-colors"
-                    data-testid="phone-preview-button"
-                  >
-                    {buttonText}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
-          <div className="bg-[#f0f0f0] px-2 py-1.5 flex items-center gap-1.5 border-t border-gray-200">
-            <div className="flex-1 bg-white rounded-full px-3 py-1.5 flex items-center shadow-sm">
-              <span className="text-gray-400 text-[10px]">Message...</span>
+          {buttonType && buttonType !== "NONE" && buttonText && (
+            <div className="flex justify-end mt-1">
+              <button 
+                className="max-w-[95%] w-full bg-white text-[#128C7E] rounded py-1.5 text-[10px] font-medium"
+                data-testid="phone-preview-button"
+              >
+                {buttonText}
+              </button>
             </div>
-            <div className="w-8 h-8 bg-gradient-to-br from-[#25D366] to-[#128C7E] rounded-full flex items-center justify-center shadow-md">
-              <Send className="w-3.5 h-3.5 text-white" />
-            </div>
+          )}
+        </div>
+
+        <div className="bg-[#f0f0f0] px-2 py-1.5 flex items-center gap-1.5">
+          <div className="flex-1 bg-white rounded-full px-3 py-1 text-gray-400 text-[9px]">
+            Message...
+          </div>
+          <div className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center">
+            <Send className="w-3 h-3 text-white" />
           </div>
         </div>
       </div>
@@ -835,23 +818,16 @@ export default function WhatsAppTemplates() {
       </div>
 
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden p-0" data-testid="dialog-create-template">
-          <div className="bg-gradient-to-r from-green-600 to-green-500 px-6 py-4 text-white">
-            <DialogHeader className="text-white">
-              <DialogTitle className="flex items-center gap-3 text-white text-lg">
-                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-                  <SiWhatsapp className="w-6 h-6 text-white" />
-                </div>
-                Create WhatsApp Template
-              </DialogTitle>
-              <DialogDescription className="text-green-100 mt-1">
-                Design your message template. It will be reviewed by Meta before use.
-              </DialogDescription>
-            </DialogHeader>
-          </div>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden" data-testid="dialog-create-template">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Create Template</DialogTitle>
+            <DialogDescription>
+              Create a message template for WhatsApp. Templates require Meta approval.
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="flex gap-6 p-6 bg-gradient-to-br from-gray-50 to-white">
-            <div className="flex-1 overflow-y-auto max-h-[60vh] pr-4">
+          <div className="flex gap-8">
+            <div className="flex-1 overflow-y-auto max-h-[60vh] pr-2">
               <Form {...createForm}>
                 <form onSubmit={createForm.handleSubmit(handleCreateTemplate)} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -1057,16 +1033,11 @@ export default function WhatsAppTemplates() {
                     </div>
                   )}
 
-                  <DialogFooter className="pt-6 border-t mt-6">
-                    <Button type="button" variant="ghost" onClick={() => setIsCreateModalOpen(false)} data-testid="button-cancel-create" className="text-gray-600 hover:text-gray-800">
+                  <DialogFooter className="pt-4">
+                    <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)} data-testid="button-cancel-create">
                       Cancel
                     </Button>
-                    <Button
-                      type="submit"
-                      className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg shadow-green-500/25 px-6"
-                      data-testid="button-submit-template"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
+                    <Button type="submit" data-testid="button-submit-template">
                       Submit for Approval
                     </Button>
                   </DialogFooter>
@@ -1074,8 +1045,8 @@ export default function WhatsAppTemplates() {
               </Form>
             </div>
 
-            <div className="flex-shrink-0 hidden lg:flex flex-col items-center justify-center bg-gradient-to-b from-gray-100 to-gray-200 rounded-2xl p-6 shadow-inner">
-              <p className="text-xs font-medium text-gray-500 mb-4 uppercase tracking-wide">Live Preview</p>
+            <div className="flex-shrink-0 hidden lg:flex flex-col items-center">
+              <p className="text-xs text-muted-foreground mb-3">Preview</p>
               <PhonePreview
                 headerType={headerType}
                 headerContent={headerContent}
