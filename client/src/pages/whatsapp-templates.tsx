@@ -51,7 +51,11 @@ import {
   Search,
   Eye,
   Copy,
+  Settings,
+  Type,
+  MousePointer,
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { SiWhatsapp } from "react-icons/si";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
@@ -820,218 +824,246 @@ export default function WhatsAppTemplates() {
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden" data-testid="dialog-create-template">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Create Template</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+              <FileText className="w-5 h-5 text-muted-foreground" />
+              Create Template
+            </DialogTitle>
             <DialogDescription>
               Create a message template for WhatsApp. Templates require Meta approval.
             </DialogDescription>
           </DialogHeader>
 
+          <Separator />
+
           <div className="flex gap-8">
             <div className="flex-1 overflow-y-auto max-h-[60vh] pr-2">
               <Form {...createForm}>
-                <form onSubmit={createForm.handleSubmit(handleCreateTemplate)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={createForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Template Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., order_confirmation" {...field} data-testid="input-template-name" />
-                          </FormControl>
-                          <FormDescription>Lowercase, underscores only</FormDescription>
-                          <FormMessage data-testid="error-template-name" />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={createForm.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-template-category">
-                                <SelectValue placeholder="Select category" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="AUTHENTICATION" data-testid="option-create-cat-auth">Authentication</SelectItem>
-                              <SelectItem value="UTILITY" data-testid="option-create-cat-utility">Utility</SelectItem>
-                              <SelectItem value="MARKETING" data-testid="option-create-cat-marketing">Marketing</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage data-testid="error-template-category" />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={createForm.control}
-                    name="language"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Language</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-template-language">
-                              <SelectValue placeholder="Select language" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="es" data-testid="option-lang-es">Spanish (es)</SelectItem>
-                            <SelectItem value="en" data-testid="option-lang-en">English (en)</SelectItem>
-                            <SelectItem value="en_US" data-testid="option-lang-en-us">English US (en_US)</SelectItem>
-                            <SelectItem value="pt_BR" data-testid="option-lang-pt-br">Portuguese BR (pt_BR)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage data-testid="error-template-language" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={createForm.control}
-                    name="headerType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Header (Optional)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-header-type">
-                              <SelectValue placeholder="Select header type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="NONE" data-testid="option-header-none">No Header</SelectItem>
-                            <SelectItem value="TEXT" data-testid="option-header-text">Text</SelectItem>
-                            <SelectItem value="IMAGE" data-testid="option-header-image">Image</SelectItem>
-                            <SelectItem value="VIDEO" data-testid="option-header-video">Video</SelectItem>
-                            <SelectItem value="DOCUMENT" data-testid="option-header-document">Document</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage data-testid="error-header-type" />
-                      </FormItem>
-                    )}
-                  />
-
-                  {headerType === "TEXT" && (
-                    <FormField
-                      control={createForm.control}
-                      name="headerContent"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Header Text</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Header text..." {...field} data-testid="input-header-text" />
-                          </FormControl>
-                          <FormMessage data-testid="error-header-text" />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {(headerType === "IMAGE" || headerType === "VIDEO" || headerType === "DOCUMENT") && (
-                    <div className="border-2 border-dashed rounded-lg p-4 text-center" data-testid="media-upload-placeholder">
-                      <p className="text-sm text-gray-500">
-                        Media will be uploaded when sending the template
-                      </p>
-                    </div>
-                  )}
-
-                  <FormField
-                    control={createForm.control}
-                    name="body"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Body (Required)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Hello {{1}}, your order #{{2}} is confirmed..."
-                            rows={4}
-                            {...field}
-                            data-testid="textarea-template-body"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Use {"{{1}}"}, {"{{2}}"}, etc. for variables. Max 1024 characters.
-                        </FormDescription>
-                        <FormMessage data-testid="error-template-body" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={createForm.control}
-                    name="footer"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Footer (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Thank you for your purchase" {...field} data-testid="input-template-footer" />
-                        </FormControl>
-                        <FormMessage data-testid="error-template-footer" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={createForm.control}
-                    name="buttonType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Button (Optional)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-button-type">
-                              <SelectValue placeholder="Select button type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="NONE" data-testid="option-button-none">No Button</SelectItem>
-                            <SelectItem value="URL" data-testid="option-button-url">URL Button</SelectItem>
-                            <SelectItem value="QUICK_REPLY" data-testid="option-button-quick">Quick Reply</SelectItem>
-                            <SelectItem value="CALL" data-testid="option-button-call">Call Button</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage data-testid="error-button-type" />
-                      </FormItem>
-                    )}
-                  />
-
-                  {buttonType !== "NONE" && (
-                    <div className="grid grid-cols-2 gap-2">
+                <form onSubmit={createForm.handleSubmit(handleCreateTemplate)} className="space-y-5">
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground flex items-center gap-2 mb-3">
+                      <Settings className="w-4 h-4 text-muted-foreground" />
+                      Basic Information
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={createForm.control}
-                        name="buttonText"
+                        name="name"
                         render={({ field }) => (
                           <FormItem>
+                            <FormLabel>Template Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Button text" {...field} data-testid="input-button-text" />
+                              <Input placeholder="e.g., order_confirmation" {...field} data-testid="input-template-name" />
                             </FormControl>
-                            <FormMessage data-testid="error-button-text" />
+                            <FormDescription>Lowercase, underscores only</FormDescription>
+                            <FormMessage data-testid="error-template-name" />
                           </FormItem>
                         )}
                       />
-                      {buttonType === "URL" && (
+                      <FormField
+                        control={createForm.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-template-category">
+                                  <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="AUTHENTICATION" data-testid="option-create-cat-auth">Authentication</SelectItem>
+                                <SelectItem value="UTILITY" data-testid="option-create-cat-utility">Utility</SelectItem>
+                                <SelectItem value="MARKETING" data-testid="option-create-cat-marketing">Marketing</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage data-testid="error-template-category" />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={createForm.control}
+                        name="language"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Language</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-template-language">
+                                  <SelectValue placeholder="Select language" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="es" data-testid="option-lang-es">Spanish (es)</SelectItem>
+                                <SelectItem value="en" data-testid="option-lang-en">English (en)</SelectItem>
+                                <SelectItem value="en_US" data-testid="option-lang-en-us">English US (en_US)</SelectItem>
+                                <SelectItem value="pt_BR" data-testid="option-lang-pt-br">Portuguese BR (pt_BR)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage data-testid="error-template-language" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground flex items-center gap-2 mb-3">
+                      <Type className="w-4 h-4 text-muted-foreground" />
+                      Content
+                    </h4>
+                    <div className="space-y-4">
+                      <FormField
+                        control={createForm.control}
+                        name="headerType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Header (Optional)</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-header-type">
+                                  <SelectValue placeholder="Select header type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="NONE" data-testid="option-header-none">No Header</SelectItem>
+                                <SelectItem value="TEXT" data-testid="option-header-text">Text</SelectItem>
+                                <SelectItem value="IMAGE" data-testid="option-header-image">Image</SelectItem>
+                                <SelectItem value="VIDEO" data-testid="option-header-video">Video</SelectItem>
+                                <SelectItem value="DOCUMENT" data-testid="option-header-document">Document</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage data-testid="error-header-type" />
+                          </FormItem>
+                        )}
+                      />
+
+                      {headerType === "TEXT" && (
                         <FormField
                           control={createForm.control}
-                          name="buttonUrl"
+                          name="headerContent"
                           render={({ field }) => (
                             <FormItem>
+                              <FormLabel>Header Text</FormLabel>
                               <FormControl>
-                                <Input placeholder="https://example.com" {...field} data-testid="input-button-url" />
+                                <Input placeholder="Header text..." {...field} data-testid="input-header-text" />
                               </FormControl>
-                              <FormMessage data-testid="error-button-url" />
+                              <FormMessage data-testid="error-header-text" />
                             </FormItem>
                           )}
                         />
                       )}
+
+                      {(headerType === "IMAGE" || headerType === "VIDEO" || headerType === "DOCUMENT") && (
+                        <div className="border border-dashed rounded-lg p-4 text-center" data-testid="media-upload-placeholder">
+                          <p className="text-sm text-muted-foreground">
+                            Media will be uploaded when sending the template
+                          </p>
+                        </div>
+                      )}
+
+                      <FormField
+                        control={createForm.control}
+                        name="body"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Body</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Hello {{1}}, your order #{{2}} is confirmed..."
+                                rows={4}
+                                {...field}
+                                data-testid="textarea-template-body"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Use {"{{1}}"}, {"{{2}}"}, etc. for variables. Max 1024 characters.
+                            </FormDescription>
+                            <FormMessage data-testid="error-template-body" />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={createForm.control}
+                        name="footer"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Footer (Optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Thank you for your purchase" {...field} data-testid="input-template-footer" />
+                            </FormControl>
+                            <FormMessage data-testid="error-template-footer" />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                  )}
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground flex items-center gap-2 mb-3">
+                      <MousePointer className="w-4 h-4 text-muted-foreground" />
+                      Button
+                    </h4>
+                    <div className="space-y-4">
+                      <FormField
+                        control={createForm.control}
+                        name="buttonType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Button Type</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-button-type">
+                                  <SelectValue placeholder="Select button type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="NONE" data-testid="option-button-none">No Button</SelectItem>
+                                <SelectItem value="URL" data-testid="option-button-url">URL Button</SelectItem>
+                                <SelectItem value="QUICK_REPLY" data-testid="option-button-quick">Quick Reply</SelectItem>
+                                <SelectItem value="CALL" data-testid="option-button-call">Call Button</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage data-testid="error-button-type" />
+                          </FormItem>
+                        )}
+                      />
+
+                      {buttonType !== "NONE" && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <FormField
+                            control={createForm.control}
+                            name="buttonText"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Button Text</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Button text" {...field} data-testid="input-button-text" />
+                                </FormControl>
+                                <FormMessage data-testid="error-button-text" />
+                              </FormItem>
+                            )}
+                          />
+                          {buttonType === "URL" && (
+                            <FormField
+                              control={createForm.control}
+                              name="buttonUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Button URL</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="https://example.com" {...field} data-testid="input-button-url" />
+                                  </FormControl>
+                                  <FormMessage data-testid="error-button-url" />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
                   <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)} data-testid="button-cancel-create">
