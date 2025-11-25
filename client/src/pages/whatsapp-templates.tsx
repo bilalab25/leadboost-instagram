@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useBrand } from "@/contexts/BrandContext";
 import { useToast } from "@/hooks/use-toast";
@@ -333,36 +334,140 @@ export default function WhatsAppTemplates() {
     });
   };
 
-  const handleSendTemplate = (data: SendTemplateForm) => {
-    if (selectedTemplate) {
-      const placeholders = getPlaceholders(selectedTemplate.body);
-      const missingPlaceholders: string[] = [];
-      
-      placeholders.forEach((placeholder) => {
-        const normalizedKey = placeholderToKey(placeholder);
-        const value = data.variables?.[normalizedKey];
-        if (value === undefined || value === null || value.trim() === "") {
-          missingPlaceholders.push(placeholder);
-        }
+  // Mutation for sending template messages
+  const sendTemplateMutation = useMutation({
+    mutationFn: async (payload: {
+      phoneNumber: string;
+      templateName: string;
+      languageCode: string;
+      components: any[];
+    }) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/whatsapp-templates/send?brandId=${activeBrandId}`,
+        payload
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Message Sent",
+        description: `Template successfully sent to ${data.to}`,
       });
-      
-      if (missingPlaceholders.length > 0) {
-        toast({
-          title: "Missing Variables",
-          description: `Please fill in all required variables: ${missingPlaceholders.join(", ")}`,
-          variant: "destructive",
+      setIsSendModalOpen(false);
+      sendForm.reset();
+      setSelectedTemplate(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Send",
+        description: error.message || "Could not send template message",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendTemplate = (data: SendTemplateForm) => {
+    if (!selectedTemplate) return;
+
+    const placeholders = getPlaceholders(selectedTemplate.body);
+    const missingPlaceholders: string[] = [];
+    
+    placeholders.forEach((placeholder) => {
+      const normalizedKey = placeholderToKey(placeholder);
+      const value = data.variables?.[normalizedKey];
+      if (value === undefined || value === null || value.trim() === "") {
+        missingPlaceholders.push(placeholder);
+      }
+    });
+    
+    if (missingPlaceholders.length > 0) {
+      toast({
+        title: "Missing Variables",
+        description: `Please fill in all required variables: ${missingPlaceholders.join(", ")}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Build components array for variables following Meta's schema
+    // Meta requires uppercase type values: HEADER, BODY, BUTTONS
+    const components: any[] = [];
+    
+    // Handle HEADER parameters if template has header with variables
+    if (selectedTemplate.headerType === "TEXT" && selectedTemplate.headerContent) {
+      const headerPlaceholders = getPlaceholders(selectedTemplate.headerContent);
+      if (headerPlaceholders.length > 0) {
+        const headerParams = headerPlaceholders.map((placeholder) => {
+          const normalizedKey = placeholderToKey(placeholder);
+          return {
+            type: "text",
+            text: data.variables[normalizedKey] || "",
+          };
         });
-        return;
+        components.push({
+          type: "header",
+          parameters: headerParams,
+        });
       }
     }
     
-    toast({
-      title: "Message Sent",
-      description: `Template sent to ${data.phoneNumber}`,
+    // Handle BODY parameters
+    if (placeholders.length > 0) {
+      const bodyParams = placeholders.map((placeholder) => {
+        const normalizedKey = placeholderToKey(placeholder);
+        return {
+          type: "text",
+          text: data.variables[normalizedKey] || "",
+        };
+      });
+      components.push({
+        type: "body",
+        parameters: bodyParams,
+      });
+    }
+    
+    // Handle BUTTONS parameters if template has dynamic URL buttons
+    if (selectedTemplate.buttons && selectedTemplate.buttons.length > 0) {
+      selectedTemplate.buttons.forEach((button: any, index: number) => {
+        if (button.type === "URL" && button.url?.includes("{{1}}")) {
+          const buttonKey = `button_${index + 1}`;
+          if (data.variables[buttonKey]) {
+            components.push({
+              type: "button",
+              sub_type: "url",
+              index: index,
+              parameters: [
+                {
+                  type: "text",
+                  text: data.variables[buttonKey],
+                }
+              ],
+            });
+          }
+        }
+      });
+    }
+
+    // If using demo data, just show a success toast (no API call)
+    if (isUsingMockData) {
+      toast({
+        title: "Demo Mode",
+        description: "In demo mode, messages are not actually sent. Connect WhatsApp to send real messages.",
+      });
+      setIsSendModalOpen(false);
+      sendForm.reset();
+      setSelectedTemplate(null);
+      return;
+    }
+
+    // Send the template via API
+    sendTemplateMutation.mutate({
+      phoneNumber: data.phoneNumber,
+      templateName: selectedTemplate.name,
+      languageCode: selectedTemplate.language,
+      components: components,
     });
-    setIsSendModalOpen(false);
-    sendForm.reset();
-    setSelectedTemplate(null);
   };
 
   const openSendModal = (template: WhatsAppTemplate) => {
@@ -966,10 +1071,20 @@ export default function WhatsAppTemplates() {
                 <Button
                   type="submit"
                   className="bg-green-600 hover:bg-green-700"
+                  disabled={sendTemplateMutation.isPending}
                   data-testid="button-send-message"
                 >
-                  <Send className="w-4 h-4 mr-2" />
-                  Send Message
+                  {sendTemplateMutation.isPending ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Message
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </form>

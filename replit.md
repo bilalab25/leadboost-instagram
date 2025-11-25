@@ -32,7 +32,7 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
 - **Automation Flows**: Visual builder for custom workflows with various node types and advanced condition logic.
 - **Brand Studio**: Brand-specific designs and Cloudinary-based asset management with category organization.
 - **Posting Frequency Management**: Brand-specific scheduling with AI suggestions.
-- **WhatsApp Templates**: API integration to fetch and manage WhatsApp message templates from Meta Graph API.
+- **WhatsApp Templates**: Full Meta Graph API integration for fetching templates and sending template messages with variable substitution. Supports HEADER, BODY, and BUTTON parameters following Meta's component schema.
 
 ## External Dependencies
 

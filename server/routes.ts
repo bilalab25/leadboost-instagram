@@ -3430,6 +3430,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // WhatsApp Templates - Send a template message
+  app.post(
+    "/api/whatsapp-templates/send",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+        const { phoneNumber, templateName, languageCode, components } = req.body;
+
+        if (!phoneNumber || !templateName) {
+          return res.status(400).json({
+            error: "Missing required fields",
+            message: "Phone number and template name are required",
+          });
+        }
+
+        // Get WhatsApp integration for this brand
+        const integrations = await storage.getIntegrationsByBrandId(brandId);
+        const whatsappIntegration = integrations.find(
+          (i) => i.provider === "whatsapp" && i.isActive
+        );
+
+        if (!whatsappIntegration) {
+          return res.status(404).json({
+            error: "WhatsApp integration not found",
+            message: "Please connect your WhatsApp Business account first",
+          });
+        }
+
+        if (!whatsappIntegration.accessToken) {
+          return res.status(400).json({
+            error: "Invalid WhatsApp integration",
+            message: "WhatsApp integration is missing access token",
+          });
+        }
+
+        // Get phoneNumberId from metadata
+        const metadata = whatsappIntegration.metadata as any;
+        const phoneNumberId = metadata?.phoneNumberId;
+
+        if (!phoneNumberId) {
+          return res.status(400).json({
+            error: "Missing phone number ID",
+            message: "WhatsApp integration is missing phone number configuration",
+          });
+        }
+
+        // Format phone number (remove any non-numeric characters except +)
+        const formattedPhone = phoneNumber.replace(/[^\d+]/g, "").replace(/^\+/, "");
+
+        // Build template payload
+        const templatePayload = {
+          name: templateName,
+          language: {
+            code: languageCode || "en_US",
+          },
+          components: components || [],
+        };
+
+        // Send message via Meta Graph API
+        const response = await fetch(
+          `https://graph.facebook.com/v22.0/${phoneNumberId}/messages`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${whatsappIntegration.accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              messaging_product: "whatsapp",
+              to: formattedPhone,
+              type: "template",
+              template: templatePayload,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (data.error) {
+          console.error("❌ Meta API error sending template:", data.error);
+          return res.status(400).json({
+            error: "Failed to send message",
+            message: data.error.message || "Meta API error",
+            details: data.error,
+          });
+        }
+
+        console.log(`✅ WhatsApp template sent to ${formattedPhone}:`, data);
+
+        res.status(200).json({
+          success: true,
+          messageId: data.messages?.[0]?.id,
+          to: formattedPhone,
+        });
+      } catch (error: any) {
+        console.error("❌ Error sending WhatsApp template:", error);
+        res.status(500).json({
+          error: "Failed to send template",
+          message: error.message || "Unknown error",
+        });
+      }
+    }
+  );
+
   app.get("/api/webhooks/meta", async (req, res) => {
     try {
       const VERIFY_TOKEN =
