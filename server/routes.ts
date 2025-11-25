@@ -3525,6 +3525,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Store message in database after successful send
         const metaMessageId = data.messages?.[0]?.id;
+        const metaContactId = data.contacts?.[0]?.wa_id;
+
         if (metaMessageId) {
           try {
             // Use the resolved template body, or fall back to template name indicator
@@ -3541,7 +3543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               integrationId: whatsappIntegration.id,
               brandId: brandId,
               userId: userId,
-              metaConversationId: conversationKey,
+              metaConversationId: `${whatsappIntegration?.metadata?.phoneNumberId}_${metaContactId}`,
               platform: "whatsapp",
               contactName: formattedPhone, // Phone number as initial contact name
               lastMessage: messageContent,

@@ -101,68 +101,6 @@ const sendTemplateSchema = z.object({
 
 type SendTemplateForm = z.infer<typeof sendTemplateSchema>;
 
-const mockTemplates: WhatsAppTemplate[] = [
-  {
-    id: "1",
-    name: "order_confirmation",
-    category: "UTILITY",
-    language: "es",
-    status: "APPROVED",
-    headerType: "TEXT",
-    headerContent: "Confirmación de Pedido",
-    body: "Hola {{1}}, tu pedido #{{2}} ha sido confirmado. El total es ${{3}}. Recibirás actualizaciones de envío pronto.",
-    footer: "Gracias por tu compra",
-    buttons: [{ type: "URL", text: "Ver pedido", url: "https://example.com/order/{{2}}" }],
-    createdAt: "2025-01-15",
-  },
-  {
-    id: "2",
-    name: "appointment_reminder",
-    category: "UTILITY",
-    language: "es",
-    status: "APPROVED",
-    body: "Hola {{1}}, te recordamos que tienes una cita programada para el {{2}} a las {{3}}. Por favor confirma tu asistencia.",
-    footer: "Responde SI para confirmar",
-    buttons: [
-      { type: "QUICK_REPLY", text: "Confirmar" },
-      { type: "QUICK_REPLY", text: "Reagendar" },
-    ],
-    createdAt: "2025-01-10",
-  },
-  {
-    id: "3",
-    name: "promo_descuento",
-    category: "MARKETING",
-    language: "es",
-    status: "PENDING",
-    headerType: "IMAGE",
-    headerContent: "https://example.com/promo-banner.jpg",
-    body: "¡Hola {{1}}! Tenemos una oferta especial para ti: {{2}}% de descuento en toda nuestra tienda. Usa el código: {{3}}. Válido hasta {{4}}.",
-    footer: "No te lo pierdas",
-    buttons: [{ type: "URL", text: "Comprar ahora", url: "https://example.com/shop" }],
-    createdAt: "2025-01-20",
-  },
-  {
-    id: "4",
-    name: "otp_verification",
-    category: "AUTHENTICATION",
-    language: "es",
-    status: "APPROVED",
-    body: "Tu código de verificación es: {{1}}. No compartas este código con nadie. Expira en 5 minutos.",
-    createdAt: "2025-01-05",
-  },
-  {
-    id: "5",
-    name: "shipping_update",
-    category: "UTILITY",
-    language: "es",
-    status: "REJECTED",
-    body: "Tu pedido #{{1}} está en camino. Número de seguimiento: {{2}}. Llegará aproximadamente el {{3}}.",
-    footer: "Rastrear envío",
-    createdAt: "2025-01-18",
-  },
-];
-
 const statusColors = {
   PENDING: "bg-yellow-100 text-yellow-800",
   APPROVED: "bg-green-100 text-green-800",
@@ -278,10 +216,9 @@ export default function WhatsAppTemplates() {
     enabled: !!activeBrandId,
   });
 
-  // Use API templates if available, fallback to mock data only for "no integration" (404) errors
-  const is404Error = templatesError && (templatesError as any)?.message?.includes("404");
-  const isUsingMockData = is404Error;
-  const templates = templatesData?.templates ?? (isUsingMockData ? mockTemplates : []);
+  // Check if error is due to no WhatsApp integration (404)
+  const isNoIntegration = templatesError && (templatesError as any)?.message?.includes("404");
+  const templates = templatesData?.templates ?? [];
 
   const createForm = useForm<CreateTemplateForm>({
     resolver: zodResolver(createTemplateSchema),
@@ -458,18 +395,6 @@ export default function WhatsAppTemplates() {
       templateBody = templateBody.replace(placeholder, value);
     });
 
-    // If using demo data, just show a success toast (no API call)
-    if (isUsingMockData) {
-      toast({
-        title: "Demo Mode",
-        description: "In demo mode, messages are not actually sent. Connect WhatsApp to send real messages.",
-      });
-      setIsSendModalOpen(false);
-      sendForm.reset();
-      setSelectedTemplate(null);
-      return;
-    }
-
     // Send the template via API
     sendTemplateMutation.mutate({
       phoneNumber: data.phoneNumber,
@@ -519,18 +444,14 @@ export default function WhatsAppTemplates() {
           <main className="flex-1 relative overflow-y-auto focus:outline-none">
             <div className="py-6">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-                {templatesError && (
-                  <div className={`mb-6 p-4 border rounded-lg ${isUsingMockData ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'}`} data-testid="banner-status">
+                {templatesError && !isNoIntegration && (
+                  <div className="mb-6 p-4 border rounded-lg bg-red-50 border-red-200" data-testid="banner-status">
                     <div className="flex items-center gap-2">
-                      <AlertCircle className={`w-5 h-5 ${isUsingMockData ? 'text-yellow-600' : 'text-red-600'}`} />
+                      <AlertCircle className="w-5 h-5 text-red-600" />
                       <div>
-                        <p className={`font-medium ${isUsingMockData ? 'text-yellow-800' : 'text-red-800'}`}>
-                          {isUsingMockData ? 'Demo Mode' : 'Error Loading Templates'}
-                        </p>
-                        <p className={`text-sm ${isUsingMockData ? 'text-yellow-700' : 'text-red-700'}`}>
-                          {isUsingMockData 
-                            ? "Connect your WhatsApp Business account in Settings to manage real templates."
-                            : (templatesError as any)?.message || "Unable to fetch templates from Meta."}
+                        <p className="font-medium text-red-800">Error Loading Templates</p>
+                        <p className="text-sm text-red-700">
+                          {(templatesError as any)?.message || "Unable to fetch templates from Meta."}
                         </p>
                       </div>
                     </div>
@@ -548,7 +469,7 @@ export default function WhatsAppTemplates() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    {!isUsingMockData && (
+                    {!isNoIntegration && (
                       <Button
                         variant="outline"
                         onClick={() => refetchTemplates()}
@@ -753,15 +674,40 @@ export default function WhatsAppTemplates() {
                   })}
                 </div>
 
-                {filteredTemplates.length === 0 && (
+                {isNoIntegration && (
+                  <Card className="mt-6" data-testid="card-no-integration">
+                    <CardContent className="py-12 text-center">
+                      <SiWhatsapp className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900" data-testid="text-no-integration-title">
+                        No WhatsApp Integration
+                      </h3>
+                      <p className="text-gray-500 mt-2" data-testid="text-no-integration-description">
+                        Connect your WhatsApp Business account in Settings to manage templates.
+                      </p>
+                      <Button 
+                        className="mt-4 bg-green-600 hover:bg-green-700"
+                        onClick={() => window.location.href = '/settings'}
+                        data-testid="button-go-to-settings"
+                      >
+                        Go to Settings
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {!isNoIntegration && filteredTemplates.length === 0 && (
                   <Card className="mt-6" data-testid="card-empty-state">
                     <CardContent className="py-12 text-center">
                       <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900" data-testid="text-empty-title">No templates found</h3>
+                      <h3 className="text-lg font-medium text-gray-900" data-testid="text-empty-title">
+                        {searchQuery || categoryFilter !== "all" || statusFilter !== "all"
+                          ? "No templates found"
+                          : "No Templates on This Account"}
+                      </h3>
                       <p className="text-gray-500 mt-2" data-testid="text-empty-description">
                         {searchQuery || categoryFilter !== "all" || statusFilter !== "all"
                           ? "Try adjusting your filters"
-                          : "Create your first WhatsApp template to get started"}
+                          : "There are no message templates on this WhatsApp Business account."}
                       </p>
                     </CardContent>
                   </Card>

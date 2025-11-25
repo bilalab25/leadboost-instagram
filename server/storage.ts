@@ -552,10 +552,7 @@ export class DatabaseStorage implements IStorage {
 
   // Get brand by ID only (use when requireBrand middleware already validated access)
   async getBrandByIdOnly(id: string): Promise<Brand | undefined> {
-    const [brand] = await db
-      .select()
-      .from(brands)
-      .where(eq(brands.id, id));
+    const [brand] = await db.select().from(brands).where(eq(brands.id, id));
     return brand;
   }
 
@@ -795,8 +792,6 @@ export class DatabaseStorage implements IStorage {
             conversations.metaConversationId,
           ],
           set: {
-            contactName:
-              params.contactName || sql`${conversations.contactName}`,
             lastMessage:
               params.lastMessage || sql`${conversations.lastMessage}`,
             lastMessageAt: params.lastMessageAt || new Date(),
@@ -1676,7 +1671,7 @@ export class DatabaseStorage implements IStorage {
     if (!design || !design.id) {
       return [];
     }
-    
+
     // Then get all assets for that design
     return this.getAssetsByBrandDesignId(design.id);
   }
@@ -2096,7 +2091,7 @@ export class DatabaseStorage implements IStorage {
     if (!frequencies || frequencies.length === 0) return;
 
     // Validate that all frequencies have brandId
-    const invalidFrequencies = frequencies.filter(f => !f.brandId);
+    const invalidFrequencies = frequencies.filter((f) => !f.brandId);
     if (invalidFrequencies.length > 0) {
       throw new Error("All posting frequencies must have a brandId");
     }
@@ -2164,15 +2159,15 @@ export class DatabaseStorage implements IStorage {
     if (!brandId) {
       throw new Error("brandId is required to delete conversation history");
     }
-    
+
     // Delete only if both id and brandId match (prevents cross-tenant deletion)
     await db
       .delete(conversationHistory)
       .where(
         and(
           eq(conversationHistory.id, id),
-          eq(conversationHistory.brandId, brandId)
-        )
+          eq(conversationHistory.brandId, brandId),
+        ),
       )
       .execute();
   }
