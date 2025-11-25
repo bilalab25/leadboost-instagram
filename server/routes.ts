@@ -3121,7 +3121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // URL base del Embedded Signup
       const embeddedSignupUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri,
-      )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=1846416285966221&auth_type=rerequest`;
+      )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=1381266417040483&auth_type=rerequest`;
 
       // ^^^ El 'config_id' es CRUCIAL.
 
@@ -3441,6 +3441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       isRead: false,
                       timestamp: new Date(parseInt(timestamp) * 1000),
                       rawPayload: body,
+                      brandId: integration.brandId,
                     };
 
                     const savedMessage =
@@ -4391,7 +4392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           const phoneNumberId =
-            integration.metadata?.phone_number_id || integration.accountId;
+            integration.metadata?.phoneNumberId || integration.accountId;
           if (!phoneNumberId)
             return res
               .status(400)
