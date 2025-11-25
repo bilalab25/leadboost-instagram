@@ -3438,7 +3438,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const brandId = req.brandMembership.brandId;
-        const { phoneNumber, templateName, languageCode, components } = req.body;
+        const userId = req.user.id;
+        const { phoneNumber, templateName, languageCode, components, templateBody } = req.body;
 
         if (!phoneNumber || !templateName) {
           return res.status(400).json({
@@ -3470,6 +3471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get phoneNumberId from metadata
         const metadata = whatsappIntegration.metadata as any;
         const phoneNumberId = metadata?.phoneNumberId;
+        const displayPhoneNumber = metadata?.displayPhoneNumber || phoneNumberId;
 
         if (!phoneNumberId) {
           return res.status(400).json({
@@ -3521,9 +3523,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log(`✅ WhatsApp template sent to ${formattedPhone}:`, data);
 
+        // Store message in database after successful send
+        const metaMessageId = data.messages?.[0]?.id;
+        if (metaMessageId) {
+          try {
+            // Use the resolved template body, or fall back to template name indicator
+            const messageContent = templateBody && templateBody.trim() 
+              ? templateBody 
+              : `[Template: ${templateName}]`;
+            
+            // Build a unique conversation identifier using WhatsApp's pattern
+            // Format: wa_{phoneNumberId}_{customerPhone} to ensure uniqueness per integration
+            const conversationKey = `wa_${formattedPhone}`;
+            
+            // Get or create conversation for this phone number
+            const conversation = await storage.getOrCreateConversation({
+              integrationId: whatsappIntegration.id,
+              brandId: brandId,
+              userId: userId,
+              metaConversationId: conversationKey,
+              platform: "whatsapp",
+              contactName: formattedPhone, // Phone number as initial contact name
+              lastMessage: messageContent,
+              lastMessageAt: new Date(),
+            });
+
+            // Create the message record
+            await storage.createMessage({
+              userId: userId,
+              integrationId: whatsappIntegration.id,
+              brandId: brandId,
+              conversationId: conversation.id,
+              platform: "whatsapp",
+              metaMessageId: metaMessageId,
+              metaConversationId: conversationKey,
+              senderId: displayPhoneNumber, // Business phone number
+              recipientId: formattedPhone, // Customer phone number
+              contactName: formattedPhone,
+              textContent: messageContent,
+              direction: "outbound",
+              isRead: true, // Outbound messages are read by default
+              timestamp: new Date(),
+              rawPayload: {
+                type: "template",
+                templateName: templateName,
+                languageCode: languageCode || "en_US",
+                components: components || [],
+                templateBody: templateBody, // Store original resolved body
+                metaResponse: data,
+              },
+            });
+
+            console.log(`✅ Template message stored in database: ${metaMessageId}`);
+          } catch (dbError: any) {
+            // Log the error but don't fail the request - message was still sent
+            console.error("⚠️ Failed to store message in database:", dbError.message);
+          }
+        }
+
         res.status(200).json({
           success: true,
-          messageId: data.messages?.[0]?.id,
+          messageId: metaMessageId,
           to: formattedPhone,
         });
       } catch (error: any) {

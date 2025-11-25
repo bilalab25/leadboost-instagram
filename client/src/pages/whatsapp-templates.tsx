@@ -341,6 +341,7 @@ export default function WhatsAppTemplates() {
       templateName: string;
       languageCode: string;
       components: any[];
+      templateBody: string;
     }) => {
       const response = await apiRequest(
         "POST",
@@ -449,6 +450,14 @@ export default function WhatsAppTemplates() {
       });
     }
 
+    // Build the template body with variables substituted for storage
+    let templateBody = selectedTemplate.body;
+    placeholders.forEach((placeholder) => {
+      const normalizedKey = placeholderToKey(placeholder);
+      const value = data.variables[normalizedKey] || "";
+      templateBody = templateBody.replace(placeholder, value);
+    });
+
     // If using demo data, just show a success toast (no API call)
     if (isUsingMockData) {
       toast({
@@ -467,6 +476,7 @@ export default function WhatsAppTemplates() {
       templateName: selectedTemplate.name,
       languageCode: selectedTemplate.language,
       components: components,
+      templateBody: templateBody,
     });
   };
 
