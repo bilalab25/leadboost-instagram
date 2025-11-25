@@ -1,0 +1,197 @@
+View raw API response
+Access Token Debugger
+Integrate with APIs
+After embedding the signup flow in your website, the next step is to integrate with the API endpoints needed to complete the process.
+APIs for fetching all WhatsApp Accounts
+Get a list of owned or client shared WhatsApp Accounts for your Business Account.
+APIs for WhatsApp Account details
+To start your integration, you need to fetch the WhatsApp accounts that you want to integrate with.
+WhatsApp Account ID and Access Token
+Use custom WABA ID and access token to proceed with integration
+Fetch Shared WhatsApp Business Account
+Fetch data for WhatsApp business account that was shared using Embedded Signup.
+Fetch Phone Numbers
+Fetch the list of phone numbers under the WhatsApp account.
+Fetch Message Templates
+Fetch the list of message templates under the WhatsApp account.
+cURL
+JavaScript
+PHP
+Python
+Java
+
+curl -i -X GET "https://graph.facebook.com/v22.0/4123324087997500/message_templates?\
+fields=language,name,rejected_reason,status,category,sub_category,last_updated_time,components,quality_score&\
+limit=50&\
+access_token=EAA0ulZBKDJ0cBQBpWzEG10pTBWdZBFPQ4tNbKqiPWxlI7pbb8IXubkBhpp1Lb4c8eSqLWy5Ytngru10JKTrQZBoGY1XfmEEvnyD6q9F0eRFO20ZCoYKUUf5qOLesUUkvp6bDyp87dzVoaUr4ituoGeVdx2WFgZApzxRMZAKcRSSPEIEeZAOPfEN0CkSh0p8JquN94kp46ZBszVWQa4cFLciba3dMfRX25wZALackN5qZCXfcKKbXaqRqQp7QPwZBhcWGuPgdHNeowies4BiH4KZCZCGjTv3xtC1HsfabFE483"
+
+ID
+	
+Name
+	
+Language
+	
+Status
+	
+Category
+	
+Quality score
+	
+Updated
+1521479142237051
+	
+sample_template
+	
+English (US)
+	
+Approved
+	
+Utility
+	
+Unknown
+	
+2025-11-25
+2046526722786427
+	
+hello_world
+	
+English (US)
+	
+Approved
+	
+Utility
+	
+Unknown
+	
+2025-11-03
+View raw API response
+Subscribe App to the WhatsApp Business Account
+Subscribe your app to WhatsApp Business Account to receive webhook notifications describing changes to the account.
+Register/Deregister Phone Number
+To use your business phone number with Cloud API you must register it. Register your business phone number in scenarios like account creation, name change or migrating your number from On-Premises API to Cloud API.
+WhatsApp Cloud API Phone Registration
+To start sending messages, you need to register the phone on WhatsApp Cloud API.
+Deregister Phone from WhatsApp Cloud API
+Deregistering a business phone number makes it no longer usable with Cloud API and disables local storage on the number, if it had been enabled. Deregistration does not delete a number or its message history.
+cURL
+JavaScript
+PHP
+Python
+Java
+
+curl -X POST \
+  'https://graph.facebook.com/v22.0/828092020393635/deregister' \
+  -H 'Authorization: Bearer EAA0ulZBKDJ0cBQBpWzEG10pTBWdZBFPQ4tNbKqiPWxlI7pbb8IXubkBhpp1Lb4c8eSqLWy5Ytngru10JKTrQZBoGY1XfmEEvnyD6q9F0eRFO20ZCoYKUUf5qOLesUUkvp6bDyp87dzVoaUr4ituoGeVdx2WFgZApzxRMZAKcRSSPEIEeZAOPfEN0CkSh0p8JquN94kp46ZBszVWQa4cFLciba3dMfRX25wZALackN5qZCXfcKKbXaqRqQp7QPwZBhcWGuPgdHNeowies4BiH4KZCZCGjTv3xtC1HsfabFE483'
+
+Payment Setup
+Line of credit is the only accepted payment method for the API use. Solution Partners must share their line of credit with all end businesses onboarded via Embedded Signup flow.
+Check existing funding ID
+Retrieve the primary funding ID for the WhatsApp Business Account paid service
+cURL
+JavaScript
+PHP
+Python
+Java
+
+curl -i -X GET "https://graph.facebook.com/v22.0/4123324087997500?\
+fields=primary_funding_id&\
+access_token=EAA0ulZBKDJ0cBQBpWzEG10pTBWdZBFPQ4tNbKqiPWxlI7pbb8IXubkBhpp1Lb4c8eSqLWy5Ytngru10JKTrQZBoGY1XfmEEvnyD6q9F0eRFO20ZCoYKUUf5qOLesUUkvp6bDyp87dzVoaUr4ituoGeVdx2WFgZApzxRMZAKcRSSPEIEeZAOPfEN0CkSh0p8JquN94kp46ZBszVWQa4cFLciba3dMfRX25wZALackN5qZCXfcKKbXaqRqQp7QPwZBhcWGuPgdHNeowies4BiH4KZCZCGjTv3xtC1HsfabFE483"
+
+Send Messages
+Before sending a template message, you need to create a template.
+Tools & Resources
+App Basic Settings
+App Roles
+App Review Submissions
+Facebook Login for Business Settings
+Access Verification
+Webhooks Setup
+App Activity Log
+Business Manager
+WhatsApp Manager
+Billing Hub
+GraphAPI Explorer
+Access Token Debugger
+Support
+Documentation
+Embedded Signup
+Cloud API
+Tech Provider Onboarding
+Cloud API Endpoint References
+Cloud API Guides
+Health Status API
+WhatsApp Business Account Reference
+Business Phone Numbers
+System Users
+WhatsApp Business Platform Postman Collection
+WhatsApp Business Management API Postman Collection
+WhatsApp Business Cloud API Postman Collection
+WhatsApp Business Embedded Signup Postman Collection
+Raw API Response
+
+{
+  "data": [
+    {
+      "language": "en_US",
+      "name": "sample_template",
+      "rejected_reason": "NONE",
+      "status": "APPROVED",
+      "category": "UTILITY",
+      "last_updated_time": "2025-11-25T18:45:26+0000",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "Hello World"
+        },
+        {
+          "type": "BODY",
+          "text": "Welcome and congratulations!! This message demonstrates your ability to send a WhatsApp message notification. Thank you for taking the time to test with us."
+        },
+        {
+          "type": "FOOTER",
+          "text": "WhatsApp Business Platform sample message"
+        }
+      ],
+      "quality_score": {
+        "score": "UNKNOWN",
+        "date": 1764099503
+      },
+      "id": "1521479142237051"
+    },
+    {
+      "language": "en_US",
+      "name": "hello_world",
+      "rejected_reason": "NONE",
+      "status": "APPROVED",
+      "category": "UTILITY",
+      "last_updated_time": "2025-11-03T15:49:03+0000",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "Hello World"
+        },
+        {
+          "type": "BODY",
+          "text": "Welcome and congratulations!! This message demonstrates your ability to send a WhatsApp message notification from the Cloud API, hosted by Meta. Thank you for taking the time to test with us."
+        },
+        {
+          "type": "FOOTER",
+          "text": "WhatsApp Business Platform sample message"
+        }
+      ],
+      "quality_score": {
+        "score": "UNKNOWN",
+        "date": 1762206411
+      },
+      "id": "2046526722786427"
+    }
+  ],
+  "paging": {
+    "cursors": {
+      "before": "QVFIU19semw0Wmp2aERhTFlqYklxdXMyaTdPY0xld0FFaTBiSDdtMG80OFlaeDR6YzRCR1lBWG1mcWlKSE5kOWhKR0ZAHTWFMNjFZARmg2cU1EcmlPV2VBMFZAB",
+      "after": "QVFIU2VvU1kxellBZA1ZATNE9pUTc0cUhaYUpza0lBUVRROE5nb25kVzF1R0pFNENMS3hkTlczR3JHUFhaZAFNtbGloaFFhQ2l1anZAQTDFkdmdNSUJ6ZAXFtakJR"
+    }
+  }
+}
