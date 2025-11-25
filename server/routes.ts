@@ -2023,7 +2023,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Import job functions
-        const { createPostGeneratorJob } = await import("./storage/postGeneratorJobs");
+        const { createPostGeneratorJob } = await import(
+          "./storage/postGeneratorJobs"
+        );
 
         // Create job record
         const job = await createPostGeneratorJob(brandId);
@@ -2039,7 +2041,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Fire-and-forget: Process in background
         (async () => {
           try {
-            const { updatePostGeneratorJob } = await import("./storage/postGeneratorJobs");
+            const { updatePostGeneratorJob } = await import(
+              "./storage/postGeneratorJobs"
+            );
 
             // Fetch brand data
             const brand = await storage.getBrandByIdOnly(brandId);
@@ -2053,8 +2057,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const brandDesign = await storage.getBrandDesignByBrandId(brandId);
             const brandAssets = await storage.getAssetsByBrandId(brandId);
-            const contentPlans = await storage.getContentPlansByBrandId(brandId);
-            const postingFrequencies = await storage.getSocialPostingFrequenciesByBrand(brandId);
+            const contentPlans =
+              await storage.getContentPlansByBrandId(brandId);
+            const postingFrequencies =
+              await storage.getSocialPostingFrequenciesByBrand(brandId);
 
             // Build insights
             const insights: any[] = [];
@@ -2134,7 +2140,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return;
             }
 
-            console.log(`[Post Generator] Background: Sending to n8n for job ${job.id}`);
+            console.log(
+              `[Post Generator] Background: Sending to n8n for job ${job.id}`,
+            );
 
             // Send webhook (fire-and-forget)
             fetch(webhookUrl, {
@@ -2144,11 +2152,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
               .then(async (response) => {
                 if (response.ok) {
-                  console.log(`[Post Generator] Webhook sent successfully for job ${job.id}`);
-                  await updatePostGeneratorJob(job.id, { status: "processing" });
+                  console.log(
+                    `[Post Generator] Webhook sent successfully for job ${job.id}`,
+                  );
+                  await updatePostGeneratorJob(job.id, {
+                    status: "processing",
+                  });
                 } else {
                   console.error(
-                    `[Post Generator] Webhook failed with status ${response.status}`
+                    `[Post Generator] Webhook failed with status ${response.status}`,
                   );
                   await updatePostGeneratorJob(job.id, {
                     status: "failed",
@@ -2160,19 +2172,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.error(`[Post Generator] Webhook error:`, error);
                 await updatePostGeneratorJob(job.id, {
                   status: "failed",
-                  error: error instanceof Error ? error.message : "Unknown error",
+                  error:
+                    error instanceof Error ? error.message : "Unknown error",
                 });
               });
           } catch (error) {
             console.error("[Post Generator] Background error:", error);
             try {
-              const { updatePostGeneratorJob } = await import("./storage/postGeneratorJobs");
+              const { updatePostGeneratorJob } = await import(
+                "./storage/postGeneratorJobs"
+              );
               await updatePostGeneratorJob(job.id, {
                 status: "failed",
                 error: error instanceof Error ? error.message : "Unknown error",
               });
             } catch (updateError) {
-              console.error("[Post Generator] Failed to update job status:", updateError);
+              console.error(
+                "[Post Generator] Failed to update job status:",
+                updateError,
+              );
             }
           }
         })();
@@ -2198,7 +2216,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { getPostGeneratorJob, updatePostGeneratorJob } = await import(
         "./storage/postGeneratorJobs"
       );
-      const { createAiGeneratedPost } = await import("./storage/aiGeneratedPosts");
+      const { createAiGeneratedPost } = await import(
+        "./storage/aiGeneratedPosts"
+      );
 
       const job = await getPostGeneratorJob(jobId);
       if (!job) {
@@ -2234,7 +2254,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: error || null,
       });
 
-      console.log(`[Post Generator] Job ${jobId} updated to ${status || "completed"}`);
+      console.log(
+        `[Post Generator] Job ${jobId} updated to ${status || "completed"}`,
+      );
       res.json({ success: true });
     } catch (error) {
       console.error("[Post Generator Callback] Error:", error);
@@ -2260,7 +2282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Invalid status" });
         }
 
-        const { updateAiGeneratedPostStatus } = await import("./storage/aiGeneratedPosts");
+        const { updateAiGeneratedPostStatus } = await import(
+          "./storage/aiGeneratedPosts"
+        );
 
         const updated = await updateAiGeneratedPostStatus(postId, status);
         if (!updated || updated.brandId !== brandId) {
@@ -2288,7 +2312,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const brandId = req.brandId;
         const { status } = req.query;
 
-        const { getAiGeneratedPostsByBrand } = await import("./storage/aiGeneratedPosts");
+        const { getAiGeneratedPostsByBrand } = await import(
+          "./storage/aiGeneratedPosts"
+        );
 
         const posts = await getAiGeneratedPostsByBrand(brandId, status);
         res.json(posts);
@@ -2303,26 +2329,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Get Post Generator Job Status
-  app.get("/api/post-generator/jobs/:jobId", isAuthenticated, async (req: any, res) => {
-    try {
-      const { jobId } = req.params;
+  app.get(
+    "/api/post-generator/jobs/:jobId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { jobId } = req.params;
 
-      const { getPostGeneratorJob } = await import("./storage/postGeneratorJobs");
+        const { getPostGeneratorJob } = await import(
+          "./storage/postGeneratorJobs"
+        );
 
-      const job = await getPostGeneratorJob(jobId);
-      if (!job) {
-        return res.status(404).json({ message: "Job not found" });
+        const job = await getPostGeneratorJob(jobId);
+        if (!job) {
+          return res.status(404).json({ message: "Job not found" });
+        }
+
+        res.json(job);
+      } catch (error) {
+        console.error("[Post Generator Status] Error:", error);
+        res.status(500).json({
+          message: "Failed to fetch job status",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       }
-
-      res.json(job);
-    } catch (error) {
-      console.error("[Post Generator Status] Error:", error);
-      res.status(500).json({
-        message: "Failed to fetch job status",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+    },
+  );
 
   // Campaigns routes
   app.get(

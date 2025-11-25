@@ -78,6 +78,7 @@ export default function Sidebar() {
     { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, badge: "12" },
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
     { name: "Automation Flows", href: "/flows-dashboard", icon: GitBranch },
+    { name: "WhatsApp Templates", href: "/whatsapp-templates", icon: SiWhatsapp },
     /*{ name: t.sidebar.calendar, href: "/calendar", icon: Calendar },*/
     { name: t.sidebar.analytics, href: "/analytics", icon: BarChart3 },
     /*{ name: t.sidebar.campaigns, href: "/campaigns", icon: Megaphone },*/

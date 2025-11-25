@@ -1,7 +1,7 @@
 import { db } from "../db";
 import { postGeneratorJobs } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { v4 as uuidv4 } from "crypto";
+import { randomUUID } from "crypto";
 
 export interface PostGeneratorJob {
   id: string;
@@ -13,22 +13,27 @@ export interface PostGeneratorJob {
   updatedAt: string;
 }
 
-export async function createPostGeneratorJob(brandId: string): Promise<PostGeneratorJob> {
-  const id = uuidv4();
+export async function createPostGeneratorJob(
+  brandId: string,
+): Promise<PostGeneratorJob> {
+  const id = randomUUID();
   const now = new Date().toISOString();
-  
-  const result = await db.insert(postGeneratorJobs).values({
-    id,
-    brandId,
-    status: "pending",
-    result: null,
-    error: null,
-    createdAt: new Date(now),
-    updatedAt: new Date(now),
-  }).returning();
-  
+
+  const result = await db
+    .insert(postGeneratorJobs)
+    .values({
+      id,
+      brandId,
+      status: "pending",
+      result: null,
+      error: null,
+      createdAt: new Date(now),
+      updatedAt: new Date(now),
+    })
+    .returning();
+
   if (!result[0]) throw new Error("Failed to create job");
-  
+
   return {
     id: result[0].id,
     brandId: result[0].brandId,
@@ -42,7 +47,7 @@ export async function createPostGeneratorJob(brandId: string): Promise<PostGener
 
 export async function updatePostGeneratorJob(
   jobId: string,
-  updates: Partial<Omit<PostGeneratorJob, "id" | "brandId" | "createdAt">>
+  updates: Partial<Omit<PostGeneratorJob, "id" | "brandId" | "createdAt">>,
 ): Promise<PostGeneratorJob | null> {
   const now = new Date();
   const result = await db
@@ -67,7 +72,9 @@ export async function updatePostGeneratorJob(
   };
 }
 
-export async function getPostGeneratorJob(jobId: string): Promise<PostGeneratorJob | null> {
+export async function getPostGeneratorJob(
+  jobId: string,
+): Promise<PostGeneratorJob | null> {
   const result = await db
     .select()
     .from(postGeneratorJobs)
