@@ -54,6 +54,9 @@ import {
   Settings,
   Type,
   MousePointer,
+  Upload,
+  X,
+  Variable,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SiWhatsapp } from "react-icons/si";
@@ -914,52 +917,57 @@ export default function WhatsAppTemplates() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <FormLabel className="mb-2 block">Header (Optional)</FormLabel>
+                          <div className="flex border rounded-lg overflow-hidden">
+                            {[
+                              { value: "TEXT", label: "Text", icon: Type },
+                              { value: "IMAGE", label: "Image", icon: ImageIcon },
+                              { value: "VIDEO", label: "Video", icon: Video },
+                              { value: "DOCUMENT", label: "File", icon: File },
+                            ].map((option) => (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => createForm.setValue("headerType", option.value as any)}
+                                className={`flex-1 py-2 px-3 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors ${
+                                  headerType === option.value
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-background hover:bg-muted text-muted-foreground"
+                                }`}
+                                data-testid={`tab-header-${option.value.toLowerCase()}`}
+                              >
+                                <option.icon className="w-4 h-4" />
+                                {option.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {headerType === "TEXT" && (
                           <FormField
                             control={createForm.control}
-                            name="headerType"
+                            name="headerContent"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Header Type</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-header-type">
-                                      <SelectValue placeholder="None" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="NONE" data-testid="option-header-none">None</SelectItem>
-                                    <SelectItem value="TEXT" data-testid="option-header-text">Text</SelectItem>
-                                    <SelectItem value="IMAGE" data-testid="option-header-image">Image</SelectItem>
-                                    <SelectItem value="VIDEO" data-testid="option-header-video">Video</SelectItem>
-                                    <SelectItem value="DOCUMENT" data-testid="option-header-document">Document</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage data-testid="error-header-type" />
+                                <FormLabel>Header Text</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Your header text" {...field} data-testid="input-header-text" />
+                                </FormControl>
+                                <FormMessage data-testid="error-header-text" />
                               </FormItem>
                             )}
                           />
-                          {headerType === "TEXT" && (
-                            <FormField
-                              control={createForm.control}
-                              name="headerContent"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Header Text</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Your header text" {...field} data-testid="input-header-text" />
-                                  </FormControl>
-                                  <FormMessage data-testid="error-header-text" />
-                                </FormItem>
-                              )}
-                            />
-                          )}
-                        </div>
+                        )}
 
                         {(headerType === "IMAGE" || headerType === "VIDEO" || headerType === "DOCUMENT") && (
-                          <div className="border border-dashed rounded-lg p-4 text-center bg-muted/30" data-testid="media-upload-placeholder">
-                            <p className="text-sm text-muted-foreground">
-                              Media will be uploaded when sending
+                          <div className="border border-dashed rounded-lg p-6 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer" data-testid="media-upload-area">
+                            <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                            <p className="text-sm font-medium text-foreground">
+                              {headerType === "IMAGE" ? "Upload Image" : headerType === "VIDEO" ? "Upload Video" : "Upload Document"}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {headerType === "IMAGE" ? "JPG, PNG up to 5MB" : headerType === "VIDEO" ? "MP4 up to 16MB" : "PDF up to 100MB"}
                             </p>
                           </div>
                         )}
@@ -969,17 +977,17 @@ export default function WhatsAppTemplates() {
                           name="body"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Body</FormLabel>
+                              <FormLabel>Message *</FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder="Hello {{1}}, your order #{{2}} has been confirmed."
+                                  placeholder="Hello {{1}}, your appointment is scheduled for {{2}}."
                                   rows={3}
                                   {...field}
                                   data-testid="textarea-template-body"
                                 />
                               </FormControl>
                               <FormDescription className="text-xs">
-                                Use {"{{1}}"}, {"{{2}}"} for variables
+                                Use {"{{variable_name}}"} to insert variables. Ex: {"{{first_name}}"}
                               </FormDescription>
                               <FormMessage data-testid="error-template-body" />
                             </FormItem>
@@ -1001,6 +1009,40 @@ export default function WhatsAppTemplates() {
                         />
                       </CardContent>
                     </Card>
+
+                    {bodyContent && bodyContent.match(/\{\{[^}]+\}\}/g) && (
+                      <Card className="border shadow-sm">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm font-medium flex items-center gap-2">
+                            <Variable className="w-4 h-4" />
+                            Variable Samples
+                          </CardTitle>
+                          <p className="text-xs text-muted-foreground">
+                            Provide sample values for your variables. These will be verified by WhatsApp.
+                          </p>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {bodyContent.match(/\{\{[^}]+\}\}/g)?.filter((v, i, arr) => arr.indexOf(v) === i).map((variable, index) => {
+                            const varName = variable.replace(/\{\{|\}\}/g, '');
+                            return (
+                              <div key={index} className="flex items-center gap-3">
+                                <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-xs font-medium text-primary">{index + 1}</span>
+                                </div>
+                                <div className="flex-1">
+                                  <Input 
+                                    placeholder={`Sample for ${varName}`}
+                                    className="h-9"
+                                    data-testid={`input-variable-sample-${index}`}
+                                  />
+                                </div>
+                                <span className="text-xs text-muted-foreground w-24 truncate">{variable}</span>
+                              </div>
+                            );
+                          })}
+                        </CardContent>
+                      </Card>
+                    )}
 
                     <Card className="border shadow-sm">
                       <CardHeader className="pb-3">
