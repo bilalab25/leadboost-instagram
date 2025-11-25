@@ -212,73 +212,69 @@ function PhonePreview({ headerType, headerContent, body, footer, buttonType, but
   return (
     <div className="flex flex-col items-center" data-testid="phone-preview-container">
       <div 
-        className="relative w-[280px] h-[560px] bg-black rounded-[40px] p-3 shadow-xl"
-        style={{ 
-          background: 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)'
-        }}
+        className="relative w-[260px] h-[520px] bg-gradient-to-b from-gray-800 via-gray-900 to-gray-800 rounded-[45px] p-2 shadow-2xl border-4 border-gray-700"
       >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-10" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-b-xl z-10" />
         
         <div 
-          className="w-full h-full rounded-[32px] overflow-hidden flex flex-col"
-          style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cdefs%3E%3Cpattern id=\'wa\' patternUnits=\'userSpaceOnUse\' width=\'50\' height=\'50\'%3E%3Cpath d=\'M25 0v50M0 25h50\' stroke=\'%23e5ddd5\' stroke-width=\'0.5\' opacity=\'0.3\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect fill=\'%23ece5dd\' width=\'100\' height=\'100\'/%3E%3Crect fill=\'url(%23wa)\' width=\'100\' height=\'100\'/%3E%3C/svg%3E")',
-            backgroundColor: '#ece5dd'
-          }}
+          className="w-full h-full rounded-[38px] overflow-hidden flex flex-col bg-[#efeae2]"
         >
-          <div className="bg-[#075E54] text-white px-4 py-3 flex items-center gap-3">
-            <div className="flex items-center gap-2 flex-1">
-              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                <SiWhatsapp className="w-5 h-5 text-[#075E54]" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">WhatsApp Business</p>
-                <p className="text-xs text-green-200">online</p>
-              </div>
+          <div className="bg-[#075E54] text-white px-3 py-2.5 flex items-center gap-2 shadow-md">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
+              <SiWhatsapp className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xs">{currentTime}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate">WhatsApp Business</p>
+              <p className="text-[10px] text-green-200">online</p>
+            </div>
+            <span className="text-[10px] opacity-80">{currentTime}</span>
           </div>
 
-          <div className="flex-1 p-3 overflow-y-auto">
+          <div className="flex-1 p-2.5 overflow-y-auto overflow-x-hidden">
             <div className="flex justify-end mb-2">
               <div 
-                className="max-w-[85%] bg-[#dcf8c6] rounded-lg rounded-tr-none p-2 shadow-sm"
+                className="max-w-[90%] bg-[#dcf8c6] rounded-lg rounded-tr-none p-2 shadow-sm break-words"
+                style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
                 data-testid="phone-preview-message"
               >
                 {headerType === "TEXT" && headerContent && (
-                  <p className="font-semibold text-sm text-gray-800 mb-1" data-testid="phone-preview-header">
+                  <p className="font-bold text-xs text-gray-800 mb-1 break-words" data-testid="phone-preview-header">
                     {headerContent}
                   </p>
                 )}
                 {headerType === "IMAGE" && (
-                  <div className="bg-gray-200 h-24 rounded mb-2 flex items-center justify-center">
-                    <ImageIcon className="w-6 h-6 text-gray-400" />
+                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-20 rounded mb-2 flex items-center justify-center">
+                    <ImageIcon className="w-5 h-5 text-gray-400" />
                   </div>
                 )}
                 {headerType === "VIDEO" && (
-                  <div className="bg-gray-200 h-24 rounded mb-2 flex items-center justify-center">
-                    <Video className="w-6 h-6 text-gray-400" />
+                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-20 rounded mb-2 flex items-center justify-center">
+                    <Video className="w-5 h-5 text-gray-400" />
                   </div>
                 )}
                 {headerType === "DOCUMENT" && (
-                  <div className="bg-gray-200 h-16 rounded mb-2 flex items-center justify-center gap-2">
-                    <File className="w-5 h-5 text-gray-400" />
-                    <span className="text-xs text-gray-500">Document</span>
+                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-14 rounded mb-2 flex items-center justify-center gap-1.5">
+                    <File className="w-4 h-4 text-gray-400" />
+                    <span className="text-[10px] text-gray-500">Document</span>
                   </div>
                 )}
                 
-                <p className="text-sm text-gray-800 whitespace-pre-wrap" data-testid="phone-preview-body">
+                <p 
+                  className="text-xs text-gray-800 break-words" 
+                  style={{ wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}
+                  data-testid="phone-preview-body"
+                >
                   {body || "Your message will appear here..."}
                 </p>
                 
                 {footer && (
-                  <p className="text-xs text-gray-500 mt-1" data-testid="phone-preview-footer">
+                  <p className="text-[10px] text-gray-500 mt-1 break-words" data-testid="phone-preview-footer">
                     {footer}
                   </p>
                 )}
                 
-                <div className="flex justify-end mt-1">
-                  <span className="text-[10px] text-gray-500">
+                <div className="flex justify-end mt-0.5">
+                  <span className="text-[9px] text-gray-400">
                     {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                   </span>
                 </div>
@@ -287,9 +283,9 @@ function PhonePreview({ headerType, headerContent, body, footer, buttonType, but
 
             {buttonType && buttonType !== "NONE" && buttonText && (
               <div className="flex justify-end">
-                <div className="max-w-[85%] w-full">
+                <div className="max-w-[90%] w-full">
                   <button 
-                    className="w-full bg-white border border-[#25D366] text-[#25D366] rounded-lg py-2 px-4 text-sm font-medium shadow-sm"
+                    className="w-full bg-white/90 backdrop-blur border border-[#25D366]/30 text-[#25D366] rounded-lg py-1.5 px-3 text-xs font-medium shadow-sm hover:bg-white transition-colors"
                     data-testid="phone-preview-button"
                   >
                     {buttonText}
@@ -299,12 +295,12 @@ function PhonePreview({ headerType, headerContent, body, footer, buttonType, but
             )}
           </div>
 
-          <div className="bg-[#f0f0f0] px-2 py-2 flex items-center gap-2">
-            <div className="flex-1 bg-white rounded-full px-4 py-2 flex items-center gap-2">
-              <span className="text-gray-400 text-sm">Message...</span>
+          <div className="bg-[#f0f0f0] px-2 py-1.5 flex items-center gap-1.5 border-t border-gray-200">
+            <div className="flex-1 bg-white rounded-full px-3 py-1.5 flex items-center shadow-sm">
+              <span className="text-gray-400 text-[10px]">Message...</span>
             </div>
-            <div className="w-10 h-10 bg-[#25D366] rounded-full flex items-center justify-center">
-              <Send className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-br from-[#25D366] to-[#128C7E] rounded-full flex items-center justify-center shadow-md">
+              <Send className="w-3.5 h-3.5 text-white" />
             </div>
           </div>
         </div>
@@ -839,19 +835,23 @@ export default function WhatsAppTemplates() {
       </div>
 
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden" data-testid="dialog-create-template">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <SiWhatsapp className="w-5 h-5 text-green-600" />
-              Create WhatsApp Template
-            </DialogTitle>
-            <DialogDescription>
-              Create a new message template. Templates must be approved by Meta before use.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden p-0" data-testid="dialog-create-template">
+          <div className="bg-gradient-to-r from-green-600 to-green-500 px-6 py-4 text-white">
+            <DialogHeader className="text-white">
+              <DialogTitle className="flex items-center gap-3 text-white text-lg">
+                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                  <SiWhatsapp className="w-6 h-6 text-white" />
+                </div>
+                Create WhatsApp Template
+              </DialogTitle>
+              <DialogDescription className="text-green-100 mt-1">
+                Design your message template. It will be reviewed by Meta before use.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-          <div className="flex gap-6 overflow-hidden">
-            <div className="flex-1 overflow-y-auto max-h-[65vh] pr-4">
+          <div className="flex gap-6 p-6 bg-gradient-to-br from-gray-50 to-white">
+            <div className="flex-1 overflow-y-auto max-h-[60vh] pr-4">
               <Form {...createForm}>
                 <form onSubmit={createForm.handleSubmit(handleCreateTemplate)} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -1057,15 +1057,16 @@ export default function WhatsAppTemplates() {
                     </div>
                   )}
 
-                  <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)} data-testid="button-cancel-create">
+                  <DialogFooter className="pt-6 border-t mt-6">
+                    <Button type="button" variant="ghost" onClick={() => setIsCreateModalOpen(false)} data-testid="button-cancel-create" className="text-gray-600 hover:text-gray-800">
                       Cancel
                     </Button>
                     <Button
                       type="submit"
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg shadow-green-500/25 px-6"
                       data-testid="button-submit-template"
                     >
+                      <Send className="w-4 h-4 mr-2" />
                       Submit for Approval
                     </Button>
                   </DialogFooter>
@@ -1073,7 +1074,8 @@ export default function WhatsAppTemplates() {
               </Form>
             </div>
 
-            <div className="flex-shrink-0 hidden lg:block">
+            <div className="flex-shrink-0 hidden lg:flex flex-col items-center justify-center bg-gradient-to-b from-gray-100 to-gray-200 rounded-2xl p-6 shadow-inner">
+              <p className="text-xs font-medium text-gray-500 mb-4 uppercase tracking-wide">Live Preview</p>
               <PhonePreview
                 headerType={headerType}
                 headerContent={headerContent}
