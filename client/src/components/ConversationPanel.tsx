@@ -237,6 +237,19 @@ export default function ConversationPanel({
     markAsReadMutation.mutate(conversationId);
   }, [conversationId]);
 
+  // 🔹 Mark messages as read when conversation is opened
+  useEffect(() => {
+    // 💡 Asegúrate de que ambos, conversationId Y activeBrandId, existan
+    if (!conversationId || !activeBrandId) {
+      console.log("markAsRead skipped:", { conversationId, activeBrandId });
+      return;
+    }
+    console.log(
+      `Executing markAsRead for ${conversationId} with brand ${activeBrandId}`,
+    );
+    markAsReadMutation.mutate(conversationId);
+  }, [conversationId, activeBrandId]);
+
   // ✅ Socket.IO: Listen for new messages in real-time for this conversation
   const handleNewMessage = useCallback(
     (event: any) => {

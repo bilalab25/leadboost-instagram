@@ -94,7 +94,10 @@ export default function MessageList({
   const markAsReadMutation = useMutation({
     mutationFn: async (conversationId: string) => {
       if (!activeBrandId) throw new Error("No active brand");
-      await apiRequest("PATCH", `/api/conversations/${conversationId}/read`);
+      await apiRequest(
+        "PATCH",
+        `/api/conversations/${conversationId}/read?brandId=${activeBrandId}`,
+      );
     },
     onSuccess: (_, conversationId) => {
       // Invalidate conversations list to refresh unread counts
