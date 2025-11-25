@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useBrand } from "@/contexts/BrandContext";
 import { useToast } from "@/hooks/use-toast";
@@ -258,13 +259,28 @@ export default function WhatsAppTemplates() {
   const { isLoading } = useAuth();
   const { activeBrandId } = useBrand();
 
-  const [templates] = useState<WhatsAppTemplate[]>(mockTemplates);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<WhatsAppTemplate | null>(null);
+
+  // Fetch WhatsApp templates from Meta API
+  const { 
+    data: templatesData, 
+    isLoading: isLoadingTemplates,
+    error: templatesError,
+    refetch: refetchTemplates,
+  } = useQuery<{ templates: WhatsAppTemplate[]; total: number }>({
+    queryKey: ["/api/whatsapp-templates", { brandId: activeBrandId }],
+    enabled: !!activeBrandId,
+  });
+
+  // Use API templates if available, fallback to mock data only for "no integration" (404) errors
+  const is404Error = templatesError && (templatesError as any)?.message?.includes("404");
+  const isUsingMockData = is404Error;
+  const templates = templatesData?.templates ?? (isUsingMockData ? mockTemplates : []);
 
   const createForm = useForm<CreateTemplateForm>({
     resolver: zodResolver(createTemplateSchema),
@@ -310,7 +326,7 @@ export default function WhatsAppTemplates() {
   const getPlaceholders = (text: string): string[] => {
     const matches = text.match(/\{\{(\d+)\}\}/g);
     if (!matches) return [];
-    return [...new Set(matches)].sort((a, b) => {
+    return Array.from(new Set(matches)).sort((a, b) => {
       const numA = parseInt(a.replace(/[{}]/g, ""));
       const numB = parseInt(b.replace(/[{}]/g, ""));
       return numA - numB;
@@ -371,7 +387,7 @@ export default function WhatsAppTemplates() {
     return matches ? matches.length : 0;
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingTemplates) {
     return (
       <div className="min-h-screen flex items-center justify-center" data-testid="loading-spinner">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
@@ -388,6 +404,24 @@ export default function WhatsAppTemplates() {
           <main className="flex-1 relative overflow-y-auto focus:outline-none">
             <div className="py-6">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                {templatesError && (
+                  <div className={`mb-6 p-4 border rounded-lg ${isUsingMockData ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'}`} data-testid="banner-status">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className={`w-5 h-5 ${isUsingMockData ? 'text-yellow-600' : 'text-red-600'}`} />
+                      <div>
+                        <p className={`font-medium ${isUsingMockData ? 'text-yellow-800' : 'text-red-800'}`}>
+                          {isUsingMockData ? 'Demo Mode' : 'Error Loading Templates'}
+                        </p>
+                        <p className={`text-sm ${isUsingMockData ? 'text-yellow-700' : 'text-red-700'}`}>
+                          {isUsingMockData 
+                            ? "Connect your WhatsApp Business account in Settings to manage real templates."
+                            : (templatesError as any)?.message || "Unable to fetch templates from Meta."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2" data-testid="text-page-title">
@@ -398,14 +432,25 @@ export default function WhatsAppTemplates() {
                       Create and manage message templates for WhatsApp Business
                     </p>
                   </div>
-                  <Button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="bg-green-600 hover:bg-green-700"
-                    data-testid="button-create-template"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Template
-                  </Button>
+                  <div className="flex gap-2">
+                    {!isUsingMockData && (
+                      <Button
+                        variant="outline"
+                        onClick={() => refetchTemplates()}
+                        data-testid="button-refresh-templates"
+                      >
+                        Refresh
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="bg-green-600 hover:bg-green-700"
+                      data-testid="button-create-template"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Template
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

@@ -3327,6 +3327,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // WhatsApp Templates - Fetch from Meta Graph API
+  app.get(
+    "/api/whatsapp-templates",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+
+        // Get WhatsApp integration for this brand
+        const integrations = await storage.getIntegrationsByBrandId(brandId);
+        const whatsappIntegration = integrations.find(
+          (i) => i.provider === "whatsapp" && i.isActive
+        );
+
+        if (!whatsappIntegration) {
+          return res.status(404).json({
+            error: "WhatsApp integration not found",
+            message: "Please connect your WhatsApp Business account first",
+          });
+        }
+
+        if (!whatsappIntegration.accessToken || !whatsappIntegration.accountId) {
+          return res.status(400).json({
+            error: "Invalid WhatsApp integration",
+            message: "WhatsApp integration is missing required credentials",
+          });
+        }
+
+        // Fetch templates from Meta Graph API
+        const wabaId = whatsappIntegration.accountId;
+        const accessToken = whatsappIntegration.accessToken;
+
+        const response = await fetch(
+          `https://graph.facebook.com/v22.0/${wabaId}/message_templates?` +
+            `fields=language,name,rejected_reason,status,category,sub_category,last_updated_time,components,quality_score&` +
+            `limit=50&` +
+            `access_token=${accessToken}`
+        );
+
+        const data = await response.json();
+
+        if (data.error) {
+          console.error("❌ Meta API error fetching templates:", data.error);
+          return res.status(400).json({
+            error: "Meta API error",
+            message: data.error.message || "Failed to fetch templates from Meta",
+          });
+        }
+
+        // Transform Meta response to match frontend format
+        const templates = (data.data || []).map((template: any) => {
+          // Extract header, body, footer from components
+          const headerComponent = template.components?.find(
+            (c: any) => c.type === "HEADER"
+          );
+          const bodyComponent = template.components?.find(
+            (c: any) => c.type === "BODY"
+          );
+          const footerComponent = template.components?.find(
+            (c: any) => c.type === "FOOTER"
+          );
+          const buttonsComponent = template.components?.find(
+            (c: any) => c.type === "BUTTONS"
+          );
+
+          return {
+            id: template.id,
+            name: template.name,
+            category: template.category || "UTILITY",
+            language: template.language,
+            status: template.status,
+            rejectedReason: template.rejected_reason,
+            headerType: headerComponent?.format,
+            headerContent: headerComponent?.text || headerComponent?.example?.header_handle?.[0],
+            body: bodyComponent?.text || "",
+            footer: footerComponent?.text,
+            buttons: buttonsComponent?.buttons?.map((b: any) => ({
+              type: b.type,
+              text: b.text,
+              url: b.url,
+            })),
+            qualityScore: template.quality_score?.score,
+            lastUpdatedTime: template.last_updated_time,
+            createdAt: template.last_updated_time,
+          };
+        });
+
+        res.status(200).json({
+          templates,
+          paging: data.paging,
+          total: templates.length,
+        });
+      } catch (error: any) {
+        console.error("❌ Error fetching WhatsApp templates:", error);
+        res.status(500).json({
+          error: "Failed to fetch templates",
+          message: error.message || "Unknown error",
+        });
+      }
+    }
+  );
+
   app.get("/api/webhooks/meta", async (req, res) => {
     try {
       const VERIFY_TOKEN =

@@ -1,0 +1,66 @@
+{
+  "data": [
+    {
+      "language": "en_US",
+      "name": "sample_template",
+      "rejected_reason": "NONE",
+      "status": "APPROVED",
+      "category": "UTILITY",
+      "last_updated_time": "2025-11-25T18:45:26+0000",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "Hello World"
+        },
+        {
+          "type": "BODY",
+          "text": "Welcome and congratulations!! This message demonstrates your ability to send a WhatsApp message notification. Thank you for taking the time to test with us."
+        },
+        {
+          "type": "FOOTER",
+          "text": "WhatsApp Business Platform sample message"
+        }
+      ],
+      "quality_score": {
+        "score": "UNKNOWN",
+        "date": 1764099503
+      },
+      "id": "1521479142237051"
+    },
+    {
+      "language": "en_US",
+      "name": "hello_world",
+      "rejected_reason": "NONE",
+      "status": "APPROVED",
+      "category": "UTILITY",
+      "last_updated_time": "2025-11-03T15:49:03+0000",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "Hello World"
+        },
+        {
+          "type": "BODY",
+          "text": "Welcome and congratulations!! This message demonstrates your ability to send a WhatsApp message notification from the Cloud API, hosted by Meta. Thank you for taking the time to test with us."
+        },
+        {
+          "type": "FOOTER",
+          "text": "WhatsApp Business Platform sample message"
+        }
+      ],
+      "quality_score": {
+        "score": "UNKNOWN",
+        "date": 1762206411
+      },
+      "id": "2046526722786427"
+    }
+  ],
+  "paging": {
+    "cursors": {
+      "before": "QVFIU19semw0Wmp2aERhTFlqYklxdXMyaTdPY0xld0FFaTBiSDdtMG80OFlaeDR6YzRCR1lBWG1mcWlKSE5kOWhKR0ZAHTWFMNjFZARmg2cU1EcmlPV2VBMFZAB",
+      "after": "QVFIU2VvU1kxellBZA1ZATNE9pUTc0cUhaYUpza0lBUVRROE5nb25kVzF1R0pFNENMS3hkTlczR3JHUFhaZAFNtbGloaFFhQ2l1anZAQTDFkdmdNSUJ6ZAXFtakJR"
+    }
+  }
+}
