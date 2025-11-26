@@ -1,312 +1,282 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Send, Calendar, Zap, Image as ImageIcon, Mic } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
-import TopHeader from "@/components/TopHeader";
-import ContentCalendar from "@/pages/calendar";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import boosty from "./boosty.png";
-import boosty_face from "./boosty_face.png";
+import { Badge } from "@/components/ui/badge";
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Plus, 
+  Instagram, 
+  Facebook, 
+  Mail,
+  MessageCircle,
+  Clock,
+  Image as ImageIcon
+} from "lucide-react";
+import { SiTiktok } from "react-icons/si";
 
-export default function Waterfall() {
-  const [messages, setMessages] = useState<
-    {
-      role: "user" | "assistant";
-      content: string;
-      imagePreview?: string;
-    }[]
-  >([
-    {
-      role: "assistant",
-      content:
-        "Welcome! I’m Boosty, your AI-powered marketing strategist 🚀. I’m here to help you design strategies, create content, and launch posts that grow your brand. Would you like me to walk you through your first campaign this month?",
-    },
-  ]);
+interface ScheduledPost {
+  id: string;
+  date: string;
+  time: string;
+  platform: "instagram" | "facebook" | "tiktok" | "whatsapp" | "email";
+  title: string;
+  status: "scheduled" | "draft" | "published";
+  hasImage: boolean;
+}
 
-  const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [postGenerated, setPostGenerated] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+const platformIcons = {
+  instagram: Instagram,
+  facebook: Facebook,
+  tiktok: SiTiktok,
+  whatsapp: MessageCircle,
+  email: Mail,
+};
 
-  const typeText = useCallback(
-    async (fullText: string, messageIndex: number) => {
-      for (let i = 0; i < fullText.length; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 10));
-        setMessages((prev) => {
-          const copy = [...prev];
-          if (copy[messageIndex]) {
-            copy[messageIndex].content = fullText.slice(0, i + 1);
-          }
-          return copy;
-        });
-      }
-      setIsTyping(false);
+const platformColors = {
+  instagram: "bg-pink-100 text-pink-700 border-pink-200",
+  facebook: "bg-blue-100 text-blue-700 border-blue-200",
+  tiktok: "bg-gray-100 text-gray-700 border-gray-200",
+  whatsapp: "bg-green-100 text-green-700 border-green-200",
+  email: "bg-purple-100 text-purple-700 border-purple-200",
+};
 
-      if (fullText.includes("Content Generation Complete.")) {
-        setPostGenerated(true);
-      }
-    },
-    [],
-  );
+const statusColors = {
+  scheduled: "bg-blue-500",
+  draft: "bg-yellow-500",
+  published: "bg-green-500",
+};
 
-  const handleSend = () => {
-    if (!input.trim() || isTyping) return;
+const mockPosts: ScheduledPost[] = [
+  {
+    id: "1",
+    date: "2025-11-27",
+    time: "11:00 AM",
+    platform: "instagram",
+    title: "Glowing Skin Facial Promo",
+    status: "scheduled",
+    hasImage: true,
+  },
+  {
+    id: "2",
+    date: "2025-11-28",
+    time: "2:00 PM",
+    platform: "facebook",
+    title: "Black Friday Special",
+    status: "draft",
+    hasImage: true,
+  },
+  {
+    id: "3",
+    date: "2025-11-29",
+    time: "10:00 AM",
+    platform: "tiktok",
+    title: "Behind the Scenes",
+    status: "scheduled",
+    hasImage: false,
+  },
+  {
+    id: "4",
+    date: "2025-12-01",
+    time: "9:00 AM",
+    platform: "email",
+    title: "December Newsletter",
+    status: "draft",
+    hasImage: true,
+  },
+  {
+    id: "5",
+    date: "2025-12-05",
+    time: "3:00 PM",
+    platform: "whatsapp",
+    title: "Holiday Booking Reminder",
+    status: "scheduled",
+    hasImage: false,
+  },
+];
 
-    const userInput = input.trim();
-    setMessages((prev) => [...prev, { role: "user", content: userInput }]);
-    setInput("");
+export default function ContentCalendar() {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [posts] = useState<ScheduledPost[]>(mockPosts);
 
-    setTimeout(() => {
-      let assistantResponse = "";
-      const lowerInput = userInput.toLowerCase();
-      let imagePreview: string | undefined = undefined;
-
-      if (postGenerated && lowerInput.includes("thank you post it")) {
-        assistantResponse =
-          "**Action Confirmed.** The content asset has been moved to the scheduling queue. **The post is being scheduled** for tomorrow at 11:00 AM PST. 🚀";
-        setPostGenerated(false);
-      } else if (
-        !postGenerated &&
-        lowerInput.includes("generate post for tomorrow for instagram")
-      ) {
-        assistantResponse = `
-**Content Generation Complete.**
-I have successfully drafted an optimal Instagram post for scheduling **tomorrow at 11:00 AM**.  
-
-Here is the caption that will accompany your selected media:
-
----
-
-### ✨ GLOWING SKIN FACIAL  
-Unveil your natural radiance.
-
-Experience deep hydration, rejuvenation, and a flawless complexion with our signature facial treatment.
-
-**Ready for your glow up?**  
-BOOK NOW via the link in our bio!
-
-#RenuveAestheticsBar #GlowingSkin #FacialTreatment #NaturalRadiance #SkincareGoals
-
-**TARGET SCHEDULE:** Tomorrow, 11:00 AM.
-
----
-
-To confirm and execute the scheduling action, type: **"thank you post it"**
-        `;
-
-        imagePreview =
-          "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764131141/Gemini_Generated_Image_loy3jsloy3jsloy3_yucbls.png";
-      } else {
-        assistantResponse = `Processing request: **${userInput}**…  
-Based on current signals, I recommend a cross-platform engagement strategy focusing on Instagram Stories + TikTok for Q4 performance.`;
-      }
-
-      // Add assistant message with optional image
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "",
-          imagePreview,
-        },
-      ]);
-
-      setIsTyping(true);
-
-      setTimeout(() => {
-        setMessages((prev) => {
-          const messageIndex = prev.length - 1;
-          typeText(assistantResponse, messageIndex);
-          return prev;
-        });
-      }, 100);
-    }, 800);
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    
+    return { daysInMonth, startingDay };
   };
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  const { daysInMonth, startingDay } = getDaysInMonth(currentDate);
 
-  const suggestions = [
-    "Generate a comprehensive Q4 social media strategy report",
-    "Analyze competitor performance data (top 3 trends)",
-    "Draft email sequences for abandoned cart recovery",
-    "Develop a LinkedIn strategy for B2B lead generation",
-    "Model a 7-day high-conversion posting calendar",
-  ];
+  const prevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const getPostsForDay = (day: number) => {
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return posts.filter(post => post.date === dateStr);
+  };
+
+  const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const today = new Date();
+  const isToday = (day: number) => {
+    return today.getFullYear() === currentDate.getFullYear() &&
+           today.getMonth() === currentDate.getMonth() &&
+           today.getDate() === day;
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopHeader pageName="Meet CampAIgner" />
-
-      <div className="flex bg-gray-50 h-[calc(100vh-64px)]">
-        <Sidebar />
-        <div className="flex-1">
-          <main className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
-            <Tabs
-              defaultValue="campaigns"
-              className="w-full h-full flex flex-col"
+    <div className="h-full flex flex-col bg-white rounded-lg border shadow-sm" data-testid="content-calendar">
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-bold text-gray-900" data-testid="calendar-title">
+            {monthName}
+          </h2>
+          <div className="flex gap-1">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={prevMonth}
+              data-testid="button-prev-month"
             >
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger
-                  value="campaigns"
-                  className="flex items-center data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#0891b2] data-[state=active]:to-[hsl(210,70%,45%)]"
-                >
-                  <Zap className="mr-2 h-4 w-4" />
-                  Strategize with Boosty
-                </TabsTrigger>
-                <TabsTrigger value="planner" className="flex items-center">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  30-Day Content Planner
-                </TabsTrigger>
-              </TabsList>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={nextMonth}
+              data-testid="button-next-month"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              <span>Scheduled</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+              <span>Draft</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span>Published</span>
+            </div>
+          </div>
+          <Button 
+            className="bg-gradient-to-r from-[#0891b2] to-[hsl(210,70%,45%)] text-white"
+            data-testid="button-new-post"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Post
+          </Button>
+        </div>
+      </div>
 
-              <TabsContent
-                value="campaigns"
-                className="flex-1 flex flex-col h-full"
-              >
-                <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-gray-50 to-white">
-                  {messages.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={`flex items-start gap-3 ${
-                        msg.role === "user" ? "justify-end" : "justify-start"
-                      }`}
+      <div className="grid grid-cols-7 border-b">
+        {weekDays.map((day) => (
+          <div 
+            key={day} 
+            className="p-2 text-center text-sm font-semibold text-gray-600 border-r last:border-r-0"
+          >
+            {day}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex-1 grid grid-cols-7 auto-rows-fr">
+        {Array.from({ length: startingDay }).map((_, i) => (
+          <div key={`empty-${i}`} className="border-r border-b bg-gray-50 last:border-r-0" />
+        ))}
+        
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1;
+          const dayPosts = getPostsForDay(day);
+          const isCurrentDay = isToday(day);
+          
+          return (
+            <div 
+              key={day} 
+              className={`border-r border-b p-1 min-h-[100px] hover:bg-gray-50 transition-colors ${
+                isCurrentDay ? 'bg-blue-50' : ''
+              }`}
+              data-testid={`calendar-day-${day}`}
+            >
+              <div className={`text-sm font-medium mb-1 ${
+                isCurrentDay 
+                  ? 'bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center' 
+                  : 'text-gray-700'
+              }`}>
+                {day}
+              </div>
+              <div className="space-y-1">
+                {dayPosts.slice(0, 3).map((post) => {
+                  const PlatformIcon = platformIcons[post.platform];
+                  return (
+                    <div 
+                      key={post.id}
+                      className={`text-xs p-1.5 rounded border cursor-pointer hover:shadow-sm transition-shadow ${platformColors[post.platform]}`}
+                      data-testid={`post-${post.id}`}
                     >
-                      {msg.role === "assistant" && (
-                        <img
-                          src={boosty_face}
-                          alt="Boosty"
-                          className="w-10 h-10 rounded-full shadow-sm"
-                        />
-                      )}
-
-                      <div
-                        className={`px-4 py-3 max-w-[75%] text-sm leading-relaxed ${
-                          msg.role === "user"
-                            ? "bg-blue-600 text-white rounded-2xl rounded-br-none shadow-md"
-                            : "bg-white text-gray-900 rounded-2xl rounded-bl-none shadow-sm border border-gray-200"
-                        }`}
-                      >
-                        {msg.role === "assistant" ? (
-                          <>
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {msg.content}
-                            </ReactMarkdown>
-
-                            {msg.imagePreview && (
-                              <img
-                                src={msg.imagePreview}
-                                alt="Preview"
-                                className="mt-3 rounded-lg border shadow-sm max-w-full"
-                              />
-                            )}
-                          </>
-                        ) : (
-                          <span className="whitespace-pre-wrap">
-                            {msg.content}
-                          </span>
-                        )}
+                      <div className="flex items-center gap-1">
+                        <div className={`w-1.5 h-1.5 rounded-full ${statusColors[post.status]}`} />
+                        <PlatformIcon className="h-3 w-3" />
+                        {post.hasImage && <ImageIcon className="h-3 w-3" />}
+                      </div>
+                      <div className="truncate font-medium mt-0.5">{post.title}</div>
+                      <div className="flex items-center gap-1 text-[10px] opacity-75">
+                        <Clock className="h-2.5 w-2.5" />
+                        {post.time}
                       </div>
                     </div>
-                  ))}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div className="border-t bg-white">
-                  {isTyping && (
-                    <div className="flex items-center gap-2 px-6 pt-4">
-                      <img
-                        src={boosty_face}
-                        alt="Boosty"
-                        className="w-6 h-6 rounded-full"
-                      />
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "150ms" }}
-                      />
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "300ms" }}
-                      />
-                      <span className="text-xs text-gray-400 ml-1">
-                        Boosty is typing...
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="p-4 flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="hover:bg-gray-100 rounded-full"
-                    >
-                      <ImageIcon className="h-5 w-5 text-gray-500" />
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="hover:bg-gray-100 rounded-full"
-                    >
-                      <Mic className="h-5 w-5 text-gray-500" />
-                    </Button>
-
-                    <div className="flex-1 relative">
-                      <Input
-                        placeholder="Formulate your request or campaign directive..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                        className="w-full rounded-full border-gray-300 pl-4 pr-12 text-sm focus:ring-2 focus:ring-blue-500"
-                        disabled={isTyping}
-                      />
-                      <button
-                        onClick={handleSend}
-                        disabled={isTyping}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full p-2 shadow hover:bg-blue-700 transition"
-                      >
-                        <Send className="h-4 w-4" />
-                      </button>
-                    </div>
+                  );
+                })}
+                {dayPosts.length > 3 && (
+                  <div className="text-xs text-gray-500 text-center">
+                    +{dayPosts.length - 3} more
                   </div>
-
-                  <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {suggestions.map((s, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setInput(s)}
-                        disabled={isTyping}
-                        className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 hover:shadow-sm transition"
-                      >
-                        <Zap className="h-4 w-4 inline-block text-blue-500 mr-2" />
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="planner" className="h-full">
-                <ContentCalendar />
-              </TabsContent>
-            </Tabs>
-
-            <div className="fixed bottom-6 right-6 flex flex-col items-end gap-2 z-50">
-              <div className="bg-white shadow-lg px-3 py-2 rounded-lg text-sm text-gray-700 border border-gray-200">
-                💡 Need high-level strategy input?
+                )}
               </div>
-              <img
-                src={boosty}
-                alt="LeadBoost Assistant"
-                className="w-36 h-48 cursor-pointer hover:scale-105 transition-transform"
-              />
             </div>
-          </main>
+          );
+        })}
+      </div>
+
+      <div className="p-4 border-t bg-gray-50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-gray-600">
+              <span className="font-semibold text-gray-900">{posts.filter(p => p.status === 'scheduled').length}</span> posts scheduled this month
+            </div>
+            <div className="text-sm text-gray-600">
+              <span className="font-semibold text-gray-900">{posts.filter(p => p.status === 'draft').length}</span> drafts pending
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {Object.entries(platformIcons).map(([platform, Icon]) => (
+              <Badge 
+                key={platform} 
+                variant="outline" 
+                className={`${platformColors[platform as keyof typeof platformColors]} cursor-pointer`}
+              >
+                <Icon className="h-3 w-3 mr-1" />
+                {posts.filter(p => p.platform === platform).length}
+              </Badge>
+            ))}
+          </div>
         </div>
       </div>
     </div>
