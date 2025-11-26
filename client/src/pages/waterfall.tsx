@@ -17,20 +17,8 @@ export default function CampAIgner() {
   >([
     {
       role: "assistant",
-      content: `Initial Content Generation Complete. I have successfully drafted an optimal Instagram post for scheduling **tomorrow at 10:00 AM**. Review the creative output below:
-
-------------------------------------------------------------------
-
-[PREVIEW: INSTAGRAM POST]
-
-PROFILE: @your_brand_success
-CREATIVE: CAPTION: Leverage AI for superior campaign performance. Boosty drives maximum ROI and measurable growth. #AICampaign #DigitalStrategy #BoostyAI
-
-TARGET SCHEDULE: Tomorrow, 10:00 AM.
-
-------------------------------------------------------------------
-
-To confirm and execute the scheduling action, please input: **"thank you post it"**`,
+      content:
+        "Welcome! I’m Boosty, your AI-powered marketing strategist 🚀. I’m here to help you design strategies, create content, and launch posts that grow your brand. Would you like me to walk you through your first campaign this month?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -51,7 +39,7 @@ To confirm and execute the scheduling action, please input: **"thank you post it
       }
       setIsTyping(false);
     },
-    []
+    [],
   );
 
   const handleSend = () => {
@@ -62,11 +50,36 @@ To confirm and execute the scheduling action, please input: **"thank you post it
 
     setTimeout(() => {
       let assistantResponse = "";
+      const lowerInput = userInput.toLowerCase();
 
-      if (userInput.toLowerCase() === "thank you post it") {
+      // ** 1. Detección del comando de generación de post **
+      if (
+        lowerInput.includes("generate post for tomorrow for facebook") ||
+        lowerInput.includes("post it")
+      ) {
+        assistantResponse = `**Content Generation Complete.** I have successfully drafted an optimal Facebook post for scheduling **tomorrow at 11:00 AM**. Review the creative output below:
+
+---
+
+**[PREVIEW: FACEBOOK CAMPAIGN]**
+
+**Profile:** Your Brand's Official Page
+**Creative:** [High-Res Image of Product/Service]
+**Caption:** **LEVEL UP YOUR STRATEGY.** Boosty detected a high-engagement window tomorrow. Our AI-driven content is optimized for maximum click-through rates and measurable ROI. #FacebookMarketing #AIStrategy #BoostyAI
+
+TARGET SCHEDULE: Tomorrow, 11:00 AM.
+
+---
+
+To confirm and execute the scheduling action, please input: **"thank you post it"**`;
+      }
+      // ** 2. Detección del comando de agendamiento **
+      else if (lowerInput === "thank you post it") {
         assistantResponse =
-          "Action Confirmed. The content asset has been moved to the scheduling queue. **The post is being scheduled** for tomorrow at 10:00 AM PST. Confirmation will be visible in the '30-Day Planner' module shortly. 🚀";
-      } else {
+          "**Action Confirmed.** The content asset has been moved to the scheduling queue. **The post is being scheduled** for tomorrow at 11:00 AM PST. Confirmation will be visible in the '30-Day Planner' module shortly. 🚀";
+      }
+      // ** 3. Respuesta por defecto **
+      else {
         assistantResponse = `Processing request: '${userInput}'. Based on current data streams, I recommend a cross-platform engagement strategy focused on Instagram Stories and TikTok for Q4 optimization. Preliminary Budget Projection: $300/week.`;
       }
 
@@ -179,9 +192,7 @@ To confirm and execute the scheduling action, please input: **"thank you post it
                                   {...props}
                                 />
                               ),
-                              li: (props) => (
-                                <li className="my-1" {...props} />
-                              ),
+                              li: (props) => <li className="my-1" {...props} />,
                               a: (props) => (
                                 <a
                                   className="text-blue-600 underline"
@@ -193,6 +204,12 @@ To confirm and execute the scheduling action, please input: **"thank you post it
                               code: (props) => (
                                 <code
                                   className="bg-gray-100 px-1 rounded text-sm"
+                                  {...props}
+                                />
+                              ),
+                              hr: (props) => (
+                                <hr
+                                  className="my-3 border-t border-gray-300"
                                   {...props}
                                 />
                               ),
