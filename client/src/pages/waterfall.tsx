@@ -72,31 +72,33 @@ export default function Waterfall() {
       ) {
         assistantResponse = `**Content Generation Complete.** I have successfully drafted an optimal Facebook post for scheduling **tomorrow at 11:00 AM**. Review the creative output below:
 
-      ---
+---
 
-      **[PREVIEW: FACEBOOK CAMPAIGN]**
+**[PREVIEW: FACEBOOK CAMPAIGN]**
 
-      **Profile:** renuvederm
+**Profile:** renuvederm
 
-      **Creative Preview:**  
-      ![Creative Preview](https://res.cloudinary.com/dgujs7cy9/image/upload/v1764131141/Gemini_Generated_Image_loy3jsloy3jsloy3_yucbls.png)
+**Creative Preview:**
 
-      **Caption:**  
-      **GLOWING SKIN FACIAL**: Unveil your natural radiance. ✨
+![Creative Preview](https://res.cloudinary.com/dgujs7cy9/image/upload/v1764131141/Gemini_Generated_Image_loy3jsloy3jsloy3_yucbls.png)
 
-      Experience deep hydration, rejuvenation, and a flawless complexion with our signature facial treatment.
+**Caption:**
 
-      Ready for your glow up?
+**GLOWING SKIN FACIAL**: Unveil your natural radiance. ✨
 
-      BOOK NOW via the link in our bio!
+Experience deep hydration, rejuvenation, and a flawless complexion with our signature facial treatment.
 
-      #RenuveAestheticsBar #GlowingSkin #FacialTreatment #NaturalRadiance #SkincareGoals
+Ready for your glow up?
 
-      **TARGET SCHEDULE**: Tomorrow, 11:00 AM.
+BOOK NOW via the link in our bio!
 
-      ---
+#RenuveAestheticsBar #GlowingSkin #FacialTreatment #NaturalRadiance #SkincareGoals
 
-      To confirm and execute the scheduling action, please input: **"thank you post it"**`;
+**TARGET SCHEDULE**: Tomorrow, 11:00 AM.
+
+---
+
+To confirm and execute the scheduling action, please input: **"thank you post it"**`;
       }
 
       // 3. Respuesta por defecto
