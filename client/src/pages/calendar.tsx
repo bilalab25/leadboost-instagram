@@ -136,7 +136,7 @@ export default function ContentCalendar() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-lg border shadow-sm" data-testid="content-calendar">
+    <div className="h-full flex flex-col bg-white rounded-lg border shadow-sm" data-testid="content-calendar" id="new-calendar-v2">
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-bold text-gray-900" data-testid="calendar-title">
