@@ -236,6 +236,15 @@ export default function Waterfall() {
                                   {...props}
                                 />
                               ),
+                              img: ({ src, alt }) => (
+                                <img
+                                  src={src}
+                                  alt={alt || "Preview"}
+                                  className="w-full max-w-md rounded-lg shadow-md my-3 object-cover"
+                                  style={{ maxHeight: "400px" }}
+                                  data-testid="image-preview"
+                                />
+                              ),
                             }}
                           >
                             {msg.content}
