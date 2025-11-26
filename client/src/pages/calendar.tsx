@@ -206,7 +206,13 @@ export default function ContentCalendar() {
 
   // Mutation to update AI post status
   const updatePostStatusMutation = useMutation({
-    mutationFn: async ({ postId, status }: { postId: string; status: "accepted" | "rejected" }) => {
+    mutationFn: async ({
+      postId,
+      status,
+    }: {
+      postId: string;
+      status: "accepted" | "rejected";
+    }) => {
       const response = await fetch(`/api/ai-posts/${postId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -280,7 +286,7 @@ export default function ContentCalendar() {
       id: "1",
       title: "Product Launch",
       platform: "instagram",
-      scheduledFor: "2025-09-27T14:00:00Z",
+      scheduledFor: "2025-11-26T14:00:00Z",
       status: "scheduled",
       content: "🎉 Our new product is finally here!",
       imageUrl:
@@ -733,7 +739,8 @@ export default function ContentCalendar() {
                             AI Suggested Posts ({aiPendingPosts.length})
                           </CardTitle>
                           <p className="text-sm text-gray-600 mt-1">
-                            Review and approve/reject AI-generated posts before publishing
+                            Review and approve/reject AI-generated posts before
+                            publishing
                           </p>
                         </CardHeader>
                         <CardContent>
@@ -756,7 +763,13 @@ export default function ContentCalendar() {
                                 <div className="p-4 space-y-3">
                                   {/* Platform Badge */}
                                   <div className="flex items-start justify-between gap-2">
-                                    <Badge className={platformColors[post.platform as keyof typeof platformColors] || "bg-gray-100"}>
+                                    <Badge
+                                      className={
+                                        platformColors[
+                                          post.platform as keyof typeof platformColors
+                                        ] || "bg-gray-100"
+                                      }
+                                    >
                                       {post.platform}
                                     </Badge>
                                     <span className="text-xs text-gray-500 capitalize">
@@ -793,7 +806,9 @@ export default function ContentCalendar() {
                                           status: "rejected",
                                         })
                                       }
-                                      disabled={updatePostStatusMutation.isPending}
+                                      disabled={
+                                        updatePostStatusMutation.isPending
+                                      }
                                       data-testid={`button-reject-post-${post.id}`}
                                     >
                                       <XCircle className="w-4 h-4 mr-1" />
@@ -808,7 +823,9 @@ export default function ContentCalendar() {
                                           status: "accepted",
                                         })
                                       }
-                                      disabled={updatePostStatusMutation.isPending}
+                                      disabled={
+                                        updatePostStatusMutation.isPending
+                                      }
                                       data-testid={`button-accept-post-${post.id}`}
                                     >
                                       <CheckCircle className="w-4 h-4 mr-1" />

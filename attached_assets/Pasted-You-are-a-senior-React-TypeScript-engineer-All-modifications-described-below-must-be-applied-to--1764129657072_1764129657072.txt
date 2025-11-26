@@ -1,0 +1,154 @@
+You are a senior React + TypeScript engineer.
+
+All modifications described below must be applied to the component located in:
+👉  src/pages/waterfall.tsx
+(or waterfall.tsx wherever it exists in the project)
+
+This component contains the chat interface for CampAIgner / Boosty.
+
+────────────────────────────────────────
+### 1. ADD MARKDOWN SUPPORT TO ASSISTANT MESSAGES
+────────────────────────────────────────
+
+Install:
+npm install react-markdown remark-gfm
+
+At the top of waterfall.tsx add:
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+Inside messages.map(), replace the bubble content FROM:
+
+{msg.content}
+
+TO:
+
+<ReactMarkdown
+  remarkPlugins={[remarkGfm]}
+  components={{
+    p: (props) => <p className="mb-2" {...props} />,
+    strong: (props) => <strong className="font-semibold" {...props} />,
+    em: (props) => <em className="italic" {...props} />,
+    ul: (props) => <ul className="list-disc ml-5 my-2" {...props} />,
+    ol: (props) => <ol className="list-decimal ml-5 my-2" {...props} />,
+    li: (props) => <li className="my-1" {...props} />,
+    a: (props) => <a className="text-blue-600 underline" target="_blank" {...props} />,
+    code: (props) => <code className="bg-gray-200 px-1 rounded text-sm" {...props} />,
+  }}
+>
+  {msg.content}
+</ReactMarkdown>
+
+Keep all Tailwind bubble styling exactly the same.
+
+
+────────────────────────────────────────
+### 2. ADD TYPEWRITER EFFECT FOR ASSISTANT
+────────────────────────────────────────
+
+In waterfall.tsx define:
+
+const [isTyping, setIsTyping] = useState(false);
+
+Modify the assistant message generation logic:
+
+When sending an assistant reply:
+
+1. Add empty message first:
+   setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+2. Store its index:
+   const messageIndex = messages.length;
+
+3. Enable typing:
+   setIsTyping(true);
+
+4. Use a typewriter helper:
+
+async function typeText(fullText: string, index: number) {
+  for (let i = 0; i < fullText.length; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 10)); // speed
+    setMessages(prev => {
+      const copy = [...prev];
+      copy[index].content = fullText.slice(0, i + 1);
+      return copy;
+    });
+  }
+  setIsTyping(false);
+}
+
+5. Call:
+typeText(assistantResponse, messageIndex);
+
+
+────────────────────────────────────────
+### 3. ADD "BOOSTY IS TYPING…" INDICATOR
+────────────────────────────────────────
+
+Before the input area, add:
+
+{isTyping && (
+  <div className="flex items-center gap-2 ml-12 mb-2">
+    <div className="w-3 h-3 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+    <div className="w-3 h-3 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+    <div className="w-3 h-3 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+    <span className="text-xs text-gray-400 ml-2">Boosty is typing…</span>
+  </div>
+)}
+
+
+────────────────────────────────────────
+### 4. MODERNIZE CHAT BUBBLES (AI UI)
+────────────────────────────────────────
+
+Update bubble wrappers in waterfall.tsx:
+
+User bubble:
+- bg-blue-600 text-white
+- rounded-2xl rounded-br-none
+- shadow-md
+
+Assistant bubble:
+- bg-white
+- border border-gray-200
+- rounded-2xl rounded-bl-none
+- shadow-sm
+
+Ensure the bubble container includes:
+className="leading-relaxed whitespace-pre-wrap"
+
+
+────────────────────────────────────────
+### 5. ADD IMPROVED AUTO-SCROLL
+────────────────────────────────────────
+
+Keep messagesEndRef.
+
+Update scroll effect:
+
+useEffect(() => {
+  messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+}, [messages, isTyping]);
+
+
+────────────────────────────────────────
+### 6. DO NOT BREAK EXISTING LOGIC
+────────────────────────────────────────
+
+Keep:
+- Tabs
+- Planner
+- Sidebar
+- Boosty avatar
+- Suggestions buttons
+- Message simulation logic
+
+Simply enhance the UI/UX.
+
+
+────────────────────────────────────────
+### 7. CLEAN FILE AFTER APPLYING CHANGES
+────────────────────────────────────────
+
+Format waterfall.tsx with Prettier.
+

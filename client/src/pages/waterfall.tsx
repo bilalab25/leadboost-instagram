@@ -15,8 +15,20 @@ export default function CampAIgner() {
   >([
     {
       role: "assistant",
-      content:
-        "Welcome! I’m Boosty, your AI-powered marketing strategist 🚀. I’m here to help you design strategies, create content, and launch posts that grow your brand. Would you like me to walk you through your first campaign this month?",
+      content: `Initial Content Generation Complete. I have successfully drafted an optimal Instagram post for scheduling **tomorrow at 10:00 AM**. Review the creative output below:
+
+------------------------------------------------------------------
+
+[PREVIEW: INSTAGRAM POST]
+
+PROFILE: @your_brand_success
+CREATIVE: CAPTION: Leverage AI for superior campaign performance. Boosty drives maximum ROI and measurable growth. #AICampaign #DigitalStrategy #BoostyAI
+
+TARGET SCHEDULE: Tomorrow, 10:00 AM.
+
+------------------------------------------------------------------
+
+To confirm and execute the scheduling action, please input: **"thank you post it"**`,
     },
   ]);
   const [input, setInput] = useState("");
@@ -24,21 +36,32 @@ export default function CampAIgner() {
 
   const handleSend = () => {
     if (!input.trim()) return;
-    setMessages((prev) => [...prev, { role: "user", content: input }]);
+    const userInput = input.trim();
+    setMessages((prev) => [...prev, { role: "user", content: userInput }]);
+
+    setInput("");
 
     // Simulated AI reply
     setTimeout(() => {
+      let assistantResponse = "";
+
+      // Logic for the demo: Post Scheduling Confirmation
+      if (userInput.toLowerCase() === "thank you post it") {
+        assistantResponse =
+          "Action Confirmed. The content asset has been moved to the scheduling queue. **The post is being scheduled** for tomorrow at 10:00 AM PST. Confirmation will be visible in the '30-Day Planner' module shortly. 🚀";
+      } else {
+        // Default professional response
+        assistantResponse = `Processing request: '${userInput}'. Based on current data streams, I recommend a cross-platform engagement strategy focused on Instagram Stories and TikTok for Q4 optimization. Preliminary Budget Projection: $300/week.`;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content:
-            "✨ Got it! Here's a campaign suggestion: Instagram Stories ads with engaging polls, linked to your landing page. Suggested budget: $300/week.",
+          content: assistantResponse,
         },
       ]);
     }, 1200);
-
-    setInput("");
   };
 
   useEffect(() => {
@@ -46,11 +69,11 @@ export default function CampAIgner() {
   }, [messages]);
 
   const suggestions = [
-    "Give me ideas for a social media campaign",
-    "Generate a slogan for a health campaign",
-    "Create an email marketing plan for e-commerce",
-    "Suggest TikTok content for fashion",
-    "Generate a 7-day posting calendar",
+    "Generate a comprehensive Q4 social media strategy report",
+    "Analyze competitor performance data (top 3 trends)",
+    "Draft email sequences for abandoned cart recovery",
+    "Develop a LinkedIn strategy for B2B lead generation",
+    "Model a 7-day high-conversion posting calendar",
   ];
 
   return (
@@ -73,11 +96,11 @@ export default function CampAIgner() {
                   className="flex items-center data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#0891b2] data-[state=active]:to-[hsl(210,70%,45%)]"
                 >
                   <Zap className="mr-2 h-4 w-4" />
-                  Create with Boosty
+                  Strategize with Boosty
                 </TabsTrigger>
                 <TabsTrigger value="planner" className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
-                  30-Day Planner
+                  30-Day Content Planner
                 </TabsTrigger>
               </TabsList>
 
@@ -103,7 +126,7 @@ export default function CampAIgner() {
                         />
                       )}
                       <div
-                        className={`px-4 py-3 rounded-2xl shadow-sm max-w-[75%] text-sm leading-relaxed ${
+                        className={`px-4 py-3 rounded-2xl shadow-sm max-w-[75%] text-sm leading-relaxed whitespace-pre-wrap ${
                           msg.role === "user"
                             ? "bg-blue-600 text-white rounded-br-none"
                             : "bg-gray-100 text-gray-900 rounded-bl-none border border-gray-200"
@@ -135,7 +158,7 @@ export default function CampAIgner() {
                     </Button>
                     <div className="flex-1 relative">
                       <Input
-                        placeholder="Type your campaign idea..."
+                        placeholder="Formulate your request or campaign directive..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSend()}
@@ -175,7 +198,7 @@ export default function CampAIgner() {
             <div className="fixed bottom-6 right-6 flex flex-col items-end gap-2 z-50">
               {/* Speech bubble */}
               <div className="bg-white shadow-lg px-3 py-2 rounded-lg text-sm text-gray-700 border border-gray-200">
-                💡 Need campaign ideas?
+                💡 Need high-level strategy input?
               </div>
               {/* Mascot */}
               <img
