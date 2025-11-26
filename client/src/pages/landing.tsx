@@ -53,6 +53,7 @@ import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { HelpDropdown } from "@/components/HelpDropdown";
 import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756873932398.png";
 import boostyImage from "@assets/Gemini_Generated_Image_vxt1kgvxt1kgvxt1_1764170274959.png";
+import boostyVideo from "@assets/Video_de_Boosty_Saludando_1764171160244.mp4";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
@@ -848,98 +849,98 @@ export default function Landing() {
       {/* Meet Boosty - AI Assistant Section */}
       <section
         className="relative py-32 overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 30%, #0f1628 70%, #0a0a1a 100%)",
-        }}
+        style={{ backgroundColor: "#FFFFFF" }}
       >
-        {/* Animated background particles */}
+        {/* Subtle animated background elements */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[...Array(30)].map((_, i) => (
+          {[...Array(15)].map((_, i) => (
             <div
               key={i}
               className="absolute rounded-full"
               style={{
-                width: `${2 + Math.random() * 4}px`,
-                height: `${2 + Math.random() * 4}px`,
+                width: `${4 + Math.random() * 8}px`,
+                height: `${4 + Math.random() * 8}px`,
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                background: `rgba(${100 + Math.random() * 100}, ${150 + Math.random() * 100}, 255, ${0.3 + Math.random() * 0.4})`,
-                animation: `float ${4 + Math.random() * 6}s ease-in-out infinite ${Math.random() * 3}s`,
-                boxShadow: `0 0 ${10 + Math.random() * 20}px rgba(100, 200, 255, 0.3)`,
+                background: `rgba(59, 130, 246, ${0.1 + Math.random() * 0.15})`,
+                animation: `float ${6 + Math.random() * 8}s ease-in-out infinite ${Math.random() * 3}s`,
               }}
             />
           ))}
         </div>
 
-        {/* Gradient orbs */}
-        <div className="absolute top-1/4 left-1/6 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/6 w-[400px] h-[400px] bg-cyan-500/15 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[150px]" />
+        {/* Gradient orbs - subtle for white background */}
+        <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-blue-100/50 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-cyan-100/40 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-purple-100/30 rounded-full blur-[180px]" />
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             
-            {/* Left side - Boosty Character */}
+            {/* Left side - Boosty Video */}
             <div className="relative flex justify-center lg:justify-end order-2 lg:order-1">
               {/* Glow ring behind Boosty */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[450px] sm:h-[450px]">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-500/30 via-blue-500/30 to-purple-500/30 blur-2xl animate-pulse" />
-                <div className="absolute inset-4 rounded-full bg-gradient-to-r from-cyan-400/20 via-blue-400/20 to-purple-400/20 blur-xl" style={{ animation: "spin 20s linear infinite" }} />
-                <div className="absolute inset-8 rounded-full border-2 border-cyan-500/20" style={{ animation: "spin 30s linear infinite reverse" }} />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-300/20 via-blue-300/20 to-purple-300/20 blur-2xl animate-pulse" />
+                <div className="absolute inset-4 rounded-full bg-gradient-to-r from-cyan-200/15 via-blue-200/15 to-purple-200/15 blur-xl" style={{ animation: "spin 20s linear infinite" }} />
+                <div className="absolute inset-8 rounded-full border-2 border-blue-200/30" style={{ animation: "spin 30s linear infinite reverse" }} />
               </div>
 
-              {/* Floating platform */}
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[280px] h-[40px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent rounded-full blur-xl" />
+              {/* Floating shadow/platform */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[200px] h-[20px] bg-gray-900/10 rounded-full blur-xl" />
 
-              {/* Boosty Image */}
+              {/* Boosty Video */}
               <div 
                 className="relative z-10"
                 style={{ animation: "float 6s ease-in-out infinite" }}
               >
-                <img 
-                  src={boostyImage} 
-                  alt="Boosty - AI Marketing Assistant" 
-                  className="w-[280px] sm:w-[350px] lg:w-[400px] h-auto drop-shadow-2xl"
+                <video 
+                  src={boostyVideo}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-[300px] sm:w-[380px] lg:w-[450px] h-auto"
                   style={{
-                    filter: "drop-shadow(0 0 30px rgba(0, 200, 255, 0.4)) drop-shadow(0 0 60px rgba(100, 150, 255, 0.2))",
+                    filter: "drop-shadow(0 20px 40px rgba(0, 0, 0, 0.15))",
                   }}
                   data-testid="boosty-character"
                 />
                 
                 {/* Sparkle effects around Boosty */}
-                <div className="absolute -top-4 -right-4 w-3 h-3 bg-cyan-400 rounded-full animate-ping" />
-                <div className="absolute top-1/4 -left-6 w-2 h-2 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: "0.5s" }} />
-                <div className="absolute bottom-1/3 -right-8 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: "1s" }} />
+                <div className="absolute -top-4 -right-4 w-3 h-3 bg-cyan-500 rounded-full animate-ping" />
+                <div className="absolute top-1/4 -left-6 w-2 h-2 bg-blue-500 rounded-full animate-ping" style={{ animationDelay: "0.5s" }} />
+                <div className="absolute bottom-1/3 -right-8 w-2 h-2 bg-purple-500 rounded-full animate-ping" style={{ animationDelay: "1s" }} />
               </div>
 
               {/* Chat bubbles floating around Boosty */}
               <div 
-                className="absolute top-8 -left-4 sm:left-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2 shadow-xl"
+                className="absolute top-8 -left-4 sm:left-0 bg-white backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-2 shadow-xl"
                 style={{ animation: "float 5s ease-in-out infinite 0.5s" }}
               >
                 <div className="flex items-center gap-2">
-                  <SiInstagram className="w-4 h-4 text-pink-400" />
-                  <span className="text-white text-sm font-medium">{isSpanish ? "Post listo!" : "Post ready!"}</span>
+                  <SiInstagram className="w-4 h-4 text-pink-500" />
+                  <span className="text-gray-800 text-sm font-medium">{isSpanish ? "Post listo!" : "Post ready!"}</span>
                 </div>
               </div>
 
               <div 
-                className="absolute bottom-1/3 -right-4 sm:-right-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2 shadow-xl"
+                className="absolute bottom-1/3 -right-4 sm:-right-8 bg-white backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-2 shadow-xl"
                 style={{ animation: "float 6s ease-in-out infinite 1s" }}
               >
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-green-400" />
-                  <span className="text-white text-sm font-medium">+247%</span>
+                  <TrendingUp className="w-4 h-4 text-green-500" />
+                  <span className="text-gray-800 text-sm font-medium">+247%</span>
                 </div>
               </div>
 
               <div 
-                className="absolute top-1/2 -left-8 sm:-left-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2 shadow-xl"
+                className="absolute top-1/2 -left-8 sm:-left-12 bg-white backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-2 shadow-xl"
                 style={{ animation: "float 7s ease-in-out infinite 1.5s" }}
               >
                 <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-yellow-400" />
-                  <span className="text-white text-sm font-medium">AI</span>
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  <span className="text-gray-800 text-sm font-medium">AI</span>
                 </div>
               </div>
             </div>
@@ -947,21 +948,21 @@ export default function Landing() {
             {/* Right side - Content */}
             <div className="order-1 lg:order-2 text-center lg:text-left">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 mb-8">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                <span className="text-cyan-300 text-sm font-semibold tracking-wide uppercase">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 mb-8">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <span className="text-blue-600 text-sm font-semibold tracking-wide uppercase">
                   {isSpanish ? "Tu Asistente IA 24/7" : "Your 24/7 AI Assistant"}
                 </span>
               </div>
 
               <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6">
-                <span className="text-white">{isSpanish ? "Conoce a " : "Meet "}</span>
-                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="text-gray-900">{isSpanish ? "Conoce a " : "Meet "}</span>
+                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
                   Boosty
                 </span>
               </h2>
 
-              <p className="text-xl sm:text-2xl text-gray-300 mb-8 leading-relaxed font-light">
+              <p className="text-xl sm:text-2xl text-gray-600 mb-8 leading-relaxed font-light">
                 {isSpanish 
                   ? "Tu asistente de marketing con inteligencia artificial. Genera contenido, programa publicaciones y gestiona campañas—todo con una simple conversación."
                   : "Your AI-powered marketing assistant. Generate content, schedule posts, and manage campaigns—all with a simple conversation."}
@@ -970,19 +971,19 @@ export default function Landing() {
               {/* Capabilities grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
                 {[
-                  { icon: <Bot className="w-5 h-5" />, text: isSpanish ? "Generación de contenido IA" : "AI Content Generation", color: "cyan" },
-                  { icon: <MessageSquare className="w-5 h-5" />, text: isSpanish ? "Interfaz conversacional" : "Conversational Interface", color: "blue" },
-                  { icon: <Clock className="w-5 h-5" />, text: isSpanish ? "Programación automática" : "Auto Scheduling", color: "purple" },
-                  { icon: <BarChart3 className="w-5 h-5" />, text: isSpanish ? "Análisis inteligente" : "Smart Analytics", color: "pink" },
+                  { icon: <Bot className="w-5 h-5" />, text: isSpanish ? "Generación de contenido IA" : "AI Content Generation", bgColor: "bg-cyan-500", borderColor: "border-cyan-200", bgLight: "bg-cyan-50" },
+                  { icon: <MessageSquare className="w-5 h-5" />, text: isSpanish ? "Interfaz conversacional" : "Conversational Interface", bgColor: "bg-blue-500", borderColor: "border-blue-200", bgLight: "bg-blue-50" },
+                  { icon: <Clock className="w-5 h-5" />, text: isSpanish ? "Programación automática" : "Auto Scheduling", bgColor: "bg-purple-500", borderColor: "border-purple-200", bgLight: "bg-purple-50" },
+                  { icon: <BarChart3 className="w-5 h-5" />, text: isSpanish ? "Análisis inteligente" : "Smart Analytics", bgColor: "bg-pink-500", borderColor: "border-pink-200", bgLight: "bg-pink-50" },
                 ].map((item, i) => (
                   <div 
                     key={i}
-                    className={`flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-${item.color}-500/10 to-transparent border border-${item.color}-500/20 hover:border-${item.color}-400/40 transition-all duration-300 group`}
+                    className={`flex items-center gap-3 p-4 rounded-xl ${item.bgLight} border ${item.borderColor} hover:shadow-md transition-all duration-300 group`}
                   >
-                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br from-${item.color}-400 to-${item.color}-600 flex items-center justify-center text-white shadow-lg`}>
+                    <div className={`w-10 h-10 rounded-lg ${item.bgColor} flex items-center justify-center text-white shadow-lg`}>
                       {item.icon}
                     </div>
-                    <span className="text-gray-200 font-medium group-hover:text-white transition-colors">{item.text}</span>
+                    <span className="text-gray-700 font-medium group-hover:text-gray-900 transition-colors">{item.text}</span>
                   </div>
                 ))}
               </div>
@@ -991,7 +992,7 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button
                   onClick={() => navigate("/login")}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-400/30 transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 transform hover:scale-[1.02]"
                   data-testid="button-chat-boosty"
                 >
                   {isSpanish ? "Chatear con Boosty" : "Chat with Boosty"}
@@ -999,7 +1000,7 @@ export default function Landing() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-gray-600 text-gray-300 hover:bg-white/10 hover:text-white font-semibold px-8 py-6 text-lg rounded-xl transition-all duration-300"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-semibold px-8 py-6 text-lg rounded-xl transition-all duration-300"
                   onClick={() => navigate("/login")}
                 >
                   {isSpanish ? "Ver demostración" : "Watch Demo"}
@@ -1009,12 +1010,12 @@ export default function Landing() {
 
               {/* Trust indicators */}
               <div className="flex items-center gap-6 mt-8 justify-center lg:justify-start">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Check className="w-4 h-4 text-green-400" />
+                <div className="flex items-center gap-2 text-gray-500">
+                  <Check className="w-4 h-4 text-green-500" />
                   <span className="text-sm">{isSpanish ? "Sin tarjeta requerida" : "No credit card"}</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Check className="w-4 h-4 text-green-400" />
+                <div className="flex items-center gap-2 text-gray-500">
+                  <Check className="w-4 h-4 text-green-500" />
                   <span className="text-sm">{isSpanish ? "14 días gratis" : "14 days free"}</span>
                 </div>
               </div>
@@ -1030,8 +1031,10 @@ export default function Landing() {
                 desc: isSpanish 
                   ? "Genera posts, stories, reels y más para todas tus redes sociales en segundos."
                   : "Generate posts, stories, reels and more for all your social networks in seconds.",
-                gradient: "from-pink-500/20 to-rose-500/20",
-                border: "border-pink-500/30",
+                gradient: "from-pink-50 to-rose-50",
+                border: "border-pink-200",
+                textColor: "text-gray-900",
+                descColor: "text-gray-600",
               },
               {
                 emoji: "📅",
@@ -1039,8 +1042,10 @@ export default function Landing() {
                 desc: isSpanish 
                   ? "Planifica y programa un mes completo de contenido con estrategia inteligente."
                   : "Plan and schedule a full month of content with intelligent strategy.",
-                gradient: "from-blue-500/20 to-cyan-500/20",
-                border: "border-blue-500/30",
+                gradient: "from-blue-50 to-cyan-50",
+                border: "border-blue-200",
+                textColor: "text-gray-900",
+                descColor: "text-gray-600",
               },
               {
                 emoji: "🚀",
@@ -1048,17 +1053,19 @@ export default function Landing() {
                 desc: isSpanish 
                   ? "Analiza rendimiento y mejora automáticamente tus campañas en tiempo real."
                   : "Analyze performance and automatically improve your campaigns in real-time.",
-                gradient: "from-purple-500/20 to-indigo-500/20",
-                border: "border-purple-500/30",
+                gradient: "from-purple-50 to-indigo-50",
+                border: "border-purple-200",
+                textColor: "text-gray-900",
+                descColor: "text-gray-600",
               },
             ].map((item, i) => (
               <div 
                 key={i}
-                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${item.gradient} backdrop-blur-sm border ${item.border} p-8 hover:scale-[1.02] transition-all duration-300 group`}
+                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${item.gradient} border ${item.border} p-8 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group`}
               >
                 <div className="text-5xl mb-4">{item.emoji}</div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">{item.title}</h3>
-                <p className="text-gray-300 leading-relaxed">{item.desc}</p>
+                <h3 className={`text-xl font-bold ${item.textColor} mb-3 group-hover:text-blue-600 transition-colors`}>{item.title}</h3>
+                <p className={`${item.descColor} leading-relaxed`}>{item.desc}</p>
               </div>
             ))}
           </div>
