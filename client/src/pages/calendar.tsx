@@ -1,980 +1,314 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useBrand } from "@/contexts/BrandContext";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Calendar as CalendarIcon,
-  Eye,
-  Edit,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Image as ImageIcon,
-  Wand2,
-  Settings,
-  Sparkles,
-} from "lucide-react";
-import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
-import { Instagram } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  isSameDay,
-  isToday,
-} from "date-fns";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { PauseCircle, PlayCircle } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Pause, Play } from "lucide-react";
-import PostingFrequencyModal from "@/components/PostingFrequencyModal";
+import { Button } from "@/components/ui/button";
+import { Send, Calendar, Zap, Image as ImageIcon, Mic } from "lucide-react";
+import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
+import ContentCalendar from "@/pages/calendar";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import boosty from "./boosty.png";
+import boosty_face from "./boosty_face.png";
 
-interface ContentPost {
-  id: string;
-  title: string;
-  platform: string;
-  scheduledFor: string;
-  status: "draft" | "scheduled" | "published";
-  content: string;
-  imageUrl?: string;
-}
+export default function Waterfall() {
+  const [messages, setMessages] = useState<
+    {
+      role: "user" | "assistant";
+      content: string;
+      imagePreview?: string;
+    }[]
+  >([
+    {
+      role: "assistant",
+      content:
+        "Welcome! I’m Boosty, your AI-powered marketing strategist 🚀. I’m here to help you design strategies, create content, and launch posts that grow your brand. Would you like me to walk you through your first campaign this month?",
+    },
+  ]);
 
-const platformIcons = {
-  instagram: Instagram,
-  whatsapp: SiWhatsapp,
-  facebook: SiFacebook,
-  tiktok: SiTiktok,
-  linkedin: SiLinkedin,
-};
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [postGenerated, setPostGenerated] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-const platformColors = {
-  instagram: "text-pink-500 bg-pink-50",
-  whatsapp: "text-green-500 bg-green-50",
-  facebook: "text-blue-600 bg-blue-50",
-  tiktok: "text-gray-800 bg-gray-50",
-  linkedin: "text-sky-600 bg-sky-50",
-};
-
-const statusColors = {
-  draft: "bg-gray-100 text-gray-800",
-  scheduled: "bg-primary/10 text-primary",
-  published: "bg-green-100 text-green-800",
-};
-
-export default function ContentCalendar() {
-  const { toast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
-  const { activeBrandId } = useBrand();
-
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
-  const [editPost, setEditPost] = useState<ContentPost | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isFrequencyModalOpen, setIsFrequencyModalOpen] = useState(false);
-  const [postingSchedule, setPostingSchedule] = useState<Array<{
-    platform: string;
-    postsPerWeek: number;
-    selectedDays: string[];
-  }> | null>(null);
-  const [aiSuggestions, setAiSuggestions] = useState<any>(null);
-  const [suggestedPosts, setSuggestedPosts] = useState<ContentPost[]>([]);
-  const [showGeneratingLoader, setShowGeneratingLoader] = useState(false);
-  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
-  const [aiPendingPosts, setAiPendingPosts] = useState<any[]>([]);
-
-  // Helper function to convert day name to dates in current month
-  const getDatesForDayOfWeek = (dayName: string): Date[] => {
-    const dayMap: { [key: string]: number } = {
-      sunday: 0,
-      monday: 1,
-      tuesday: 2,
-      wednesday: 3,
-      thursday: 4,
-      friday: 5,
-      saturday: 6,
-    };
-
-    const targetDay = dayMap[dayName.toLowerCase()];
-    if (targetDay === undefined) return [];
-
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const dates: Date[] = [];
-
-    let current = new Date(monthStart);
-    while (current <= monthEnd) {
-      if (current.getDay() === targetDay) {
-        dates.push(new Date(current));
-      }
-      current.setDate(current.getDate() + 1);
-    }
-
-    return dates;
-  };
-
-  // Helper function to convert webhook response to ContentPost[]
-  const parseWebhookResponse = (webhookData: any[]): ContentPost[] => {
-    const posts: ContentPost[] = [];
-    let postId = Math.floor(Math.random() * 10000);
-
-    webhookData.forEach((platformData) => {
-      const platform = platformData.platform;
-      const publicaciones = platformData.publicaciones || [];
-
-      publicaciones.forEach((pub: any) => {
-        const datesForDay = getDatesForDayOfWeek(pub.dia || "monday");
-
-        // Create a post for each occurrence of that day in the month
-        datesForDay.forEach((date, index) => {
-          const hour = 10 + index * 2; // Stagger posts by 2 hours
-          const scheduledDate = new Date(date);
-          scheduledDate.setHours(hour, 0, 0, 0);
-
-          posts.push({
-            id: `ai-${postId++}`,
-            title: pub.titulo,
-            platform: platform,
-            scheduledFor: scheduledDate.toISOString(),
-            status: "draft",
-            content: pub.copy,
-            imageUrl: pub.imagen_url,
-          });
+  const typeText = useCallback(
+    async (fullText: string, messageIndex: number) => {
+      for (let i = 0; i < fullText.length; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        setMessages((prev) => {
+          const copy = [...prev];
+          if (copy[messageIndex]) {
+            copy[messageIndex].content = fullText.slice(0, i + 1);
+          }
+          return copy;
         });
-      });
-    });
-
-    return posts;
-  };
-
-  // Polling query for job status
-  const jobStatusQuery = useQuery({
-    queryKey: ["/api/post-generator/jobs", currentJobId],
-    queryFn: async () => {
-      if (!currentJobId) return null;
-      const response = await fetch(`/api/post-generator/jobs/${currentJobId}`, {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch job status");
-      return response.json();
-    },
-    refetchInterval: currentJobId ? 2000 : false, // Poll every 2 seconds when jobId exists
-    enabled: !!currentJobId,
-  });
-
-  // Effect to handle job completion
-  useEffect(() => {
-    const job = jobStatusQuery.data;
-    if (!job || !currentJobId) return;
-
-    if (job.status === "completed" && job.result) {
-      setShowGeneratingLoader(false);
-      const newPosts = parseWebhookResponse(job.result);
-      setSuggestedPosts(newPosts);
-      setAiSuggestions(job);
-
-      toast({
-        title: `✨ AI Generated ${newPosts.length} Suggestions!`,
-        description: `${newPosts.length} posts ready for your approval across ${new Set(newPosts.map((p) => p.platform)).size} platforms.`,
-      });
-
-      setCurrentJobId(null); // Stop polling
-    } else if (job.status === "failed") {
-      setShowGeneratingLoader(false);
-      toast({
-        title: "Generation Failed",
-        description: job.error || "Failed to generate post suggestions",
-        variant: "destructive",
-      });
-      setCurrentJobId(null);
-    }
-  }, [jobStatusQuery.data, currentJobId]);
-
-  // Mutation to update AI post status
-  const updatePostStatusMutation = useMutation({
-    mutationFn: async ({
-      postId,
-      status,
-    }: {
-      postId: string;
-      status: "accepted" | "rejected";
-    }) => {
-      const response = await fetch(`/api/ai-posts/${postId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ status }),
-      });
-      if (!response.ok) throw new Error("Failed to update post status");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-posts"] });
-    },
-  });
-
-  // AI Post Generator Mutation
-  const generatePostsMutation = useMutation({
-    mutationFn: async () => {
-      if (!activeBrandId) {
-        throw new Error("No brand selected");
       }
+      setIsTyping(false);
 
-      const response = await fetch(`/api/post-generator/${activeBrandId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const text = (await response.text()) || response.statusText;
-        throw new Error(`${response.status}: ${text}`);
-      }
-
-      const data = await response.json();
-      return data;
-    },
-    onMutate: () => {
-      setShowGeneratingLoader(true);
-    },
-    onSuccess: (data) => {
-      // Start polling with the jobId
-      if (data.jobId) {
-        setCurrentJobId(data.jobId);
-        console.log("Job started with ID:", data.jobId);
+      if (fullText.includes("Content Generation Complete.")) {
+        setPostGenerated(true);
       }
     },
-    onError: (error: any) => {
-      setShowGeneratingLoader(false);
-      toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to start post generation",
-        variant: "destructive",
-      });
-    },
-  });
+    [],
+  );
 
-  const handleToggle = () => {
-    setIsPaused((prev) => {
-      const newState = !prev;
-      toast({
-        title: newState ? "Posting Paused" : "Posting Resumed",
-        description: newState
-          ? "Automatic posting has been paused."
-          : "Automatic posting has been resumed.",
-      });
-      return newState;
-    });
-  };
-  // 🔹 Mock posts
-  const mockContentPosts: ContentPost[] = [
-    {
-      id: "1",
-      title: "Product Launch",
-      platform: "instagram",
-      scheduledFor: "2025-11-26T14:00:00Z",
-      status: "scheduled",
-      content: "🎉 Our new product is finally here!",
-      imageUrl:
-        "https://img.freepik.com/free-psd/male-grooming-template-design_23-2150195492.jpg?semt=ais_incoming&w=740&q=80",
-    },
-    {
-      id: "2",
-      title: "Customer Testimonial",
-      platform: "facebook",
-      scheduledFor: "2025-09-28T10:30:00Z",
-      status: "draft",
-      content: "Here is what our clients are saying ❤️",
-      imageUrl:
-        "https://img.freepik.com/premium-psd/aesthetic-fashion-social-media-instagram-post-template-premium-psd_20692-42.jpg",
-    },
-    {
-      id: "3",
-      title: "Behind the Scenes",
-      platform: "tiktok",
-      scheduledFor: "2025-09-28T16:00:00Z",
-      status: "scheduled",
-      content: "🎬 A look behind our daily operations",
-      imageUrl:
-        "https://img.freepik.com/premium-psd/minimalist-aesthetic-fashion-social-media-instagram-post-template_20692-45.jpg",
-    },
-    {
-      id: "4",
-      title: "Holiday Promo",
-      platform: "whatsapp",
-      scheduledFor: "2025-09-29T09:00:00Z",
-      status: "published",
-      content: "🎄 Special offers for the holiday season!",
-      imageUrl:
-        "https://img.freepik.com/premium-psd/new-year-mega-sale-women-fashion-product-minimalist-social-media-template_524105-401.jpg",
-    },
-    {
-      id: "5",
-      title: "2025 Trends",
-      platform: "linkedin",
-      scheduledFor: "2025-09-30T11:00:00Z",
-      status: "scheduled",
-      content: "Key insights shaping our industry in 2025 📊",
-      imageUrl:
-        "https://img.freepik.com/premium-psd/aesthetic-minimalist-instagram-posts-stories-quotes-templates-beige-neutral-colors-psd_878297-271.jpg",
-    },
-  ];
+  const handleSend = () => {
+    if (!input.trim() || isTyping) return;
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
+    const userInput = input.trim();
+    setMessages((prev) => [...prev, { role: "user", content: userInput }]);
+    setInput("");
+
+    setTimeout(() => {
+      let assistantResponse = "";
+      const lowerInput = userInput.toLowerCase();
+      let imagePreview: string | undefined = undefined;
+
+      if (postGenerated && lowerInput.includes("thank you post it")) {
+        assistantResponse =
+          "**Action Confirmed.** The content asset has been moved to the scheduling queue. **The post is being scheduled** for tomorrow at 11:00 AM PST. 🚀";
+        setPostGenerated(false);
+      } else if (
+        !postGenerated &&
+        lowerInput.includes("generate post for tomorrow for instagram")
+      ) {
+        assistantResponse = `
+**Content Generation Complete.**
+I have successfully drafted an optimal Instagram post for scheduling **tomorrow at 11:00 AM**.  
+
+Here is the caption that will accompany your selected media:
+
+---
+
+### ✨ GLOWING SKIN FACIAL  
+Unveil your natural radiance.
+
+Experience deep hydration, rejuvenation, and a flawless complexion with our signature facial treatment.
+
+**Ready for your glow up?**  
+BOOK NOW via the link in our bio!
+
+#RenuveAestheticsBar #GlowingSkin #FacialTreatment #NaturalRadiance #SkincareGoals
+
+**TARGET SCHEDULE:** Tomorrow, 11:00 AM.
+
+---
+
+To confirm and execute the scheduling action, type: **"thank you post it"**
+        `;
+
+        imagePreview =
+          "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764131141/Gemini_Generated_Image_loy3jsloy3jsloy3_yucbls.png";
+      } else {
+        assistantResponse = `Processing request: **${userInput}**…  
+Based on current signals, I recommend a cross-platform engagement strategy focusing on Instagram Stories + TikTok for Q4 performance.`;
+      }
+
+      // Add assistant message with optional image
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "",
+          imagePreview,
+        },
+      ]);
+
+      setIsTyping(true);
+
       setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast]);
-
-  if (isLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
-      </div>
-    );
-  }
-
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  const getPostsForDate = (date: Date) =>
-    mockContentPosts.filter((post) =>
-      isSameDay(new Date(post.scheduledFor), date),
-    );
-
-  const handleDateClick = (date: Date) => {
-    setSelectedDate(
-      selectedDate && isSameDay(selectedDate, date) ? null : date,
-    );
+        setMessages((prev) => {
+          const messageIndex = prev.length - 1;
+          typeText(assistantResponse, messageIndex);
+          return prev;
+        });
+      }, 100);
+    }, 800);
   };
 
-  const handleOpenPost = (post: ContentPost) => {
-    setSelectedPost(post);
-    setEditPost({ ...post }); // clone to edit
-  };
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const url = URL.createObjectURL(e.target.files[0]);
-      setEditPost((prev) => (prev ? { ...prev, imageUrl: url } : prev));
-    }
-  };
-
-  const selectedDatePosts = selectedDate ? getPostsForDate(selectedDate) : [];
-
-  // 🔹 Bulk approve
-  const handleApproveMonth = () => {
-    toast({
-      title: "Approved all posts",
-      description: `All posts scheduled for ${format(
-        currentDate,
-        "MMMM yyyy",
-      )} have been approved.`,
-    });
-  };
-
-  const handleApproveDay = () => {
-    if (!selectedDate) return;
-    toast({
-      title: "Approved all posts",
-      description: `All posts for ${format(selectedDate, "MMMM d")} approved.`,
-    });
-  };
-
-  const handleSavePostingSchedule = (
-    schedule: Array<{
-      platform: string;
-      postsPerWeek: number;
-      selectedDays: string[];
-    }>,
-  ) => {
-    setPostingSchedule(schedule);
-    // Here you could also save to backend API if needed
-    console.log("Posting schedule saved:", schedule);
-  };
+  const suggestions = [
+    "Generate a comprehensive Q4 social media strategy report",
+    "Analyze competitor performance data (top 3 trends)",
+    "Draft email sequences for abandoned cart recovery",
+    "Develop a LinkedIn strategy for B2B lead generation",
+    "Model a 7-day high-conversion posting calendar",
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex h-screen overflow-hidden bg-gray-50">
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <main className="flex-1 relative overflow-y-auto focus:outline-none">
-            <div className="py-6">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* 📅 Calendar */}
-                  <div className="lg:col-span-2">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex flex-col gap-3">
-                          {/* 🔹 Fila superior: título y navegación */}
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg font-semibold flex items-center">
-                              <CalendarIcon className="mr-2 h-5 w-5" />
-                              {format(currentDate, "MMMM yyyy")}
-                            </CardTitle>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  setCurrentDate(
-                                    new Date(
-                                      currentDate.getFullYear(),
-                                      currentDate.getMonth() - 1,
-                                    ),
-                                  )
-                                }
-                              >
-                                ←
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  setCurrentDate(
-                                    new Date(
-                                      currentDate.getFullYear(),
-                                      currentDate.getMonth() + 1,
-                                    ),
-                                  )
-                                }
-                              >
-                                →
-                              </Button>
-                            </div>
-                          </div>
+      <TopHeader pageName="Meet CampAIgner" />
 
-                          {/* 🔹 Fila inferior: botones de control */}
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex flex-wrap gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setIsFrequencyModalOpen(true)}
-                                data-testid="button-set-posting-frequency"
-                              >
-                                <Settings className="w-4 h-4 mr-1" /> Set
-                                Posting Frequency
-                              </Button>
+      <div className="flex bg-gray-50 h-[calc(100vh-64px)]">
+        <Sidebar />
+        <div className="flex-1">
+          <main className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
+            <Tabs
+              defaultValue="campaigns"
+              className="w-full h-full flex flex-col"
+            >
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger
+                  value="campaigns"
+                  className="flex items-center data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#0891b2] data-[state=active]:to-[hsl(210,70%,45%)]"
+                >
+                  <Zap className="mr-2 h-4 w-4" />
+                  Strategize with Boosty
+                </TabsTrigger>
+                <TabsTrigger value="planner" className="flex items-center">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  30-Day Content Planner
+                </TabsTrigger>
+              </TabsList>
 
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => generatePostsMutation.mutate()}
-                                disabled={
-                                  generatePostsMutation.isPending ||
-                                  !activeBrandId
-                                }
-                                data-testid="button-generate-ai-posts"
-                              >
-                                {generatePostsMutation.isPending ? (
-                                  <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-1"></div>
-                                    Generating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Sparkles className="w-4 h-4 mr-1" /> AI
-                                    Suggestions
-                                  </>
-                                )}
-                              </Button>
+              <TabsContent
+                value="campaigns"
+                className="flex-1 flex flex-col h-full"
+              >
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-gray-50 to-white">
+                  {messages.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-start gap-3 ${
+                        msg.role === "user" ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      {msg.role === "assistant" && (
+                        <img
+                          src={boosty_face}
+                          alt="Boosty"
+                          className="w-10 h-10 rounded-full shadow-sm"
+                        />
+                      )}
 
-                              <Button
-                                size="sm"
-                                variant="default"
-                                onClick={handleApproveMonth}
-                              >
-                                <CheckCircle className="w-4 h-4 mr-1" /> Approve
-                                month
-                              </Button>
-                            </div>
+                      <div
+                        className={`px-4 py-3 max-w-[75%] text-sm leading-relaxed ${
+                          msg.role === "user"
+                            ? "bg-blue-600 text-white rounded-2xl rounded-br-none shadow-md"
+                            : "bg-white text-gray-900 rounded-2xl rounded-bl-none shadow-sm border border-gray-200"
+                        }`}
+                      >
+                        {msg.role === "assistant" ? (
+                          <>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {msg.content}
+                            </ReactMarkdown>
 
-                            {/* 🔹 Switch Pause / Autopost */}
-                            <div
-                              onClick={handleToggle}
-                              className={`relative flex w-40 h-8 rounded-full cursor-pointer select-none transition-colors duration-300 ${
-                                isPaused ? "bg-gray-300" : "bg-gray-300"
-                              }`}
-                            >
-                              {/* Knob */}
-                              <span
-                                className={`absolute top-1 left-1 h-6 w-[calc(50%-4px)] rounded-full bg-white shadow-md transform transition-transform duration-300 ${
-                                  isPaused
-                                    ? "translate-x-0"
-                                    : "translate-x-full"
-                                }`}
-                              ></span>
+                            {msg.imagePreview && (
+                              <img
+                                src={msg.imagePreview}
+                                alt="Preview"
+                                className="mt-3 rounded-lg border shadow-sm max-w-full"
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <span className="whitespace-pre-wrap">
+                            {msg.content}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
 
-                              {/* Labels */}
-                              <div className="absolute inset-0 flex items-center justify-between px-3 text-xs font-semibold text-gray-700">
-                                <span
-                                  className={`flex items-center gap-1 transition-colors ${
-                                    isPaused ? "text-gray-900" : "text-gray-500"
-                                  }`}
-                                >
-                                  Pause
-                                </span>
-                                <span
-                                  className={`flex items-center gap-1 transition-colors ${
-                                    !isPaused
-                                      ? "text-gray-900"
-                                      : "text-gray-500"
-                                  }`}
-                                >
-                                  Autopost
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
+                <div className="border-t bg-white">
+                  {isTyping && (
+                    <div className="flex items-center gap-2 px-6 pt-4">
+                      <img
+                        src={boosty_face}
+                        alt="Boosty"
+                        className="w-6 h-6 rounded-full"
+                      />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "150ms" }}
+                      />
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "300ms" }}
+                      />
+                      <span className="text-xs text-gray-400 ml-1">
+                        Boosty is typing...
+                      </span>
+                    </div>
+                  )}
 
-                      <CardContent>
-                        {/* Week headers */}
-                        <div className="grid grid-cols-7 gap-2 mb-4">
-                          {[
-                            "Sun",
-                            "Mon",
-                            "Tue",
-                            "Wed",
-                            "Thu",
-                            "Fri",
-                            "Sat",
-                          ].map((day) => (
-                            <div
-                              key={day}
-                              className="text-center text-sm font-medium text-gray-500 py-2"
-                            >
-                              {day}
-                            </div>
-                          ))}
-                        </div>
+                  <div className="p-4 flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-gray-100 rounded-full"
+                    >
+                      <ImageIcon className="h-5 w-5 text-gray-500" />
+                    </Button>
 
-                        {/* Days */}
-                        <div className="grid grid-cols-7 gap-2">
-                          {daysInMonth.map((day) => {
-                            const postsForDay = getPostsForDate(day);
-                            const isSelected =
-                              selectedDate && isSameDay(selectedDate, day);
-                            return (
-                              <div
-                                key={day.toISOString()}
-                                className={`p-2 min-h-[80px] border rounded-lg cursor-pointer transition-colors ${
-                                  isToday(day)
-                                    ? "bg-brand-50 border-brand-200"
-                                    : "bg-white border-gray-200"
-                                } ${isSelected ? "ring-2 ring-brand-500" : ""}`}
-                                onClick={() => handleDateClick(day)}
-                              >
-                                <div className="text-sm font-medium text-gray-900">
-                                  {format(day, "d")}
-                                </div>
-                                <div className="mt-1 space-y-1">
-                                  {postsForDay.slice(0, 2).map((post) => {
-                                    const PlatformIcon =
-                                      platformIcons[
-                                        post.platform as keyof typeof platformIcons
-                                      ];
-                                    return (
-                                      <div
-                                        key={post.id}
-                                        className={`text-xs px-2 py-1 rounded truncate ${platformColors[post.platform as keyof typeof platformColors]}`}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleOpenPost(post);
-                                        }}
-                                      >
-                                        <PlatformIcon className="inline w-3 h-3 mr-1" />
-                                        {post.title}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-gray-100 rounded-full"
+                    >
+                      <Mic className="h-5 w-5 text-gray-500" />
+                    </Button>
+
+                    <div className="flex-1 relative">
+                      <Input
+                        placeholder="Formulate your request or campaign directive..."
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                        className="w-full rounded-full border-gray-300 pl-4 pr-12 text-sm focus:ring-2 focus:ring-blue-500"
+                        disabled={isTyping}
+                      />
+                      <button
+                        onClick={handleSend}
+                        disabled={isTyping}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full p-2 shadow hover:bg-blue-700 transition"
+                      >
+                        <Send className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* 📊 Sidebar */}
-                  <div className="space-y-4">
-                    <Card>
-                      <CardHeader className="flex items-center justify-between">
-                        <CardTitle className="text-lg">
-                          {selectedDate
-                            ? format(selectedDate, "EEEE, MMMM d")
-                            : "Select a date"}
-                        </CardTitle>
-                        {/* ✅ Approve all posts for the day */}
-                        {selectedDate && selectedDatePosts.length > 0 && (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={handleApproveDay}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" /> Approve day
-                          </Button>
-                        )}
-                      </CardHeader>
-                      <CardContent>
-                        {selectedDatePosts.length > 0 ? (
-                          <div className="space-y-4">
-                            {selectedDatePosts.map((post) => {
-                              const PlatformIcon =
-                                platformIcons[
-                                  post.platform as keyof typeof platformIcons
-                                ];
-                              return (
-                                <div
-                                  key={post.id}
-                                  className="border rounded-lg p-4"
-                                >
-                                  <img
-                                    src={post.imageUrl}
-                                    alt={post.title}
-                                    className="w-full h-32 object-cover rounded mb-2"
-                                  />
-                                  <div className="flex items-center justify-between mb-1">
-                                    <p className="font-medium">{post.title}</p>
-                                    {/* ✅ Social Media badge */}
-                                    <div
-                                      className={`flex items-center text-xs px-2 py-1 rounded ${platformColors[post.platform as keyof typeof platformColors]}`}
-                                    >
-                                      <PlatformIcon className="w-3 h-3 mr-1" />
-                                      {post.platform.charAt(0).toUpperCase() +
-                                        post.platform.slice(1)}
-                                    </div>
-                                  </div>
-                                  <p className="text-xs text-gray-600 mb-2">
-                                    {format(
-                                      new Date(post.scheduledFor),
-                                      "h:mm a",
-                                    )}
-                                  </p>
-                                  <p className="text-sm text-gray-700 line-clamp-2">
-                                    {post.content}
-                                  </p>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="mt-2"
-                                    onClick={() => handleOpenPost(post)}
-                                  >
-                                    <Eye className="w-3 h-3 mr-1" /> View
-                                  </Button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <p className="text-gray-500 text-center py-8">
-                            {selectedDate
-                              ? "No posts for this day"
-                              : "Click on a day to view posts"}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">This Week</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">
-                              Scheduled
-                            </span>
-                            <span className="font-medium">3</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">
-                              Published
-                            </span>
-                            <span className="font-medium">1</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">
-                              Drafts
-                            </span>
-                            <span className="font-medium">1</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* AI Suggestions Card */}
-                    {aiPendingPosts.length > 0 && (
-                      <Card className="border-2 border-brand-200 bg-brand-50/30 lg:col-span-3">
-                        <CardHeader>
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            <Sparkles className="w-5 h-5 text-brand-600" />
-                            AI Suggested Posts ({aiPendingPosts.length})
-                          </CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Review and approve/reject AI-generated posts before
-                            publishing
-                          </p>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {aiPendingPosts.map((post) => (
-                              <div
-                                key={post.id}
-                                className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white"
-                              >
-                                {/* Image */}
-                                {post.imageUrl && (
-                                  <img
-                                    src={post.imageUrl}
-                                    alt={post.titulo}
-                                    className="w-full h-48 object-cover"
-                                  />
-                                )}
-
-                                {/* Content */}
-                                <div className="p-4 space-y-3">
-                                  {/* Platform Badge */}
-                                  <div className="flex items-start justify-between gap-2">
-                                    <Badge
-                                      className={
-                                        platformColors[
-                                          post.platform as keyof typeof platformColors
-                                        ] || "bg-gray-100"
-                                      }
-                                    >
-                                      {post.platform}
-                                    </Badge>
-                                    <span className="text-xs text-gray-500 capitalize">
-                                      {post.dia}
-                                    </span>
-                                  </div>
-
-                                  {/* Title */}
-                                  <h4 className="font-semibold text-sm line-clamp-2">
-                                    {post.titulo}
-                                  </h4>
-
-                                  {/* Content */}
-                                  <p className="text-sm text-gray-600 line-clamp-3">
-                                    {post.content}
-                                  </p>
-
-                                  {/* Hashtags */}
-                                  {post.hashtags && (
-                                    <p className="text-xs text-blue-600 line-clamp-1">
-                                      {post.hashtags}
-                                    </p>
-                                  )}
-
-                                  {/* Action Buttons */}
-                                  <div className="flex gap-2 pt-2 border-t">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="flex-1 text-red-600 hover:text-red-700"
-                                      onClick={() =>
-                                        updatePostStatusMutation.mutate({
-                                          postId: post.id,
-                                          status: "rejected",
-                                        })
-                                      }
-                                      disabled={
-                                        updatePostStatusMutation.isPending
-                                      }
-                                      data-testid={`button-reject-post-${post.id}`}
-                                    >
-                                      <XCircle className="w-4 h-4 mr-1" />
-                                      Reject
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      className="flex-1 bg-green-600 hover:bg-green-700"
-                                      onClick={() =>
-                                        updatePostStatusMutation.mutate({
-                                          postId: post.id,
-                                          status: "accepted",
-                                        })
-                                      }
-                                      disabled={
-                                        updatePostStatusMutation.isPending
-                                      }
-                                      data-testid={`button-accept-post-${post.id}`}
-                                    >
-                                      <CheckCircle className="w-4 h-4 mr-1" />
-                                      Accept
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
+                  <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setInput(s)}
+                        disabled={isTyping}
+                        className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 hover:shadow-sm transition"
+                      >
+                        <Zap className="h-4 w-4 inline-block text-blue-500 mr-2" />
+                        {s}
+                      </button>
+                    ))}
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="planner" className="h-full">
+                <ContentCalendar />
+              </TabsContent>
+            </Tabs>
+
+            <div className="fixed bottom-6 right-6 flex flex-col items-end gap-2 z-50">
+              <div className="bg-white shadow-lg px-3 py-2 rounded-lg text-sm text-gray-700 border border-gray-200">
+                💡 Need high-level strategy input?
               </div>
+              <img
+                src={boosty}
+                alt="LeadBoost Assistant"
+                className="w-36 h-48 cursor-pointer hover:scale-105 transition-transform"
+              />
             </div>
           </main>
         </div>
       </div>
-
-      {/* Modal Meta Ads Style */}
-      <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Post Preview & Edit</DialogTitle>
-          </DialogHeader>
-
-          {editPost && (
-            <div className="grid grid-cols-2 gap-6">
-              {/* Live Preview */}
-              <div className="border rounded-lg overflow-hidden">
-                <img
-                  src={editPost.imageUrl}
-                  alt={editPost.title}
-                  className="w-full object-cover"
-                />
-                <div className="p-4">
-                  <p className="font-semibold">{editPost.title}</p>
-                  <p className="text-sm text-gray-700 mt-2">
-                    {editPost.content}
-                  </p>
-                </div>
-              </div>
-
-              {/* Edit Form */}
-              <div className="space-y-4">
-                <Input
-                  value={editPost.title}
-                  onChange={(e) =>
-                    setEditPost((prev) =>
-                      prev ? { ...prev, title: e.target.value } : prev,
-                    )
-                  }
-                  placeholder="Title"
-                />
-                <Textarea
-                  value={editPost.content}
-                  onChange={(e) =>
-                    setEditPost((prev) =>
-                      prev ? { ...prev, content: e.target.value } : prev,
-                    )
-                  }
-                  placeholder="Post text"
-                />
-                <Input
-                  type="datetime-local"
-                  value={format(
-                    new Date(editPost.scheduledFor),
-                    "yyyy-MM-dd'T'HH:mm",
-                  )}
-                  onChange={(e) =>
-                    setEditPost((prev) =>
-                      prev ? { ...prev, scheduledFor: e.target.value } : prev,
-                    )
-                  }
-                />
-
-                {/* Image Controls */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <ImageIcon className="w-4 h-4" /> Post image
-                  </label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
-                    <Button variant="outline">
-                      <Wand2 className="w-4 h-4 mr-1" /> Edit image
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    Upload or edit the post image.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="flex justify-between mt-4">
-            <Button variant="destructive">
-              <XCircle className="w-4 h-4 mr-1" /> Reject
-            </Button>
-            <Button>
-              <CheckCircle className="w-4 h-4 mr-1" /> Approve
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Posting Frequency Modal */}
-      <PostingFrequencyModal
-        isOpen={isFrequencyModalOpen}
-        onClose={() => setIsFrequencyModalOpen(false)}
-        currentSchedule={postingSchedule}
-        onSaveSchedule={handleSavePostingSchedule}
-      />
-
-      {/* AI Generation Loading Modal */}
-      <Dialog open={showGeneratingLoader} onOpenChange={() => {}}>
-        <DialogContent
-          className="max-w-md"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="mb-6">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-primary"></div>
-            </div>
-            <DialogTitle className="text-center text-xl mb-2">
-              🤖 Generating AI Posts
-            </DialogTitle>
-            <p className="text-center text-gray-600 mb-4">
-              Our AI is analyzing your brand data and creating personalized post
-              suggestions...
-            </p>
-            <p className="text-center text-sm text-gray-500 mb-4">
-              This may take up to 10 minutes. Please don't close this window.
-            </p>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-primary h-2 rounded-full animate-pulse"
-                style={{ width: "66%" }}
-              ></div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

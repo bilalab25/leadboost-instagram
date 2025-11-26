@@ -11,7 +11,8 @@ import remarkGfm from "remark-gfm";
 import boosty from "./boosty.png";
 import boosty_face from "./boosty_face.png";
 
-export default function CampAIgner() {
+// NOTA: Renombrado el componente a 'Waterfall' para coincidir con el path del error
+export default function Waterfall() {
   const [messages, setMessages] = useState<
     { role: "user" | "assistant"; content: string }[]
   >([
@@ -23,6 +24,7 @@ export default function CampAIgner() {
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [postGenerated, setPostGenerated] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const typeText = useCallback(
@@ -38,6 +40,11 @@ export default function CampAIgner() {
         });
       }
       setIsTyping(false);
+
+      // Control de flujo para habilitar el comando de agendamiento
+      if (fullText.includes("Content Generation Complete.")) {
+        setPostGenerated(true);
+      }
     },
     [],
   );
@@ -52,33 +59,47 @@ export default function CampAIgner() {
       let assistantResponse = "";
       const lowerInput = userInput.toLowerCase();
 
-      // ** 1. Detección del comando de generación de post **
-      if (
-        lowerInput.includes("generate post for tomorrow for facebook") ||
-        lowerInput.includes("post it")
+      // 1. Detección del comando de agendamiento ('thank you post it')
+      if (postGenerated && lowerInput.includes("thank you post it")) {
+        assistantResponse =
+          "**Action Confirmed.** The content asset has been moved to the scheduling queue. **The post is being scheduled** for tomorrow at 11:00 AM PST. Confirmation will be visible in the '30-Day Planner' module shortly. 🚀";
+        setPostGenerated(false); // Reinicia el estado después de agendar
+      }
+      // 2. Detección del comando de generación de post (para Facebook mañana)
+      else if (
+        !postGenerated &&
+        lowerInput.includes("generate post for tomorrow for instagram")
       ) {
         assistantResponse = `**Content Generation Complete.** I have successfully drafted an optimal Facebook post for scheduling **tomorrow at 11:00 AM**. Review the creative output below:
 
----
+      ---
 
-**[PREVIEW: FACEBOOK CAMPAIGN]**
+      **[PREVIEW: FACEBOOK CAMPAIGN]**
 
-**Profile:** Your Brand's Official Page
-**Creative:** [High-Res Image of Product/Service]
-**Caption:** **LEVEL UP YOUR STRATEGY.** Boosty detected a high-engagement window tomorrow. Our AI-driven content is optimized for maximum click-through rates and measurable ROI. #FacebookMarketing #AIStrategy #BoostyAI
+      **Profile:** renuvederm
 
-TARGET SCHEDULE: Tomorrow, 11:00 AM.
+      **Creative Preview:**  
+      ![Creative Preview](https://res.cloudinary.com/dgujs7cy9/image/upload/v1764131141/Gemini_Generated_Image_loy3jsloy3jsloy3_yucbls.png)
 
----
+      **Caption:**  
+      **GLOWING SKIN FACIAL**: Unveil your natural radiance. ✨
 
-To confirm and execute the scheduling action, please input: **"thank you post it"**`;
+      Experience deep hydration, rejuvenation, and a flawless complexion with our signature facial treatment.
+
+      Ready for your glow up?
+
+      BOOK NOW via the link in our bio!
+
+      #RenuveAestheticsBar #GlowingSkin #FacialTreatment #NaturalRadiance #SkincareGoals
+
+      **TARGET SCHEDULE**: Tomorrow, 11:00 AM.
+
+      ---
+
+      To confirm and execute the scheduling action, please input: **"thank you post it"**`;
       }
-      // ** 2. Detección del comando de agendamiento **
-      else if (lowerInput === "thank you post it") {
-        assistantResponse =
-          "**Action Confirmed.** The content asset has been moved to the scheduling queue. **The post is being scheduled** for tomorrow at 11:00 AM PST. Confirmation will be visible in the '30-Day Planner' module shortly. 🚀";
-      }
-      // ** 3. Respuesta por defecto **
+
+      // 3. Respuesta por defecto
       else {
         assistantResponse = `Processing request: '${userInput}'. Based on current data streams, I recommend a cross-platform engagement strategy focused on Instagram Stories and TikTok for Q4 optimization. Preliminary Budget Projection: $300/week.`;
       }
@@ -109,6 +130,8 @@ To confirm and execute the scheduling action, please input: **"thank you post it
     "Model a 7-day high-conversion posting calendar",
   ];
 
+  // La declaración 'return' que causaba el error debe estar aquí,
+  // dentro del componente de función, y bien balanceada por llaves.
   return (
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName="Meet CampAIgner" />
