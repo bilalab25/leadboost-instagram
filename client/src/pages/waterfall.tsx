@@ -70,11 +70,11 @@ export default function Waterfall() {
         !postGenerated &&
         lowerInput.includes("generate post for tomorrow for instagram")
       ) {
-        assistantResponse = `**Content Generation Complete.** I have successfully drafted an optimal Facebook post for scheduling **tomorrow at 11:00 AM**. Review the creative output below:
+        assistantResponse = `**Content Generation Complete.** I have successfully drafted an optimal Instagram post for scheduling **tomorrow at 11:00 AM**. Review the creative output below:
 
 ---
 
-**[PREVIEW: FACEBOOK CAMPAIGN]**
+**[PREVIEW: INSTAGRAM CAMPAIGN]**
 
 **Profile:** renuvederm
 
