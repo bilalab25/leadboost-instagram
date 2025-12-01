@@ -58,6 +58,7 @@ import boostyLoopVideo from "@assets/Boosty_Mascot_Looping_Animation_17646059972
 import boostyWavingVideo from "@assets/Boosty_Mascot_Waving_Video_Generation_1764607325012.mp4";
 import boostyNewVideo from "@assets/202512011048_1764608229868.mp4";
 import boostyLoopVideo2 from "@assets/Boosty_Mascot_Looping_Animation_1764608756145.mp4";
+import boostyWavingVideo2 from "@assets/Video_de_Boosty_Saludando_1764609155806.mp4";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
@@ -948,9 +949,6 @@ export default function Landing() {
         </div>
 
         {/* Gradient orbs - subtle for white background */}
-        <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-blue-100/50 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-cyan-100/40 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-purple-100/30 rounded-full blur-[180px]" />
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -958,11 +956,6 @@ export default function Landing() {
             <div className="relative flex justify-center lg:justify-end order-2 lg:order-1">
               {/* Glow ring behind Boosty */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[450px] sm:h-[450px]">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-300/20 via-blue-300/20 to-purple-300/20 blur-2xl animate-pulse" />
-                <div
-                  className="absolute inset-4 rounded-full bg-gradient-to-r from-cyan-200/15 via-blue-200/15 to-purple-200/15 blur-xl"
-                  style={{ animation: "spin 20s linear infinite" }}
-                />
                 <div
                   className="absolute inset-8 rounded-full border-2 border-blue-200/30"
                   style={{ animation: "spin 30s linear infinite reverse" }}
@@ -978,15 +971,12 @@ export default function Landing() {
                 style={{ animation: "float 6s ease-in-out infinite" }}
               >
                 <video
-                  src={boostyNewVideo}
+                  src={boostyWavingVideo2}
                   autoPlay
                   loop
                   muted
                   playsInline
                   className="w-[300px] sm:w-[380px] lg:w-[450px] h-auto"
-                  style={{
-                    filter: "drop-shadow(0 20px 40px rgba(0, 0, 0, 0.15))",
-                  }}
                   data-testid="boosty-character"
                 />
               </div>
