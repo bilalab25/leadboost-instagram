@@ -454,12 +454,18 @@ export default function Landing() {
         style={{ backgroundColor: "#FFFFFF" }}
       >
         {/* Quote above video */}
-        <div className="flex justify-center items-center mb-8 px-6">
-          <p className="text-lg sm:text-xl md:text-2xl font-medium text-gray-700 text-center">
-            {isSpanish 
-              ? 'Tu "agente de marketing todo-en-uno"' 
-              : 'Your "all-in-one marketing agent"'}
-          </p>
+        <div className="flex justify-center items-center mb-10 px-6">
+          <div className="relative inline-flex items-center">
+            <span className="text-5xl sm:text-6xl text-blue-200 font-serif absolute -left-6 sm:-left-8 -top-4 select-none">"</span>
+            <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 px-8 sm:px-12 py-4 sm:py-5 rounded-2xl border border-blue-100/50 shadow-sm">
+              <p className="text-lg sm:text-xl md:text-2xl font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent text-center">
+                {isSpanish 
+                  ? 'Tu agente de marketing todo-en-uno' 
+                  : 'Your all-in-one marketing agent'}
+              </p>
+            </div>
+            <span className="text-5xl sm:text-6xl text-blue-200 font-serif absolute -right-6 sm:-right-8 -bottom-4 select-none">"</span>
+          </div>
         </div>
 
         {/* Boosty Video - Full Width */}
