@@ -1,0 +1,64 @@
+I need you to restructure my onboarding flow inside onboarding.tsx.  
+Right now the onboarding only contains a single step: creating a brand.  
+I want to turn this into a multi-step onboarding wizard with 3 steps.
+
+IMPORTANT CHANGES REQUIRED:
+
+-----------------------
+STEP 1 — CREATE BRAND
+-----------------------
+• Remove the color input from the brand creation form.
+• Keep only the essential fields (brand name, logo upload if exists).
+• Change the button text from "Create a brand" to "Next".
+• When clicking “Next”, the brand should be created in the backend (same logic as now), 
+  AND THEN automatically advance to Step 2.
+
+-------------------------------------------
+STEP 2 — BRAND STUDIO (DESIGN CONFIGURATION)
+-------------------------------------------
+• After successfully creating the brand, load and display the equivalent of the FIRST TAB
+  of the current Brand Studio view (brand-design page).
+• This step should allow the user to configure the brand identity exactly like your existing Brand Studio first tab.
+• Once the user completes these design options, include a “Next” button that advances to Step 3.
+
+-------------------------------------
+STEP 3 — BRAND ASSETS (SECOND TAB)
+-------------------------------------
+• Use the brand assets section (the second tab of Brand Studio).
+• Display the same UI and functionality that currently exists in the second tab.
+• Add a “Next” button to advance to Step 4.
+
+------------------------------
+STEP 4 — INTEGRATIONS SETUP
+------------------------------
+• Load the same component/functionality currently found in Settings > Integrations.
+• The user should be able to connect WhatsApp, Facebook, Instagram, Shopify, etc.
+• Add a “Finish onboarding” button that closes the onboarding wizard.
+
+-----------------------------------------
+FUNCTIONAL REQUIREMENTS AND STRUCTURE
+-----------------------------------------
+• Convert onboarding.tsx into a multi-step component using local state (e.g., step: number or enum).
+• The flow ordering MUST BE:
+    1) Create brand  
+    2) Brand Design (Brand Studio tab 1)  
+    3) Brand Assets (Brand Studio tab 2)  
+    4) Integrations setup  
+• Each step should receive the created brandId.
+• After Step 1 (brand creation), preload Brand Design and Brand Assets data before showing steps 2 and 3.
+• Make sure all imports for Brand Studio components and Integrations components are correctly included.
+• Avoid breaking the existing Brand Studio files—re-use their components instead of rewriting them.
+
+-----------------------------------------
+EXPECTED OUTPUT FROM YOU:
+-----------------------------------------
+• Refactored onboarding.tsx file with the new 4-step wizard.
+• Clean state management handling:
+    - currentStep
+    - createdBrandId
+• Updated UI buttons + correct navigation between steps.
+• All existing functionality must continue working after moving components into the onboarding flow.
+• Add comments explaining where you moved each component from.
+
+PLEASE DO NOT change API behavior, context providers, or routing unless strictly necessary.
+Just refactor onboarding.tsx to include all steps and reuse existing components.

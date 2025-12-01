@@ -209,7 +209,9 @@ export default function Landing() {
                 data-testid="button-language-toggle"
               >
                 <Globe className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{isSpanish ? "EN" : "ES"}</span>
+                <span className="hidden sm:inline">
+                  {isSpanish ? "EN" : "ES"}
+                </span>
               </Button>
               <Button
                 variant="outline"
@@ -388,8 +390,8 @@ export default function Landing() {
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0"></div>
             <span className="text-xs sm:text-sm md:text-base font-medium text-gray-700">
               {isSpanish
-                ? "Todo tu marketing, automatizado"
-                : "Your Entire Marketing, Done by AI."}
+                ? "Su agente de marketing todo en uno."
+                : "Your All-in-one Marketing Agent."}
             </span>
           </div>
 
@@ -1016,7 +1018,9 @@ export default function Landing() {
               >
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
-                  <span className="text-gray-800 text-xs sm:text-sm font-medium">AI</span>
+                  <span className="text-gray-800 text-xs sm:text-sm font-medium">
+                    AI
+                  </span>
                 </div>
               </div>
 
@@ -1196,13 +1200,17 @@ export default function Landing() {
                 key={i}
                 className={`relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br ${item.gradient} border ${item.border} p-5 sm:p-6 lg:p-8 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group`}
               >
-                <div className="text-3xl sm:text-4xl lg:text-5xl mb-3 sm:mb-4">{item.emoji}</div>
+                <div className="text-3xl sm:text-4xl lg:text-5xl mb-3 sm:mb-4">
+                  {item.emoji}
+                </div>
                 <h3
                   className={`text-lg sm:text-xl font-bold ${item.textColor} mb-2 sm:mb-3 group-hover:text-blue-600 transition-colors`}
                 >
                   {item.title}
                 </h3>
-                <p className={`${item.descColor} leading-relaxed text-sm sm:text-base`}>
+                <p
+                  className={`${item.descColor} leading-relaxed text-sm sm:text-base`}
+                >
                   {item.desc}
                 </p>
               </div>
@@ -1478,9 +1486,7 @@ export default function Landing() {
       <section className="relative py-16 sm:py-24 lg:py-32 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-6 lg:mb-8 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent leading-tight">
-            {isSpanish
-              ? "¿Listo Para Crecer?"
-              : "Ready To Grow Your Sales?"}
+            {isSpanish ? "¿Listo Para Crecer?" : "Ready To Grow Your Sales?"}
           </h2>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300/90 mb-8 sm:mb-12 lg:mb-16 max-w-3xl mx-auto font-light leading-relaxed px-2">
             {isSpanish
@@ -1539,7 +1545,7 @@ export default function Landing() {
                   : "© 2025 Lead Boost. All rights reserved."}
               </span>
             </div>
-            
+
             {/* Trustpilot Reviews - Mobile optimized */}
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-white/60">
               <div className="flex items-center gap-0.5 sm:gap-1">
