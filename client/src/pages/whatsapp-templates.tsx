@@ -643,1433 +643,1127 @@ export default function WhatsAppTemplates() {
 
   return (
     <TooltipProvider>
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50/30">
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar />
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <TopHeader />
-          <main className="flex-1 relative overflow-y-auto focus:outline-none">
-            <div className="py-6">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-                
-                {/* Hero Section with Educational Content */}
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-8"
-                >
-                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 p-6 md:p-8 shadow-xl">
-                    <div className="absolute inset-0 opacity-10">
-                      <div className="absolute inset-0" style={{
-                        backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)`,
-                        backgroundSize: '20px 20px'
-                      }} />
-                    </div>
-                    
-                    <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                            <SiWhatsapp className="w-7 h-7 text-white" />
-                          </div>
-                          <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white" data-testid="text-page-title">
-                              WhatsApp Templates
-                            </h1>
-                            <p className="text-green-100 text-sm">
-                              Pre-approved messages for business communication
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <p className="text-white/90 text-base md:text-lg max-w-2xl" data-testid="text-page-description">
-                          Templates are message formats that WhatsApp has reviewed and approved for your business. 
-                          They allow you to send notifications, updates, and marketing messages to customers who have opted in.
-                        </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50/30">
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+          <div className="flex flex-col w-0 flex-1 overflow-hidden">
+            <TopHeader />
+            <main className="flex-1 relative overflow-y-auto focus:outline-none">
+              <div className="py-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                  {/* Hero Section with Educational Content */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-8"
+                  >
+                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 p-6 md:p-8 shadow-xl">
+                      <div className="absolute inset-0 opacity-10">
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)`,
+                            backgroundSize: "20px 20px",
+                          }}
+                        />
                       </div>
-                      
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <Button
-                          variant="outline"
-                          onClick={() => setShowGuide(!showGuide)}
-                          className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
-                          data-testid="button-toggle-guide"
-                        >
-                          <BookOpen className="w-4 h-4 mr-2" />
-                          {showGuide ? "Hide Guide" : "Show Guide"}
-                        </Button>
-                        {!isNoIntegration && (
-                          <Button
-                            onClick={() => setIsCreateModalOpen(true)}
-                            className="bg-white text-green-600 hover:bg-green-50"
-                            data-testid="button-create-template"
+
+                      <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                              <SiWhatsapp className="w-7 h-7 text-white" />
+                            </div>
+                            <div>
+                              <h1
+                                className="text-2xl md:text-3xl font-bold text-white"
+                                data-testid="text-page-title"
+                              >
+                                WhatsApp Templates
+                              </h1>
+                              <p className="text-green-100 text-sm">
+                                Pre-approved messages for business communication
+                              </p>
+                            </div>
+                          </div>
+
+                          <p
+                            className="text-white/80 text-sm max-w-2xl"
+                            data-testid="text-page-description"
                           >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create Template
+                            Templates are message formats that WhatsApp has
+                            reviewed and approved for your business. They allow
+                            you to send notifications, updates, and marketing
+                            messages to customers who have opted in.
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowGuide(!showGuide)}
+                            className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+                            data-testid="button-toggle-guide"
+                          >
+                            <BookOpen className="w-4 h-4 mr-2" />
+                            {showGuide ? "Hide Guide" : "Show Guide"}
                           </Button>
-                        )}
+                          {!isNoIntegration && (
+                            <Button
+                              onClick={() => setIsCreateModalOpen(true)}
+                              className="bg-white text-green-600 hover:bg-green-50"
+                              data-testid="button-create-template"
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Create Template
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
 
-                {/* Educational Guide Section */}
-                <AnimatePresence>
-                  {showGuide && (
+                  {/* Educational Guide Section */}
+                  <AnimatePresence>
+                    {showGuide && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mb-8 overflow-hidden"
+                      >
+                        <Card className="border-green-100 bg-gradient-to-br from-white to-green-50/50">
+                          <CardHeader className="pb-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                                <Lightbulb className="w-4 h-4 text-green-600" />
+                              </div>
+                              <CardTitle className="text-lg">
+                                What are WhatsApp Templates?
+                              </CardTitle>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-6">
+                            {/* Key Benefits */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+                                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
+                                  <Shield className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <h4 className="font-semibold text-gray-900 mb-1">
+                                  Pre-Approved by Meta
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                  Templates are reviewed by WhatsApp to ensure
+                                  quality and prevent spam. Approval usually
+                                  takes 24-48 hours.
+                                </p>
+                              </div>
+                              <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+                                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mb-3">
+                                  <Zap className="w-5 h-5 text-purple-600" />
+                                </div>
+                                <h4 className="font-semibold text-gray-900 mb-1">
+                                  Start Conversations
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                  Required to message customers first. After
+                                  they reply, you can send free-form messages
+                                  for 24 hours.
+                                </p>
+                              </div>
+                              <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+                                <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center mb-3">
+                                  <Users className="w-5 h-5 text-orange-600" />
+                                </div>
+                                <h4 className="font-semibold text-gray-900 mb-1">
+                                  Personalize with Variables
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                  Use placeholders like {"{{1}}"} to insert
+                                  customer names, order numbers, or any dynamic
+                                  content.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Template Categories Explanation */}
+                            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <Info className="w-4 h-4 text-gray-500" />
+                                Template Categories
+                              </h4>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div className="flex items-start gap-2">
+                                  <Badge className="bg-purple-100 text-purple-800 mt-0.5">
+                                    Authentication
+                                  </Badge>
+                                  <p className="text-sm text-gray-600">
+                                    Login codes, password resets, verification
+                                  </p>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <Badge className="bg-blue-100 text-blue-800 mt-0.5">
+                                    Utility
+                                  </Badge>
+                                  <p className="text-sm text-gray-600">
+                                    Order updates, shipping info, appointments
+                                  </p>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <Badge className="bg-pink-100 text-pink-800 mt-0.5">
+                                    Marketing
+                                  </Badge>
+                                  <p className="text-sm text-gray-600">
+                                    Promotions, offers, product announcements
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* FAQ Accordion */}
+                            <Accordion
+                              type="single"
+                              collapsible
+                              className="w-full"
+                            >
+                              <AccordionItem
+                                value="item-1"
+                                className="border-gray-200"
+                              >
+                                <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                  How long does template approval take?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-gray-600">
+                                  Most templates are approved within 24-48
+                                  hours. Marketing templates may take longer due
+                                  to additional review. You'll be notified when
+                                  your template status changes.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-2"
+                                className="border-gray-200"
+                              >
+                                <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                  Why was my template rejected?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-gray-600">
+                                  Common reasons include: promotional content in
+                                  utility templates, missing variable
+                                  placeholders, prohibited content, or too
+                                  similar to existing templates. Review Meta's
+                                  guidelines and resubmit with changes.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-3"
+                                className="border-gray-200"
+                              >
+                                <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                  What are variables and how do I use them?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-gray-600">
+                                  Variables are placeholders like {"{{1}}"},{" "}
+                                  {"{{2}}"} that get replaced with actual values
+                                  when you send a message. For example: "Hi{" "}
+                                  {"{{1}}"}, your order {"{{2}}"} is ready"
+                                  becomes "Hi Maria, your order #12345 is
+                                  ready".
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-4"
+                                className="border-gray-200"
+                              >
+                                <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                  Is there a cost for sending template messages?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-gray-600">
+                                  Yes, WhatsApp charges per conversation.
+                                  Utility and authentication templates cost less
+                                  than marketing templates. The first 1,000
+                                  conversations each month are free. Check
+                                  Meta's pricing for current rates.
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* No Integration Warning */}
+                  {isNoIntegration && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mb-8 overflow-hidden"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-8"
                     >
-                      <Card className="border-green-100 bg-gradient-to-br from-white to-green-50/50">
-                        <CardHeader className="pb-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                              <Lightbulb className="w-4 h-4 text-green-600" />
-                            </div>
-                            <CardTitle className="text-lg">What are WhatsApp Templates?</CardTitle>
+                      <Card className="border-2 border-dashed border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+                        <CardContent className="py-12 text-center">
+                          <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                            <Plug className="w-8 h-8 text-amber-600" />
                           </div>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          {/* Key Benefits */}
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
-                              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
-                                <Shield className="w-5 h-5 text-blue-600" />
-                              </div>
-                              <h4 className="font-semibold text-gray-900 mb-1">Pre-Approved by Meta</h4>
-                              <p className="text-sm text-gray-600">
-                                Templates are reviewed by WhatsApp to ensure quality and prevent spam. Approval usually takes 24-48 hours.
-                              </p>
-                            </div>
-                            <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
-                              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mb-3">
-                                <Zap className="w-5 h-5 text-purple-600" />
-                              </div>
-                              <h4 className="font-semibold text-gray-900 mb-1">Start Conversations</h4>
-                              <p className="text-sm text-gray-600">
-                                Required to message customers first. After they reply, you can send free-form messages for 24 hours.
-                              </p>
-                            </div>
-                            <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
-                              <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center mb-3">
-                                <Users className="w-5 h-5 text-orange-600" />
-                              </div>
-                              <h4 className="font-semibold text-gray-900 mb-1">Personalize with Variables</h4>
-                              <p className="text-sm text-gray-600">
-                                Use placeholders like {"{{1}}"} to insert customer names, order numbers, or any dynamic content.
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Template Categories Explanation */}
-                          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                              <Info className="w-4 h-4 text-gray-500" />
-                              Template Categories
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                              <div className="flex items-start gap-2">
-                                <Badge className="bg-purple-100 text-purple-800 mt-0.5">Authentication</Badge>
-                                <p className="text-sm text-gray-600">Login codes, password resets, verification</p>
-                              </div>
-                              <div className="flex items-start gap-2">
-                                <Badge className="bg-blue-100 text-blue-800 mt-0.5">Utility</Badge>
-                                <p className="text-sm text-gray-600">Order updates, shipping info, appointments</p>
-                              </div>
-                              <div className="flex items-start gap-2">
-                                <Badge className="bg-pink-100 text-pink-800 mt-0.5">Marketing</Badge>
-                                <p className="text-sm text-gray-600">Promotions, offers, product announcements</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* FAQ Accordion */}
-                          <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="item-1" className="border-gray-200">
-                              <AccordionTrigger className="text-sm font-medium hover:no-underline">
-                                How long does template approval take?
-                              </AccordionTrigger>
-                              <AccordionContent className="text-sm text-gray-600">
-                                Most templates are approved within 24-48 hours. Marketing templates may take longer due to additional review. 
-                                You'll be notified when your template status changes.
-                              </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-2" className="border-gray-200">
-                              <AccordionTrigger className="text-sm font-medium hover:no-underline">
-                                Why was my template rejected?
-                              </AccordionTrigger>
-                              <AccordionContent className="text-sm text-gray-600">
-                                Common reasons include: promotional content in utility templates, missing variable placeholders, 
-                                prohibited content, or too similar to existing templates. Review Meta's guidelines and resubmit with changes.
-                              </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-3" className="border-gray-200">
-                              <AccordionTrigger className="text-sm font-medium hover:no-underline">
-                                What are variables and how do I use them?
-                              </AccordionTrigger>
-                              <AccordionContent className="text-sm text-gray-600">
-                                Variables are placeholders like {"{{1}}"}, {"{{2}}"} that get replaced with actual values when you send a message. 
-                                For example: "Hi {"{{1}}"}, your order {"{{2}}"} is ready" becomes "Hi Maria, your order #12345 is ready".
-                              </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="item-4" className="border-gray-200">
-                              <AccordionTrigger className="text-sm font-medium hover:no-underline">
-                                Is there a cost for sending template messages?
-                              </AccordionTrigger>
-                              <AccordionContent className="text-sm text-gray-600">
-                                Yes, WhatsApp charges per conversation. Utility and authentication templates cost less than marketing templates. 
-                                The first 1,000 conversations each month are free. Check Meta's pricing for current rates.
-                              </AccordionContent>
-                            </AccordionItem>
-                          </Accordion>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            Connect WhatsApp Business First
+                          </h3>
+                          <p className="text-gray-600 max-w-md mx-auto mb-6">
+                            To create and manage templates, you need to connect
+                            your WhatsApp Business account. This allows us to
+                            sync your existing templates and submit new ones for
+                            approval.
+                          </p>
+                          <Link href="/integrations">
+                            <Button className="bg-green-600 hover:bg-green-700 text-white">
+                              <SiWhatsapp className="w-4 h-4 mr-2" />
+                              Connect WhatsApp Business
+                              <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                          </Link>
                         </CardContent>
                       </Card>
                     </motion.div>
                   )}
-                </AnimatePresence>
 
-                {/* No Integration Warning */}
-                {isNoIntegration && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-8"
-                  >
-                    <Card className="border-2 border-dashed border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
-                      <CardContent className="py-12 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-4">
-                          <Plug className="w-8 h-8 text-amber-600" />
+                  {/* Error Banner */}
+                  {templatesError && !isNoIntegration && (
+                    <div
+                      className="mb-6 p-4 border rounded-xl bg-red-50 border-red-200"
+                      data-testid="banner-status"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                          <AlertCircle className="w-5 h-5 text-red-600" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                          Connect WhatsApp Business First
-                        </h3>
-                        <p className="text-gray-600 max-w-md mx-auto mb-6">
-                          To create and manage templates, you need to connect your WhatsApp Business account. 
-                          This allows us to sync your existing templates and submit new ones for approval.
-                        </p>
-                        <Link href="/integrations">
-                          <Button className="bg-green-600 hover:bg-green-700 text-white">
-                            <SiWhatsapp className="w-4 h-4 mr-2" />
-                            Connect WhatsApp Business
-                            <ArrowRight className="w-4 h-4 ml-2" />
-                          </Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-
-                {/* Error Banner */}
-                {templatesError && !isNoIntegration && (
-                  <div
-                    className="mb-6 p-4 border rounded-xl bg-red-50 border-red-200"
-                    data-testid="banner-status"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
-                        <AlertCircle className="w-5 h-5 text-red-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-red-800">
-                          Error Loading Templates
-                        </p>
-                        <p className="text-sm text-red-700">
-                          {(templatesError as any)?.message ||
-                            "Unable to fetch templates from Meta. Please try again."}
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => refetchTemplates()}
-                        className="ml-auto border-red-200 text-red-700 hover:bg-red-100"
-                      >
-                        Retry
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Stats Cards - Only show when connected */}
-                {!isNoIntegration && (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
-                  >
-                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-total">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">Total Templates</p>
-                            <p className="text-3xl font-bold text-gray-900" data-testid="text-stat-total">
-                              {templates.length}
-                            </p>
-                          </div>
-                          <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
-                            <FileText className="w-6 h-6 text-gray-500" />
-                          </div>
+                        <div>
+                          <p className="font-semibold text-red-800">
+                            Error Loading Templates
+                          </p>
+                          <p className="text-sm text-red-700">
+                            {(templatesError as any)?.message ||
+                              "Unable to fetch templates from Meta. Please try again."}
+                          </p>
                         </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-approved">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">Approved</p>
-                            <p className="text-3xl font-bold text-green-600" data-testid="text-stat-approved">
-                              {templates.filter((t) => t.status === "APPROVED").length}
-                            </p>
-                          </div>
-                          <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                            <CheckCircle className="w-6 h-6 text-green-600" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-pending">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">Pending</p>
-                            <p className="text-3xl font-bold text-amber-600" data-testid="text-stat-pending">
-                              {templates.filter((t) => t.status === "PENDING").length}
-                            </p>
-                          </div>
-                          <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                            <Clock className="w-6 h-6 text-amber-600" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-rejected">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">Rejected</p>
-                            <p className="text-3xl font-bold text-red-600" data-testid="text-stat-rejected">
-                              {templates.filter((t) => t.status === "REJECTED").length}
-                            </p>
-                          </div>
-                          <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
-                            <XCircle className="w-6 h-6 text-red-600" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-
-                <Card className="mb-6" data-testid="card-filters">
-                  <CardContent className="pt-4">
-                    <div className="flex flex-col md:flex-row gap-4">
-                      <div className="flex-1">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <Input
-                            placeholder="Search templates..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                            data-testid="input-search-templates"
-                          />
-                        </div>
-                      </div>
-                      <Select
-                        value={categoryFilter}
-                        onValueChange={setCategoryFilter}
-                      >
-                        <SelectTrigger
-                          className="w-full md:w-48"
-                          data-testid="select-category-filter"
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => refetchTemplates()}
+                          className="ml-auto border-red-200 text-red-700 hover:bg-red-100"
                         >
-                          <SelectValue placeholder="Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem
-                            value="all"
-                            data-testid="option-category-all"
-                          >
-                            All Categories
-                          </SelectItem>
-                          <SelectItem
-                            value="AUTHENTICATION"
-                            data-testid="option-category-auth"
-                          >
-                            Authentication
-                          </SelectItem>
-                          <SelectItem
-                            value="UTILITY"
-                            data-testid="option-category-utility"
-                          >
-                            Utility
-                          </SelectItem>
-                          <SelectItem
-                            value="MARKETING"
-                            data-testid="option-category-marketing"
-                          >
-                            Marketing
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Select
-                        value={statusFilter}
-                        onValueChange={setStatusFilter}
-                      >
-                        <SelectTrigger
-                          className="w-full md:w-48"
-                          data-testid="select-status-filter"
-                        >
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem
-                            value="all"
-                            data-testid="option-status-all"
-                          >
-                            All Status
-                          </SelectItem>
-                          <SelectItem
-                            value="APPROVED"
-                            data-testid="option-status-approved"
-                          >
-                            Approved
-                          </SelectItem>
-                          <SelectItem
-                            value="PENDING"
-                            data-testid="option-status-pending"
-                          >
-                            Pending
-                          </SelectItem>
-                          <SelectItem
-                            value="REJECTED"
-                            data-testid="option-status-rejected"
-                          >
-                            Rejected
-                          </SelectItem>
-                          <SelectItem
-                            value="PAUSED"
-                            data-testid="option-status-paused"
-                          >
-                            Paused
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                          Retry
+                        </Button>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  )}
 
-                <div
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                  data-testid="grid-templates"
-                >
-                  {filteredTemplates.map((template) => {
-                    const StatusIcon = statusIcons[template.status];
-                    return (
+                  {/* Stats Cards - Only show when connected */}
+                  {!isNoIntegration && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.1 }}
+                      className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+                    >
                       <Card
-                        key={template.id}
-                        className="hover:shadow-md transition-shadow"
-                        data-testid={`card-template-${template.id}`}
+                        className="border-0 shadow-md hover:shadow-lg transition-shadow"
+                        data-testid="card-stat-total"
                       >
-                        <CardHeader className="pb-2">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                <MessageSquare className="w-4 h-4 text-green-600" />
-                                <span
-                                  data-testid={`text-template-name-${template.id}`}
-                                >
-                                  {template.name}
-                                </span>
-                              </CardTitle>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                <Badge
-                                  className={categoryColors[template.category]}
-                                  data-testid={`badge-category-${template.id}`}
-                                >
-                                  {template.category}
-                                </Badge>
-                                <Badge
-                                  className={statusColors[template.status]}
-                                  data-testid={`badge-status-${template.id}`}
-                                >
-                                  <StatusIcon className="w-3 h-3 mr-1" />
-                                  {template.status}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          {template.headerType &&
-                            template.headerType !== "TEXT" && (
-                              <div
-                                className="mb-2 p-2 bg-gray-100 rounded flex items-center gap-2 text-sm text-gray-600"
-                                data-testid={`header-media-${template.id}`}
-                              >
-                                {template.headerType === "IMAGE" && (
-                                  <ImageIcon className="w-4 h-4" />
-                                )}
-                                {template.headerType === "VIDEO" && (
-                                  <Video className="w-4 h-4" />
-                                )}
-                                {template.headerType === "DOCUMENT" && (
-                                  <File className="w-4 h-4" />
-                                )}
-                                <span>{template.headerType} Header</span>
-                              </div>
-                            )}
-                          {template.headerType === "TEXT" &&
-                            template.headerContent && (
-                              <p
-                                className="font-semibold text-sm mb-2"
-                                data-testid={`header-text-${template.id}`}
-                              >
-                                {template.headerContent}
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                Total Templates
                               </p>
-                            )}
-
-                          <div className="bg-green-50 rounded-lg p-3 border-l-4 border-green-500">
-                            <p
-                              className="text-sm text-gray-700 line-clamp-3"
-                              data-testid={`text-template-body-${template.id}`}
-                            >
-                              {template.body}
-                            </p>
-                          </div>
-
-                          {template.footer && (
-                            <p
-                              className="text-xs text-gray-500 mt-2 italic"
-                              data-testid={`text-template-footer-${template.id}`}
-                            >
-                              {template.footer}
-                            </p>
-                          )}
-
-                          {template.buttons && template.buttons.length > 0 && (
-                            <div
-                              className="mt-3 flex flex-wrap gap-2"
-                              data-testid={`buttons-${template.id}`}
-                            >
-                              {template.buttons.map((btn, idx) => (
-                                <Badge
-                                  key={idx}
-                                  variant="outline"
-                                  className="text-green-600 border-green-600"
-                                  data-testid={`badge-button-${template.id}-${idx}`}
-                                >
-                                  {btn.text}
-                                </Badge>
-                              ))}
+                              <p
+                                className="text-3xl font-bold text-gray-900"
+                                data-testid="text-stat-total"
+                              >
+                                {templates.length}
+                              </p>
                             </div>
-                          )}
-
-                          <div className="flex items-center justify-between mt-4 pt-3 border-t text-xs text-gray-500">
-                            <span data-testid={`text-language-${template.id}`}>
-                              Language: {template.language.toUpperCase()}
-                            </span>
-                            <span data-testid={`text-date-${template.id}`}>
-                              {template.createdAt}
-                            </span>
-                          </div>
-
-                          <div className="flex gap-2 mt-3">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => openSendModal(template)}
-                              disabled={template.status !== "APPROVED"}
-                              data-testid={`button-send-template-${template.id}`}
-                            >
-                              <Send className="w-4 h-4 mr-1" />
-                              Send
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              data-testid={`button-view-template-${template.id}`}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              data-testid={`button-copy-template-${template.id}`}
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
+                            <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                              <FileText className="w-6 h-6 text-gray-500" />
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
-                    );
-                  })}
-                </div>
-
-                {isNoIntegration && (
-                  <Card className="mt-6" data-testid="card-no-integration">
-                    <CardContent className="py-12 text-center">
-                      <SiWhatsapp className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                      <h3
-                        className="text-lg font-medium text-gray-900"
-                        data-testid="text-no-integration-title"
+                      <Card
+                        className="border-0 shadow-md hover:shadow-lg transition-shadow"
+                        data-testid="card-stat-approved"
                       >
-                        No WhatsApp Integration
-                      </h3>
-                      <p
-                        className="text-gray-500 mt-2"
-                        data-testid="text-no-integration-description"
-                      >
-                        Connect your WhatsApp Business account in Settings to
-                        manage templates.
-                      </p>
-                      <Button
-                        className="mt-4 bg-green-600 hover:bg-green-700"
-                        onClick={() => (window.location.href = "/settings")}
-                        data-testid="button-go-to-settings"
-                      >
-                        Go to Settings
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {!isNoIntegration && filteredTemplates.length === 0 && (
-                  <Card className="mt-6" data-testid="card-empty-state">
-                    <CardContent className="py-12 text-center">
-                      <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                      <h3
-                        className="text-lg font-medium text-gray-900"
-                        data-testid="text-empty-title"
-                      >
-                        {searchQuery ||
-                        categoryFilter !== "all" ||
-                        statusFilter !== "all"
-                          ? "No templates found"
-                          : "No Templates on This Account"}
-                      </h3>
-                      <p
-                        className="text-gray-500 mt-2"
-                        data-testid="text-empty-description"
-                      >
-                        {searchQuery ||
-                        categoryFilter !== "all" ||
-                        statusFilter !== "all"
-                          ? "Try adjusting your filters"
-                          : "There are no message templates on this WhatsApp Business account."}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
-
-      <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
-        setIsCreateModalOpen(open);
-        if (!open) {
-          setHeaderMediaFile(null);
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-        }
-      }}>
-        <DialogContent
-          className="max-w-5xl max-h-[90vh] overflow-hidden p-0"
-          data-testid="dialog-create-template"
-        >
-          <div className="flex h-full">
-            <div className="flex-1 flex flex-col min-h-0">
-              <div className="px-6 py-4 border-b flex-shrink-0">
-                <DialogHeader>
-                  <DialogTitle className="text-lg font-semibold">
-                    Create Template
-                  </DialogTitle>
-                  <DialogDescription>
-                    Configure your message template for WhatsApp
-                  </DialogDescription>
-                </DialogHeader>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6">
-                <Form {...createForm}>
-                  <form
-                    onSubmit={createForm.handleSubmit(handleCreateTemplate)}
-                    className="space-y-6"
-                  >
-                    <Card className="border shadow-sm">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <Settings className="w-4 h-4" />
-                          Settings
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="grid grid-cols-3 gap-4">
-                        <FormField
-                          control={createForm.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Name</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="order_confirmation"
-                                  {...field}
-                                  data-testid="input-template-name"
-                                />
-                              </FormControl>
-                              <FormMessage data-testid="error-template-name" />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="category"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Category</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Approved</p>
+                              <p
+                                className="text-3xl font-bold text-green-600"
+                                data-testid="text-stat-approved"
                               >
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-template-category">
-                                    <SelectValue placeholder="Select" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem
-                                    value="AUTHENTICATION"
-                                    data-testid="option-create-cat-auth"
-                                  >
-                                    Authentication
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="UTILITY"
-                                    data-testid="option-create-cat-utility"
-                                  >
-                                    Utility
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="MARKETING"
-                                    data-testid="option-create-cat-marketing"
-                                  >
-                                    Marketing
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage data-testid="error-template-category" />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="language"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Language</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                {
+                                  templates.filter(
+                                    (t) => t.status === "APPROVED",
+                                  ).length
+                                }
+                              </p>
+                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                              <CheckCircle className="w-6 h-6 text-green-600" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card
+                        className="border-0 shadow-md hover:shadow-lg transition-shadow"
+                        data-testid="card-stat-pending"
+                      >
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Pending</p>
+                              <p
+                                className="text-3xl font-bold text-amber-600"
+                                data-testid="text-stat-pending"
                               >
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-template-language">
-                                    <SelectValue placeholder="Select" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem
-                                    value="es"
-                                    data-testid="option-lang-es"
-                                  >
-                                    Spanish
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="en"
-                                    data-testid="option-lang-en"
-                                  >
-                                    English
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="en_US"
-                                    data-testid="option-lang-en-us"
-                                  >
-                                    English US
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="pt_BR"
-                                    data-testid="option-lang-pt-br"
-                                  >
-                                    Portuguese BR
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage data-testid="error-template-language" />
-                            </FormItem>
-                          )}
-                        />
-                      </CardContent>
-                    </Card>
+                                {
+                                  templates.filter(
+                                    (t) => t.status === "PENDING",
+                                  ).length
+                                }
+                              </p>
+                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                              <Clock className="w-6 h-6 text-amber-600" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card
+                        className="border-0 shadow-md hover:shadow-lg transition-shadow"
+                        data-testid="card-stat-rejected"
+                      >
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-500">Rejected</p>
+                              <p
+                                className="text-3xl font-bold text-red-600"
+                                data-testid="text-stat-rejected"
+                              >
+                                {
+                                  templates.filter(
+                                    (t) => t.status === "REJECTED",
+                                  ).length
+                                }
+                              </p>
+                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+                              <XCircle className="w-6 h-6 text-red-600" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
 
-                    <Card className="border shadow-sm">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4" />
-                          Message Content
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <FormLabel className="mb-2 block">
-                            Header (Optional)
-                          </FormLabel>
-                          <div className="flex border rounded-lg overflow-hidden">
-                            {[
-                              { value: "TEXT", label: "Text", icon: Type },
-                              {
-                                value: "IMAGE",
-                                label: "Image",
-                                icon: ImageIcon,
-                              },
-                              { value: "VIDEO", label: "Video", icon: Video },
-                              { value: "DOCUMENT", label: "File", icon: File },
-                            ].map((option) => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                  createForm.setValue(
-                                    "headerType",
-                                    option.value as any,
-                                  );
-                                  setHeaderMediaFile(null);
-                                  if (fileInputRef.current) {
-                                    fileInputRef.current.value = '';
-                                  }
-                                }}
-                                className={`flex-1 py-2 px-3 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors ${
-                                  headerType === option.value
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-background hover:bg-muted text-muted-foreground"
-                                }`}
-                                data-testid={`tab-header-${option.value.toLowerCase()}`}
-                              >
-                                <option.icon className="w-4 h-4" />
-                                {option.label}
-                              </button>
-                            ))}
+                  <Card className="mb-6" data-testid="card-filters">
+                    <CardContent className="pt-4">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <Input
+                              placeholder="Search templates..."
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              className="pl-10"
+                              data-testid="input-search-templates"
+                            />
                           </div>
                         </div>
+                        <Select
+                          value={categoryFilter}
+                          onValueChange={setCategoryFilter}
+                        >
+                          <SelectTrigger
+                            className="w-full md:w-48"
+                            data-testid="select-category-filter"
+                          >
+                            <SelectValue placeholder="Category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem
+                              value="all"
+                              data-testid="option-category-all"
+                            >
+                              All Categories
+                            </SelectItem>
+                            <SelectItem
+                              value="AUTHENTICATION"
+                              data-testid="option-category-auth"
+                            >
+                              Authentication
+                            </SelectItem>
+                            <SelectItem
+                              value="UTILITY"
+                              data-testid="option-category-utility"
+                            >
+                              Utility
+                            </SelectItem>
+                            <SelectItem
+                              value="MARKETING"
+                              data-testid="option-category-marketing"
+                            >
+                              Marketing
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={statusFilter}
+                          onValueChange={setStatusFilter}
+                        >
+                          <SelectTrigger
+                            className="w-full md:w-48"
+                            data-testid="select-status-filter"
+                          >
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem
+                              value="all"
+                              data-testid="option-status-all"
+                            >
+                              All Status
+                            </SelectItem>
+                            <SelectItem
+                              value="APPROVED"
+                              data-testid="option-status-approved"
+                            >
+                              Approved
+                            </SelectItem>
+                            <SelectItem
+                              value="PENDING"
+                              data-testid="option-status-pending"
+                            >
+                              Pending
+                            </SelectItem>
+                            <SelectItem
+                              value="REJECTED"
+                              data-testid="option-status-rejected"
+                            >
+                              Rejected
+                            </SelectItem>
+                            <SelectItem
+                              value="PAUSED"
+                              data-testid="option-status-paused"
+                            >
+                              Paused
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                        {headerType === "TEXT" && (
-                          <FormField
-                            control={createForm.control}
-                            name="headerContent"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Header Text</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Your header text"
-                                    {...field}
-                                    data-testid="input-header-text"
-                                  />
-                                </FormControl>
-                                <FormMessage data-testid="error-header-text" />
-                              </FormItem>
-                            )}
-                          />
-                        )}
-
-                        {(headerType === "IMAGE" ||
-                          headerType === "VIDEO" ||
-                          headerType === "DOCUMENT") && (
-                          <div>
-                            <input
-                              type="file"
-                              ref={fileInputRef}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  setHeaderMediaFile(file);
-                                }
-                              }}
-                              accept={
-                                headerType === "IMAGE" ? "image/jpeg,image/png" :
-                                headerType === "VIDEO" ? "video/mp4" :
-                                ".pdf,.doc,.docx"
-                              }
-                              className="hidden"
-                              data-testid="input-media-file"
-                            />
-                            {headerMediaFile ? (
-                              <div className="border rounded-lg p-4 bg-muted/20" data-testid="media-preview">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    {headerType === "IMAGE" ? (
-                                      <div className="w-12 h-12 rounded overflow-hidden bg-muted flex-shrink-0">
-                                        <img 
-                                          src={URL.createObjectURL(headerMediaFile)} 
-                                          alt="Preview" 
-                                          className="w-full h-full object-cover"
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div className="w-12 h-12 rounded bg-muted flex items-center justify-center flex-shrink-0">
-                                        {headerType === "VIDEO" ? <Video className="w-6 h-6 text-muted-foreground" /> : <File className="w-6 h-6 text-muted-foreground" />}
-                                      </div>
-                                    )}
-                                    <div className="min-w-0">
-                                      <p className="text-sm font-medium truncate">{headerMediaFile.name}</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {(headerMediaFile.size / 1024 / 1024).toFixed(2)} MB
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setHeaderMediaFile(null);
-                                      if (fileInputRef.current) {
-                                        fileInputRef.current.value = '';
-                                      }
-                                    }}
-                                    data-testid="button-remove-media"
+                  <div
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                    data-testid="grid-templates"
+                  >
+                    {filteredTemplates.map((template) => {
+                      const StatusIcon = statusIcons[template.status];
+                      return (
+                        <Card
+                          key={template.id}
+                          className="hover:shadow-md transition-shadow"
+                          data-testid={`card-template-${template.id}`}
+                        >
+                          <CardHeader className="pb-2">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                                  <MessageSquare className="w-4 h-4 text-green-600" />
+                                  <span
+                                    data-testid={`text-template-name-${template.id}`}
                                   >
-                                    <X className="w-4 h-4" />
-                                  </Button>
+                                    {template.name}
+                                  </span>
+                                </CardTitle>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  <Badge
+                                    className={
+                                      categoryColors[template.category]
+                                    }
+                                    data-testid={`badge-category-${template.id}`}
+                                  >
+                                    {template.category}
+                                  </Badge>
+                                  <Badge
+                                    className={statusColors[template.status]}
+                                    data-testid={`badge-status-${template.id}`}
+                                  >
+                                    <StatusIcon className="w-3 h-3 mr-1" />
+                                    {template.status}
+                                  </Badge>
                                 </div>
                               </div>
-                            ) : (
-                              <div 
-                                className="border border-dashed rounded-lg p-6 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer" 
-                                onClick={() => fileInputRef.current?.click()}
-                                data-testid="media-upload-area"
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            {template.headerType &&
+                              template.headerType !== "TEXT" && (
+                                <div
+                                  className="mb-2 p-2 bg-gray-100 rounded flex items-center gap-2 text-sm text-gray-600"
+                                  data-testid={`header-media-${template.id}`}
+                                >
+                                  {template.headerType === "IMAGE" && (
+                                    <ImageIcon className="w-4 h-4" />
+                                  )}
+                                  {template.headerType === "VIDEO" && (
+                                    <Video className="w-4 h-4" />
+                                  )}
+                                  {template.headerType === "DOCUMENT" && (
+                                    <File className="w-4 h-4" />
+                                  )}
+                                  <span>{template.headerType} Header</span>
+                                </div>
+                              )}
+                            {template.headerType === "TEXT" &&
+                              template.headerContent && (
+                                <p
+                                  className="font-semibold text-sm mb-2"
+                                  data-testid={`header-text-${template.id}`}
+                                >
+                                  {template.headerContent}
+                                </p>
+                              )}
+
+                            <div className="bg-green-50 rounded-lg p-3 border-l-4 border-green-500">
+                              <p
+                                className="text-sm text-gray-700 line-clamp-3"
+                                data-testid={`text-template-body-${template.id}`}
                               >
-                                <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                                <p className="text-sm font-medium text-foreground">
-                                  {headerType === "IMAGE"
-                                    ? "Upload Image"
-                                    : headerType === "VIDEO"
-                                      ? "Upload Video"
-                                      : "Upload Document"}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {headerType === "IMAGE"
-                                    ? "JPG, PNG up to 5MB"
-                                    : headerType === "VIDEO"
-                                      ? "MP4 up to 16MB"
-                                      : "PDF up to 100MB"}
-                                </p>
-                              </div>
+                                {template.body}
+                              </p>
+                            </div>
+
+                            {template.footer && (
+                              <p
+                                className="text-xs text-gray-500 mt-2 italic"
+                                data-testid={`text-template-footer-${template.id}`}
+                              >
+                                {template.footer}
+                              </p>
                             )}
-                          </div>
-                        )}
 
-                        <FormField
-                          control={createForm.control}
-                          name="body"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Message *</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Hello {{1}}, your appointment is scheduled for {{2}}."
-                                  rows={3}
-                                  {...field}
-                                  data-testid="textarea-template-body"
-                                />
-                              </FormControl>
-                              <FormDescription className="text-xs">
-                                Use {"{{variable_name}}"} to insert variables.
-                                Ex: {"{{first_name}}"}
-                              </FormDescription>
-                              <FormMessage data-testid="error-template-body" />
-                            </FormItem>
-                          )}
-                        />
+                            {template.buttons &&
+                              template.buttons.length > 0 && (
+                                <div
+                                  className="mt-3 flex flex-wrap gap-2"
+                                  data-testid={`buttons-${template.id}`}
+                                >
+                                  {template.buttons.map((btn, idx) => (
+                                    <Badge
+                                      key={idx}
+                                      variant="outline"
+                                      className="text-green-600 border-green-600"
+                                      data-testid={`badge-button-${template.id}-${idx}`}
+                                    >
+                                      {btn.text}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
 
-                        <FormField
-                          control={createForm.control}
-                          name="footer"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Footer</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Optional footer text"
-                                  {...field}
-                                  data-testid="input-template-footer"
-                                />
-                              </FormControl>
-                              <FormMessage data-testid="error-template-footer" />
-                            </FormItem>
-                          )}
-                        />
+                            <div className="flex items-center justify-between mt-4 pt-3 border-t text-xs text-gray-500">
+                              <span
+                                data-testid={`text-language-${template.id}`}
+                              >
+                                Language: {template.language.toUpperCase()}
+                              </span>
+                              <span data-testid={`text-date-${template.id}`}>
+                                {template.createdAt}
+                              </span>
+                            </div>
+
+                            <div className="flex gap-2 mt-3">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => openSendModal(template)}
+                                disabled={template.status !== "APPROVED"}
+                                data-testid={`button-send-template-${template.id}`}
+                              >
+                                <Send className="w-4 h-4 mr-1" />
+                                Send
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                data-testid={`button-view-template-${template.id}`}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                data-testid={`button-copy-template-${template.id}`}
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+
+                  {isNoIntegration && (
+                    <Card className="mt-6" data-testid="card-no-integration">
+                      <CardContent className="py-12 text-center">
+                        <SiWhatsapp className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <h3
+                          className="text-lg font-medium text-gray-900"
+                          data-testid="text-no-integration-title"
+                        >
+                          No WhatsApp Integration
+                        </h3>
+                        <p
+                          className="text-gray-500 mt-2"
+                          data-testid="text-no-integration-description"
+                        >
+                          Connect your WhatsApp Business account in Settings to
+                          manage templates.
+                        </p>
+                        <Button
+                          className="mt-4 bg-green-600 hover:bg-green-700"
+                          onClick={() => (window.location.href = "/settings")}
+                          data-testid="button-go-to-settings"
+                        >
+                          Go to Settings
+                        </Button>
                       </CardContent>
                     </Card>
+                  )}
 
-                    {bodyContent && bodyContent.match(/\{\{[^}]+\}\}/g) && (
+                  {!isNoIntegration && filteredTemplates.length === 0 && (
+                    <Card className="mt-6" data-testid="card-empty-state">
+                      <CardContent className="py-12 text-center">
+                        <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <h3
+                          className="text-lg font-medium text-gray-900"
+                          data-testid="text-empty-title"
+                        >
+                          {searchQuery ||
+                          categoryFilter !== "all" ||
+                          statusFilter !== "all"
+                            ? "No templates found"
+                            : "No Templates on This Account"}
+                        </h3>
+                        <p
+                          className="text-gray-500 mt-2"
+                          data-testid="text-empty-description"
+                        >
+                          {searchQuery ||
+                          categoryFilter !== "all" ||
+                          statusFilter !== "all"
+                            ? "Try adjusting your filters"
+                            : "There are no message templates on this WhatsApp Business account."}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+
+        <Dialog
+          open={isCreateModalOpen}
+          onOpenChange={(open) => {
+            setIsCreateModalOpen(open);
+            if (!open) {
+              setHeaderMediaFile(null);
+              if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+              }
+            }
+          }}
+        >
+          <DialogContent
+            className="max-w-5xl max-h-[90vh] overflow-hidden p-0"
+            data-testid="dialog-create-template"
+          >
+            <div className="flex h-full">
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="px-6 py-4 border-b flex-shrink-0">
+                  <DialogHeader>
+                    <DialogTitle className="text-lg font-semibold">
+                      Create Template
+                    </DialogTitle>
+                    <DialogDescription>
+                      Configure your message template for WhatsApp
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6">
+                  <Form {...createForm}>
+                    <form
+                      onSubmit={createForm.handleSubmit(handleCreateTemplate)}
+                      className="space-y-6"
+                    >
                       <Card className="border shadow-sm">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-sm font-medium flex items-center gap-2">
-                            <Variable className="w-4 h-4" />
-                            Variable Samples
+                            <Settings className="w-4 h-4" />
+                            Settings
                           </CardTitle>
-                          <p className="text-xs text-muted-foreground">
-                            Provide sample values for your variables. These will
-                            be verified by WhatsApp.
-                          </p>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                          {bodyContent
-                            .match(/\{\{[^}]+\}\}/g)
-                            ?.filter((v, i, arr) => arr.indexOf(v) === i)
-                            .map((variable, index) => {
-                              const varName = variable.replace(
-                                /\{\{|\}\}/g,
-                                "",
-                              );
-                              return (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-3"
-                                >
-                                  <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                    <span className="text-xs font-medium text-primary">
-                                      {index + 1}
-                                    </span>
-                                  </div>
-                                  <div className="flex-1">
-                                    <Input
-                                      placeholder={`Sample for ${varName}`}
-                                      className="h-9"
-                                      data-testid={`input-variable-sample-${index}`}
-                                    />
-                                  </div>
-                                  <span className="text-xs text-muted-foreground w-24 truncate">
-                                    {variable}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    <Card className="border shadow-sm">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <MousePointer className="w-4 h-4" />
-                          Call to Action
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <FormField
-                          control={createForm.control}
-                          name="buttonType"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Button Type</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-button-type">
-                                    <SelectValue placeholder="None" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem
-                                    value="NONE"
-                                    data-testid="option-button-none"
-                                  >
-                                    None
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="URL"
-                                    data-testid="option-button-url"
-                                  >
-                                    URL
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="QUICK_REPLY"
-                                    data-testid="option-button-quick"
-                                  >
-                                    Quick Reply
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="CALL"
-                                    data-testid="option-button-call"
-                                  >
-                                    Phone Call
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage data-testid="error-button-type" />
-                            </FormItem>
-                          )}
-                        />
-
-                        {buttonType !== "NONE" && (
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={createForm.control}
-                              name="buttonText"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Button Label</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Click here"
-                                      {...field}
-                                      data-testid="input-button-text"
-                                    />
-                                  </FormControl>
-                                  <FormMessage data-testid="error-button-text" />
-                                </FormItem>
-                              )}
-                            />
-                            {buttonType === "URL" && (
-                              <FormField
-                                control={createForm.control}
-                                name="buttonUrl"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>URL</FormLabel>
-                                    <FormControl>
-                                      <Input
-                                        placeholder="https://example.com"
-                                        {...field}
-                                        data-testid="input-button-url"
-                                      />
-                                    </FormControl>
-                                    <FormMessage data-testid="error-button-url" />
-                                  </FormItem>
-                                )}
-                              />
-                            )}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </form>
-                </Form>
-              </div>
-
-              <div className="px-6 py-4 border-t bg-muted/30 flex justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  data-testid="button-cancel-create"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={createForm.handleSubmit(handleCreateTemplate)}
-                  data-testid="button-submit-template"
-                >
-                  Submit for Approval
-                </Button>
-              </div>
-            </div>
-
-            <div className="w-[300px] border-l bg-muted/20 hidden lg:flex flex-col">
-              <div className="px-4 py-3 border-b">
-                <p className="text-sm font-medium">Preview</p>
-              </div>
-              <div className="flex-1 flex items-center justify-center p-4">
-                <PhonePreview
-                  headerType={headerType}
-                  headerContent={headerContent}
-                  body={bodyContent}
-                  footer={footerContent}
-                  buttonType={buttonType}
-                  buttonText={buttonText}
-                />
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-        <DialogContent
-          className="max-w-5xl max-h-[90vh] overflow-hidden p-0 rounded-2xl border bg-white shadow-xl"
-          data-testid="dialog-create-template"
-        >
-          <div className="flex h-full">
-            {/* LEFT SIDE */}
-            <div className="flex-1 flex flex-col">
-              {/* HEADER */}
-              <div className="px-6 py-5 border-b bg-white">
-                <DialogHeader>
-                  <DialogTitle className="text-xl font-semibold tracking-tight">
-                    Create Template
-                  </DialogTitle>
-
-                  <DialogDescription className="text-gray-500 mt-1">
-                    Configure your message template for WhatsApp
-                  </DialogDescription>
-                </DialogHeader>
-              </div>
-
-              {/* BODY SCROLL */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                <Form {...createForm}>
-                  <form
-                    onSubmit={createForm.handleSubmit(handleCreateTemplate)}
-                    className="space-y-6"
-                  >
-                    {/* SETTINGS */}
-                    <Card className="border rounded-xl shadow-sm bg-white overflow-hidden">
-                      <CardHeader className="bg-gray-50 border-b px-5 py-3">
-                        <CardTitle className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-                          <Settings className="w-4 h-4 text-green-600" />
-                          Settings
-                        </CardTitle>
-                      </CardHeader>
-
-                      <CardContent className="grid grid-cols-3 gap-4 pt-4 pb-6 px-5">
-                        {/* Template Name */}
-                        <FormField
-                          control={createForm.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="font-medium text-gray-700">
-                                Name
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="order_confirmation"
-                                  className="h-11 rounded-lg"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* Category */}
-                        <FormField
-                          control={createForm.control}
-                          name="category"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="font-medium text-gray-700">
-                                Category
-                              </FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className="h-11 rounded-lg">
-                                    <SelectValue placeholder="Select" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="AUTHENTICATION">
-                                    Authentication
-                                  </SelectItem>
-                                  <SelectItem value="UTILITY">
-                                    Utility
-                                  </SelectItem>
-                                  <SelectItem value="MARKETING">
-                                    Marketing
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* Language */}
-                        <FormField
-                          control={createForm.control}
-                          name="language"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="font-medium text-gray-700">
-                                Language
-                              </FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className="h-11 rounded-lg">
-                                    <SelectValue placeholder="Select" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="es">Spanish</SelectItem>
-                                  <SelectItem value="en">English</SelectItem>
-                                  <SelectItem value="en_US">
-                                    English US
-                                  </SelectItem>
-                                  <SelectItem value="pt_BR">
-                                    Portuguese BR
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </CardContent>
-                    </Card>
-
-                    {/* MESSAGE CONTENT */}
-                    <Card className="border rounded-xl shadow-sm bg-white overflow-hidden">
-                      <CardHeader className="bg-gray-50 border-b px-5 py-3">
-                        <CardTitle className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-green-600" />
-                          Message Content
-                        </CardTitle>
-                      </CardHeader>
-
-                      <CardContent className="space-y-6 pt-6 pb-8 px-5">
-                        {/* HEADER TYPE TABS */}
-                        <div>
-                          <FormLabel className="font-medium text-gray-700 mb-2 block">
-                            Header (Optional)
-                          </FormLabel>
-
-                          <div className="flex rounded-xl overflow-hidden border bg-gray-50">
-                            {[
-                              { value: "TEXT", label: "Text", icon: Type },
-                              {
-                                value: "IMAGE",
-                                label: "Image",
-                                icon: ImageIcon,
-                              },
-                              { value: "VIDEO", label: "Video", icon: Video },
-                              { value: "DOCUMENT", label: "File", icon: File },
-                            ].map((option) => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() =>
-                                  createForm.setValue(
-                                    "headerType",
-                                    option.value as any,
-                                  )
-                                }
-                                className={`flex-1 py-2.5 text-sm flex items-center justify-center gap-1.5 transition-all
-                                  ${
-                                    headerType === option.value
-                                      ? "bg-green-600 text-white shadow-inner"
-                                      : "hover:bg-white text-gray-600"
-                                  }`}
-                                data-testid={`tab-header-${option.value.toLowerCase()}`}
-                              >
-                                <option.icon className="w-4 h-4" />
-                                {option.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* HEADER TEXT */}
-                        {headerType === "TEXT" && (
+                        <CardContent className="grid grid-cols-3 gap-4">
                           <FormField
                             control={createForm.control}
-                            name="headerContent"
+                            name="name"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="font-medium text-gray-700">
-                                  Header Text
-                                </FormLabel>
+                                <FormLabel>Name</FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder="Your header text"
-                                    className="h-11 rounded-lg"
+                                    placeholder="order_confirmation"
                                     {...field}
+                                    data-testid="input-template-name"
                                   />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage data-testid="error-template-name" />
                               </FormItem>
                             )}
                           />
-                        )}
+                          <FormField
+                            control={createForm.control}
+                            name="category"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-template-category">
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem
+                                      value="AUTHENTICATION"
+                                      data-testid="option-create-cat-auth"
+                                    >
+                                      Authentication
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="UTILITY"
+                                      data-testid="option-create-cat-utility"
+                                    >
+                                      Utility
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="MARKETING"
+                                      data-testid="option-create-cat-marketing"
+                                    >
+                                      Marketing
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage data-testid="error-template-category" />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={createForm.control}
+                            name="language"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Language</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-template-language">
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem
+                                      value="es"
+                                      data-testid="option-lang-es"
+                                    >
+                                      Spanish
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="en"
+                                      data-testid="option-lang-en"
+                                    >
+                                      English
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="en_US"
+                                      data-testid="option-lang-en-us"
+                                    >
+                                      English US
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="pt_BR"
+                                      data-testid="option-lang-pt-br"
+                                    >
+                                      Portuguese BR
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage data-testid="error-template-language" />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
 
-                        {/* MEDIA UPLOAD PLACEHOLDER */}
-                        {(headerType === "IMAGE" ||
-                          headerType === "VIDEO" ||
-                          headerType === "DOCUMENT") && (
-                          <div
-                            className="border border-dashed rounded-xl p-6 text-center bg-gray-50"
-                            data-testid="media-upload-area"
-                          >
-                            <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                            <p className="text-sm font-medium text-gray-700">
-                              {headerType === "IMAGE"
-                                ? "Upload Image"
-                                : headerType === "VIDEO"
-                                  ? "Upload Video"
-                                  : "Upload Document"}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {headerType === "IMAGE"
-                                ? "JPG, PNG up to 5MB"
-                                : headerType === "VIDEO"
-                                  ? "MP4 up to 16MB"
-                                  : "PDF up to 100MB"}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* MESSAGE BODY */}
-                        <FormField
-                          control={createForm.control}
-                          name="body"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="font-medium text-gray-700">
-                                Message *
-                              </FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Hello {{1}}, your appointment is scheduled for {{2}}."
-                                  rows={3}
-                                  className="resize-none rounded-lg"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormDescription className="text-xs text-gray-500">
-                                Use {"{{1}}"}, {"{{2}}"} for variables.
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* VARIABLE EXAMPLES (INSIDE SAME CARD) */}
-                        {bodyContent && bodyContent.match(/\{\{[^}]+\}\}/g) && (
-                          <div className="bg-gray-50 border rounded-xl p-5 space-y-4">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Variable className="w-4 h-4 text-green-600" />
-                              <p className="text-sm font-semibold text-gray-800">
-                                Variable Samples
-                              </p>
+                      <Card className="border shadow-sm">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm font-medium flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4" />
+                            Message Content
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div>
+                            <FormLabel className="mb-2 block">
+                              Header (Optional)
+                            </FormLabel>
+                            <div className="flex border rounded-lg overflow-hidden">
+                              {[
+                                { value: "TEXT", label: "Text", icon: Type },
+                                {
+                                  value: "IMAGE",
+                                  label: "Image",
+                                  icon: ImageIcon,
+                                },
+                                { value: "VIDEO", label: "Video", icon: Video },
+                                {
+                                  value: "DOCUMENT",
+                                  label: "File",
+                                  icon: File,
+                                },
+                              ].map((option) => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    createForm.setValue(
+                                      "headerType",
+                                      option.value as any,
+                                    );
+                                    setHeaderMediaFile(null);
+                                    if (fileInputRef.current) {
+                                      fileInputRef.current.value = "";
+                                    }
+                                  }}
+                                  className={`flex-1 py-2 px-3 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors ${
+                                    headerType === option.value
+                                      ? "bg-primary text-primary-foreground"
+                                      : "bg-background hover:bg-muted text-muted-foreground"
+                                  }`}
+                                  data-testid={`tab-header-${option.value.toLowerCase()}`}
+                                >
+                                  <option.icon className="w-4 h-4" />
+                                  {option.label}
+                                </button>
+                              ))}
                             </div>
+                          </div>
 
-                            <p className="text-xs text-gray-600">
-                              Provide sample values for each variable (required
-                              by Meta).
+                          {headerType === "TEXT" && (
+                            <FormField
+                              control={createForm.control}
+                              name="headerContent"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Header Text</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Your header text"
+                                      {...field}
+                                      data-testid="input-header-text"
+                                    />
+                                  </FormControl>
+                                  <FormMessage data-testid="error-header-text" />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+
+                          {(headerType === "IMAGE" ||
+                            headerType === "VIDEO" ||
+                            headerType === "DOCUMENT") && (
+                            <div>
+                              <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    setHeaderMediaFile(file);
+                                  }
+                                }}
+                                accept={
+                                  headerType === "IMAGE"
+                                    ? "image/jpeg,image/png"
+                                    : headerType === "VIDEO"
+                                      ? "video/mp4"
+                                      : ".pdf,.doc,.docx"
+                                }
+                                className="hidden"
+                                data-testid="input-media-file"
+                              />
+                              {headerMediaFile ? (
+                                <div
+                                  className="border rounded-lg p-4 bg-muted/20"
+                                  data-testid="media-preview"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      {headerType === "IMAGE" ? (
+                                        <div className="w-12 h-12 rounded overflow-hidden bg-muted flex-shrink-0">
+                                          <img
+                                            src={URL.createObjectURL(
+                                              headerMediaFile,
+                                            )}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                          />
+                                        </div>
+                                      ) : (
+                                        <div className="w-12 h-12 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                                          {headerType === "VIDEO" ? (
+                                            <Video className="w-6 h-6 text-muted-foreground" />
+                                          ) : (
+                                            <File className="w-6 h-6 text-muted-foreground" />
+                                          )}
+                                        </div>
+                                      )}
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-medium truncate">
+                                          {headerMediaFile.name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {(
+                                            headerMediaFile.size /
+                                            1024 /
+                                            1024
+                                          ).toFixed(2)}{" "}
+                                          MB
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setHeaderMediaFile(null);
+                                        if (fileInputRef.current) {
+                                          fileInputRef.current.value = "";
+                                        }
+                                      }}
+                                      data-testid="button-remove-media"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div
+                                  className="border border-dashed rounded-lg p-6 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer"
+                                  onClick={() => fileInputRef.current?.click()}
+                                  data-testid="media-upload-area"
+                                >
+                                  <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                                  <p className="text-sm font-medium text-foreground">
+                                    {headerType === "IMAGE"
+                                      ? "Upload Image"
+                                      : headerType === "VIDEO"
+                                        ? "Upload Video"
+                                        : "Upload Document"}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {headerType === "IMAGE"
+                                      ? "JPG, PNG up to 5MB"
+                                      : headerType === "VIDEO"
+                                        ? "MP4 up to 16MB"
+                                        : "PDF up to 100MB"}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <FormField
+                            control={createForm.control}
+                            name="body"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Message *</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Hello {{1}}, your appointment is scheduled for {{2}}."
+                                    rows={3}
+                                    {...field}
+                                    data-testid="textarea-template-body"
+                                  />
+                                </FormControl>
+                                <FormDescription className="text-xs">
+                                  Use {"{{variable_name}}"} to insert variables.
+                                  Ex: {"{{first_name}}"}
+                                </FormDescription>
+                                <FormMessage data-testid="error-template-body" />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={createForm.control}
+                            name="footer"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Footer</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Optional footer text"
+                                    {...field}
+                                    data-testid="input-template-footer"
+                                  />
+                                </FormControl>
+                                <FormMessage data-testid="error-template-footer" />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      {bodyContent && bodyContent.match(/\{\{[^}]+\}\}/g) && (
+                        <Card className="border shadow-sm">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-sm font-medium flex items-center gap-2">
+                              <Variable className="w-4 h-4" />
+                              Variable Samples
+                            </CardTitle>
+                            <p className="text-xs text-muted-foreground">
+                              Provide sample values for your variables. These
+                              will be verified by WhatsApp.
                             </p>
-
+                          </CardHeader>
+                          <CardContent className="space-y-3">
                             {bodyContent
                               .match(/\{\{[^}]+\}\}/g)
                               ?.filter((v, i, arr) => arr.indexOf(v) === i)
@@ -2078,112 +1772,366 @@ export default function WhatsAppTemplates() {
                                   /\{\{|\}\}/g,
                                   "",
                                 );
-
                                 return (
                                   <div
                                     key={index}
                                     className="flex items-center gap-3"
                                   >
-                                    <div className="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center">
-                                      <span className="text-xs font-medium text-green-700">
+                                    <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                      <span className="text-xs font-medium text-primary">
                                         {index + 1}
                                       </span>
                                     </div>
-
-                                    <Input
-                                      placeholder={`Sample for ${varName}`}
-                                      className="h-9 rounded-lg flex-1"
-                                      data-testid={`input-variable-sample-${index}`}
-                                    />
-
-                                    <span className="text-xs text-gray-500 w-24 truncate">
+                                    <div className="flex-1">
+                                      <Input
+                                        placeholder={`Sample for ${varName}`}
+                                        className="h-9"
+                                        data-testid={`input-variable-sample-${index}`}
+                                      />
+                                    </div>
+                                    <span className="text-xs text-muted-foreground w-24 truncate">
                                       {variable}
                                     </span>
                                   </div>
                                 );
                               })}
-                          </div>
-                        )}
+                          </CardContent>
+                        </Card>
+                      )}
 
-                        {/* FOOTER */}
-                        <FormField
-                          control={createForm.control}
-                          name="footer"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="font-medium text-gray-700">
-                                Footer
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Optional footer text"
-                                  className="h-11 rounded-lg"
-                                  {...field}
+                      <Card className="border shadow-sm">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm font-medium flex items-center gap-2">
+                            <MousePointer className="w-4 h-4" />
+                            Call to Action
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <FormField
+                            control={createForm.control}
+                            name="buttonType"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Button Type</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-button-type">
+                                      <SelectValue placeholder="None" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem
+                                      value="NONE"
+                                      data-testid="option-button-none"
+                                    >
+                                      None
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="URL"
+                                      data-testid="option-button-url"
+                                    >
+                                      URL
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="QUICK_REPLY"
+                                      data-testid="option-button-quick"
+                                    >
+                                      Quick Reply
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="CALL"
+                                      data-testid="option-button-call"
+                                    >
+                                      Phone Call
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage data-testid="error-button-type" />
+                              </FormItem>
+                            )}
+                          />
+
+                          {buttonType !== "NONE" && (
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={createForm.control}
+                                name="buttonText"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Button Label</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Click here"
+                                        {...field}
+                                        data-testid="input-button-text"
+                                      />
+                                    </FormControl>
+                                    <FormMessage data-testid="error-button-text" />
+                                  </FormItem>
+                                )}
+                              />
+                              {buttonType === "URL" && (
+                                <FormField
+                                  control={createForm.control}
+                                  name="buttonUrl"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>URL</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="https://example.com"
+                                          {...field}
+                                          data-testid="input-button-url"
+                                        />
+                                      </FormControl>
+                                      <FormMessage data-testid="error-button-url" />
+                                    </FormItem>
+                                  )}
                                 />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                              )}
+                            </div>
                           )}
-                        />
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </form>
+                  </Form>
+                </div>
 
-                    {/* CTA */}
-                    <Card className="border rounded-xl shadow-sm bg-white overflow-hidden">
-                      <CardHeader className="bg-gray-50 border-b px-5 py-3">
-                        <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                          <MousePointer className="w-4 h-4 text-green-600" />
-                          Call to Action
-                        </CardTitle>
-                      </CardHeader>
+                <div className="px-6 py-4 border-t bg-muted/30 flex justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    data-testid="button-cancel-create"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={createForm.handleSubmit(handleCreateTemplate)}
+                    data-testid="button-submit-template"
+                  >
+                    Submit for Approval
+                  </Button>
+                </div>
+              </div>
 
-                      <CardContent className="space-y-4 px-5 py-6">
-                        <FormField
-                          control={createForm.control}
-                          name="buttonType"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="font-medium text-gray-700">
-                                Button Type
-                              </FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
+              <div className="w-[300px] border-l bg-muted/20 hidden lg:flex flex-col">
+                <div className="px-4 py-3 border-b">
+                  <p className="text-sm font-medium">Preview</p>
+                </div>
+                <div className="flex-1 flex items-center justify-center p-4">
+                  <PhonePreview
+                    headerType={headerType}
+                    headerContent={headerContent}
+                    body={bodyContent}
+                    footer={footerContent}
+                    buttonType={buttonType}
+                    buttonText={buttonText}
+                  />
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+          <DialogContent
+            className="max-w-5xl max-h-[90vh] overflow-hidden p-0 rounded-2xl border bg-white shadow-xl"
+            data-testid="dialog-create-template"
+          >
+            <div className="flex h-full">
+              {/* LEFT SIDE */}
+              <div className="flex-1 flex flex-col">
+                {/* HEADER */}
+                <div className="px-6 py-5 border-b bg-white">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-semibold tracking-tight">
+                      Create Template
+                    </DialogTitle>
+
+                    <DialogDescription className="text-gray-500 mt-1">
+                      Configure your message template for WhatsApp
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
+
+                {/* BODY SCROLL */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  <Form {...createForm}>
+                    <form
+                      onSubmit={createForm.handleSubmit(handleCreateTemplate)}
+                      className="space-y-6"
+                    >
+                      {/* SETTINGS */}
+                      <Card className="border rounded-xl shadow-sm bg-white overflow-hidden">
+                        <CardHeader className="bg-gray-50 border-b px-5 py-3">
+                          <CardTitle className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                            <Settings className="w-4 h-4 text-green-600" />
+                            Settings
+                          </CardTitle>
+                        </CardHeader>
+
+                        <CardContent className="grid grid-cols-3 gap-4 pt-4 pb-6 px-5">
+                          {/* Template Name */}
+                          <FormField
+                            control={createForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-medium text-gray-700">
+                                  Name
+                                </FormLabel>
                                 <FormControl>
-                                  <SelectTrigger className="h-11 rounded-lg">
-                                    <SelectValue placeholder="None" />
-                                  </SelectTrigger>
+                                  <Input
+                                    placeholder="order_confirmation"
+                                    className="h-11 rounded-lg"
+                                    {...field}
+                                  />
                                 </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="NONE">None</SelectItem>
-                                  <SelectItem value="URL">URL</SelectItem>
-                                  <SelectItem value="QUICK_REPLY">
-                                    Quick Reply
-                                  </SelectItem>
-                                  <SelectItem value="CALL">
-                                    Phone Call
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                        {buttonType !== "NONE" && (
-                          <div className="grid grid-cols-2 gap-4">
+                          {/* Category */}
+                          <FormField
+                            control={createForm.control}
+                            name="category"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-medium text-gray-700">
+                                  Category
+                                </FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="h-11 rounded-lg">
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="AUTHENTICATION">
+                                      Authentication
+                                    </SelectItem>
+                                    <SelectItem value="UTILITY">
+                                      Utility
+                                    </SelectItem>
+                                    <SelectItem value="MARKETING">
+                                      Marketing
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* Language */}
+                          <FormField
+                            control={createForm.control}
+                            name="language"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-medium text-gray-700">
+                                  Language
+                                </FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="h-11 rounded-lg">
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="es">Spanish</SelectItem>
+                                    <SelectItem value="en">English</SelectItem>
+                                    <SelectItem value="en_US">
+                                      English US
+                                    </SelectItem>
+                                    <SelectItem value="pt_BR">
+                                      Portuguese BR
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      {/* MESSAGE CONTENT */}
+                      <Card className="border rounded-xl shadow-sm bg-white overflow-hidden">
+                        <CardHeader className="bg-gray-50 border-b px-5 py-3">
+                          <CardTitle className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-green-600" />
+                            Message Content
+                          </CardTitle>
+                        </CardHeader>
+
+                        <CardContent className="space-y-6 pt-6 pb-8 px-5">
+                          {/* HEADER TYPE TABS */}
+                          <div>
+                            <FormLabel className="font-medium text-gray-700 mb-2 block">
+                              Header (Optional)
+                            </FormLabel>
+
+                            <div className="flex rounded-xl overflow-hidden border bg-gray-50">
+                              {[
+                                { value: "TEXT", label: "Text", icon: Type },
+                                {
+                                  value: "IMAGE",
+                                  label: "Image",
+                                  icon: ImageIcon,
+                                },
+                                { value: "VIDEO", label: "Video", icon: Video },
+                                {
+                                  value: "DOCUMENT",
+                                  label: "File",
+                                  icon: File,
+                                },
+                              ].map((option) => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() =>
+                                    createForm.setValue(
+                                      "headerType",
+                                      option.value as any,
+                                    )
+                                  }
+                                  className={`flex-1 py-2.5 text-sm flex items-center justify-center gap-1.5 transition-all
+                                  ${
+                                    headerType === option.value
+                                      ? "bg-green-600 text-white shadow-inner"
+                                      : "hover:bg-white text-gray-600"
+                                  }`}
+                                  data-testid={`tab-header-${option.value.toLowerCase()}`}
+                                >
+                                  <option.icon className="w-4 h-4" />
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* HEADER TEXT */}
+                          {headerType === "TEXT" && (
                             <FormField
                               control={createForm.control}
-                              name="buttonText"
+                              name="headerContent"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel className="font-medium text-gray-700">
-                                    Button Label
+                                    Header Text
                                   </FormLabel>
                                   <FormControl>
                                     <Input
-                                      placeholder="Click here"
+                                      placeholder="Your header text"
                                       className="h-11 rounded-lg"
                                       {...field}
                                     />
@@ -2192,19 +2140,189 @@ export default function WhatsAppTemplates() {
                                 </FormItem>
                               )}
                             />
+                          )}
 
-                            {buttonType === "URL" && (
+                          {/* MEDIA UPLOAD PLACEHOLDER */}
+                          {(headerType === "IMAGE" ||
+                            headerType === "VIDEO" ||
+                            headerType === "DOCUMENT") && (
+                            <div
+                              className="border border-dashed rounded-xl p-6 text-center bg-gray-50"
+                              data-testid="media-upload-area"
+                            >
+                              <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                              <p className="text-sm font-medium text-gray-700">
+                                {headerType === "IMAGE"
+                                  ? "Upload Image"
+                                  : headerType === "VIDEO"
+                                    ? "Upload Video"
+                                    : "Upload Document"}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {headerType === "IMAGE"
+                                  ? "JPG, PNG up to 5MB"
+                                  : headerType === "VIDEO"
+                                    ? "MP4 up to 16MB"
+                                    : "PDF up to 100MB"}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* MESSAGE BODY */}
+                          <FormField
+                            control={createForm.control}
+                            name="body"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-medium text-gray-700">
+                                  Message *
+                                </FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Hello {{1}}, your appointment is scheduled for {{2}}."
+                                    rows={3}
+                                    className="resize-none rounded-lg"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormDescription className="text-xs text-gray-500">
+                                  Use {"{{1}}"}, {"{{2}}"} for variables.
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* VARIABLE EXAMPLES (INSIDE SAME CARD) */}
+                          {bodyContent &&
+                            bodyContent.match(/\{\{[^}]+\}\}/g) && (
+                              <div className="bg-gray-50 border rounded-xl p-5 space-y-4">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Variable className="w-4 h-4 text-green-600" />
+                                  <p className="text-sm font-semibold text-gray-800">
+                                    Variable Samples
+                                  </p>
+                                </div>
+
+                                <p className="text-xs text-gray-600">
+                                  Provide sample values for each variable
+                                  (required by Meta).
+                                </p>
+
+                                {bodyContent
+                                  .match(/\{\{[^}]+\}\}/g)
+                                  ?.filter((v, i, arr) => arr.indexOf(v) === i)
+                                  .map((variable, index) => {
+                                    const varName = variable.replace(
+                                      /\{\{|\}\}/g,
+                                      "",
+                                    );
+
+                                    return (
+                                      <div
+                                        key={index}
+                                        className="flex items-center gap-3"
+                                      >
+                                        <div className="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center">
+                                          <span className="text-xs font-medium text-green-700">
+                                            {index + 1}
+                                          </span>
+                                        </div>
+
+                                        <Input
+                                          placeholder={`Sample for ${varName}`}
+                                          className="h-9 rounded-lg flex-1"
+                                          data-testid={`input-variable-sample-${index}`}
+                                        />
+
+                                        <span className="text-xs text-gray-500 w-24 truncate">
+                                          {variable}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            )}
+
+                          {/* FOOTER */}
+                          <FormField
+                            control={createForm.control}
+                            name="footer"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-medium text-gray-700">
+                                  Footer
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Optional footer text"
+                                    className="h-11 rounded-lg"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      {/* CTA */}
+                      <Card className="border rounded-xl shadow-sm bg-white overflow-hidden">
+                        <CardHeader className="bg-gray-50 border-b px-5 py-3">
+                          <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
+                            <MousePointer className="w-4 h-4 text-green-600" />
+                            Call to Action
+                          </CardTitle>
+                        </CardHeader>
+
+                        <CardContent className="space-y-4 px-5 py-6">
+                          <FormField
+                            control={createForm.control}
+                            name="buttonType"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="font-medium text-gray-700">
+                                  Button Type
+                                </FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="h-11 rounded-lg">
+                                      <SelectValue placeholder="None" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="NONE">None</SelectItem>
+                                    <SelectItem value="URL">URL</SelectItem>
+                                    <SelectItem value="QUICK_REPLY">
+                                      Quick Reply
+                                    </SelectItem>
+                                    <SelectItem value="CALL">
+                                      Phone Call
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          {buttonType !== "NONE" && (
+                            <div className="grid grid-cols-2 gap-4">
                               <FormField
                                 control={createForm.control}
-                                name="buttonUrl"
+                                name="buttonText"
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel className="font-medium text-gray-700">
-                                      URL
+                                      Button Label
                                     </FormLabel>
                                     <FormControl>
                                       <Input
-                                        placeholder="https://example.com"
+                                        placeholder="Click here"
                                         className="h-11 rounded-lg"
                                         {...field}
                                       />
@@ -2213,130 +2331,154 @@ export default function WhatsAppTemplates() {
                                   </FormItem>
                                 )}
                               />
-                            )}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </form>
-                </Form>
+
+                              {buttonType === "URL" && (
+                                <FormField
+                                  control={createForm.control}
+                                  name="buttonUrl"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="font-medium text-gray-700">
+                                        URL
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="https://example.com"
+                                          className="h-11 rounded-lg"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </form>
+                  </Form>
+                </div>
+
+                {/* FOOTER ACTIONS */}
+                <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-lg"
+                    onClick={() => setIsCreateModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    className="rounded-lg bg-green-600 hover:bg-green-700 text-white"
+                    onClick={createForm.handleSubmit(handleCreateTemplate)}
+                  >
+                    Submit for Approval
+                  </Button>
+                </div>
               </div>
 
-              {/* FOOTER ACTIONS */}
-              <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-lg"
-                  onClick={() => setIsCreateModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-
-                <Button
-                  className="rounded-lg bg-green-600 hover:bg-green-700 text-white"
-                  onClick={createForm.handleSubmit(handleCreateTemplate)}
-                >
-                  Submit for Approval
-                </Button>
+              {/* RIGHT SIDE PREVIEW */}
+              <div className="w-[300px] border-l bg-gray-50 hidden lg:flex flex-col">
+                <div className="px-4 py-3 border-b">
+                  <p className="text-sm font-medium text-gray-700">Preview</p>
+                </div>
+                <div className="flex-1 flex items-center justify-center p-4">
+                  <PhonePreview
+                    headerType={headerType}
+                    headerContent={headerContent}
+                    body={bodyContent}
+                    footer={footerContent}
+                    buttonType={buttonType}
+                    buttonText={buttonText}
+                  />
+                </div>
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
 
-            {/* RIGHT SIDE PREVIEW */}
-            <div className="w-[300px] border-l bg-gray-50 hidden lg:flex flex-col">
-              <div className="px-4 py-3 border-b">
-                <p className="text-sm font-medium text-gray-700">Preview</p>
-              </div>
-              <div className="flex-1 flex items-center justify-center p-4">
-                <PhonePreview
-                  headerType={headerType}
-                  headerContent={headerContent}
-                  body={bodyContent}
-                  footer={footerContent}
-                  buttonType={buttonType}
-                  buttonText={buttonText}
-                />
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        <Dialog open={isSendModalOpen} onOpenChange={setIsSendModalOpen}>
+          <DialogContent
+            className="max-w-md"
+            data-testid="dialog-send-template"
+          >
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Send className="w-5 h-5 text-green-600" />
+                Send Template Message
+              </DialogTitle>
+              <DialogDescription>
+                Send "{selectedTemplate?.name}" to a WhatsApp number
+              </DialogDescription>
+            </DialogHeader>
 
-      <Dialog open={isSendModalOpen} onOpenChange={setIsSendModalOpen}>
-        <DialogContent className="max-w-md" data-testid="dialog-send-template">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Send className="w-5 h-5 text-green-600" />
-              Send Template Message
-            </DialogTitle>
-            <DialogDescription>
-              Send "{selectedTemplate?.name}" to a WhatsApp number
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...sendForm}>
-            <form
-              onSubmit={sendForm.handleSubmit(handleSendTemplate)}
-              className="space-y-4"
-            >
-              <FormField
-                control={sendForm.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="+1234567890"
-                        {...field}
-                        data-testid="input-phone-number"
-                      />
-                    </FormControl>
-                    <FormDescription>Include country code</FormDescription>
-                    <FormMessage data-testid="error-phone-number" />
-                  </FormItem>
-                )}
-              />
-
-              <VariablesSection
-                template={selectedTemplate}
-                sendForm={sendForm}
-                getPlaceholders={getPlaceholders}
-              />
-
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsSendModalOpen(false)}
-                  data-testid="button-cancel-send"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-green-600 hover:bg-green-700"
-                  disabled={sendTemplateMutation.isPending}
-                  data-testid="button-send-message"
-                >
-                  {sendTemplateMutation.isPending ? (
-                    <>
-                      <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 mr-2" />
-                      Send Message
-                    </>
+            <Form {...sendForm}>
+              <form
+                onSubmit={sendForm.handleSubmit(handleSendTemplate)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={sendForm.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="+1234567890"
+                          {...field}
+                          data-testid="input-phone-number"
+                        />
+                      </FormControl>
+                      <FormDescription>Include country code</FormDescription>
+                      <FormMessage data-testid="error-phone-number" />
+                    </FormItem>
                   )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </div>
+                />
+
+                <VariablesSection
+                  template={selectedTemplate}
+                  sendForm={sendForm}
+                  getPlaceholders={getPlaceholders}
+                />
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsSendModalOpen(false)}
+                    data-testid="button-cancel-send"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={sendTemplateMutation.isPending}
+                    data-testid="button-send-message"
+                  >
+                    {sendTemplateMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Message
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
     </TooltipProvider>
   );
 }
