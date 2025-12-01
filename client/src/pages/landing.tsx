@@ -37,6 +37,7 @@ import {
   Twitter,
   Mail,
   Hash,
+  Sparkles,
 } from "lucide-react";
 import {
   SiInstagram,
@@ -456,9 +457,12 @@ export default function Landing() {
         {/* Slogan above video */}
         <div className="flex justify-center items-center mb-8 px-6">
           <div 
-            className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-gray-200 shadow-lg"
+            className="inline-flex items-center gap-2.5 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-gray-200 shadow-lg"
             style={{ backgroundColor: "#F8F8FA" }}
           >
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+            </div>
             <span className="text-sm sm:text-base font-medium text-gray-700">
               {isSpanish 
                 ? 'Tu Agente de Marketing Todo-en-Uno' 
