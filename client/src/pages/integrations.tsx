@@ -429,26 +429,21 @@ export default function IntegrationsPage() {
               <Card className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
                 <CardContent className="py-4">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Plug className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">
-                          {isSpanish ? "Estado de Integraciones" : "Integration Status"}
-                        </p>
-                        <p className="text-lg font-semibold">
-                          {integrations.filter(i => i.isActive).length === 0 ? (
-                            <span className="text-amber-600">
-                              {isSpanish ? "Sin integraciones conectadas" : "No integrations connected"}
-                            </span>
-                          ) : (
-                            <span className="text-green-600">
-                              {integrations.filter(i => i.isActive).length} {isSpanish ? "conectada(s)" : "connected"}
-                            </span>
-                          )}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        {isSpanish ? "Estado de Integraciones" : "Integration Status"}
+                      </p>
+                      <p className="text-lg font-semibold">
+                        {integrations.filter(i => i.isActive).length === 0 ? (
+                          <span className="text-amber-600">
+                            {isSpanish ? "Sin integraciones conectadas" : "No integrations connected"}
+                          </span>
+                        ) : (
+                          <span className="text-green-600">
+                            {integrations.filter(i => i.isActive).length} {isSpanish ? "conectada(s)" : "connected"}
+                          </span>
+                        )}
+                      </p>
                     </div>
                     
                     <div className="flex items-center gap-6">
