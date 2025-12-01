@@ -3079,7 +3079,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!clientId) {
         console.error("❌ IG_APP_ID not configured");
-        return res.status(500).send("Instagram Direct integration not configured");
+        return res
+          .status(500)
+          .send("Instagram Direct integration not configured");
       }
 
       const scopes = [
@@ -3097,14 +3099,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         brandId: req.brandMembership.brandId,
       };
 
-      const state = Buffer.from(JSON.stringify(statePayload)).toString("base64");
+      const state = Buffer.from(JSON.stringify(statePayload)).toString(
+        "base64",
+      );
 
       const authUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${clientId}&redirect_uri=${encodeURIComponent(
-        redirectUri
+        redirectUri,
       )}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
-      console.log("🔗 Instagram Direct OAuth URL:", authUrl.replace(clientId, "CLIENT_ID"));
+      console.log(
+        "🔗 Instagram Direct OAuth URL:",
+        authUrl.replace(clientId, "CLIENT_ID"),
+      );
       res.redirect(authUrl);
-    }
+    },
   );
 
   app.get("/api/integrations/instagram/callback", async (req, res) => {
@@ -3132,30 +3139,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const redirect_uri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
 
       // 2️⃣ Exchange CODE → Short-lived Access Token
-      const tokenRes = await fetch("https://api.instagram.com/oauth/access_token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+      const tokenRes = await fetch(
+        "https://api.instagram.com/oauth/access_token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            client_id: process.env.IG_APP_ID || "",
+            client_secret: process.env.IG_APP_SECRET || "",
+            grant_type: "authorization_code",
+            redirect_uri: redirect_uri,
+            code: code as string,
+          }),
         },
-        body: new URLSearchParams({
-          client_id: process.env.IG_APP_ID || "",
-          client_secret: process.env.IG_APP_SECRET || "",
-          grant_type: "authorization_code",
-          redirect_uri: redirect_uri,
-          code: code as string,
-        }),
-      });
+      );
       const tokenData = await tokenRes.json();
 
       if (tokenData.error_type || tokenData.error_message) {
         console.error("❌ Instagram token exchange error:", tokenData);
-        return res.status(500).send(`Error: ${tokenData.error_message || "Token exchange failed"}`);
+        return res
+          .status(500)
+          .send(`Error: ${tokenData.error_message || "Token exchange failed"}`);
       }
 
       const shortLivedToken = tokenData.access_token;
       const igUserId = tokenData.user_id;
 
-      console.log("✅ Instagram short-lived token obtained for user:", igUserId);
+      console.log(
+        "✅ Instagram short-lived token obtained for user:",
+        igUserId,
+      );
 
       // 3️⃣ Exchange for Long-Lived Token
       let longLivedToken = shortLivedToken;
@@ -3165,7 +3180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const longLivedRes = await fetch(
           `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${
             process.env.IG_APP_SECRET
-          }&access_token=${shortLivedToken}`
+          }&access_token=${shortLivedToken}`,
         );
         const longLivedData = await longLivedRes.json();
 
@@ -3174,18 +3189,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           expiresAt = longLivedData.expires_in
             ? dayjs().add(longLivedData.expires_in, "seconds").toDate()
             : null;
-          console.log("✅ Long-lived token obtained, expires in:", longLivedData.expires_in, "seconds");
+          console.log(
+            "✅ Long-lived token obtained, expires in:",
+            longLivedData.expires_in,
+            "seconds",
+          );
         }
       } catch (err) {
-        console.warn("⚠️ Failed to exchange for long-lived token, using short-lived:", err);
+        console.warn(
+          "⚠️ Failed to exchange for long-lived token, using short-lived:",
+          err,
+        );
       }
 
       // 4️⃣ Get Instagram user profile
       const profileRes = await fetch(
-        `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${longLivedToken}`
+        `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${longLivedToken}`,
       );
       const profileData = await profileRes.json();
-
+      console.log(profileData, "profileData");
       if (profileData.error) {
         console.error("❌ Instagram profile fetch error:", profileData.error);
         return res.status(500).send("Failed to fetch Instagram profile");
@@ -3195,7 +3217,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const accountType = profileData.account_type || "BUSINESS";
       const mediaCount = profileData.media_count || 0;
 
-      console.log("📱 Instagram profile:", { igUsername, accountType, mediaCount });
+      console.log("📱 Instagram profile:", {
+        igUsername,
+        accountType,
+        mediaCount,
+      });
 
       // 5️⃣ Save Instagram Direct Integration
       await storage.createOrUpdateIntegration({
