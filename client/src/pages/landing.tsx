@@ -910,13 +910,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Meet LeadBoost Section */}
+      {/* Meet LeadBoost Section - Mobile Optimized */}
       <section
-        className="relative pt-40 pb-24"
+        className="relative pt-16 sm:pt-24 lg:pt-40 pb-12 sm:pb-16 lg:pb-24"
         style={{ backgroundColor: "#F8F8FA" }}
       >
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-light leading-snug sm:leading-tight">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">
               {isSpanish ? "Conoce Lead Boost" : "Meet Lead Boost"}
             </span>
@@ -929,13 +929,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Meet Boosty - AI Assistant Section */}
+      {/* Meet Boosty - AI Assistant Section - Mobile Optimized */}
       <section
-        className="relative py-32 overflow-hidden"
+        className="relative py-16 sm:py-24 lg:py-32 overflow-hidden"
         style={{ backgroundColor: "#FFFFFF" }}
       >
-        {/* Subtle animated background elements */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Subtle animated background elements - reduced on mobile */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden hidden sm:block">
           {[...Array(15)].map((_, i) => (
             <div
               key={i}
@@ -954,20 +954,20 @@ export default function Landing() {
 
         {/* Gradient orbs - subtle for white background */}
 
-        <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
             {/* Left side - Boosty Video */}
             <div className="relative flex justify-center lg:justify-end order-2 lg:order-1">
-              {/* Glow ring behind Boosty */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[450px] sm:h-[450px]">
+              {/* Glow ring behind Boosty - smaller on mobile */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] lg:w-[450px] lg:h-[450px]">
                 <div
-                  className="absolute inset-8 rounded-full border-2 border-blue-200/30"
+                  className="absolute inset-4 sm:inset-8 rounded-full border-2 border-blue-200/30"
                   style={{ animation: "spin 30s linear infinite reverse" }}
                 />
               </div>
 
               {/* Floating shadow/platform */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[200px] h-[20px] bg-gray-900/10 rounded-full blur-xl" />
+              <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 w-[150px] sm:w-[200px] h-[15px] sm:h-[20px] bg-gray-900/10 rounded-full blur-xl" />
 
               {/* Boosty Video */}
               <div
@@ -980,71 +980,71 @@ export default function Landing() {
                   loop
                   muted
                   playsInline
-                  className="w-[300px] sm:w-[380px] lg:w-[450px] h-auto"
+                  className="w-[220px] sm:w-[300px] md:w-[380px] lg:w-[450px] h-auto"
                   data-testid="boosty-character"
                 />
               </div>
 
-              {/* Chat bubbles floating around Boosty - in front of video */}
+              {/* Chat bubbles floating around Boosty - hidden on very small screens */}
               <div
-                className="absolute top-8 -left-4 sm:left-0 z-20 bg-white backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-2 shadow-xl"
+                className="absolute top-4 sm:top-8 left-0 sm:left-0 z-20 bg-white backdrop-blur-md border border-gray-200 rounded-xl sm:rounded-2xl px-2 sm:px-4 py-1.5 sm:py-2 shadow-xl hidden sm:flex"
                 style={{ animation: "float 5s ease-in-out infinite 0.5s" }}
               >
-                <div className="flex items-center gap-2">
-                  <SiInstagram className="w-4 h-4 text-pink-500" />
-                  <span className="text-gray-800 text-sm font-medium">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <SiInstagram className="w-3 h-3 sm:w-4 sm:h-4 text-pink-500" />
+                  <span className="text-gray-800 text-xs sm:text-sm font-medium">
                     {isSpanish ? "Post listo!" : "Post ready!"}
                   </span>
                 </div>
               </div>
 
               <div
-                className="absolute bottom-1/3 -right-4 sm:-right-8 z-20 bg-white backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-2 shadow-xl"
+                className="absolute bottom-1/3 right-0 sm:-right-8 z-20 bg-white backdrop-blur-md border border-gray-200 rounded-xl sm:rounded-2xl px-2 sm:px-4 py-1.5 sm:py-2 shadow-xl hidden sm:flex"
                 style={{ animation: "float 6s ease-in-out infinite 1s" }}
               >
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                  <span className="text-gray-800 text-sm font-medium">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
+                  <span className="text-gray-800 text-xs sm:text-sm font-medium">
                     +247%
                   </span>
                 </div>
               </div>
 
               <div
-                className="absolute top-1/2 -left-8 sm:-left-12 z-20 bg-white backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-2 shadow-xl"
+                className="absolute top-1/2 -left-4 sm:-left-12 z-20 bg-white backdrop-blur-md border border-gray-200 rounded-xl sm:rounded-2xl px-2 sm:px-4 py-1.5 sm:py-2 shadow-xl hidden sm:flex"
                 style={{ animation: "float 7s ease-in-out infinite 1.5s" }}
               >
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-yellow-500" />
-                  <span className="text-gray-800 text-sm font-medium">AI</span>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
+                  <span className="text-gray-800 text-xs sm:text-sm font-medium">AI</span>
                 </div>
               </div>
 
-              {/* Sparkle effects around Boosty - in front */}
-              <div className="absolute -top-4 -right-4 z-20 w-3 h-3 bg-cyan-500 rounded-full animate-ping" />
+              {/* Sparkle effects around Boosty - hidden on mobile for cleaner look */}
+              <div className="absolute -top-4 -right-4 z-20 w-2 h-2 sm:w-3 sm:h-3 bg-cyan-500 rounded-full animate-ping hidden sm:block" />
               <div
-                className="absolute top-1/4 -left-6 z-20 w-2 h-2 bg-blue-500 rounded-full animate-ping"
+                className="absolute top-1/4 -left-6 z-20 w-2 h-2 bg-blue-500 rounded-full animate-ping hidden sm:block"
                 style={{ animationDelay: "0.5s" }}
               />
               <div
-                className="absolute bottom-1/3 -right-8 z-20 w-2 h-2 bg-purple-500 rounded-full animate-ping"
+                className="absolute bottom-1/3 -right-8 z-20 w-2 h-2 bg-purple-500 rounded-full animate-ping hidden sm:block"
                 style={{ animationDelay: "1s" }}
               />
             </div>
 
-            {/* Right side - Content */}
+            {/* Right side - Content - Mobile Optimized */}
             <div className="order-1 lg:order-2 text-center lg:text-left">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 mb-8">
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 mb-4 sm:mb-6 lg:mb-8">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                <span className="text-blue-600 text-sm font-semibold tracking-wide uppercase">
+                <span className="text-blue-600 text-xs sm:text-sm font-semibold tracking-wide uppercase">
                   {isSpanish
                     ? "Tu Asistente IA 24/7"
                     : "Your 24/7 AI Assistant"}
                 </span>
               </div>
 
-              <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6">
                 <span className="text-gray-900">
                   {isSpanish ? "Conoce a " : "Meet "}
                 </span>
@@ -1053,14 +1053,14 @@ export default function Landing() {
                 </span>
               </h2>
 
-              <p className="text-xl sm:text-2xl text-gray-600 mb-8 leading-relaxed font-light">
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 sm:mb-8 leading-relaxed font-light px-2 lg:px-0">
                 {isSpanish
                   ? "Tu asistente de marketing con inteligencia artificial. Genera contenido, programa publicaciones y gestiona campañas—todo con una simple conversación."
                   : "Your AI-powered marketing assistant. Generate content, schedule posts, and manage campaigns—all with a simple conversation."}
               </p>
 
-              {/* Capabilities grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+              {/* Capabilities grid - Mobile optimized */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8 lg:mb-10">
                 {[
                   {
                     icon: <Bot className="w-5 h-5" />,
@@ -1101,51 +1101,51 @@ export default function Landing() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className={`flex items-center gap-3 p-4 rounded-xl ${item.bgLight} border ${item.borderColor} hover:shadow-md transition-all duration-300 group`}
+                    className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl ${item.bgLight} border ${item.borderColor} hover:shadow-md transition-all duration-300 group`}
                   >
                     <div
-                      className={`w-10 h-10 rounded-lg ${item.bgColor} flex items-center justify-center text-white shadow-lg`}
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg ${item.bgColor} flex items-center justify-center text-white shadow-lg flex-shrink-0`}
                     >
                       {item.icon}
                     </div>
-                    <span className="text-gray-700 font-medium group-hover:text-gray-900 transition-colors">
+                    <span className="text-gray-700 font-medium group-hover:text-gray-900 transition-colors text-sm sm:text-base">
                       {item.text}
                     </span>
                   </div>
                 ))}
               </div>
 
-              {/* CTA */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              {/* CTA - Mobile optimized with proper touch targets */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
                 <Button
                   onClick={() => navigate("/login")}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6 sm:px-8 py-4 sm:py-5 lg:py-6 text-base sm:text-lg rounded-xl shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 transform hover:scale-[1.02] min-h-[52px]"
                   data-testid="button-chat-boosty"
                 >
                   {isSpanish ? "Chatear con Boosty" : "Chat with Boosty"}
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-semibold px-8 py-6 text-lg rounded-xl transition-all duration-300"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-semibold px-6 sm:px-8 py-4 sm:py-5 lg:py-6 text-base sm:text-lg rounded-xl transition-all duration-300 min-h-[52px]"
                   onClick={() => navigate("/login")}
                 >
                   {isSpanish ? "Ver demostración" : "Watch Demo"}
-                  <Play className="w-5 h-5 ml-2" />
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                 </Button>
               </div>
 
-              {/* Trust indicators */}
-              <div className="flex items-center gap-6 mt-8 justify-center lg:justify-start">
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-sm">
-                    {isSpanish ? "Sin tarjeta requerida" : "No credit card"}
+              {/* Trust indicators - Mobile optimized */}
+              <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-6 sm:mt-8 justify-center lg:justify-start">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">
+                    {isSpanish ? "Sin tarjeta" : "No credit card"}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-sm">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">
                     {isSpanish ? "14 días gratis" : "14 days free"}
                   </span>
                 </div>
@@ -1153,8 +1153,8 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Boosty capabilities showcase */}
-          <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Boosty capabilities showcase - Mobile optimized */}
+          <div className="mt-12 sm:mt-16 lg:mt-24 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {[
               {
                 emoji: "🎨",
@@ -1194,15 +1194,15 @@ export default function Landing() {
             ].map((item, i) => (
               <div
                 key={i}
-                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${item.gradient} border ${item.border} p-8 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group`}
+                className={`relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br ${item.gradient} border ${item.border} p-5 sm:p-6 lg:p-8 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group`}
               >
-                <div className="text-5xl mb-4">{item.emoji}</div>
+                <div className="text-3xl sm:text-4xl lg:text-5xl mb-3 sm:mb-4">{item.emoji}</div>
                 <h3
-                  className={`text-xl font-bold ${item.textColor} mb-3 group-hover:text-blue-600 transition-colors`}
+                  className={`text-lg sm:text-xl font-bold ${item.textColor} mb-2 sm:mb-3 group-hover:text-blue-600 transition-colors`}
                 >
                   {item.title}
                 </h3>
-                <p className={`${item.descColor} leading-relaxed`}>
+                <p className={`${item.descColor} leading-relaxed text-sm sm:text-base`}>
                   {item.desc}
                 </p>
               </div>
