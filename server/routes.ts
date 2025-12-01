@@ -3202,9 +3202,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
 
-      // 4️⃣ Get Instagram user profile
+      // 4️⃣ Get Instagram user profile (including user_id which is the IGBA ID for webhooks)
       const profileRes = await fetch(
-        `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${longLivedToken}`,
+        `https://graph.instagram.com/me?fields=id,user_id,username,account_type,media_count&access_token=${longLivedToken}`,
       );
       const profileData = await profileRes.json();
       console.log(profileData, "profileData");
@@ -3216,14 +3216,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const igUsername = profileData.username || `ig_user_${igUserId}`;
       const accountType = profileData.account_type || "BUSINESS";
       const mediaCount = profileData.media_count || 0;
+      // user_id is the Instagram Business Account ID (IGBA ID) used in webhooks
+      // id is the app-scoped user ID
+      const igbaId = profileData.user_id || profileData.id || igUserId;
+      const appScopedId = profileData.id || igUserId;
 
       console.log("📱 Instagram profile:", {
         igUsername,
         accountType,
         mediaCount,
+        igbaId,
+        appScopedId,
       });
 
       // 5️⃣ Save Instagram Direct Integration
+      // Use IGBA ID for pageId (this is what webhooks use for recipient matching)
       await storage.createOrUpdateIntegration({
         userId,
         brandId,
@@ -3231,15 +3238,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         category: "social_media",
         storeName: "Instagram Direct",
         storeUrl: `https://instagram.com/${igUsername}`,
-        accountId: igUserId.toString(),
+        accountId: igbaId.toString(),
         accountName: igUsername,
-        pageId: igUserId.toString(),
+        pageId: igbaId.toString(),
         accessToken: longLivedToken,
         expiresAt,
         isActive: true,
         syncEnabled: true,
         metadata: {
-          igUserId: igUserId.toString(),
+          igbaId: igbaId.toString(),
+          appScopedId: appScopedId.toString(),
           igUsername,
           accountType,
           mediaCount,
