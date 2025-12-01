@@ -81,7 +81,7 @@ interface ActivityLog {
 export default function Dashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { activeBrandId, activeBrand } = useBrand();
+  const { activeBrandId, activeMembership } = useBrand();
   const queryClient = useQueryClient();
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const t = translations[language]; // Use current language setting
@@ -182,7 +182,7 @@ export default function Dashboard() {
     });
 
   const latestConversations = latestConversationsData?.conversations || [];
-
+  console.log(activeBrandId);
   return (
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={t.sidebar.dashboard} />
@@ -201,7 +201,9 @@ export default function Dashboard() {
                     <div>
                       <h1 className="text-3xl font-bold text-gray-900">
                         {t.dashboard.welcomeBack},{" "}
-                        {activeBrand?.name || user?.firstName || (isSpanish ? "Usuario" : "User")}!
+                        {activeMembership?.brandName ||
+                          (isSpanish ? "Usuario" : "User")}
+                        !
                       </h1>
                       {/*<p className="text-gray-600 mt-1">
                       {isSpanish ? 'Aquí tienes un resumen de tu' : 'Here\'s a summary of your'} {

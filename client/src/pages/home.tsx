@@ -14,7 +14,7 @@ import {
 
 export default function Home() {
   const { user, isLoading } = useAuth();
-  const { activeBrand } = useBrand();
+  const { activeMembership } = useBrand();
 
   if (isLoading) {
     return (
@@ -68,7 +68,7 @@ export default function Home() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {activeBrand?.name || user?.firstName}!
+            Welcome back, {activeMembership?.brandName || "User"}!
           </h1>
           <p className="text-lg text-gray-600">
             Your AI-powered social media management dashboard is ready.
