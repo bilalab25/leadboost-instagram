@@ -56,6 +56,7 @@ import {
   Plug,
   CheckCircle2,
   ExternalLink,
+  Check,
 } from "lucide-react";
 import { useBrand } from "@/contexts/BrandContext";
 
@@ -432,161 +433,144 @@ export default function IntegrationsPage() {
                 </div>
               </div>
 
-              {/* Category Tabs */}
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  {INTEGRATION_CATEGORIES.map((category) => {
-                    const connectedCount = getConnectedCount(category.key);
-                    const Icon = category.icon;
-                    return (
-                      <TabsTrigger
-                        key={category.key}
-                        value={category.key}
-                        data-testid={`tab-${category.key}`}
-                        className="flex items-center gap-2"
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span className="hidden sm:inline">{isSpanish ? category.nameEs : category.name}</span>
-                        {connectedCount > 0 && (
-                          <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                            {connectedCount}
-                          </Badge>
+              {/* Integration Categories */}
+              {integrationsLoading ? (
+                <div className="flex justify-center py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="space-y-10">
+                  {INTEGRATION_CATEGORIES.map((category) => (
+                    <div key={category.key} className="space-y-5">
+                      {/* Category Header */}
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                          {isSpanish ? category.nameEs : category.name}
+                        </h2>
+                        {category.key !== "social_media" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setDialogSelectedCategory(category.key);
+                              setIsAddIntegrationDialogOpen(true);
+                            }}
+                            data-testid={`add-${category.key}-btn`}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            {isSpanish ? "Añadir" : "Add"}
+                          </Button>
                         )}
-                      </TabsTrigger>
-                    );
-                  })}
-                </TabsList>
+                      </div>
 
-                {INTEGRATION_CATEGORIES.map((category) => (
-                  <TabsContent key={category.key} value={category.key} className="space-y-4">
-                    <Card>
-                      <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <category.icon className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <CardTitle className="text-lg">{isSpanish ? category.nameEs : category.name}</CardTitle>
-                              <CardDescription>
-                                {category.key === "social_media" && (isSpanish ? "Conecta tus perfiles de redes sociales" : "Connect your social media profiles")}
-                                {category.key === "ecommerce" && (isSpanish ? "Integra tu tienda online" : "Integrate your online store")}
-                                {category.key === "pos" && (isSpanish ? "Conecta sistemas de pago" : "Connect payment systems")}
-                                {category.key === "crm" && (isSpanish ? "Enlaza tu CRM" : "Link your CRM")}
-                              </CardDescription>
-                            </div>
-                          </div>
-                          {category.key !== "social_media" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
+                      {/* Integration Cards Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {getProvidersForCategory(category.key).map(([providerKey, providerInfo]) => {
+                          const isConnected = isProviderConnected(providerKey);
+                          const connectedIntegration = getConnectedIntegration(providerKey);
+                          const Icon = providerInfo.icon;
+
+                          const getIconColor = () => {
+                            switch (providerKey) {
+                              case 'facebook': return 'text-blue-600';
+                              case 'instagram': return 'text-pink-500';
+                              case 'whatsapp': return 'text-green-500';
+                              case 'threads': return 'text-gray-900 dark:text-gray-100';
+                              case 'tiktok': return 'text-gray-900 dark:text-gray-100';
+                              case 'youtube': return 'text-red-600';
+                              case 'hubspot': return 'text-orange-500';
+                              case 'salesforce': return 'text-blue-500';
+                              case 'zoho_crm': return 'text-red-500';
+                              case 'shopify': return 'text-green-600';
+                              case 'stripe': return 'text-purple-600';
+                              case 'square': return 'text-gray-900 dark:text-gray-100';
+                              default: return 'text-gray-600 dark:text-gray-400';
+                            }
+                          };
+
+                          return (
+                            <div
+                              key={providerKey}
+                              className="group relative bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5 hover:shadow-lg hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-200 cursor-pointer"
+                              data-testid={`provider-${providerKey}`}
                               onClick={() => {
-                                setDialogSelectedCategory(category.key);
-                                setIsAddIntegrationDialogOpen(true);
+                                if (!isConnected) {
+                                  if (category.key === "social_media") {
+                                    handleConnect(providerKey);
+                                  } else {
+                                    setDialogSelectedCategory(category.key);
+                                    setDialogSelectedProvider(providerKey);
+                                    setIsAddIntegrationDialogOpen(true);
+                                  }
+                                }
                               }}
-                              data-testid={`add-${category.key}-btn`}
                             >
-                              <Plus className="h-4 w-4 mr-1" />
-                              {isSpanish ? "Añadir" : "Add"}
-                            </Button>
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {integrationsLoading ? (
-                          <div className="flex justify-center py-12">
-                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {getProvidersForCategory(category.key).map(([providerKey, providerInfo]) => {
-                              const isConnected = isProviderConnected(providerKey);
-                              const connectedIntegration = getConnectedIntegration(providerKey);
-                              const Icon = providerInfo.icon;
-
-                              return (
-                                <div
-                                  key={providerKey}
-                                  className={`relative p-4 rounded-lg border transition-colors ${
-                                    isConnected
-                                      ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800"
-                                      : "bg-white border-gray-200 hover:border-gray-300 dark:bg-gray-900 dark:border-gray-800"
-                                  }`}
-                                  data-testid={`provider-${providerKey}`}
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <div className={`p-2 rounded-lg ${isConnected ? "bg-green-100 dark:bg-green-900/30" : "bg-gray-100 dark:bg-gray-800"}`}>
-                                      <Icon className={`h-5 w-5 ${isConnected ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400"}`} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2">
-                                        <h3 className="font-medium text-sm">{providerInfo.name}</h3>
-                                        {isConnected && (
-                                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300">
-                                            {isSpanish ? "Activo" : "Active"}
-                                          </Badge>
-                                        )}
-                                      </div>
-                                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                                        {providerInfo.description}
-                                      </p>
-                                      {connectedIntegration && (
-                                        <p className="text-xs text-green-600 dark:text-green-400 mt-1.5 flex items-center gap-1">
-                                          <CheckCircle2 className="h-3 w-3" />
-                                          {connectedIntegration.accountName || connectedIntegration.storeName}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div className="mt-3 flex gap-2">
-                                    {isConnected ? (
-                                      <>
-                                        {(category.key === "pos" || category.key === "ecommerce") && (
-                                          <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" data-testid={`sync-${providerKey}`}>
-                                            <RefreshCw className="h-3 w-3 mr-1" />
-                                            {isSpanish ? "Sincronizar" : "Sync"}
-                                          </Button>
-                                        )}
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                                          onClick={() => handleDeleteIntegration(connectedIntegration!.id)}
-                                          data-testid={`disconnect-${providerKey}`}
-                                        >
-                                          <Trash2 className="h-3 w-3 mr-1" />
-                                          {isSpanish ? "Desconectar" : "Disconnect"}
-                                        </Button>
-                                      </>
-                                    ) : (
-                                      <Button
-                                        size="sm"
-                                        className="w-full h-8 text-xs"
-                                        onClick={() => {
-                                          if (category.key === "social_media") {
-                                            handleConnect(providerKey);
-                                          } else {
-                                            setDialogSelectedCategory(category.key);
-                                            setDialogSelectedProvider(providerKey);
-                                            setIsAddIntegrationDialogOpen(true);
-                                          }
-                                        }}
-                                        data-testid={`connect-${providerKey}`}
-                                      >
-                                        <ExternalLink className="h-3 w-3 mr-1" />
-                                        {isSpanish ? "Conectar" : "Connect"}
-                                      </Button>
-                                    )}
+                              {/* Connected Checkmark */}
+                              {isConnected && (
+                                <div className="absolute top-4 right-4">
+                                  <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                    <Check className="h-4 w-4 text-white" />
                                   </div>
                                 </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                ))}
-              </Tabs>
+                              )}
+
+                              {/* Icon */}
+                              <div className="mb-4">
+                                <Icon className={`h-10 w-10 ${getIconColor()}`} />
+                              </div>
+
+                              {/* Title */}
+                              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                                {providerInfo.name}
+                              </h3>
+
+                              {/* Description */}
+                              <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">
+                                {providerInfo.description}
+                              </p>
+
+                              {/* Connected Account Info */}
+                              {connectedIntegration && (
+                                <p className="text-xs text-green-600 dark:text-green-400 mb-4">
+                                  {connectedIntegration.accountName || connectedIntegration.storeName}
+                                </p>
+                              )}
+
+                              {/* Action Buttons (shown on hover or when connected) */}
+                              {isConnected && (
+                                <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100 dark:border-gray-800">
+                                  {(category.key === "pos" || category.key === "ecommerce") && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="flex-1 h-8 text-xs text-gray-600 hover:text-gray-900"
+                                      onClick={(e) => { e.stopPropagation(); }}
+                                      data-testid={`sync-${providerKey}`}
+                                    >
+                                      <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                                      {isSpanish ? "Sincronizar" : "Sync"}
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-xs text-gray-400 hover:text-red-600"
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteIntegration(connectedIntegration!.id); }}
+                                    data-testid={`disconnect-${providerKey}`}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Add Integration Dialog */}
               <Dialog open={isAddIntegrationDialogOpen} onOpenChange={(open) => { setIsAddIntegrationDialogOpen(open); if (!open) resetDialog(); }}>
