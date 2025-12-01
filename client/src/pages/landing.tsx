@@ -453,18 +453,17 @@ export default function Landing() {
         className="relative py-12 lg:py-20 overflow-hidden"
         style={{ backgroundColor: "#FFFFFF" }}
       >
-        {/* Quote above video */}
-        <div className="flex justify-center items-center mb-10 px-6">
-          <div className="relative inline-flex items-center">
-            <span className="text-5xl sm:text-6xl text-blue-200 font-serif absolute -left-6 sm:-left-8 -top-4 select-none">"</span>
-            <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 px-8 sm:px-12 py-4 sm:py-5 rounded-2xl border border-blue-100/50 shadow-sm">
-              <p className="text-lg sm:text-xl md:text-2xl font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent text-center">
-                {isSpanish 
-                  ? 'Tu agente de marketing todo-en-uno' 
-                  : 'Your all-in-one marketing agent'}
-              </p>
-            </div>
-            <span className="text-5xl sm:text-6xl text-blue-200 font-serif absolute -right-6 sm:-right-8 -bottom-4 select-none">"</span>
+        {/* Slogan above video */}
+        <div className="flex justify-center items-center mb-8 px-6">
+          <div 
+            className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-gray-200 shadow-lg"
+            style={{ backgroundColor: "#F8F8FA" }}
+          >
+            <span className="text-sm sm:text-base font-medium text-gray-700">
+              {isSpanish 
+                ? 'Tu "agente de marketing todo-en-uno"' 
+                : 'Your "all-in-one marketing agent"'}
+            </span>
           </div>
         </div>
 
