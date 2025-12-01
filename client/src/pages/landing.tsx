@@ -461,8 +461,8 @@ export default function Landing() {
           >
             <span className="text-sm sm:text-base font-medium text-gray-700">
               {isSpanish 
-                ? 'Tu "agente de marketing todo-en-uno"' 
-                : 'Your "all-in-one marketing agent"'}
+                ? 'Tu Agente de Marketing Todo-en-Uno' 
+                : 'Your All-in-One Marketing Agent'}
             </span>
           </div>
         </div>
