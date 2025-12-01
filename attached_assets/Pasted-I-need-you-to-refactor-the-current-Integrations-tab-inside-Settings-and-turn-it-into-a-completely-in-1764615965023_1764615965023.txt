@@ -1,0 +1,56 @@
+I need you to refactor the current Integrations tab inside Settings and turn it into a completely independent page/component.
+
+Here is the list of required changes:
+
+-----------------------------------------
+1. EXTRACT INTEGRATIONS FROM SETTINGS
+-----------------------------------------
+• Find the current Integrations tab inside the Settings view.
+• Remove it entirely from Settings.
+• Take all its logic, UI, and functionality and move it into a new reusable component:
+    src/pages/integrations/IntegrationsPage.tsx
+• This new component must export a full page view, not a tab.
+• Keep all API calls, handlers, and connection flows exactly the same.
+
+--------------------------------------------------------
+2. CREATE A NEW SIDEBAR SECTION CALLED "Integrations"
+--------------------------------------------------------
+• Add a new entry in the sidebar navigation:
+      - Label: "Integrations"
+      - Icon: Use something appropriate (e.g., Plug, Link, Layers, or any existing icon library)
+      - Route: "/integrations"
+• Ensure that clicking this sidebar item renders IntegrationsPage.tsx.
+
+----------------------------------------------------------
+3. ROUTING STRUCTURE
+----------------------------------------------------------
+• Add a new route in the main router:
+      <Route path="/integrations" element={<IntegrationsPage />} />
+• Make sure the route is accessible only after selecting a brand (use same logic as other protected routes).
+• Pass activeBrandId as needed, exactly as Settings > Integrations was doing.
+
+----------------------------------------------------------
+4. CLEANUP SETTINGS
+----------------------------------------------------------
+• Remove the Integrations tab from Settings UI entirely.
+• Ensure any leftover imports, states, or handlers related to that tab are deleted to avoid dead code.
+
+----------------------------------------------------------
+5. PRESERVE EXISTING BEHAVIOR
+----------------------------------------------------------
+• The new IntegrationsPage must work exactly the same as the tab version:
+    - Fetch existing integrations for the active brand
+    - Allow connecting/disconnecting integrations (Meta, WhatsApp, Shopify, etc.)
+    - Display integration status
+    - Show modals or dialogs exactly as before
+• Do NOT modify backend endpoints or API calls.
+• Ensure the layout works in the full-page context (not in a tab).
+
+----------------------------------------------------------
+6. OUTPUT EXPECTED
+----------------------------------------------------------
+• New file: src/pages/integrations/IntegrationsPage.tsx
+• Updated Sidebar to include the new Integrations section
+• Updated Router with /integrations page
+• Settings cleaned up (Integrations removed)
+• Comments in code explaining each major refactor step

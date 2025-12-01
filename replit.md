@@ -33,6 +33,8 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
 - **Brand Studio**: Brand-specific designs and Cloudinary-based asset management with category organization.
 - **Posting Frequency Management**: Brand-specific scheduling with AI suggestions.
 - **WhatsApp Templates**: Full Meta Graph API integration for fetching templates and sending template messages with variable substitution. Supports HEADER, BODY, and BUTTON parameters following Meta's component schema.
+- **Integrations Page**: Standalone page at `/integrations` for managing OAuth platform connections (Facebook, Instagram, WhatsApp, etc.). Features popup-based OAuth flow with session state persistence.
+- **Settings Page**: 4-tab layout (Account, Brands, Payment Methods, Notifications) for user account management. Integrations moved to dedicated page.
 
 ## External Dependencies
 

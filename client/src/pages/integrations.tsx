@@ -1,26 +1,30 @@
-import { useState } from "react";
-// Eliminadas: useQuery, useMutation, useQueryClient, useForm, useToast
-// Eliminada: apiRequest
-import { Button } from "@/components/ui/button";
+// =====================================================
+// IntegrationsPage.tsx - Standalone Integrations Management Page
+// Refactored from Settings > Integrations tab to be a full page
+// =====================================================
+
+import { useEffect, useState } from "react";
+import { useLanguage } from "@/hooks/useLanguage";
+import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
+import HelpChatbot from "@/components/HelpChatbot";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -29,28 +33,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// Eliminadas: Form, FormControl, FormField, FormItem, FormLabel, FormMessage de react-hook-form
 import {
-  Loader2,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Plus,
-  Store,
+  Loader2,
   CreditCard,
   ShoppingBag,
   Globe,
-  Trash2,
-  RefreshCw,
   Instagram,
   Facebook,
   Youtube,
-  Building,
   LayoutGrid,
   Link,
-  DollarSign,
   BriefcaseBusiness,
-  Share2, // Reemplazado Tiktok por Share2
+  Share2,
+  MessageSquareText,
+  MessageCircle,
+  RefreshCw,
+  Trash2,
+  Store,
+  Plug,
 } from "lucide-react";
+import { useBrand } from "@/contexts/BrandContext";
 
-// --- Interfaces (solo para tipado de datos simulados) ---
+// =====================================================
+// INTERFACES
+// =====================================================
+
 interface Integration {
   id: string;
   provider: string;
@@ -62,31 +76,7 @@ interface Integration {
   lastSyncAt?: string;
   settings?: any;
   createdAt: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  currency: string;
-  sku?: string;
-  category?: string;
-  imageUrl?: string;
-  isActive: boolean;
-  stockQuantity?: number;
-}
-
-interface SalesTransaction {
-  id: string;
-  transactionId: string;
-  customerName?: string;
-  customerEmail?: string;
-  totalAmount: number;
-  currency: string;
-  status: string;
-  paymentMethod?: string;
-  transactionDate: string;
+  accountName?: string;
 }
 
 interface IntegrationField {
@@ -95,17 +85,21 @@ interface IntegrationField {
   type: string;
   required: boolean;
   placeholder?: string;
+  options?: { value: string; label: string }[];
 }
 
 interface ProviderInfo {
   name: string;
-  icon: any;
+  icon: React.ElementType;
   description: string;
   category: "pos" | "ecommerce" | "social_media" | "crm";
   fields: IntegrationField[];
 }
 
-// --- Provider Info ---
+// =====================================================
+// PROVIDER CONFIGURATION
+// =====================================================
+
 const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
   // POS Integrations
   square: {
@@ -285,9 +279,23 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       },
     ],
   },
+  threads: {
+    name: "Threads",
+    icon: MessageSquareText,
+    description: "Manage messages and posts on Threads (linked to Instagram)",
+    category: "social_media",
+    fields: [],
+  },
+  whatsapp: {
+    name: "WhatsApp Business",
+    icon: MessageCircle,
+    description: "Send and receive messages using WhatsApp Cloud API",
+    category: "social_media",
+    fields: [],
+  },
   tiktok: {
     name: "TikTok",
-    icon: Share2, // Reemplazado por Share2
+    icon: Share2,
     description: "Connect your TikTok account for content scheduling",
     category: "social_media",
     fields: [
@@ -333,7 +341,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
   },
   salesforce: {
     name: "Salesforce",
-    icon: BriefcaseBusiness, // Using generic icon
+    icon: BriefcaseBusiness,
     description:
       "Connect your Salesforce CRM for comprehensive customer management",
     category: "crm",
@@ -349,7 +357,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
   },
   zoho_crm: {
     name: "Zoho CRM",
-    icon: BriefcaseBusiness, // Using generic icon
+    icon: BriefcaseBusiness,
     description: "Integrate with Zoho CRM to streamline sales and marketing",
     category: "crm",
     fields: [
@@ -370,8 +378,11 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
   },
 };
 
-// Define categories for display and filtering
-const INTEGRATION_CATEGORIES_DISPLAY = {
+// Category display configuration
+const INTEGRATION_CATEGORIES_DISPLAY: Record<
+  Integration["category"],
+  { name: string; icon: React.ElementType; description: string }
+> = {
   social_media: {
     name: "Social Media Accounts",
     icon: Instagram,
@@ -389,7 +400,6 @@ const INTEGRATION_CATEGORIES_DISPLAY = {
     description:
       "Integrate your website or online store for product and order management.",
   },
-
   crm: {
     name: "CRM Systems",
     icon: BriefcaseBusiness,
@@ -397,163 +407,190 @@ const INTEGRATION_CATEGORIES_DISPLAY = {
   },
 };
 
-// --- Dummy Data for UI Preview ---
-const dummyIntegrations: Integration[] = [
-  {
-    id: "int_shopify_1",
-    provider: "shopify",
-    category: "ecommerce",
-    storeName: "My Shopify Store",
-    storeUrl: "myshop.myshopify.com",
-    isActive: true,
-    syncEnabled: true,
-    lastSyncAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "int_square_1",
-    provider: "square",
-    category: "pos",
-    storeName: "Main Street Cafe POS",
-    isActive: true,
-    syncEnabled: true,
-    lastSyncAt: new Date(Date.now() - 3600000).toISOString(),
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "int_instagram_1",
-    provider: "instagram",
-    category: "social_media",
-    storeName: "@MyBrandOfficial",
-    isActive: true,
-    syncEnabled: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "int_hubspot_1",
-    provider: "hubspot",
-    category: "crm",
-    storeName: "Leadboost CRM Instance",
-    isActive: true,
-    syncEnabled: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "int_wix_1",
-    provider: "wix",
-    category: "ecommerce",
-    storeName: "My Portfolio Site",
-    storeUrl: "myportfolio.wixsite.com",
-    isActive: true,
-    syncEnabled: false,
-    createdAt: new Date().toISOString(),
-  },
-];
+// =====================================================
+// MAIN COMPONENT
+// =====================================================
 
-const dummyProducts: Product[] = [
-  {
-    id: "prod_1",
-    name: "Organic Coffee Beans",
-    price: 1500,
-    currency: "USD",
-    sku: "OCB001",
-    category: "Coffee",
-    isActive: true,
-    stockQuantity: 120,
-  },
-  {
-    id: "prod_2",
-    name: "Espresso Machine",
-    price: 35000,
-    currency: "USD",
-    sku: "ESPMCH01",
-    category: "Equipment",
-    isActive: true,
-    stockQuantity: 15,
-  },
-  {
-    id: "prod_3",
-    name: "Ceramic Mug",
-    price: 800,
-    currency: "USD",
-    sku: "CMUG005",
-    category: "Merchandise",
-    isActive: true,
-    stockQuantity: 300,
-  },
-];
+export default function IntegrationsPage() {
+  const { isSpanish, toggleLanguage } = useLanguage();
+  const { toast } = useToast();
+  const { activeBrandId, refreshBrands } = useBrand();
 
-const dummyTransactions: SalesTransaction[] = [
-  {
-    id: "trans_1",
-    transactionId: "TXN12345",
-    customerName: "Alice Smith",
-    totalAmount: 2300,
-    currency: "USD",
-    status: "completed",
-    paymentMethod: "Card",
-    transactionDate: new Date().toISOString(),
-  },
-  {
-    id: "trans_2",
-    transactionId: "TXN12346",
-    customerName: "Bob Johnson",
-    totalAmount: 1500,
-    currency: "USD",
-    status: "completed",
-    paymentMethod: "Cash",
-    transactionDate: new Date(Date.now() - 60000).toISOString(),
-  },
-  {
-    id: "trans_3",
-    transactionId: "TXN12347",
-    customerName: "Guest",
-    totalAmount: 800,
-    currency: "USD",
-    status: "pending",
-    paymentMethod: "Card",
-    transactionDate: new Date(Date.now() - 120000).toISOString(),
-  },
-];
-
-export default function Integrations() {
-  const [selectedCategory, setSelectedCategory] = useState<
-    keyof typeof INTEGRATION_CATEGORIES_DISPLAY | ""
+  // State
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [integrationsLoading, setIntegrationsLoading] = useState(false);
+  const [isAddIntegrationDialogOpen, setIsAddIntegrationDialogOpen] =
+    useState(false);
+  const [dialogSelectedCategory, setDialogSelectedCategory] = useState<
+    Integration["category"] | ""
   >("");
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogSelectedProvider, setDialogSelectedProvider] =
+    useState<string>("");
+  const [newIntegrationStoreName, setNewIntegrationStoreName] = useState("");
+  const [newIntegrationFields, setNewIntegrationFields] = useState<{
+    [key: string]: string;
+  }>({});
 
-  // Simulando datos de carga
-  const integrationsLoading = false;
-  const productsLoading = false;
-  const transactionsLoading = false;
+  // Fetch integrations for the active brand
+  const fetchIntegrations = async () => {
+    if (!activeBrandId) return;
+    try {
+      setIntegrationsLoading(true);
+      const res = await fetch(`/api/integrations?brandId=${activeBrandId}`);
+      if (!res.ok) throw new Error("Failed to fetch integrations");
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setIntegrations(data);
+      }
+    } catch (error) {
+      console.error("Error fetching integrations:", error);
+    } finally {
+      setIntegrationsLoading(false);
+    }
+  };
 
-  // Funciones dummy para los botones, no hacen nada real
+  useEffect(() => {
+    fetchIntegrations();
+  }, [activeBrandId]);
+
+  // Filtered providers based on selected category
+  const filteredProviders = dialogSelectedCategory
+    ? Object.entries(INTEGRATION_PROVIDERS).filter(
+        ([, info]) => info.category === dialogSelectedCategory,
+      )
+    : [];
+
+  // =====================================================
+  // HANDLERS
+  // =====================================================
+
+  // OAuth connection handler for Meta integrations
+  const handleConnect = (provider: string) => {
+    if (!activeBrandId) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish
+          ? "Selecciona una marca antes de conectar."
+          : "Select a brand before connecting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let url = "";
+
+    if (["facebook", "instagram", "threads"].includes(provider)) {
+      url = `/api/integrations/facebook/connect?brandId=${activeBrandId}`;
+    } else if (provider === "whatsapp") {
+      url = `/api/integrations/whatsapp/connect?brandId=${activeBrandId}`;
+    } else {
+      toast({
+        title: isSpanish ? "Próximamente" : "Coming Soon",
+        description: isSpanish
+          ? `La conexión para ${provider} aún no está disponible.`
+          : `Connection for ${provider} is not available yet.`,
+      });
+      return;
+    }
+
+    // Open OAuth popup
+    const popup = window.open(url, "_blank", "width=600,height=700");
+
+    const timer = setInterval(() => {
+      if (popup?.closed) {
+        clearInterval(timer);
+        window.location.reload();
+      }
+    }, 1000);
+  };
+
+  // Create integration handler
   const handleCreateIntegration = () => {
-    console.log("Simulating integration creation...");
-    setIsDialogOpen(false);
-    setSelectedCategory("");
-    setSelectedProvider("");
-    // En una aplicación real, aquí se llamaría a una API
+    if (
+      !dialogSelectedCategory ||
+      !dialogSelectedProvider ||
+      !newIntegrationStoreName
+    ) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish
+          ? "Por favor, completa todos los campos requeridos."
+          : "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const providerInfo = INTEGRATION_PROVIDERS[dialogSelectedProvider];
+    const newIntegration: Integration = {
+      id: `int_${dialogSelectedProvider}_${Date.now()}`,
+      provider: dialogSelectedProvider,
+      category: dialogSelectedCategory as Integration["category"],
+      storeName: newIntegrationStoreName,
+      isActive: true,
+      syncEnabled: true,
+      createdAt: new Date().toISOString(),
+      settings: newIntegrationFields,
+      storeUrl:
+        newIntegrationFields.siteUrl ||
+        newIntegrationFields.storeUrl ||
+        undefined,
+    };
+
+    setIntegrations((prev) => [...prev, newIntegration]);
+    setIsAddIntegrationDialogOpen(false);
+    setDialogSelectedCategory("");
+    setDialogSelectedProvider("");
+    setNewIntegrationStoreName("");
+    setNewIntegrationFields({});
+    toast({
+      title: isSpanish ? "Integración Creada" : "Integration Created",
+      description: isSpanish
+        ? `${newIntegration.storeName} (${providerInfo.name}) se ha integrado exitosamente.`
+        : `${newIntegration.storeName} (${providerInfo.name}) has been integrated successfully.`,
+    });
   };
 
-  const handleDeleteIntegration = (id: string) => {
-    console.log(`Simulating deletion of integration ${id}`);
-    // En una aplicación real, aquí se llamaría a una API
+  // Delete integration handler
+  const handleDeleteIntegration = async (id: string) => {
+    try {
+      const response = await fetch(`/api/integrations/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        fetchIntegrations();
+        toast({
+          title: isSpanish ? "Integración Eliminada" : "Integration Deleted",
+          description: isSpanish
+            ? "La integración ha sido eliminada."
+            : "The integration has been deleted.",
+        });
+      } else {
+        throw new Error("Failed to delete integration");
+      }
+    } catch (error) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish
+          ? "No se pudo eliminar la integración."
+          : "Failed to delete integration.",
+        variant: "destructive",
+      });
+    }
   };
 
+  // Sync products handler
   const handleSyncProducts = (integrationId: string) => {
-    console.log(`Simulating product sync for integration ${integrationId}`);
-    // En una aplicación real, aquí se llamaría a una API
+    toast({
+      title: isSpanish ? "Sincronización Iniciada" : "Sync Initiated",
+      description: isSpanish
+        ? "La sincronización de productos ha comenzado."
+        : "Product sync has been initiated.",
+    });
   };
 
-  const formatCurrency = (amount: number, currency: string = "USD") => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-    }).format(amount / 100);
-  };
-
+  // Format date helper
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -564,17 +601,9 @@ export default function Integrations() {
     });
   };
 
-  const filteredProviders = selectedCategory
-    ? Object.entries(INTEGRATION_PROVIDERS).filter(
-        ([, info]) => info.category === selectedCategory,
-      )
-    : [];
-
+  // Render integration card
   const renderIntegrationCard = (integration: Integration) => {
-    const providerInfo =
-      INTEGRATION_PROVIDERS[
-        integration.provider as keyof typeof INTEGRATION_PROVIDERS
-      ];
+    const providerInfo = INTEGRATION_PROVIDERS[integration.provider];
     const IconComponent = providerInfo?.icon || Store;
 
     return (
@@ -588,11 +617,13 @@ export default function Integrations() {
           <div>
             <h3 className="font-semibold">{integration.storeName}</h3>
             <p className="text-sm text-muted-foreground">
-              {providerInfo?.name} • {integration.storeUrl || "N/A"}
+              {providerInfo?.name} •{" "}
+              {integration.storeUrl || (isSpanish ? "N/A" : "N/A")}
             </p>
             {integration.lastSyncAt && (
               <p className="text-xs text-muted-foreground">
-                Last sync: {formatDate(integration.lastSyncAt)}
+                {isSpanish ? "Última sincronización:" : "Last sync:"}{" "}
+                {formatDate(integration.lastSyncAt)}
               </p>
             )}
           </div>
@@ -600,7 +631,13 @@ export default function Integrations() {
 
         <div className="flex items-center gap-2">
           <Badge variant={integration.isActive ? "default" : "secondary"}>
-            {integration.isActive ? "Active" : "Inactive"}
+            {integration.isActive
+              ? isSpanish
+                ? "Activo"
+                : "Active"
+              : isSpanish
+                ? "Inactivo"
+                : "Inactive"}
           </Badge>
 
           {(integration.category === "pos" ||
@@ -628,397 +665,457 @@ export default function Integrations() {
     );
   };
 
+  // =====================================================
+  // RENDER
+  // =====================================================
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopHeader pageName="Integrations" />
-      <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <TopHeader pageName={isSpanish ? "Integraciones" : "Integrations"} />
+      <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
         <Sidebar />
 
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative overflow-y-auto focus:outline-none">
-            {/* Ajuste de padding y espacio vertical aquí */}
             <div
               className="container mx-auto px-4 py-8 space-y-8"
               data-testid="integrations-page"
             >
+              {/* Page Header */}
               <div className="flex justify-between items-center">
                 <div>
-                  <h1
-                    className="text-3xl font-bold tracking-tight"
-                    data-testid="page-title"
-                  >
-                    Integrations
+                  <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                    <Plug className="h-8 w-8" />
+                    {isSpanish
+                      ? "Gestión de Integraciones"
+                      : "Integration Management"}
                   </h1>
                   <p className="text-muted-foreground">
-                    Connect various platforms to centralize your data and
-                    automate campaigns.
+                    {isSpanish
+                      ? "Conecta varias plataformas para activar campañas geniales y la creación de contenido."
+                      : "Connect various platforms to activate genius campaign and content creation."}
                   </p>
                 </div>
+              </div>
 
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button data-testid="add-integration-button">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Integration
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                      <DialogTitle>Add New Integration</DialogTitle>
-                      <DialogDescription>
-                        Select a category and provider to connect a new service.
-                      </DialogDescription>
-                    </DialogHeader>
+              {/* Add Integration Dialog */}
+              <Dialog
+                open={isAddIntegrationDialogOpen}
+                onOpenChange={setIsAddIntegrationDialogOpen}
+              >
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {isSpanish
+                        ? "Añadir Nueva Integración"
+                        : "Add New Integration"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {isSpanish
+                        ? "Selecciona un proveedor para conectar un nuevo servicio."
+                        : "Select a provider to connect a new service."}
+                    </DialogDescription>
+                  </DialogHeader>
 
-                    {/* Formulario simplificado sin react-hook-form */}
-                    <div className="space-y-4">
-                      {/* Integration Category Selection */}
+                  <div className="space-y-4">
+                    {/* Category Selection */}
+                    <div>
+                      <Label htmlFor="category-select">
+                        {isSpanish
+                          ? "Categoría de Integración"
+                          : "Integration Category"}
+                      </Label>
+                      <Select
+                        onValueChange={(value: Integration["category"]) => {
+                          setDialogSelectedCategory(value);
+                          setDialogSelectedProvider("");
+                          setNewIntegrationFields({});
+                        }}
+                        value={dialogSelectedCategory}
+                        disabled={!!dialogSelectedCategory}
+                      >
+                        <SelectTrigger
+                          id="category-select"
+                          data-testid="category-select"
+                        >
+                          <SelectValue
+                            placeholder={
+                              isSpanish
+                                ? "Selecciona una categoría"
+                                : "Select a category"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(INTEGRATION_CATEGORIES_DISPLAY).map(
+                            ([key, info]) => (
+                              <SelectItem key={key} value={key}>
+                                <div className="flex items-center gap-2">
+                                  <info.icon className="h-4 w-4" />
+                                  {info.name}
+                                </div>
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Provider Selection */}
+                    {dialogSelectedCategory && (
                       <div>
-                        <Label htmlFor="category-select">
-                          Integration Category
+                        <Label htmlFor="provider-select">
+                          {isSpanish ? "Proveedor" : "Provider"}
                         </Label>
                         <Select
-                          onValueChange={(
-                            value: keyof typeof INTEGRATION_CATEGORIES_DISPLAY,
-                          ) => {
-                            setSelectedCategory(value);
-                            setSelectedProvider("");
+                          onValueChange={(value) => {
+                            setDialogSelectedProvider(value);
+                            setNewIntegrationFields({});
                           }}
-                          value={selectedCategory}
+                          value={dialogSelectedProvider}
+                          disabled={!dialogSelectedCategory}
                         >
                           <SelectTrigger
-                            id="category-select"
-                            data-testid="category-select"
+                            id="provider-select"
+                            data-testid="provider-select"
                           >
-                            <SelectValue placeholder="Select a category" />
+                            <SelectValue
+                              placeholder={
+                                isSpanish
+                                  ? "Selecciona un proveedor"
+                                  : "Select a provider"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
-                            {Object.entries(INTEGRATION_CATEGORIES_DISPLAY).map(
-                              ([key, info]) => (
-                                <SelectItem key={key} value={key}>
-                                  <div className="flex items-center gap-2">
-                                    <info.icon className="h-4 w-4" />
-                                    {info.name}
-                                  </div>
-                                </SelectItem>
-                              ),
-                            )}
+                            {filteredProviders.map(([key, info]) => (
+                              <SelectItem key={key} value={key}>
+                                <div className="flex items-center gap-2">
+                                  <info.icon className="h-4 w-4" />
+                                  {info.name}
+                                </div>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
+                    )}
 
-                      {/* Integration Provider Selection (filtered by category) */}
-                      {selectedCategory && (
+                    {/* Provider Fields */}
+                    {dialogSelectedProvider && (
+                      <>
                         <div>
-                          <Label htmlFor="provider-select">Provider</Label>
-                          <Select
-                            onValueChange={(value) => {
-                              setSelectedProvider(value);
-                            }}
-                            value={selectedProvider}
-                            disabled={!selectedCategory}
-                          >
-                            <SelectTrigger
-                              id="provider-select"
-                              data-testid="provider-select"
-                            >
-                              <SelectValue placeholder="Select a provider" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {filteredProviders.map(([key, info]) => (
-                                <SelectItem key={key} value={key}>
-                                  <div className="flex items-center gap-2">
-                                    <info.icon className="h-4 w-4" />
-                                    {info.name}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-
-                      {selectedProvider && (
-                        <>
-                          <div>
-                            <Label htmlFor="store-name-input">
-                              {INTEGRATION_PROVIDERS[
-                                selectedProvider as keyof typeof INTEGRATION_PROVIDERS
-                              ]?.category === "social_media"
-                                ? "Account Name"
-                                : INTEGRATION_PROVIDERS[
-                                      selectedProvider as keyof typeof INTEGRATION_PROVIDERS
-                                    ]?.category === "crm"
-                                  ? "CRM Instance Name"
+                          <Label htmlFor="store-name-input">
+                            {INTEGRATION_PROVIDERS[dialogSelectedProvider]
+                              ?.category === "social_media"
+                              ? isSpanish
+                                ? "Nombre de la Cuenta"
+                                : "Account Name"
+                              : INTEGRATION_PROVIDERS[dialogSelectedProvider]
+                                    ?.category === "crm"
+                                ? isSpanish
+                                  ? "Nombre de Instancia CRM"
+                                  : "CRM Instance Name"
+                                : isSpanish
+                                  ? "Nombre de Tienda/Sitio"
                                   : "Store/Site Name"}
-                            </Label>
-                            <Input
-                              id="store-name-input"
-                              placeholder={
-                                INTEGRATION_PROVIDERS[
-                                  selectedProvider as keyof typeof INTEGRATION_PROVIDERS
-                                ]?.category === "social_media"
-                                  ? "Your Instagram Account"
-                                  : INTEGRATION_PROVIDERS[
-                                        selectedProvider as keyof typeof INTEGRATION_PROVIDERS
-                                      ]?.category === "crm"
-                                    ? "My Sales CRM"
+                          </Label>
+                          <Input
+                            id="store-name-input"
+                            placeholder={
+                              INTEGRATION_PROVIDERS[dialogSelectedProvider]
+                                ?.category === "social_media"
+                                ? isSpanish
+                                  ? "Tu Cuenta de Instagram"
+                                  : "Your Instagram Account"
+                                : INTEGRATION_PROVIDERS[dialogSelectedProvider]
+                                      ?.category === "crm"
+                                  ? isSpanish
+                                    ? "Mi Instancia CRM de Ventas"
+                                    : "My Sales CRM"
+                                  : isSpanish
+                                    ? "El nombre de tu tienda/sitio"
                                     : "Your store/site name"
-                              }
-                              data-testid="store-name-input"
-                            />
-                          </div>
+                            }
+                            value={newIntegrationStoreName}
+                            onChange={(e) =>
+                              setNewIntegrationStoreName(e.target.value)
+                            }
+                            data-testid="store-name-input"
+                          />
+                        </div>
 
-                          {INTEGRATION_PROVIDERS[
-                            selectedProvider as keyof typeof INTEGRATION_PROVIDERS
-                          ].fields.map((field) => (
+                        {INTEGRATION_PROVIDERS[dialogSelectedProvider].fields.map(
+                          (field) => (
                             <div key={field.name}>
                               <Label htmlFor={`${field.name}-input`}>
                                 {field.label}
                               </Label>
-                              <Input
-                                id={`${field.name}-input`}
-                                type={field.type}
-                                placeholder={field.placeholder || ""}
-                                data-testid={`${field.name}-input`}
-                              />
-                            </div>
-                          ))}
-                        </>
-                      )}
-
-                      <div className="flex justify-end gap-2 pt-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsDialogOpen(false);
-                            setSelectedCategory("");
-                            setSelectedProvider("");
-                          }}
-                          data-testid="cancel-button"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={handleCreateIntegration}
-                          disabled={!selectedProvider}
-                          data-testid="create-integration-button"
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Create Integration
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              {/* Render Integrations by Category */}
-              {Object.entries(INTEGRATION_CATEGORIES_DISPLAY).map(
-                ([categoryKey, categoryInfo]) => (
-                  <Card key={categoryKey}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <categoryInfo.icon className="h-5 w-5" />
-                        {categoryInfo.name}
-                      </CardTitle>
-                      <CardDescription>
-                        {categoryInfo.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {integrationsLoading ? (
-                        <div className="flex justify-center py-8">
-                          <Loader2 className="h-8 w-8 animate-spin" />
-                        </div>
-                      ) : (
-                        (() => {
-                          const integrationsInCategory =
-                            dummyIntegrations.filter(
-                              // Usando dummy data
-                              (integration) =>
-                                integration.category === categoryKey,
-                            );
-                          return integrationsInCategory.length === 0 ? (
-                            <div className="text-center py-8 text-muted-foreground">
-                              <categoryInfo.icon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                              <p>
-                                No {categoryInfo.name.toLowerCase()} connected
-                                yet
-                              </p>
-                              <p className="text-sm">
-                                Add your first{" "}
-                                {categoryInfo.name
-                                  .toLowerCase()
-                                  .replace("integrations", "integration")}{" "}
-                                to get started.
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="grid gap-4">
-                              {integrationsInCategory.map(
-                                renderIntegrationCard,
-                              )}
-                            </div>
-                          );
-                        })()
-                      )}
-                    </CardContent>
-                  </Card>
-                ),
-              )}
-
-              {/* Leadboost CRM Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building className="h-5 w-5" />
-                    Leadboost CRM
-                  </CardTitle>
-                  <CardDescription>
-                    Don't have a CRM? Use Leadboost's powerful CRM to manage
-                    your customers and leads.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-6 w-6 text-green-500" />
-                    <p className="text-lg font-semibold">Only $29 USD/month</p>
-                  </div>
-                  <Button
-                    onClick={() =>
-                      window.open(
-                        "https://www.leadboost.com/crm-signup",
-                        "_blank",
-                      )
-                    }
-                  >
-                    Learn More & Subscribe
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Products and Transactions Grid (still relevant for POS/E-commerce data) */}
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Products */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Synced Products</CardTitle>
-                    <CardDescription>
-                      Products imported from your connected POS and E-commerce
-                      systems
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {productsLoading ? (
-                      <div className="flex justify-center py-4">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                      </div>
-                    ) : dummyProducts.length === 0 ? ( // Usando dummy data
-                      <p className="text-center text-muted-foreground py-4">
-                        No products synced yet
-                      </p>
-                    ) : (
-                      <div className="space-y-3 max-h-64 overflow-y-auto">
-                        {dummyProducts.slice(0, 10).map((product: Product) => (
-                          <div
-                            key={product.id}
-                            className="flex items-center justify-between p-3 border rounded"
-                            data-testid={`product-${product.id}`}
-                          >
-                            <div className="flex-1">
-                              <h4 className="font-medium text-sm">
-                                {product.name}
-                              </h4>
-                              <p className="text-xs text-muted-foreground">
-                                {product.sku} • {product.category}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-medium text-sm">
-                                {formatCurrency(
-                                  product.price,
-                                  product.currency,
-                                )}
-                              </p>
-                              {product.stockQuantity !== null && (
-                                <p className="text-xs text-muted-foreground">
-                                  Stock: {product.stockQuantity}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Recent Transactions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Transactions</CardTitle>
-                    <CardDescription>
-                      Latest sales from your connected POS and E-commerce
-                      systems
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {transactionsLoading ? (
-                      <div className="flex justify-center py-4">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                      </div>
-                    ) : dummyTransactions.length === 0 ? ( // Usando dummy data
-                      <p className="text-center text-muted-foreground py-4">
-                        No transactions synced yet
-                      </p>
-                    ) : (
-                      <div className="space-y-3 max-h-64 overflow-y-auto">
-                        {dummyTransactions
-                          .slice(0, 10)
-                          .map((transaction: SalesTransaction) => (
-                            <div
-                              key={transaction.id}
-                              className="flex items-center justify-between p-3 border rounded"
-                              data-testid={`transaction-${transaction.id}`}
-                            >
-                              <div className="flex-1">
-                                <h4 className="font-medium text-sm">
-                                  {transaction.customerName || "Guest Customer"}
-                                </h4>
-                                <p className="text-xs text-muted-foreground">
-                                  {transaction.paymentMethod} •{" "}
-                                  {formatDate(transaction.transactionDate)}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-medium text-sm">
-                                  {formatCurrency(
-                                    transaction.totalAmount,
-                                    transaction.currency,
-                                  )}
-                                </p>
-                                <Badge
-                                  variant={
-                                    transaction.status === "completed"
-                                      ? "default"
-                                      : "secondary"
+                              {field.type === "select" ? (
+                                <Select
+                                  value={newIntegrationFields[field.name] || ""}
+                                  onValueChange={(val) =>
+                                    setNewIntegrationFields((prev) => ({
+                                      ...prev,
+                                      [field.name]: val,
+                                    }))
                                   }
-                                  className="text-xs"
                                 >
-                                  {transaction.status}
-                                </Badge>
-                              </div>
+                                  <SelectTrigger id={`${field.name}-input`}>
+                                    <SelectValue
+                                      placeholder={field.placeholder || ""}
+                                    />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {field.options?.map((opt) => (
+                                      <SelectItem
+                                        key={opt.value}
+                                        value={opt.value}
+                                      >
+                                        {opt.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <Input
+                                  id={`${field.name}-input`}
+                                  type={field.type}
+                                  placeholder={field.placeholder || ""}
+                                  value={newIntegrationFields[field.name] || ""}
+                                  onChange={(e) =>
+                                    setNewIntegrationFields((prev) => ({
+                                      ...prev,
+                                      [field.name]: e.target.value,
+                                    }))
+                                  }
+                                />
+                              )}
                             </div>
-                          ))}
-                      </div>
+                          ),
+                        )}
+                      </>
                     )}
-                  </CardContent>
-                </Card>
-              </div>
+
+                    {/* Dialog Actions */}
+                    <div className="flex justify-end gap-2 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsAddIntegrationDialogOpen(false);
+                          setDialogSelectedCategory("");
+                          setDialogSelectedProvider("");
+                          setNewIntegrationStoreName("");
+                          setNewIntegrationFields({});
+                        }}
+                        data-testid="cancel-button"
+                      >
+                        {isSpanish ? "Cancelar" : "Cancel"}
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleCreateIntegration}
+                        disabled={
+                          !dialogSelectedProvider || !newIntegrationStoreName
+                        }
+                        data-testid="create-integration-button"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        {isSpanish ? "Crear Integración" : "Create Integration"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Integrations by Category (Accordion) */}
+              <Accordion type="multiple" defaultValue={["social_media"]}>
+                {Object.entries(INTEGRATION_CATEGORIES_DISPLAY).map(
+                  ([categoryKey, categoryInfo]) => (
+                    <AccordionItem key={categoryKey} value={categoryKey}>
+                      <AccordionTrigger>
+                        <div className="flex items-center gap-2 py-2">
+                          <categoryInfo.icon className="h-5 w-5" />
+                          <span className="text-lg font-semibold">
+                            {categoryInfo.name}
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <Card className="border-none shadow-none">
+                          <CardHeader className="pt-0">
+                            <CardDescription>
+                              {categoryInfo.description}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            {integrationsLoading ? (
+                              <div className="flex justify-center py-8">
+                                <Loader2 className="h-8 w-8 animate-spin" />
+                              </div>
+                            ) : (
+                              (() => {
+                                const integrationsInCategory =
+                                  integrations.filter(
+                                    (integration) =>
+                                      integration.category === categoryKey,
+                                  );
+
+                                if (categoryKey === "social_media") {
+                                  return (
+                                    <>
+                                      <h3 className="text-lg font-semibold mb-4">
+                                        {isSpanish
+                                          ? "Plataformas de Redes Sociales Disponibles"
+                                          : "Available Social Media Platforms"}
+                                      </h3>
+                                      <div className="space-y-4 mb-8">
+                                        {Object.entries(INTEGRATION_PROVIDERS)
+                                          .filter(
+                                            ([, info]) =>
+                                              info.category === "social_media",
+                                          )
+                                          .map(([providerKey, providerInfo]) => {
+                                            const connectedIntegration =
+                                              integrations.find(
+                                                (int) =>
+                                                  int.provider ===
+                                                    providerKey && int.isActive,
+                                              );
+
+                                            const Icon = providerInfo.icon;
+
+                                            return (
+                                              <div
+                                                key={providerKey}
+                                                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition"
+                                                data-testid={`provider-${providerKey}`}
+                                              >
+                                                <div className="flex items-center gap-3">
+                                                  <Icon className="h-8 w-8 text-primary" />
+                                                  <div>
+                                                    <h3 className="font-semibold">
+                                                      {providerInfo.name}
+                                                    </h3>
+                                                    <p className="text-sm text-muted-foreground">
+                                                      {providerInfo.description}
+                                                    </p>
+                                                    {connectedIntegration && (
+                                                      <p className="text-xs text-green-600 mt-1">
+                                                        ✅{" "}
+                                                        {isSpanish
+                                                          ? "Conectado como"
+                                                          : "Connected as"}{" "}
+                                                        {connectedIntegration.accountName ||
+                                                          connectedIntegration.storeName}
+                                                      </p>
+                                                    )}
+                                                  </div>
+                                                </div>
+
+                                                {connectedIntegration ? (
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                      handleDeleteIntegration(
+                                                        connectedIntegration.id,
+                                                      )
+                                                    }
+                                                    className="text-red-600 border-red-400 hover:bg-red-50"
+                                                    data-testid={`disconnect-${providerKey}`}
+                                                  >
+                                                    {isSpanish
+                                                      ? "Desconectar"
+                                                      : "Disconnect"}
+                                                  </Button>
+                                                ) : (
+                                                  <Button
+                                                    size="sm"
+                                                    onClick={() =>
+                                                      handleConnect(providerKey)
+                                                    }
+                                                    data-testid={`connect-${providerKey}`}
+                                                  >
+                                                    {isSpanish
+                                                      ? "Conectar"
+                                                      : "Connect"}
+                                                  </Button>
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                      </div>
+                                    </>
+                                  );
+                                } else {
+                                  return integrationsInCategory.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                      <categoryInfo.icon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                      <p>
+                                        {isSpanish
+                                          ? `No hay integraciones de ${categoryInfo.name.toLowerCase()} conectadas aún.`
+                                          : `No ${categoryInfo.name.toLowerCase()} connected yet.`}
+                                      </p>
+                                      <p className="text-sm">
+                                        {isSpanish
+                                          ? `Añade tu primera integración de ${categoryInfo.name.toLowerCase().replace("integrations", "integration")} para empezar.`
+                                          : `Add your first ${categoryInfo.name.toLowerCase().replace("integrations", "integration")} to get started.`}
+                                      </p>
+                                      <Button
+                                        className="mt-4"
+                                        onClick={() => {
+                                          setDialogSelectedCategory(
+                                            categoryKey as Integration["category"],
+                                          );
+                                          setIsAddIntegrationDialogOpen(true);
+                                        }}
+                                        data-testid={`add-${categoryKey}-integration`}
+                                      >
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        {isSpanish
+                                          ? "Añadir Integración"
+                                          : "Add Integration"}
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-4">
+                                      {integrationsInCategory.map((int) =>
+                                        renderIntegrationCard(int),
+                                      )}
+                                      <Button
+                                        variant="outline"
+                                        className="mt-4"
+                                        onClick={() => {
+                                          setDialogSelectedCategory(
+                                            categoryKey as Integration["category"],
+                                          );
+                                          setIsAddIntegrationDialogOpen(true);
+                                        }}
+                                        data-testid={`add-another-${categoryKey}-integration`}
+                                      >
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        {isSpanish
+                                          ? "Añadir Otra"
+                                          : "Add Another"}
+                                      </Button>
+                                    </div>
+                                  );
+                                }
+                              })()
+                            )}
+                          </CardContent>
+                        </Card>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ),
+                )}
+              </Accordion>
             </div>
+
+            {/* Help AI Chatbot */}
+            <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
           </main>
         </div>
       </div>

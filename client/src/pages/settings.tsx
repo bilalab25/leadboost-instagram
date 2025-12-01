@@ -13,34 +13,14 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  CreditCard,
   Wallet,
   User,
-  Settings as SettingsIcon,
-  Save,
-  Plug, // New icon for Integrations
-  Bell, // New icon for Notifications
-  Mail, // Example icon for Mailchimp
-  Store, // For POS Integrations
-  ShoppingBag, // For E-commerce Integrations
-  Globe, // For WooCommerce
-  Instagram, // For Social Media
-  Facebook, // For Social Media
-  Youtube, // For Social Media
-  LayoutGrid, // For Wix
-  Link, // For Custom Website
-  BriefcaseBusiness, // For CRM
-  Share2, // For TikTok
-  Twitter, // Para X (anteriormente Twitter)
-  MessageSquareText, // Para Threads (icono genérico)
-  Camera,
-  MessageCircle, // Para WhatsApp
-  Building2, // For Brands
+  Bell,
+  Building2,
 } from "lucide-react";
 import AccountTab from "@/components/settings/AccountTab";
 import PaymentMethodTab from "@/components/settings/PaymentMethodsTab";
 import HelpChatbot from "@/components/HelpChatbot";
-import IntegrationsTab from "@/components/settings/IntegrationsTab";
 import BrandsTab from "@/components/settings/BrandsTab";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -49,8 +29,6 @@ import {
   reauthenticateWithCredential,
   updatePassword,
 } from "firebase/auth";
-import { useQuery } from "@tanstack/react-query";
-import { useBrand } from "@/contexts/BrandContext";
 
 // --- Interfaces (solo para tipado de datos simulados) ---
 interface PaymentMethod {
@@ -70,60 +48,6 @@ interface SubscriptionDetails {
   status: "active" | "canceled" | "paused";
 }
 
-interface Integration {
-  id: string;
-  provider: string;
-  category: "pos" | "ecommerce" | "social_media" | "crm";
-  storeName: string;
-  storeUrl?: string;
-  isActive: boolean;
-  syncEnabled: boolean;
-  lastSyncAt?: string;
-  settings?: any;
-  createdAt: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  currency: string;
-  sku?: string;
-  category?: string;
-  imageUrl?: string;
-  isActive: boolean;
-  stockQuantity?: number;
-}
-
-interface SalesTransaction {
-  id: string;
-  transactionId: string;
-  customerName?: string;
-  customerEmail?: string;
-  totalAmount: number;
-  currency: string;
-  status: string;
-  paymentMethod?: string;
-  transactionDate: string;
-}
-
-interface IntegrationField {
-  name: string;
-  label: string;
-  type: string;
-  required: boolean;
-  placeholder?: string;
-}
-
-interface ProviderInfo {
-  name: string;
-  icon: React.ElementType;
-  description: string;
-  category: "pos" | "ecommerce" | "social_media" | "crm";
-  fields: IntegrationField[];
-}
-
 interface NotificationSettings {
   email: {
     newMessage: boolean;
@@ -139,385 +63,6 @@ interface NotificationSettings {
     promotional: boolean;
   };
 }
-
-// --- Provider Info ---
-const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
-  // POS Integrations
-  square: {
-    name: "Square",
-    icon: CreditCard,
-    description: "Point of sale and payment processing",
-    category: "pos",
-    fields: [
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-      {
-        name: "applicationId",
-        label: "Application ID",
-        type: "text",
-        required: false,
-        placeholder: "Optional ID",
-      },
-    ],
-  },
-  stripe: {
-    name: "Stripe",
-    icon: CreditCard,
-    description: "Online payment processing",
-    category: "pos",
-    fields: [
-      {
-        name: "secretKey",
-        label: "Secret Key",
-        type: "password",
-        required: true,
-        placeholder: "sk_...",
-      },
-      {
-        name: "publishableKey",
-        label: "Publishable Key",
-        type: "text",
-        required: false,
-        placeholder: "pk_...",
-      },
-    ],
-  },
-
-  // E-commerce/Website Integrations
-  shopify: {
-    name: "Shopify",
-    icon: ShoppingBag,
-    description: "E-commerce platform",
-    category: "ecommerce",
-    fields: [
-      {
-        name: "storeUrl",
-        label: "Store URL",
-        type: "text",
-        required: true,
-        placeholder: "your-store.myshopify.com",
-      },
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-      { name: "apiKey", label: "API Key", type: "text", required: false },
-    ],
-  },
-  woocommerce: {
-    name: "WooCommerce",
-    icon: Globe,
-    description: "WordPress e-commerce plugin",
-    category: "ecommerce",
-    fields: [
-      {
-        name: "siteUrl",
-        label: "Site URL",
-        type: "text",
-        required: true,
-        placeholder: "https://yourstore.com",
-      },
-      {
-        name: "consumerKey",
-        label: "Consumer Key",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "consumerSecret",
-        label: "Consumer Secret",
-        type: "password",
-        required: true,
-      },
-    ],
-  },
-  wix: {
-    name: "Wix",
-    icon: LayoutGrid,
-    description: "Website builder and e-commerce platform",
-    category: "ecommerce",
-    fields: [
-      {
-        name: "siteUrl",
-        label: "Site URL",
-        type: "text",
-        required: true,
-        placeholder: "https://yourwixsite.com",
-      },
-      { name: "apiKey", label: "API Key", type: "password", required: true },
-    ],
-  },
-  custom_website: {
-    name: "Custom Website",
-    icon: Link,
-    description: "Integrate with a custom website via API",
-    category: "ecommerce",
-    fields: [
-      {
-        name: "siteUrl",
-        label: "Website URL",
-        type: "text",
-        required: true,
-        placeholder: "https://yourwebsite.com",
-      },
-      { name: "apiKey", label: "API Key", type: "password", required: true },
-      {
-        name: "apiEndpoint",
-        label: "API Endpoint",
-        type: "text",
-        required: false,
-        placeholder: "/api/v1/data",
-      },
-    ],
-  },
-
-  // Social Media Integrations
-  instagram: {
-    name: "Instagram",
-    icon: Instagram,
-    description: "Connect your Instagram account for posts and analytics",
-    category: "social_media",
-    fields: [
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-      {
-        name: "userId",
-        label: "User ID",
-        type: "text",
-        required: false,
-        placeholder: "Optional User ID",
-      },
-    ],
-  },
-  facebook: {
-    name: "Facebook",
-    icon: Facebook,
-    description: "Connect your Facebook Page for posts and insights",
-    category: "social_media",
-    fields: [
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-      {
-        name: "pageId",
-        label: "Page ID",
-        type: "text",
-        required: false,
-        placeholder: "Optional Page ID",
-      },
-    ],
-  },
-  /*  tiktok: {
-    name: "TikTok",
-    icon: Share2, // Reemplazado por Share2
-    description: "Connect your TikTok account for content scheduling",
-    category: "social_media",
-    fields: [
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-    ],
-  }, */
-  /*   email: {
-    name: "Email",
-    icon: Mail,
-    description: "Connect your email account (Gmail, Outlook, etc.)",
-    category: "social_media",
-    fields: [
-      {
-        name: "provider",
-        label: "Email Provider",
-        type: "select", // 👈 Nuevo: un select dentro del modal
-        required: true,
-        placeholder: "Choose provider",
-        options: [
-          { value: "gmail", label: "Gmail" },
-          { value: "outlook", label: "Outlook" },
-          { value: "yahoo", label: "Yahoo" }, // 👈 puedes agregar más
-        ],
-      },
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-      {
-        name: "channelId",
-        label: "Channel ID",
-        type: "text",
-        required: false,
-        placeholder: "Optional Channel ID",
-      },
-    ],
-  }, */
-  /*  youtube: {
-    name: "YouTube",
-    icon: Youtube,
-    description: "Connect your YouTube channel for video management",
-    category: "social_media",
-    fields: [
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-      {
-        name: "channelId",
-        label: "Channel ID",
-        type: "text",
-        required: false,
-        placeholder: "Optional Channel ID",
-      },
-    ],
-  }, */
-  /*   x: {
-    // Nueva plataforma de redes sociales
-    name: "X (Twitter)",
-    icon: Twitter,
-    description:
-      "Connect your X (formerly Twitter) account for posts and engagement.",
-    category: "social_media",
-    fields: [
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-      { name: "apiKey", label: "API Key", type: "text", required: true },
-      {
-        name: "apiSecret",
-        label: "API Secret",
-        type: "password",
-        required: true,
-      },
-    ],
-  }, */
-  threads: {
-    name: "Threads",
-    icon: MessageSquareText,
-    description: "Manage messages and posts on Threads (linked to Instagram)",
-    category: "social_media",
-    fields: [],
-  },
-  whatsapp: {
-    name: "WhatsApp Business",
-    icon: MessageCircle,
-    description: "Send and receive messages using WhatsApp Cloud API",
-    category: "social_media",
-    fields: [],
-  },
-  /* snapchat: {
-    // Nueva plataforma de redes sociales
-    name: "Snapchat",
-    icon: Camera, // Usando un icono genérico de lucide-react
-    description: "Connect your Snapchat account for campaigns and analytics.",
-    category: "social_media",
-    fields: [
-      {
-        name: "accessToken",
-        label: "Access Token",
-        type: "password",
-        required: true,
-      },
-    ],
-  }, */
-
-  // CRM Integrations
-  hubspot: {
-    name: "HubSpot",
-    icon: BriefcaseBusiness,
-    description: "Connect your HubSpot CRM to manage leads and customers",
-    category: "crm",
-    fields: [
-      { name: "apiKey", label: "API Key", type: "password", required: true },
-    ],
-  },
-  salesforce: {
-    name: "Salesforce",
-    icon: BriefcaseBusiness, // Using generic icon
-    description:
-      "Connect your Salesforce CRM for comprehensive customer management",
-    category: "crm",
-    fields: [
-      { name: "clientId", label: "Client ID", type: "text", required: true },
-      {
-        name: "clientSecret",
-        label: "Client Secret",
-        type: "password",
-        required: true,
-      },
-    ],
-  },
-  zoho_crm: {
-    name: "Zoho CRM",
-    icon: BriefcaseBusiness, // Using generic icon
-    description: "Integrate with Zoho CRM to streamline sales and marketing",
-    category: "crm",
-    fields: [
-      { name: "clientId", label: "Client ID", type: "text", required: true },
-      {
-        name: "clientSecret",
-        label: "Client Secret",
-        type: "password",
-        required: true,
-      },
-      {
-        name: "refreshToken",
-        label: "Refresh Token",
-        type: "password",
-        required: true,
-      },
-    ],
-  },
-};
-
-// Define categories for display and filtering
-const INTEGRATION_CATEGORIES_DISPLAY: Record<
-  Integration["category"],
-  { name: string; icon: React.ElementType; description: string }
-> = {
-  social_media: {
-    name: "Social Media Accounts",
-    icon: Instagram,
-    description:
-      "Connect your social media profiles to manage content and engagement.",
-  },
-  pos: {
-    name: "POS Integrations",
-    icon: Store,
-    description: "Connect your point-of-sale systems to sync sales data.",
-  },
-  ecommerce: {
-    name: "Website & E-commerce",
-    icon: ShoppingBag,
-    description:
-      "Integrate your website or online store for product and order management.",
-  },
-  crm: {
-    name: "CRM Systems",
-    icon: BriefcaseBusiness,
-    description: "Link your CRM to centralize customer data and interactions.",
-  },
-};
 
 // --- Dummy Data for UI Preview ---
 const dummyAccountInfo = {
@@ -557,133 +102,6 @@ const dummySubscription: SubscriptionDetails = {
   status: "active",
 };
 
-const dummyIntegrations: Integration[] = [
-  {
-    id: "int_shopify_1",
-    provider: "shopify",
-    category: "ecommerce",
-    storeName: "My Shopify Store",
-    storeUrl: "myshop.myshopify.com",
-    isActive: true,
-    syncEnabled: true,
-    lastSyncAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "int_square_1",
-    provider: "square",
-    category: "pos",
-    storeName: "Main Street Cafe POS",
-    isActive: true,
-    syncEnabled: true,
-    lastSyncAt: new Date(Date.now() - 3600000).toISOString(),
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "int_instagram_1",
-    provider: "instagram",
-    category: "social_media",
-    storeName: "@MyBrandOfficial",
-    isActive: true,
-    syncEnabled: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "int_hubspot_1",
-    provider: "hubspot",
-    category: "crm",
-    storeName: "Leadboost CRM Instance",
-    isActive: true,
-    syncEnabled: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "int_wix_1",
-    provider: "wix",
-    category: "ecommerce",
-    storeName: "My Portfolio Site",
-    storeUrl: "myportfolio.wixsite.com",
-    isActive: true,
-    syncEnabled: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "int_x_1",
-    provider: "x",
-    category: "social_media",
-    storeName: "@MyBrandX",
-    isActive: true,
-    syncEnabled: true,
-    createdAt: new Date().toISOString(),
-  },
-];
-
-const dummyProducts: Product[] = [
-  {
-    id: "prod_1",
-    name: "Organic Coffee Beans",
-    price: 1500,
-    currency: "USD",
-    sku: "OCB001",
-    category: "Coffee",
-    isActive: true,
-    stockQuantity: 120,
-  },
-  {
-    id: "prod_2",
-    name: "Espresso Machine",
-    price: 35000,
-    currency: "USD",
-    sku: "ESPMCH01",
-    category: "Equipment",
-    isActive: true,
-    stockQuantity: 15,
-  },
-  {
-    id: "prod_3",
-    name: "Ceramic Mug",
-    price: 800,
-    currency: "USD",
-    sku: "CMUG005",
-    category: "Merchandise",
-    isActive: true,
-    stockQuantity: 300,
-  },
-];
-
-const dummyTransactions: SalesTransaction[] = [
-  {
-    id: "trans_1",
-    transactionId: "TXN12345",
-    customerName: "Alice Smith",
-    totalAmount: 2300,
-    currency: "USD",
-    status: "completed",
-    paymentMethod: "Card",
-    transactionDate: new Date().toISOString(),
-  },
-  {
-    id: "trans_2",
-    transactionId: "TXN12346",
-    customerName: "Bob Johnson",
-    totalAmount: 1500,
-    currency: "USD",
-    status: "completed",
-    paymentMethod: "Cash",
-    transactionDate: new Date(Date.now() - 60000).toISOString(),
-  },
-  {
-    id: "trans_3",
-    transactionId: "TXN12347",
-    customerName: "Guest",
-    totalAmount: 800,
-    currency: "USD",
-    status: "pending",
-    paymentMethod: "Card",
-    transactionDate: new Date(Date.now() - 120000).toISOString(),
-  },
-];
-
 const initialNotificationSettings: NotificationSettings = {
   email: {
     newMessage: true,
@@ -701,12 +119,9 @@ const initialNotificationSettings: NotificationSettings = {
 };
 
 export default function Settings() {
-  const { activeBrandId } = useBrand();
-  const { isSpanish, toggleLanguage } = useLanguage(); // Assuming useLanguage hook is available
-  const { toast } = useToast(); // Assuming useToast hook is available
+  const { isSpanish, toggleLanguage } = useLanguage();
+  const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const [integrations, setIntegrations] = useState<Integration[]>([]);
-  const [integrationsLoading, setIntegrationsLoading] = useState(false);
   // States para Payment Methods
   const [paymentMethods, setPaymentMethods] =
     useState<PaymentMethod[]>(dummyPaymentMethods);
@@ -731,20 +146,6 @@ export default function Settings() {
     dummyAccountInfo.twoFactorAuthEnabled,
   );
 
-  const [isAddIntegrationDialogOpen, setIsAddIntegrationDialogOpen] =
-    useState(false);
-  const [dialogSelectedCategory, setDialogSelectedCategory] = useState<
-    Integration["category"] | ""
-  >("");
-  const [dialogSelectedProvider, setDialogSelectedProvider] =
-    useState<string>("");
-  const [newIntegrationStoreName, setNewIntegrationStoreName] = useState("");
-  const [newIntegrationFields, setNewIntegrationFields] = useState<{
-    [key: string]: string;
-  }>({});
-  const productsLoading = false; // Dummy loading state
-  const transactionsLoading = false; // Dummy loading state
-
   // States para Notifications
   const [notificationSettings, setNotificationSettings] =
     useState<NotificationSettings>(initialNotificationSettings);
@@ -752,7 +153,6 @@ export default function Settings() {
   // --- Funciones Dummy (simulan acciones sin backend) ---
   const handleSaveSettings = () => {
     console.log("Simulating saving settings...");
-    // En una app real, aquí se enviarían todos los estados a la API
     console.log({
       userName,
       userEmail,
@@ -761,7 +161,6 @@ export default function Settings() {
       twoFactorAuthEnabled,
       paymentMethods,
       currentSubscription,
-      integrations,
       notificationSettings,
     });
     toast({
@@ -1027,91 +426,6 @@ export default function Settings() {
     // En una app real, esto requeriría confirmación y lógica de backend
   };
 
-  const handleCreateIntegration = () => {
-    if (
-      !dialogSelectedCategory ||
-      !dialogSelectedProvider ||
-      !newIntegrationStoreName
-    ) {
-      toast({
-        title: isSpanish ? "Error" : "Error",
-        description: isSpanish
-          ? "Por favor, completa todos los campos requeridos."
-          : "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const providerInfo = INTEGRATION_PROVIDERS[dialogSelectedProvider];
-    const newIntegration: Integration = {
-      id: `int_${dialogSelectedProvider}_${Date.now()}`,
-      provider: dialogSelectedProvider,
-      category: dialogSelectedCategory as Integration["category"],
-      storeName: newIntegrationStoreName,
-      isActive: true,
-      syncEnabled: true,
-      createdAt: new Date().toISOString(),
-      settings: newIntegrationFields,
-      storeUrl:
-        newIntegrationFields.siteUrl ||
-        newIntegrationFields.storeUrl ||
-        undefined, // Capture storeUrl if present in fields
-    };
-
-    setIntegrations((prev) => [...prev, newIntegration]);
-    setIsAddIntegrationDialogOpen(false);
-    setDialogSelectedCategory("");
-    setDialogSelectedProvider("");
-    setNewIntegrationStoreName("");
-    setNewIntegrationFields({});
-    toast({
-      title: isSpanish ? "Integración Creada" : "Integration Created",
-      description: isSpanish
-        ? `${newIntegration.storeName} (${providerInfo.name}) se ha integrado exitosamente.`
-        : `${newIntegration.storeName} (${providerInfo.name}) has been integrated successfully.`,
-    });
-  };
-
-  const handleDeleteIntegration = async (id: string) => {
-    try {
-      const response = await fetch(`/api/integrations/${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        // Refetch integrations after deletion
-        refetchIntegrations();
-        toast({
-          title: isSpanish ? "Integración Eliminada" : "Integration Deleted",
-          description: isSpanish
-            ? "La integración ha sido eliminada."
-            : "The integration has been deleted.",
-        });
-      } else {
-        throw new Error("Failed to delete integration");
-      }
-    } catch (error) {
-      toast({
-        title: isSpanish ? "Error" : "Error",
-        description: isSpanish
-          ? "No se pudo eliminar la integración."
-          : "Failed to delete integration.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSyncProducts = (integrationId: string) => {
-    console.log(`Simulating product sync for integration ${integrationId}`);
-    toast({
-      title: isSpanish ? "Sincronización Iniciada" : "Sync Initiated",
-      description: isSpanish
-        ? "La sincronización de productos ha comenzado."
-        : "Product sync has been initiated.",
-    });
-  };
-
   const handleNotificationToggle = (
     category: keyof NotificationSettings,
     type: keyof NotificationSettings[keyof NotificationSettings],
@@ -1132,20 +446,6 @@ export default function Settings() {
     });
   };
 
-  // --- Funciones de Formato ---
-  const formatCurrency = (amount: number, currency: string = "USD") => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-    }).format(amount / 100);
-  };
-
-  const filteredProviders = dialogSelectedCategory
-    ? Object.entries(INTEGRATION_PROVIDERS).filter(
-        ([, info]) => info.category === dialogSelectedCategory,
-      )
-    : [];
-
   useEffect(() => {
     if (isAuthenticated && user) {
       console.log("User data:", user);
@@ -1164,32 +464,6 @@ export default function Settings() {
       setUserAddress(user.address || "");
     }
   }, [user]);
-
-  useEffect(() => {
-    if (!activeBrandId) return;
-    const fetchIntegrations = async () => {
-      try {
-        setIntegrationsLoading(true);
-        const res = await fetch(`/api/integrations?brandId=${activeBrandId}`);
-        if (!res.ok) throw new Error("Failed to fetch integrations");
-
-        const data = await res.json();
-        console.log("🔌 Integrations fetched:", data);
-
-        // ✅ Guardar en el estado que ya definiste con React Query
-        if (Array.isArray(data)) {
-          // Esto actualiza tu cache react-query automáticamente
-          setIntegrations(data);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching integrations:", error);
-      } finally {
-        setIntegrationsLoading(false);
-      }
-    };
-
-    fetchIntegrations();
-  }, [activeBrandId]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1215,7 +489,7 @@ export default function Settings() {
               </div>
 
               <Tabs defaultValue="account-information" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger
                     value="account-information"
                     data-testid="tab-account-information"
@@ -1233,13 +507,6 @@ export default function Settings() {
                   >
                     <Wallet className="mr-2 h-4 w-4" />
                     {isSpanish ? "Pagos" : "Payment Methods"}
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="integrations"
-                    data-testid="tab-integrations"
-                  >
-                    <Plug className="mr-2 h-4 w-4" />
-                    {isSpanish ? "Integraciones" : "Integrations"}
                   </TabsTrigger>
                   <TabsTrigger
                     value="notifications"
@@ -1302,38 +569,6 @@ export default function Settings() {
                     }
                     handleChangeSubscriptionPlan={handleChangeSubscriptionPlan}
                     handleCancelSubscription={handleCancelSubscription}
-                  />
-                </TabsContent>
-
-                {/* Integrations Tab */}
-                <TabsContent
-                  value="integrations"
-                  className="space-y-6"
-                  style={{ padding: "2rem" }}
-                >
-                  <IntegrationsTab
-                    isAddIntegrationDialogOpen={isAddIntegrationDialogOpen}
-                    setIsAddIntegrationDialogOpen={
-                      setIsAddIntegrationDialogOpen
-                    }
-                    setDialogSelectedCategory={setDialogSelectedCategory}
-                    setDialogSelectedProvider={setDialogSelectedProvider}
-                    setNewIntegrationStoreName={setNewIntegrationStoreName}
-                    setNewIntegrationFields={setNewIntegrationFields}
-                    handleCreateIntegration={handleCreateIntegration}
-                    dialogSelectedCategory={dialogSelectedCategory}
-                    dialogSelectedProvider={dialogSelectedProvider}
-                    filteredProviders={filteredProviders}
-                    newIntegrationStoreName={newIntegrationStoreName}
-                    newIntegrationFields={newIntegrationFields}
-                    integrations={integrations}
-                    INTEGRATION_CATEGORIES_DISPLAY={
-                      INTEGRATION_CATEGORIES_DISPLAY
-                    }
-                    INTEGRATION_PROVIDERS={INTEGRATION_PROVIDERS}
-                    integrationsLoading={integrationsLoading}
-                    handleDeleteIntegration={handleDeleteIntegration}
-                    handleSyncProducts={handleSyncProducts}
                   />
                 </TabsContent>
 
