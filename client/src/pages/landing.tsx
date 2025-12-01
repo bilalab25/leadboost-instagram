@@ -57,6 +57,7 @@ import boostyVideo from "@assets/Video_de_Boosty_Saludando_1764171160244.mp4";
 import boostyLoopVideo from "@assets/Boosty_Mascot_Looping_Animation_1764605997237.mp4";
 import boostyWavingVideo from "@assets/Boosty_Mascot_Waving_Video_Generation_1764607325012.mp4";
 import boostyNewVideo from "@assets/202512011048_1764608229868.mp4";
+import boostyLoopVideo2 from "@assets/Boosty_Mascot_Looping_Animation_1764608756145.mp4";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
@@ -445,10 +446,40 @@ export default function Landing() {
         className="relative py-12 lg:py-20 overflow-hidden"
         style={{ backgroundColor: "#FFFFFF" }}
       >
-        {/* Boosty Video - Full Width (behind decorative elements) */}
-        <div className="w-full flex justify-center relative">
+        {/* Trust indicators above video */}
+        <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10 mb-8 px-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">
+                {isSpanish ? "Impulsado por IA" : "Powered by AI"}
+              </div>
+              <div className="text-xs text-gray-500">
+                {isSpanish ? "Modelo líder" : "Leading AI model"}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">
+                {isSpanish ? "+10,000 usuarios" : "+10,000 users"}
+              </div>
+              <div className="text-xs text-gray-500">
+                {isSpanish ? "Confían en nosotros" : "Trust us"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Boosty Video - Full Width */}
+        <div className="w-full flex justify-center mb-8">
           <video
-            src={boostyNewVideo}
+            src={boostyLoopVideo2}
             autoPlay
             loop
             muted
@@ -456,55 +487,31 @@ export default function Landing() {
             className="w-full max-w-4xl h-auto"
             data-testid="boosty-loop-video"
           />
-          
-          {/* Trust indicators - positioned in front of video */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-wrap justify-center items-center gap-4 sm:gap-8 px-4">
-            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <Zap className="w-3.5 h-3.5 text-white" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-gray-900">
-                  {isSpanish ? "Impulsado por IA" : "Powered by AI"}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                <TrendingUp className="w-3.5 h-3.5 text-white" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-gray-900">
-                  {isSpanish ? "+10,000 usuarios" : "+10,000 users"}
-                </div>
-              </div>
-            </div>
-          </div>
+        </div>
 
-          {/* Customer rating - positioned in front of video at bottom */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex justify-center items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-5 py-2.5 shadow-lg">
-            <div className="flex -space-x-2">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                A
-              </div>
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                M
-              </div>
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                J
-              </div>
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                S
-              </div>
+        {/* Customer rating below video */}
+        <div className="flex justify-center items-center gap-3 px-6">
+          <div className="flex -space-x-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              A
             </div>
-            <span className="text-sm text-gray-700 font-medium">
-              <span className="font-bold text-gray-900">4.9/5</span>{" "}
-              {isSpanish ? "de" : "from"}{" "}
-              <span className="font-bold text-gray-900">4,268</span>{" "}
-              {isSpanish ? "clientes" : "customers"}{" "}
-              <Star className="w-4 h-4 text-yellow-500 inline-block" />
-            </span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              M
+            </div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              J
+            </div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              S
+            </div>
           </div>
+          <span className="text-sm text-gray-700 font-medium">
+            <span className="font-bold text-gray-900">4.9/5</span>{" "}
+            {isSpanish ? "de" : "from"}{" "}
+            <span className="font-bold text-gray-900">4,268</span>{" "}
+            {isSpanish ? "clientes" : "customers"}{" "}
+            <Star className="w-4 h-4 text-yellow-500 inline-block" />
+          </span>
         </div>
       </section>
 
