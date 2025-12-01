@@ -74,18 +74,18 @@ export default function Landing() {
       className="min-h-screen relative text-gray-900 overflow-hidden"
       style={{ backgroundColor: "#F8F8FA" }}
     >
-      {/* Header */}
+      {/* Header - Mobile Optimized */}
       <header
         className="relative z-50 backdrop-blur-md border-b border-gray-200 shadow-sm"
         style={{ backgroundColor: "rgba(248, 248, 250, 0.95)" }}
       >
-        <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="flex justify-between items-center py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-3 sm:py-4">
             <div className="flex items-center">
               <img
                 src={leadBoostLogo}
                 alt="CampAIgner"
-                className="h-8 w-auto"
+                className="h-7 sm:h-8 w-auto"
               />
             </div>
 
@@ -196,44 +196,48 @@ export default function Landing() {
               </Button>
             </nav>
 
-            <div className="flex items-center space-x-4">
-              <HelpDropdown isSpanish={isSpanish} />
+            {/* Mobile-optimized header buttons with proper touch targets */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="hidden sm:block">
+                <HelpDropdown isSpanish={isSpanish} />
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleLanguage}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 hover:text-gray-900 min-w-[44px] min-h-[44px] p-2"
+                data-testid="button-language-toggle"
               >
-                <Globe className="h-4 w-4 mr-2" />
-                {isSpanish ? "EN" : "ES"}
+                <Globe className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{isSpanish ? "EN" : "ES"}</span>
               </Button>
               <Button
                 variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300"
+                className="hidden sm:flex border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300 min-h-[44px]"
                 data-testid="button-login"
                 onClick={() => navigate("/login")}
               >
                 {isSpanish ? "Iniciar Sesión" : "Login"}
               </Button>
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
+                className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 text-sm sm:text-base px-3 sm:px-4 min-h-[44px]"
                 data-testid="button-header-cta"
                 onClick={() => navigate("/login")}
               >
-                {isSpanish ? "Empezar Gratis" : "Start Free"}
+                {isSpanish ? "Empezar" : "Start Free"}
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section - Apple/Squarespace Inspired */}
+      {/* Hero Section - Mobile Optimized */}
       <section
-        className="relative py-12 sm:py-16 lg:py-20 pb-0 overflow-hidden"
+        className="relative py-8 sm:py-12 lg:py-20 pb-0 overflow-hidden"
         style={{ backgroundColor: "#F8F8FA" }}
       >
-        {/* Floating Social Media Cards - Very Subtle */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.04] blur-lg">
+        {/* Floating Social Media Cards - Hidden on small mobile for performance */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.04] blur-lg hidden sm:block">
           {/* Instagram Post - Square */}
           <div
             className="absolute bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center"
@@ -375,23 +379,23 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 text-center z-10">
-          {/* Trust Badge - Slogan Style */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+          {/* Trust Badge - Mobile Optimized */}
           <div
-            className={`inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+            className={`inline-flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8 px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
             style={{ backgroundColor: "#F8F8FA" }}
           >
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-base font-medium text-gray-700">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0"></div>
+            <span className="text-xs sm:text-sm md:text-base font-medium text-gray-700">
               {isSpanish
-                ? "Todo tu marketing, totalmente automatizado"
+                ? "Todo tu marketing, automatizado"
                 : "Your Entire Marketing, Done by AI."}
             </span>
           </div>
 
-          {/* Main Headline - Premium Typography */}
+          {/* Main Headline - Mobile-first responsive typography */}
           <h1
-            className={`text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-bold leading-[0.9] tracking-tight mb-12 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-700 bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[0.95] sm:leading-[0.9] tracking-tight mb-6 sm:mb-8 lg:mb-12 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-700 bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             {isSpanish ? (
               <>
@@ -412,30 +416,30 @@ export default function Landing() {
             )}
           </h1>
 
-          {/* Subtitle - Enhanced */}
+          {/* Subtitle - Mobile Optimized */}
           <p
-            className={`text-xl sm:text-2xl lg:text-3xl text-gray-600 mb-16 max-w-5xl mx-auto leading-relaxed font-light transition-all duration-1000 delay-400 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-12 lg:mb-16 max-w-4xl mx-auto leading-relaxed font-light transition-all duration-1000 delay-400 px-2 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             {isSpanish
-              ? "La única plataforma que recopila tus datos empresariales, construye campañas inteligentes que se ejecutan automáticamente, y cierra ventas—todo sin esfuerzo manual."
+              ? "La única plataforma que recopila tus datos, crea campañas inteligentes y cierra ventas—todo automáticamente."
               : "The only platform that collects your business data, creates intelligent content that runs automatically, and closes sales—all on autopilot."}
           </p>
 
-          {/* Primary CTA - Apple Style */}
+          {/* Primary CTA - Mobile-friendly touch targets */}
           <div
-            className={`flex flex-col items-center gap-6 mb-20 transition-all duration-1000 delay-800 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`flex flex-col items-center gap-4 sm:gap-6 mb-12 sm:mb-16 lg:mb-20 transition-all duration-1000 delay-800 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             <Button
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/30 transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 sm:px-12 lg:px-16 py-4 sm:py-5 lg:py-6 text-base sm:text-lg lg:text-xl rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-blue-500/30 transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1 min-h-[52px] w-full sm:w-auto max-w-xs sm:max-w-none"
               data-testid="button-start-free-trial"
               onClick={() => navigate("/login")}
             >
-              {isSpanish ? "Comenzar Gratis Ahora" : "Start Free Now"}
-              <ArrowRight className="w-5 h-5 ml-2" />
+              {isSpanish ? "Comenzar Gratis" : "Start Free Now"}
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
             </Button>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-xs sm:text-sm">
               {isSpanish
-                ? "Prueba gratis por 14 días • No se requiere tarjeta de crédito"
+                ? "14 días gratis • Sin tarjeta de crédito"
                 : "Free 14-day trial • No credit card required"}
             </p>
           </div>
