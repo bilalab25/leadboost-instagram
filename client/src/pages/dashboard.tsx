@@ -46,7 +46,11 @@ import {
   Clock,
   Star,
   Archive,
+  Plug,
+  ShoppingBag,
+  MessageSquare,
 } from "lucide-react";
+import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import {
   SiInstagram,
@@ -182,7 +186,32 @@ export default function Dashboard() {
     });
 
   const latestConversations = latestConversationsData?.conversations || [];
-  console.log(activeBrandId);
+
+  // Fetch integrations for the active brand
+  const { data: integrationsData } = useQuery({
+    queryKey: ["/api/integrations", activeBrandId],
+    queryFn: async () => {
+      if (!activeBrandId) return [];
+      const res = await apiRequest("GET", `/api/integrations?brandId=${activeBrandId}`);
+      return res.json();
+    },
+    enabled: !!activeBrandId,
+  });
+
+  const integrations = integrationsData || [];
+
+  // Helper variables to detect connected integrations
+  const hasPOS = integrations.some((i: any) => 
+    i.isActive && ["square", "stripe", "shopify", "woocommerce", "wix"].includes(i.provider)
+  );
+  const hasSocial = integrations.some((i: any) => 
+    i.isActive && ["facebook", "instagram", "tiktok", "youtube", "threads"].includes(i.provider)
+  );
+  const hasMessaging = integrations.some((i: any) => 
+    i.isActive && ["facebook", "instagram", "whatsapp"].includes(i.provider)
+  );
+  const hasAnyIntegration = integrations.some((i: any) => i.isActive);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={t.sidebar.dashboard} />
@@ -283,165 +312,161 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 mb-8">
                   {/* Revenue - Takes 3 columns for maximum importance */}
                   <div className="lg:col-span-3">
-                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-50 via-white to-brand-25 border border-brand-100 shadow-sm h-full">
-                      <div className="absolute inset-0 bg-gradient-to-br from-brand-600/5 to-transparent"></div>
-                      <div className="relative p-8 h-full flex flex-col justify-center">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center mb-4">
-                              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 mr-3"></div>
-                              <h3 className="text-lg font-medium text-gray-600">
-                                {isSpanish ? "Tus Ventas" : "Your Sales"}
-                              </h3>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="text-6xl font-bold text-green-600">
-                                +
-                                {(() => {
-                                  if (selectedPeriod === "weekly") return "47%";
-                                  if (selectedPeriod === "monthly")
-                                    return "63%";
-                                  if (selectedPeriod === "daily") return "12%";
-                                  return "47%";
-                                })()}
+                    {hasPOS ? (
+                      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-50 via-white to-brand-25 border border-brand-100 shadow-sm h-full">
+                        <div className="absolute inset-0 bg-gradient-to-br from-brand-600/5 to-transparent"></div>
+                        <div className="relative p-8 h-full flex flex-col justify-center">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center mb-4">
+                                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 mr-3"></div>
+                                <h3 className="text-lg font-medium text-gray-600">
+                                  {isSpanish ? "Tus Ventas" : "Your Sales"}
+                                </h3>
                               </div>
-                              <div className="text-2xl font-semibold text-gray-700">
-                                {(() => {
-                                  if (selectedPeriod === "weekly")
+                              <div className="space-y-2">
+                                <div className="text-6xl font-bold text-green-600">
+                                  +
+                                  {(() => {
+                                    if (selectedPeriod === "weekly") return "47%";
+                                    if (selectedPeriod === "monthly") return "63%";
+                                    if (selectedPeriod === "daily") return "12%";
+                                    return "47%";
+                                  })()}
+                                </div>
+                                <div className="text-2xl font-semibold text-gray-700">
+                                  {(() => {
+                                    if (selectedPeriod === "weekly") return "+$12,450";
+                                    if (selectedPeriod === "monthly") return "+$52,800";
+                                    if (selectedPeriod === "daily") return "+$1,890";
                                     return "+$12,450";
-                                  if (selectedPeriod === "monthly")
-                                    return "+$52,800";
-                                  if (selectedPeriod === "daily")
-                                    return "+$1,890";
-                                  return "+$12,450";
+                                  })()}
+                                </div>
+                              </div>
+                              <div className="flex items-center text-gray-600 text-base font-medium mb-2">
+                                <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                                  <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                                {isSpanish ? "vs antes de LeadBoost" : "vs before LeadBoost"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {isSpanish ? "Datos del POS conectado" : "Connected POS data"}{" "}•{" "}
+                                {(() => {
+                                  if (selectedPeriod === "weekly") return isSpanish ? "Última semana" : "Last week";
+                                  if (selectedPeriod === "monthly") return isSpanish ? "Último mes" : "Last month";
+                                  if (selectedPeriod === "daily") return isSpanish ? "Hoy" : "Today";
+                                  return isSpanish ? "Última semana" : "Last week";
                                 })()}
                               </div>
                             </div>
-                            <div className="flex items-center text-gray-600 text-base font-medium mb-2">
-                              <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mr-2">
-                                <svg
-                                  className="w-3 h-3 text-green-600"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
+                            <div className="text-right">
+                              <div className="text-sm text-gray-500 mb-1">
+                                {isSpanish ? "Objetivo mensual" : "Monthly target"}
                               </div>
-                              {isSpanish
-                                ? "vs antes de LeadBoost"
-                                : "vs before LeadBoost"}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {isSpanish
-                                ? "Datos del POS conectado"
-                                : "Connected POS data"}{" "}
-                              •{" "}
-                              {(() => {
-                                if (selectedPeriod === "weekly")
-                                  return isSpanish
-                                    ? "Última semana"
-                                    : "Last week";
-                                if (selectedPeriod === "monthly")
-                                  return isSpanish
-                                    ? "Último mes"
-                                    : "Last month";
-                                if (selectedPeriod === "daily")
-                                  return isSpanish ? "Hoy" : "Today";
-                                return isSpanish
-                                  ? "Última semana"
-                                  : "Last week";
-                              })()}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-gray-500 mb-1">
-                              {isSpanish
-                                ? "Objetivo mensual"
-                                : "Monthly target"}
-                            </div>
-                            <div className="text-lg font-bold text-gray-700">
-                              $85,000
-                            </div>
-                            <div className="text-xs text-green-600 font-medium mt-1">
-                              {isSpanish ? "62% completado" : "62% complete"}
+                              <div className="text-lg font-bold text-gray-700">$85,000</div>
+                              <div className="text-xs text-green-600 font-medium mt-1">
+                                {isSpanish ? "62% completado" : "62% complete"}
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 via-white to-gray-25 border border-gray-200 border-dashed shadow-sm h-full">
+                        <div className="relative p-8 h-full flex flex-col items-center justify-center text-center">
+                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 flex items-center justify-center mb-4">
+                            <ShoppingBag className="w-8 h-8 text-brand-500" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            {isSpanish ? "Conecta tu POS" : "Connect your POS"}
+                          </h3>
+                          <p className="text-sm text-gray-500 mb-6 max-w-sm">
+                            {isSpanish 
+                              ? "Conecta tu sistema de punto de venta para empezar a rastrear el rendimiento de tus ventas." 
+                              : "Connect your point of sale system to start tracking your sales performance."}
+                          </p>
+                          <Link href="/integrations">
+                            <Button className="bg-brand-600 hover:bg-brand-700 text-white">
+                              <Plug className="w-4 h-4 mr-2" />
+                              {isSpanish ? "Ir a Integraciones" : "Go to Integrations"}
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Campaigns - Takes 1 column, same height */}
                   <div>
-                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 via-white to-gray-25 border border-gray-100 shadow-sm h-full">
-                      <div className="absolute inset-0 bg-gradient-to-br from-brand-600/3 to-transparent"></div>
-                      <div className="relative p-8 h-full flex flex-col justify-center">
-                        <div className="flex items-center mb-4">
-                          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-400 to-brand-500 mr-3"></div>
-                          <h3 className="text-lg font-medium text-gray-600">
-                            {isSpanish ? "Campañas" : "Campaigns"}
-                          </h3>
-                        </div>
-                        <div className="text-4xl font-bold text-gray-900 mb-4">
-                          {(() => {
-                            if (selectedPeriod === "weekly") return "7";
-                            if (selectedPeriod === "monthly") return "28";
-                            if (selectedPeriod === "daily") return "1";
-                            return "7";
-                          })()}
-                        </div>
-                        <div className="space-y-3">
-                          <div className="text-lg text-brand-600 font-bold">
+                    {hasSocial ? (
+                      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 via-white to-gray-25 border border-gray-100 shadow-sm h-full">
+                        <div className="absolute inset-0 bg-gradient-to-br from-brand-600/3 to-transparent"></div>
+                        <div className="relative p-8 h-full flex flex-col justify-center">
+                          <div className="flex items-center mb-4">
+                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-brand-400 to-brand-500 mr-3"></div>
+                            <h3 className="text-lg font-medium text-gray-600">
+                              {isSpanish ? "Campañas" : "Campaigns"}
+                            </h3>
+                          </div>
+                          <div className="text-4xl font-bold text-gray-900 mb-4">
                             {(() => {
-                              const platformText = isSpanish
-                                ? "× 21 plataformas ="
-                                : "× 21 platforms =";
-                              if (selectedPeriod === "weekly")
-                                return `${platformText} 147 posts`;
-                              if (selectedPeriod === "monthly")
-                                return `${platformText} 588 posts`;
-                              if (selectedPeriod === "daily")
-                                return `${platformText} 21 posts`;
-                              return `${platformText} 147 posts`;
+                              if (selectedPeriod === "weekly") return "7";
+                              if (selectedPeriod === "monthly") return "28";
+                              if (selectedPeriod === "daily") return "1";
+                              return "7";
                             })()}
                           </div>
-                          <div className="flex items-center text-brand-600 text-sm font-medium">
-                            <div className="w-4 h-4 rounded-full bg-brand-100 flex items-center justify-center mr-2">
-                              <svg
-                                className="w-2.5 h-2.5 text-brand-600"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
+                          <div className="space-y-3">
+                            <div className="text-lg text-brand-600 font-bold">
+                              {(() => {
+                                const platformText = isSpanish ? "× 21 plataformas =" : "× 21 platforms =";
+                                if (selectedPeriod === "weekly") return `${platformText} 147 posts`;
+                                if (selectedPeriod === "monthly") return `${platformText} 588 posts`;
+                                if (selectedPeriod === "daily") return `${platformText} 21 posts`;
+                                return `${platformText} 147 posts`;
+                              })()}
                             </div>
-                            {(() => {
-                              if (selectedPeriod === "weekly")
-                                return isSpanish
-                                  ? "+4 esta semana"
-                                  : "+4 this week";
-                              if (selectedPeriod === "monthly")
-                                return isSpanish
-                                  ? "+4 este mes"
-                                  : "+4 this month";
-                              if (selectedPeriod === "daily")
-                                return isSpanish ? "+1 hoy" : "+1 today";
-                              return isSpanish
-                                ? "+4 esta semana"
-                                : "+4 this week";
-                            })()}
+                            <div className="flex items-center text-brand-600 text-sm font-medium">
+                              <div className="w-4 h-4 rounded-full bg-brand-100 flex items-center justify-center mr-2">
+                                <svg className="w-2.5 h-2.5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              {(() => {
+                                if (selectedPeriod === "weekly") return isSpanish ? "+4 esta semana" : "+4 this week";
+                                if (selectedPeriod === "monthly") return isSpanish ? "+4 este mes" : "+4 this month";
+                                if (selectedPeriod === "daily") return isSpanish ? "+1 hoy" : "+1 today";
+                                return isSpanish ? "+4 esta semana" : "+4 this week";
+                              })()}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 via-white to-gray-25 border border-gray-200 border-dashed shadow-sm h-full">
+                        <div className="relative p-6 h-full flex flex-col items-center justify-center text-center">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center mb-3">
+                            <SiInstagram className="w-6 h-6 text-pink-500" />
+                          </div>
+                          <h3 className="text-base font-semibold text-gray-900 mb-2">
+                            {isSpanish ? "Campañas" : "Campaigns"}
+                          </h3>
+                          <p className="text-xs text-gray-500 mb-4">
+                            {isSpanish 
+                              ? "Conecta Facebook e Instagram para crear campañas." 
+                              : "Connect Facebook and Instagram to create campaigns."}
+                          </p>
+                          <Link href="/integrations">
+                            <Button size="sm" variant="outline" className="text-xs">
+                              <Plug className="w-3 h-3 mr-1" />
+                              {isSpanish ? "Conectar" : "Connect"}
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -691,6 +716,28 @@ export default function Dashboard() {
                                 );
                               },
                             )}
+                          </div>
+                        ) : !hasMessaging ? (
+                          <div className="text-center py-12 px-6">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-green-50 mb-4">
+                              <MessageSquare className="w-8 h-8 text-blue-500" />
+                            </div>
+                            <p className="text-gray-900 font-semibold text-lg mb-1">
+                              {isSpanish
+                                ? "No tienes conversaciones aún"
+                                : "You don't have conversations yet"}
+                            </p>
+                            <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+                              {isSpanish
+                                ? "Conecta Facebook, Instagram o WhatsApp para empezar a recibir mensajes."
+                                : "Connect Facebook, Instagram or WhatsApp to start receiving messages."}
+                            </p>
+                            <Link href="/integrations">
+                              <Button className="bg-brand-600 hover:bg-brand-700 text-white">
+                                <Plug className="w-4 h-4 mr-2" />
+                                {isSpanish ? "Conectar ahora" : "Connect now"}
+                              </Button>
+                            </Link>
                           </div>
                         ) : (
                           <div className="text-center py-12 px-6">

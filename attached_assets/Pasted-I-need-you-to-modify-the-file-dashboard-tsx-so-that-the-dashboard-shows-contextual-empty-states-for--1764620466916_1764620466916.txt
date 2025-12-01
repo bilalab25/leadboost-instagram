@@ -1,0 +1,79 @@
+I need you to modify the file dashboard.tsx so that the dashboard shows contextual
+empty states for new users who have not connected any integrations yet.
+
+Current issue:
+The dashboard shows fake data for sales, campaigns, and conversations even if the 
+user is new and has not connected any platforms or POS systems.
+
+Goal:
+Replace the fake metrics with smart empty states that invite the user to connect integrations.
+
+----------------------------------------
+BEHAVIOR REQUIRED (very important):
+----------------------------------------
+
+1. DETECT CONNECTED INTEGRATIONS
+---------------------------------
+• Use the same logic that the old Settings > Integrations used.
+• Fetch the user's integrations based on the activeBrandId.
+• If no integrations exist or all are disconnected, treat user as "new".
+
+2. SALES SECTION (POS DATA)
+---------------------------
+If the user has *no POS integrations* connected (e.g., Shopify, Woo, Stripe POS):
+    → Replace the sales card with an empty state card:
+        - Message: “Connect your POS to start tracking your sales performance.”
+        - Add a button: “Go to Integrations”
+          that links to /integrations
+
+If POS IS connected, show the real metrics (or keep mock data for now).
+
+3. CAMPAIGNS SECTION (SOCIAL ACCOUNTS)
+---------------------------------------
+If the user has FB/IG *not connected*:
+    → Replace campaigns card with:
+        - Message: “Connect Facebook and Instagram to create campaigns and track results.”
+        - Button: “Connect integrations”
+          linking to /integrations
+
+4. CONVERSATIONS SECTION
+-------------------------
+If NO conversation integrations exist (FB/IG/WhatsApp not connected):
+    → Replace the Latest Conversations card with:
+        - Illustration placeholder or icon
+        - Text: “You don’t have conversations yet.”
+        - Subtext: “Connect Facebook, Instagram or WhatsApp to start receiving messages.”
+        - Button: “Connect now”
+          linking to /integrations
+
+If integrations exist but there are no conversations:
+    → Keep the “No recent conversations” but add a subtle call to action.
+
+5. IMPLEMENTATION DETAILS
+--------------------------
+• Create a helper variable: hasIntegrations, hasPOS, hasSocial, hasMessaging.
+• Use conditional JSX to replace functional cards with empty-state alternatives.
+• DO NOT break layout structure; cards must stay in the same grid structure.
+• Use existing UI components (Cards, Buttons, Icons) for consistency.
+• Add simple inline icons or reuse existing ones.
+• Keep the design clean, similar spacing and dimensions as current cards.
+
+6. ROUTING
+----------
+• All CTAs must link to the newly created /integrations route.
+• Use <Link to="/integrations"> where applicable.
+
+7. EXPECTED OUTPUT
+------------------
+You will return a fully updated dashboard.tsx including:
+• integration detection logic
+• conditional empty states
+• updated cards with CTA buttons
+• cleaned-up or removed placeholder data
+
+IMPORTANT:
+Do not modify backend code.
+Do not modify global providers.
+Do not modify the sidebar or routes (already handled earlier).
+
+Only update dashboard.tsx to include smart empty states based on integrations.
