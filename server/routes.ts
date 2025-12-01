@@ -3103,7 +3103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ⚠️ NOTA: El 'redirect_uri' debe coincidir con el configurado en su App de Facebook.
       const redirectUri = `${process.env.APP_URL}/api/integrations/whatsapp/callback`;
       const clientId = process.env.FB_APP_ID;
-
+      const whatsAppBusinessId = process.env.WHATSAPP_CONFIG_ID;
       // **Los scopes necesarios para gestionar WhatsApp Business (WABA)**
       const whatsapp_scopes = [
         "whatsapp_business_management",
@@ -3121,7 +3121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // URL base del Embedded Signup
       const embeddedSignupUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri,
-      )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=1381266417040483&auth_type=rerequest`;
+      )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=${whatsAppBusinessId}&auth_type=rerequest`;
 
       // ^^^ El 'config_id' es CRUCIAL.
 
@@ -3339,7 +3339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get WhatsApp integration for this brand
         const integrations = await storage.getIntegrationsByBrandId(brandId);
         const whatsappIntegration = integrations.find(
-          (i) => i.provider === "whatsapp" && i.isActive
+          (i) => i.provider === "whatsapp" && i.isActive,
         );
 
         if (!whatsappIntegration) {
@@ -3349,7 +3349,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        if (!whatsappIntegration.accessToken || !whatsappIntegration.accountId) {
+        if (
+          !whatsappIntegration.accessToken ||
+          !whatsappIntegration.accountId
+        ) {
           return res.status(400).json({
             error: "Invalid WhatsApp integration",
             message: "WhatsApp integration is missing required credentials",
@@ -3364,7 +3367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `https://graph.facebook.com/v22.0/${wabaId}/message_templates?` +
             `fields=language,name,rejected_reason,status,category,sub_category,last_updated_time,components,quality_score&` +
             `limit=50&` +
-            `access_token=${accessToken}`
+            `access_token=${accessToken}`,
         );
 
         const data = await response.json();
@@ -3373,7 +3376,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("❌ Meta API error fetching templates:", data.error);
           return res.status(400).json({
             error: "Meta API error",
-            message: data.error.message || "Failed to fetch templates from Meta",
+            message:
+              data.error.message || "Failed to fetch templates from Meta",
           });
         }
 
@@ -3381,16 +3385,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const templates = (data.data || []).map((template: any) => {
           // Extract header, body, footer from components
           const headerComponent = template.components?.find(
-            (c: any) => c.type === "HEADER"
+            (c: any) => c.type === "HEADER",
           );
           const bodyComponent = template.components?.find(
-            (c: any) => c.type === "BODY"
+            (c: any) => c.type === "BODY",
           );
           const footerComponent = template.components?.find(
-            (c: any) => c.type === "FOOTER"
+            (c: any) => c.type === "FOOTER",
           );
           const buttonsComponent = template.components?.find(
-            (c: any) => c.type === "BUTTONS"
+            (c: any) => c.type === "BUTTONS",
           );
 
           return {
@@ -3401,7 +3405,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status: template.status,
             rejectedReason: template.rejected_reason,
             headerType: headerComponent?.format,
-            headerContent: headerComponent?.text || headerComponent?.example?.header_handle?.[0],
+            headerContent:
+              headerComponent?.text ||
+              headerComponent?.example?.header_handle?.[0],
             body: bodyComponent?.text || "",
             footer: footerComponent?.text,
             buttons: buttonsComponent?.buttons?.map((b: any) => ({
@@ -3427,7 +3433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: error.message || "Unknown error",
         });
       }
-    }
+    },
   );
 
   // WhatsApp Templates - Send a template message
@@ -3439,7 +3445,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const brandId = req.brandMembership.brandId;
         const userId = req.user.id;
-        const { phoneNumber, templateName, languageCode, components, templateBody } = req.body;
+        const {
+          phoneNumber,
+          templateName,
+          languageCode,
+          components,
+          templateBody,
+        } = req.body;
 
         if (!phoneNumber || !templateName) {
           return res.status(400).json({
@@ -3451,7 +3463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get WhatsApp integration for this brand
         const integrations = await storage.getIntegrationsByBrandId(brandId);
         const whatsappIntegration = integrations.find(
-          (i) => i.provider === "whatsapp" && i.isActive
+          (i) => i.provider === "whatsapp" && i.isActive,
         );
 
         if (!whatsappIntegration) {
@@ -3471,17 +3483,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get phoneNumberId from metadata
         const metadata = whatsappIntegration.metadata as any;
         const phoneNumberId = metadata?.phoneNumberId;
-        const displayPhoneNumber = metadata?.displayPhoneNumber || phoneNumberId;
+        const displayPhoneNumber =
+          metadata?.displayPhoneNumber || phoneNumberId;
 
         if (!phoneNumberId) {
           return res.status(400).json({
             error: "Missing phone number ID",
-            message: "WhatsApp integration is missing phone number configuration",
+            message:
+              "WhatsApp integration is missing phone number configuration",
           });
         }
 
         // Format phone number (remove any non-numeric characters except +)
-        const formattedPhone = phoneNumber.replace(/[^\d+]/g, "").replace(/^\+/, "");
+        const formattedPhone = phoneNumber
+          .replace(/[^\d+]/g, "")
+          .replace(/^\+/, "");
 
         // Build template payload
         const templatePayload = {
@@ -3498,7 +3514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           {
             method: "POST",
             headers: {
-              "Authorization": `Bearer ${whatsappIntegration.accessToken}`,
+              Authorization: `Bearer ${whatsappIntegration.accessToken}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
@@ -3507,7 +3523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               type: "template",
               template: templatePayload,
             }),
-          }
+          },
         );
 
         const data = await response.json();
@@ -3530,14 +3546,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (metaMessageId) {
           try {
             // Use the resolved template body, or fall back to template name indicator
-            const messageContent = templateBody && templateBody.trim() 
-              ? templateBody 
-              : `[Template: ${templateName}]`;
-            
+            const messageContent =
+              templateBody && templateBody.trim()
+                ? templateBody
+                : `[Template: ${templateName}]`;
+
             // Build a unique conversation identifier using WhatsApp's pattern
             // Format: wa_{phoneNumberId}_{customerPhone} to ensure uniqueness per integration
             const conversationKey = `wa_${formattedPhone}`;
-            
+
             // Get or create conversation for this phone number
             const conversation = await storage.getOrCreateConversation({
               integrationId: whatsappIntegration.id,
@@ -3576,10 +3593,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               },
             });
 
-            console.log(`✅ Template message stored in database: ${metaMessageId}`);
+            console.log(
+              `✅ Template message stored in database: ${metaMessageId}`,
+            );
           } catch (dbError: any) {
             // Log the error but don't fail the request - message was still sent
-            console.error("⚠️ Failed to store message in database:", dbError.message);
+            console.error(
+              "⚠️ Failed to store message in database:",
+              dbError.message,
+            );
           }
         }
 
@@ -3595,7 +3617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: error.message || "Unknown error",
         });
       }
-    }
+    },
   );
 
   app.get("/api/webhooks/meta", async (req, res) => {
