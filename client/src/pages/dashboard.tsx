@@ -51,6 +51,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
 import boosty from "./boosty.png";
 import { useBrand } from "@/contexts/BrandContext";
+import HelpChatbot from "@/components/HelpChatbot";
 
 interface DashboardStats {
   unreadMessages: number;
@@ -228,53 +229,24 @@ export default function Dashboard() {
                     }} />
                   </div>
                   
-                  <div className="relative flex items-center justify-between">
-                    <div className="flex-1">
-                      <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        <Badge className="bg-white/20 text-white border-white/30 mb-4 backdrop-blur-sm">
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          {isSpanish ? "Centro de Control" : "Command Center"}
-                        </Badge>
-                        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
-                          {t.dashboard.welcomeBack}, {activeMembership?.brandName || (isSpanish ? "Usuario" : "User")}!
-                        </h1>
-                        <p className="text-white/80 text-lg">
-                          {isSpanish 
-                            ? "Tu marca está creciendo. Aquí tienes lo que está pasando." 
-                            : "Your brand is growing. Here's what's happening."}
-                        </p>
-                      </motion.div>
-                    </div>
-
-                    {/* Boosty Avatar */}
+                  <div className="relative">
                     <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
-                      className="hidden md:block"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
                     >
-                      <div className="relative">
-                        <motion.div
-                          animate={pulseAnimation}
-                          className="absolute inset-0 bg-white/30 rounded-full blur-xl"
-                        />
-                        <img
-                          src={boosty}
-                          alt="Boosty AI"
-                          className="w-24 h-24 rounded-full border-4 border-white/50 shadow-xl relative z-10 object-cover"
-                        />
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-400 rounded-full border-2 border-white flex items-center justify-center z-20"
-                        >
-                          <Bot className="w-4 h-4 text-white" />
-                        </motion.div>
-                      </div>
+                      <Badge className="bg-white/20 text-white border-white/30 mb-4 backdrop-blur-sm">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        {isSpanish ? "Centro de Control" : "Command Center"}
+                      </Badge>
+                      <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+                        {t.dashboard.welcomeBack}, {activeMembership?.brandName || (isSpanish ? "Usuario" : "User")}!
+                      </h1>
+                      <p className="text-white/80 text-lg">
+                        {isSpanish 
+                          ? "Tu marca está creciendo. Aquí tienes lo que está pasando." 
+                          : "Your brand is growing. Here's what's happening."}
+                      </p>
                     </motion.div>
                   </div>
 
@@ -859,6 +831,9 @@ export default function Dashboard() {
           </main>
         </div>
       </div>
+      
+      {/* Boosty Chatbot - Bottom Right Corner */}
+      <HelpChatbot />
     </div>
   );
 }
