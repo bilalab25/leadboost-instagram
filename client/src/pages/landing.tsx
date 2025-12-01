@@ -438,62 +438,60 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Boosty Video Hero Section - Clean Holo AI Style */}
+      {/* Boosty Video Hero Section - Full Width */}
       <section
-        className="relative py-16 lg:py-24 overflow-hidden"
+        className="relative py-12 lg:py-20 overflow-hidden"
         style={{ backgroundColor: "#FFFFFF" }}
       >
-        <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
-          {/* Trust indicators above video */}
-          <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10 mb-12">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-gray-900">{isSpanish ? "Impulsado por IA" : "Powered by AI"}</div>
-                <div className="text-xs text-gray-500">{isSpanish ? "Modelo líder" : "Leading AI model"}</div>
-              </div>
+        {/* Trust indicators above video */}
+        <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10 mb-8 px-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-white" />
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-gray-900">{isSpanish ? "+10,000 usuarios" : "+10,000 users"}</div>
-                <div className="text-xs text-gray-500">{isSpanish ? "Confían en nosotros" : "Trust us"}</div>
-              </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">{isSpanish ? "Impulsado por IA" : "Powered by AI"}</div>
+              <div className="text-xs text-gray-500">{isSpanish ? "Modelo líder" : "Leading AI model"}</div>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">{isSpanish ? "+10,000 usuarios" : "+10,000 users"}</div>
+              <div className="text-xs text-gray-500">{isSpanish ? "Confían en nosotros" : "Trust us"}</div>
+            </div>
+          </div>
+        </div>
 
-          {/* Boosty Video - Centered and prominent */}
-          <div className="flex justify-center mb-12">
-            <video 
-              src={boostyLoopVideo}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-[320px] sm:w-[400px] lg:w-[480px] h-auto"
-              style={{
-                filter: "drop-shadow(0 25px 60px rgba(0, 0, 0, 0.1))",
-              }}
-              data-testid="boosty-loop-video"
-            />
-          </div>
+        {/* Boosty Video - Full Width */}
+        <div className="w-full flex justify-center mb-8">
+          <video 
+            src={boostyLoopVideo}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full max-w-4xl h-auto"
+            style={{
+              filter: "drop-shadow(0 25px 60px rgba(0, 0, 0, 0.1))",
+            }}
+            data-testid="boosty-loop-video"
+          />
+        </div>
 
-          {/* Customer rating below video */}
-          <div className="flex justify-center items-center gap-3">
-            <div className="flex -space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">A</div>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">M</div>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">J</div>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">S</div>
-            </div>
-            <span className="text-sm text-gray-700 font-medium">
-              <span className="font-bold text-gray-900">4.9/5</span> {isSpanish ? "de" : "from"} <span className="font-bold text-gray-900">4,268</span> {isSpanish ? "clientes" : "customers"} <Star className="w-4 h-4 text-yellow-500 inline-block" />
-            </span>
+        {/* Customer rating below video */}
+        <div className="flex justify-center items-center gap-3 px-6">
+          <div className="flex -space-x-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">A</div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">M</div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">J</div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">S</div>
           </div>
+          <span className="text-sm text-gray-700 font-medium">
+            <span className="font-bold text-gray-900">4.9/5</span> {isSpanish ? "de" : "from"} <span className="font-bold text-gray-900">4,268</span> {isSpanish ? "clientes" : "customers"} <Star className="w-4 h-4 text-yellow-500 inline-block" />
+          </span>
         </div>
       </section>
 
