@@ -413,25 +413,63 @@ export default function IntegrationsPage() {
             <div className="container mx-auto px-4 py-8 space-y-6" data-testid="integrations-page">
               
               {/* Page Header */}
-              <div className="flex justify-between items-center">
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-                    <Plug className="h-8 w-8 text-primary" />
-                    {isSpanish ? "Integraciones" : "Integrations"}
-                  </h1>
-                  <p className="text-muted-foreground mt-1">
-                    {isSpanish
-                      ? "Conecta tus plataformas favoritas para potenciar tus campañas."
-                      : "Connect your favorite platforms to power up your campaigns."}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="px-3 py-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-green-500" />
-                    {integrations.filter(i => i.isActive).length} {isSpanish ? "conectadas" : "connected"}
-                  </Badge>
-                </div>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+                  <Plug className="h-8 w-8 text-primary" />
+                  {isSpanish ? "Integraciones" : "Integrations"}
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  {isSpanish
+                    ? "Conecta tus plataformas favoritas para potenciar tus campañas."
+                    : "Connect your favorite platforms to power up your campaigns."}
+                </p>
               </div>
+
+              {/* Status Banner */}
+              <Card className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+                <CardContent className="py-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Plug className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {isSpanish ? "Estado de Integraciones" : "Integration Status"}
+                        </p>
+                        <p className="text-lg font-semibold">
+                          {integrations.filter(i => i.isActive).length === 0 ? (
+                            <span className="text-amber-600">
+                              {isSpanish ? "Sin integraciones conectadas" : "No integrations connected"}
+                            </span>
+                          ) : (
+                            <span className="text-green-600">
+                              {integrations.filter(i => i.isActive).length} {isSpanish ? "conectada(s)" : "connected"}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-green-600">{integrations.filter(i => i.isActive).length}</p>
+                        <p className="text-xs text-muted-foreground">{isSpanish ? "Conectadas" : "Connected"}</p>
+                      </div>
+                      <div className="w-px h-8 bg-border" />
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-muted-foreground">{Object.keys(INTEGRATION_PROVIDERS).length}</p>
+                        <p className="text-xs text-muted-foreground">{isSpanish ? "Disponibles" : "Available"}</p>
+                      </div>
+                      <div className="w-px h-8 bg-border" />
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-primary">{Object.keys(INTEGRATION_PROVIDERS).length - integrations.filter(i => i.isActive).length}</p>
+                        <p className="text-xs text-muted-foreground">{isSpanish ? "Por conectar" : "To connect"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Category Tabs - Analytics Style */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
