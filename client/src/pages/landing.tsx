@@ -55,6 +55,7 @@ import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756
 import boostyImage from "@assets/Gemini_Generated_Image_vxt1kgvxt1kgvxt1_1764170274959.png";
 import boostyVideo from "@assets/Video_de_Boosty_Saludando_1764171160244.mp4";
 import boostyLoopVideo from "@assets/Boosty_Mascot_Looping_Animation_1764605997237.mp4";
+import boostyWavingVideo from "@assets/Boosty_Mascot_Waving_Video_Generation_1764607325012.mp4";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
@@ -450,8 +451,12 @@ export default function Landing() {
               <Zap className="w-4 h-4 text-white" />
             </div>
             <div>
-              <div className="text-sm font-semibold text-gray-900">{isSpanish ? "Impulsado por IA" : "Powered by AI"}</div>
-              <div className="text-xs text-gray-500">{isSpanish ? "Modelo líder" : "Leading AI model"}</div>
+              <div className="text-sm font-semibold text-gray-900">
+                {isSpanish ? "Impulsado por IA" : "Powered by AI"}
+              </div>
+              <div className="text-xs text-gray-500">
+                {isSpanish ? "Modelo líder" : "Leading AI model"}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -459,24 +464,25 @@ export default function Landing() {
               <TrendingUp className="w-4 h-4 text-white" />
             </div>
             <div>
-              <div className="text-sm font-semibold text-gray-900">{isSpanish ? "+10,000 usuarios" : "+10,000 users"}</div>
-              <div className="text-xs text-gray-500">{isSpanish ? "Confían en nosotros" : "Trust us"}</div>
+              <div className="text-sm font-semibold text-gray-900">
+                {isSpanish ? "+10,000 usuarios" : "+10,000 users"}
+              </div>
+              <div className="text-xs text-gray-500">
+                {isSpanish ? "Confían en nosotros" : "Trust us"}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Boosty Video - Full Width */}
         <div className="w-full flex justify-center mb-8">
-          <video 
+          <video
             src={boostyLoopVideo}
             autoPlay
             loop
             muted
             playsInline
             className="w-full max-w-4xl h-auto"
-            style={{
-              filter: "drop-shadow(0 25px 60px rgba(0, 0, 0, 0.1))",
-            }}
             data-testid="boosty-loop-video"
           />
         </div>
@@ -484,13 +490,25 @@ export default function Landing() {
         {/* Customer rating below video */}
         <div className="flex justify-center items-center gap-3 px-6">
           <div className="flex -space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">A</div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">M</div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">J</div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">S</div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              A
+            </div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              M
+            </div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              J
+            </div>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              S
+            </div>
           </div>
           <span className="text-sm text-gray-700 font-medium">
-            <span className="font-bold text-gray-900">4.9/5</span> {isSpanish ? "de" : "from"} <span className="font-bold text-gray-900">4,268</span> {isSpanish ? "clientes" : "customers"} <Star className="w-4 h-4 text-yellow-500 inline-block" />
+            <span className="font-bold text-gray-900">4.9/5</span>{" "}
+            {isSpanish ? "de" : "from"}{" "}
+            <span className="font-bold text-gray-900">4,268</span>{" "}
+            {isSpanish ? "clientes" : "customers"}{" "}
+            <Star className="w-4 h-4 text-yellow-500 inline-block" />
           </span>
         </div>
       </section>
@@ -934,26 +952,31 @@ export default function Landing() {
 
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            
             {/* Left side - Boosty Video */}
             <div className="relative flex justify-center lg:justify-end order-2 lg:order-1">
               {/* Glow ring behind Boosty */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[450px] sm:h-[450px]">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-300/20 via-blue-300/20 to-purple-300/20 blur-2xl animate-pulse" />
-                <div className="absolute inset-4 rounded-full bg-gradient-to-r from-cyan-200/15 via-blue-200/15 to-purple-200/15 blur-xl" style={{ animation: "spin 20s linear infinite" }} />
-                <div className="absolute inset-8 rounded-full border-2 border-blue-200/30" style={{ animation: "spin 30s linear infinite reverse" }} />
+                <div
+                  className="absolute inset-4 rounded-full bg-gradient-to-r from-cyan-200/15 via-blue-200/15 to-purple-200/15 blur-xl"
+                  style={{ animation: "spin 20s linear infinite" }}
+                />
+                <div
+                  className="absolute inset-8 rounded-full border-2 border-blue-200/30"
+                  style={{ animation: "spin 30s linear infinite reverse" }}
+                />
               </div>
 
               {/* Floating shadow/platform */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[200px] h-[20px] bg-gray-900/10 rounded-full blur-xl" />
 
               {/* Boosty Video */}
-              <div 
+              <div
                 className="relative z-10"
                 style={{ animation: "float 6s ease-in-out infinite" }}
               >
-                <video 
-                  src={boostyVideo}
+                <video
+                  src={boostyWavingVideo}
                   autoPlay
                   loop
                   muted
@@ -964,35 +987,45 @@ export default function Landing() {
                   }}
                   data-testid="boosty-character"
                 />
-                
+
                 {/* Sparkle effects around Boosty */}
                 <div className="absolute -top-4 -right-4 w-3 h-3 bg-cyan-500 rounded-full animate-ping" />
-                <div className="absolute top-1/4 -left-6 w-2 h-2 bg-blue-500 rounded-full animate-ping" style={{ animationDelay: "0.5s" }} />
-                <div className="absolute bottom-1/3 -right-8 w-2 h-2 bg-purple-500 rounded-full animate-ping" style={{ animationDelay: "1s" }} />
+                <div
+                  className="absolute top-1/4 -left-6 w-2 h-2 bg-blue-500 rounded-full animate-ping"
+                  style={{ animationDelay: "0.5s" }}
+                />
+                <div
+                  className="absolute bottom-1/3 -right-8 w-2 h-2 bg-purple-500 rounded-full animate-ping"
+                  style={{ animationDelay: "1s" }}
+                />
               </div>
 
               {/* Chat bubbles floating around Boosty */}
-              <div 
+              <div
                 className="absolute top-8 -left-4 sm:left-0 bg-white backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-2 shadow-xl"
                 style={{ animation: "float 5s ease-in-out infinite 0.5s" }}
               >
                 <div className="flex items-center gap-2">
                   <SiInstagram className="w-4 h-4 text-pink-500" />
-                  <span className="text-gray-800 text-sm font-medium">{isSpanish ? "Post listo!" : "Post ready!"}</span>
+                  <span className="text-gray-800 text-sm font-medium">
+                    {isSpanish ? "Post listo!" : "Post ready!"}
+                  </span>
                 </div>
               </div>
 
-              <div 
+              <div
                 className="absolute bottom-1/3 -right-4 sm:-right-8 bg-white backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-2 shadow-xl"
                 style={{ animation: "float 6s ease-in-out infinite 1s" }}
               >
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-green-500" />
-                  <span className="text-gray-800 text-sm font-medium">+247%</span>
+                  <span className="text-gray-800 text-sm font-medium">
+                    +247%
+                  </span>
                 </div>
               </div>
 
-              <div 
+              <div
                 className="absolute top-1/2 -left-8 sm:-left-12 bg-white backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-2 shadow-xl"
                 style={{ animation: "float 7s ease-in-out infinite 1.5s" }}
               >
@@ -1009,19 +1042,23 @@ export default function Landing() {
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 mb-8">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                 <span className="text-blue-600 text-sm font-semibold tracking-wide uppercase">
-                  {isSpanish ? "Tu Asistente IA 24/7" : "Your 24/7 AI Assistant"}
+                  {isSpanish
+                    ? "Tu Asistente IA 24/7"
+                    : "Your 24/7 AI Assistant"}
                 </span>
               </div>
 
               <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6">
-                <span className="text-gray-900">{isSpanish ? "Conoce a " : "Meet "}</span>
+                <span className="text-gray-900">
+                  {isSpanish ? "Conoce a " : "Meet "}
+                </span>
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
                   Boosty
                 </span>
               </h2>
 
               <p className="text-xl sm:text-2xl text-gray-600 mb-8 leading-relaxed font-light">
-                {isSpanish 
+                {isSpanish
                   ? "Tu asistente de marketing con inteligencia artificial. Genera contenido, programa publicaciones y gestiona campañas—todo con una simple conversación."
                   : "Your AI-powered marketing assistant. Generate content, schedule posts, and manage campaigns—all with a simple conversation."}
               </p>
@@ -1029,19 +1066,55 @@ export default function Landing() {
               {/* Capabilities grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
                 {[
-                  { icon: <Bot className="w-5 h-5" />, text: isSpanish ? "Generación de contenido IA" : "AI Content Generation", bgColor: "bg-cyan-500", borderColor: "border-cyan-200", bgLight: "bg-cyan-50" },
-                  { icon: <MessageSquare className="w-5 h-5" />, text: isSpanish ? "Interfaz conversacional" : "Conversational Interface", bgColor: "bg-blue-500", borderColor: "border-blue-200", bgLight: "bg-blue-50" },
-                  { icon: <Clock className="w-5 h-5" />, text: isSpanish ? "Programación automática" : "Auto Scheduling", bgColor: "bg-purple-500", borderColor: "border-purple-200", bgLight: "bg-purple-50" },
-                  { icon: <BarChart3 className="w-5 h-5" />, text: isSpanish ? "Análisis inteligente" : "Smart Analytics", bgColor: "bg-pink-500", borderColor: "border-pink-200", bgLight: "bg-pink-50" },
+                  {
+                    icon: <Bot className="w-5 h-5" />,
+                    text: isSpanish
+                      ? "Generación de contenido IA"
+                      : "AI Content Generation",
+                    bgColor: "bg-cyan-500",
+                    borderColor: "border-cyan-200",
+                    bgLight: "bg-cyan-50",
+                  },
+                  {
+                    icon: <MessageSquare className="w-5 h-5" />,
+                    text: isSpanish
+                      ? "Interfaz conversacional"
+                      : "Conversational Interface",
+                    bgColor: "bg-blue-500",
+                    borderColor: "border-blue-200",
+                    bgLight: "bg-blue-50",
+                  },
+                  {
+                    icon: <Clock className="w-5 h-5" />,
+                    text: isSpanish
+                      ? "Programación automática"
+                      : "Auto Scheduling",
+                    bgColor: "bg-purple-500",
+                    borderColor: "border-purple-200",
+                    bgLight: "bg-purple-50",
+                  },
+                  {
+                    icon: <BarChart3 className="w-5 h-5" />,
+                    text: isSpanish
+                      ? "Análisis inteligente"
+                      : "Smart Analytics",
+                    bgColor: "bg-pink-500",
+                    borderColor: "border-pink-200",
+                    bgLight: "bg-pink-50",
+                  },
                 ].map((item, i) => (
-                  <div 
+                  <div
                     key={i}
                     className={`flex items-center gap-3 p-4 rounded-xl ${item.bgLight} border ${item.borderColor} hover:shadow-md transition-all duration-300 group`}
                   >
-                    <div className={`w-10 h-10 rounded-lg ${item.bgColor} flex items-center justify-center text-white shadow-lg`}>
+                    <div
+                      className={`w-10 h-10 rounded-lg ${item.bgColor} flex items-center justify-center text-white shadow-lg`}
+                    >
                       {item.icon}
                     </div>
-                    <span className="text-gray-700 font-medium group-hover:text-gray-900 transition-colors">{item.text}</span>
+                    <span className="text-gray-700 font-medium group-hover:text-gray-900 transition-colors">
+                      {item.text}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -1070,11 +1143,15 @@ export default function Landing() {
               <div className="flex items-center gap-6 mt-8 justify-center lg:justify-start">
                 <div className="flex items-center gap-2 text-gray-500">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-sm">{isSpanish ? "Sin tarjeta requerida" : "No credit card"}</span>
+                  <span className="text-sm">
+                    {isSpanish ? "Sin tarjeta requerida" : "No credit card"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-500">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-sm">{isSpanish ? "14 días gratis" : "14 days free"}</span>
+                  <span className="text-sm">
+                    {isSpanish ? "14 días gratis" : "14 days free"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1086,7 +1163,7 @@ export default function Landing() {
               {
                 emoji: "🎨",
                 title: isSpanish ? "Creación de Contenido" : "Content Creation",
-                desc: isSpanish 
+                desc: isSpanish
                   ? "Genera posts, stories, reels y más para todas tus redes sociales en segundos."
                   : "Generate posts, stories, reels and more for all your social networks in seconds.",
                 gradient: "from-pink-50 to-rose-50",
@@ -1097,7 +1174,7 @@ export default function Landing() {
               {
                 emoji: "📅",
                 title: isSpanish ? "Planificación 30 Días" : "30-Day Planner",
-                desc: isSpanish 
+                desc: isSpanish
                   ? "Planifica y programa un mes completo de contenido con estrategia inteligente."
                   : "Plan and schedule a full month of content with intelligent strategy.",
                 gradient: "from-blue-50 to-cyan-50",
@@ -1107,8 +1184,10 @@ export default function Landing() {
               },
               {
                 emoji: "🚀",
-                title: isSpanish ? "Optimización Automática" : "Auto Optimization",
-                desc: isSpanish 
+                title: isSpanish
+                  ? "Optimización Automática"
+                  : "Auto Optimization",
+                desc: isSpanish
                   ? "Analiza rendimiento y mejora automáticamente tus campañas en tiempo real."
                   : "Analyze performance and automatically improve your campaigns in real-time.",
                 gradient: "from-purple-50 to-indigo-50",
@@ -1117,13 +1196,19 @@ export default function Landing() {
                 descColor: "text-gray-600",
               },
             ].map((item, i) => (
-              <div 
+              <div
                 key={i}
                 className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${item.gradient} border ${item.border} p-8 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group`}
               >
                 <div className="text-5xl mb-4">{item.emoji}</div>
-                <h3 className={`text-xl font-bold ${item.textColor} mb-3 group-hover:text-blue-600 transition-colors`}>{item.title}</h3>
-                <p className={`${item.descColor} leading-relaxed`}>{item.desc}</p>
+                <h3
+                  className={`text-xl font-bold ${item.textColor} mb-3 group-hover:text-blue-600 transition-colors`}
+                >
+                  {item.title}
+                </h3>
+                <p className={`${item.descColor} leading-relaxed`}>
+                  {item.desc}
+                </p>
               </div>
             ))}
           </div>
