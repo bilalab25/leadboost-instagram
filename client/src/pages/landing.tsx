@@ -390,8 +390,8 @@ export default function Landing() {
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0"></div>
             <span className="text-xs sm:text-sm md:text-base font-medium text-gray-700">
               {isSpanish
-                ? "Su agente de marketing todo en uno."
-                : "Your All-in-one Marketing Agent."}
+                ? "Todo tu marketing realizado por IA."
+                : "Your Entire Marketing Done by AI."}
             </span>
           </div>
 
@@ -453,34 +453,13 @@ export default function Landing() {
         className="relative py-12 lg:py-20 overflow-hidden"
         style={{ backgroundColor: "#FFFFFF" }}
       >
-        {/* Trust indicators above video */}
-        <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10 mb-8 px-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-gray-900">
-                {isSpanish ? "Impulsado por IA" : "Powered by AI"}
-              </div>
-              <div className="text-xs text-gray-500">
-                {isSpanish ? "Modelo líder" : "Leading AI model"}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-gray-900">
-                {isSpanish ? "+10,000 usuarios" : "+10,000 users"}
-              </div>
-              <div className="text-xs text-gray-500">
-                {isSpanish ? "Confían en nosotros" : "Trust us"}
-              </div>
-            </div>
-          </div>
+        {/* Quote above video */}
+        <div className="flex justify-center items-center mb-8 px-6">
+          <p className="text-lg sm:text-xl md:text-2xl font-medium text-gray-700 text-center">
+            {isSpanish 
+              ? 'Tu "agente de marketing todo-en-uno"' 
+              : 'Your "all-in-one marketing agent"'}
+          </p>
         </div>
 
         {/* Boosty Video - Full Width */}
