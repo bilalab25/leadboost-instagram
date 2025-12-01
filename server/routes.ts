@@ -3102,7 +3102,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri
       )}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
-
       console.log("🔗 Instagram Direct OAuth URL:", authUrl.replace(clientId, "CLIENT_ID"));
       res.redirect(authUrl);
     }
