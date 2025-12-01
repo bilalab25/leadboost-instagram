@@ -3066,6 +3066,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =========================================================================
+  // INSTAGRAM DIRECT OAUTH (Standalone Instagram API - not via Facebook)
+  // =========================================================================
+  app.get(
+    "/api/integrations/instagram/connect",
+    isAuthenticated,
+    requireBrand,
+    (req: any, res) => {
+      const redirectUri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
+      const clientId = process.env.IG_APP_ID;
+
+      if (!clientId) {
+        console.error("❌ IG_APP_ID not configured");
+        return res.status(500).send("Instagram Direct integration not configured");
+      }
+
+      const scopes = [
+        "instagram_business_basic",
+        "instagram_business_manage_messages",
+        "instagram_business_manage_comments",
+        "instagram_business_content_publish",
+        "instagram_business_manage_insights",
+      ].join(",");
+
+      console.log("🔐 Instagram Direct OAuth scopes:", scopes);
+
+      const statePayload = {
+        userId: req.user.id,
+        brandId: req.brandMembership.brandId,
+      };
+
+      const state = Buffer.from(JSON.stringify(statePayload)).toString("base64");
+
+      const authUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+        redirectUri
+      )}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
+
+      console.log("🔗 Instagram Direct OAuth URL:", authUrl.replace(clientId, "CLIENT_ID"));
+      res.redirect(authUrl);
+    }
+  );
+
+  app.get("/api/integrations/instagram/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      if (!code) return res.status(400).send("Missing code");
+      if (!state) return res.status(400).send("Missing OAuth state");
+
+      // 1️⃣ Decode OAuth state
+      let userId: string | null = null;
+      let brandId: string | null = null;
+
+      try {
+        const decoded = Buffer.from(state as string, "base64").toString("utf8");
+        const parsed = JSON.parse(decoded);
+        userId = parsed.userId;
+        brandId = parsed.brandId;
+      } catch {
+        return res.status(400).send("Invalid OAuth state");
+      }
+
+      if (!userId) return res.status(400).send("Missing userId in state");
+      if (!brandId) return res.status(400).send("Missing brandId in state");
+
+      const redirect_uri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
+
+      // 2️⃣ Exchange CODE → Short-lived Access Token
+      const tokenRes = await fetch("https://api.instagram.com/oauth/access_token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          client_id: process.env.IG_APP_ID || "",
+          client_secret: process.env.IG_APP_SECRET || "",
+          grant_type: "authorization_code",
+          redirect_uri: redirect_uri,
+          code: code as string,
+        }),
+      });
+      const tokenData = await tokenRes.json();
+
+      if (tokenData.error_type || tokenData.error_message) {
+        console.error("❌ Instagram token exchange error:", tokenData);
+        return res.status(500).send(`Error: ${tokenData.error_message || "Token exchange failed"}`);
+      }
+
+      const shortLivedToken = tokenData.access_token;
+      const igUserId = tokenData.user_id;
+
+      console.log("✅ Instagram short-lived token obtained for user:", igUserId);
+
+      // 3️⃣ Exchange for Long-Lived Token
+      let longLivedToken = shortLivedToken;
+      let expiresAt: Date | null = null;
+
+      try {
+        const longLivedRes = await fetch(
+          `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${
+            process.env.IG_APP_SECRET
+          }&access_token=${shortLivedToken}`
+        );
+        const longLivedData = await longLivedRes.json();
+
+        if (longLivedData.access_token) {
+          longLivedToken = longLivedData.access_token;
+          expiresAt = longLivedData.expires_in
+            ? dayjs().add(longLivedData.expires_in, "seconds").toDate()
+            : null;
+          console.log("✅ Long-lived token obtained, expires in:", longLivedData.expires_in, "seconds");
+        }
+      } catch (err) {
+        console.warn("⚠️ Failed to exchange for long-lived token, using short-lived:", err);
+      }
+
+      // 4️⃣ Get Instagram user profile
+      const profileRes = await fetch(
+        `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${longLivedToken}`
+      );
+      const profileData = await profileRes.json();
+
+      if (profileData.error) {
+        console.error("❌ Instagram profile fetch error:", profileData.error);
+        return res.status(500).send("Failed to fetch Instagram profile");
+      }
+
+      const igUsername = profileData.username || `ig_user_${igUserId}`;
+      const accountType = profileData.account_type || "BUSINESS";
+      const mediaCount = profileData.media_count || 0;
+
+      console.log("📱 Instagram profile:", { igUsername, accountType, mediaCount });
+
+      // 5️⃣ Save Instagram Direct Integration
+      await storage.createOrUpdateIntegration({
+        userId,
+        brandId,
+        provider: "instagram_direct",
+        category: "social_media",
+        storeName: "Instagram Direct",
+        storeUrl: `https://instagram.com/${igUsername}`,
+        accountId: igUserId.toString(),
+        accountName: igUsername,
+        pageId: igUserId.toString(),
+        accessToken: longLivedToken,
+        expiresAt,
+        isActive: true,
+        syncEnabled: true,
+        metadata: {
+          igUserId: igUserId.toString(),
+          igUsername,
+          accountType,
+          mediaCount,
+          source: "instagram_direct_callback",
+        },
+      });
+
+      console.log("✅ Instagram Direct integration saved successfully");
+
+      // 6️⃣ Redirect to integrations page
+      return res.redirect(`/integrations?connected=instagram_direct`);
+    } catch (err) {
+      console.error("❌ Instagram callback error:", err);
+      return res.status(500).send("Error in Instagram callback");
+    }
+  });
+
   app.get(
     "/api/integrations/whatsapp/connect",
     isAuthenticated,

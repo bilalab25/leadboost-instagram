@@ -109,9 +109,16 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     fields: [],
   },
   instagram: {
-    name: "Instagram",
+    name: "Instagram (via Facebook)",
     icon: Instagram,
-    description: "Manage your Instagram content, stories, and analytics",
+    description: "Manage Instagram through your Facebook Business Page connection",
+    category: "social_media",
+    fields: [],
+  },
+  instagram_direct: {
+    name: "Instagram Direct",
+    icon: Instagram,
+    description: "Connect directly to Instagram for messaging, content publishing, and insights",
     category: "social_media",
     fields: [],
   },
@@ -309,6 +316,8 @@ export default function IntegrationsPage() {
     let url = "";
     if (["facebook", "instagram", "threads"].includes(provider)) {
       url = `/api/integrations/facebook/connect?brandId=${activeBrandId}`;
+    } else if (provider === "instagram_direct") {
+      url = `/api/integrations/instagram/connect?brandId=${activeBrandId}`;
     } else if (provider === "whatsapp") {
       url = `/api/integrations/whatsapp/connect?brandId=${activeBrandId}`;
     } else {
@@ -530,6 +539,7 @@ export default function IntegrationsPage() {
                             switch (providerKey) {
                               case 'facebook': return 'text-blue-600';
                               case 'instagram': return 'text-pink-500';
+                              case 'instagram_direct': return 'text-fuchsia-500';
                               case 'whatsapp': return 'text-green-500';
                               case 'threads': return 'text-gray-900 dark:text-gray-100';
                               case 'tiktok': return 'text-gray-900 dark:text-gray-100';
