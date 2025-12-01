@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useBrand } from "@/contexts/BrandContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import {
 
 export default function Home() {
   const { user, isLoading } = useAuth();
+  const { activeBrand } = useBrand();
 
   if (isLoading) {
     return (
@@ -66,7 +68,7 @@ export default function Home() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.firstName}!
+            Welcome back, {activeBrand?.name || user?.firstName}!
           </h1>
           <p className="text-lg text-gray-600">
             Your AI-powered social media management dashboard is ready.
