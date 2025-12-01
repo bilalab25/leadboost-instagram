@@ -13,6 +13,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -54,9 +55,7 @@ import {
   Store,
   Plug,
   CheckCircle2,
-  Zap,
-  ArrowRight,
-  Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import { useBrand } from "@/contexts/BrandContext";
 
@@ -93,12 +92,10 @@ interface ProviderInfo {
   description: string;
   category: "pos" | "ecommerce" | "social_media" | "crm";
   fields: IntegrationField[];
-  brandColor: string;
-  bgGradient: string;
 }
 
 // =====================================================
-// PROVIDER CONFIGURATION WITH BRAND COLORS
+// PROVIDER CONFIGURATION
 // =====================================================
 
 const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
@@ -109,8 +106,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Connect your Facebook Page for posts, insights, and audience engagement",
     category: "social_media",
     fields: [],
-    brandColor: "#1877F2",
-    bgGradient: "from-[#1877F2] to-[#0d5bc6]",
   },
   instagram: {
     name: "Instagram",
@@ -118,8 +113,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Manage your Instagram content, stories, and analytics",
     category: "social_media",
     fields: [],
-    brandColor: "#E4405F",
-    bgGradient: "from-[#833AB4] via-[#E4405F] to-[#FCAF45]",
   },
   whatsapp: {
     name: "WhatsApp Business",
@@ -127,8 +120,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Send and receive messages using WhatsApp Cloud API",
     category: "social_media",
     fields: [],
-    brandColor: "#25D366",
-    bgGradient: "from-[#25D366] to-[#128C7E]",
   },
   threads: {
     name: "Threads",
@@ -136,8 +127,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Manage messages and posts on Threads (linked to Instagram)",
     category: "social_media",
     fields: [],
-    brandColor: "#000000",
-    bgGradient: "from-gray-800 to-black",
   },
   tiktok: {
     name: "TikTok",
@@ -145,8 +134,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Connect your TikTok account for content scheduling",
     category: "social_media",
     fields: [],
-    brandColor: "#000000",
-    bgGradient: "from-[#ff0050] via-[#00f2ea] to-[#000000]",
   },
   youtube: {
     name: "YouTube",
@@ -154,8 +141,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Connect your YouTube channel for video management",
     category: "social_media",
     fields: [],
-    brandColor: "#FF0000",
-    bgGradient: "from-[#FF0000] to-[#cc0000]",
   },
 
   // POS Integrations
@@ -168,8 +153,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       { name: "accessToken", label: "Access Token", type: "password", required: true },
       { name: "applicationId", label: "Application ID", type: "text", required: false, placeholder: "Optional ID" },
     ],
-    brandColor: "#006AFF",
-    bgGradient: "from-[#006AFF] to-[#0050cc]",
   },
   stripe: {
     name: "Stripe",
@@ -180,8 +163,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       { name: "secretKey", label: "Secret Key", type: "password", required: true, placeholder: "sk_..." },
       { name: "publishableKey", label: "Publishable Key", type: "text", required: false, placeholder: "pk_..." },
     ],
-    brandColor: "#635BFF",
-    bgGradient: "from-[#635BFF] to-[#4f46e5]",
   },
 
   // E-commerce Integrations
@@ -194,8 +175,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       { name: "storeUrl", label: "Store URL", type: "text", required: true, placeholder: "your-store.myshopify.com" },
       { name: "accessToken", label: "Access Token", type: "password", required: true },
     ],
-    brandColor: "#96BF48",
-    bgGradient: "from-[#96BF48] to-[#7ab235]",
   },
   woocommerce: {
     name: "WooCommerce",
@@ -207,8 +186,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       { name: "consumerKey", label: "Consumer Key", type: "text", required: true },
       { name: "consumerSecret", label: "Consumer Secret", type: "password", required: true },
     ],
-    brandColor: "#96588A",
-    bgGradient: "from-[#96588A] to-[#7e4774]",
   },
   wix: {
     name: "Wix",
@@ -219,8 +196,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       { name: "siteUrl", label: "Site URL", type: "text", required: true, placeholder: "https://yourwixsite.com" },
       { name: "apiKey", label: "API Key", type: "password", required: true },
     ],
-    brandColor: "#0C6EFC",
-    bgGradient: "from-[#0C6EFC] to-[#0958d2]",
   },
   custom_website: {
     name: "Custom Website",
@@ -231,8 +206,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       { name: "siteUrl", label: "Website URL", type: "text", required: true, placeholder: "https://yourwebsite.com" },
       { name: "apiKey", label: "API Key", type: "password", required: true },
     ],
-    brandColor: "#6366F1",
-    bgGradient: "from-[#6366F1] to-[#4f46e5]",
   },
 
   // CRM Integrations
@@ -244,8 +217,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     fields: [
       { name: "apiKey", label: "API Key", type: "password", required: true },
     ],
-    brandColor: "#FF7A59",
-    bgGradient: "from-[#FF7A59] to-[#e56642]",
   },
   salesforce: {
     name: "Salesforce",
@@ -256,8 +227,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       { name: "clientId", label: "Client ID", type: "text", required: true },
       { name: "clientSecret", label: "Client Secret", type: "password", required: true },
     ],
-    brandColor: "#00A1E0",
-    bgGradient: "from-[#00A1E0] to-[#0088c7]",
   },
   zoho_crm: {
     name: "Zoho CRM",
@@ -269,45 +238,15 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       { name: "clientSecret", label: "Client Secret", type: "password", required: true },
       { name: "refreshToken", label: "Refresh Token", type: "password", required: true },
     ],
-    brandColor: "#C8202B",
-    bgGradient: "from-[#C8202B] to-[#a81b24]",
   },
 };
 
-// Category display configuration
-const INTEGRATION_CATEGORIES: { key: Integration["category"]; name: string; nameEs: string; icon: React.ElementType; description: string; descriptionEs: string }[] = [
-  {
-    key: "social_media",
-    name: "Social Media",
-    nameEs: "Redes Sociales",
-    icon: Instagram,
-    description: "Connect your social profiles to manage content and engagement",
-    descriptionEs: "Conecta tus perfiles sociales para gestionar contenido e interacciones",
-  },
-  {
-    key: "ecommerce",
-    name: "E-commerce",
-    nameEs: "E-commerce",
-    icon: ShoppingBag,
-    description: "Integrate your online store for product and order management",
-    descriptionEs: "Integra tu tienda online para gestión de productos y pedidos",
-  },
-  {
-    key: "pos",
-    name: "Payment & POS",
-    nameEs: "Pagos y POS",
-    icon: CreditCard,
-    description: "Connect payment systems and point-of-sale integrations",
-    descriptionEs: "Conecta sistemas de pago e integraciones de punto de venta",
-  },
-  {
-    key: "crm",
-    name: "CRM",
-    nameEs: "CRM",
-    icon: BriefcaseBusiness,
-    description: "Link your CRM to centralize customer data",
-    descriptionEs: "Enlaza tu CRM para centralizar datos de clientes",
-  },
+// Category configuration
+const INTEGRATION_CATEGORIES: { key: Integration["category"]; name: string; nameEs: string; icon: React.ElementType }[] = [
+  { key: "social_media", name: "Social Media", nameEs: "Redes Sociales", icon: Instagram },
+  { key: "ecommerce", name: "E-commerce", nameEs: "E-commerce", icon: ShoppingBag },
+  { key: "pos", name: "Payment & POS", nameEs: "Pagos y POS", icon: CreditCard },
+  { key: "crm", name: "CRM", nameEs: "CRM", icon: BriefcaseBusiness },
 ];
 
 // =====================================================
@@ -349,25 +288,11 @@ export default function IntegrationsPage() {
     fetchIntegrations();
   }, [activeBrandId]);
 
-  // Get connected count per category
-  const getConnectedCount = (category: string) => {
-    return integrations.filter((i) => i.category === category && i.isActive).length;
-  };
-
-  // Get providers for category
-  const getProvidersForCategory = (category: string) => {
-    return Object.entries(INTEGRATION_PROVIDERS).filter(([, info]) => info.category === category);
-  };
-
-  // Check if provider is connected
-  const isProviderConnected = (providerKey: string) => {
-    return integrations.some((i) => i.provider === providerKey && i.isActive);
-  };
-
-  // Get connected integration for provider
-  const getConnectedIntegration = (providerKey: string) => {
-    return integrations.find((i) => i.provider === providerKey && i.isActive);
-  };
+  // Helper functions
+  const getConnectedCount = (category: string) => integrations.filter((i) => i.category === category && i.isActive).length;
+  const getProvidersForCategory = (category: string) => Object.entries(INTEGRATION_PROVIDERS).filter(([, info]) => info.category === category);
+  const isProviderConnected = (providerKey: string) => integrations.some((i) => i.provider === providerKey && i.isActive);
+  const getConnectedIntegration = (providerKey: string) => integrations.find((i) => i.provider === providerKey && i.isActive);
 
   // OAuth connection handler
   const handleConnect = (provider: string) => {
@@ -477,54 +402,39 @@ export default function IntegrationsPage() {
   // =====================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={isSpanish ? "Integraciones" : "Integrations"} />
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex h-screen overflow-hidden bg-gray-50">
         <Sidebar />
 
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative overflow-y-auto focus:outline-none">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" data-testid="integrations-page">
+            <div className="container mx-auto px-4 py-8 space-y-6" data-testid="integrations-page">
               
-              {/* Hero Header */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 p-8 text-white shadow-xl">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRoLTJ2LTRoMnY0em0wLTZ2LTRoLTJ2NGgyem0tNiA2di00aC0ydjRoMnptMC02di00aC0ydjRoMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30" />
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                      <Plug className="h-8 w-8" />
-                    </div>
-                    <div>
-                      <h1 className="text-3xl font-bold tracking-tight">
-                        {isSpanish ? "Centro de Integraciones" : "Integration Hub"}
-                      </h1>
-                      <p className="text-white/80 mt-1">
-                        {isSpanish
-                          ? "Conecta todas tus plataformas en un solo lugar"
-                          : "Connect all your platforms in one place"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Stats Row */}
-                  <div className="flex flex-wrap gap-6 mt-6">
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
-                      <CheckCircle2 className="h-5 w-5 text-green-300" />
-                      <span className="font-semibold">{integrations.filter(i => i.isActive).length}</span>
-                      <span className="text-white/70">{isSpanish ? "Conectadas" : "Connected"}</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
-                      <Zap className="h-5 w-5 text-yellow-300" />
-                      <span className="font-semibold">{Object.keys(INTEGRATION_PROVIDERS).length}</span>
-                      <span className="text-white/70">{isSpanish ? "Disponibles" : "Available"}</span>
-                    </div>
-                  </div>
+              {/* Page Header */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+                    <Plug className="h-8 w-8 text-primary" />
+                    {isSpanish ? "Integraciones" : "Integrations"}
+                  </h1>
+                  <p className="text-muted-foreground mt-1">
+                    {isSpanish
+                      ? "Conecta tus plataformas favoritas para potenciar tus campañas."
+                      : "Connect your favorite platforms to power up your campaigns."}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="px-3 py-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-green-500" />
+                    {integrations.filter(i => i.isActive).length} {isSpanish ? "conectadas" : "connected"}
+                  </Badge>
                 </div>
               </div>
 
               {/* Category Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="w-full h-auto flex-wrap justify-start gap-2 bg-transparent p-0 mb-6">
+                <TabsList className="grid w-full grid-cols-4">
                   {INTEGRATION_CATEGORIES.map((category) => {
                     const connectedCount = getConnectedCount(category.key);
                     const Icon = category.icon;
@@ -532,16 +442,13 @@ export default function IntegrationsPage() {
                       <TabsTrigger
                         key={category.key}
                         value={category.key}
-                        className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground 
-                                   bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
-                                   rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200
-                                   flex items-center gap-2"
                         data-testid={`tab-${category.key}`}
+                        className="flex items-center gap-2"
                       >
                         <Icon className="h-4 w-4" />
-                        <span className="font-medium">{isSpanish ? category.nameEs : category.name}</span>
+                        <span className="hidden sm:inline">{isSpanish ? category.nameEs : category.name}</span>
                         {connectedCount > 0 && (
-                          <Badge variant="secondary" className="ml-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
                             {connectedCount}
                           </Badge>
                         )}
@@ -551,29 +458,33 @@ export default function IntegrationsPage() {
                 </TabsList>
 
                 {INTEGRATION_CATEGORIES.map((category) => (
-                  <TabsContent key={category.key} value={category.key} className="mt-0">
-                    <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+                  <TabsContent key={category.key} value={category.key} className="space-y-4">
+                    <Card>
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                              <category.icon className="h-6 w-6 text-primary" />
-                            </div>
+                            <category.icon className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <h2 className="text-xl font-semibold">{isSpanish ? category.nameEs : category.name}</h2>
-                              <CardDescription>{isSpanish ? category.descriptionEs : category.description}</CardDescription>
+                              <CardTitle className="text-lg">{isSpanish ? category.nameEs : category.name}</CardTitle>
+                              <CardDescription>
+                                {category.key === "social_media" && (isSpanish ? "Conecta tus perfiles de redes sociales" : "Connect your social media profiles")}
+                                {category.key === "ecommerce" && (isSpanish ? "Integra tu tienda online" : "Integrate your online store")}
+                                {category.key === "pos" && (isSpanish ? "Conecta sistemas de pago" : "Connect payment systems")}
+                                {category.key === "crm" && (isSpanish ? "Enlaza tu CRM" : "Link your CRM")}
+                              </CardDescription>
                             </div>
                           </div>
                           {category.key !== "social_media" && (
                             <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => {
                                 setDialogSelectedCategory(category.key);
                                 setIsAddIntegrationDialogOpen(true);
                               }}
-                              className="gap-2"
                               data-testid={`add-${category.key}-btn`}
                             >
-                              <Plus className="h-4 w-4" />
+                              <Plus className="h-4 w-4 mr-1" />
                               {isSpanish ? "Añadir" : "Add"}
                             </Button>
                           )}
@@ -582,7 +493,7 @@ export default function IntegrationsPage() {
                       <CardContent>
                         {integrationsLoading ? (
                           <div className="flex justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                           </div>
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -594,96 +505,77 @@ export default function IntegrationsPage() {
                               return (
                                 <div
                                   key={providerKey}
-                                  className={`group relative overflow-hidden rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${
+                                  className={`relative p-4 rounded-lg border transition-colors ${
                                     isConnected
-                                      ? "border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-950/20"
-                                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50"
+                                      ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800"
+                                      : "bg-white border-gray-200 hover:border-gray-300 dark:bg-gray-900 dark:border-gray-800"
                                   }`}
                                   data-testid={`provider-${providerKey}`}
                                 >
-                                  {/* Gradient Accent Bar */}
-                                  <div className={`h-1.5 w-full bg-gradient-to-r ${providerInfo.bgGradient}`} />
-                                  
-                                  <div className="p-5">
-                                    <div className="flex items-start justify-between mb-4">
-                                      <div className="flex items-center gap-3">
-                                        <div
-                                          className="p-2.5 rounded-xl shadow-sm"
-                                          style={{ backgroundColor: `${providerInfo.brandColor}15` }}
-                                        >
-                                          <Icon className="h-6 w-6" style={{ color: providerInfo.brandColor }} />
-                                        </div>
-                                        <div>
-                                          <h3 className="font-semibold text-gray-900 dark:text-white">{providerInfo.name}</h3>
-                                          {isConnected && (
-                                            <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-medium mt-0.5">
-                                              <CheckCircle2 className="h-3.5 w-3.5" />
-                                              {isSpanish ? "Conectado" : "Connected"}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                      {isConnected && (
-                                        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 border-0">
-                                          <Sparkles className="h-3 w-3 mr-1" />
-                                          {isSpanish ? "Activo" : "Active"}
-                                        </Badge>
-                                      )}
+                                  <div className="flex items-start gap-3">
+                                    <div className={`p-2 rounded-lg ${isConnected ? "bg-green-100 dark:bg-green-900/30" : "bg-gray-100 dark:bg-gray-800"}`}>
+                                      <Icon className={`h-5 w-5 ${isConnected ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400"}`} />
                                     </div>
-
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                                      {providerInfo.description}
-                                    </p>
-
-                                    {connectedIntegration && (
-                                      <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg text-sm">
-                                        <p className="text-gray-600 dark:text-gray-400">
-                                          <span className="font-medium text-gray-900 dark:text-white">
-                                            {connectedIntegration.accountName || connectedIntegration.storeName}
-                                          </span>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <h3 className="font-medium text-sm">{providerInfo.name}</h3>
+                                        {isConnected && (
+                                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300">
+                                            {isSpanish ? "Activo" : "Active"}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                                        {providerInfo.description}
+                                      </p>
+                                      {connectedIntegration && (
+                                        <p className="text-xs text-green-600 dark:text-green-400 mt-1.5 flex items-center gap-1">
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          {connectedIntegration.accountName || connectedIntegration.storeName}
                                         </p>
-                                      </div>
-                                    )}
-
-                                    <div className="flex gap-2">
-                                      {isConnected ? (
-                                        <>
-                                          {(category.key === "pos" || category.key === "ecommerce") && (
-                                            <Button variant="outline" size="sm" className="flex-1 gap-1" data-testid={`sync-${providerKey}`}>
-                                              <RefreshCw className="h-3.5 w-3.5" />
-                                              {isSpanish ? "Sincronizar" : "Sync"}
-                                            </Button>
-                                          )}
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:border-red-900 dark:hover:bg-red-950"
-                                            onClick={() => handleDeleteIntegration(connectedIntegration!.id)}
-                                            data-testid={`disconnect-${providerKey}`}
-                                          >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                          </Button>
-                                        </>
-                                      ) : (
-                                        <Button
-                                          size="sm"
-                                          className={`w-full gap-2 bg-gradient-to-r ${providerInfo.bgGradient} hover:opacity-90 text-white border-0`}
-                                          onClick={() => {
-                                            if (category.key === "social_media") {
-                                              handleConnect(providerKey);
-                                            } else {
-                                              setDialogSelectedCategory(category.key);
-                                              setDialogSelectedProvider(providerKey);
-                                              setIsAddIntegrationDialogOpen(true);
-                                            }
-                                          }}
-                                          data-testid={`connect-${providerKey}`}
-                                        >
-                                          {isSpanish ? "Conectar" : "Connect"}
-                                          <ArrowRight className="h-3.5 w-3.5" />
-                                        </Button>
                                       )}
                                     </div>
+                                  </div>
+
+                                  <div className="mt-3 flex gap-2">
+                                    {isConnected ? (
+                                      <>
+                                        {(category.key === "pos" || category.key === "ecommerce") && (
+                                          <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" data-testid={`sync-${providerKey}`}>
+                                            <RefreshCw className="h-3 w-3 mr-1" />
+                                            {isSpanish ? "Sincronizar" : "Sync"}
+                                          </Button>
+                                        )}
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                          onClick={() => handleDeleteIntegration(connectedIntegration!.id)}
+                                          data-testid={`disconnect-${providerKey}`}
+                                        >
+                                          <Trash2 className="h-3 w-3 mr-1" />
+                                          {isSpanish ? "Desconectar" : "Disconnect"}
+                                        </Button>
+                                      </>
+                                    ) : (
+                                      <Button
+                                        size="sm"
+                                        className="w-full h-8 text-xs"
+                                        onClick={() => {
+                                          if (category.key === "social_media") {
+                                            handleConnect(providerKey);
+                                          } else {
+                                            setDialogSelectedCategory(category.key);
+                                            setDialogSelectedProvider(providerKey);
+                                            setIsAddIntegrationDialogOpen(true);
+                                          }
+                                        }}
+                                        data-testid={`connect-${providerKey}`}
+                                      >
+                                        <ExternalLink className="h-3 w-3 mr-1" />
+                                        {isSpanish ? "Conectar" : "Connect"}
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
                               );
@@ -698,26 +590,20 @@ export default function IntegrationsPage() {
 
               {/* Add Integration Dialog */}
               <Dialog open={isAddIntegrationDialogOpen} onOpenChange={(open) => { setIsAddIntegrationDialogOpen(open); if (!open) resetDialog(); }}>
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="sm:max-w-[450px]">
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Plus className="h-5 w-5 text-primary" />
-                      {isSpanish ? "Añadir Nueva Integración" : "Add New Integration"}
-                    </DialogTitle>
+                    <DialogTitle>{isSpanish ? "Añadir Integración" : "Add Integration"}</DialogTitle>
                     <DialogDescription>
                       {isSpanish ? "Configura los detalles de tu nueva integración." : "Configure the details for your new integration."}
                     </DialogDescription>
                   </DialogHeader>
 
-                  <div className="space-y-4 pt-4">
+                  <div className="space-y-4 pt-2">
                     {/* Category Selection */}
                     {!dialogSelectedCategory && (
                       <div>
                         <Label>{isSpanish ? "Categoría" : "Category"}</Label>
-                        <Select
-                          value={dialogSelectedCategory}
-                          onValueChange={(val: Integration["category"]) => setDialogSelectedCategory(val)}
-                        >
+                        <Select value={dialogSelectedCategory} onValueChange={(val: Integration["category"]) => setDialogSelectedCategory(val)}>
                           <SelectTrigger data-testid="category-select">
                             <SelectValue placeholder={isSpanish ? "Selecciona una categoría" : "Select a category"} />
                           </SelectTrigger>
@@ -747,7 +633,7 @@ export default function IntegrationsPage() {
                             {filteredProviders.map(([key, info]) => (
                               <SelectItem key={key} value={key}>
                                 <div className="flex items-center gap-2">
-                                  <info.icon className="h-4 w-4" style={{ color: info.brandColor }} />
+                                  <info.icon className="h-4 w-4" />
                                   {info.name}
                                 </div>
                               </SelectItem>
@@ -760,18 +646,18 @@ export default function IntegrationsPage() {
                     {/* Provider Fields */}
                     {dialogSelectedProvider && (
                       <>
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg mb-4">
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                           {(() => {
                             const info = INTEGRATION_PROVIDERS[dialogSelectedProvider];
                             const Icon = info.icon;
                             return (
                               <>
-                                <div className="p-2 rounded-lg" style={{ backgroundColor: `${info.brandColor}15` }}>
-                                  <Icon className="h-5 w-5" style={{ color: info.brandColor }} />
+                                <div className="p-2 bg-white rounded-lg border">
+                                  <Icon className="h-4 w-4 text-gray-600" />
                                 </div>
                                 <div>
-                                  <p className="font-medium">{info.name}</p>
-                                  <p className="text-xs text-gray-500">{info.description}</p>
+                                  <p className="font-medium text-sm">{info.name}</p>
+                                  <p className="text-xs text-muted-foreground">{info.description}</p>
                                 </div>
                               </>
                             );
@@ -809,7 +695,7 @@ export default function IntegrationsPage() {
                     )}
 
                     {/* Actions */}
-                    <div className="flex justify-end gap-2 pt-4 border-t">
+                    <div className="flex justify-end gap-2 pt-4">
                       <Button variant="outline" onClick={() => { setIsAddIntegrationDialogOpen(false); resetDialog(); }} data-testid="cancel-button">
                         {isSpanish ? "Cancelar" : "Cancel"}
                       </Button>
@@ -819,7 +705,7 @@ export default function IntegrationsPage() {
                         data-testid="create-integration-button"
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        {isSpanish ? "Crear Integración" : "Create Integration"}
+                        {isSpanish ? "Crear" : "Create"}
                       </Button>
                     </div>
                   </div>
