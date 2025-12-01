@@ -2865,89 +2865,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!code) return res.status(400).send("Missing code");
       if (!state) return res.status(400).send("Missing OAuth state");
 
-      // ------------------------------------------------------------
-      // 1️⃣ Decodificar el state correctamente (Base64)
-      // ------------------------------------------------------------
-      let userId: null;
-      let brandId: null;
+      // -----------------------------------------
+      // 1️⃣ Decode OAuth state
+      // -----------------------------------------
+      let userId = null;
+      let brandId = null;
 
       try {
         const decoded = Buffer.from(state as string, "base64").toString("utf8");
-        const parsed = JSON.parse(decoded); // ahora parsed es { userId, brandId }
-
+        const parsed = JSON.parse(decoded);
         userId = parsed.userId;
         brandId = parsed.brandId;
-
-        console.log("🟢 [STATE OK]", parsed);
-      } catch (err) {
-        console.error("❌ Error decoding state:", err);
+      } catch {
         return res.status(400).send("Invalid OAuth state");
       }
 
-      // ------------------------------------------------------------
-      // 2️⃣ Validar userId / brandId (NO usar req.user aquí)
-      // ------------------------------------------------------------
-      if (!userId) return res.status(400).send("Missing userId in OAuth state");
-      if (!brandId)
-        return res.status(400).send("Missing brandId in OAuth state");
+      if (!userId) return res.status(400).send("Missing userId in state");
+      if (!brandId) return res.status(400).send("Missing brandId in state");
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
 
-      console.log("🔐 [OAuth] Starting Facebook callback...");
-      console.log("📦 Received code:", String(code).slice(0, 8) + "...");
-
-      // ------------------------------------------------------------
-      // 3️⃣ Intercambiar CODE por USER TOKEN
-      // ------------------------------------------------------------
-      const tokenResponse = await fetch(
+      // -----------------------------------------
+      // 2️⃣ Exchange CODE → USER TOKEN
+      // -----------------------------------------
+      const tokenRes = await fetch(
         `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${
           process.env.FB_APP_ID
         }&redirect_uri=${encodeURIComponent(
           redirect_uri,
         )}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`,
       );
-      const tokenData = await tokenResponse.json();
+      const tokenData = await tokenRes.json();
 
-      if (tokenData.error) {
-        console.error("❌ Facebook token error:", tokenData.error);
-        return res.status(500).json(tokenData.error);
-      }
+      if (tokenData.error) return res.status(500).json(tokenData.error);
 
-      console.log("🧩 [Step 1] User token obtained:", {
-        token_start: tokenData.access_token?.slice(0, 15),
-        expires_in: tokenData.expires_in,
-      });
-
-      // ------------------------------------------------------------
-      // 4️⃣ Validar permisos otorgados (opcional)
-      // ------------------------------------------------------------
-      const debugUrl = `https://graph.facebook.com/debug_token?input_token=${tokenData.access_token}&access_token=${process.env.FB_APP_ID}|${process.env.FB_APP_SECRET}`;
-      const debugResponse = await fetch(debugUrl);
-      const debugData = await debugResponse.json();
-
-      const grantedScopes = debugData.data?.scopes || [];
-      console.log("🔍 [DEBUG] Scopes:", grantedScopes);
-
-      if (!grantedScopes.includes("instagram_manage_messages")) {
-        return res
-          .status(403)
-          .send(
-            "El usuario no otorgó 'instagram_manage_messages'. Agrega al usuario como tester.",
-          );
-      }
-
-      // ------------------------------------------------------------
-      // 5️⃣ Obtener las Pages que administra el usuario
-      // ------------------------------------------------------------
-      const pagesResponse = await fetch(
+      // -----------------------------------------
+      // 3️⃣ Get Pages of the logged-in user
+      // -----------------------------------------
+      const pagesRes = await fetch(
         `https://graph.facebook.com/v24.0/me/accounts?access_token=${tokenData.access_token}`,
       );
-      const pagesData = await pagesResponse.json();
-
-      console.log(
-        "🧩 [Step 2] /me/accounts:",
-        JSON.stringify(pagesData, null, 2),
-      );
+      const pagesData = await pagesRes.json();
 
       if (!pagesData.data?.length) {
         return res.status(400).send("No Facebook Pages found");
@@ -2956,33 +2914,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const page = pagesData.data[0];
       let pageAccessToken = page.access_token;
 
+      // -----------------------------------------
+      // 4️⃣ Convert to Long-Lived Page Token
+      // -----------------------------------------
+      try {
+        const refreshRes = await fetch(
+          `https://graph.facebook.com/v24.0/${page.id}?fields=access_token&access_token=${pageAccessToken}`,
+        );
+        const refreshJson = await refreshRes.json();
+        if (refreshJson.access_token)
+          pageAccessToken = refreshJson.access_token;
+      } catch {}
+
+      // -----------------------------------------
+      // 5️⃣ Save Facebook Integration
+      // -----------------------------------------
       const expiresAt = tokenData.expires_in
         ? dayjs().add(tokenData.expires_in, "seconds").toDate()
         : null;
 
-      console.log("✅ [PAGE FOUND]", {
-        page_id: page.id,
-        page_name: page.name,
-      });
-
-      // ------------------------------------------------------------
-      // 6️⃣ Refrescar token (recomendado)
-      // ------------------------------------------------------------
-      try {
-        const tokenExchangeUrl = `https://graph.facebook.com/v24.0/${page.id}?fields=access_token&access_token=${pageAccessToken}`;
-        const tokenRes = await fetch(tokenExchangeUrl);
-        const tokenJson = await tokenRes.json();
-
-        if (tokenJson.access_token) {
-          pageAccessToken = tokenJson.access_token;
-        }
-      } catch (err) {
-        console.warn("⚠️ Token refresh failed:", err);
-      }
-
-      // ------------------------------------------------------------
-      // 7️⃣ Guardar integración de Facebook
-      // ------------------------------------------------------------
       await storage.createOrUpdateIntegration({
         userId,
         brandId,
@@ -2990,14 +2940,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         category: "social_media",
         storeName: "Facebook",
         storeUrl: `https://facebook.com/${page.id}`,
+        accountId: page.id,
+        accountName: page.name,
         pageId: page.id,
         accessToken: pageAccessToken,
-        accountName: page.name,
-        accountId: page.id,
-        settings: {
-          fbUserId: page.id,
-          fbUserName: page.name,
-        },
         expiresAt,
         isActive: true,
         syncEnabled: true,
@@ -3009,16 +2955,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-      console.log(`✅ [FACEBOOK CONNECTED] ${page.name}`);
+      // -----------------------------------------
+      // 6️⃣ SUBSCRIBE PAGE TO WEBHOOK EVENTS
+      // -----------------------------------------
+      try {
+        await fetch(
+          `https://graph.facebook.com/v24.0/${page.id}/subscribed_apps`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              subscribed_fields: [
+                "messages",
+                "messaging_postbacks",
+                "messaging_reactions",
+                "message_reads",
+                "message_deliveries",
+                "standby", // IG fallback
+                "instagram_messages",
+              ],
+              access_token: pageAccessToken,
+            }),
+          },
+        );
+      } catch (err) {
+        console.error("❌ Subscription error:", err);
+      }
 
-      // ------------------------------------------------------------
-      // 8️⃣ (Opcional) Auto-detectar Instagram + Threads
-      // ------------------------------------------------------------
+      // -----------------------------------------
+      // 7️⃣ Detect Instagram Business automatically
+      // -----------------------------------------
       let connectedType = "facebook";
 
       try {
-        console.log("🔍 Checking IG connection…");
-
         const igRes = await fetch(
           `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account,instagram_business_account&access_token=${pageAccessToken}`,
         );
@@ -3029,14 +2998,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           igData.instagram_business_account;
 
         if (igAccount?.id) {
-          console.log("🟢 IG account found:", igAccount);
-
           const igDetailsRes = await fetch(
             `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${pageAccessToken}`,
           );
           const igDetails = await igDetailsRes.json();
 
-          // Guardar integración de Instagram
           await storage.createOrUpdateIntegration({
             userId,
             brandId,
@@ -3045,21 +3011,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             storeName: "Instagram",
             storeUrl: `https://instagram.com/${igDetails.username}`,
             accountId: igAccount.id,
-            accessToken: pageAccessToken,
             accountName: igDetails.username,
+            accessToken: pageAccessToken,
             pageId: page.id,
+            isActive: true,
+            syncEnabled: true,
             metadata: {
               fbPageId: page.id,
               igAccountId: igAccount.id,
               igUsername: igDetails.username,
+              source: "facebook_callback",
             },
-            isActive: true,
-            syncEnabled: true,
           });
 
           connectedType = "facebook,instagram";
 
-          // Guardar integración de Threads
+          // -----------------------------------------
+          // 8️⃣ Register Threads (Linked to IG)
+          // -----------------------------------------
           await storage.createOrUpdateIntegration({
             userId,
             brandId,
@@ -3067,16 +3036,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: "social_media",
             storeName: "Threads",
             storeUrl: `https://threads.net/@${igDetails.username}`,
-            accountName: igDetails.username,
             accountId: igAccount.id,
+            accountName: igDetails.username,
             accessToken: pageAccessToken,
             pageId: page.id,
+            isActive: true,
+            syncEnabled: true,
             metadata: {
               fbPageId: page.id,
               igAccountId: igAccount.id,
+              igUsername: igDetails.username,
+              source: "facebook_callback",
             },
-            isActive: true,
-            syncEnabled: true,
           });
 
           connectedType = "facebook,instagram,threads";
@@ -3085,9 +3056,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("⚠️ IG auto-connect failed:", err);
       }
 
-      // ------------------------------------------------------------
-      // 9️⃣ Redirigir al usuario
-      // ------------------------------------------------------------
+      // -----------------------------------------
+      // 9️⃣ Redirect
+      // -----------------------------------------
       return res.redirect(`/settings?connected=${connectedType}`);
     } catch (err) {
       console.error("❌ Facebook callback error:", err);
@@ -3121,7 +3092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // URL base del Embedded Signup
       const embeddedSignupUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri,
-      )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=${whatsAppBusinessId}&auth_type=rerequest`;
+      )}&scope=${whatsapp_scopes}&state=${encodeURIComponent(state)}&response_type=code&config_id=${whatsAppBusinessId}`;
 
       // ^^^ El 'config_id' es CRUCIAL.
 
