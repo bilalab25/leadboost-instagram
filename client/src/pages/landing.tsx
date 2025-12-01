@@ -1219,12 +1219,12 @@ export default function Landing() {
         `}</style>
       </section>
 
-      {/* Interactive Demo Section - Premium Style */}
-      <section className="relative py-32 bg-gradient-to-b from-blue-50/30 via-white to-slate-50/30">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+      {/* Interactive Demo Section - Mobile Optimized */}
+      <section className="relative py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-blue-50/30 via-white to-slate-50/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Demo Container with Premium Styling */}
           <div
-            className="backdrop-blur-sm border border-white/50 rounded-3xl shadow-2xl p-8 lg:p-12"
+            className="backdrop-blur-sm border border-white/50 rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-12"
             style={{ backgroundColor: "rgba(248, 248, 250, 0.8)" }}
           >
             <InteractiveDemo isSpanish={isSpanish} />
@@ -1232,52 +1232,52 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features Section - Squarespace Style */}
+      {/* Features Section - Mobile Optimized */}
       <section
-        className="relative py-32 bg-gradient-to-b via-slate-50/30"
+        className="relative py-16 sm:py-24 lg:py-32 bg-gradient-to-b via-slate-50/30"
         style={{ backgroundColor: "#F8F8FA" }}
       >
-        <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="text-center mb-24">
-            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 sm:mb-16 lg:mb-24">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 lg:mb-8 bg-gradient-to-b from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
               {isSpanish
                 ? "Todo Lo Que Necesitas Para Vender Más"
                 : "Everything You Need To Sell More"}
             </h2>
-            <p className="text-xl sm:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed px-2">
               {isSpanish
                 ? "Una plataforma completa que automatiza tu marketing y ventas mientras tú te enfocas en hacer crecer tu negocio."
                 : "A complete platform that automates your marketing and sales while you focus on growing your business."}
             </p>
           </div>
 
-          {/* Modern Bento-Style Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {/* Modern Bento-Style Grid - Mobile Optimized */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
             {/* Primary Feature - Large Card */}
-            <div className="lg:col-span-2 lg:row-span-2 group relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 rounded-2xl p-8 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-500">
+            <div className="sm:col-span-2 lg:row-span-2 group relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                    <Bot className="h-7 w-7 text-white" />
+                <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0">
+                    <Bot className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white" />
                   </div>
-                  <div className="px-3 py-1 bg-blue-500/20 rounded-full border border-blue-400/30">
-                    <span className="text-blue-300 text-sm font-medium">
+                  <div className="px-2 sm:px-3 py-1 bg-blue-500/20 rounded-full border border-blue-400/30">
+                    <span className="text-blue-300 text-xs sm:text-sm font-medium">
                       AI-POWERED
                     </span>
                   </div>
                 </div>
-                <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors duration-300">
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 sm:mb-4 group-hover:text-blue-300 transition-colors duration-300">
                   {isSpanish
                     ? "Generador de Contenido Inteligente"
                     : "Smart Content Generator"}
                 </h3>
-                <p className="text-gray-300 leading-relaxed text-lg mb-6">
+                <p className="text-gray-300 leading-relaxed text-sm sm:text-base lg:text-lg mb-4 sm:mb-6">
                   {isSpanish
                     ? "IA crea y publica contenido de marketing basado en datos reales de tu negocio - inventario, ventas, eventos."
                     : "Effortlessly collect and centralize valuable insights from your website, POS systems, and social media channels — all in one place."}
                 </p>
-                <div className="flex items-center gap-2 text-blue-300 text-sm">
+                <div className="flex items-center gap-2 text-blue-300 text-xs sm:text-sm">
                   <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                   <span>
                     {isSpanish
@@ -1289,36 +1289,36 @@ export default function Landing() {
             </div>
 
             {/* High-Converting Chatbot Card - Top Right */}
-            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 via-rose-900 to-pink-900 rounded-2xl p-6 border border-rose-500/20 hover:border-rose-400/40 transition-all duration-500">
+            <div className="sm:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 via-rose-900 to-pink-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-rose-500/20 hover:border-rose-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-rose-400 to-rose-600 rounded-lg flex items-center justify-center shadow-lg shadow-rose-500/25">
-                      <MessageSquare className="h-6 w-6 text-white" />
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-rose-400 to-rose-600 rounded-lg flex items-center justify-center shadow-lg shadow-rose-500/25 flex-shrink-0">
+                      <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
-                    <div className="px-3 py-1 bg-rose-500/20 rounded-full border border-rose-400/30">
-                      <span className="text-rose-300 text-xs font-bold">
+                    <div className="px-2 sm:px-3 py-1 bg-rose-500/20 rounded-full border border-rose-400/30">
+                      <span className="text-rose-300 text-[10px] sm:text-xs font-bold">
                         HIGH-CONVERTING
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-rose-400 rounded-full animate-pulse"></div>
-                    <div className="text-rose-300 text-xs font-mono">
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-rose-400 rounded-full animate-pulse"></div>
+                    <div className="text-rose-300 text-[10px] sm:text-xs font-mono">
                       Online
                     </div>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-rose-300 transition-colors duration-300">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 group-hover:text-rose-300 transition-colors duration-300">
                   {isSpanish ? "ChatBot de Ventas IA" : "AI Sales Chatbot"}
                 </h3>
-                <p className="text-gray-300 leading-relaxed text-sm mb-4">
+                <p className="text-gray-300 leading-relaxed text-xs sm:text-sm mb-3 sm:mb-4">
                   {isSpanish
-                    ? "ChatBot inteligente que convierte visitantes en clientes con respuestas personalizadas y seguimiento automático de leads."
-                    : "Intelligent chatbot that converts visitors into customers with personalized responses and automatic lead follow-up."}
+                    ? "ChatBot inteligente que convierte visitantes en clientes con respuestas personalizadas."
+                    : "Intelligent chatbot that converts visitors into customers with personalized responses."}
                 </p>
-                <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs">
                   <div className="flex items-center gap-1 text-rose-300">
                     <TrendingUp className="w-3 h-3" />
                     <span>
@@ -1333,122 +1333,122 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Inbox Card - Middle Left */}
-            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-green-900 rounded-2xl p-6 border border-green-500/20 hover:border-green-400/40 transition-all duration-500">
+            {/* Inbox Card */}
+            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-green-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-green-500/20 hover:border-green-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 to-emerald-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center shadow-lg shadow-green-500/25">
-                    <MessageSquare className="h-6 w-6 text-white" />
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center shadow-lg shadow-green-500/25 flex-shrink-0">
+                    <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full animate-pulse"></div>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-green-300 transition-colors duration-300">
+                <h3 className="text-base sm:text-lg font-bold text-white mb-2 sm:mb-3 group-hover:text-green-300 transition-colors duration-300">
                   {isSpanish ? "Bandeja Unificada" : "Unified Inbox"}
                 </h3>
-                <p className="text-gray-300 leading-relaxed text-sm">
+                <p className="text-gray-300 leading-relaxed text-xs sm:text-sm">
                   {isSpanish
-                    ? "Gestiona todos los mensajes desde un solo lugar con respuestas automáticas."
+                    ? "Gestiona todos los mensajes desde un solo lugar."
                     : "Manage all messages from one place with automatic responses."}
                 </p>
               </div>
             </div>
 
-            {/* Platforms Card - Middle Right */}
-            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-orange-900 rounded-2xl p-6 border border-orange-500/20 hover:border-orange-400/40 transition-all duration-500">
+            {/* Platforms Card */}
+            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-orange-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-orange-500/20 hover:border-orange-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 to-red-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/25">
-                    <Globe className="h-6 w-6 text-white" />
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/25 flex-shrink-0">
+                    <Globe className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <span className="text-orange-300 text-xs font-bold px-2 py-1 bg-orange-500/20 rounded-full border border-orange-400/30">
+                  <span className="text-orange-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 bg-orange-500/20 rounded-full border border-orange-400/30">
                     21+
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-orange-300 transition-colors duration-300">
+                <h3 className="text-base sm:text-lg font-bold text-white mb-2 sm:mb-3 group-hover:text-orange-300 transition-colors duration-300">
                   {isSpanish ? "Plataformas Conectadas" : "Connected Platforms"}
                 </h3>
-                <p className="text-gray-300 leading-relaxed text-sm">
+                <p className="text-gray-300 leading-relaxed text-xs sm:text-sm">
                   {isSpanish
-                    ? "Publica automáticamente en Instagram, Facebook, TikTok, LinkedIn y más."
-                    : "Automatically post to Instagram, Facebook, TikTok, LinkedIn and more."}
+                    ? "Publica en Instagram, Facebook, TikTok y más."
+                    : "Post to Instagram, Facebook, TikTok, LinkedIn and more."}
                 </p>
               </div>
             </div>
 
-            {/* CRM Card - Bottom Left */}
-            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-red-900 rounded-2xl p-6 border border-red-500/20 hover:border-red-400/40 transition-all duration-500">
+            {/* CRM Card */}
+            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-red-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-red-500/20 hover:border-red-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-500/25">
-                    <Users className="h-6 w-6 text-white" />
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-500/25 flex-shrink-0">
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="text-red-300 text-xs font-mono">
+                  <div className="text-red-300 text-[10px] sm:text-xs font-mono">
                     {"<CRM/>"}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-red-300 transition-colors duration-300">
+                <h3 className="text-base sm:text-lg font-bold text-white mb-2 sm:mb-3 group-hover:text-red-300 transition-colors duration-300">
                   {isSpanish ? "CRM Inteligente" : "Smart CRM"}
                 </h3>
-                <p className="text-gray-300 leading-relaxed text-sm">
+                <p className="text-gray-300 leading-relaxed text-xs sm:text-sm">
                   {isSpanish
-                    ? "Gestión automática de leads con seguimiento inteligente y nurturing personalizado."
-                    : "Automatic lead management with intelligent tracking and personalized nurturing."}
+                    ? "Gestión automática de leads con seguimiento inteligente."
+                    : "Automatic lead management with intelligent tracking."}
                 </p>
               </div>
             </div>
 
             {/* Analytics Card - Bottom Featured */}
-            <div className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 to-purple-900 rounded-2xl p-6 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-500">
+            <div className="sm:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 to-purple-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/25">
-                    <TrendingUp className="h-6 w-6 text-white" />
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/25 flex-shrink-0">
+                    <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="flex space-x-1">
+                  <div className="flex space-x-0.5 sm:space-x-1">
                     <div
-                      className="w-1 h-8 bg-purple-400 rounded animate-pulse"
+                      className="w-1 h-5 sm:h-8 bg-purple-400 rounded animate-pulse"
                       style={{ animationDelay: "0s" }}
                     ></div>
                     <div
-                      className="w-1 h-6 bg-purple-500 rounded animate-pulse"
+                      className="w-1 h-4 sm:h-6 bg-purple-500 rounded animate-pulse"
                       style={{ animationDelay: "0.1s" }}
                     ></div>
                     <div
-                      className="w-1 h-10 bg-purple-400 rounded animate-pulse"
+                      className="w-1 h-6 sm:h-10 bg-purple-400 rounded animate-pulse"
                       style={{ animationDelay: "0.2s" }}
                     ></div>
                     <div
-                      className="w-1 h-4 bg-purple-500 rounded animate-pulse"
+                      className="w-1 h-3 sm:h-4 bg-purple-500 rounded animate-pulse"
                       style={{ animationDelay: "0.3s" }}
                     ></div>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors duration-300">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 group-hover:text-purple-300 transition-colors duration-300">
                   {isSpanish
                     ? "Análisis en Tiempo Real"
                     : "Real-Time Analytics"}
                 </h3>
-                <p className="text-gray-300 leading-relaxed text-sm">
+                <p className="text-gray-300 leading-relaxed text-xs sm:text-sm">
                   {isSpanish
-                    ? "Dashboard con métricas de ventas, engagement y ROI para optimizar tu estrategia automáticamente."
-                    : "Dashboard with sales, engagement and ROI metrics to optimize your strategy automatically."}
+                    ? "Dashboard con métricas de ventas y engagement."
+                    : "Dashboard with sales, engagement and ROI metrics."}
                 </p>
               </div>
             </div>
 
-            {/* Security Card - Next to Analytics */}
-            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-cyan-900 rounded-2xl p-6 border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-500">
+            {/* Security Card */}
+            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-cyan-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/25">
-                    <Shield className="h-6 w-6 text-white" />
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/25 flex-shrink-0">
+                    <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="flex space-x-1">
+                  <div className="flex space-x-0.5 sm:space-x-1">
                     <div className="w-1 h-1 bg-cyan-400 rounded-full animate-ping"></div>
                     <div
                       className="w-1 h-1 bg-cyan-400 rounded-full animate-ping"
@@ -1460,13 +1460,13 @@ export default function Landing() {
                     ></div>
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors duration-300">
+                <h3 className="text-base sm:text-lg font-bold text-white mb-2 sm:mb-3 group-hover:text-cyan-300 transition-colors duration-300">
                   {isSpanish ? "Seguridad Empresarial" : "Enterprise Security"}
                 </h3>
-                <p className="text-gray-300 leading-relaxed text-sm">
+                <p className="text-gray-300 leading-relaxed text-xs sm:text-sm">
                   {isSpanish
-                    ? "Cifrado de extremo a extremo, cumplimiento GDPR y backups automáticos."
-                    : "End-to-end encryption, GDPR compliance and automatic backups."}
+                    ? "Cifrado, GDPR y backups automáticos."
+                    : "End-to-end encryption, GDPR compliance."}
                 </p>
               </div>
             </div>
@@ -1474,97 +1474,100 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Final CTA - Premium Style */}
-      <section className="relative py-32 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 text-center">
-          <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-8 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent leading-tight">
+      {/* Final CTA - Mobile Optimized */}
+      <section className="relative py-16 sm:py-24 lg:py-32 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-6 lg:mb-8 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent leading-tight">
             {isSpanish
-              ? "¿Listo Para Hacer Crecer Tus Ventas?"
+              ? "¿Listo Para Crecer?"
               : "Ready To Grow Your Sales?"}
           </h2>
-          <p className="text-xl sm:text-2xl text-gray-300/90 mb-16 max-w-3xl mx-auto font-light leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300/90 mb-8 sm:mb-12 lg:mb-16 max-w-3xl mx-auto font-light leading-relaxed px-2">
             {isSpanish
-              ? "Únete a miles de empresas que ya están creciendo en piloto automático. Sin configuración complicada, sin contratos largos."
+              ? "Únete a miles de empresas que ya crecen en piloto automático."
               : "Join thousands of businesses already growing on autopilot. No complex setup, no long contracts."}
           </p>
 
-          <div className="flex flex-col items-center gap-6 mb-12">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 mb-8 sm:mb-12">
             <Button
-              className="text-gray-900 hover:opacity-80 font-bold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1"
+              className="text-gray-900 hover:opacity-80 font-bold px-8 sm:px-12 lg:px-16 py-4 sm:py-5 lg:py-6 text-base sm:text-lg lg:text-xl rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1 w-full sm:w-auto max-w-xs sm:max-w-none min-h-[52px]"
               style={{ backgroundColor: "#F8F8FA" }}
               data-testid="button-start-free-trial-final"
               onClick={() => navigate("/login")}
             >
-              {isSpanish ? "Comenzar Gratis Ahora" : "Start Free Now"}
-              <ArrowRight className="w-5 h-5 ml-2" />
+              {isSpanish ? "Comenzar Gratis" : "Start Free Now"}
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
             </Button>
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 text-xs sm:text-sm px-2">
               {isSpanish
-                ? "Prueba gratis 14 días • No se requiere tarjeta de crédito • Cancela cuando quieras"
+                ? "14 días gratis • Sin tarjeta • Cancela cuando quieras"
                 : "14-day free trial • No credit card required • Cancel anytime"}
             </p>
           </div>
 
-          <div className="flex justify-center items-center gap-8 text-gray-500 text-sm">
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              {isSpanish ? "Seguro SSL" : "SSL Secure"}
+          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 lg:gap-8 text-gray-500 text-xs sm:text-sm">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span>{isSpanish ? "Seguro SSL" : "SSL Secure"}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4" />
-              {isSpanish ? "GDPR Compliant" : "GDPR Compliant"}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span>{isSpanish ? "GDPR" : "GDPR Compliant"}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4" />
-              {isSpanish ? "Soporte 24/7" : "24/7 Support"}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span>{isSpanish ? "Soporte 24/7" : "24/7 Support"}</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-blue-950 backdrop-blur-md border-t border-white/10 py-12">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center mb-6 md:mb-0">
+      {/* Footer - Mobile Optimized */}
+      <footer className="bg-blue-950 backdrop-blur-md border-t border-white/10 py-8 sm:py-10 lg:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-6 sm:gap-8">
+            {/* Logo and copyright */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
               <img
                 src={leadBoostLogo}
                 alt="LeadBoost"
-                className="h-8 w-auto brightness-150 mr-4"
+                className="h-6 sm:h-8 w-auto brightness-150"
               />
-              <span className="text-white/60 text-sm">
+              <span className="text-white/60 text-xs sm:text-sm text-center">
                 {isSpanish
-                  ? "© 2025 Lead Boost. Todos los derechos reservados."
+                  ? "© 2025 Lead Boost"
                   : "© 2025 Lead Boost. All rights reserved."}
               </span>
             </div>
-            <div className="flex items-center space-x-6">
-              {/* Trustpilot Reviews */}
-              <div className="flex items-center gap-3 text-white/60">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 text-green-400 fill-current"
-                    />
-                  ))}
-                </div>
-                <span className="text-sm">
-                  {isSpanish
-                    ? "4.8/5 · 2,500+ reseñas"
-                    : "4.8/5 · 2,500+ reviews"}
-                </span>
-                <Button
-                  variant="ghost"
-                  className="text-white/60 hover:text-white text-xs p-0 underline"
-                >
-                  Trustpilot
-                </Button>
+            
+            {/* Trustpilot Reviews - Mobile optimized */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-white/60">
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className="w-3 h-3 sm:w-4 sm:h-4 text-green-400 fill-current"
+                  />
+                ))}
               </div>
-
+              <span className="text-xs sm:text-sm">
+                {isSpanish
+                  ? "4.8/5 · 2,500+ reseñas"
+                  : "4.8/5 · 2,500+ reviews"}
+              </span>
               <Button
                 variant="ghost"
-                className="text-white/60 hover:text-white text-sm"
+                className="text-white/60 hover:text-white text-xs p-0 underline h-auto"
+              >
+                Trustpilot
+              </Button>
+            </div>
+
+            {/* Links - Mobile optimized */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 lg:gap-6">
+              <Button
+                variant="ghost"
+                className="text-white/60 hover:text-white text-xs sm:text-sm h-auto py-1.5 px-2 sm:px-3 min-h-[44px] flex items-center"
                 onClick={() => navigate("/privacy-policy")}
                 data-testid="link-privacy-policy"
               >
@@ -1572,13 +1575,13 @@ export default function Landing() {
               </Button>
               <Button
                 variant="ghost"
-                className="text-white/60 hover:text-white text-sm"
+                className="text-white/60 hover:text-white text-xs sm:text-sm h-auto py-1.5 px-2 sm:px-3 min-h-[44px] flex items-center"
               >
                 {isSpanish ? "Términos" : "Terms"}
               </Button>
               <Button
                 variant="ghost"
-                className="text-white/60 hover:text-white text-sm"
+                className="text-white/60 hover:text-white text-xs sm:text-sm h-auto py-1.5 px-2 sm:px-3 min-h-[44px] flex items-center"
               >
                 {isSpanish ? "Soporte" : "Support"}
               </Button>
