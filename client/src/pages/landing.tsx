@@ -54,6 +54,7 @@ import { HelpDropdown } from "@/components/HelpDropdown";
 import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756873932398.png";
 import boostyImage from "@assets/Gemini_Generated_Image_vxt1kgvxt1kgvxt1_1764170274959.png";
 import boostyVideo from "@assets/Video_de_Boosty_Saludando_1764171160244.mp4";
+import boostyLoopVideo from "@assets/Boosty_Mascot_Looping_Animation_1764605997237.mp4";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
@@ -433,6 +434,166 @@ export default function Landing() {
                 ? "Prueba gratis por 14 días • No se requiere tarjeta de crédito"
                 : "Free 14-day trial • No credit card required"}
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Boosty AI Section - Holo AI Inspired */}
+      <section
+        className="relative py-20 lg:py-32 overflow-hidden"
+        style={{ 
+          background: "linear-gradient(180deg, #F8F8FA 0%, #FFFFFF 50%, #F8F8FA 100%)" 
+        }}
+      >
+        {/* Subtle background grid pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, #6366f1 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
+          }}
+        />
+        
+        {/* Animated gradient blobs */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-blue-200/30 to-purple-200/30 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-gradient-to-br from-cyan-200/25 to-blue-200/25 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: "1.5s" }} />
+
+        <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
+          {/* Section header */}
+          <div className="text-center mb-12 lg:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 mb-6">
+              <Zap className="w-4 h-4 text-blue-600" />
+              <span className="text-blue-700 text-sm font-semibold">
+                {isSpanish ? "Conoce tu nuevo asistente" : "Meet your new assistant"}
+              </span>
+            </div>
+          </div>
+
+          {/* Main content - Video + Floating elements */}
+          <div className="relative flex flex-col items-center">
+            {/* Video container with glow effect */}
+            <div className="relative">
+              {/* Outer glow ring */}
+              <div className="absolute -inset-8 bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-cyan-400/20 rounded-full blur-2xl animate-pulse" />
+              
+              {/* Boosty Video */}
+              <div className="relative z-10">
+                <video 
+                  src={boostyLoopVideo}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-[280px] sm:w-[350px] lg:w-[420px] h-auto"
+                  style={{
+                    filter: "drop-shadow(0 25px 50px rgba(0, 0, 0, 0.12))",
+                  }}
+                  data-testid="boosty-loop-video"
+                />
+              </div>
+
+              {/* Floating badges around Boosty - Holo AI style */}
+              <div 
+                className="absolute -top-4 -left-16 sm:-left-24 bg-white rounded-2xl px-4 py-3 shadow-xl border border-gray-100"
+                style={{ animation: "float 6s ease-in-out infinite" }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+                    <SiInstagram className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 font-medium">{isSpanish ? "Contenido" : "Content"}</div>
+                    <div className="text-sm font-bold text-gray-900">+127 posts</div>
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                className="absolute top-1/4 -right-16 sm:-right-28 bg-white rounded-2xl px-4 py-3 shadow-xl border border-gray-100"
+                style={{ animation: "float 7s ease-in-out infinite 0.5s" }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 font-medium">{isSpanish ? "Ventas" : "Sales"}</div>
+                    <div className="text-sm font-bold text-gray-900">+247%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                className="absolute bottom-1/3 -left-20 sm:-left-32 bg-white rounded-2xl px-4 py-3 shadow-xl border border-gray-100"
+                style={{ animation: "float 5s ease-in-out infinite 1s" }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 font-medium">AI</div>
+                    <div className="text-sm font-bold text-gray-900">{isSpanish ? "Activo 24/7" : "Active 24/7"}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                className="absolute -bottom-4 -right-12 sm:-right-20 bg-white rounded-2xl px-4 py-3 shadow-xl border border-gray-100"
+                style={{ animation: "float 8s ease-in-out infinite 1.5s" }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 font-medium">{isSpanish ? "Ahorras" : "You save"}</div>
+                    <div className="text-sm font-bold text-gray-900">10h/{isSpanish ? "semana" : "week"}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Text content below video */}
+            <div className="text-center mt-16 max-w-3xl">
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                <span className="text-gray-900">{isSpanish ? "Hola, soy " : "Hi, I'm "}</span>
+                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
+                  Boosty
+                </span>
+              </h2>
+              <p className="text-lg sm:text-xl text-gray-600 mb-10 leading-relaxed">
+                {isSpanish 
+                  ? "Tu asistente de marketing con IA. Creo contenido viral, programo publicaciones y hago crecer tu negocio—mientras tú duermes."
+                  : "Your AI marketing assistant. I create viral content, schedule posts, and grow your business—while you sleep."}
+              </p>
+              
+              {/* Stats row - Holo AI style */}
+              <div className="flex flex-wrap justify-center gap-8 sm:gap-12 mb-10">
+                <div className="text-center">
+                  <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">10x</div>
+                  <div className="text-sm text-gray-500 mt-1">{isSpanish ? "Más contenido" : "More content"}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">75%</div>
+                  <div className="text-sm text-gray-500 mt-1">{isSpanish ? "Más rápido" : "Faster"}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">24/7</div>
+                  <div className="text-sm text-gray-500 mt-1">{isSpanish ? "Siempre activo" : "Always active"}</div>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <Button
+                onClick={() => navigate("/login")}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-10 py-6 text-lg rounded-2xl shadow-2xl shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-[1.02]"
+                data-testid="button-chat-boosty-hero"
+              >
+                {isSpanish ? "Chatear con Boosty" : "Chat with Boosty"}
+                <MessageSquare className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
           </div>
         </div>
       </section>
