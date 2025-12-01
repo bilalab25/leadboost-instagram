@@ -57,11 +57,37 @@ import {
   Upload,
   X,
   Variable,
+  Info,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  Lightbulb,
+  Shield,
+  Zap,
+  Users,
+  BookOpen,
+  ExternalLink,
+  Plug,
+  ArrowRight,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SiWhatsapp } from "react-icons/si";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Link } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface WhatsAppTemplate {
   id: string;
@@ -370,6 +396,7 @@ export default function WhatsAppTemplates() {
   const [selectedTemplate, setSelectedTemplate] =
     useState<WhatsAppTemplate | null>(null);
   const [headerMediaFile, setHeaderMediaFile] = useState<File | null>(null);
+  const [showGuide, setShowGuide] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch WhatsApp templates from Meta API
@@ -615,158 +642,326 @@ export default function WhatsAppTemplates() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex h-screen overflow-hidden bg-gray-50">
+    <TooltipProvider>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50/30">
+      <div className="flex h-screen overflow-hidden">
         <Sidebar />
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <TopHeader />
           <main className="flex-1 relative overflow-y-auto focus:outline-none">
             <div className="py-6">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                
+                {/* Hero Section with Educational Content */}
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-8"
+                >
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 p-6 md:p-8 shadow-xl">
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute inset-0" style={{
+                        backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)`,
+                        backgroundSize: '20px 20px'
+                      }} />
+                    </div>
+                    
+                    <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <SiWhatsapp className="w-7 h-7 text-white" />
+                          </div>
+                          <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-white" data-testid="text-page-title">
+                              WhatsApp Templates
+                            </h1>
+                            <p className="text-green-100 text-sm">
+                              Pre-approved messages for business communication
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <p className="text-white/90 text-base md:text-lg max-w-2xl" data-testid="text-page-description">
+                          Templates are message formats that WhatsApp has reviewed and approved for your business. 
+                          They allow you to send notifications, updates, and marketing messages to customers who have opted in.
+                        </p>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowGuide(!showGuide)}
+                          className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+                          data-testid="button-toggle-guide"
+                        >
+                          <BookOpen className="w-4 h-4 mr-2" />
+                          {showGuide ? "Hide Guide" : "Show Guide"}
+                        </Button>
+                        {!isNoIntegration && (
+                          <Button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="bg-white text-green-600 hover:bg-green-50"
+                            data-testid="button-create-template"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Template
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Educational Guide Section */}
+                <AnimatePresence>
+                  {showGuide && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-8 overflow-hidden"
+                    >
+                      <Card className="border-green-100 bg-gradient-to-br from-white to-green-50/50">
+                        <CardHeader className="pb-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                              <Lightbulb className="w-4 h-4 text-green-600" />
+                            </div>
+                            <CardTitle className="text-lg">What are WhatsApp Templates?</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          {/* Key Benefits */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+                              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
+                                <Shield className="w-5 h-5 text-blue-600" />
+                              </div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Pre-Approved by Meta</h4>
+                              <p className="text-sm text-gray-600">
+                                Templates are reviewed by WhatsApp to ensure quality and prevent spam. Approval usually takes 24-48 hours.
+                              </p>
+                            </div>
+                            <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+                              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mb-3">
+                                <Zap className="w-5 h-5 text-purple-600" />
+                              </div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Start Conversations</h4>
+                              <p className="text-sm text-gray-600">
+                                Required to message customers first. After they reply, you can send free-form messages for 24 hours.
+                              </p>
+                            </div>
+                            <div className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
+                              <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center mb-3">
+                                <Users className="w-5 h-5 text-orange-600" />
+                              </div>
+                              <h4 className="font-semibold text-gray-900 mb-1">Personalize with Variables</h4>
+                              <p className="text-sm text-gray-600">
+                                Use placeholders like {"{{1}}"} to insert customer names, order numbers, or any dynamic content.
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Template Categories Explanation */}
+                          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <Info className="w-4 h-4 text-gray-500" />
+                              Template Categories
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                              <div className="flex items-start gap-2">
+                                <Badge className="bg-purple-100 text-purple-800 mt-0.5">Authentication</Badge>
+                                <p className="text-sm text-gray-600">Login codes, password resets, verification</p>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <Badge className="bg-blue-100 text-blue-800 mt-0.5">Utility</Badge>
+                                <p className="text-sm text-gray-600">Order updates, shipping info, appointments</p>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <Badge className="bg-pink-100 text-pink-800 mt-0.5">Marketing</Badge>
+                                <p className="text-sm text-gray-600">Promotions, offers, product announcements</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* FAQ Accordion */}
+                          <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="item-1" className="border-gray-200">
+                              <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                How long does template approval take?
+                              </AccordionTrigger>
+                              <AccordionContent className="text-sm text-gray-600">
+                                Most templates are approved within 24-48 hours. Marketing templates may take longer due to additional review. 
+                                You'll be notified when your template status changes.
+                              </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-2" className="border-gray-200">
+                              <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                Why was my template rejected?
+                              </AccordionTrigger>
+                              <AccordionContent className="text-sm text-gray-600">
+                                Common reasons include: promotional content in utility templates, missing variable placeholders, 
+                                prohibited content, or too similar to existing templates. Review Meta's guidelines and resubmit with changes.
+                              </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-3" className="border-gray-200">
+                              <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                What are variables and how do I use them?
+                              </AccordionTrigger>
+                              <AccordionContent className="text-sm text-gray-600">
+                                Variables are placeholders like {"{{1}}"}, {"{{2}}"} that get replaced with actual values when you send a message. 
+                                For example: "Hi {"{{1}}"}, your order {"{{2}}"} is ready" becomes "Hi Maria, your order #12345 is ready".
+                              </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="item-4" className="border-gray-200">
+                              <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                Is there a cost for sending template messages?
+                              </AccordionTrigger>
+                              <AccordionContent className="text-sm text-gray-600">
+                                Yes, WhatsApp charges per conversation. Utility and authentication templates cost less than marketing templates. 
+                                The first 1,000 conversations each month are free. Check Meta's pricing for current rates.
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* No Integration Warning */}
+                {isNoIntegration && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-8"
+                  >
+                    <Card className="border-2 border-dashed border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+                      <CardContent className="py-12 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                          <Plug className="w-8 h-8 text-amber-600" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                          Connect WhatsApp Business First
+                        </h3>
+                        <p className="text-gray-600 max-w-md mx-auto mb-6">
+                          To create and manage templates, you need to connect your WhatsApp Business account. 
+                          This allows us to sync your existing templates and submit new ones for approval.
+                        </p>
+                        <Link href="/integrations">
+                          <Button className="bg-green-600 hover:bg-green-700 text-white">
+                            <SiWhatsapp className="w-4 h-4 mr-2" />
+                            Connect WhatsApp Business
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+
+                {/* Error Banner */}
                 {templatesError && !isNoIntegration && (
                   <div
-                    className="mb-6 p-4 border rounded-lg bg-red-50 border-red-200"
+                    className="mb-6 p-4 border rounded-xl bg-red-50 border-red-200"
                     data-testid="banner-status"
                   >
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5 text-red-600" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <AlertCircle className="w-5 h-5 text-red-600" />
+                      </div>
                       <div>
-                        <p className="font-medium text-red-800">
+                        <p className="font-semibold text-red-800">
                           Error Loading Templates
                         </p>
                         <p className="text-sm text-red-700">
                           {(templatesError as any)?.message ||
-                            "Unable to fetch templates from Meta."}
+                            "Unable to fetch templates from Meta. Please try again."}
                         </p>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => refetchTemplates()}
+                        className="ml-auto border-red-200 text-red-700 hover:bg-red-100"
+                      >
+                        Retry
+                      </Button>
                     </div>
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                  <div>
-                    <h1
-                      className="text-2xl font-bold text-gray-900 flex items-center gap-2"
-                      data-testid="text-page-title"
-                    >
-                      <SiWhatsapp className="w-7 h-7 text-green-600" />
-                      WhatsApp Templates
-                    </h1>
-                    <p
-                      className="text-gray-600 mt-1"
-                      data-testid="text-page-description"
-                    >
-                      Create and manage message templates for WhatsApp Business
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    {!isNoIntegration && (
-                      <Button
-                        variant="outline"
-                        onClick={() => refetchTemplates()}
-                        data-testid="button-refresh-templates"
-                      >
-                        Refresh
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => {
-                        if (isNoIntegration) {
-                          toast({
-                            title: "No WhatsApp Integration",
-                            description: "Please connect a WhatsApp Business account first to create templates.",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-                        setIsCreateModalOpen(true);
-                      }}
-                      className={isNoIntegration ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"}
-                      data-testid="button-create-template"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Template
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <Card data-testid="card-stat-total">
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Total Templates
-                          </p>
-                          <p
-                            className="text-2xl font-bold"
-                            data-testid="text-stat-total"
-                          >
-                            {templates.length}
-                          </p>
+                {/* Stats Cards - Only show when connected */}
+                {!isNoIntegration && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+                  >
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-total">
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Total Templates</p>
+                            <p className="text-3xl font-bold text-gray-900" data-testid="text-stat-total">
+                              {templates.length}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                            <FileText className="w-6 h-6 text-gray-500" />
+                          </div>
                         </div>
-                        <FileText className="w-8 h-8 text-gray-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card data-testid="card-stat-approved">
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Approved</p>
-                          <p
-                            className="text-2xl font-bold text-green-600"
-                            data-testid="text-stat-approved"
-                          >
-                            {
-                              templates.filter((t) => t.status === "APPROVED")
-                                .length
-                            }
-                          </p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-approved">
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Approved</p>
+                            <p className="text-3xl font-bold text-green-600" data-testid="text-stat-approved">
+                              {templates.filter((t) => t.status === "APPROVED").length}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-green-600" />
+                          </div>
                         </div>
-                        <CheckCircle className="w-8 h-8 text-green-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card data-testid="card-stat-pending">
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Pending</p>
-                          <p
-                            className="text-2xl font-bold text-yellow-600"
-                            data-testid="text-stat-pending"
-                          >
-                            {
-                              templates.filter((t) => t.status === "PENDING")
-                                .length
-                            }
-                          </p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-pending">
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Pending</p>
+                            <p className="text-3xl font-bold text-amber-600" data-testid="text-stat-pending">
+                              {templates.filter((t) => t.status === "PENDING").length}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                            <Clock className="w-6 h-6 text-amber-600" />
+                          </div>
                         </div>
-                        <Clock className="w-8 h-8 text-yellow-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card data-testid="card-stat-rejected">
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Rejected</p>
-                          <p
-                            className="text-2xl font-bold text-red-600"
-                            data-testid="text-stat-rejected"
-                          >
-                            {
-                              templates.filter((t) => t.status === "REJECTED")
-                                .length
-                            }
-                          </p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-rejected">
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">Rejected</p>
+                            <p className="text-3xl font-bold text-red-600" data-testid="text-stat-rejected">
+                              {templates.filter((t) => t.status === "REJECTED").length}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+                            <XCircle className="w-6 h-6 text-red-600" />
+                          </div>
                         </div>
-                        <XCircle className="w-8 h-8 text-red-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
 
                 <Card className="mb-6" data-testid="card-filters">
                   <CardContent className="pt-4">
@@ -2142,5 +2337,6 @@ export default function WhatsAppTemplates() {
         </DialogContent>
       </Dialog>
     </div>
+    </TooltipProvider>
   );
 }
