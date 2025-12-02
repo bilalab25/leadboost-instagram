@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBrand } from "@/contexts/BrandContext";
 import { useToast } from "@/hooks/use-toast";
@@ -48,21 +48,26 @@ interface ContentPost {
   title: string;
   platform: string;
   scheduledFor: string;
-  status: "draft" | "scheduled" | "published";
+  status: "draft" | "scheduled" | "published" | "pending" | "accepted" | "rejected";
   content: string;
   imageUrl?: string;
+  source?: "manual" | "ai";
 }
 
-const platformIcons = {
+const platformIcons: Record<string, any> = {
   instagram: Instagram,
+  instagram_story: Instagram,
+  instagram_reel: Instagram,
   whatsapp: SiWhatsapp,
   facebook: SiFacebook,
   tiktok: SiTiktok,
   linkedin: SiLinkedin,
 };
 
-const platformColors = {
+const platformColors: Record<string, string> = {
   instagram: "text-pink-500 bg-pink-50",
+  instagram_story: "text-pink-400 bg-pink-50",
+  instagram_reel: "text-pink-600 bg-pink-50",
   whatsapp: "text-green-500 bg-green-50",
   facebook: "text-blue-600 bg-blue-50",
   tiktok: "text-gray-800 bg-gray-50",
@@ -137,23 +142,23 @@ export default function ContentCalendar() {
       
       if (post.dia && post.dia.includes("-")) {
         // ISO date format
-        scheduledDate = new Date(post.dia);
+        scheduledDate = new Date(post.dia + "T10:00:00");
       } else {
         // Day name format - get first occurrence in current month
         const datesForDay = getDatesForDayOfWeek(post.dia || "monday");
         scheduledDate = datesForDay[0] || new Date();
+        scheduledDate.setHours(10, 0, 0, 0);
       }
-      
-      scheduledDate.setHours(10, 0, 0, 0);
 
       posts.push({
         id: post.id,
         title: post.titulo,
         platform: post.platform,
         scheduledFor: scheduledDate.toISOString(),
-        status: post.status === "accepted" ? "scheduled" : "draft",
+        status: post.status || "pending",
         content: post.content,
         imageUrl: post.imageUrl,
+        source: "ai",
       });
     });
 
@@ -378,6 +383,18 @@ export default function ContentCalendar() {
     },
   ];
 
+  // Convert AI posts to ContentPost format and combine with mock posts
+  const aiContentPosts = useMemo(() => {
+    if (!aiPendingPosts || aiPendingPosts.length === 0) return [];
+    return convertAiPostsToContentPosts(aiPendingPosts);
+  }, [aiPendingPosts, currentDate]);
+
+  // Combine all posts (mock + AI) for calendar display
+  const allPosts = useMemo(() => {
+    const manualPosts = mockContentPosts.map(post => ({ ...post, source: "manual" as const }));
+    return [...manualPosts, ...aiContentPosts];
+  }, [aiContentPosts]);
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
@@ -405,7 +422,7 @@ export default function ContentCalendar() {
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getPostsForDate = (date: Date) =>
-    mockContentPosts.filter((post) =>
+    allPosts.filter((post) =>
       isSameDay(new Date(post.scheduledFor), date),
     );
 
@@ -643,17 +660,20 @@ export default function ContentCalendar() {
                                       platformIcons[
                                         post.platform as keyof typeof platformIcons
                                       ];
+                                    const isAiPost = post.source === "ai";
                                     return (
                                       <div
                                         key={post.id}
-                                        className={`text-xs px-2 py-1 rounded truncate ${platformColors[post.platform as keyof typeof platformColors]}`}
+                                        data-testid={`calendar-post-${post.id}`}
+                                        className={`text-xs px-2 py-1 rounded truncate flex items-center gap-1 ${platformColors[post.platform as keyof typeof platformColors]} ${isAiPost ? "ring-1 ring-purple-300" : ""}`}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleOpenPost(post);
                                         }}
                                       >
-                                        <PlatformIcon className="inline w-3 h-3 mr-1" />
-                                        {post.title}
+                                        {isAiPost && <Sparkles className="inline w-3 h-3 text-purple-500 flex-shrink-0" />}
+                                        <PlatformIcon className="inline w-3 h-3 flex-shrink-0" />
+                                        <span className="truncate">{post.title}</span>
                                       </div>
                                     );
                                   })}
