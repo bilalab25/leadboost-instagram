@@ -1,0 +1,102 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Inter",
+      "role": "body"
+    }
+  ],
+  "colors": {
+    "primary": "#111827",
+    "accent": "#2273C3",
+    "background": "#FFFFFF",
+    "textPrimary": "#172554",
+    "link": "#172554"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Inter",
+      "heading": "Inter"
+    },
+    "fontStacks": {
+      "heading": [
+        "Inter",
+        "sans-serif"
+      ],
+      "body": [
+        "Inter",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "Inter",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "96px",
+      "h2": "48px",
+      "body": "24px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "5px"
+  },
+  "components": {
+    "input": {
+      "borderColor": "#CCCCCC",
+      "borderRadius": "5px"
+    },
+    "buttonPrimary": {
+      "background": "#2273C3",
+      "textColor": "#FFFFFF",
+      "borderRadius": "16px",
+      "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.25) 0px 25px 50px -12px"
+    },
+    "buttonSecondary": {
+      "background": "#FFFFFF",
+      "textColor": "#374151",
+      "borderColor": "#D1D5DB",
+      "borderRadius": "12px",
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "https://leadboostio.com/assets/Lead%20Boost%20(500%20x%20200%20px)%20(500%20x%20160%20px)_1756771199959-sGoIGL5O.png",
+    "favicon": "https://leadboostio.com/assets/transparent_logo-2aOo-Xqx.png",
+    "ogImage": null
+  },
+  "__framework_hints": [],
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Logo #0 visually represents the brand name 'LeadBoost' and is located in the header, making it the most suitable choice.",
+    "confidence": 0.9
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 1,
+      "text": "Start Free Now",
+      "reasoning": "Button #1 has a vibrant blue background (#2273C3) and action-oriented text 'Start Free Now', making it the primary call-to-action."
+    },
+    "secondary": {
+      "index": 3,
+      "text": "Watch Demo",
+      "reasoning": "Button #3 has a white background (#FFFFFF) and is less prominent, making it suitable as a secondary action. It is different from the primary button's color."
+    },
+    "confidence": 0.95
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "business professionals and marketers"
+  },
+  "designSystem": {
+    "framework": "tailwind",
+    "componentLibrary": null
+  },
+  "confidence": {
+    "buttons": 0.95,
+    "colors": 0.9,
+    "overall": 0.925
+  }
+}

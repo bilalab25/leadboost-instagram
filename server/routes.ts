@@ -4794,7 +4794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // =========================================================
-        // 🟣 INSTAGRAM / THREADS
+        // 🟣 INSTAGRAM / THREADS (via Facebook)
         // =========================================================
         else if (provider === "instagram" || provider === "threads") {
           console.log(
@@ -4838,6 +4838,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           console.log("✅ [Instagram] Payload final:", payload);
+        }
+
+        // =========================================================
+        // 🟪 INSTAGRAM DIRECT (via Instagram Login API)
+        // =========================================================
+        else if (provider === "instagram_direct") {
+          console.log(
+            `💬 [Instagram Direct] Sending message to conversation ${conversationId}`,
+          );
+
+          // Instagram Direct uses the IGBA ID (accountId) for messaging
+          const igbaId = integration.accountId;
+          if (!igbaId)
+            throw new Error("No se encontró el IGBA ID de la cuenta Instagram.");
+
+          console.log(`🆔 IGBA ID: ${igbaId}`);
+
+          // El conversationId ya es el meta_conversation_id
+          metaConversationId = conversationId;
+
+          // Obtener destinatario de la conversación
+          const convoRes = await fetch(
+            `https://graph.instagram.com/v24.0/${conversationId}?fields=participants&access_token=${integration.accessToken}`,
+          );
+          const convoData = await convoRes.json();
+          
+          console.log("📥 Instagram Direct conversation data:", JSON.stringify(convoData, null, 2));
+
+          if (convoData.error) {
+            console.error("❌ Error fetching conversation:", convoData.error);
+            return res.status(400).json({ 
+              error: convoData.error.message || "Error fetching Instagram conversation" 
+            });
+          }
+
+          const participants = convoData.participants?.data || [];
+          // Find the recipient (not the current account)
+          recipientId = participants.find(
+            (p: any) => p.id !== igbaId
+          )?.id;
+
+          if (!recipientId) {
+            // Fallback: try to get from local messages
+            console.log("⚠️ Could not find recipient from API, trying local DB...");
+            const localMessages = await storage.findMessagesByConversation(
+              userId,
+              integration.id,
+              metaConversationId,
+            );
+
+            const inboundMsg = localMessages?.find(
+              (m) => m.direction === "inbound" && m.senderId !== igbaId,
+            );
+
+            if (inboundMsg?.senderId) {
+              recipientId = inboundMsg.senderId;
+              console.log(`📍 Recipient ID (fallback DB): ${recipientId}`);
+            } else {
+              return res
+                .status(400)
+                .json({ error: "No se pudo determinar el destinatario de Instagram Direct" });
+            }
+          }
+
+          console.log(`📍 Recipient ID (IG Direct): ${recipientId}`);
+
+          // Instagram Direct uses /me/messages endpoint with Instagram User Access Token
+          url = `https://graph.instagram.com/v24.0/me/messages`;
+          payload = {
+            recipient: { id: recipientId },
+            message: { text: content },
+          };
+
+          console.log("✅ [Instagram Direct] Payload final:", payload);
         }
 
         // =========================================================
