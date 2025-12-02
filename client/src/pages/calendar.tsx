@@ -17,10 +17,25 @@ import {
   Wand2,
   Settings,
   Sparkles,
+  AlertCircle,
+  Link2,
+  Palette,
+  CalendarDays,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Instagram } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   format,
   startOfMonth,
@@ -28,6 +43,7 @@ import {
   eachDayOfInterval,
   isSameDay,
   isToday,
+  isSameMonth,
 } from "date-fns";
 import {
   Dialog,
@@ -41,6 +57,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PauseCircle, PlayCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Pause, Play } from "lucide-react";
+import { Link } from "wouter";
 import PostingFrequencyModal from "@/components/PostingFrequencyModal";
 
 interface ContentPost {
@@ -101,6 +118,108 @@ export default function ContentCalendar() {
   const [showGeneratingLoader, setShowGeneratingLoader] = useState(false);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
   const [aiPendingPosts, setAiPendingPosts] = useState<any[]>([]);
+  const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({});
+
+  // Query to fetch integrations for the brand
+  const { data: integrations, isLoading: integrationsLoading } = useQuery<any[]>({
+    queryKey: ["/api/integrations", activeBrandId],
+    queryFn: async () => {
+      if (!activeBrandId) return [];
+      const res = await fetch(`/api/integrations`, {
+        credentials: "include",
+        headers: { "x-brand-id": activeBrandId },
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!activeBrandId,
+    staleTime: 60000,
+  });
+
+  // Query to fetch brand design
+  const { data: brandDesign, isLoading: brandDesignLoading } = useQuery<any>({
+    queryKey: ["/api/brands", activeBrandId, "design"],
+    queryFn: async () => {
+      if (!activeBrandId) return null;
+      const res = await fetch(`/api/brands/${activeBrandId}/design`, {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeBrandId,
+    staleTime: 60000,
+  });
+
+  // Query to fetch posting frequency
+  const { data: postingFrequencyData, isLoading: postingFrequencyLoading } = useQuery<any[]>({
+    queryKey: ["/api/posting-frequency", activeBrandId],
+    queryFn: async () => {
+      if (!activeBrandId) return [];
+      const res = await fetch(`/api/posting-frequency`, {
+        credentials: "include",
+        headers: { "x-brand-id": activeBrandId },
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!activeBrandId,
+    staleTime: 60000,
+  });
+
+  // Computed validation states
+  const hasSocialIntegrations = useMemo(() => {
+    if (!integrations) return false;
+    return integrations.some(
+      (int: any) => 
+        int.provider === "instagram" || 
+        int.provider === "instagram_direct" || 
+        int.provider === "facebook"
+    );
+  }, [integrations]);
+
+  const connectedPlatforms = useMemo(() => {
+    if (!integrations) return [];
+    return integrations
+      .filter((int: any) => 
+        int.provider === "instagram" || 
+        int.provider === "instagram_direct" || 
+        int.provider === "facebook"
+      )
+      .map((int: any) => int.provider);
+  }, [integrations]);
+
+  const hasBrandDesign = useMemo(() => {
+    return !!brandDesign && brandDesign.id;
+  }, [brandDesign]);
+
+  const hasPostingFrequency = useMemo(() => {
+    return postingFrequencyData && postingFrequencyData.length > 0;
+  }, [postingFrequencyData]);
+
+  // Check if AI posts exist for current month
+  const currentMonthAiPosts = useMemo(() => {
+    if (!aiPendingPosts || aiPendingPosts.length === 0) return [];
+    return aiPendingPosts.filter((post: any) => {
+      if (!post.dia) return false;
+      const postDate = new Date(post.dia);
+      return isSameMonth(postDate, currentDate);
+    });
+  }, [aiPendingPosts, currentDate]);
+
+  const hasAiPostsForCurrentMonth = currentMonthAiPosts.length > 0;
+
+  // Determine if AI generation is available
+  const canGenerateAiPosts = hasSocialIntegrations && hasBrandDesign && hasPostingFrequency && !hasAiPostsForCurrentMonth;
+
+  // Get the reason why generation is disabled
+  const getDisabledReason = (): string => {
+    if (!hasSocialIntegrations) return "Connect Instagram or Facebook to generate AI posts";
+    if (!hasBrandDesign) return "Create your brand design first";
+    if (!hasPostingFrequency) return "Set your posting frequency first";
+    if (hasAiPostsForCurrentMonth) return `Posts already exist for ${format(currentDate, "MMMM yyyy")}`;
+    return "";
+  };
 
   // Helper function to convert day name to dates in current month
   const getDatesForDayOfWeek = (dayName: string): Date[] => {
@@ -478,28 +597,98 @@ export default function ContentCalendar() {
   };
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen overflow-hidden bg-gray-50">
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative overflow-y-auto focus:outline-none">
             <div className="py-6">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                
+                {/* Alert Banners for Missing Requirements */}
+                <div className="space-y-3 mb-6">
+                  {/* No integrations banner */}
+                  {!integrationsLoading && !hasSocialIntegrations && (
+                    <Alert className="border-amber-200 bg-amber-50">
+                      <Link2 className="h-4 w-4 text-amber-600" />
+                      <AlertTitle className="text-amber-800">Connect your social accounts</AlertTitle>
+                      <AlertDescription className="text-amber-700">
+                        To generate AI posts, connect your Instagram or Facebook account first.
+                        <Link href="/integrations">
+                          <Button variant="link" className="text-amber-800 font-semibold p-0 h-auto ml-1" data-testid="link-connect-integrations">
+                            Connect now →
+                          </Button>
+                        </Link>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* No brand design banner */}
+                  {!brandDesignLoading && hasSocialIntegrations && !hasBrandDesign && (
+                    <Alert className="border-purple-200 bg-purple-50">
+                      <Palette className="h-4 w-4 text-purple-600" />
+                      <AlertTitle className="text-purple-800">Create your brand design</AlertTitle>
+                      <AlertDescription className="text-purple-700">
+                        Define your brand colors, fonts, and style to enable AI post generation.
+                        <Link href="/brand-studio">
+                          <Button variant="link" className="text-purple-800 font-semibold p-0 h-auto ml-1" data-testid="link-brand-studio">
+                            Go to Brand Studio →
+                          </Button>
+                        </Link>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* No posting frequency banner */}
+                  {!postingFrequencyLoading && hasSocialIntegrations && hasBrandDesign && !hasPostingFrequency && (
+                    <Alert className="border-blue-200 bg-blue-50">
+                      <CalendarDays className="h-4 w-4 text-blue-600" />
+                      <AlertTitle className="text-blue-800">Set your posting frequency</AlertTitle>
+                      <AlertDescription className="text-blue-700">
+                        Configure how often you want to post on each platform to generate the right amount of content.
+                        <Button 
+                          variant="link" 
+                          className="text-blue-800 font-semibold p-0 h-auto ml-1"
+                          onClick={() => setIsFrequencyModalOpen(true)}
+                          data-testid="link-set-frequency"
+                        >
+                          Set frequency →
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Posts already exist for month */}
+                  {hasAiPostsForCurrentMonth && (
+                    <Alert className="border-green-200 bg-green-50">
+                      <Sparkles className="h-4 w-4 text-green-600" />
+                      <AlertTitle className="text-green-800">AI posts ready for {format(currentDate, "MMMM yyyy")}</AlertTitle>
+                      <AlertDescription className="text-green-700">
+                        You have {currentMonthAiPosts.length} AI-generated posts for this month. Review them in the calendar below.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* 📅 Calendar */}
                   <div className="lg:col-span-2">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex flex-col gap-3">
-                          {/* 🔹 Fila superior: título y navegación */}
+                    <Card className="shadow-lg border-0">
+                      <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b">
+                        <div className="flex flex-col gap-4">
+                          {/* Header with title and navigation */}
                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg font-semibold flex items-center">
-                              <CalendarIcon className="mr-2 h-5 w-5" />
-                              {format(currentDate, "MMMM yyyy")}
+                            <CardTitle className="text-xl font-bold flex items-center gap-2">
+                              <CalendarIcon className="h-6 w-6 text-brand-600" />
+                              <span className="bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
+                                {format(currentDate, "MMMM yyyy")}
+                              </span>
                             </CardTitle>
-                            <div className="flex gap-2">
+                            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
+                                className="h-8 w-8 p-0 hover:bg-white"
                                 onClick={() =>
                                   setCurrentDate(
                                     new Date(
@@ -508,12 +697,23 @@ export default function ContentCalendar() {
                                     ),
                                   )
                                 }
+                                data-testid="button-prev-month"
                               >
-                                ←
+                                <ChevronLeft className="h-4 w-4" />
                               </Button>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
+                                className="h-8 px-3 hover:bg-white text-xs font-medium"
+                                onClick={() => setCurrentDate(new Date())}
+                                data-testid="button-today"
+                              >
+                                Today
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-white"
                                 onClick={() =>
                                   setCurrentDate(
                                     new Date(
@@ -522,91 +722,98 @@ export default function ContentCalendar() {
                                     ),
                                   )
                                 }
+                                data-testid="button-next-month"
                               >
-                                →
+                                <ChevronRight className="h-4 w-4" />
                               </Button>
                             </div>
                           </div>
 
-                          {/* 🔹 Fila inferior: botones de control */}
-                          <div className="flex flex-wrap items-center justify-between gap-2">
+                          {/* Action buttons row */}
+                          <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex flex-wrap gap-2">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => setIsFrequencyModalOpen(true)}
+                                className={!hasPostingFrequency ? "border-blue-300 text-blue-700 hover:bg-blue-50" : ""}
                                 data-testid="button-set-posting-frequency"
                               >
-                                <Settings className="w-4 h-4 mr-1" /> Set
-                                Posting Frequency
+                                <Settings className="w-4 h-4 mr-1" />
+                                {hasPostingFrequency ? "Edit Frequency" : "Set Frequency"}
                               </Button>
+
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <Button
+                                      size="sm"
+                                      variant={canGenerateAiPosts ? "default" : "outline"}
+                                      onClick={() => generatePostsMutation.mutate()}
+                                      disabled={
+                                        generatePostsMutation.isPending ||
+                                        !activeBrandId ||
+                                        !canGenerateAiPosts
+                                      }
+                                      className={canGenerateAiPosts 
+                                        ? "bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white" 
+                                        : "opacity-60 cursor-not-allowed"
+                                      }
+                                      data-testid="button-generate-ai-posts"
+                                    >
+                                      {generatePostsMutation.isPending ? (
+                                        <>
+                                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                          Generating...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Sparkles className="w-4 h-4 mr-1" />
+                                          AI Suggestions
+                                        </>
+                                      )}
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                {!canGenerateAiPosts && (
+                                  <TooltipContent>
+                                    <p>{getDisabledReason()}</p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
 
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => generatePostsMutation.mutate()}
-                                disabled={
-                                  generatePostsMutation.isPending ||
-                                  !activeBrandId
-                                }
-                                data-testid="button-generate-ai-posts"
-                              >
-                                {generatePostsMutation.isPending ? (
-                                  <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-1"></div>
-                                    Generating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Sparkles className="w-4 h-4 mr-1" /> AI
-                                    Suggestions
-                                  </>
-                                )}
-                              </Button>
-
-                              <Button
-                                size="sm"
-                                variant="default"
                                 onClick={handleApproveMonth}
+                                className="text-green-700 border-green-300 hover:bg-green-50"
+                                data-testid="button-approve-month"
                               >
-                                <CheckCircle className="w-4 h-4 mr-1" /> Approve
-                                month
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Approve Month
                               </Button>
                             </div>
 
-                            {/* 🔹 Switch Pause / Autopost */}
+                            {/* Pause/Autopost toggle */}
                             <div
                               onClick={handleToggle}
-                              className={`relative flex w-40 h-8 rounded-full cursor-pointer select-none transition-colors duration-300 ${
-                                isPaused ? "bg-gray-300" : "bg-gray-300"
+                              className={`relative flex w-36 h-9 rounded-full cursor-pointer select-none transition-all duration-300 shadow-inner ${
+                                isPaused ? "bg-gray-200" : "bg-gradient-to-r from-brand-100 to-green-100"
                               }`}
                             >
-                              {/* Knob */}
                               <span
-                                className={`absolute top-1 left-1 h-6 w-[calc(50%-4px)] rounded-full bg-white shadow-md transform transition-transform duration-300 ${
+                                className={`absolute top-1 left-1 h-7 w-[calc(50%-4px)] rounded-full shadow-md transform transition-all duration-300 ${
                                   isPaused
-                                    ? "translate-x-0"
-                                    : "translate-x-full"
+                                    ? "translate-x-0 bg-gray-400"
+                                    : "translate-x-full bg-gradient-to-r from-brand-500 to-green-500"
                                 }`}
                               ></span>
-
-                              {/* Labels */}
-                              <div className="absolute inset-0 flex items-center justify-between px-3 text-xs font-semibold text-gray-700">
-                                <span
-                                  className={`flex items-center gap-1 transition-colors ${
-                                    isPaused ? "text-gray-900" : "text-gray-500"
-                                  }`}
-                                >
+                              <div className="absolute inset-0 flex items-center justify-between px-3 text-xs font-semibold">
+                                <span className={`transition-colors ${isPaused ? "text-gray-700" : "text-gray-400"}`}>
                                   Pause
                                 </span>
-                                <span
-                                  className={`flex items-center gap-1 transition-colors ${
-                                    !isPaused
-                                      ? "text-gray-900"
-                                      : "text-gray-500"
-                                  }`}
-                                >
-                                  Autopost
+                                <span className={`transition-colors ${!isPaused ? "text-green-700" : "text-gray-400"}`}>
+                                  Auto
                                 </span>
                               </div>
                             </div>
@@ -1040,5 +1247,6 @@ export default function ContentCalendar() {
         </DialogContent>
       </Dialog>
     </div>
+    </TooltipProvider>
   );
 }
