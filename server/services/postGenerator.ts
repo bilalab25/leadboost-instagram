@@ -607,9 +607,32 @@ export async function processPostGeneration(
       connectedPlatforms: uniquePlatforms,
     };
 
-    const posts = await generatePostsWithGemini(context);
+    const allPosts = await generatePostsWithGemini(context);
 
-    console.log(`[PostGenerator] Saving ${posts.length} posts to database`);
+    // Server-side filtering: Only keep posts for connected platforms
+    // This ensures that even if the LLM generates posts for other platforms, they are not saved
+    const allowedPlatforms = new Set([
+      ...uniquePlatforms,
+      // Include Instagram variants if Instagram is connected
+      ...(uniquePlatforms.includes('instagram') ? ['instagram', 'instagram_story', 'instagram_reel'] : []),
+      // Include Facebook if connected
+      ...(uniquePlatforms.includes('facebook') ? ['facebook'] : []),
+    ]);
+    
+    const posts = allPosts.filter(post => {
+      const isAllowed = allowedPlatforms.has(post.platform);
+      if (!isAllowed) {
+        console.log(`[PostGenerator] Filtering out post for platform "${post.platform}" - not connected`);
+      }
+      return isAllowed;
+    });
+
+    if (posts.length === 0) {
+      console.warn(`[PostGenerator] All generated posts were filtered out. Original: ${allPosts.length}, Filtered: 0`);
+      throw new Error("No posts could be generated for your connected platforms. Please try again.");
+    }
+
+    console.log(`[PostGenerator] Saving ${posts.length} posts to database (filtered from ${allPosts.length} generated)`);
     
     for (const post of posts) {
       let imageUrl: string | null = null;
