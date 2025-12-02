@@ -1,0 +1,88 @@
+2025-12-01 18:54:42.91
+41bea275
+User
+fbtrace_id: 'ArEx_M3tbhVK90mFpjcJFSb'
+2025-12-01 18:54:42.91
+41bea275
+User
+message: 'Unsupported request - method type: get',
+2025-12-01 18:54:42.91
+41bea275
+User
+message: 'Unsupported request - method type: get',
+2025-12-01 18:54:42.91
+41bea275
+User
+fbtrace_id: 'ArEx_M3tbhVK90mFpjcJFSb'
+2025-12-01 18:54:42.91
+41bea275
+User
+12:54:42 AM [express] GET /api/integrations/instagram/callback 500 in 3511ms
+2025-12-01 18:54:42.91
+41bea275
+User
+12:54:42 AM [express] GET /api/integrations/instagram/callback 500 in 3511ms
+2025-12-01 18:55:14.60
+41bea275
+User
+12:55:14 AM [express] GET /api/auth/user 304 in 35ms :: {"user":{"id":"heAXUj8cRrSZ5qrLwiTLF2DzUJp2","email":"renuvederm@gmail.com","firstName":"RENUVE","lastName":"AESTHETICS BAR","profileImageUrl":"https://lh3.googleusercontent.com/a/ACg8ocJscm4jqjYlDW3_pH_HRyg0pUjjGqqdLSWB39eyMULoulz8Hxaw=s96-c","firebaseUid":"WUOoSOUFNcTQkATxsJgZHqzniV13","provider":"google.com","role":"agency_owner","hierarchyLevel":1,"canApprove":false,"reportsTo":null,"createdAt":"2025-11-10T00:04:20.059Z","updatedAt":"2025-11-27T04:28:45.877Z","phone":null,"address":null}}
+2025-12-01 18:55:50.17
+41bea275
+User
+✅ Instagram short-lived token obtained for user: 25693626653576070
+2025-12-01 18:55:50.44
+41bea275
+User
+code: 100,
+2025-12-01 18:55:50.44
+41bea275
+User
+message: 'Unsupported request - method type: get',
+2025-12-01 18:55:50.44
+41bea275
+User
+error: {
+2025-12-01 18:55:50.44
+41bea275
+User
+{
+2025-12-01 18:55:50.44
+41bea275
+User
+} profileData
+2025-12-01 18:55:50.44
+41bea275
+User
+code: 100,
+2025-12-01 18:55:50.44
+41bea275
+User
+}
+2025-12-01 18:55:50.44
+41bea275
+User
+fbtrace_id: 'Ax_5BgEE-BS-PO9PPTKfus3'
+2025-12-01 18:55:50.44
+41bea275
+User
+type: 'IGApiException',
+2025-12-01 18:55:50.44
+41bea275
+User
+fbtrace_id: 'Ax_5BgEE-BS-PO9PPTKfus3'
+2025-12-01 18:55:50.44
+41bea275
+User
+message: 'Unsupported request - method type: get',
+2025-12-01 18:55:50.44
+41bea275
+User
+}
+2025-12-01 18:55:50.44
+41bea275
+User
+❌ Instagram profile fetch error: {
+2025-12-01 18:55:50.44
+41bea275
+User
+type: 'IGApiException',

@@ -3212,24 +3212,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
 
-      // 4️⃣ Get Instagram user profile (including user_id which is the IGBA ID for webhooks)
-      const profileRes = await fetch(
-        `https://graph.instagram.com/me?fields=id,user_id,username,account_type,media_count&access_token=${longLivedToken}`,
-      );
-      const profileData = await profileRes.json();
-      console.log(profileData, "profileData");
-      if (profileData.error) {
-        console.error("❌ Instagram profile fetch error:", profileData.error);
-        return res.status(500).send("Failed to fetch Instagram profile");
-      }
+      // 4️⃣ Get Instagram user profile
+      // Instagram Login API returns the app-scoped ID in the token response (user_id field)
+      // We use that as both the app-scoped ID and IGBA ID since they're the same for Instagram Login API
+      let igUsername = `ig_user_${igUserId}`;
+      let accountType = "BUSINESS";
+      let mediaCount = 0;
+      let igbaId = igUserId.toString();
+      let appScopedId = igUserId.toString();
 
-      const igUsername = profileData.username || `ig_user_${igUserId}`;
-      const accountType = profileData.account_type || "BUSINESS";
-      const mediaCount = profileData.media_count || 0;
-      // user_id is the Instagram Business Account ID (IGBA ID) used in webhooks
-      // id is the app-scoped user ID
-      const igbaId = profileData.user_id || profileData.id || igUserId;
-      const appScopedId = profileData.id || igUserId;
+      try {
+        // Try to get profile info - only request definitely supported fields
+        const profileRes = await fetch(
+          `https://graph.instagram.com/v24.0/me?fields=id,username&access_token=${longLivedToken}`,
+        );
+        const profileData = await profileRes.json();
+        console.log("📱 Profile response:", JSON.stringify(profileData, null, 2));
+
+        if (!profileData.error && profileData.username) {
+          igUsername = profileData.username;
+          appScopedId = profileData.id || igUserId.toString();
+          // For Instagram Login API, the user_id from token is the IGBA ID
+          igbaId = igUserId.toString();
+          console.log("✅ Profile fetched successfully:", { igUsername, appScopedId, igbaId });
+        } else if (profileData.error) {
+          console.warn("⚠️ Profile fetch returned error, using fallback values:", profileData.error);
+          // Still continue with defaults from token response
+        }
+      } catch (profileErr) {
+        console.warn("⚠️ Profile fetch failed, using fallback values:", profileErr);
+        // Continue with default values from token response
+      }
 
       console.log("📱 Instagram profile:", {
         igUsername,
