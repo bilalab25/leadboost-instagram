@@ -44,6 +44,7 @@ export interface PostGenerationContext {
   month: number;
   year: number;
   postsToGenerate?: number;
+  connectedPlatforms?: string[]; // Platforms to generate posts for (e.g., ['instagram', 'facebook'])
 }
 
 async function fetchMetaInsights(
@@ -141,9 +142,25 @@ async function fetchMetaInsights(
 }
 
 function buildTextPrompt(context: PostGenerationContext): string {
-  const { brandName, brandDescription, brandDesign, brandAssets, metaInsights, month, year, postsToGenerate = 15 } = context;
+  const { brandName, brandDescription, brandDesign, brandAssets, metaInsights, month, year, postsToGenerate = 15, connectedPlatforms } = context;
 
   const monthName = new Date(year, month - 1).toLocaleString('en-US', { month: 'long' });
+  
+  // Determine which platforms to generate for (only connected ones)
+  const availablePlatforms = connectedPlatforms && connectedPlatforms.length > 0
+    ? connectedPlatforms
+    : ['instagram', 'facebook']; // Default fallback
+    
+  // Format platforms for prompt with variations
+  const platformInstructions = availablePlatforms.map(p => {
+    if (p === 'instagram' || p === 'instagram_direct') {
+      return 'Instagram (including feed posts, reels, and stories)';
+    }
+    if (p === 'facebook') {
+      return 'Facebook (page posts)';
+    }
+    return p;
+  }).join(', ');
   
   const colorPalette = [
     brandDesign.colorPrimary,
@@ -168,9 +185,10 @@ function buildTextPrompt(context: PostGenerationContext): string {
 
   const bestTimes = metaInsights?.bestPostingTimes?.join(", ") || "9:00 AM, 12:00 PM, 6:00 PM";
 
-  // Logo information
-  const logoInfo = brandDesign.avatarUrl 
-    ? `- Brand Logo URL: ${brandDesign.avatarUrl}\n- IMPORTANT: The brand has a logo that should be conceptually referenced in image prompts. Describe elements that complement the logo style.`
+  // Logo information - use whiteLogoUrl, blackLogoUrl, or deprecated logoUrl
+  const logoUrl = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
+  const logoInfo = logoUrl 
+    ? `- Brand Logo URL: ${logoUrl}\n- IMPORTANT: The brand has a logo that should be conceptually referenced in image prompts. Describe elements that complement the logo style.`
     : "- No logo uploaded";
 
   return `You are an expert social media strategist and content creator. Generate a comprehensive content calendar for ${monthName} ${year}.
@@ -198,8 +216,9 @@ AUDIENCE INSIGHTS:
 
 REQUIREMENTS:
 1. Generate exactly ${postsToGenerate} posts for ${monthName} ${year}
-2. Distribute posts across: Instagram (posts, reels, stories), Facebook, TikTok
-3. Each post must include:
+2. Distribute posts ONLY across these connected platforms: ${platformInstructions}
+3. IMPORTANT: Only generate posts for the platforms listed above. Do NOT generate posts for any other platform.
+4. Each post must include:
    - A catchy title/hook (titulo)
    - Full post caption/content with emojis
    - Relevant hashtags (5-10 per post)
@@ -210,9 +229,14 @@ REQUIREMENTS:
      * References specific products or assets from the brand when relevant
      * Creates visuals that would complement the brand's logo and identity
      * Uses professional composition suitable for social media
-4. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
-5. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
-6. When creating image prompts, reference the actual products/services from the brand assets list
+5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
+6. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
+7. When creating image prompts, reference the actual products/services from the brand assets list
+8. PLATFORM MAPPING: Use these exact platform values in the JSON:
+   - For Instagram posts: "instagram"
+   - For Instagram Stories: "instagram_story"
+   - For Instagram Reels: "instagram_reel"
+   - For Facebook: "facebook"
 
 IMPORTANT: Return ONLY valid JSON in this exact format:
 {
@@ -541,6 +565,26 @@ export async function processPostGeneration(
     const brandAssets = await storage.getAssetsByBrandId(brandId);
 
     const integrations = await storage.getIntegrationsByBrandId(brandId);
+    
+    // Get only connected Meta platforms (Instagram and Facebook)
+    const connectedPlatforms = integrations
+      .filter((int) => 
+        int.provider === "instagram_direct" || 
+        int.provider === "instagram" || 
+        int.provider === "facebook"
+      )
+      .map((int) => int.provider === "instagram_direct" ? "instagram" : int.provider);
+    
+    // Remove duplicates using Array.from for TypeScript compatibility
+    const uniquePlatforms = Array.from(new Set(connectedPlatforms));
+
+    if (uniquePlatforms.length === 0) {
+      throw new Error("No Instagram or Facebook integration found. Please connect your social accounts first.");
+    }
+    
+    console.log(`[PostGenerator] Connected platforms for brand ${brandId}:`, uniquePlatforms);
+
+    // Get the first available integration for insights
     const metaIntegration = integrations.find(
       (int) => 
         int.provider === "instagram_direct" || 
@@ -548,11 +592,7 @@ export async function processPostGeneration(
         int.provider === "facebook"
     );
 
-    if (!metaIntegration) {
-      throw new Error("No Instagram or Facebook integration found. Please connect your social accounts first.");
-    }
-
-    const metaInsights = await fetchMetaInsights(metaIntegration);
+    const metaInsights = metaIntegration ? await fetchMetaInsights(metaIntegration) : null;
 
     const context: PostGenerationContext = {
       brandId,
@@ -564,6 +604,7 @@ export async function processPostGeneration(
       month,
       year,
       postsToGenerate: 15,
+      connectedPlatforms: uniquePlatforms,
     };
 
     const posts = await generatePostsWithGemini(context);
@@ -577,7 +618,9 @@ export async function processPostGeneration(
         const generatedImage = await generateImageWithNanoBanana(post.imagePrompt, brandDesign);
         
         if (generatedImage) {
-          imageUrl = await addWatermarkToImage(generatedImage, brandDesign.avatarUrl, {
+          // Use whiteLogoUrl, blackLogoUrl, or deprecated logoUrl for watermark
+          const watermarkLogoUrl = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
+          imageUrl = await addWatermarkToImage(generatedImage, watermarkLogoUrl, {
             position: "bottom-right",
             opacity: 0.7,
             scale: 0.12,

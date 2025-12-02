@@ -921,28 +921,59 @@ export default function ContentCalendar() {
                                 platformIcons[
                                   post.platform as keyof typeof platformIcons
                                 ];
+                              const isImageLoading = imageLoadingStates[post.id] !== false;
+                              const isAiPost = post.source === "ai";
                               return (
                                 <div
                                   key={post.id}
-                                  className="border rounded-lg p-4"
+                                  className={`border rounded-lg p-4 transition-all hover:shadow-md ${isAiPost ? "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white" : ""}`}
+                                  data-testid={`post-preview-${post.id}`}
                                 >
-                                  <img
-                                    src={post.imageUrl}
-                                    alt={post.title}
-                                    className="w-full h-32 object-cover rounded mb-2"
-                                  />
+                                  {/* AI Badge */}
+                                  {isAiPost && (
+                                    <div className="flex items-center gap-1 text-xs text-purple-600 mb-2">
+                                      <Sparkles className="w-3 h-3" />
+                                      <span className="font-medium">AI Generated</span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Image with loading state */}
+                                  <div className="relative w-full h-32 mb-2 rounded overflow-hidden bg-gray-100">
+                                    {isImageLoading && post.imageUrl && (
+                                      <div className="absolute inset-0 flex items-center justify-center">
+                                        <Skeleton className="w-full h-full" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                                        </div>
+                                      </div>
+                                    )}
+                                    {post.imageUrl ? (
+                                      <img
+                                        src={post.imageUrl}
+                                        alt={post.title}
+                                        className={`w-full h-full object-cover transition-opacity duration-300 ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+                                        onLoad={() => setImageLoadingStates(prev => ({ ...prev, [post.id]: false }))}
+                                        onError={() => setImageLoadingStates(prev => ({ ...prev, [post.id]: false }))}
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                        <ImageIcon className="w-8 h-8 text-gray-300" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  
                                   <div className="flex items-center justify-between mb-1">
-                                    <p className="font-medium">{post.title}</p>
-                                    {/* ✅ Social Media badge */}
+                                    <p className="font-medium text-sm line-clamp-1">{post.title}</p>
                                     <div
-                                      className={`flex items-center text-xs px-2 py-1 rounded ${platformColors[post.platform as keyof typeof platformColors]}`}
+                                      className={`flex items-center text-xs px-2 py-1 rounded flex-shrink-0 ml-2 ${platformColors[post.platform as keyof typeof platformColors]}`}
                                     >
                                       <PlatformIcon className="w-3 h-3 mr-1" />
                                       {post.platform.charAt(0).toUpperCase() +
                                         post.platform.slice(1)}
                                     </div>
                                   </div>
-                                  <p className="text-xs text-gray-600 mb-2">
+                                  <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
                                     {format(
                                       new Date(post.scheduledFor),
                                       "h:mm a",
@@ -951,14 +982,26 @@ export default function ContentCalendar() {
                                   <p className="text-sm text-gray-700 line-clamp-2">
                                     {post.content}
                                   </p>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="mt-2"
-                                    onClick={() => handleOpenPost(post)}
-                                  >
-                                    <Eye className="w-3 h-3 mr-1" /> View
-                                  </Button>
+                                  <div className="flex gap-2 mt-3">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="flex-1"
+                                      onClick={() => handleOpenPost(post)}
+                                      data-testid={`button-view-post-${post.id}`}
+                                    >
+                                      <Eye className="w-3 h-3 mr-1" /> View
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="flex-1"
+                                      onClick={() => handleEditPost(post)}
+                                      data-testid={`button-edit-post-${post.id}`}
+                                    >
+                                      <Edit className="w-3 h-3 mr-1" /> Edit
+                                    </Button>
+                                  </div>
                                 </div>
                               );
                             })}
