@@ -2231,6 +2231,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const targetMonth = month || new Date().getMonth() + 1;
         const targetYear = year || new Date().getFullYear();
 
+        // Validate that the target month/year is not in the past
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        
+        if (targetYear < currentYear || (targetYear === currentYear && targetMonth < currentMonth)) {
+          return res.status(400).json({
+            success: false,
+            message: "No se puede generar contenido de IA para meses pasados. Por favor selecciona el mes actual o un mes futuro.",
+          });
+        }
+
         // Validate requirements first
         const { validatePostGenerationRequirements, processPostGeneration } = await import(
           "./services/postGenerator"

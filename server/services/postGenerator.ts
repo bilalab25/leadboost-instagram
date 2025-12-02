@@ -146,6 +146,22 @@ function buildTextPrompt(context: PostGenerationContext): string {
 
   const monthName = new Date(year, month - 1).toLocaleString('en-US', { month: 'long' });
   
+  // Calculate the start day for content generation
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentDay = now.getDate();
+  
+  // If generating for current month, start from today. Otherwise start from day 1
+  const startDay = (year === currentYear && month === currentMonth) ? currentDay : 1;
+  
+  // Get last day of target month
+  const lastDayOfMonth = new Date(year, month, 0).getDate();
+  
+  const dateRestriction = startDay > 1 
+    ? `CRITICAL DATE RESTRICTION: Today is ${monthName} ${currentDay}, ${year}. Generate posts ONLY for dates from ${monthName} ${startDay} to ${monthName} ${lastDayOfMonth}. DO NOT generate any posts for dates before ${monthName} ${startDay}.`
+    : `Generate posts for the entire month of ${monthName} (days 1-${lastDayOfMonth}).`;
+  
   // Determine which platforms to generate for (only connected ones)
   const availablePlatforms = connectedPlatforms && connectedPlatforms.length > 0
     ? connectedPlatforms
@@ -216,9 +232,10 @@ AUDIENCE INSIGHTS:
 
 REQUIREMENTS:
 1. Generate exactly ${postsToGenerate} posts for ${monthName} ${year}
-2. Distribute posts ONLY across these connected platforms: ${platformInstructions}
-3. IMPORTANT: Only generate posts for the platforms listed above. Do NOT generate posts for any other platform.
-4. Each post must include:
+2. ${dateRestriction}
+3. Distribute posts ONLY across these connected platforms: ${platformInstructions}
+4. IMPORTANT: Only generate posts for the platforms listed above. Do NOT generate posts for any other platform.
+5. Each post must include:
    - A catchy title/hook (titulo)
    - Full post caption/content with emojis
    - Relevant hashtags (5-10 per post)
@@ -229,10 +246,10 @@ REQUIREMENTS:
      * References specific products or assets from the brand when relevant
      * Creates visuals that would complement the brand's logo and identity
      * Uses professional composition suitable for social media
-5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
-6. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
-7. When creating image prompts, reference the actual products/services from the brand assets list
-8. PLATFORM MAPPING: Use these exact platform values in the JSON:
+6. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
+7. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
+8. When creating image prompts, reference the actual products/services from the brand assets list
+9. PLATFORM MAPPING: Use these exact platform values in the JSON:
    - For Instagram posts: "instagram"
    - For Instagram Stories: "instagram_story"
    - For Instagram Reels: "instagram_reel"
@@ -699,12 +716,29 @@ export async function processPostGeneration(
       ...(uniquePlatforms.includes('facebook') ? ['facebook'] : []),
     ]);
     
+    // Get today's date for filtering past dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     const posts = allPosts.filter(post => {
+      // Check platform is allowed
       const isAllowed = allowedPlatforms.has(post.platform);
       if (!isAllowed) {
         console.log(`[PostGenerator] Filtering out post for platform "${post.platform}" - not connected`);
+        return false;
       }
-      return isAllowed;
+      
+      // Check date is not in the past
+      if (post.dia) {
+        const postDate = new Date(post.dia);
+        postDate.setHours(0, 0, 0, 0);
+        if (postDate < today) {
+          console.log(`[PostGenerator] Filtering out post for date "${post.dia}" - date is in the past`);
+          return false;
+        }
+      }
+      
+      return true;
     });
 
     if (posts.length === 0) {
