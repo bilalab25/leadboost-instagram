@@ -23,12 +23,12 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
 **Multi-Platform Inbox**: Features a hybrid synchronization strategy, combining historical data sync with webhook-based real-time updates, ensuring duplicate prevention and seamless merging of local and remote messages. Includes real-time search, platform filters, and read/unread status tracking.
 **Brand Management**: Incorporates a robust multi-tenant system with role-based access control, secure invitation flows, and dedicated UI for brand and member management. All brand-specific data (designs, assets, posting frequencies, conversation history) is isolated and secured.
 **Automation Flows**: Features a visual drag-and-drop Flow Builder with custom nodes (Message, Action, Condition), advanced condition logic, and a flow execution simulator.
-**AI Integration**: Leverages OpenAI GPT-4o for generating monthly content strategies, campaign content, message sentiment analysis, and visual content suggestions. Integrated with n8n for AI-powered posting frequency recommendations and post generation, securely transmitting comprehensive brand data.
+**AI Integration**: Leverages OpenAI GPT-4o for generating monthly content strategies, campaign content, and message sentiment analysis. Uses Google Gemini (gemini-2.5-flash for text, gemini-2.5-flash-image "Nano Banana" for images) for AI-powered post generation with brand-specific content and custom images. The PostGeneratorService (server/services/postGenerator.ts) handles asynchronous job processing, fetching Meta insights for optimal posting times.
 
 ### Feature Specifications
 - **Multi-Tenant Brand Management**: Role-based access (owner/admin/editor/viewer), secure invitation system, and a BrandContext for managing active brand state.
 - **Unified Inbox**: Aggregates messages from multiple platforms, provides real-time updates via Socket.IO, search functionality, and platform-specific filters.
-- **AI-Powered Content Generation**: Utilizes OpenAI for content strategies, campaign content, and sentiment analysis.
+- **AI-Powered Content Generation**: Utilizes OpenAI for content strategies and sentiment analysis. Features an "AI Posts" tab in AI Planner (/ai-planner) for generating complete social media posts with Gemini AI. Requirements: brand design + Facebook/Instagram integration. Supports async job processing with status polling, post accept/reject workflow, and custom AI-generated images.
 - **Automation Flows**: Visual builder for custom workflows with various node types and advanced condition logic.
 - **Brand Studio**: Brand-specific designs and Cloudinary-based asset management with category organization.
 - **Posting Frequency Management**: Brand-specific scheduling with AI suggestions.
@@ -42,8 +42,7 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
 ### Core Infrastructure
 - **Database**: Neon PostgreSQL (serverless)
 - **Authentication**: Replit OIDC provider
-- **AI Services**: OpenAI API (GPT-4o)
-- **Workflow Automation**: n8n (for AI-powered suggestions and post generation)
+- **AI Services**: OpenAI API (GPT-4o), Google Gemini (gemini-2.5-flash, gemini-2.5-flash-image)
 
 ### Frontend Dependencies
 - **Framework**: React 18

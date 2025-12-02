@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, industriesSpanish, seasonsSpanish, getTranslation } from "@/lib/translations";
+import { useBrand } from "@/contexts/BrandContext";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import { Button } from "@/components/ui/button";
@@ -15,8 +16,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Bot, Calendar, Lightbulb, RefreshCw, Sparkles, TrendingUp, Users, Video, BarChart3, Instagram, Brain, Zap, Target, Wand2, Star, ChevronRight, ArrowRight } from "lucide-react";
+import { AlertCircle, Bell, Bot, Calendar, Check, CheckCircle, Image, Lightbulb, Loader2, RefreshCw, Sparkles, TrendingUp, Users, Video, BarChart3, Instagram, Brain, Zap, Target, Wand2, Star, ChevronRight, ArrowRight, X, ExternalLink, Clock } from "lucide-react";
+import { SiInstagram, SiFacebook, SiTiktok } from "react-icons/si";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 
 interface ContentPlan {
   id: string;
@@ -47,6 +50,34 @@ interface BusinessData {
   salesData?: any;
   customerInsights?: any;
   seasonality: string;
+}
+
+interface AiGeneratedPost {
+  id: string;
+  jobId: string;
+  brandId: string;
+  platform: string;
+  titulo: string;
+  content: string | null;
+  imageUrl: string | null;
+  dia: string;
+  hashtags: string | null;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
+}
+
+interface PostGeneratorJob {
+  id: string;
+  brandId: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  result: any;
+  error: string | null;
+  createdAt: string;
+}
+
+interface ValidationResult {
+  valid: boolean;
+  message?: string;
 }
 
 const platformColors = {
@@ -82,6 +113,7 @@ export default function AIPlanner() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const { language, toggleLanguage, isSpanish } = useLanguage();
+  const { activeBrand } = useBrand();
   const queryClient = useQueryClient();
   const t = translations[language];
   
@@ -93,6 +125,8 @@ export default function AIPlanner() {
   const [newProduct, setNewProduct] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [pollingEnabled, setPollingEnabled] = useState(false);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -138,6 +172,128 @@ export default function AIPlanner() {
       });
     },
   });
+
+  // Validate if post generation is available (brand design + social integrations)
+  const { data: validationResult, isLoading: validationLoading } = useQuery<ValidationResult>({
+    queryKey: ["/api/post-generator/validate", activeBrand?.id],
+    queryFn: async () => {
+      if (!activeBrand?.id) return { valid: false, message: "No brand selected" };
+      const res = await fetch(`/api/post-generator/validate/${activeBrand.id}`, {
+        credentials: "include",
+      });
+      return res.json();
+    },
+    enabled: !!activeBrand?.id,
+    staleTime: 60000,
+  });
+
+  // Fetch AI generated posts for the current brand
+  const { data: aiGeneratedPosts, isLoading: postsLoading, refetch: refetchPosts } = useQuery<AiGeneratedPost[]>({
+    queryKey: ["/api/ai-generated-posts", activeBrand?.id],
+    queryFn: async () => {
+      if (!activeBrand?.id) return [];
+      const res = await fetch(`/api/ai-generated-posts/${activeBrand.id}`, {
+        credentials: "include",
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!activeBrand?.id,
+  });
+
+  // Poll job status when generating
+  const { data: jobStatus } = useQuery<PostGeneratorJob>({
+    queryKey: ["/api/post-generator/jobs", currentJobId],
+    queryFn: async () => {
+      if (!currentJobId) return null;
+      const res = await fetch(`/api/post-generator/jobs/${currentJobId}`, {
+        credentials: "include",
+      });
+      return res.json();
+    },
+    enabled: pollingEnabled && !!currentJobId,
+    refetchInterval: pollingEnabled ? 3000 : false,
+  });
+
+  // Handle job completion
+  useEffect(() => {
+    if (jobStatus?.status === "completed") {
+      setPollingEnabled(false);
+      setCurrentJobId(null);
+      refetchPosts();
+      toast({
+        title: isSpanish ? "Publicaciones generadas" : "Posts Generated",
+        description: isSpanish 
+          ? "Tus publicaciones con IA han sido creadas exitosamente" 
+          : "Your AI posts have been generated successfully",
+      });
+    } else if (jobStatus?.status === "failed") {
+      setPollingEnabled(false);
+      setCurrentJobId(null);
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: jobStatus.error || (isSpanish ? "Error al generar publicaciones" : "Failed to generate posts"),
+        variant: "destructive",
+      });
+    }
+  }, [jobStatus?.status, isSpanish, refetchPosts, toast]);
+
+  // Start AI post generation
+  const generatePostsMutation = useMutation({
+    mutationFn: async () => {
+      if (!activeBrand?.id) throw new Error("No brand selected");
+      const response = await apiRequest("POST", `/api/post-generator/${activeBrand.id}`, {
+        month: selectedMonth,
+        year: selectedYear,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.jobId) {
+        setCurrentJobId(data.jobId);
+        setPollingEnabled(true);
+        toast({
+          title: isSpanish ? "Generando publicaciones" : "Generating Posts",
+          description: isSpanish 
+            ? "Estamos creando tus publicaciones con IA. Esto puede tomar unos minutos..." 
+            : "We're creating your AI posts. This may take a few minutes...",
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update post status (accept/reject)
+  const updatePostStatusMutation = useMutation({
+    mutationFn: async ({ postId, status }: { postId: string; status: "accepted" | "rejected" }) => {
+      const response = await apiRequest("PATCH", `/api/ai-generated-posts/${postId}/status`, {
+        status,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchPosts();
+      toast({
+        title: isSpanish ? "Estado actualizado" : "Status Updated",
+        description: isSpanish ? "El estado de la publicación ha sido actualizado" : "Post status has been updated",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const isGenerating = generatePostsMutation.isPending || pollingEnabled;
 
   const addProduct = () => {
     if (newProduct.trim() && !businessData.topProducts.includes(newProduct.trim())) {
@@ -211,12 +367,305 @@ export default function AIPlanner() {
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
               
-              <Tabs defaultValue="generator" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-3">
+              <Tabs defaultValue="ai-posts" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="ai-posts" data-testid="tab-ai-posts" className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    {isSpanish ? "Publicaciones IA" : "AI Posts"}
+                  </TabsTrigger>
                   <TabsTrigger value="generator" data-testid="tab-generator">{t.aiPlanner.contentGenerator}</TabsTrigger>
                   <TabsTrigger value="plans" data-testid="tab-plans">{t.aiPlanner.existingPlans}</TabsTrigger>
                   <TabsTrigger value="insights" data-testid="tab-insights">{t.aiPlanner.aiInsights}</TabsTrigger>
                 </TabsList>
+
+                {/* AI Posts Tab - Generate posts with Gemini */}
+                <TabsContent value="ai-posts" className="space-y-6">
+                  {/* Validation / Requirements Check */}
+                  {!validationResult?.valid && !validationLoading && (
+                    <Card className="border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="bg-amber-100 p-3 rounded-xl">
+                            <AlertCircle className="h-6 w-6 text-amber-600" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">
+                              {isSpanish ? "Configuración requerida" : "Setup Required"}
+                            </h3>
+                            <p className="text-gray-700 mb-4">
+                              {validationResult?.message || (isSpanish 
+                                ? "Por favor completa la configuración antes de generar publicaciones con IA" 
+                                : "Please complete setup before generating AI posts")}
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                              <Link href="/brand-studio">
+                                <Button variant="outline" className="border-amber-300 hover:bg-amber-100">
+                                  <Wand2 className="mr-2 h-4 w-4" />
+                                  {isSpanish ? "Crear Brand Design" : "Create Brand Design"}
+                                </Button>
+                              </Link>
+                              <Link href="/integrations">
+                                <Button variant="outline" className="border-amber-300 hover:bg-amber-100">
+                                  <ExternalLink className="mr-2 h-4 w-4" />
+                                  {isSpanish ? "Conectar Instagram/Facebook" : "Connect Instagram/Facebook"}
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Generation Controls */}
+                  {validationResult?.valid && (
+                    <Card className="border-2 border-brand-200 bg-gradient-to-r from-brand-50 to-purple-50">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="bg-gradient-to-br from-brand-600 to-purple-600 p-3 rounded-xl shadow-lg">
+                              <Sparkles className="h-6 w-6 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900">
+                                {isSpanish ? "Generador de Publicaciones con IA" : "AI Post Generator"}
+                              </h3>
+                              <p className="text-sm text-gray-600">
+                                {isSpanish 
+                                  ? "Genera publicaciones con imágenes personalizadas usando tu Brand Design e insights de Meta" 
+                                  : "Generate posts with custom images using your Brand Design and Meta insights"}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <Select 
+                                value={selectedMonth.toString()} 
+                                onValueChange={(value) => setSelectedMonth(parseInt(value))}
+                              >
+                                <SelectTrigger className="w-32" data-testid="select-month-ai">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Array.from({ length: 12 }, (_, i) => (
+                                    <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                      {new Date(2024, i).toLocaleString(isSpanish ? 'es' : 'en', { month: 'short' })}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Select 
+                                value={selectedYear.toString()} 
+                                onValueChange={(value) => setSelectedYear(parseInt(value))}
+                              >
+                                <SelectTrigger className="w-24" data-testid="select-year-ai">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="2024">2024</SelectItem>
+                                  <SelectItem value="2025">2025</SelectItem>
+                                  <SelectItem value="2026">2026</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <Button
+                              onClick={() => generatePostsMutation.mutate()}
+                              disabled={isGenerating || !validationResult?.valid}
+                              className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white font-bold px-6 py-2 shadow-lg"
+                              data-testid="button-generate-ai-posts"
+                            >
+                              {isGenerating ? (
+                                <>
+                                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                  {isSpanish ? "Generando..." : "Generating..."}
+                                </>
+                              ) : (
+                                <>
+                                  <Brain className="mr-2 h-5 w-5" />
+                                  {isSpanish ? "Generar Publicaciones" : "Generate Posts"}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {isGenerating && (
+                          <div className="mt-4 p-4 bg-white/50 rounded-lg border border-brand-200">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center">
+                                  <Loader2 className="h-6 w-6 text-brand-600 animate-spin" />
+                                </div>
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">
+                                  {jobStatus?.status === "processing" 
+                                    ? (isSpanish ? "Generando contenido e imágenes..." : "Generating content and images...")
+                                    : (isSpanish ? "Iniciando generación..." : "Starting generation...")}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  {isSpanish 
+                                    ? "Esto puede tomar 2-3 minutos. No cierres esta página." 
+                                    : "This may take 2-3 minutes. Please don't close this page."}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Generated Posts Grid */}
+                  {postsLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {[...Array(6)].map((_, i) => (
+                        <Card key={i} className="overflow-hidden">
+                          <div className="aspect-square bg-gray-200 animate-pulse" />
+                          <CardContent className="p-4 space-y-2">
+                            <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                            <div className="h-3 bg-gray-100 rounded animate-pulse w-3/4" />
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : aiGeneratedPosts && aiGeneratedPosts.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {aiGeneratedPosts.map((post) => (
+                        <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
+                          {/* Image Section */}
+                          <div className="relative aspect-square bg-gray-100">
+                            {post.imageUrl ? (
+                              <img 
+                                src={post.imageUrl} 
+                                alt={post.titulo}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                <Image className="h-12 w-12 text-gray-400" />
+                              </div>
+                            )}
+                            
+                            {/* Platform Badge */}
+                            <div className="absolute top-3 left-3">
+                              <Badge className={cn(
+                                "shadow-md",
+                                post.platform === "instagram" && "bg-gradient-to-r from-pink-500 to-purple-500 text-white",
+                                post.platform === "facebook" && "bg-blue-600 text-white",
+                                post.platform === "tiktok" && "bg-black text-white"
+                              )}>
+                                {post.platform === "instagram" && <SiInstagram className="mr-1 h-3 w-3" />}
+                                {post.platform === "facebook" && <SiFacebook className="mr-1 h-3 w-3" />}
+                                {post.platform === "tiktok" && <SiTiktok className="mr-1 h-3 w-3" />}
+                                {post.platform.charAt(0).toUpperCase() + post.platform.slice(1)}
+                              </Badge>
+                            </div>
+                            
+                            {/* Status Badge */}
+                            <div className="absolute top-3 right-3">
+                              <Badge className={cn(
+                                post.status === "pending" && "bg-amber-100 text-amber-800",
+                                post.status === "accepted" && "bg-green-100 text-green-800",
+                                post.status === "rejected" && "bg-red-100 text-red-800"
+                              )}>
+                                {post.status === "pending" && <Clock className="mr-1 h-3 w-3" />}
+                                {post.status === "accepted" && <CheckCircle className="mr-1 h-3 w-3" />}
+                                {post.status === "rejected" && <X className="mr-1 h-3 w-3" />}
+                                {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                              </Badge>
+                            </div>
+                            
+                            {/* AI Badge */}
+                            <div className="absolute bottom-3 right-3">
+                              <Badge className="bg-gradient-to-r from-brand-600 to-purple-600 text-white shadow-md">
+                                <Sparkles className="mr-1 h-3 w-3" />
+                                AI
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          {/* Content Section */}
+                          <CardContent className="p-4 space-y-3">
+                            <div>
+                              <h4 className="font-bold text-gray-900 line-clamp-1">{post.titulo}</h4>
+                              <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                <Calendar className="h-3 w-3" />
+                                {new Date(post.dia).toLocaleDateString(isSpanish ? 'es' : 'en', { 
+                                  month: 'short', 
+                                  day: 'numeric' 
+                                })}
+                              </p>
+                            </div>
+                            
+                            {post.content && (
+                              <p className="text-sm text-gray-600 line-clamp-3">{post.content}</p>
+                            )}
+                            
+                            {post.hashtags && (
+                              <p className="text-xs text-brand-600 line-clamp-1">{post.hashtags}</p>
+                            )}
+                            
+                            {/* Action Buttons */}
+                            {post.status === "pending" && (
+                              <div className="flex gap-2 pt-2 border-t">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 border-green-200 text-green-700 hover:bg-green-50"
+                                  onClick={() => updatePostStatusMutation.mutate({ postId: post.id, status: "accepted" })}
+                                  disabled={updatePostStatusMutation.isPending}
+                                  data-testid={`button-accept-${post.id}`}
+                                >
+                                  <Check className="mr-1 h-4 w-4" />
+                                  {isSpanish ? "Aprobar" : "Accept"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
+                                  onClick={() => updatePostStatusMutation.mutate({ postId: post.id, status: "rejected" })}
+                                  disabled={updatePostStatusMutation.isPending}
+                                  data-testid={`button-reject-${post.id}`}
+                                >
+                                  <X className="mr-1 h-4 w-4" />
+                                  {isSpanish ? "Rechazar" : "Reject"}
+                                </Button>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : validationResult?.valid && (
+                    <Card className="border-2 border-dashed border-gray-200">
+                      <CardContent className="p-12 text-center">
+                        <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Sparkles className="h-8 w-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          {isSpanish ? "No hay publicaciones generadas" : "No Generated Posts Yet"}
+                        </h3>
+                        <p className="text-gray-500 mb-4 max-w-md mx-auto">
+                          {isSpanish 
+                            ? "Haz clic en 'Generar Publicaciones' para crear contenido con IA basado en tu marca" 
+                            : "Click 'Generate Posts' to create AI-powered content based on your brand"}
+                        </p>
+                        <Button
+                          onClick={() => generatePostsMutation.mutate()}
+                          disabled={isGenerating}
+                          className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700"
+                          data-testid="button-generate-first-posts"
+                        >
+                          <Brain className="mr-2 h-5 w-5" />
+                          {isSpanish ? "Generar mi primer lote" : "Generate my first batch"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
 
                 {/* Content Generator Tab */}
                 <TabsContent value="generator" className="space-y-6">

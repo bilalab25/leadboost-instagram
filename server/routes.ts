@@ -2185,9 +2185,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // Post Generator - Create async job and trigger n8n webhook (fire-and-forget)
-  app.post(
-    "/api/post-generator/:brandId",
+  // Post Generator - Validate requirements before generating
+  app.get(
+    "/api/post-generator/validate/:brandId",
     isAuthenticated,
     requireBrand,
     async (req: any, res) => {
@@ -2195,6 +2195,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const brandId = req.params.brandId || req.brandId;
         if (!brandId) {
           return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        const { validatePostGenerationRequirements } = await import(
+          "./services/postGenerator"
+        );
+        
+        const validation = await validatePostGenerationRequirements(brandId);
+        res.json(validation);
+      } catch (error) {
+        console.error("[Post Generator] Validation error:", error);
+        res.status(500).json({
+          valid: false,
+          message: error instanceof Error ? error.message : "Validation failed",
+        });
+      }
+    },
+  );
+
+  // Post Generator - Create async job and process with Gemini AI (fire-and-forget)
+  app.post(
+    "/api/post-generator/:brandId",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.params.brandId || req.brandId;
+        const { month, year } = req.body;
+        
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        // Default to current month/year if not provided
+        const targetMonth = month || new Date().getMonth() + 1;
+        const targetYear = year || new Date().getFullYear();
+
+        // Validate requirements first
+        const { validatePostGenerationRequirements, processPostGeneration } = await import(
+          "./services/postGenerator"
+        );
+        
+        const validation = await validatePostGenerationRequirements(brandId);
+        if (!validation.valid) {
+          return res.status(400).json({
+            success: false,
+            message: validation.message,
+          });
         }
 
         // Import job functions
@@ -2213,162 +2260,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: job.status,
         });
 
-        // Fire-and-forget: Process in background
-        (async () => {
-          try {
-            const { updatePostGeneratorJob } = await import(
-              "./storage/postGeneratorJobs"
-            );
-
-            // Fetch brand data
-            const brand = await storage.getBrandByIdOnly(brandId);
-            if (!brand) {
-              await updatePostGeneratorJob(job.id, {
-                status: "failed",
-                error: "Brand not found",
-              });
-              return;
-            }
-
-            const brandDesign = await storage.getBrandDesignByBrandId(brandId);
-            const brandAssets = await storage.getAssetsByBrandId(brandId);
-            const contentPlans =
-              await storage.getContentPlansByBrandId(brandId);
-            const postingFrequencies =
-              await storage.getSocialPostingFrequenciesByBrand(brandId);
-
-            // Build insights
-            const insights: any[] = [];
-            contentPlans.forEach((plan) => {
-              if (plan.insights) {
-                insights.push({
-                  source: "content_plan",
-                  title: plan.title,
-                  month: plan.month,
-                  year: plan.year,
-                  data: plan.insights,
-                });
-              }
-            });
-
-            postingFrequencies.forEach((freq) => {
-              insights.push({
-                source: "posting_frequency",
-                platform: freq.platform,
-                frequency_days: freq.frequencyDays,
-                days_week: freq.daysWeek,
-                confidence_score: freq.confidenceScore,
-                status: freq.status,
-                insights_data: freq.insightsData,
-              });
-            });
-
-            const brand_assets = brandAssets.map((asset) => ({
-              id: asset.id,
-              url: asset.url,
-              name: asset.name,
-              category: asset.category,
-              asset_type: asset.assetType,
-            }));
-
-            const brand_design = brandDesign
-              ? [
-                  {
-                    brand_style: brandDesign.brandStyle,
-                    color_primary: brandDesign.colorPrimary,
-                    color_accent1: brandDesign.colorAccent1,
-                    color_accent2: brandDesign.colorAccent2,
-                    color_accent3: brandDesign.colorAccent3,
-                    color_accent4: brandDesign.colorAccent4,
-                    color_text1: brandDesign.colorText1,
-                    color_text2: brandDesign.colorText2,
-                    color_text3: brandDesign.colorText3,
-                    color_text4: brandDesign.colorText4,
-                    font_primary: brandDesign.fontPrimary,
-                    font_secondary: brandDesign.fontSecondary,
-                    logo_url: brandDesign.logoUrl,
-                    logo_primary_url: brandDesign.logoPrimaryUrl,
-                    logo_secondary_url: brandDesign.logoSecondaryUrl,
-                    logo_icon_url: brandDesign.logoIconUrl,
-                  },
-                ]
-              : [];
-
-            const webhookPayload = {
-              jobId: job.id,
-              brandId: brandId,
-              callback_url: process.env.POST_GENERATOR_CALLBACK_URL,
-              nombre_brand: brand.name,
-              brand_description: brand.description || "",
-              Insights: insights,
-              Brand_assets: brand_assets,
-              Brand_design: brand_design,
-            };
-
-            const webhookUrl = process.env.N8N_POST_GENERATOR_WEBHOOK_URL;
-            if (!webhookUrl) {
-              console.error("[Post Generator] Webhook URL not configured");
-              await updatePostGeneratorJob(job.id, {
-                status: "failed",
-                error: "Webhook URL not configured",
-              });
-              return;
-            }
-
-            console.log(
-              `[Post Generator] Background: Sending to n8n for job ${job.id}`,
-            );
-
-            // Send webhook (fire-and-forget)
-            fetch(webhookUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(webhookPayload),
-            })
-              .then(async (response) => {
-                if (response.ok) {
-                  console.log(
-                    `[Post Generator] Webhook sent successfully for job ${job.id}`,
-                  );
-                  await updatePostGeneratorJob(job.id, {
-                    status: "processing",
-                  });
-                } else {
-                  console.error(
-                    `[Post Generator] Webhook failed with status ${response.status}`,
-                  );
-                  await updatePostGeneratorJob(job.id, {
-                    status: "failed",
-                    error: `Webhook returned ${response.status}`,
-                  });
-                }
-              })
-              .catch(async (error) => {
-                console.error(`[Post Generator] Webhook error:`, error);
-                await updatePostGeneratorJob(job.id, {
-                  status: "failed",
-                  error:
-                    error instanceof Error ? error.message : "Unknown error",
-                });
-              });
-          } catch (error) {
-            console.error("[Post Generator] Background error:", error);
-            try {
-              const { updatePostGeneratorJob } = await import(
-                "./storage/postGeneratorJobs"
-              );
-              await updatePostGeneratorJob(job.id, {
-                status: "failed",
-                error: error instanceof Error ? error.message : "Unknown error",
-              });
-            } catch (updateError) {
-              console.error(
-                "[Post Generator] Failed to update job status:",
-                updateError,
-              );
-            }
-          }
-        })();
+        // Fire-and-forget: Process in background with Gemini AI
+        processPostGeneration(brandId, job.id, targetMonth, targetYear).catch((error) => {
+          console.error("[Post Generator] Background processing error:", error);
+        });
       } catch (error) {
         console.error("[Post Generator] Error:", error);
         res.status(500).json({
@@ -2497,6 +2392,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[AI Posts] Error:", error);
         res.status(500).json({
           message: "Failed to fetch AI posts",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
+  // Get AI Generated Posts by brand ID (alternative endpoint)
+  app.get(
+    "/api/ai-generated-posts/:brandId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
+        const { status } = req.query;
+
+        const { getAiGeneratedPostsByBrand } = await import(
+          "./storage/aiGeneratedPosts"
+        );
+
+        const posts = await getAiGeneratedPostsByBrand(brandId, status);
+        res.json(posts);
+      } catch (error) {
+        console.error("[AI Posts] Error:", error);
+        res.status(500).json({
+          message: "Failed to fetch AI posts",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
+  // Update AI Generated Post Status (alternative endpoint)
+  app.patch(
+    "/api/ai-generated-posts/:postId/status",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { postId } = req.params;
+        const { status } = req.body;
+
+        if (!status || !["accepted", "rejected"].includes(status)) {
+          return res.status(400).json({ message: "Invalid status" });
+        }
+
+        const { updateAiGeneratedPostStatus } = await import(
+          "./storage/aiGeneratedPosts"
+        );
+
+        const updated = await updateAiGeneratedPostStatus(postId, status);
+        if (!updated) {
+          return res.status(404).json({ message: "Post not found" });
+        }
+
+        res.json(updated);
+      } catch (error) {
+        console.error("[AI Posts] Error:", error);
+        res.status(500).json({
+          message: "Failed to update post status",
           error: error instanceof Error ? error.message : "Unknown error",
         });
       }
