@@ -4283,10 +4283,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const searchPlatform =
                   body.object === "instagram" ? "instagram" : "facebook";
 
+                // Debug: Log what we're searching for
+                console.log(`🔍 Searching for integration:`);
+                console.log(`   - recipientId: ${recipientId}`);
+                console.log(`   - searchPlatform: ${searchPlatform}`);
+                
+                // Debug: List all integrations to see what's in DB
+                const allIntegrations = await storage.getAllIntegrations();
+                console.log(`📋 All integrations in DB (${allIntegrations.length} total):`);
+                for (const int of allIntegrations) {
+                  console.log(`   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`);
+                }
+
                 const integration = await storage.findIntegrationByAccount(
                   recipientId,
                   searchPlatform,
                 );
+
+                console.log(`🔎 findIntegrationByAccount result:`, integration ? `Found (${integration.provider})` : 'NOT FOUND');
 
                 if (integration) {
                   // Use the actual provider from the integration (could be "instagram_direct")
