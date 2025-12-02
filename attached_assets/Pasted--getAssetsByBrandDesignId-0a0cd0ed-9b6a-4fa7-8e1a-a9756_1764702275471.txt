@@ -1,0 +1,22 @@
+🗄️  getAssetsByBrandDesignId: 0a0cd0ed-9b6a-4fa7-8e1a-a9756539bc21
+[PostGenerator] Starting post generation for brand: 107 Sushi
+7:03:59 PM [express] GET /api/post-generator/jobs/888b4b5b-efa3-4006-a256-3bc6313508ce 304 in 229ms :: {"id":"888b4b5b-efa3-4006-a256-3bc6313508ce","brandId":"928b2364-6a3c-4649-9c04-d1502235950e","status":"processing","result":null,"error":null,"createdAt":"2025-12-02T19:03:56.834Z","updatedAt":"2025-12-02T19:03:56.971Z"}
+[PostGenerator] Error generating posts: ApiError: {"error":{"code":"INVALID_ENDPOINT","message":"Endpoint: 'POST /v1beta/models/gemini-2.5-flash:generateContent' is not supported."}}
+    at throwErrorIfNotOK (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:826:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:487:9)
+    at async Models.Models.generateContent (/home/runner/workspace/node_modules/@google/genai/src/models.ts:69:14)
+    at async generatePostsWithGemini (/home/runner/workspace/server/services/postGenerator.ts:217:22)
+    at async processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:338:19) {
+  status: 400
+}
+[PostGenerator] Job 888b4b5b-efa3-4006-a256-3bc6313508ce failed: ApiError: {"error":{"code":"INVALID_ENDPOINT","message":"Endpoint: 'POST /v1beta/models/gemini-2.5-flash:generateContent' is not supported."}}
+    at throwErrorIfNotOK (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:826:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:487:9)
+    at async Models.Models.generateContent (/home/runner/workspace/node_modules/@google/genai/src/models.ts:69:14)
+    at async generatePostsWithGemini (/home/runner/workspace/server/services/postGenerator.ts:217:22)
+    at async processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:338:19) {
+  status: 400
+}
+7:04:01 PM [express] GET /api/post-generator/jobs/888b4b5b-efa3-4006-a256-3bc6313508ce 200 in 232ms :: {"id":"888b4b5b-efa3-4006-a256-3bc6313508ce","brandId":"928b2364-6a3c-4649-9c04-d1502235950e","status":"failed","result":null,"error":"{\"error\":{\"code\":\"INVALID_ENDPOINT\",\"message\":\"Endpoint: 'POST /v1beta/models/gemini-2.5-flash:generateContent' is not supported.\"}}","createdAt":"2025-12-02T19:03:56.834Z","updatedAt":"2025-12-02T19:04:00.759Z"}

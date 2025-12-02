@@ -2,9 +2,11 @@ import { GoogleGenAI, Modality } from "@google/genai";
 import { storage } from "../storage";
 import type { BrandDesign, BrandAsset, Integration } from "@shared/schema";
 
+// Using Replit's AI Integrations service for Gemini-compatible API access
 const ai = new GoogleGenAI({
   apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
   httpOptions: {
+    apiVersion: "", // Required for Replit AI Integrations
     baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL!,
   },
 });
