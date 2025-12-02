@@ -4297,6 +4297,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                   console.log(`🔗 Found integration with provider: ${platform}`);
 
+                  // Variable to store contact name
+                  let contactName: string | null = null;
+
                   try {
                     // ✅ Endpoint unificado para Messenger e Instagram
                     // For instagram_direct, use "instagram" as the Meta API platform parameter
@@ -4325,6 +4328,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     metaConversationId = `${recipientId}_${senderId}`;
                   }
 
+                  // Try to fetch sender's profile info for contact name
+                  try {
+                    if (platform === "instagram_direct" || platform === "instagram") {
+                      // For Instagram, use Instagram Graph API to get username
+                      const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name&access_token=${accessToken}`;
+                      console.log(`📱 Fetching Instagram profile for sender: ${senderId}`);
+                      
+                      const profileRes = await fetch(profileUrl);
+                      const profileData = await profileRes.json();
+                      
+                      if (!profileData.error && (profileData.username || profileData.name)) {
+                        contactName = profileData.username || profileData.name;
+                        console.log(`✅ Got Instagram contact name: ${contactName}`);
+                      } else if (profileData.error) {
+                        console.warn(`⚠️ Could not fetch Instagram profile:`, profileData.error.message);
+                        // Fallback: try Facebook Graph API
+                        const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username&access_token=${accessToken}`;
+                        const fbProfileRes = await fetch(fbProfileUrl);
+                        const fbProfileData = await fbProfileRes.json();
+                        
+                        if (!fbProfileData.error && (fbProfileData.name || fbProfileData.username)) {
+                          contactName = fbProfileData.name || fbProfileData.username;
+                          console.log(`✅ Got contact name from FB Graph: ${contactName}`);
+                        }
+                      }
+                    } else if (platform === "facebook") {
+                      // For Facebook Messenger, use Facebook Graph API
+                      const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,first_name,last_name&access_token=${accessToken}`;
+                      console.log(`📱 Fetching Facebook profile for sender: ${senderId}`);
+                      
+                      const fbProfileRes = await fetch(fbProfileUrl);
+                      const fbProfileData = await fbProfileRes.json();
+                      
+                      if (!fbProfileData.error && fbProfileData.name) {
+                        contactName = fbProfileData.name;
+                        console.log(`✅ Got Facebook contact name: ${contactName}`);
+                      }
+                    }
+                  } catch (profileErr) {
+                    console.warn(`⚠️ Error fetching sender profile:`, profileErr);
+                    // Continue without contact name - will show as "Contact"
+                  }
+
                   // Get or create conversation
                   const conversation = await storage.getOrCreateConversation({
                     integrationId: integration.id,
@@ -4332,7 +4378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     userId: integration.userId,
                     metaConversationId: metaConversationId || "",
                     platform,
-                    contactName: null,
+                    contactName,
                     lastMessage: messageText,
                     lastMessageAt: new Date(event.timestamp || Date.now()),
                   });
@@ -4347,6 +4393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     metaConversationId,
                     senderId,
                     recipientId,
+                    contactName,
                     textContent: messageText,
                     direction: "inbound",
                     isRead: false,
