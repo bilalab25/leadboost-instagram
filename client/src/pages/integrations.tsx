@@ -23,6 +23,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -293,6 +303,11 @@ export default function IntegrationsPage() {
   const [isGeneratingQr, setIsGeneratingQr] = useState(false);
   const [qrCodeStep, setQrCodeStep] = useState<1 | 2 | 3>(1);
 
+  // Delete confirmation dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [integrationToDelete, setIntegrationToDelete] = useState<Integration | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Fetch integrations
   const fetchIntegrations = async () => {
     if (!activeBrandId) return;
@@ -504,21 +519,31 @@ export default function IntegrationsPage() {
     });
   };
 
-  // Delete integration handler
-  const handleDeleteIntegration = async (id: string) => {
+  // Show delete confirmation dialog
+  const handleDeleteIntegration = (integration: Integration) => {
+    setIntegrationToDelete(integration);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Actually perform the delete after confirmation
+  const confirmDeleteIntegration = async () => {
+    if (!integrationToDelete || !activeBrandId) return;
+    
     try {
-      if (!activeBrandId) {
-        throw new Error("No active brand selected");
-      }
-      const response = await fetch(`/api/integrations/${id}?brandId=${activeBrandId}`, { 
+      setIsDeleting(true);
+      const response = await fetch(`/api/integrations/${integrationToDelete.id}?brandId=${activeBrandId}`, { 
         method: "DELETE" 
       });
       if (response.ok) {
         fetchIntegrations();
         toast({
-          title: isSpanish ? "Integración Eliminada" : "Integration Deleted",
-          description: isSpanish ? "La integración ha sido eliminada." : "The integration has been deleted.",
+          title: isSpanish ? "Integración Eliminada" : "Integration Disconnected",
+          description: isSpanish 
+            ? "La integración ha sido eliminada exitosamente." 
+            : "The integration has been disconnected successfully.",
         });
+        setIsDeleteDialogOpen(false);
+        setIntegrationToDelete(null);
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || errorData.error || "Failed to delete integration");
@@ -531,6 +556,8 @@ export default function IntegrationsPage() {
           : (error instanceof Error ? error.message : "Failed to delete integration."),
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -770,7 +797,7 @@ export default function IntegrationsPage() {
                                       variant="outline"
                                       size="sm"
                                       className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                                      onClick={() => handleDeleteIntegration(connectedIntegration!.id)}
+                                      onClick={() => handleDeleteIntegration(connectedIntegration!)}
                                       data-testid={`disconnect-${providerKey}`}
                                     >
                                       <Trash2 className="h-3 w-3 mr-1" />
@@ -1212,6 +1239,82 @@ export default function IntegrationsPage() {
                   )}
                 </DialogContent>
               </Dialog>
+
+              {/* Delete Confirmation Dialog */}
+              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+                      <AlertCircle className="h-5 w-5" />
+                      {isSpanish ? "Desconectar Integración" : "Disconnect Integration"}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="space-y-4">
+                      <p className="font-medium text-foreground">
+                        {isSpanish 
+                          ? `¿Estás seguro de que deseas desconectar ${integrationToDelete?.accountName || integrationToDelete?.storeName || "esta integración"}?`
+                          : `Are you sure you want to disconnect ${integrationToDelete?.accountName || integrationToDelete?.storeName || "this integration"}?`
+                        }
+                      </p>
+                      
+                      <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4 space-y-2">
+                        <p className="font-semibold text-red-700 dark:text-red-400">
+                          {isSpanish ? "Esta acción causará:" : "This action will cause:"}
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-red-600 dark:text-red-400">
+                          <li>
+                            {isSpanish 
+                              ? "No podrás enviar ni recibir mensajes a través de esta plataforma"
+                              : "You won't be able to send or receive messages through this platform"
+                            }
+                          </li>
+                          <li>
+                            {isSpanish 
+                              ? "Todos los mensajes e historial de conversaciones serán eliminados"
+                              : "All messages and conversation history will be deleted"
+                            }
+                          </li>
+                          <li>
+                            {isSpanish 
+                              ? "No podrás crear publicaciones ni leer estadísticas de esta cuenta"
+                              : "You won't be able to create posts or read insights from this account"
+                            }
+                          </li>
+                        </ul>
+                      </div>
+
+                      <p className="text-sm text-muted-foreground">
+                        {isSpanish 
+                          ? "Puedes volver a conectar esta integración en cualquier momento."
+                          : "You can reconnect this integration at any time."
+                        }
+                      </p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting} data-testid="cancel-delete-btn">
+                      {isSpanish ? "Cancelar" : "Cancel"}
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={confirmDeleteIntegration}
+                      disabled={isDeleting}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                      data-testid="confirm-delete-btn"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {isSpanish ? "Eliminando..." : "Deleting..."}
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          {isSpanish ? "Sí, Desconectar" : "Yes, Disconnect"}
+                        </>
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
 
             {/* Help Chatbot */}
