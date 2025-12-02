@@ -680,8 +680,8 @@ export default function ContentCalendar() {
                           {/* Header with title and navigation */}
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-xl font-bold flex items-center gap-2">
-                              <CalendarIcon className="h-6 w-6 text-brand-600" />
-                              <span className="bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">
+                              <CalendarIcon className="h-6 w-6 text-gray-500" />
+                              <span className="text-gray-800">
                                 {format(currentDate, "MMMM yyyy")}
                               </span>
                             </CardTitle>
