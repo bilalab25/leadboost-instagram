@@ -3593,6 +3593,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete (disconnect) an integration
+  app.delete(
+    "/api/integrations/:id",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        const brandId = req.brandMembership.brandId;
+        const userRole = req.brandMembership.role;
+
+        // Only owners, admins, and editors can delete integrations
+        const allowedRoles = ["owner", "admin", "editor"];
+        if (!allowedRoles.includes(userRole)) {
+          return res.status(403).json({
+            error: "Permission denied",
+            message: "You need editor permissions or higher to disconnect integrations",
+          });
+        }
+
+        // Verify the integration exists
+        const integration = await storage.getIntegrationById(id);
+        if (!integration) {
+          return res.status(404).json({ error: "Integration not found" });
+        }
+
+        // Verify the integration belongs to the current brand context
+        if (integration.brandId !== brandId) {
+          return res.status(403).json({
+            error: "Access denied",
+            message: "This integration does not belong to the current brand",
+          });
+        }
+
+        // Delete the integration
+        const deleted = await storage.deleteIntegration(id, userId);
+        if (deleted) {
+          console.log(
+            `✅ Integration ${id} (${integration.provider}) deleted for brand ${brandId} by user ${userId}`
+          );
+          res.status(200).json({
+            success: true,
+            message: "Integration deleted successfully",
+          });
+        } else {
+          res.status(500).json({ error: "Failed to delete integration" });
+        }
+      } catch (error) {
+        console.error("❌ Error deleting integration:", error);
+        res.status(500).json({ error: "Failed to delete integration" });
+      }
+    }
+  );
+
   // WhatsApp Templates - Fetch from Meta Graph API
   app.get(
     "/api/whatsapp-templates",
