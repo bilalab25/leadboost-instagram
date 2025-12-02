@@ -4305,12 +4305,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   console.log(`   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`);
                 }
 
-                const integration = await storage.findIntegrationByAccount(
+                let integration = await storage.findIntegrationByAccount(
                   recipientId,
                   searchPlatform,
                 );
 
                 console.log(`🔎 findIntegrationByAccount result:`, integration ? `Found (${integration.provider})` : 'NOT FOUND');
+
+                // Auto-fix: If no integration found for Instagram, try to find any instagram_direct integration
+                // and update its accountId/pageId to match the webhook's recipient ID
+                if (!integration && searchPlatform === "instagram") {
+                  console.log(`🔧 Attempting auto-fix for Instagram integration...`);
+                  const allIntegrations = await storage.getAllIntegrations();
+                  const igDirectIntegration = allIntegrations.find(
+                    (int) => int.provider === "instagram_direct" || int.provider === "instagram"
+                  );
+                  
+                  if (igDirectIntegration) {
+                    console.log(`🔧 Found instagram_direct integration with mismatched ID. Updating...`);
+                    console.log(`   - Old accountId: ${igDirectIntegration.accountId}`);
+                    console.log(`   - New accountId (from webhook): ${recipientId}`);
+                    
+                    // Update the integration with the correct recipient ID from the webhook
+                    const updatedIntegration = await storage.updateIntegration(
+                      igDirectIntegration.id,
+                      {
+                        accountId: recipientId,
+                        pageId: recipientId,
+                        metadata: {
+                          ...(typeof igDirectIntegration.metadata === 'object' ? igDirectIntegration.metadata : {}),
+                          igbaId: recipientId,
+                          autoFixedFromWebhook: true,
+                          autoFixedAt: new Date().toISOString(),
+                        },
+                      }
+                    );
+                    
+                    if (updatedIntegration) {
+                      console.log(`✅ Auto-fixed Instagram integration! Now using accountId: ${recipientId}`);
+                      integration = updatedIntegration;
+                    }
+                  }
+                }
 
                 if (integration) {
                   // Use the actual provider from the integration (could be "instagram_direct")

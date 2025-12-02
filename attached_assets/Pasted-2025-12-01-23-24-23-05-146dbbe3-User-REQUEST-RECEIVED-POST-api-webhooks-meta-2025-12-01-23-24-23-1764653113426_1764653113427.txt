@@ -1,0 +1,120 @@
+2025-12-01 23:24:23.05
+146dbbe3
+User
+✅ REQUEST RECEIVED: POST /api/webhooks/meta
+2025-12-01 23:24:23.05
+146dbbe3
+User
+🔴 PAYLOAD RAW (BODY):
+2025-12-01 23:24:23.05
+146dbbe3
+User
+=================================================
+2025-12-01 23:24:23.05
+146dbbe3
+User
+- recipientId: 17841458433478265
+2025-12-01 23:24:23.05
+146dbbe3
+User
+time: 1764653062879,
+2025-12-01 23:24:23.05
+146dbbe3
+User
+}
+2025-12-01 23:24:23.05
+146dbbe3
+User
+text: 'Hola'
+2025-12-01 23:24:23.05
+146dbbe3
+User
+sender: { id: '2041846339885995' },
+2025-12-01 23:24:23.05
+146dbbe3
+User
+{
+2025-12-01 23:24:23.05
+146dbbe3
+User
+object: 'instagram',
+2025-12-01 23:24:23.05
+146dbbe3
+User
+recipient: { id: '17841458433478265' },
+2025-12-01 23:24:23.05
+146dbbe3
+User
+id: '17841458433478265',
+2025-12-01 23:24:23.05
+146dbbe3
+User
+- searchPlatform: instagram
+2025-12-01 23:24:23.05
+146dbbe3
+User
+🔍 Searching for integration:
+2025-12-01 23:24:23.05
+146dbbe3
+User
+mid: 'aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDU4NDMzNDc4MjY1OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjE0OTgxNTgxMDAzNDc1OTozMjU1MjEwMzQyMjkwOTYwNjA2MTgzNzE1MDM2MDQzNjczNgZDZD',
+2025-12-01 23:24:23.05
+146dbbe3
+User
+entry: [
+2025-12-01 23:24:23.05
+146dbbe3
+User
+=================================================
+2025-12-01 23:24:23.05
+146dbbe3
+User
+messaging: [
+2025-12-01 23:24:23.05
+146dbbe3
+User
+}
+2025-12-01 23:24:23.05
+146dbbe3
+User
+}
+2025-12-01 23:24:23.05
+146dbbe3
+User
+]
+2025-12-01 23:24:23.05
+146dbbe3
+User
+📩 Nuevo evento recibido desde Meta
+2025-12-01 23:24:23.05
+146dbbe3
+User
+{
+2025-12-01 23:24:23.05
+146dbbe3
+User
+]
+2025-12-01 23:24:23.05
+146dbbe3
+User
+message: {
+2025-12-01 23:24:23.05
+146dbbe3
+User
+timestamp: 1764653062504,
+2025-12-01 23:24:23.05
+146dbbe3
+User
+}
+2025-12-01 23:24:23.05
+146dbbe3
+User
+{
+2025-12-01 23:24:23.08
+146dbbe3
+User
+- ID: b165cd3e-3aed-46dc-822a-0479e1ef3e00, provider: instagram_direct, accountId: 25343891241895020, pageId: 25343891241895020
+2025-12-01 23:24:23.08
+146dbbe3
+User
+- ID: 7b5944f0-3308-497b-9836-3daa24500d68, provider: facebook, accountId: 264842253378885, pageId: 264842253378885
