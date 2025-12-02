@@ -373,6 +373,181 @@ async function performInitialSync(
 }
 
 /**
+ * Perform initial historical sync for Instagram Direct (via Instagram Login API)
+ * Uses Instagram Graph API endpoints instead of Facebook Graph API
+ */
+async function performInstagramDirectSync(
+  userId: string,
+  integration: any,
+): Promise<void> {
+  try {
+    console.log(
+      `\n🔄 [INITIAL SYNC] Starting for INSTAGRAM_DIRECT...`,
+    );
+
+    const accessToken = integration.accessToken;
+    const igbaId = integration.accountId;
+
+    console.log(`🆔 IGBA ID: ${igbaId}`);
+
+    // Step 1: Fetch all conversations
+    const convoUrl = `https://graph.instagram.com/v24.0/me/conversations?platform=instagram&access_token=${accessToken}`;
+    console.log(
+      `📞 Fetching IG Direct conversations from: ${convoUrl.replace(accessToken, "TOKEN")}`,
+    );
+
+    const convoRes = await fetch(convoUrl);
+    const convoData = await convoRes.json();
+
+    if (convoData.error) {
+      console.error(`❌ Initial sync error for instagram_direct:`, convoData.error);
+      return;
+    }
+
+    const conversations = convoData.data || [];
+    console.log(
+      `📦 Found ${conversations.length} conversations for instagram_direct`,
+    );
+
+    const messagesToInsert: any[] = [];
+    const conversationMetadata = new Map<string, any>();
+
+    // Step 2: Loop through each conversation and fetch messages
+    for (const convo of conversations) {
+      // Get messages list for conversation
+      const messagesListUrl = `https://graph.instagram.com/v24.0/${convo.id}?fields=messages&access_token=${accessToken}`;
+      const msgListRes = await fetch(messagesListUrl);
+      const msgListData = await msgListRes.json();
+
+      if (msgListData.error) {
+        console.error(
+          `⚠️ Error fetching message list for conversation ${convo.id}:`,
+          msgListData.error,
+        );
+        continue;
+      }
+
+      const messageIds = msgListData.messages?.data || [];
+      console.log(`  📨 Conversation ${convo.id}: ${messageIds.length} message IDs`);
+
+      // Step 3: Fetch details for each message (limit to 50 for initial sync)
+      const limitedMessageIds = messageIds.slice(0, 50);
+      
+      for (const msgRef of limitedMessageIds) {
+        const msgDetailUrl = `https://graph.instagram.com/v24.0/${msgRef.id}?fields=id,created_time,from,to,message&access_token=${accessToken}`;
+        const msgDetailRes = await fetch(msgDetailUrl);
+        const m = await msgDetailRes.json();
+
+        if (m.error) {
+          console.error(`⚠️ Error fetching message ${msgRef.id}:`, m.error);
+          continue;
+        }
+
+        const text = m.message || "";
+        const fromId = m.from?.id || "";
+        const fromName = m.from?.username || m.from?.name || "Unknown";
+        const toId = m.to?.data?.[0]?.id || "";
+        const toName = m.to?.data?.[0]?.username || m.to?.data?.[0]?.name || "Unknown";
+
+        // Detect direction - if from ID matches IGBA ID, it's outbound
+        const isOutbound = fromId === igbaId || fromId.startsWith("1784");
+
+        console.log(
+          `🧩 Msg ${m.id.slice(0, 10)}... | from: ${fromName} (${fromId}) → to: ${toName} (${toId}) | outbound: ${isOutbound}`,
+        );
+
+        const contactName = isOutbound ? toName : fromName;
+        const messageTimestamp = new Date(m.created_time);
+
+        // Build composite conversation ID: {igbaId}_{recipientId}
+        const recipientIgsid = isOutbound ? toId : fromId;
+        const compositeConversationId = `${igbaId}_${recipientIgsid}`;
+
+        // Track latest message for conversation metadata
+        const existing = conversationMetadata.get(compositeConversationId);
+        if (!existing || messageTimestamp > existing.latestTimestamp) {
+          conversationMetadata.set(compositeConversationId, {
+            metaConversationId: compositeConversationId,
+            latestMessage: text,
+            latestTimestamp: messageTimestamp,
+            contactName,
+          });
+        }
+
+        messagesToInsert.push({
+          userId,
+          brandId: integration.brandId,
+          integrationId: integration.id,
+          platform: "instagram_direct",
+          metaMessageId: m.id,
+          metaConversationId: compositeConversationId,
+          senderId: fromId,
+          recipientId: toId,
+          textContent: text,
+          direction: isOutbound ? "outbound" : "inbound",
+          isRead: isOutbound,
+          timestamp: messageTimestamp,
+          contactName,
+          rawPayload: { message: m, conversation: convo },
+        });
+      }
+    }
+
+    // Step 4: Create conversations in database
+    console.log(`🔄 Creating ${conversationMetadata.size} conversations...`);
+    const conversationMap = new Map<string, string>();
+
+    for (const [
+      metaConversationId,
+      metadata,
+    ] of conversationMetadata.entries()) {
+      const conversation = await storage.getOrCreateConversation({
+        integrationId: integration.id,
+        brandId: integration.brandId,
+        userId,
+        metaConversationId,
+        platform: "instagram_direct",
+        contactName: metadata.contactName,
+        lastMessage: metadata.latestMessage,
+        lastMessageAt: metadata.latestTimestamp,
+      });
+      conversationMap.set(metaConversationId, conversation.id);
+    }
+
+    // Step 5: Add conversationId to all messages
+    messagesToInsert.forEach((msg) => {
+      msg.conversationId = conversationMap.get(msg.metaConversationId);
+    });
+
+    console.log(
+      `✅ Mapped ${messagesToInsert.length} messages to conversations`,
+    );
+
+    // Step 6: Save messages
+    if (messagesToInsert.length > 0) {
+      console.log(
+        `💾 Saving ${messagesToInsert.length} messages to database...`,
+      );
+      await storage.bulkInsertMessages(messagesToInsert);
+      console.log(`✅ Initial sync complete for instagram_direct`);
+    } else {
+      console.log(
+        `📭 No new messages found for instagram_direct, marking as synced anyway`,
+      );
+    }
+
+    // Step 7: Mark integration as fetched
+    await storage.markIntegrationAsFetched(integration.id);
+    integration.hasFetchedHistory = true;
+    console.log(
+      `🏁 [INSTAGRAM_DIRECT] Marked as fetched in DB and memory`,
+    );
+  } catch (err) {
+    console.error(`❌ Initial sync failed for instagram_direct:`, err);
+  }
+}
+
+/**
  * Merge local and remote messages, removing duplicates by metaMessageId
  */
 function mergeLocalAndRemote(
@@ -3280,7 +3455,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("✅ Instagram Direct integration saved successfully");
 
-      // 6️⃣ Redirect to integrations page
+      // 6️⃣ Perform initial message sync
+      // Fetch the saved integration to get its ID
+      const brandIntegrations = await storage.getIntegrationsByBrandId(brandId);
+      const savedIntegration = brandIntegrations.find(
+        (i) => i.provider === "instagram_direct" && i.userId === userId
+      );
+      
+      if (savedIntegration && !savedIntegration.hasFetchedHistory) {
+        console.log("🔄 Starting initial message sync for Instagram Direct...");
+        // Run sync in background (don't await to avoid blocking redirect)
+        performInstagramDirectSync(userId, savedIntegration).catch(err => {
+          console.error("❌ Background sync failed:", err);
+        });
+      }
+
+      // 7️⃣ Redirect to integrations page
       return res.redirect(`/integrations?connected=instagram_direct`);
     } catch (err) {
       console.error("❌ Instagram callback error:", err);
@@ -4445,7 +4635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const integration of integrations) {
           const provider = integration.provider;
 
-          // Only sync for Meta platforms (Facebook, Instagram, Threads)
+          // Sync for Meta platforms via Facebook API (Facebook, Instagram, Threads)
           if (
             (provider === "facebook" ||
               provider === "instagram" ||
@@ -4465,6 +4655,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } catch (syncError) {
               console.error(
                 `❌ [Initial Sync] Failed for ${provider}:`,
+                syncError,
+              );
+              // Continue with other integrations even if one fails
+            }
+          }
+          
+          // Sync for Instagram Direct (via Instagram Login API)
+          if (provider === "instagram_direct" && !integration.hasFetchedHistory) {
+            console.log(
+              `🔄 [Initial Sync] Starting initial sync for instagram_direct (${integration.accountName})`,
+            );
+
+            try {
+              await performInstagramDirectSync(userId, integration);
+              console.log(
+                `✅ [Initial Sync] Completed for instagram_direct (${integration.accountName})`,
+              );
+            } catch (syncError) {
+              console.error(
+                `❌ [Initial Sync] Failed for instagram_direct:`,
                 syncError,
               );
               // Continue with other integrations even if one fails
