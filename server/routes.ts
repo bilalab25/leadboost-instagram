@@ -2988,69 +2988,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let connectedType = "facebook";
 
       try {
-        const igRes = await fetch(
-          `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account,instagram_business_account&access_token=${pageAccessToken}`,
+        // Check if user already has Instagram Direct integration (mutual exclusivity)
+        const existingIntegrations = await storage.getIntegrationsByBrandId(brandId);
+        const hasInstagramDirect = existingIntegrations.some(
+          (i) => i.provider === "instagram_direct" && i.isActive
         );
-        const igData = await igRes.json();
 
-        const igAccount =
-          igData.connected_instagram_account ||
-          igData.instagram_business_account;
-
-        if (igAccount?.id) {
-          const igDetailsRes = await fetch(
-            `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${pageAccessToken}`,
+        if (hasInstagramDirect) {
+          console.log("⚠️ Skipping Instagram (via Facebook) - User already has Instagram Direct connected");
+        } else {
+          const igRes = await fetch(
+            `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account,instagram_business_account&access_token=${pageAccessToken}`,
           );
-          const igDetails = await igDetailsRes.json();
+          const igData = await igRes.json();
 
-          await storage.createOrUpdateIntegration({
-            userId,
-            brandId,
-            provider: "instagram",
-            category: "social_media",
-            storeName: "Instagram",
-            storeUrl: `https://instagram.com/${igDetails.username}`,
-            accountId: igAccount.id,
-            accountName: igDetails.username,
-            accessToken: pageAccessToken,
-            pageId: page.id,
-            isActive: true,
-            syncEnabled: true,
-            metadata: {
-              fbPageId: page.id,
-              igAccountId: igAccount.id,
-              igUsername: igDetails.username,
-              source: "facebook_callback",
-            },
-          });
+          const igAccount =
+            igData.connected_instagram_account ||
+            igData.instagram_business_account;
 
-          connectedType = "facebook,instagram";
+          if (igAccount?.id) {
+            const igDetailsRes = await fetch(
+              `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${pageAccessToken}`,
+            );
+            const igDetails = await igDetailsRes.json();
 
-          // -----------------------------------------
-          // 8️⃣ Register Threads (Linked to IG)
-          // -----------------------------------------
-          await storage.createOrUpdateIntegration({
-            userId,
-            brandId,
-            provider: "threads",
-            category: "social_media",
-            storeName: "Threads",
-            storeUrl: `https://threads.net/@${igDetails.username}`,
-            accountId: igAccount.id,
-            accountName: igDetails.username,
-            accessToken: pageAccessToken,
-            pageId: page.id,
-            isActive: true,
-            syncEnabled: true,
-            metadata: {
-              fbPageId: page.id,
-              igAccountId: igAccount.id,
-              igUsername: igDetails.username,
-              source: "facebook_callback",
-            },
-          });
+            await storage.createOrUpdateIntegration({
+              userId,
+              brandId,
+              provider: "instagram",
+              category: "social_media",
+              storeName: "Instagram",
+              storeUrl: `https://instagram.com/${igDetails.username}`,
+              accountId: igAccount.id,
+              accountName: igDetails.username,
+              accessToken: pageAccessToken,
+              pageId: page.id,
+              isActive: true,
+              syncEnabled: true,
+              metadata: {
+                fbPageId: page.id,
+                igAccountId: igAccount.id,
+                igUsername: igDetails.username,
+                source: "facebook_callback",
+              },
+            });
 
-          connectedType = "facebook,instagram,threads";
+            connectedType = "facebook,instagram";
+
+            // -----------------------------------------
+            // 8️⃣ Register Threads (Linked to IG)
+            // -----------------------------------------
+            await storage.createOrUpdateIntegration({
+              userId,
+              brandId,
+              provider: "threads",
+              category: "social_media",
+              storeName: "Threads",
+              storeUrl: `https://threads.net/@${igDetails.username}`,
+              accountId: igAccount.id,
+              accountName: igDetails.username,
+              accessToken: pageAccessToken,
+              pageId: page.id,
+              isActive: true,
+              syncEnabled: true,
+              metadata: {
+                fbPageId: page.id,
+                igAccountId: igAccount.id,
+                igUsername: igDetails.username,
+                source: "facebook_callback",
+              },
+            });
+
+            connectedType = "facebook,instagram,threads";
+          }
         }
       } catch (err) {
         console.warn("⚠️ IG auto-connect failed:", err);
