@@ -611,28 +611,29 @@ export default function IntegrationsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-8"
                 >
-                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-primary/90 to-primary/80 p-6 md:p-8 shadow-xl">
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 p-6 md:p-8 shadow-xl">
                     <div className="absolute inset-0 opacity-10">
                       <div
                         className="absolute inset-0"
                         style={{
-                          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)`,
+                          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)`,
                           backgroundSize: "20px 20px",
                         }}
                       />
                     </div>
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
 
                     <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-xl bg-primary/80 backdrop-blur-sm flex items-center justify-center shadow-lg">
                             <Plug className="w-7 h-7 text-white" />
                           </div>
                           <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white" data-testid="text-page-title">
+                            <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-sm" data-testid="text-page-title">
                               {isSpanish ? "Integraciones" : "Integrations"}
                             </h1>
-                            <p className="text-primary-foreground/80 text-sm">
+                            <p className="text-slate-300 text-sm">
                               {isSpanish 
                                 ? "Conecta tus plataformas favoritas" 
                                 : "Connect your favorite platforms"}
@@ -640,7 +641,7 @@ export default function IntegrationsPage() {
                           </div>
                         </div>
 
-                        <p className="text-primary-foreground/90 text-sm md:text-base max-w-xl">
+                        <p className="text-slate-200 text-sm md:text-base max-w-xl">
                           {isSpanish
                             ? "Potencia tus campañas conectando redes sociales, tiendas online, sistemas de pago y CRM en un solo lugar."
                             : "Power up your campaigns by connecting social media, online stores, payment systems and CRM in one place."}
@@ -653,10 +654,10 @@ export default function IntegrationsPage() {
                           initial={{ scale: 0.9, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ delay: 0.1 }}
-                          className="bg-white/15 backdrop-blur-sm rounded-xl p-4 min-w-[100px] text-center border border-white/20"
+                          className="bg-white rounded-xl p-4 min-w-[100px] text-center shadow-lg"
                         >
-                          <p className="text-3xl font-bold text-white">{totalConnected}</p>
-                          <p className="text-xs text-primary-foreground/80 mt-1">
+                          <p className="text-3xl font-bold text-primary">{totalConnected}</p>
+                          <p className="text-xs text-slate-500 mt-1">
                             {isSpanish ? "Conectadas" : "Connected"}
                           </p>
                         </motion.div>
@@ -664,10 +665,10 @@ export default function IntegrationsPage() {
                           initial={{ scale: 0.9, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ delay: 0.2 }}
-                          className="bg-white/15 backdrop-blur-sm rounded-xl p-4 min-w-[100px] text-center border border-white/20"
+                          className="bg-white rounded-xl p-4 min-w-[100px] text-center shadow-lg"
                         >
-                          <p className="text-3xl font-bold text-white">{totalAvailable}</p>
-                          <p className="text-xs text-primary-foreground/80 mt-1">
+                          <p className="text-3xl font-bold text-primary">{totalAvailable}</p>
+                          <p className="text-xs text-slate-500 mt-1">
                             {isSpanish ? "Disponibles" : "Available"}
                           </p>
                         </motion.div>
