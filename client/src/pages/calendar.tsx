@@ -177,6 +177,27 @@ export default function ContentCalendar() {
     }
   };
 
+  // Query to load existing AI posts on page mount
+  const existingAiPostsQuery = useQuery({
+    queryKey: ["/api/ai-generated-posts", activeBrandId],
+    queryFn: async () => {
+      if (!activeBrandId) return [];
+      const response = await fetch(`/api/ai-generated-posts/${activeBrandId}`, {
+        credentials: "include",
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!activeBrandId,
+  });
+
+  // Set aiPendingPosts when existing posts are loaded
+  useEffect(() => {
+    if (existingAiPostsQuery.data && existingAiPostsQuery.data.length > 0) {
+      setAiPendingPosts(existingAiPostsQuery.data);
+    }
+  }, [existingAiPostsQuery.data]);
+
   // Polling query for job status
   const jobStatusQuery = useQuery({
     queryKey: ["/api/post-generator/jobs", currentJobId],
@@ -200,7 +221,10 @@ export default function ContentCalendar() {
     if (job.status === "completed") {
       setShowGeneratingLoader(false);
       
-      // Fetch posts from the database after job completion
+      // Refetch posts from the database after job completion
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-generated-posts", activeBrandId] });
+      
+      // Also fetch directly to show toast with count
       fetchAiGeneratedPosts().then((newPosts) => {
         setSuggestedPosts(newPosts);
         setAiSuggestions(job);
