@@ -460,71 +460,16 @@ export default function ContentCalendar() {
       return newState;
     });
   };
-  // 🔹 Mock posts
-  const mockContentPosts: ContentPost[] = [
-    {
-      id: "1",
-      title: "Product Launch",
-      platform: "instagram",
-      scheduledFor: "2025-09-27T14:00:00Z",
-      status: "scheduled",
-      content: "🎉 Our new product is finally here!",
-      imageUrl:
-        "https://img.freepik.com/free-psd/male-grooming-template-design_23-2150195492.jpg?semt=ais_incoming&w=740&q=80",
-    },
-    {
-      id: "2",
-      title: "Customer Testimonial",
-      platform: "facebook",
-      scheduledFor: "2025-09-28T10:30:00Z",
-      status: "draft",
-      content: "Here is what our clients are saying ❤️",
-      imageUrl:
-        "https://img.freepik.com/premium-psd/aesthetic-fashion-social-media-instagram-post-template-premium-psd_20692-42.jpg",
-    },
-    {
-      id: "3",
-      title: "Behind the Scenes",
-      platform: "tiktok",
-      scheduledFor: "2025-09-28T16:00:00Z",
-      status: "scheduled",
-      content: "🎬 A look behind our daily operations",
-      imageUrl:
-        "https://img.freepik.com/premium-psd/minimalist-aesthetic-fashion-social-media-instagram-post-template_20692-45.jpg",
-    },
-    {
-      id: "4",
-      title: "Holiday Promo",
-      platform: "whatsapp",
-      scheduledFor: "2025-09-29T09:00:00Z",
-      status: "published",
-      content: "🎄 Special offers for the holiday season!",
-      imageUrl:
-        "https://img.freepik.com/premium-psd/new-year-mega-sale-women-fashion-product-minimalist-social-media-template_524105-401.jpg",
-    },
-    {
-      id: "5",
-      title: "GLOWING SKIN FACIAL",
-      platform: "instagram",
-      scheduledFor: "2025-11-26T17:00:00Z",
-      status: "published",
-      content:
-        "Unveil your natural radiance. ✨ Experience deep hydration, rejuvenation, and a flawless complexion with our signature facial treatment.",
-      imageUrl:
-        "https://res.cloudinary.com/dgujs7cy9/image/upload/v1764131141/Gemini_Generated_Image_loy3jsloy3jsloy3_yucbls.png",
-    },
-  ];
 
-  // Convert AI posts to ContentPost format and combine with mock posts
+  // Convert AI posts to ContentPost format
   const aiContentPosts = useMemo(() => {
     if (!aiPendingPosts || aiPendingPosts.length === 0) return [];
     return convertAiPostsToContentPosts(aiPendingPosts);
   }, [aiPendingPosts, currentDate]);
 
-  // Combine all posts (mock + AI) for calendar display
+  // All posts from database only
   const allPosts = useMemo(() => {
-    const manualPosts = mockContentPosts.map(post => ({ ...post, source: "manual" as const }));
-    return [...manualPosts, ...aiContentPosts];
+    return aiContentPosts;
   }, [aiContentPosts]);
 
   useEffect(() => {
