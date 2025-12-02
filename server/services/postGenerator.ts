@@ -256,11 +256,13 @@ IMPORTANT: Return ONLY valid JSON in this exact format:
 
 // Helper function to clean and parse JSON from LLM response
 function cleanAndParseJson(text: string): any {
+  console.log("[PostGenerator] Raw response length:", text?.length || 0);
+  
   // Try direct parse first
   try {
     return JSON.parse(text);
   } catch (e) {
-    // Continue to cleanup
+    console.log("[PostGenerator] Direct parse failed, attempting cleanup");
   }
 
   // Remove markdown code blocks
@@ -279,39 +281,117 @@ function cleanAndParseJson(text: string): any {
     .replace(/[\x00-\x1F\x7F]/g, ' ')  // Remove control characters
     .replace(/\n/g, ' ')  // Replace newlines with spaces
     .replace(/\r/g, '')  // Remove carriage returns
-    .replace(/\t/g, ' '); // Replace tabs with spaces
+    .replace(/\t/g, ' ')  // Replace tabs with spaces
+    .replace(/\s+/g, ' ') // Collapse multiple spaces
+    .trim();
   
   try {
     return JSON.parse(cleaned);
   } catch (e) {
-    console.error("[PostGenerator] JSON cleanup failed, trying array extraction");
+    console.log("[PostGenerator] JSON cleanup failed, trying array extraction");
+    console.log("[PostGenerator] Cleaned text sample:", cleaned.substring(0, 500));
     
-    // Try to extract just the posts array
-    const arrayMatch = cleaned.match(/"posts"\s*:\s*\[([\s\S]*?)\]/);
+    // Try to extract just the posts array with greedy matching
+    const arrayMatch = cleaned.match(/"posts"\s*:\s*\[([\s\S]*)\]/);
     if (arrayMatch) {
       try {
-        const posts = JSON.parse(`[${arrayMatch[1]}]`);
+        // Try to balance brackets properly
+        let arrayContent = arrayMatch[1];
+        const posts = JSON.parse(`[${arrayContent}]`);
         return { posts };
       } catch (e2) {
-        // Last resort: try to extract individual post objects
-        const postRegex = /\{[^{}]*"platform"[^{}]*"titulo"[^{}]*\}/g;
-        const posts = [];
-        let match;
-        while ((match = postRegex.exec(cleaned)) !== null) {
-          try {
-            posts.push(JSON.parse(match[0]));
-          } catch (e3) {
-            // Skip malformed posts
-          }
-        }
-        if (posts.length > 0) {
-          return { posts };
-        }
+        console.log("[PostGenerator] Array extraction failed, trying individual posts");
       }
     }
     
+    // Last resort: try to extract individual post objects using a more flexible regex
+    const posts: any[] = [];
+    
+    // Match objects that have required fields (platform, titulo, content)
+    const objectRegex = /\{\s*"[^"]+"\s*:\s*[^{}]+(?:\{[^{}]*\})*[^{}]*\}/g;
+    let match;
+    while ((match = objectRegex.exec(cleaned)) !== null) {
+      try {
+        const obj = JSON.parse(match[0]);
+        // Validate it's a post object
+        if (obj.platform && obj.titulo && obj.content) {
+          posts.push(obj);
+        }
+      } catch (e3) {
+        // Skip malformed objects
+      }
+    }
+    
+    if (posts.length > 0) {
+      console.log(`[PostGenerator] Recovered ${posts.length} posts from fragmented response`);
+      return { posts };
+    }
+    
+    // Very last resort: try splitting by platform field and reconstructing
+    const platformSplits = cleaned.split(/"platform"\s*:/);
+    if (platformSplits.length > 1) {
+      for (let i = 1; i < platformSplits.length; i++) {
+        try {
+          // Find the next complete object
+          const segment = '{"platform":' + platformSplits[i];
+          const endBrace = findMatchingBrace(segment, 0);
+          if (endBrace > 0) {
+            const objStr = segment.substring(0, endBrace + 1);
+            const obj = JSON.parse(objStr);
+            if (obj.platform && obj.titulo && obj.content) {
+              posts.push(obj);
+            }
+          }
+        } catch (e4) {
+          // Skip malformed segments
+        }
+      }
+      
+      if (posts.length > 0) {
+        console.log(`[PostGenerator] Recovered ${posts.length} posts from split response`);
+        return { posts };
+      }
+    }
+    
+    console.error("[PostGenerator] All parsing attempts failed");
     throw new Error("Could not parse JSON from Gemini response after cleanup attempts");
   }
+}
+
+// Helper to find matching closing brace
+function findMatchingBrace(str: string, start: number): number {
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  
+  for (let i = start; i < str.length; i++) {
+    const char = str[i];
+    
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    
+    if (char === '\\') {
+      escape = true;
+      continue;
+    }
+    
+    if (char === '"' && !escape) {
+      inString = !inString;
+      continue;
+    }
+    
+    if (!inString) {
+      if (char === '{') depth++;
+      if (char === '}') {
+        depth--;
+        if (depth === 0) return i;
+      }
+    }
+  }
+  
+  return -1;
 }
 
 export async function generatePostsWithGemini(
