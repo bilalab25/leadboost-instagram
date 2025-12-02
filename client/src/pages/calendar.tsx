@@ -137,10 +137,10 @@ export default function ContentCalendar() {
 
   // Query to fetch brand design
   const { data: brandDesign, isLoading: brandDesignLoading } = useQuery<any>({
-    queryKey: ["/api/brands", activeBrandId, "design"],
+    queryKey: ["/api/brand-design", activeBrandId],
     queryFn: async () => {
       if (!activeBrandId) return null;
-      const res = await fetch(`/api/brands/${activeBrandId}/design`, {
+      const res = await fetch(`/api/brand-design?brandId=${activeBrandId}`, {
         credentials: "include",
       });
       if (!res.ok) return null;
