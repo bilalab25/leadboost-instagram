@@ -63,6 +63,7 @@ interface ConversationPanelProps {
 
 const platformIcons = {
   instagram: Instagram,
+  instagram_direct: Instagram,
   whatsapp: SiWhatsapp,
   email: Mail,
   tiktok: SiTiktok,
@@ -74,6 +75,7 @@ const platformIcons = {
 
 const platformColors = {
   instagram: "bg-pink-500",
+  instagram_direct: "bg-pink-500",
   whatsapp: "bg-green-500",
   email: "bg-primary",
   tiktok: "bg-gray-800",

@@ -4827,7 +4827,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const integrations = await storage.getIntegrationsByBrandId(brandId);
-        const integration = integrations.find((i) => i.provider === provider);
+        
+        // For Instagram, also check instagram_direct provider (conversations may have old platform value)
+        let integration = integrations.find((i) => i.provider === provider);
+        
+        // If no exact match and provider is "instagram", try "instagram_direct"
+        if (!integration && provider === "instagram") {
+          integration = integrations.find((i) => i.provider === "instagram_direct");
+          if (integration) {
+            console.log(`🔄 Found instagram_direct integration for instagram request`);
+          }
+        }
 
         if (!integration) {
           console.warn(
@@ -4837,6 +4847,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .status(404)
             .json({ error: `No ${provider} integration found for brand` });
         }
+        
+        // Use the actual provider from the integration for subsequent logic
+        const actualProvider = integration.provider;
 
         let url, payload, recipientId, metaConversationId;
         let apiResponse;
@@ -4943,7 +4956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // =========================================================
         // 🟣 INSTAGRAM / THREADS (via Facebook)
         // =========================================================
-        else if (provider === "instagram" || provider === "threads") {
+        else if (actualProvider === "instagram" || actualProvider === "threads") {
           console.log(
             `💬 [Instagram/Threads] Sending message to conversation ${conversationId}`,
           );
@@ -4990,7 +5003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // =========================================================
         // 🟪 INSTAGRAM DIRECT (via Instagram Login API)
         // =========================================================
-        else if (provider === "instagram_direct") {
+        else if (actualProvider === "instagram_direct") {
           console.log(
             `💬 [Instagram Direct] Sending message to conversation ${conversationId}`,
           );
@@ -5064,7 +5077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // =========================================================
         // 🟩 WHATSAPP
         // =========================================================
-        else if (provider === "whatsapp") {
+        else if (actualProvider === "whatsapp") {
           console.log(`💬 [WhatsApp] Sending message to ${conversationId}`);
           const parts = conversationId.split("_");
           let finalRecipientId = conversationId;
