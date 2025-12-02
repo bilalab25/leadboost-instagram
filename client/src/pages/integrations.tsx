@@ -507,7 +507,12 @@ export default function IntegrationsPage() {
   // Delete integration handler
   const handleDeleteIntegration = async (id: string) => {
     try {
-      const response = await fetch(`/api/integrations/${id}`, { method: "DELETE" });
+      if (!activeBrandId) {
+        throw new Error("No active brand selected");
+      }
+      const response = await fetch(`/api/integrations/${id}?brandId=${activeBrandId}`, { 
+        method: "DELETE" 
+      });
       if (response.ok) {
         fetchIntegrations();
         toast({
@@ -515,12 +520,15 @@ export default function IntegrationsPage() {
           description: isSpanish ? "La integración ha sido eliminada." : "The integration has been deleted.",
         });
       } else {
-        throw new Error("Failed to delete integration");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || "Failed to delete integration");
       }
     } catch (error) {
       toast({
         title: isSpanish ? "Error" : "Error",
-        description: isSpanish ? "No se pudo eliminar la integración." : "Failed to delete integration.",
+        description: isSpanish 
+          ? "No se pudo eliminar la integración." 
+          : (error instanceof Error ? error.message : "Failed to delete integration."),
         variant: "destructive",
       });
     }
