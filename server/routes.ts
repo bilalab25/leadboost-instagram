@@ -4364,28 +4364,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     // ✅ Endpoint unificado para Messenger e Instagram
                     // For instagram_direct, use "instagram" as the Meta API platform parameter
                     const metaPlatformParam = platform === "facebook" ? "messenger" : "instagram";
+                    console.log(`🔍 Fetching conversation from Meta API:`);
+                    console.log(`   - pageId: ${pageId}`);
+                    console.log(`   - platform: ${metaPlatformParam}`);
+                    console.log(`   - senderId: ${senderId}`);
+                    
                     const convoRes = await fetch(
                       `https://graph.facebook.com/v24.0/${pageId}/conversations?platform=${metaPlatformParam}&user_id=${senderId}&access_token=${accessToken}`,
                     );
                     const convoData = await convoRes.json();
+                    console.log(`📝 Conversation API response:`, JSON.stringify(convoData, null, 2));
 
                     if (convoData?.data?.[0]?.id) {
                       metaConversationId = convoData.data[0].id;
                       console.log(
-                        `🔗 [${platform}] Found conversation_id: ${metaConversationId}`,
+                        `🔗 [${platform}] Found conversation_id from API: ${metaConversationId}`,
                       );
                     } else {
                       console.warn(
-                        `⚠️ [${platform}] No conversation found, fallback.`,
+                        `⚠️ [${platform}] No conversation found in API response, using fallback.`,
+                        convoData?.error ? `Error: ${convoData.error.message}` : ''
                       );
-                      metaConversationId = `${recipientId}_${senderId}`;
+                      // Use senderId as fallback key to ensure consistency across recipient ID changes
+                      metaConversationId = `ig_dm_${senderId}`;
+                      console.log(`🔗 [${platform}] Fallback conversation_id: ${metaConversationId}`);
                     }
                   } catch (err) {
                     console.error(
                       `❌ [${platform}] Error fetching conversation_id:`,
                       err,
                     );
-                    metaConversationId = `${recipientId}_${senderId}`;
+                    // Use senderId as fallback key to ensure consistency across recipient ID changes
+                    metaConversationId = `ig_dm_${senderId}`;
+                    console.log(`🔗 [${platform}] Fallback conversation_id (error): ${metaConversationId}`);
                   }
 
                   // Try to fetch sender's profile info for contact name
@@ -4432,16 +4443,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }
 
                   // Get or create conversation
-                  const conversation = await storage.getOrCreateConversation({
-                    integrationId: integration.id,
-                    brandId: integration.brandId,
-                    userId: integration.userId,
-                    metaConversationId: metaConversationId || "",
-                    platform,
-                    contactName,
-                    lastMessage: messageText,
-                    lastMessageAt: new Date(event.timestamp || Date.now()),
-                  });
+                  console.log(`🔍 [CONVERSATION MATCHING] Looking for conversation:`);
+                  console.log(`   - integrationId: ${integration.id}`);
+                  console.log(`   - metaConversationId: ${metaConversationId}`);
+                  console.log(`   - platform: ${platform}`);
+                  console.log(`   - senderId: ${senderId}`);
+                  
+                  // First, check if there's an existing conversation for this sender
+                  // This handles cases where metaConversationId format changed
+                  let existingConversation = await storage.findConversationBySenderId(
+                    integration.id,
+                    senderId
+                  );
+                  
+                  let conversation;
+                  if (existingConversation) {
+                    console.log(`🔗 [CONVERSATION] Found existing conversation by senderId: ${existingConversation.id}`);
+                    console.log(`   - Old metaConversationId: ${existingConversation.metaConversationId}`);
+                    console.log(`   - New metaConversationId: ${metaConversationId}`);
+                    
+                    // Update the conversation with new message and optionally update metaConversationId
+                    conversation = await storage.updateConversationMetadata(existingConversation.id, {
+                      metaConversationId: metaConversationId || existingConversation.metaConversationId,
+                      lastMessage: messageText,
+                      lastMessageAt: new Date(event.timestamp || Date.now()),
+                      contactName: contactName || existingConversation.contactName,
+                    }) || existingConversation;
+                    console.log(`✅ [CONVERSATION] Updated existing: ${conversation.id}`);
+                  } else {
+                    conversation = await storage.getOrCreateConversation({
+                      integrationId: integration.id,
+                      brandId: integration.brandId,
+                      userId: integration.userId,
+                      metaConversationId: metaConversationId || "",
+                      platform,
+                      contactName,
+                      lastMessage: messageText,
+                      lastMessageAt: new Date(event.timestamp || Date.now()),
+                    });
+                    console.log(`✅ [CONVERSATION] Created/matched by metaConversationId: ${conversation.id}`);
+                  }
 
                   const messageData = {
                     userId: integration.userId,

@@ -180,6 +180,10 @@ export interface IStorage {
   ): Promise<Conversation | undefined>;
   incrementUnreadCount(conversationId: string): Promise<void>;
   resetUnreadCount(conversationId: string): Promise<void>;
+  findConversationBySenderId(
+    integrationId: string,
+    senderId: string,
+  ): Promise<Conversation | undefined>;
 
   // Message attachment operations
   createMessageAttachment(
@@ -876,6 +880,47 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(conversations.id, conversationId));
+  }
+
+  async findConversationBySenderId(
+    integrationId: string,
+    senderId: string,
+  ): Promise<Conversation | undefined> {
+    // Find conversation by looking at messages from this sender in this integration
+    const messagesFromSender = await db
+      .select({ conversationId: messages.conversationId })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.integrationId, integrationId),
+          eq(messages.senderId, senderId),
+          sql`${messages.conversationId} IS NOT NULL`
+        )
+      )
+      .limit(1);
+
+    if (messagesFromSender.length > 0 && messagesFromSender[0].conversationId) {
+      const [conversation] = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, messagesFromSender[0].conversationId))
+        .limit(1);
+      return conversation;
+    }
+
+    // Also check metaConversationId patterns that might contain the senderId
+    const conversationsWithSenderId = await db
+      .select()
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.integrationId, integrationId),
+          sql`${conversations.metaConversationId} LIKE '%' || ${senderId} || '%'`
+        )
+      )
+      .limit(1);
+
+    return conversationsWithSenderId[0];
   }
 
   // Message attachment operations
