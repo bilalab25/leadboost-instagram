@@ -4878,6 +4878,229 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // ✅ NEW: Refresh contact name for a conversation (fetch from platform API)
+  app.patch(
+    "/api/conversations/:id/refresh-contact",
+    isAuthenticated,
+    requireBrand,
+    async (req, res) => {
+      try {
+        const { id } = req.params;
+        const brandId = req.brandMembership.brandId;
+
+        // Get conversation and verify access
+        const conversationsList = await storage.getConversationsByBrandId(brandId);
+        const conversation = conversationsList.find((c) => c.id === id);
+
+        if (!conversation) {
+          return res.status(404).json({ error: "Conversation not found" });
+        }
+
+        // Get the integration to access the platform API
+        const integration = await storage.getIntegrationById(conversation.integrationId);
+        if (!integration) {
+          return res.status(404).json({ error: "Integration not found" });
+        }
+
+        const accessToken = integration.accessToken;
+        const platform = conversation.platform;
+        
+        // Extract sender ID from meta_conversation_id (format: pageId_senderId or similar)
+        const metaConvoId = conversation.metaConversationId;
+        let senderId: string | null = null;
+        
+        // Try to get sender ID from messages in this conversation
+        const conversationMessages = await storage.getConversationMessages(id);
+        const inboundMessage = conversationMessages.find((m) => m.direction === "inbound");
+        if (inboundMessage) {
+          senderId = inboundMessage.senderId;
+        }
+
+        if (!senderId) {
+          // Fallback: parse from meta_conversation_id
+          const parts = metaConvoId.split("_");
+          if (parts.length >= 2) {
+            senderId = parts[parts.length - 1]; // Last part is usually the sender ID
+          }
+        }
+
+        if (!senderId) {
+          return res.status(400).json({ error: "Could not determine sender ID" });
+        }
+
+        console.log(`🔄 Refreshing contact name for conversation ${id}, sender: ${senderId}, platform: ${platform}`);
+
+        let contactName: string | null = null;
+
+        try {
+          if (platform === "instagram_direct" || platform === "instagram") {
+            // Try Instagram Graph API first
+            const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name&access_token=${accessToken}`;
+            console.log(`📱 Fetching Instagram profile for: ${senderId}`);
+            
+            const profileRes = await fetch(profileUrl);
+            const profileData = await profileRes.json();
+            
+            if (!profileData.error && (profileData.username || profileData.name)) {
+              contactName = profileData.username || profileData.name;
+              console.log(`✅ Got Instagram contact name: ${contactName}`);
+            } else if (profileData.error) {
+              console.warn(`⚠️ Instagram API error:`, profileData.error.message);
+              
+              // Fallback: Try Facebook Graph API
+              const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username&access_token=${accessToken}`;
+              const fbProfileRes = await fetch(fbProfileUrl);
+              const fbProfileData = await fbProfileRes.json();
+              
+              if (!fbProfileData.error && (fbProfileData.name || fbProfileData.username)) {
+                contactName = fbProfileData.name || fbProfileData.username;
+                console.log(`✅ Got contact name from FB Graph: ${contactName}`);
+              }
+            }
+          } else if (platform === "facebook") {
+            // Facebook Messenger - use Facebook Graph API
+            const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,first_name,last_name&access_token=${accessToken}`;
+            console.log(`📱 Fetching Facebook profile for: ${senderId}`);
+            
+            const fbProfileRes = await fetch(fbProfileUrl);
+            const fbProfileData = await fbProfileRes.json();
+            
+            if (!fbProfileData.error && fbProfileData.name) {
+              contactName = fbProfileData.name;
+              console.log(`✅ Got Facebook contact name: ${contactName}`);
+            }
+          } else if (platform === "whatsapp") {
+            // WhatsApp - contact name usually comes from webhook, can't fetch via API
+            // Use phone number as fallback
+            contactName = senderId.startsWith("+") ? senderId : `+${senderId}`;
+            console.log(`📱 Using WhatsApp number as contact: ${contactName}`);
+          }
+        } catch (apiErr) {
+          console.warn(`⚠️ Error fetching profile:`, apiErr);
+        }
+
+        if (contactName) {
+          // Update the conversation with the new contact name
+          const updated = await storage.updateConversationMetadata(id, { contactName });
+          console.log(`✅ Updated contact name for conversation ${id}: ${contactName}`);
+          res.json({ success: true, contactName, conversation: updated });
+        } else {
+          res.json({ success: false, message: "Could not fetch contact name from platform API" });
+        }
+      } catch (err) {
+        console.error("❌ Error refreshing contact name:", err);
+        res.status(500).json({ error: "Failed to refresh contact name" });
+      }
+    },
+  );
+
+  // ✅ NEW: Bulk refresh contact names for all conversations with missing names
+  app.post(
+    "/api/conversations/refresh-all-contacts",
+    isAuthenticated,
+    requireBrand,
+    async (req, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+
+        // Get all conversations for the brand
+        const conversationsList = await storage.getConversationsByBrandId(brandId);
+        
+        // Filter conversations without contact names
+        const conversationsToUpdate = conversationsList.filter(
+          (c) => !c.contactName || c.contactName === "Contact"
+        );
+
+        console.log(`🔄 Found ${conversationsToUpdate.length} conversations without contact names`);
+
+        const results: { id: string; contactName: string | null; success: boolean }[] = [];
+
+        for (const conversation of conversationsToUpdate) {
+          try {
+            const integration = await storage.getIntegrationById(conversation.integrationId);
+            if (!integration) continue;
+
+            const accessToken = integration.accessToken;
+            const platform = conversation.platform;
+
+            // Get sender ID from messages
+            const conversationMessages = await storage.getConversationMessages(conversation.id);
+            const inboundMessage = conversationMessages.find((m) => m.direction === "inbound");
+            let senderId = inboundMessage?.senderId;
+
+            if (!senderId) {
+              const parts = conversation.metaConversationId.split("_");
+              if (parts.length >= 2) {
+                senderId = parts[parts.length - 1];
+              }
+            }
+
+            if (!senderId) {
+              results.push({ id: conversation.id, contactName: null, success: false });
+              continue;
+            }
+
+            let contactName: string | null = null;
+
+            if (platform === "instagram_direct" || platform === "instagram") {
+              const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name&access_token=${accessToken}`;
+              const profileRes = await fetch(profileUrl);
+              const profileData = await profileRes.json();
+              
+              if (!profileData.error && (profileData.username || profileData.name)) {
+                contactName = profileData.username || profileData.name;
+              } else if (profileData.error) {
+                // Fallback to Facebook Graph API
+                const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username&access_token=${accessToken}`;
+                const fbProfileRes = await fetch(fbProfileUrl);
+                const fbProfileData = await fbProfileRes.json();
+                
+                if (!fbProfileData.error && (fbProfileData.name || fbProfileData.username)) {
+                  contactName = fbProfileData.name || fbProfileData.username;
+                }
+              }
+            } else if (platform === "facebook") {
+              const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,first_name,last_name&access_token=${accessToken}`;
+              const fbProfileRes = await fetch(fbProfileUrl);
+              const fbProfileData = await fbProfileRes.json();
+              
+              if (!fbProfileData.error && fbProfileData.name) {
+                contactName = fbProfileData.name;
+              }
+            }
+
+            if (contactName) {
+              await storage.updateConversationMetadata(conversation.id, { contactName });
+              console.log(`✅ Updated: ${conversation.id} -> ${contactName}`);
+              results.push({ id: conversation.id, contactName, success: true });
+            } else {
+              results.push({ id: conversation.id, contactName: null, success: false });
+            }
+
+            // Small delay to avoid rate limiting
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          } catch (err) {
+            console.error(`❌ Error updating conversation ${conversation.id}:`, err);
+            results.push({ id: conversation.id, contactName: null, success: false });
+          }
+        }
+
+        const successCount = results.filter((r) => r.success).length;
+        console.log(`✅ Refreshed ${successCount}/${conversationsToUpdate.length} contact names`);
+
+        res.json({
+          success: true,
+          total: conversationsToUpdate.length,
+          updated: successCount,
+          results,
+        });
+      } catch (err) {
+        console.error("❌ Error bulk refreshing contact names:", err);
+        res.status(500).json({ error: "Failed to refresh contact names" });
+      }
+    },
+  );
+
   // ✅ NEW: Unified aggregation endpoint - Get ALL messages from ALL connected providers
   app.get(
     "/api/conversations/messages/all",
