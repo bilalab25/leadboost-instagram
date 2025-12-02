@@ -795,16 +795,31 @@ export default function ContentCalendar() {
                                 )}
                               </Tooltip>
 
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleApproveMonth}
-                                className="text-green-700 border-green-300 hover:bg-green-50"
-                                data-testid="button-approve-month"
-                              >
-                                <CheckCircle className="w-4 h-4 mr-1" />
-                                Approve Month
-                              </Button>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={handleApproveMonth}
+                                      disabled={isPastMonth}
+                                      className={isPastMonth 
+                                        ? "opacity-60 cursor-not-allowed" 
+                                        : "text-green-700 border-green-300 hover:bg-green-50"
+                                      }
+                                      data-testid="button-approve-month"
+                                    >
+                                      <CheckCircle className="w-4 h-4 mr-1" />
+                                      Approve Month
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                {isPastMonth && (
+                                  <TooltipContent>
+                                    <p>Cannot approve past months</p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
                             </div>
 
                             {/* Pause/Autopost toggle */}
