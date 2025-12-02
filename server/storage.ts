@@ -2067,16 +2067,37 @@ export class DatabaseStorage implements IStorage {
     accountId: string,
     provider: string,
   ): Promise<Integration | undefined> {
-    const [integration] = await db
+    // For Instagram, also check instagram_direct provider
+    const providersToCheck = provider === "instagram" 
+      ? [provider, "instagram_direct"] 
+      : [provider];
+    
+    // First try to find by accountId
+    let [integration] = await db
       .select()
       .from(integrations)
       .where(
         and(
           eq(integrations.accountId, accountId),
-          eq(integrations.provider, provider),
+          inArray(integrations.provider, providersToCheck),
         ),
       )
       .limit(1);
+    
+    // If not found, try to find by pageId (IGBA ID for Instagram)
+    if (!integration) {
+      [integration] = await db
+        .select()
+        .from(integrations)
+        .where(
+          and(
+            eq(integrations.pageId, accountId),
+            inArray(integrations.provider, providersToCheck),
+          ),
+        )
+        .limit(1);
+    }
+    
     return integration;
   }
 
