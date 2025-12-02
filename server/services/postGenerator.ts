@@ -152,7 +152,13 @@ function buildTextPrompt(context: PostGenerationContext): string {
     brandDesign.colorAccent4,
   ].filter(Boolean).join(", ");
 
-  const assetCategories = brandAssets.reduce((acc, asset) => {
+  // Build detailed asset list with URLs for context
+  const assetDetails = brandAssets.map(asset => {
+    return `  - ${asset.name} (${asset.category || "general"}): ${asset.url}`;
+  }).join("\n");
+
+  // Group assets by category for quick reference
+  const assetsByCategory = brandAssets.reduce((acc, asset) => {
     const cat = asset.category || "general";
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(asset.name);
@@ -161,18 +167,27 @@ function buildTextPrompt(context: PostGenerationContext): string {
 
   const bestTimes = metaInsights?.bestPostingTimes?.join(", ") || "9:00 AM, 12:00 PM, 6:00 PM";
 
+  // Logo information
+  const logoInfo = brandDesign.avatarUrl 
+    ? `- Brand Logo URL: ${brandDesign.avatarUrl}\n- IMPORTANT: The brand has a logo that should be conceptually referenced in image prompts. Describe elements that complement the logo style.`
+    : "- No logo uploaded";
+
   return `You are an expert social media strategist and content creator. Generate a comprehensive content calendar for ${monthName} ${year}.
 
-BRAND CONTEXT:
+BRAND IDENTITY:
 - Brand Name: ${brandName}
 - Description: ${brandDescription || "Not specified"}
 - Brand Style: ${brandDesign.brandStyle || "modern"}
 - Color Palette: ${colorPalette}
 - Primary Font: ${brandDesign.fontPrimary || "Not specified"}
 - Secondary Font: ${brandDesign.fontSecondary || "Not specified"}
+${logoInfo}
 
-BRAND ASSETS AVAILABLE:
-${Object.entries(assetCategories).map(([cat, items]) => `- ${cat}: ${items.join(", ")}`).join("\n")}
+BRAND VISUAL ASSETS (use these as inspiration for content):
+${assetDetails || "No assets uploaded yet"}
+
+ASSET CATEGORIES SUMMARY:
+${Object.entries(assetsByCategory).map(([cat, items]) => `- ${cat}: ${items.join(", ")}`).join("\n") || "No categorized assets"}
 
 AUDIENCE INSIGHTS:
 - Best Posting Times: ${bestTimes}
@@ -188,9 +203,15 @@ REQUIREMENTS:
    - Full post caption/content with emojis
    - Relevant hashtags (5-10 per post)
    - Optimal posting time based on insights
-   - A detailed image prompt for AI image generation that incorporates the brand colors and style
+   - A detailed image prompt for AI image generation that:
+     * Incorporates the brand colors: ${colorPalette}
+     * Follows the brand style: ${brandDesign.brandStyle || "modern"}
+     * References specific products or assets from the brand when relevant
+     * Creates visuals that would complement the brand's logo and identity
+     * Uses professional composition suitable for social media
 4. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
 5. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
+6. When creating image prompts, reference the actual products/services from the brand assets list
 
 IMPORTANT: Return ONLY valid JSON in this exact format:
 {
@@ -202,7 +223,7 @@ IMPORTANT: Return ONLY valid JSON in this exact format:
       "hashtags": "#brand #hashtag1 #hashtag2",
       "dia": "${year}-${String(month).padStart(2, '0')}-01",
       "optimalTime": "6:00 PM",
-      "imagePrompt": "Detailed description for image generation incorporating brand colors ${colorPalette} and ${brandDesign.brandStyle || 'modern'} style..."
+      "imagePrompt": "Detailed description for image generation: [describe scene with brand colors ${colorPalette}, ${brandDesign.brandStyle || 'modern'} style, referencing specific brand products/assets]..."
     }
   ]
 }`;
