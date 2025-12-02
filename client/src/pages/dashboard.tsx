@@ -50,6 +50,7 @@ import {
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
 import boosty from "./boosty.png";
+import boostyFace from "./boosty_face.png";
 import { useBrand } from "@/contexts/BrandContext";
 import HelpChatbot from "@/components/HelpChatbot";
 
@@ -235,7 +236,9 @@ export default function Dashboard() {
     },
     {
       icon: Target,
-      text: isSpanish ? "Optimizar campaña" : "Optimize campaign",
+      text: isSpanish
+        ? "Estrategia de contenido de 30 días"
+        : "30 day content strategy",
       action: "/campaigns",
     },
     {
@@ -848,6 +851,11 @@ export default function Dashboard() {
                     <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-brand-50 via-white to-purple-50 h-full">
                       <CardHeader className="border-b border-brand-100/50 px-6 py-4">
                         <div className="flex items-center gap-3">
+                          <img 
+                            src={boostyFace} 
+                            alt="Boosty" 
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
                           <div>
                             <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                               Boosty AI

@@ -425,7 +425,7 @@ export default function Landing() {
           >
             {isSpanish
               ? "La única plataforma que recopila tus datos, crea campañas inteligentes y cierra ventas—todo automáticamente."
-              : "The only platform that collects your business data, creates intelligent content that runs automatically, and closes sales—all on autopilot."}
+              : "The only platform that collects your business data, creates content for up to 30 days that runs automatically, and closes sales—all on autopilot."}
           </p>
 
           {/* Primary CTA - Mobile-friendly touch targets */}
@@ -441,9 +441,7 @@ export default function Landing() {
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
             </Button>
             <p className="text-gray-500 text-xs sm:text-sm">
-              {isSpanish
-                ? "14 días gratis • Sin tarjeta de crédito"
-                : "Free 14-day trial • No credit card required"}
+              {isSpanish ? "Sin tarjeta de crédito" : "No credit card required"}
             </p>
           </div>
         </div>
@@ -456,7 +454,7 @@ export default function Landing() {
       >
         {/* Slogan above video */}
         <div className="flex justify-center items-center mb-8 px-6">
-          <div 
+          <div
             className="inline-flex items-center gap-2.5 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-gray-200 shadow-lg"
             style={{ backgroundColor: "#F8F8FA" }}
           >
@@ -464,9 +462,9 @@ export default function Landing() {
               <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
             </div>
             <span className="text-sm sm:text-base font-medium text-gray-700">
-              {isSpanish 
-                ? 'Tu Agente de Marketing Todo-en-Uno' 
-                : 'Your All-in-One Marketing Agent'}
+              {isSpanish
+                ? "Tu Agente de Marketing Todo-en-Uno"
+                : "Your All-in-One Marketing Agent"}
             </span>
           </div>
         </div>
@@ -907,13 +905,10 @@ export default function Landing() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-light leading-snug sm:leading-tight">
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent font-semibold">
-              {isSpanish ? "Conoce Lead Boost" : "Meet Lead Boost"}
-            </span>
             <span className="text-gray-900">
               {isSpanish
-                ? ", el primer motor de marketing IA integral del mundo: analizando, creando, publicando, convirtiendo y cerrando—todo por ti."
-                : ", the world's first end-to-end AI marketing engine: analyzing, creating, posting, converting, and closing—all for you."}
+                ? "Lead Boost es el primer motor de marketing IA integral del mundo: analizando, creando, publicando, convirtiendo y cerrando—todo por ti."
+                : "Lead Boost is the world's first end-to-end AI marketing engine: analyzing, creating, posting, converting, and closing—all for you."}
             </span>
           </h2>
         </div>
@@ -1135,12 +1130,6 @@ export default function Landing() {
                     {isSpanish ? "Sin tarjeta" : "No credit card"}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
-                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">
-                    {isSpanish ? "14 días gratis" : "14 days free"}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
@@ -1176,8 +1165,8 @@ export default function Landing() {
                   ? "Optimización Automática"
                   : "Auto Optimization",
                 desc: isSpanish
-                  ? "Analiza rendimiento y mejora automáticamente tus campañas en tiempo real."
-                  : "Analyze performance and automatically improve your campaigns in real-time.",
+                  ? "Analiza rendimiento y mejora automáticamente tu contenido en tiempo real."
+                  : "Analyze performance and automatically improve your content in real-time.",
                 gradient: "from-purple-50 to-indigo-50",
                 border: "border-purple-200",
                 textColor: "text-gray-900",
@@ -1494,8 +1483,8 @@ export default function Landing() {
             </Button>
             <p className="text-gray-400 text-xs sm:text-sm px-2">
               {isSpanish
-                ? "14 días gratis • Sin tarjeta • Cancela cuando quieras"
-                : "14-day free trial • No credit card required • Cancel anytime"}
+                ? "Sin tarjeta • Cancela cuando quieras"
+                : "No credit card required • Cancel anytime"}
             </p>
           </div>
 

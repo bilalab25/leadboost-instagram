@@ -428,9 +428,13 @@ function clearOnboardingState() {
 
 export default function Onboarding() {
   const savedState = loadOnboardingState();
-  const [mode, setMode] = useState<"choose" | "create" | "join">(savedState?.mode || "choose");
+  const [mode, setMode] = useState<"choose" | "create" | "join">(
+    savedState?.mode || "choose",
+  );
   const [currentStep, setCurrentStep] = useState(savedState?.currentStep || 1);
-  const [createdBrandId, setCreatedBrandId] = useState<number | null>(savedState?.createdBrandId || null);
+  const [createdBrandId, setCreatedBrandId] = useState<number | null>(
+    savedState?.createdBrandId || null,
+  );
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { isSpanish } = useLanguage();
@@ -493,7 +497,9 @@ export default function Onboarding() {
   // Integration state
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedProvider, setSelectedProvider] = useState<string>("");
-  const [connectingProvider, setConnectingProvider] = useState<string | null>(null);
+  const [connectingProvider, setConnectingProvider] = useState<string | null>(
+    null,
+  );
 
   useGoogleFontLoader([primaryFont, secondaryFont]);
 
@@ -544,7 +550,11 @@ export default function Onboarding() {
   // Use createdBrandId if available, otherwise fallback to activeBrandId
   const effectiveBrandId = createdBrandId || activeBrandId;
 
-  const { data: integrations = [], isLoading: isIntegrationsLoading, refetch: refetchIntegrations } = useQuery<Integration[]>({
+  const {
+    data: integrations = [],
+    isLoading: isIntegrationsLoading,
+    refetch: refetchIntegrations,
+  } = useQuery<Integration[]>({
     queryKey: ["/api/integrations", effectiveBrandId],
     enabled: !!effectiveBrandId && currentStep >= 4,
     queryFn: async () => {
@@ -560,9 +570,7 @@ export default function Onboarding() {
     if (!effectiveBrandId) {
       toast({
         title: isSpanish ? "Error" : "Error",
-        description: isSpanish
-          ? "No se encontró la marca"
-          : "Brand not found",
+        description: isSpanish ? "No se encontró la marca" : "Brand not found",
         variant: "destructive",
       });
       return;
@@ -600,7 +608,10 @@ export default function Onboarding() {
   // Handle disconnecting integrations
   const handleDisconnect = async (integrationId: string) => {
     try {
-      const res = await apiRequest("DELETE", `/api/integrations/${integrationId}`);
+      const res = await apiRequest(
+        "DELETE",
+        `/api/integrations/${integrationId}`,
+      );
       if (!res.ok) {
         throw new Error("Failed to disconnect");
       }
@@ -1067,7 +1078,7 @@ export default function Onboarding() {
               <Sparkles className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
             </div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-              {isSpanish ? "Bienvenido a LeadBoost" : "Welcome to LeadBoost"}
+              {isSpanish ? "Bienvenido a Lead Boost" : "Welcome to Lead Boost"}
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300">
               {isSpanish
@@ -2069,11 +2080,14 @@ export default function Onboarding() {
                               {providersInCategory.map(
                                 ([providerKey, provider]) => {
                                   const ProviderIcon = provider.icon;
-                                  const connectedIntegration = integrations.find(
-                                    (int) =>
-                                      int.provider === providerKey && int.isActive
-                                  );
-                                  const isConnecting = connectingProvider === providerKey;
+                                  const connectedIntegration =
+                                    integrations.find(
+                                      (int) =>
+                                        int.provider === providerKey &&
+                                        int.isActive,
+                                    );
+                                  const isConnecting =
+                                    connectingProvider === providerKey;
 
                                   return (
                                     <div
@@ -2108,27 +2122,37 @@ export default function Onboarding() {
                                           variant="outline"
                                           size="sm"
                                           onClick={() =>
-                                            handleDisconnect(connectedIntegration.id)
+                                            handleDisconnect(
+                                              connectedIntegration.id,
+                                            )
                                           }
                                           className="text-red-600 border-red-400 hover:bg-red-50"
                                           data-testid={`disconnect-${providerKey}`}
                                         >
-                                          {isSpanish ? "Desconectar" : "Disconnect"}
+                                          {isSpanish
+                                            ? "Desconectar"
+                                            : "Disconnect"}
                                         </Button>
                                       ) : (
                                         <Button
                                           size="sm"
-                                          onClick={() => handleConnect(providerKey)}
+                                          onClick={() =>
+                                            handleConnect(providerKey)
+                                          }
                                           disabled={isConnecting}
                                           data-testid={`connect-${providerKey}`}
                                         >
                                           {isConnecting ? (
                                             <>
                                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                              {isSpanish ? "Conectando..." : "Connecting..."}
+                                              {isSpanish
+                                                ? "Conectando..."
+                                                : "Connecting..."}
                                             </>
+                                          ) : isSpanish ? (
+                                            "Conectar"
                                           ) : (
-                                            isSpanish ? "Conectar" : "Connect"
+                                            "Connect"
                                           )}
                                         </Button>
                                       )}
