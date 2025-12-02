@@ -1,0 +1,152 @@
+2025-12-01 23:03:53.65
+20047b09
+User
+{
+2025-12-01 23:03:53.65
+20047b09
+User
+}
+2025-12-01 23:03:53.65
+20047b09
+User
+sender: { id: '2041846339885995' },
+2025-12-01 23:03:53.65
+20047b09
+User
+}
+2025-12-01 23:03:53.65
+20047b09
+User
+timestamp: 1764651833168,
+2025-12-01 23:03:53.65
+20047b09
+User
+recipient: { id: '17841458433478265' },
+2025-12-01 23:03:53.65
+20047b09
+User
+id: '17841458433478265',
+2025-12-01 23:03:53.72
+20047b09
+User
+5:03:53 AM [express] POST /api/webhooks/meta 200 in 73ms
+2025-12-01 23:04:18.71
+20047b09
+User
+5:04:18 AM [express] GET /api/inbox/stats 400 in 158ms :: {"error":"Brand ID is required"}
+2025-12-01 23:04:18.71
+20047b09
+User
+5:04:18 AM [express] GET /api/inbox/stats 400 in 158ms :: {"error":"Brand ID is required"}
+2025-12-01 23:04:18.71
+20047b09
+User
+5:04:18 AM [express] GET /api/inbox/stats 400 in 158ms :: {"error":"Brand ID is required"}
+2025-12-01 23:04:48.93
+20047b09
+User
+5:04:48 AM [express] GET /api/inbox/stats 400 in 143ms :: {"error":"Brand ID is required"}
+2025-12-01 23:04:55.89
+20047b09
+User
+{
+2025-12-01 23:04:55.89
+20047b09
+User
+}
+2025-12-01 23:04:55.89
+20047b09
+User
+]
+2025-12-01 23:04:55.89
+20047b09
+User
+timestamp: 1764651895355,
+2025-12-01 23:04:55.89
+20047b09
+User
+text: 'Hola'
+2025-12-01 23:04:55.89
+20047b09
+User
+}
+2025-12-01 23:04:55.89
+20047b09
+User
+{
+2025-12-01 23:04:55.89
+20047b09
+User
+}
+2025-12-01 23:04:55.89
+20047b09
+User
+messaging: [
+2025-12-01 23:04:55.89
+20047b09
+User
+object: 'instagram',
+2025-12-01 23:04:55.89
+20047b09
+User
+mid: 'aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDU4NDMzNDc4MjY1OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjE0OTgxNTgxMDAzNDc1OTozMjU1MjA4MTg5MjgxMTAwMjMyMzcxMjg3MDY1MDQ3ODU5MgZDZD',
+2025-12-01 23:04:55.89
+20047b09
+User
+=================================================
+2025-12-01 23:04:55.89
+20047b09
+User
+entry: [
+2025-12-01 23:04:55.89
+20047b09
+User
+recipient: { id: '17841458433478265' },
+2025-12-01 23:04:55.89
+20047b09
+User
+sender: { id: '2041846339885995' },
+2025-12-01 23:04:55.89
+20047b09
+User
+=================================================
+2025-12-01 23:04:55.89
+20047b09
+User
+}
+2025-12-01 23:04:55.89
+20047b09
+User
+✅ REQUEST RECEIVED: POST /api/webhooks/meta
+2025-12-01 23:04:55.89
+20047b09
+User
+message: {
+2025-12-01 23:04:55.89
+20047b09
+User
+id: '17841458433478265',
+2025-12-01 23:04:55.89
+20047b09
+User
+{
+2025-12-01 23:04:55.89
+20047b09
+User
+]
+2025-12-01 23:04:55.89
+20047b09
+User
+time: 1764651895762,
+2025-12-01 23:04:55.89
+20047b09
+User
+📩 Nuevo evento recibido desde Meta
+2025-12-01 23:04:55.89
+20047b09
+User
+🔴 PAYLOAD RAW (BODY):
+2025-12-01 23:04:55.96
+20047b09
+User
+⚠️ [instagram] No integration found for recipient: 17841458433478265
