@@ -721,14 +721,8 @@ export async function processPostGeneration(
         const generatedImage = await generateImageWithNanoBanana(post.imagePrompt, brandDesign);
         
         if (generatedImage) {
-          // Use whiteLogoUrl, blackLogoUrl, or deprecated logoUrl for watermark
-          const watermarkLogoUrl = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
-          imageUrl = await addWatermarkToImage(generatedImage, watermarkLogoUrl, {
-            position: "bottom-right",
-            opacity: 0.7,
-            scale: 0.12,
-            padding: 15,
-          });
+          // Use the generated image directly without watermark
+          imageUrl = generatedImage;
         }
       } catch (imgError) {
         console.warn(`[PostGenerator] Could not generate image for post: ${post.titulo}`, imgError);
