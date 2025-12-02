@@ -1,6 +1,7 @@
 import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { storage } from "../storage";
 import type { BrandDesign, BrandAsset, Integration } from "@shared/schema";
+import sharp from "sharp";
 
 // Using Replit's AI Integrations service for Gemini-compatible API access
 const ai = new GoogleGenAI({
@@ -385,6 +386,134 @@ High quality, professional social media post image, clean composition, vibrant c
   }
 }
 
+async function downloadImage(url: string): Promise<Buffer | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`[Watermark] Failed to download image: ${response.status}`);
+      return null;
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch (error) {
+    console.error("[Watermark] Error downloading image:", error);
+    return null;
+  }
+}
+
+export async function addWatermarkToImage(
+  imageDataUrl: string,
+  logoUrl: string | null | undefined,
+  options: {
+    position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+    opacity?: number;
+    scale?: number;
+    padding?: number;
+  } = {}
+): Promise<string> {
+  const {
+    position = "bottom-right",
+    opacity = 0.7,
+    scale = 0.15,
+    padding = 20,
+  } = options;
+
+  if (!logoUrl) {
+    console.log("[Watermark] No logo URL provided, returning original image");
+    return imageDataUrl;
+  }
+
+  try {
+    const base64Match = imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+    if (!base64Match) {
+      console.error("[Watermark] Invalid data URL format");
+      return imageDataUrl;
+    }
+
+    const mimeType = base64Match[1];
+    const base64Data = base64Match[2];
+    const imageBuffer = Buffer.from(base64Data, "base64");
+
+    const logoBuffer = await downloadImage(logoUrl);
+    if (!logoBuffer) {
+      console.log("[Watermark] Could not download logo, returning original image");
+      return imageDataUrl;
+    }
+
+    const imageMetadata = await sharp(imageBuffer).metadata();
+    const imageWidth = imageMetadata.width || 1024;
+    const imageHeight = imageMetadata.height || 1024;
+
+    const logoSize = Math.round(Math.min(imageWidth, imageHeight) * scale);
+    
+    const resizedLogo = await sharp(logoBuffer)
+      .resize(logoSize, logoSize, {
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .ensureAlpha()
+      .modulate({
+        saturation: 1,
+        brightness: 1,
+      })
+      .composite([
+        {
+          input: Buffer.from([255, 255, 255, Math.round(255 * opacity)]),
+          raw: {
+            width: 1,
+            height: 1,
+            channels: 4,
+          },
+          tile: true,
+          blend: "dest-in",
+        },
+      ])
+      .toBuffer();
+
+    const logoMeta = await sharp(resizedLogo).metadata();
+    const logoWidth = logoMeta.width || logoSize;
+    const logoHeight = logoMeta.height || logoSize;
+
+    let left: number, top: number;
+    switch (position) {
+      case "top-left":
+        left = padding;
+        top = padding;
+        break;
+      case "top-right":
+        left = imageWidth - logoWidth - padding;
+        top = padding;
+        break;
+      case "bottom-left":
+        left = padding;
+        top = imageHeight - logoHeight - padding;
+        break;
+      case "bottom-right":
+      default:
+        left = imageWidth - logoWidth - padding;
+        top = imageHeight - logoHeight - padding;
+        break;
+    }
+
+    const watermarkedBuffer = await sharp(imageBuffer)
+      .composite([
+        {
+          input: resizedLogo,
+          left: Math.max(0, left),
+          top: Math.max(0, top),
+        },
+      ])
+      .toBuffer();
+
+    const watermarkedBase64 = watermarkedBuffer.toString("base64");
+    console.log("[Watermark] Successfully added watermark to image");
+    return `data:${mimeType};base64,${watermarkedBase64}`;
+  } catch (error) {
+    console.error("[Watermark] Error adding watermark:", error);
+    return imageDataUrl;
+  }
+}
+
 export async function processPostGeneration(
   brandId: string,
   jobId: string,
@@ -445,7 +574,16 @@ export async function processPostGeneration(
       let imageUrl: string | null = null;
       
       try {
-        imageUrl = await generateImageWithNanoBanana(post.imagePrompt, brandDesign);
+        const generatedImage = await generateImageWithNanoBanana(post.imagePrompt, brandDesign);
+        
+        if (generatedImage) {
+          imageUrl = await addWatermarkToImage(generatedImage, brandDesign.avatarUrl, {
+            position: "bottom-right",
+            opacity: 0.7,
+            scale: 0.12,
+            padding: 15,
+          });
+        }
       } catch (imgError) {
         console.warn(`[PostGenerator] Could not generate image for post: ${post.titulo}`, imgError);
       }
