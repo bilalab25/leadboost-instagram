@@ -125,9 +125,8 @@ export default function ContentCalendar() {
     queryKey: ["/api/integrations", activeBrandId],
     queryFn: async () => {
       if (!activeBrandId) return [];
-      const res = await fetch(`/api/integrations`, {
+      const res = await fetch(`/api/integrations?brandId=${activeBrandId}`, {
         credentials: "include",
-        headers: { "x-brand-id": activeBrandId },
       });
       if (!res.ok) return [];
       return res.json();
@@ -156,9 +155,8 @@ export default function ContentCalendar() {
     queryKey: ["/api/posting-frequency", activeBrandId],
     queryFn: async () => {
       if (!activeBrandId) return [];
-      const res = await fetch(`/api/posting-frequency`, {
+      const res = await fetch(`/api/posting-frequency?brandId=${activeBrandId}`, {
         credentials: "include",
-        headers: { "x-brand-id": activeBrandId },
       });
       if (!res.ok) return [];
       return res.json();
@@ -996,7 +994,7 @@ export default function ContentCalendar() {
                                       size="sm"
                                       variant="outline"
                                       className="flex-1"
-                                      onClick={() => handleEditPost(post)}
+                                      onClick={() => setEditPost({ ...post })}
                                       data-testid={`button-edit-post-${post.id}`}
                                     >
                                       <Edit className="w-3 h-3 mr-1" /> Edit

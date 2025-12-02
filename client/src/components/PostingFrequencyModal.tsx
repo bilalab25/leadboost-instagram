@@ -103,7 +103,9 @@ export default function PostingFrequencyModal({
     queryKey: ["/api/integrations", activeBrandId],
     enabled: isOpen && !!activeBrandId,
     queryFn: async () => {
-      const res = await fetch(`/api/integrations?brandId=${activeBrandId}`);
+      const res = await fetch(`/api/integrations?brandId=${activeBrandId}`, {
+        credentials: "include",
+      });
       if (!res.ok) throw new Error("Failed to fetch integrations");
       return res.json();
     },
@@ -115,7 +117,9 @@ export default function PostingFrequencyModal({
       queryKey: ["/api/posting-frequency", activeBrandId],
       queryFn: async () => {
         const url = `/api/posting-frequency?brandId=${activeBrandId}`;
-        const res = await fetch(url);
+        const res = await fetch(url, {
+          credentials: "include",
+        });
         if (!res.ok) throw new Error("Failed to fetch posting frequencies");
         return res.json();
       },
