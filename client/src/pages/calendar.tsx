@@ -210,11 +210,23 @@ export default function ContentCalendar() {
 
   const hasAiPostsForCurrentMonth = currentMonthAiPosts.length > 0;
 
+  // Check if viewing a past month (cannot generate AI content for past months)
+  const isPastMonth = useMemo(() => {
+    const now = new Date();
+    const currentViewYear = currentDate.getFullYear();
+    const currentViewMonth = currentDate.getMonth();
+    const nowYear = now.getFullYear();
+    const nowMonth = now.getMonth();
+    
+    return currentViewYear < nowYear || (currentViewYear === nowYear && currentViewMonth < nowMonth);
+  }, [currentDate]);
+
   // Determine if AI generation is available
-  const canGenerateAiPosts = hasSocialIntegrations && hasBrandDesign && hasPostingFrequency && !hasAiPostsForCurrentMonth;
+  const canGenerateAiPosts = hasSocialIntegrations && hasBrandDesign && hasPostingFrequency && !hasAiPostsForCurrentMonth && !isPastMonth;
 
   // Get the reason why generation is disabled
   const getDisabledReason = (): string => {
+    if (isPastMonth) return "Cannot generate AI content for past months";
     if (!hasSocialIntegrations) return "Connect Instagram or Facebook to generate AI posts";
     if (!hasBrandDesign) return "Create your brand design first";
     if (!hasPostingFrequency) return "Set your posting frequency first";
