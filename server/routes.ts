@@ -5018,30 +5018,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // El conversationId ya es el meta_conversation_id
           metaConversationId = conversationId;
 
-          // Obtener destinatario de la conversación
-          const convoRes = await fetch(
-            `https://graph.instagram.com/v24.0/${conversationId}?fields=participants&access_token=${integration.accessToken}`,
-          );
-          const convoData = await convoRes.json();
-          
-          console.log("📥 Instagram Direct conversation data:", JSON.stringify(convoData, null, 2));
-
-          if (convoData.error) {
-            console.error("❌ Error fetching conversation:", convoData.error);
-            return res.status(400).json({ 
-              error: convoData.error.message || "Error fetching Instagram conversation" 
-            });
-          }
-
-          const participants = convoData.participants?.data || [];
-          // Find the recipient (not the current account)
-          recipientId = participants.find(
-            (p: any) => p.id !== igbaId
-          )?.id;
-
-          if (!recipientId) {
+          // Extract recipient ID from conversation ID
+          // Format: {igbaId}_{recipientIGSID} e.g., "17841458433478265_2041846339885995"
+          const parts = conversationId.split("_");
+          if (parts.length >= 2) {
+            // The recipient ID is the second part
+            recipientId = parts[1];
+            console.log(`📍 Recipient ID extracted from conversation ID: ${recipientId}`);
+          } else {
             // Fallback: try to get from local messages
-            console.log("⚠️ Could not find recipient from API, trying local DB...");
+            console.log("⚠️ Could not extract recipient from conversation ID, trying local DB...");
             const localMessages = await storage.findMessagesByConversation(
               userId,
               integration.id,
@@ -5064,14 +5050,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`📍 Recipient ID (IG Direct): ${recipientId}`);
 
-          // Instagram Direct uses /me/messages endpoint with Instagram User Access Token
-          url = `https://graph.instagram.com/v24.0/me/messages`;
+          // Instagram Direct uses /me/messages endpoint with Bearer token
+          // Per Meta's API docs, uses Authorization header instead of access_token param
+          url = `https://graph.instagram.com/v21.0/me/messages`;
+          
+          // Build payload - Instagram Direct API expects stringified JSON for message and recipient
           payload = {
-            recipient: { id: recipientId },
-            message: { text: content },
+            recipient: JSON.stringify({ id: recipientId }),
+            message: JSON.stringify({ text: content }),
           };
 
           console.log("✅ [Instagram Direct] Payload final:", payload);
+          console.log("✅ [Instagram Direct] Using Authorization Bearer header");
         }
 
         // =========================================================
@@ -5133,14 +5123,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("🔗 URL:", url);
         console.log("📦 Payload:", JSON.stringify(payload, null, 2));
 
-        const response = await fetch(
-          `${url}?access_token=${integration.accessToken}`,
-          {
+        let response;
+        
+        // Instagram Direct uses Authorization header instead of access_token param
+        if (actualProvider === "instagram_direct") {
+          console.log("🔐 Using Authorization Bearer header for Instagram Direct");
+          response = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${integration.accessToken}`
+            },
             body: JSON.stringify(payload),
-          },
-        );
+          });
+        } else {
+          // Other providers use access_token query parameter
+          response = await fetch(
+            `${url}?access_token=${integration.accessToken}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            },
+          );
+        }
 
         apiResponse = await response.json();
         console.log(
