@@ -798,22 +798,22 @@ export default function ContentCalendar() {
                             {/* Pause/Autopost toggle */}
                             <div
                               onClick={handleToggle}
-                              className={`relative flex w-36 h-9 rounded-full cursor-pointer select-none transition-all duration-300 shadow-inner ${
-                                isPaused ? "bg-gray-200" : "bg-gradient-to-r from-brand-100 to-green-100"
+                              className={`relative flex w-36 h-9 rounded-full cursor-pointer select-none transition-all duration-300 border ${
+                                isPaused ? "bg-gray-100 border-gray-300" : "bg-gray-100 border-gray-300"
                               }`}
                             >
                               <span
-                                className={`absolute top-1 left-1 h-7 w-[calc(50%-4px)] rounded-full shadow-md transform transition-all duration-300 ${
+                                className={`absolute top-1 left-1 h-7 w-[calc(50%-4px)] rounded-full shadow-sm transform transition-all duration-300 ${
                                   isPaused
-                                    ? "translate-x-0 bg-gray-400"
-                                    : "translate-x-full bg-gradient-to-r from-brand-500 to-green-500"
+                                    ? "translate-x-0 bg-white border border-gray-300"
+                                    : "translate-x-full bg-white border border-gray-300"
                                 }`}
                               ></span>
-                              <div className="absolute inset-0 flex items-center justify-between px-3 text-xs font-semibold">
-                                <span className={`transition-colors ${isPaused ? "text-gray-700" : "text-gray-400"}`}>
+                              <div className="absolute inset-0 flex items-center justify-between px-3 text-xs font-medium">
+                                <span className={`transition-colors ${isPaused ? "text-gray-800" : "text-gray-400"}`}>
                                   Pause
                                 </span>
-                                <span className={`transition-colors ${!isPaused ? "text-green-700" : "text-gray-400"}`}>
+                                <span className={`transition-colors ${!isPaused ? "text-gray-800" : "text-gray-400"}`}>
                                   Auto
                                 </span>
                               </div>
