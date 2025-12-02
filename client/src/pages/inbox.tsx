@@ -49,6 +49,11 @@ export default function Inbox() {
   // Fetch inbox statistics from the API
   const { data: inboxStats, isLoading: statsLoading } = useQuery<InboxStats>({
     queryKey: ["/api/inbox/stats", activeBrandId],
+    queryFn: async () => {
+      const res = await fetch(`/api/inbox/stats?brandId=${activeBrandId}`);
+      if (!res.ok) throw new Error("Failed to fetch inbox stats");
+      return res.json();
+    },
     enabled: isAuthenticated && !!activeBrandId,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
