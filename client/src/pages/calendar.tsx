@@ -868,18 +868,16 @@ export default function ContentCalendar() {
                                       platformIcons[
                                         post.platform as keyof typeof platformIcons
                                       ];
-                                    const isAiPost = post.source === "ai";
                                     return (
                                       <div
                                         key={post.id}
                                         data-testid={`calendar-post-${post.id}`}
-                                        className={`text-xs px-2 py-1 rounded truncate flex items-center gap-1 ${platformColors[post.platform as keyof typeof platformColors]} ${isAiPost ? "ring-1 ring-purple-300" : ""}`}
+                                        className={`text-xs px-2 py-1 rounded truncate flex items-center gap-1 ${platformColors[post.platform as keyof typeof platformColors]}`}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleOpenPost(post);
                                         }}
                                       >
-                                        {isAiPost && <Sparkles className="inline w-3 h-3 text-purple-500 flex-shrink-0" />}
                                         <PlatformIcon className="inline w-3 h-3 flex-shrink-0" />
                                         <span className="truncate">{post.title}</span>
                                       </div>
@@ -923,21 +921,12 @@ export default function ContentCalendar() {
                                   post.platform as keyof typeof platformIcons
                                 ];
                               const isImageLoading = imageLoadingStates[post.id] !== false;
-                              const isAiPost = post.source === "ai";
                               return (
                                 <div
                                   key={post.id}
-                                  className={`border rounded-lg p-4 transition-all hover:shadow-md ${isAiPost ? "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white" : ""}`}
+                                  className="border rounded-lg p-4 transition-all hover:shadow-md"
                                   data-testid={`post-preview-${post.id}`}
                                 >
-                                  {/* AI Badge */}
-                                  {isAiPost && (
-                                    <div className="flex items-center gap-1 text-xs text-purple-600 mb-2">
-                                      <Sparkles className="w-3 h-3" />
-                                      <span className="font-medium">AI Generated</span>
-                                    </div>
-                                  )}
-                                  
                                   {/* Image with loading state */}
                                   <div className="relative w-full h-32 mb-2 rounded overflow-hidden bg-gray-100">
                                     {isImageLoading && post.imageUrl && (
