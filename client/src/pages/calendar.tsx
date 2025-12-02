@@ -24,9 +24,12 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  Upload,
+  CalendarCheck,
+  Facebook,
+  Instagram,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
-import { Instagram } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -1161,92 +1164,195 @@ export default function ContentCalendar() {
 
       {/* Modal Meta Ads Style */}
       <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Post Preview & Edit</DialogTitle>
-          </DialogHeader>
-
+        <DialogContent className="max-w-4xl p-0 overflow-hidden">
           {editPost && (
-            <div className="grid grid-cols-2 gap-6">
-              {/* Live Preview */}
-              <div className="border rounded-lg overflow-hidden">
-                <img
-                  src={editPost.imageUrl}
-                  alt={editPost.title}
-                  className="w-full object-cover"
-                />
-                <div className="p-4">
-                  <p className="font-semibold">{editPost.title}</p>
-                  <p className="text-sm text-gray-700 mt-2">
-                    {editPost.content}
-                  </p>
-                </div>
-              </div>
-
-              {/* Edit Form */}
-              <div className="space-y-4">
-                <Input
-                  value={editPost.title}
-                  onChange={(e) =>
-                    setEditPost((prev) =>
-                      prev ? { ...prev, title: e.target.value } : prev,
-                    )
-                  }
-                  placeholder="Title"
-                />
-                <Textarea
-                  value={editPost.content}
-                  onChange={(e) =>
-                    setEditPost((prev) =>
-                      prev ? { ...prev, content: e.target.value } : prev,
-                    )
-                  }
-                  placeholder="Post text"
-                />
-                <Input
-                  type="datetime-local"
-                  value={format(
-                    new Date(editPost.scheduledFor),
-                    "yyyy-MM-dd'T'HH:mm",
-                  )}
-                  onChange={(e) =>
-                    setEditPost((prev) =>
-                      prev ? { ...prev, scheduledFor: e.target.value } : prev,
-                    )
-                  }
-                />
-
-                {/* Image Controls */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <ImageIcon className="w-4 h-4" /> Post image
-                  </label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
-                    <Button variant="outline">
-                      <Wand2 className="w-4 h-4 mr-1" /> Edit image
-                    </Button>
+            <>
+              {/* Header */}
+              <div className="px-6 py-4 border-b bg-gradient-to-r from-gray-50 to-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-lg font-semibold">Edit Post</DialogTitle>
+                      <p className="text-sm text-gray-500">Preview and customize your content</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Upload or edit the post image.
-                  </p>
+                  <div className="flex items-center gap-2">
+                    {editPost.platform === "instagram" || editPost.platform === "instagram_direct" ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-sm font-medium">
+                        <Instagram className="w-4 h-4" /> Instagram
+                      </span>
+                    ) : editPost.platform === "facebook" ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
+                        <Facebook className="w-4 h-4" /> Facebook
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium capitalize">
+                        {editPost.platform}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          <DialogFooter className="flex justify-between mt-4">
-            <Button variant="destructive">
-              <XCircle className="w-4 h-4 mr-1" /> Reject
-            </Button>
-            <Button>
-              <CheckCircle className="w-4 h-4 mr-1" /> Approve
-            </Button>
-          </DialogFooter>
+              {/* Content */}
+              <div className="grid grid-cols-5 gap-0">
+                {/* Live Preview - Left Side */}
+                <div className="col-span-2 bg-gray-50 p-6 border-r">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Live Preview</p>
+                  <div className="bg-white rounded-xl shadow-lg overflow-hidden border">
+                    {/* Image */}
+                    <div className="aspect-square relative bg-gray-100">
+                      <img
+                        src={editPost.imageUrl}
+                        alt={editPost.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {/* Content */}
+                    <div className="p-4">
+                      <p className="font-semibold text-gray-900 line-clamp-2">{editPost.title}</p>
+                      <p className="text-sm text-gray-600 mt-2 line-clamp-4">
+                        {editPost.content}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Schedule Badge */}
+                  <div className="mt-4 flex items-center gap-2 text-sm text-gray-600 bg-white rounded-lg px-3 py-2 border">
+                    <CalendarCheck className="w-4 h-4 text-primary" />
+                    <span>Scheduled for {format(new Date(editPost.scheduledFor), "MMM d, yyyy 'at' h:mm a")}</span>
+                  </div>
+                </div>
+
+                {/* Edit Form - Right Side */}
+                <div className="col-span-3 p-6 space-y-5">
+                  {/* Title */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Post Title</label>
+                    <Input
+                      value={editPost.title}
+                      onChange={(e) =>
+                        setEditPost((prev) =>
+                          prev ? { ...prev, title: e.target.value } : prev,
+                        )
+                      }
+                      placeholder="Enter a catchy title..."
+                      className="h-11"
+                      data-testid="input-post-title"
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-gray-700">Caption</label>
+                      <span className="text-xs text-gray-400">{editPost.content?.length || 0} / 2,200</span>
+                    </div>
+                    <Textarea
+                      value={editPost.content}
+                      onChange={(e) =>
+                        setEditPost((prev) =>
+                          prev ? { ...prev, content: e.target.value } : prev,
+                        )
+                      }
+                      placeholder="Write your caption..."
+                      className="min-h-[120px] resize-none"
+                      data-testid="input-post-content"
+                    />
+                  </div>
+
+                  {/* Date & Time */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Schedule Date & Time</label>
+                    <Input
+                      type="datetime-local"
+                      value={format(
+                        new Date(editPost.scheduledFor),
+                        "yyyy-MM-dd'T'HH:mm",
+                      )}
+                      onChange={(e) =>
+                        setEditPost((prev) =>
+                          prev ? { ...prev, scheduledFor: e.target.value } : prev,
+                        )
+                      }
+                      className="h-11"
+                      data-testid="input-post-schedule"
+                    />
+                  </div>
+
+                  {/* Image Controls */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Post Image</label>
+                    <div className="flex gap-2">
+                      <label className="flex-1 cursor-pointer">
+                        <div className="flex items-center justify-center gap-2 h-11 px-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-gray-50 transition-colors">
+                          <Upload className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm text-gray-600">Upload new image</span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="hidden"
+                          data-testid="input-post-image"
+                        />
+                      </label>
+                      <Button variant="outline" className="h-11 gap-2" data-testid="button-edit-image">
+                        <Wand2 className="w-4 h-4" /> Edit with AI
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
+                <Button 
+                  variant="ghost" 
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => {
+                    if (selectedPost) {
+                      updatePostStatusMutation.mutate({
+                        postId: selectedPost.id,
+                        status: "rejected",
+                      });
+                    }
+                    setSelectedPost(null);
+                  }}
+                  data-testid="button-reject-post"
+                >
+                  <XCircle className="w-4 h-4 mr-2" /> Reject Post
+                </Button>
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSelectedPost(null)}
+                    data-testid="button-cancel-edit"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                    onClick={() => {
+                      if (selectedPost) {
+                        updatePostStatusMutation.mutate({
+                          postId: selectedPost.id,
+                          status: "accepted",
+                        });
+                      }
+                      setSelectedPost(null);
+                    }}
+                    data-testid="button-approve-post"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" /> Approve & Schedule
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
