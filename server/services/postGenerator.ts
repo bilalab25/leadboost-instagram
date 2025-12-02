@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { storage } from "../storage";
 import type { BrandDesign, BrandAsset, Integration } from "@shared/schema";
 
@@ -208,6 +208,66 @@ IMPORTANT: Return ONLY valid JSON in this exact format:
 }`;
 }
 
+// Helper function to clean and parse JSON from LLM response
+function cleanAndParseJson(text: string): any {
+  // Try direct parse first
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    // Continue to cleanup
+  }
+
+  // Remove markdown code blocks
+  let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
+  
+  // Try to extract JSON object
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    cleaned = jsonMatch[0];
+  }
+  
+  // Fix common JSON issues
+  cleaned = cleaned
+    .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
+    .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
+    .replace(/[\x00-\x1F\x7F]/g, ' ')  // Remove control characters
+    .replace(/\n/g, ' ')  // Replace newlines with spaces
+    .replace(/\r/g, '')  // Remove carriage returns
+    .replace(/\t/g, ' '); // Replace tabs with spaces
+  
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    console.error("[PostGenerator] JSON cleanup failed, trying array extraction");
+    
+    // Try to extract just the posts array
+    const arrayMatch = cleaned.match(/"posts"\s*:\s*\[([\s\S]*?)\]/);
+    if (arrayMatch) {
+      try {
+        const posts = JSON.parse(`[${arrayMatch[1]}]`);
+        return { posts };
+      } catch (e2) {
+        // Last resort: try to extract individual post objects
+        const postRegex = /\{[^{}]*"platform"[^{}]*"titulo"[^{}]*\}/g;
+        const posts = [];
+        let match;
+        while ((match = postRegex.exec(cleaned)) !== null) {
+          try {
+            posts.push(JSON.parse(match[0]));
+          } catch (e3) {
+            // Skip malformed posts
+          }
+        }
+        if (posts.length > 0) {
+          return { posts };
+        }
+      }
+    }
+    
+    throw new Error("Could not parse JSON from Gemini response after cleanup attempts");
+  }
+}
+
 export async function generatePostsWithGemini(
   context: PostGenerationContext
 ): Promise<GeneratedPost[]> {
@@ -216,24 +276,43 @@ export async function generatePostsWithGemini(
   const prompt = buildTextPrompt(context);
   
   try {
+    // Use structured output with JSON schema for reliable parsing
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
-        temperature: 0.8,
-        maxOutputTokens: 8000,
+        temperature: 0.7,
+        maxOutputTokens: 8192,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            posts: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  platform: { type: Type.STRING },
+                  titulo: { type: Type.STRING },
+                  content: { type: Type.STRING },
+                  hashtags: { type: Type.STRING },
+                  dia: { type: Type.STRING },
+                  optimalTime: { type: Type.STRING },
+                  imagePrompt: { type: Type.STRING },
+                },
+                required: ["platform", "titulo", "content", "hashtags", "dia", "optimalTime", "imagePrompt"],
+              },
+            },
+          },
+          required: ["posts"],
+        },
       },
     });
 
     const text = response.text || "";
     console.log("[PostGenerator] Received response from Gemini");
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error("Could not parse JSON from Gemini response");
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
+    const parsed = cleanAndParseJson(text);
     const posts: GeneratedPost[] = parsed.posts || [];
 
     console.log(`[PostGenerator] Generated ${posts.length} posts`);
