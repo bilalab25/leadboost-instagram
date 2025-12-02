@@ -3388,8 +3388,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // 4️⃣ Get Instagram user profile
-      // Instagram Login API returns the app-scoped ID in the token response (user_id field)
-      // We use that as both the app-scoped ID and IGBA ID since they're the same for Instagram Login API
+      // IMPORTANT: The /me endpoint returns the Instagram Business Account ID (IGBA ID)
+      // which is what webhooks use as recipient.id - this is different from token's user_id!
       let igUsername = `ig_user_${igUserId}`;
       let accountType = "BUSINESS";
       let mediaCount = 0;
@@ -3397,25 +3397,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let appScopedId = igUserId.toString();
 
       try {
-        // Try to get profile info - only request definitely supported fields
+        // Try to get profile info - the 'id' field here is the IGBA ID used by webhooks
         const profileRes = await fetch(
           `https://graph.instagram.com/v24.0/me?fields=id,username&access_token=${longLivedToken}`,
         );
         const profileData = await profileRes.json();
         console.log("📱 Profile response:", JSON.stringify(profileData, null, 2));
 
-        if (!profileData.error && profileData.username) {
-          igUsername = profileData.username;
-          appScopedId = profileData.id || igUserId.toString();
-          // For Instagram Login API, the user_id from token is the IGBA ID
-          igbaId = igUserId.toString();
-          console.log("✅ Profile fetched successfully:", { igUsername, appScopedId, igbaId });
-        } else if (profileData.error) {
-          console.warn("⚠️ Profile fetch returned error, using fallback values:", profileData.error);
-          // Still continue with defaults from token response
+        if (!profileData.error) {
+          if (profileData.username) {
+            igUsername = profileData.username;
+          }
+          // CRITICAL: Use profileData.id as the IGBA ID - this matches webhook recipient.id
+          // The token's user_id is app-scoped and different from the IGBA ID
+          if (profileData.id) {
+            igbaId = profileData.id.toString();
+            appScopedId = igUserId.toString(); // Keep token's user_id as app-scoped reference
+          }
+          console.log("✅ Profile fetched successfully:", { 
+            igUsername, 
+            igbaId, 
+            appScopedId,
+            note: "igbaId from /me endpoint, appScopedId from token"
+          });
+        } else {
+          console.warn("⚠️ Profile fetch returned error, using token's user_id as fallback:", profileData.error);
+          // Fallback to token's user_id (less reliable for webhook matching)
         }
       } catch (profileErr) {
-        console.warn("⚠️ Profile fetch failed, using fallback values:", profileErr);
+        console.warn("⚠️ Profile fetch failed, using token's user_id as fallback:", profileErr);
         // Continue with default values from token response
       }
 

@@ -1,0 +1,128 @@
+025-12-01 23:18:12.17
+01b8c0b6
+User
+✅ REQUEST RECEIVED: POST /api/webhooks/meta
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+🔴 PAYLOAD RAW (BODY):
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+}
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+- recipientId: 17841458433478265
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+{
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+time: 1764652692020,
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+}
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+{
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+sender: { id: '2041846339885995' },
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+🔍 Searching for integration:
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+mid: 'aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDU4NDMzNDc4MjY1OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjE0OTgxNTgxMDAzNDc1OTozMjU1MjA5NjU4MDc2MDgwMDAwMTIzOTc5NDc5NzUxMDY1NgZDZD',
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+]
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+messaging: [
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+}
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+}
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+- searchPlatform: instagram
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+entry: [
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+object: 'instagram',
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+recipient: { id: '17841458433478265' },
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+]
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+=================================================
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+{
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+id: '17841458433478265',
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+text: 'Hola'
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+📩 Nuevo evento recibido desde Meta
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+message: {
+2025-12-01 23:18:12.17
+01b8c0b6
+User
+timestamp: 1764652691590,
+2025-12-01 23:18:12.31
+01b8c0b6
+User
+- ID: d91f704a-14ff-4ca4-867a-fe5beb79503e, provider: instagram_direct, accountId: 25343891241895020, pageId: 25343891241895020
+2025-12-01 23:18:12.31
+01b8c0b6
+User
+- ID: d91f704a-14ff-4ca4-867a-fe5beb79503e, provider: instagram_direct, accountId: 25343891241895020, pageId: 25343891241895020
+2025-12-01 23:18:12.31
+01b8c0b6
+User
+- ID: 7b5944f0-3308-497b-9836-3daa24500d68, provider: facebook, accountId: 264842253378885, pageId: 264842253378885
+2025-12-01 23:18:12.31
+01b8c0b6
+User
+- ID: 9f3c1bb4-27ab-4f5c-abe0-fef2f4c66146, provider: facebook, accountId: 1630307990514455, pageId: 1630307990514455
+2025-12-01 23:18:12.31
+01b8c0b6
+User
+📋 All integrations in DB (4 total):
