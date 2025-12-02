@@ -59,6 +59,11 @@ import {
   Check,
   AlertCircle,
   Ban,
+  QrCode,
+  Smartphone,
+  ArrowRight,
+  Copy,
+  Phone,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useBrand } from "@/contexts/BrandContext";
@@ -279,6 +284,15 @@ export default function IntegrationsPage() {
   const [newIntegrationStoreName, setNewIntegrationStoreName] = useState("");
   const [newIntegrationFields, setNewIntegrationFields] = useState<{ [key: string]: string }>({});
 
+  // WhatsApp connection method dialog state
+  const [isWhatsAppMethodDialogOpen, setIsWhatsAppMethodDialogOpen] = useState(false);
+  const [whatsAppMethod, setWhatsAppMethod] = useState<"embedded" | "qrcode" | null>(null);
+  const [whatsAppPhoneNumber, setWhatsAppPhoneNumber] = useState("");
+  const [whatsAppQrCode, setWhatsAppQrCode] = useState<string | null>(null);
+  const [whatsAppPairingCode, setWhatsAppPairingCode] = useState<string | null>(null);
+  const [isGeneratingQr, setIsGeneratingQr] = useState(false);
+  const [qrCodeStep, setQrCodeStep] = useState<1 | 2 | 3>(1);
+
   // Fetch integrations
   const fetchIntegrations = async () => {
     if (!activeBrandId) return;
@@ -349,13 +363,22 @@ export default function IntegrationsPage() {
       return;
     }
 
+    // Show WhatsApp method selection dialog
+    if (provider === "whatsapp") {
+      setWhatsAppMethod(null);
+      setWhatsAppPhoneNumber("");
+      setWhatsAppQrCode(null);
+      setWhatsAppPairingCode(null);
+      setQrCodeStep(1);
+      setIsWhatsAppMethodDialogOpen(true);
+      return;
+    }
+
     let url = "";
     if (["facebook", "instagram", "threads"].includes(provider)) {
       url = `/api/integrations/facebook/connect?brandId=${activeBrandId}`;
     } else if (provider === "instagram_direct") {
       url = `/api/integrations/instagram/connect?brandId=${activeBrandId}`;
-    } else if (provider === "whatsapp") {
-      url = `/api/integrations/whatsapp/connect?brandId=${activeBrandId}`;
     } else {
       toast({
         title: isSpanish ? "Próximamente" : "Coming Soon",
@@ -373,6 +396,77 @@ export default function IntegrationsPage() {
         window.location.reload();
       }
     }, 1000);
+  };
+
+  // WhatsApp Embedded Signup handler
+  const handleWhatsAppEmbeddedSignup = () => {
+    const url = `/api/integrations/whatsapp/connect?brandId=${activeBrandId}`;
+    const popup = window.open(url, "_blank", "width=600,height=700");
+    const timer = setInterval(() => {
+      if (popup?.closed) {
+        clearInterval(timer);
+        setIsWhatsAppMethodDialogOpen(false);
+        window.location.reload();
+      }
+    }, 1000);
+  };
+
+  // WhatsApp QR Code generator
+  const handleGenerateWhatsAppQr = async () => {
+    if (!whatsAppPhoneNumber.trim()) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish ? "Ingresa tu número de teléfono" : "Enter your phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingQr(true);
+    try {
+      const res = await fetch("/api/integrations/whatsapp/generate-qr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phoneNumber: whatsAppPhoneNumber.replace(/\D/g, ""),
+          brandId: activeBrandId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to generate QR code");
+      }
+
+      if (data.qrCodeUrl) {
+        setWhatsAppQrCode(data.qrCodeUrl);
+      }
+      if (data.pairingCode) {
+        setWhatsAppPairingCode(data.pairingCode);
+      }
+      setQrCodeStep(2);
+    } catch (error) {
+      console.error("QR generation error:", error);
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: error instanceof Error ? error.message : "Failed to generate QR code",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingQr(false);
+    }
+  };
+
+  // Copy pairing code to clipboard
+  const copyPairingCode = () => {
+    if (whatsAppPairingCode) {
+      navigator.clipboard.writeText(whatsAppPairingCode);
+      toast({
+        title: isSpanish ? "Copiado" : "Copied",
+        description: isSpanish ? "Código copiado al portapapeles" : "Code copied to clipboard",
+      });
+    }
   };
 
   // Create integration handler
@@ -843,6 +937,271 @@ export default function IntegrationsPage() {
                       </Button>
                     </div>
                   </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* WhatsApp Connection Method Dialog */}
+              <Dialog open={isWhatsAppMethodDialogOpen} onOpenChange={(open) => {
+                setIsWhatsAppMethodDialogOpen(open);
+                if (!open) {
+                  setWhatsAppMethod(null);
+                  setWhatsAppPhoneNumber("");
+                  setWhatsAppQrCode(null);
+                  setWhatsAppPairingCode(null);
+                  setQrCodeStep(1);
+                }
+              }}>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <MessageCircle className="h-5 w-5 text-green-500" />
+                      {isSpanish ? "Conectar WhatsApp Business" : "Connect WhatsApp Business"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {isSpanish 
+                        ? "Elige cómo deseas conectar tu cuenta de WhatsApp Business" 
+                        : "Choose how you want to connect your WhatsApp Business account"}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {!whatsAppMethod ? (
+                    <div className="space-y-4 pt-4">
+                      {/* Embedded Signup Option */}
+                      <Card 
+                        className="cursor-pointer hover:border-green-300 hover:bg-green-50/50 transition-all"
+                        onClick={() => setWhatsAppMethod("embedded")}
+                        data-testid="whatsapp-embedded-option"
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-green-100 rounded-lg">
+                              <ExternalLink className="h-5 w-5 text-green-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-medium text-sm">
+                                {isSpanish ? "Registro de Meta (Recomendado)" : "Meta Signup (Recommended)"}
+                              </h3>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {isSpanish 
+                                  ? "Crea una nueva cuenta de WhatsApp Business o conecta una existente a través del proceso oficial de Meta." 
+                                  : "Create a new WhatsApp Business account or connect an existing one through Meta's official process."}
+                              </p>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {isSpanish ? "Oficial" : "Official"}
+                                </Badge>
+                                <Badge variant="secondary" className="text-xs">
+                                  {isSpanish ? "10-15 min" : "10-15 min"}
+                                </Badge>
+                              </div>
+                            </div>
+                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* QR Code Option */}
+                      <Card 
+                        className="cursor-pointer hover:border-green-300 hover:bg-green-50/50 transition-all"
+                        onClick={() => setWhatsAppMethod("qrcode")}
+                        data-testid="whatsapp-qrcode-option"
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                              <QrCode className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-medium text-sm">
+                                {isSpanish ? "Código QR / Vincular Dispositivo" : "QR Code / Link Device"}
+                              </h3>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {isSpanish 
+                                  ? "Conecta tu app WhatsApp Business existente escaneando un código QR. Requiere la app instalada en tu teléfono." 
+                                  : "Connect your existing WhatsApp Business app by scanning a QR code. Requires the app installed on your phone."}
+                              </p>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {isSpanish ? "Requiere app" : "Requires app"}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {isSpanish ? "2-5 min" : "2-5 min"}
+                                </Badge>
+                              </div>
+                            </div>
+                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ) : whatsAppMethod === "embedded" ? (
+                    <div className="space-y-4 pt-4">
+                      <Alert className="border-green-200 bg-green-50">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <AlertTitle className="text-green-800">{isSpanish ? "Proceso Oficial de Meta" : "Official Meta Process"}</AlertTitle>
+                        <AlertDescription className="text-green-700 text-sm">
+                          {isSpanish 
+                            ? "Se abrirá una ventana de Meta para completar el registro. Sigue las instrucciones para verificar tu negocio y número de teléfono."
+                            : "A Meta window will open to complete the signup. Follow the instructions to verify your business and phone number."}
+                        </AlertDescription>
+                      </Alert>
+                      
+                      <div className="space-y-2 text-sm text-muted-foreground">
+                        <p className="font-medium text-foreground">{isSpanish ? "Lo que necesitarás:" : "What you'll need:"}</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>{isSpanish ? "Una cuenta de Facebook/Meta Business" : "A Facebook/Meta Business account"}</li>
+                          <li>{isSpanish ? "Un número de teléfono para WhatsApp" : "A phone number for WhatsApp"}</li>
+                          <li>{isSpanish ? "Acceso a verificación por SMS o llamada" : "Access to SMS or call verification"}</li>
+                        </ul>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="outline" onClick={() => setWhatsAppMethod(null)} data-testid="whatsapp-back-btn">
+                          {isSpanish ? "Volver" : "Back"}
+                        </Button>
+                        <Button className="flex-1 bg-green-600 hover:bg-green-700" onClick={handleWhatsAppEmbeddedSignup} data-testid="whatsapp-start-signup-btn">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          {isSpanish ? "Iniciar Registro" : "Start Signup"}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 pt-4">
+                      {qrCodeStep === 1 && (
+                        <>
+                          <Alert className="border-blue-200 bg-blue-50">
+                            <Smartphone className="h-4 w-4 text-blue-600" />
+                            <AlertTitle className="text-blue-800">{isSpanish ? "Vincular WhatsApp Business App" : "Link WhatsApp Business App"}</AlertTitle>
+                            <AlertDescription className="text-blue-700 text-sm">
+                              {isSpanish 
+                                ? "Este método te permite usar tu app WhatsApp Business existente junto con nuestra plataforma."
+                                : "This method allows you to use your existing WhatsApp Business app alongside our platform."}
+                            </AlertDescription>
+                          </Alert>
+
+                          <div className="space-y-3">
+                            <Label htmlFor="whatsapp-phone">{isSpanish ? "Número de teléfono (con código de país)" : "Phone number (with country code)"}</Label>
+                            <div className="flex gap-2">
+                              <div className="flex items-center gap-1 px-3 bg-gray-100 rounded-l-md border border-r-0">
+                                <Phone className="h-4 w-4 text-gray-500" />
+                                <span className="text-sm text-gray-500">+</span>
+                              </div>
+                              <Input
+                                id="whatsapp-phone"
+                                placeholder={isSpanish ? "Ej: 521234567890" : "Ex: 11234567890"}
+                                value={whatsAppPhoneNumber}
+                                onChange={(e) => setWhatsAppPhoneNumber(e.target.value.replace(/[^0-9]/g, ""))}
+                                className="rounded-l-none"
+                                data-testid="whatsapp-phone-input"
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {isSpanish 
+                                ? "Ingresa el número completo sin espacios ni guiones (ej: 521234567890 para México)"
+                                : "Enter the complete number without spaces or dashes (e.g., 11234567890 for US)"}
+                            </p>
+                          </div>
+
+                          <div className="flex gap-2 pt-2">
+                            <Button variant="outline" onClick={() => setWhatsAppMethod(null)} data-testid="whatsapp-qr-back-btn">
+                              {isSpanish ? "Volver" : "Back"}
+                            </Button>
+                            <Button 
+                              className="flex-1 bg-blue-600 hover:bg-blue-700" 
+                              onClick={handleGenerateWhatsAppQr}
+                              disabled={isGeneratingQr || !whatsAppPhoneNumber}
+                              data-testid="whatsapp-generate-qr-btn"
+                            >
+                              {isGeneratingQr ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  {isSpanish ? "Generando..." : "Generating..."}
+                                </>
+                              ) : (
+                                <>
+                                  <QrCode className="h-4 w-4 mr-2" />
+                                  {isSpanish ? "Generar Código QR" : "Generate QR Code"}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+
+                      {qrCodeStep === 2 && (
+                        <>
+                          <div className="text-center space-y-4">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100">
+                              <QrCode className="h-8 w-8 text-green-600" />
+                            </div>
+                            <h3 className="font-medium">
+                              {isSpanish ? "Escanea el código desde tu teléfono" : "Scan the code from your phone"}
+                            </h3>
+                          </div>
+
+                          {whatsAppQrCode ? (
+                            <div className="flex justify-center p-4 bg-white rounded-lg border">
+                              <img 
+                                src={whatsAppQrCode} 
+                                alt="WhatsApp QR Code" 
+                                className="w-48 h-48"
+                                data-testid="whatsapp-qr-image"
+                              />
+                            </div>
+                          ) : whatsAppPairingCode ? (
+                            <div className="space-y-3">
+                              <p className="text-sm text-center text-muted-foreground">
+                                {isSpanish 
+                                  ? "Usa este código de emparejamiento en tu WhatsApp Business:"
+                                  : "Use this pairing code in your WhatsApp Business:"}
+                              </p>
+                              <div className="flex items-center justify-center gap-2 p-4 bg-gray-100 rounded-lg">
+                                <code className="text-2xl font-mono font-bold tracking-widest">
+                                  {whatsAppPairingCode}
+                                </code>
+                                <Button variant="ghost" size="icon" onClick={copyPairingCode} data-testid="copy-pairing-code-btn">
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : null}
+
+                          <div className="space-y-2 text-sm bg-gray-50 p-4 rounded-lg">
+                            <p className="font-medium">{isSpanish ? "Instrucciones:" : "Instructions:"}</p>
+                            <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                              <li>{isSpanish ? "Abre WhatsApp Business en tu teléfono" : "Open WhatsApp Business on your phone"}</li>
+                              <li>{isSpanish ? "Ve a Configuración > Dispositivos vinculados" : "Go to Settings > Linked Devices"}</li>
+                              <li>{isSpanish ? "Toca 'Vincular un dispositivo'" : "Tap 'Link a Device'"}</li>
+                              <li>{isSpanish ? "Escanea el código QR o ingresa el código" : "Scan the QR code or enter the code"}</li>
+                            </ol>
+                          </div>
+
+                          <div className="flex gap-2 pt-2">
+                            <Button variant="outline" onClick={() => setQrCodeStep(1)} data-testid="whatsapp-qr-retry-btn">
+                              {isSpanish ? "Reintentar" : "Retry"}
+                            </Button>
+                            <Button 
+                              className="flex-1" 
+                              onClick={() => {
+                                setIsWhatsAppMethodDialogOpen(false);
+                                toast({
+                                  title: isSpanish ? "Verificando conexión..." : "Verifying connection...",
+                                  description: isSpanish 
+                                    ? "La página se actualizará para mostrar el estado de conexión."
+                                    : "The page will refresh to show connection status.",
+                                });
+                                setTimeout(() => window.location.reload(), 2000);
+                              }}
+                              data-testid="whatsapp-done-btn"
+                            >
+                              <Check className="h-4 w-4 mr-2" />
+                              {isSpanish ? "Listo, ya escaneé" : "Done, I've scanned"}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </DialogContent>
               </Dialog>
             </div>
