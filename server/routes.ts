@@ -4090,23 +4090,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const recipientId = event.recipient.id;
                 const messageId = event.message.mid;
                 const messageText = event.message.text || "";
-                const platform =
+                const searchPlatform =
                   body.object === "instagram" ? "instagram" : "facebook";
 
                 const integration = await storage.findIntegrationByAccount(
                   recipientId,
-                  platform,
+                  searchPlatform,
                 );
 
                 if (integration) {
+                  // Use the actual provider from the integration (could be "instagram_direct")
+                  const platform = integration.provider;
                   const accessToken = integration.accessToken;
                   const pageId = integration.pageId || recipientId;
                   let metaConversationId = null;
 
+                  console.log(`🔗 Found integration with provider: ${platform}`);
+
                   try {
                     // ✅ Endpoint unificado para Messenger e Instagram
+                    // For instagram_direct, use "instagram" as the Meta API platform parameter
+                    const metaPlatformParam = platform === "facebook" ? "messenger" : "instagram";
                     const convoRes = await fetch(
-                      `https://graph.facebook.com/v24.0/${pageId}/conversations?platform=${platform === "facebook" ? "messenger" : "instagram"}&user_id=${senderId}&access_token=${accessToken}`,
+                      `https://graph.facebook.com/v24.0/${pageId}/conversations?platform=${metaPlatformParam}&user_id=${senderId}&access_token=${accessToken}`,
                     );
                     const convoData = await convoRes.json();
 
@@ -4175,7 +4181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   });
                 } else {
                   console.warn(
-                    `⚠️ [${platform}] No integration found for recipient: ${recipientId}`,
+                    `⚠️ [${searchPlatform}] No integration found for recipient: ${recipientId}`,
                   );
                 }
               }
