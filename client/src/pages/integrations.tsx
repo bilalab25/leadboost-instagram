@@ -57,7 +57,10 @@ import {
   CheckCircle2,
   ExternalLink,
   Check,
+  AlertCircle,
+  Ban,
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useBrand } from "@/contexts/BrandContext";
 
 // =====================================================
@@ -302,6 +305,39 @@ export default function IntegrationsPage() {
   const isProviderConnected = (providerKey: string) => integrations.some((i) => i.provider === providerKey && i.isActive);
   const getConnectedIntegration = (providerKey: string) => integrations.find((i) => i.provider === providerKey && i.isActive);
 
+  // Instagram mutual exclusivity - only one Instagram integration type can be active
+  const hasInstagramViaFacebook = isProviderConnected("instagram");
+  const hasInstagramDirect = isProviderConnected("instagram_direct");
+  const hasAnyInstagram = hasInstagramViaFacebook || hasInstagramDirect;
+  
+  // Check if a provider is disabled due to Instagram conflict
+  const isProviderDisabledByConflict = (providerKey: string): boolean => {
+    if (providerKey === "instagram" && hasInstagramDirect) return true;
+    if (providerKey === "instagram_direct" && hasInstagramViaFacebook) return true;
+    return false;
+  };
+  
+  // Get the reason for Instagram conflict
+  const getInstagramConflictMessage = (): { title: string; description: string } | null => {
+    if (hasInstagramViaFacebook) {
+      return {
+        title: isSpanish ? "Instagram conectado vía Facebook" : "Instagram connected via Facebook",
+        description: isSpanish 
+          ? "Ya tienes Instagram conectado a través de Facebook. Para usar Instagram Direct, primero desconecta la integración actual."
+          : "You already have Instagram connected via Facebook. To use Instagram Direct, disconnect the current integration first."
+      };
+    }
+    if (hasInstagramDirect) {
+      return {
+        title: isSpanish ? "Instagram Direct conectado" : "Instagram Direct connected",
+        description: isSpanish
+          ? "Ya tienes Instagram Direct conectado. Para usar Instagram vía Facebook, primero desconecta la integración actual."
+          : "You already have Instagram Direct connected. To use Instagram via Facebook, disconnect the current integration first."
+      };
+    }
+    return null;
+  };
+
   // OAuth connection handler
   const handleConnect = (provider: string) => {
     if (!activeBrandId) {
@@ -523,6 +559,19 @@ export default function IntegrationsPage() {
                       )}
                     </div>
 
+                    {/* Instagram Conflict Alert Banner */}
+                    {category.key === "social_media" && hasAnyInstagram && (
+                      <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800" data-testid="alert-instagram-conflict">
+                        <AlertCircle className="h-4 w-4 text-amber-600" />
+                        <AlertTitle className="text-amber-800 dark:text-amber-400">
+                          {getInstagramConflictMessage()?.title}
+                        </AlertTitle>
+                        <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
+                          {getInstagramConflictMessage()?.description}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
                     {/* Integration Cards - Compact Grid */}
                     {integrationsLoading ? (
                       <div className="flex justify-center py-12">
@@ -533,9 +582,11 @@ export default function IntegrationsPage() {
                         {getProvidersForCategory(category.key).map(([providerKey, providerInfo]) => {
                           const isConnected = isProviderConnected(providerKey);
                           const connectedIntegration = getConnectedIntegration(providerKey);
+                          const isDisabledByConflict = isProviderDisabledByConflict(providerKey);
                           const Icon = providerInfo.icon;
 
                           const getIconColor = () => {
+                            if (isDisabledByConflict) return 'text-gray-400';
                             switch (providerKey) {
                               case 'facebook': return 'text-blue-600';
                               case 'instagram': return 'text-pink-500';
@@ -560,8 +611,12 @@ export default function IntegrationsPage() {
                           return (
                             <Card
                               key={providerKey}
-                              className={`relative transition-all duration-200 hover:shadow-md ${
-                                isConnected ? 'ring-1 ring-green-200 bg-green-50/50 dark:bg-green-950/20' : ''
+                              className={`relative transition-all duration-200 ${
+                                isConnected 
+                                  ? 'ring-1 ring-green-200 bg-green-50/50 dark:bg-green-950/20 hover:shadow-md' 
+                                  : isDisabledByConflict 
+                                    ? 'opacity-60 bg-gray-100 dark:bg-gray-800/50 cursor-not-allowed' 
+                                    : 'hover:shadow-md'
                               }`}
                               data-testid={`provider-${providerKey}`}
                             >
@@ -620,6 +675,24 @@ export default function IntegrationsPage() {
                                       {isSpanish ? "Desconectar" : "Disconnect"}
                                     </Button>
                                   </div>
+                                ) : isDisabledByConflict ? (
+                                  <Button
+                                    size="sm"
+                                    className="w-full h-8 text-xs"
+                                    variant="outline"
+                                    disabled
+                                    onClick={() => {
+                                      toast({
+                                        title: isSpanish ? "Integración no disponible" : "Integration unavailable",
+                                        description: getInstagramConflictMessage()?.description,
+                                        variant: "destructive",
+                                      });
+                                    }}
+                                    data-testid={`connect-${providerKey}-disabled`}
+                                  >
+                                    <Ban className="h-3 w-3 mr-1" />
+                                    {isSpanish ? "No disponible" : "Unavailable"}
+                                  </Button>
                                 ) : (
                                   <Button
                                     size="sm"
