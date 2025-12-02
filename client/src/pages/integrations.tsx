@@ -8,6 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
+import { 
+  SiInstagram, 
+  SiFacebook, 
+  SiWhatsapp, 
+  SiTiktok, 
+  SiYoutube,
+  SiShopify,
+  SiStripe,
+  SiSquare,
+  SiWoo,
+  SiWix,
+  SiHubspot,
+  SiSalesforce
+} from "react-icons/si";
 import {
   Card,
   CardContent,
@@ -576,107 +591,222 @@ export default function IntegrationsPage() {
   // RENDER
   // =====================================================
 
+  const totalConnected = integrations.filter(i => i.isActive).length;
+  const totalAvailable = Object.keys(INTEGRATION_PROVIDERS).length;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopHeader pageName={isSpanish ? "Integraciones" : "Integrations"} />
-      <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary/5">
+      <div className="flex h-screen overflow-hidden">
         <Sidebar />
 
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
+          <TopHeader pageName={isSpanish ? "Integraciones" : "Integrations"} />
           <main className="flex-1 relative overflow-y-auto focus:outline-none">
-            <div className="container mx-auto px-4 py-8 space-y-6" data-testid="integrations-page">
+            <div className="py-6">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8" data-testid="integrations-page">
               
-              {/* Page Header */}
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-                  <Plug className="h-8 w-8 text-primary" />
-                  {isSpanish ? "Integraciones" : "Integrations"}
-                </h1>
-                <p className="text-muted-foreground mt-1">
-                  {isSpanish
-                    ? "Conecta tus plataformas favoritas para potenciar tus campañas."
-                    : "Connect your favorite platforms to power up your campaigns."}
-                </p>
-              </div>
-
-              {/* Status Banner */}
-              <Card className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
-                <CardContent className="py-4">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {isSpanish ? "Estado de Integraciones" : "Integration Status"}
-                      </p>
-                      <p className="text-lg font-semibold">
-                        {integrations.filter(i => i.isActive).length === 0 ? (
-                          <span className="text-amber-600">
-                            {isSpanish ? "Sin integraciones conectadas" : "No integrations connected"}
-                          </span>
-                        ) : (
-                          <span className="text-green-600">
-                            {integrations.filter(i => i.isActive).length} {isSpanish ? "conectada(s)" : "connected"}
-                          </span>
-                        )}
-                      </p>
+                {/* Hero Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-8"
+                >
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-primary/90 to-primary/80 p-6 md:p-8 shadow-xl">
+                    <div className="absolute inset-0 opacity-10">
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)`,
+                          backgroundSize: "20px 20px",
+                        }}
+                      />
                     </div>
-                    
-                    <div className="flex items-center gap-6">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-green-600">{integrations.filter(i => i.isActive).length}</p>
-                        <p className="text-xs text-muted-foreground">{isSpanish ? "Conectadas" : "Connected"}</p>
+
+                    <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <Plug className="w-7 h-7 text-white" />
+                          </div>
+                          <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-white" data-testid="text-page-title">
+                              {isSpanish ? "Integraciones" : "Integrations"}
+                            </h1>
+                            <p className="text-primary-foreground/80 text-sm">
+                              {isSpanish 
+                                ? "Conecta tus plataformas favoritas" 
+                                : "Connect your favorite platforms"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <p className="text-primary-foreground/90 text-sm md:text-base max-w-xl">
+                          {isSpanish
+                            ? "Potencia tus campañas conectando redes sociales, tiendas online, sistemas de pago y CRM en un solo lugar."
+                            : "Power up your campaigns by connecting social media, online stores, payment systems and CRM in one place."}
+                        </p>
                       </div>
-                      <div className="w-px h-8 bg-border" />
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-muted-foreground">{Object.keys(INTEGRATION_PROVIDERS).length}</p>
-                        <p className="text-xs text-muted-foreground">{isSpanish ? "Disponibles" : "Available"}</p>
-                      </div>
-                      <div className="w-px h-8 bg-border" />
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary">{Object.keys(INTEGRATION_PROVIDERS).length - integrations.filter(i => i.isActive).length}</p>
-                        <p className="text-xs text-muted-foreground">{isSpanish ? "Por conectar" : "To connect"}</p>
+
+                      {/* Stats Cards in Hero */}
+                      <div className="flex gap-3">
+                        <motion.div
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.1 }}
+                          className="bg-white/15 backdrop-blur-sm rounded-xl p-4 min-w-[100px] text-center border border-white/20"
+                        >
+                          <p className="text-3xl font-bold text-white">{totalConnected}</p>
+                          <p className="text-xs text-primary-foreground/80 mt-1">
+                            {isSpanish ? "Conectadas" : "Connected"}
+                          </p>
+                        </motion.div>
+                        <motion.div
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.2 }}
+                          className="bg-white/15 backdrop-blur-sm rounded-xl p-4 min-w-[100px] text-center border border-white/20"
+                        >
+                          <p className="text-3xl font-bold text-white">{totalAvailable}</p>
+                          <p className="text-xs text-primary-foreground/80 mt-1">
+                            {isSpanish ? "Disponibles" : "Available"}
+                          </p>
+                        </motion.div>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </motion.div>
 
-              {/* Category Tabs - Analytics Style */}
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
-                  {INTEGRATION_CATEGORIES.map((category) => {
-                    const connectedCount = getConnectedCount(category.key);
-                    return (
-                      <TabsTrigger
-                        key={category.key}
-                        value={category.key}
-                        data-testid={`tab-${category.key}`}
-                      >
-                        {isSpanish ? category.nameEs : category.name}
-                        {connectedCount > 0 && (
-                          <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs bg-green-100 text-green-700">
-                            {connectedCount}
-                          </Badge>
-                        )}
-                      </TabsTrigger>
-                    );
-                  })}
-                </TabsList>
+                {/* Stats Cards */}
+                {!integrationsLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+                  >
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                              {isSpanish ? "Redes Sociales" : "Social Media"}
+                            </p>
+                            <p className="text-2xl font-bold text-pink-600 mt-1">
+                              {getConnectedCount("social_media")}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
+                            <Instagram className="w-6 h-6 text-pink-600" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                              E-commerce
+                            </p>
+                            <p className="text-2xl font-bold text-green-600 mt-1">
+                              {getConnectedCount("ecommerce")}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                            <ShoppingBag className="w-6 h-6 text-green-600" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                              {isSpanish ? "Pagos" : "Payments"}
+                            </p>
+                            <p className="text-2xl font-bold text-purple-600 mt-1">
+                              {getConnectedCount("pos")}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                            <CreditCard className="w-6 h-6 text-purple-600" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="pt-4 pb-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                              CRM
+                            </p>
+                            <p className="text-2xl font-bold text-orange-600 mt-1">
+                              {getConnectedCount("crm")}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                            <BriefcaseBusiness className="w-6 h-6 text-orange-600" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
 
-                {INTEGRATION_CATEGORIES.map((category) => (
-                  <TabsContent key={category.key} value={category.key} className="space-y-4">
-                    {/* Category Header */}
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        {category.key === "social_media" && (isSpanish ? "Conecta tus perfiles de redes sociales" : "Connect your social media profiles")}
-                        {category.key === "ecommerce" && (isSpanish ? "Integra tu tienda online" : "Integrate your online store")}
-                        {category.key === "pos" && (isSpanish ? "Conecta sistemas de pago" : "Connect payment systems")}
-                        {category.key === "crm" && (isSpanish ? "Enlaza tu CRM" : "Link your CRM")}
-                      </p>
-                      {category.key !== "social_media" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
+                {/* Category Tabs */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <Card className="shadow-sm">
+                    <CardContent className="pt-6">
+                      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                        <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-lg">
+                          {INTEGRATION_CATEGORIES.map((category) => {
+                            const connectedCount = getConnectedCount(category.key);
+                            const CategoryIcon = category.icon;
+                            return (
+                              <TabsTrigger
+                                key={category.key}
+                                value={category.key}
+                                data-testid={`tab-${category.key}`}
+                                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
+                              >
+                                <CategoryIcon className="w-4 h-4" />
+                                <span className="hidden sm:inline">{isSpanish ? category.nameEs : category.name}</span>
+                                {connectedCount > 0 && (
+                                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                                    {connectedCount}
+                                  </Badge>
+                                )}
+                              </TabsTrigger>
+                            );
+                          })}
+                        </TabsList>
+
+                        {INTEGRATION_CATEGORIES.map((category) => (
+                          <TabsContent key={category.key} value={category.key} className="space-y-4 mt-6">
+                            {/* Category Header */}
+                            <div className="flex items-center justify-between pb-2 border-b">
+                              <div>
+                                <h3 className="font-semibold text-lg">
+                                  {isSpanish ? category.nameEs : category.name}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {category.key === "social_media" && (isSpanish ? "Conecta tus perfiles de redes sociales" : "Connect your social media profiles")}
+                                  {category.key === "ecommerce" && (isSpanish ? "Integra tu tienda online" : "Integrate your online store")}
+                                  {category.key === "pos" && (isSpanish ? "Conecta sistemas de pago" : "Connect payment systems")}
+                                  {category.key === "crm" && (isSpanish ? "Enlaza tu CRM" : "Link your CRM")}
+                                </p>
+                              </div>
+                              {category.key !== "social_media" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
                             setDialogSelectedCategory(category.key);
                             setIsAddIntegrationDialogOpen(true);
                           }}
@@ -849,7 +979,10 @@ export default function IntegrationsPage() {
                     )}
                   </TabsContent>
                 ))}
-              </Tabs>
+                      </Tabs>
+                    </CardContent>
+                  </Card>
+                </motion.div>
 
               {/* Add Integration Dialog */}
               <Dialog open={isAddIntegrationDialogOpen} onOpenChange={(open) => { setIsAddIntegrationDialogOpen(open); if (!open) resetDialog(); }}>
@@ -1315,6 +1448,7 @@ export default function IntegrationsPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              </div>
             </div>
 
             {/* Help Chatbot */}
