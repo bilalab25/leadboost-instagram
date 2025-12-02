@@ -127,38 +127,54 @@ export default function ContentCalendar() {
     return dates;
   };
 
-  // Helper function to convert webhook response to ContentPost[]
-  const parseWebhookResponse = (webhookData: any[]): ContentPost[] => {
+  // Helper function to convert AI generated posts to ContentPost[]
+  const convertAiPostsToContentPosts = (aiPosts: any[]): ContentPost[] => {
     const posts: ContentPost[] = [];
-    let postId = Math.floor(Math.random() * 10000);
 
-    webhookData.forEach((platformData) => {
-      const platform = platformData.platform;
-      const publicaciones = platformData.publicaciones || [];
+    aiPosts.forEach((post) => {
+      // Parse the date from dia field (could be "monday" or "2025-01-15")
+      let scheduledDate: Date;
+      
+      if (post.dia && post.dia.includes("-")) {
+        // ISO date format
+        scheduledDate = new Date(post.dia);
+      } else {
+        // Day name format - get first occurrence in current month
+        const datesForDay = getDatesForDayOfWeek(post.dia || "monday");
+        scheduledDate = datesForDay[0] || new Date();
+      }
+      
+      scheduledDate.setHours(10, 0, 0, 0);
 
-      publicaciones.forEach((pub: any) => {
-        const datesForDay = getDatesForDayOfWeek(pub.dia || "monday");
-
-        // Create a post for each occurrence of that day in the month
-        datesForDay.forEach((date, index) => {
-          const hour = 10 + index * 2; // Stagger posts by 2 hours
-          const scheduledDate = new Date(date);
-          scheduledDate.setHours(hour, 0, 0, 0);
-
-          posts.push({
-            id: `ai-${postId++}`,
-            title: pub.titulo,
-            platform: platform,
-            scheduledFor: scheduledDate.toISOString(),
-            status: "draft",
-            content: pub.copy,
-            imageUrl: pub.imagen_url,
-          });
-        });
+      posts.push({
+        id: post.id,
+        title: post.titulo,
+        platform: post.platform,
+        scheduledFor: scheduledDate.toISOString(),
+        status: post.status === "accepted" ? "scheduled" : "draft",
+        content: post.content,
+        imageUrl: post.imageUrl,
       });
     });
 
     return posts;
+  };
+
+  // Fetch AI generated posts from database
+  const fetchAiGeneratedPosts = async (): Promise<ContentPost[]> => {
+    if (!activeBrandId) return [];
+    
+    try {
+      const response = await fetch(`/api/ai-generated-posts/${activeBrandId}`, {
+        credentials: "include",
+      });
+      if (!response.ok) return [];
+      const aiPosts = await response.json();
+      return convertAiPostsToContentPosts(aiPosts);
+    } catch (error) {
+      console.error("Error fetching AI posts:", error);
+      return [];
+    }
   };
 
   // Polling query for job status
@@ -181,15 +197,18 @@ export default function ContentCalendar() {
     const job = jobStatusQuery.data;
     if (!job || !currentJobId) return;
 
-    if (job.status === "completed" && job.result) {
+    if (job.status === "completed") {
       setShowGeneratingLoader(false);
-      const newPosts = parseWebhookResponse(job.result);
-      setSuggestedPosts(newPosts);
-      setAiSuggestions(job);
+      
+      // Fetch posts from the database after job completion
+      fetchAiGeneratedPosts().then((newPosts) => {
+        setSuggestedPosts(newPosts);
+        setAiSuggestions(job);
 
-      toast({
-        title: `✨ AI Generated ${newPosts.length} Suggestions!`,
-        description: `${newPosts.length} posts ready for your approval across ${new Set(newPosts.map((p) => p.platform)).size} platforms.`,
+        toast({
+          title: `✨ AI Generated ${newPosts.length} Suggestions!`,
+          description: `${newPosts.length} posts ready for your approval across ${new Set(newPosts.map((p) => p.platform)).size} platforms.`,
+        });
       });
 
       setCurrentJobId(null); // Stop polling
@@ -202,7 +221,7 @@ export default function ContentCalendar() {
       });
       setCurrentJobId(null);
     }
-  }, [jobStatusQuery.data, currentJobId]);
+  }, [jobStatusQuery.data, currentJobId, activeBrandId]);
 
   // Mutation to update AI post status
   const updatePostStatusMutation = useMutation({
