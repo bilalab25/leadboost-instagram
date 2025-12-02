@@ -7,7 +7,7 @@ import TopHeader from "@/components/TopHeader";
 import MessageList from "@/components/MessageList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Filter, Search, Star, Archive, Flag, X } from "lucide-react";
+import { Filter, Search, Star, Archive, Flag, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import HelpChatbot from "@/components/HelpChatbot";
 import { Instagram, Mail, Twitter } from "lucide-react";
@@ -20,6 +20,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useBrand } from "@/contexts/BrandContext";
+import { useQuery } from "@tanstack/react-query";
+
+interface InboxStats {
+  totalMessages: number;
+  unread: number;
+  urgent: number;
+  avgResponseTime: string;
+  conversationCount: number;
+}
 
 export default function Inbox() {
   const { toast } = useToast();
@@ -36,6 +45,13 @@ export default function Inbox() {
   >("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(false);
+
+  // Fetch inbox statistics from the API
+  const { data: inboxStats, isLoading: statsLoading } = useQuery<InboxStats>({
+    queryKey: ["/api/inbox/stats", activeBrandId],
+    enabled: isAuthenticated && !!activeBrandId,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   // Redirección si no autenticado
   useEffect(() => {
@@ -88,26 +104,50 @@ export default function Inbox() {
           {/* Summary Stats Banner */}
           <div className="bg-white border-b border-gray-200 px-6 py-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-gray-900">24</div>
+              <div className="text-center p-3 bg-gray-50 rounded-lg" data-testid="stat-total-messages">
+                {statsLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+                ) : (
+                  <div className="text-2xl font-bold text-gray-900">
+                    {inboxStats?.totalMessages ?? 0}
+                  </div>
+                )}
                 <div className="text-sm text-gray-500">
                   {isSpanish ? "Mensajes Totales" : "Total Messages"}
                 </div>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-red-600">12</div>
+              <div className="text-center p-3 bg-gray-50 rounded-lg" data-testid="stat-unread">
+                {statsLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+                ) : (
+                  <div className="text-2xl font-bold text-red-600">
+                    {inboxStats?.unread ?? 0}
+                  </div>
+                )}
                 <div className="text-sm text-gray-500">
                   {isSpanish ? "Sin Leer" : "Unread"}
                 </div>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">3</div>
+              <div className="text-center p-3 bg-gray-50 rounded-lg" data-testid="stat-urgent">
+                {statsLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+                ) : (
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {inboxStats?.urgent ?? 0}
+                  </div>
+                )}
                 <div className="text-sm text-gray-500">
                   {isSpanish ? "Urgente" : "Urgent"}
                 </div>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">2.5h</div>
+              <div className="text-center p-3 bg-gray-50 rounded-lg" data-testid="stat-avg-response">
+                {statsLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+                ) : (
+                  <div className="text-2xl font-bold text-green-600">
+                    {inboxStats?.avgResponseTime ?? "N/A"}
+                  </div>
+                )}
                 <div className="text-sm text-gray-500">
                   {isSpanish ? "Respuesta Promedio" : "Avg Response"}
                 </div>

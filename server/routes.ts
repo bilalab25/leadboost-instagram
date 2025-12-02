@@ -5101,6 +5101,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // ✅ NEW: Get inbox statistics (total messages, unread, urgent, avg response time)
+  app.get(
+    "/api/inbox/stats",
+    isAuthenticated,
+    requireBrand,
+    async (req, res) => {
+      try {
+        const brandId = req.brandMembership.brandId;
+
+        // Get all conversations for the brand
+        const conversationsList = await storage.getConversationsByBrandId(brandId);
+
+        // Calculate statistics
+        let totalMessages = 0;
+        let totalUnread = 0;
+        let urgentCount = 0;
+        let responseTimes: number[] = [];
+
+        for (const conversation of conversationsList) {
+          // Count unread from conversation's unreadCount field
+          totalUnread += conversation.unreadCount || 0;
+
+          // Count urgent (important flagged conversations)
+          if (conversation.flag === "important") {
+            urgentCount++;
+          }
+
+          // Get messages for this conversation to count total and calculate response times
+          const conversationMessages = await storage.getConversationMessages(conversation.id);
+          totalMessages += conversationMessages.length;
+
+          // Calculate response times (time between inbound and next outbound message)
+          let lastInboundTime: Date | null = null;
+          for (const msg of conversationMessages) {
+            if (msg.direction === "inbound") {
+              lastInboundTime = msg.timestamp;
+            } else if (msg.direction === "outbound" && lastInboundTime) {
+              const responseTime = msg.timestamp.getTime() - lastInboundTime.getTime();
+              responseTimes.push(responseTime);
+              lastInboundTime = null; // Reset for next pair
+            }
+          }
+        }
+
+        // Calculate average response time
+        let avgResponseTime = "N/A";
+        if (responseTimes.length > 0) {
+          const avgMs = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+          const avgMinutes = Math.round(avgMs / 60000);
+          
+          if (avgMinutes < 60) {
+            avgResponseTime = `${avgMinutes}m`;
+          } else {
+            const hours = Math.floor(avgMinutes / 60);
+            const mins = avgMinutes % 60;
+            avgResponseTime = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+          }
+        }
+
+        console.log(`📊 Inbox stats for brand ${brandId}: ${totalMessages} messages, ${totalUnread} unread, ${urgentCount} urgent`);
+
+        res.json({
+          totalMessages,
+          unread: totalUnread,
+          urgent: urgentCount,
+          avgResponseTime,
+          conversationCount: conversationsList.length,
+        });
+      } catch (err) {
+        console.error("❌ Error fetching inbox stats:", err);
+        res.status(500).json({ error: "Failed to fetch inbox stats" });
+      }
+    },
+  );
+
   // ✅ NEW: Unified aggregation endpoint - Get ALL messages from ALL connected providers
   app.get(
     "/api/conversations/messages/all",
