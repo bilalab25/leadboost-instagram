@@ -4952,6 +4952,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             `💾 [${provider.toUpperCase()}] Message saved: ${messageId}`,
           );
           console.log(`🧩 meta_conversation_id: ${metaConversationId}`);
+
+          // =========================================================
+          // 📝 UPDATE CONVERSATION lastMessage and lastMessageAt
+          // =========================================================
+          if (messageConversationId) {
+            await storage.updateConversationMetadata(messageConversationId, {
+              lastMessage: content,
+              lastMessageAt: new Date(),
+            });
+            console.log(`📝 Conversation ${messageConversationId} updated with lastMessage`);
+          }
         }
 
         console.log(`✅ [${provider.toUpperCase()}] Message sent successfully`);
