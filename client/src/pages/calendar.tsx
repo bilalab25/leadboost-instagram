@@ -332,15 +332,17 @@ export default function ContentCalendar() {
   });
 
   // If there's an active job found on page load, start tracking it
+  // This effect only runs ONCE when a new active job is detected
+  const activeJobId = activeJobQuery.data?.job?.id;
   useEffect(() => {
-    if (activeJobQuery.data?.hasActiveJob && activeJobQuery.data?.job) {
+    if (activeJobQuery.data?.hasActiveJob && activeJobQuery.data?.job && !currentJobId) {
       const job = activeJobQuery.data.job;
-      if ((job.status === "pending" || job.status === "processing") && !currentJobId) {
+      if (job.status === "pending" || job.status === "processing") {
         setCurrentJobId(job.id);
         setShowGeneratingLoader(true);
       }
     }
-  }, [activeJobQuery.data, currentJobId]);
+  }, [activeJobId]); // Only depend on job ID, not the entire data object
 
   // Check if there's an active job running (must be after activeJobQuery is defined)
   const hasActiveJob = activeJobQuery.data?.hasActiveJob || showGeneratingLoader || !!currentJobId;
