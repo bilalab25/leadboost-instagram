@@ -1387,45 +1387,61 @@ export default function ContentCalendar() {
 
               {/* Footer */}
               <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
-                <Button 
-                  variant="ghost" 
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => {
-                    if (selectedPost) {
-                      updatePostStatusMutation.mutate({
-                        postId: selectedPost.id,
-                        status: "rejected",
-                      });
-                    }
-                    setSelectedPost(null);
-                  }}
-                  data-testid="button-reject-post"
-                >
-                  <XCircle className="w-4 h-4 mr-2" /> Reject Post
-                </Button>
+                {/* Show status badge if already approved or rejected */}
+                {editPost.status === "accepted" ? (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full border border-green-200">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Approved & Scheduled</span>
+                  </div>
+                ) : editPost.status === "rejected" ? (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-full border border-red-200">
+                    <XCircle className="w-5 h-5" />
+                    <span className="font-medium">Rejected</span>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => {
+                      if (selectedPost) {
+                        updatePostStatusMutation.mutate({
+                          postId: selectedPost.id,
+                          status: "rejected",
+                        });
+                      }
+                      setSelectedPost(null);
+                    }}
+                    data-testid="button-reject-post"
+                  >
+                    <XCircle className="w-4 h-4 mr-2" /> Reject Post
+                  </Button>
+                )}
+                
                 <div className="flex gap-3">
                   <Button 
                     variant="outline" 
                     onClick={() => setSelectedPost(null)}
                     data-testid="button-cancel-edit"
                   >
-                    Cancel
+                    {editPost.status === "pending" ? "Cancel" : "Close"}
                   </Button>
-                  <Button 
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-                    onClick={() => {
-                      if (selectedPost) {
-                        updatePostStatusMutation.mutate({
-                          postId: selectedPost.id,
-                          status: "accepted",
-                        });
-                      }
-                      setSelectedPost(null);
-                    }}
-                    data-testid="button-approve-post"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" /> Approve & Schedule
-                  </Button>
+                  {editPost.status === "pending" && (
+                    <Button 
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                      onClick={() => {
+                        if (selectedPost) {
+                          updatePostStatusMutation.mutate({
+                            postId: selectedPost.id,
+                            status: "accepted",
+                          });
+                        }
+                        setSelectedPost(null);
+                      }}
+                      data-testid="button-approve-post"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" /> Approve & Schedule
+                    </Button>
+                  )}
                 </div>
               </div>
             </>
