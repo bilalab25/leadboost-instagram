@@ -91,13 +91,13 @@ const platformIcons: Record<string, any> = {
 };
 
 const platformColors: Record<string, string> = {
-  instagram: "text-pink-500 bg-pink-50",
-  instagram_story: "text-pink-400 bg-pink-50",
-  instagram_reel: "text-pink-600 bg-pink-50",
-  whatsapp: "text-green-500 bg-green-50",
-  facebook: "text-blue-600 bg-blue-50",
-  tiktok: "text-gray-800 bg-gray-50",
-  linkedin: "text-sky-600 bg-sky-50",
+  instagram: "text-gray-700 bg-gray-100",
+  instagram_story: "text-gray-700 bg-gray-100",
+  instagram_reel: "text-gray-700 bg-gray-100",
+  whatsapp: "text-gray-700 bg-gray-100",
+  facebook: "text-gray-700 bg-gray-100",
+  tiktok: "text-gray-700 bg-gray-100",
+  linkedin: "text-gray-700 bg-gray-100",
 };
 
 const statusColors = {
@@ -863,8 +863,8 @@ export default function ContentCalendar() {
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* 📅 Calendar */}
                     <div className="lg:col-span-2">
-                      <Card className="shadow-lg border-0">
-                        <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b">
+                      <Card className="shadow-sm border">
+                        <CardHeader className="bg-white border-b">
                           <div className="flex flex-col gap-4">
                             {/* Header with title and navigation */}
                             <div className="flex items-center justify-between">
@@ -963,9 +963,9 @@ export default function ContentCalendar() {
                                         }
                                         className={
                                           hasActiveJob || isLoadingAiPosts
-                                            ? "bg-gradient-to-r from-brand-100 to-purple-100 border-brand-300"
+                                            ? "bg-purple-100 border-purple-300 text-purple-700"
                                             : canGenerateAiPosts
-                                              ? "bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white"
+                                              ? "bg-purple-600 hover:bg-purple-700 text-white"
                                               : "opacity-60 cursor-not-allowed"
                                         }
                                         data-testid="button-generate-ai-posts"
@@ -1014,8 +1014,8 @@ export default function ContentCalendar() {
                                           }
                                           className={
                                             isPastMonth || isLoadingAiPosts
-                                              ? "opacity-60 cursor-not-allowed bg-gray-300"
-                                              : "bg-green-500 hover:bg-green-600 text-white"
+                                              ? "opacity-60 cursor-not-allowed bg-gray-200"
+                                              : "bg-gray-800 hover:bg-gray-900 text-white"
                                           }
                                           data-testid="button-approve-month"
                                         >
@@ -1107,9 +1107,9 @@ export default function ContentCalendar() {
                                   key={day.toISOString()}
                                   className={`p-2 min-h-[80px] border rounded-lg cursor-pointer transition-colors ${
                                     isToday(day)
-                                      ? "bg-brand-50 border-brand-200"
+                                      ? "bg-purple-50 border-purple-200"
                                       : "bg-white border-gray-200"
-                                  } ${isSelected ? "ring-2 ring-brand-500" : ""}`}
+                                  } ${isSelected ? "ring-2 ring-gray-400" : ""}`}
                                   onClick={() => handleDateClick(day)}
                                 >
                                   <div className="text-sm font-medium text-gray-900">
@@ -1130,10 +1130,10 @@ export default function ContentCalendar() {
                                       const getStatusBorder = () => {
                                         if (!isAiPost) return "";
                                         if (postStatus === "accepted")
-                                          return "ring-2 ring-green-400 ring-offset-1";
+                                          return "border-l-2 border-l-green-500";
                                         if (postStatus === "rejected")
-                                          return "ring-2 ring-red-400 ring-offset-1 opacity-50";
-                                        return "ring-2 ring-yellow-400 ring-offset-1";
+                                          return "border-l-2 border-l-red-400 opacity-50";
+                                        return "border-l-2 border-l-purple-400";
                                       };
 
                                       return (
@@ -1186,7 +1186,7 @@ export default function ContentCalendar() {
                             selectedDatePosts.some((post) => post.status === "pending") && (
                             <Button
                               size="sm"
-                              className="w-full bg-green-500 hover:bg-green-600 text-white"
+                              className="w-full bg-gray-800 hover:bg-gray-900 text-white"
                               onClick={() => handleApproveDay("accepted")}
                               disabled={bulkUpdatePostStatusMutation.isPending}
                               data-testid="button-approve-day"
@@ -1363,7 +1363,7 @@ export default function ContentCalendar() {
                                       <div className="mt-2 pt-2 border-t border-gray-100">
                                         <Button
                                           size="sm"
-                                          className="w-full bg-green-500 hover:bg-green-600 text-white"
+                                          className="w-full bg-gray-800 hover:bg-gray-900 text-white"
                                           onClick={() =>
                                             handleUpdatePostStatus(
                                               post.id,
@@ -1438,11 +1438,11 @@ export default function ContentCalendar() {
             {editPost && (
               <>
                 {/* Header */}
-                <div className="px-6 py-4 border-b bg-gradient-to-r from-gray-50 to-white">
+                <div className="px-6 py-4 border-b bg-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-white" />
+                      <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-purple-600" />
                       </div>
                       <div>
                         <DialogTitle className="text-lg font-semibold">
@@ -1624,7 +1624,7 @@ export default function ContentCalendar() {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
+                <div className="px-6 py-4 border-t bg-white flex items-center justify-between">
                   {/* Show reject button only for pending posts */}
                   {editPost.status === "pending" ? (
                     <Button
@@ -1657,7 +1657,7 @@ export default function ContentCalendar() {
                     </Button>
                     {editPost.status === "pending" && (
                       <Button
-                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                        className="bg-gray-800 hover:bg-gray-900 text-white"
                         onClick={() => {
                           if (selectedPost) {
                             updatePostStatusMutation.mutate({
