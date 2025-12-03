@@ -131,3 +131,21 @@ export async function updateAiGeneratedPostStatus(
     updatedAt: result[0].updatedAt?.toISOString() || now.toISOString(),
   };
 }
+
+export async function bulkUpdateAiGeneratedPostsStatus(
+  postIds: string[],
+  status: "pending" | "accepted" | "rejected"
+): Promise<number> {
+  if (postIds.length === 0) return 0;
+  
+  const now = new Date();
+  const { inArray } = await import("drizzle-orm");
+  
+  const result = await db
+    .update(aiGeneratedPosts)
+    .set({ status, updatedAt: now })
+    .where(inArray(aiGeneratedPosts.id, postIds))
+    .returning();
+
+  return result.length;
+}

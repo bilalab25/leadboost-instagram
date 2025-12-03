@@ -417,14 +417,14 @@ export default function ContentCalendar() {
     }
   }, [jobStatusQuery.data, currentJobId, activeBrandId]);
 
-  // Mutation to update AI post status
+  // Mutation to update AI post status (single post)
   const updatePostStatusMutation = useMutation({
     mutationFn: async ({
       postId,
       status,
     }: {
       postId: string;
-      status: "accepted" | "rejected";
+      status: "accepted" | "rejected" | "pending";
     }) => {
       const response = await fetch(`/api/ai-posts/${postId}/status`, {
         method: "PATCH",
@@ -437,6 +437,42 @@ export default function ContentCalendar() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/ai-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-generated-posts", activeBrandId] });
+    },
+  });
+
+  // Mutation to bulk update AI post status (multiple posts)
+  const bulkUpdatePostStatusMutation = useMutation({
+    mutationFn: async ({
+      postIds,
+      status,
+    }: {
+      postIds: string[];
+      status: "accepted" | "rejected" | "pending";
+    }) => {
+      const response = await fetch(`/api/ai-posts/bulk-status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ postIds, status }),
+      });
+      if (!response.ok) throw new Error("Failed to bulk update post status");
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-generated-posts", activeBrandId] });
+      toast({
+        title: variables.status === "accepted" ? "Posts Approved" : "Posts Rejected",
+        description: `${data.updatedCount} post(s) have been ${variables.status}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update posts",
+        variant: "destructive",
+      });
     },
   });
 
@@ -561,23 +597,78 @@ export default function ContentCalendar() {
 
   const selectedDatePosts = selectedDate ? getPostsForDate(selectedDate) : [];
 
-  // 🔹 Bulk approve
-  const handleApproveMonth = () => {
-    toast({
-      title: "Approved all posts",
-      description: `All posts scheduled for ${format(
-        currentDate,
-        "MMMM yyyy",
-      )} have been approved.`,
+  // Get AI posts for the current month
+  const getAiPostsForMonth = () => {
+    return aiPendingPosts.filter((post) => {
+      const postDate = new Date(post.createdAt);
+      return isSameMonth(postDate, currentDate);
     });
   };
 
-  const handleApproveDay = () => {
-    if (!selectedDate) return;
-    toast({
-      title: "Approved all posts",
-      description: `All posts for ${format(selectedDate, "MMMM d")} approved.`,
+  // Get AI posts for the selected day
+  const getAiPostsForDay = (date: Date) => {
+    const dayName = format(date, "EEEE").toLowerCase();
+    return aiPendingPosts.filter((post) => {
+      return post.dia?.toLowerCase() === dayName && isSameMonth(new Date(post.createdAt), currentDate);
     });
+  };
+
+  // 🔹 Bulk approve/reject for month
+  const handleApproveMonth = (status: "accepted" | "rejected" = "accepted") => {
+    const monthPosts = getAiPostsForMonth();
+    const pendingPosts = monthPosts.filter(p => p.status === "pending");
+    
+    if (pendingPosts.length === 0) {
+      toast({
+        title: "No pending posts",
+        description: "There are no pending posts to update for this month.",
+      });
+      return;
+    }
+
+    const postIds = pendingPosts.map((p) => p.id);
+    bulkUpdatePostStatusMutation.mutate({ postIds, status });
+  };
+
+  // 🔹 Bulk approve/reject for day
+  const handleApproveDay = (status: "accepted" | "rejected" = "accepted") => {
+    if (!selectedDate) return;
+    
+    const dayPosts = getAiPostsForDay(selectedDate);
+    const pendingPosts = dayPosts.filter(p => p.status === "pending");
+    
+    if (pendingPosts.length === 0) {
+      toast({
+        title: "No pending posts",
+        description: "There are no pending posts to update for this day.",
+      });
+      return;
+    }
+
+    const postIds = pendingPosts.map((p) => p.id);
+    bulkUpdatePostStatusMutation.mutate({ postIds, status });
+  };
+
+  // Handle single post status update
+  const handleUpdatePostStatus = (postId: string, status: "accepted" | "rejected") => {
+    updatePostStatusMutation.mutate(
+      { postId, status },
+      {
+        onSuccess: () => {
+          toast({
+            title: status === "accepted" ? "Post Approved" : "Post Rejected",
+            description: `The post has been ${status}.`,
+          });
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Update Failed",
+            description: error.message || "Failed to update post status",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   const handleSavePostingSchedule = (
@@ -787,8 +878,8 @@ export default function ContentCalendar() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={handleApproveMonth}
-                                      disabled={isPastMonth}
+                                      onClick={() => handleApproveMonth("accepted")}
+                                      disabled={isPastMonth || bulkUpdatePostStatusMutation.isPending}
                                       className={isPastMonth 
                                         ? "opacity-60 cursor-not-allowed" 
                                         : "text-green-700 border-green-300 hover:bg-green-50"
@@ -803,6 +894,32 @@ export default function ContentCalendar() {
                                 {isPastMonth && (
                                   <TooltipContent>
                                     <p>Cannot approve past months</p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleApproveMonth("rejected")}
+                                      disabled={isPastMonth || bulkUpdatePostStatusMutation.isPending}
+                                      className={isPastMonth 
+                                        ? "opacity-60 cursor-not-allowed" 
+                                        : "text-red-700 border-red-300 hover:bg-red-50"
+                                      }
+                                      data-testid="button-reject-month"
+                                    >
+                                      <XCircle className="w-4 h-4 mr-1" />
+                                      Reject Month
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                {isPastMonth && (
+                                  <TooltipContent>
+                                    <p>Cannot reject past months</p>
                                   </TooltipContent>
                                 )}
                               </Tooltip>
@@ -881,11 +998,21 @@ export default function ContentCalendar() {
                                       platformIcons[
                                         post.platform as keyof typeof platformIcons
                                       ];
+                                    const isAiPost = post.source === "ai";
+                                    const postStatus = post.status as "pending" | "accepted" | "rejected";
+                                    
+                                    const getStatusBorder = () => {
+                                      if (!isAiPost) return "";
+                                      if (postStatus === "accepted") return "ring-2 ring-green-400 ring-offset-1";
+                                      if (postStatus === "rejected") return "ring-2 ring-red-400 ring-offset-1 opacity-50";
+                                      return "ring-2 ring-yellow-400 ring-offset-1";
+                                    };
+                                    
                                     return (
                                       <div
                                         key={post.id}
                                         data-testid={`calendar-post-${post.id}`}
-                                        className={`text-xs px-2 py-1 rounded truncate flex items-center gap-1 ${platformColors[post.platform as keyof typeof platformColors]}`}
+                                        className={`text-xs px-2 py-1 rounded truncate flex items-center gap-1 ${platformColors[post.platform as keyof typeof platformColors]} ${getStatusBorder()}`}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleOpenPost(post);
@@ -893,6 +1020,12 @@ export default function ContentCalendar() {
                                       >
                                         <PlatformIcon className="inline w-3 h-3 flex-shrink-0" />
                                         <span className="truncate">{post.title}</span>
+                                        {isAiPost && postStatus === "accepted" && (
+                                          <CheckCircle className="w-3 h-3 text-green-600 flex-shrink-0" />
+                                        )}
+                                        {isAiPost && postStatus === "rejected" && (
+                                          <XCircle className="w-3 h-3 text-red-600 flex-shrink-0" />
+                                        )}
                                       </div>
                                     );
                                   })}
@@ -908,21 +1041,38 @@ export default function ContentCalendar() {
                   {/* 📊 Sidebar */}
                   <div className="space-y-4">
                     <Card>
-                      <CardHeader className="flex items-center justify-between">
-                        <CardTitle className="text-lg">
-                          {selectedDate
-                            ? format(selectedDate, "EEEE, MMMM d")
-                            : "Select a date"}
-                        </CardTitle>
-                        {/* ✅ Approve all posts for the day */}
+                      <CardHeader className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">
+                            {selectedDate
+                              ? format(selectedDate, "EEEE, MMMM d")
+                              : "Select a date"}
+                          </CardTitle>
+                        </div>
+                        {/* ✅ Approve/Reject all posts for the day */}
                         {selectedDate && selectedDatePosts.length > 0 && (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={handleApproveDay}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" /> Approve day
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 text-green-700 border-green-300 hover:bg-green-50"
+                              onClick={() => handleApproveDay("accepted")}
+                              disabled={bulkUpdatePostStatusMutation.isPending}
+                              data-testid="button-approve-day"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" /> Approve Day
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 text-red-700 border-red-300 hover:bg-red-50"
+                              onClick={() => handleApproveDay("rejected")}
+                              disabled={bulkUpdatePostStatusMutation.isPending}
+                              data-testid="button-reject-day"
+                            >
+                              <XCircle className="w-4 h-4 mr-1" /> Reject Day
+                            </Button>
+                          </div>
                         )}
                       </CardHeader>
                       <CardContent>
@@ -935,12 +1085,60 @@ export default function ContentCalendar() {
                                 ];
                               const isImageLoading = imageLoadingStates[post.id] !== false;
                               const isAiPost = post.source === "ai";
+                              const postStatus = post.status as "pending" | "accepted" | "rejected";
+                              
+                              const statusConfig = {
+                                pending: { 
+                                  bg: "bg-yellow-100", 
+                                  text: "text-yellow-800", 
+                                  border: "border-yellow-200",
+                                  icon: Clock,
+                                  label: "Pending"
+                                },
+                                accepted: { 
+                                  bg: "bg-green-100", 
+                                  text: "text-green-800", 
+                                  border: "border-green-200",
+                                  icon: CheckCircle,
+                                  label: "Approved"
+                                },
+                                rejected: { 
+                                  bg: "bg-red-100", 
+                                  text: "text-red-800", 
+                                  border: "border-red-200",
+                                  icon: XCircle,
+                                  label: "Rejected"
+                                }
+                              };
+
+                              const currentStatus = statusConfig[postStatus] || statusConfig.pending;
+                              const StatusIcon = currentStatus.icon;
+                              
                               return (
                                 <div
                                   key={post.id}
-                                  className={`border rounded-lg p-4 transition-all hover:shadow-md ${isAiPost ? "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white" : ""}`}
+                                  className={`border rounded-lg p-4 transition-all hover:shadow-md relative ${
+                                    isAiPost 
+                                      ? postStatus === "accepted" 
+                                        ? "border-green-300 bg-gradient-to-br from-green-50/50 to-white"
+                                        : postStatus === "rejected"
+                                        ? "border-red-300 bg-gradient-to-br from-red-50/50 to-white opacity-60"
+                                        : "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white"
+                                      : ""
+                                  }`}
                                   data-testid={`post-preview-${post.id}`}
                                 >
+                                  {/* Status Badge - Top Right Corner */}
+                                  {isAiPost && (
+                                    <div 
+                                      className={`absolute top-2 right-2 flex items-center gap-1 text-xs px-2 py-1 rounded-full ${currentStatus.bg} ${currentStatus.text} ${currentStatus.border} border`}
+                                      data-testid={`post-status-${post.id}`}
+                                    >
+                                      <StatusIcon className="w-3 h-3" />
+                                      <span className="font-medium">{currentStatus.label}</span>
+                                    </div>
+                                  )}
+                                  
                                   {/* AI Badge */}
                                   {isAiPost && (
                                     <div className="flex items-center gap-1 text-xs text-purple-600 mb-2">
@@ -994,6 +1192,8 @@ export default function ContentCalendar() {
                                   <p className="text-sm text-gray-700 line-clamp-2">
                                     {post.content}
                                   </p>
+                                  
+                                  {/* Action buttons */}
                                   <div className="flex gap-2 mt-3">
                                     <Button
                                       size="sm"
@@ -1014,6 +1214,32 @@ export default function ContentCalendar() {
                                       <Edit className="w-3 h-3 mr-1" /> Edit
                                     </Button>
                                   </div>
+                                  
+                                  {/* Individual Approve/Reject buttons for AI posts */}
+                                  {isAiPost && postStatus === "pending" && (
+                                    <div className="flex gap-2 mt-2 pt-2 border-t border-gray-100">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex-1 text-green-700 border-green-300 hover:bg-green-50"
+                                        onClick={() => handleUpdatePostStatus(post.id, "accepted")}
+                                        disabled={updatePostStatusMutation.isPending}
+                                        data-testid={`button-approve-post-${post.id}`}
+                                      >
+                                        <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex-1 text-red-700 border-red-300 hover:bg-red-50"
+                                        onClick={() => handleUpdatePostStatus(post.id, "rejected")}
+                                        disabled={updatePostStatusMutation.isPending}
+                                        data-testid={`button-reject-post-${post.id}`}
+                                      >
+                                        <XCircle className="w-3 h-3 mr-1" /> Reject
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}

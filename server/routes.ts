@@ -2384,6 +2384,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Bulk Update AI Generated Posts Status
+  app.patch(
+    "/api/ai-posts/bulk-status",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { postIds, status } = req.body;
+        const brandId = req.brandId;
+
+        if (!postIds || !Array.isArray(postIds) || postIds.length === 0) {
+          return res.status(400).json({ message: "postIds array is required" });
+        }
+
+        if (!status || !["accepted", "rejected", "pending"].includes(status)) {
+          return res.status(400).json({ message: "Invalid status" });
+        }
+
+        const { bulkUpdateAiGeneratedPostsStatus, getAiGeneratedPostsByBrand } = await import(
+          "./storage/aiGeneratedPosts"
+        );
+
+        // Verify all posts belong to the brand
+        const brandPosts = await getAiGeneratedPostsByBrand(brandId);
+        const brandPostIds = new Set(brandPosts.map(p => p.id));
+        const validPostIds = postIds.filter((id: string) => brandPostIds.has(id));
+
+        if (validPostIds.length === 0) {
+          return res.status(404).json({ message: "No valid posts found" });
+        }
+
+        const updatedCount = await bulkUpdateAiGeneratedPostsStatus(validPostIds, status);
+        
+        res.json({ 
+          success: true, 
+          updatedCount,
+          message: `${updatedCount} post(s) updated to ${status}`
+        });
+      } catch (error) {
+        console.error("[AI Posts Bulk] Error:", error);
+        res.status(500).json({
+          message: "Failed to bulk update post status",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
   // Get AI Generated Posts for brand (with optional status filter)
   app.get(
     "/api/ai-posts",
