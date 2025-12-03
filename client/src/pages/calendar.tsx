@@ -221,11 +221,15 @@ export default function ContentCalendar() {
     return currentViewYear < nowYear || (currentViewYear === nowYear && currentViewMonth < nowMonth);
   }, [currentDate]);
 
+  // Check if there's an active job running
+  const hasActiveJob = activeJobQuery.data?.hasActiveJob || showGeneratingLoader || currentJobId;
+
   // Determine if AI generation is available
-  const canGenerateAiPosts = hasSocialIntegrations && hasBrandDesign && hasPostingFrequency && !hasAiPostsForCurrentMonth && !isPastMonth;
+  const canGenerateAiPosts = hasSocialIntegrations && hasBrandDesign && hasPostingFrequency && !hasAiPostsForCurrentMonth && !isPastMonth && !hasActiveJob;
 
   // Get the reason why generation is disabled
   const getDisabledReason = (): string => {
+    if (hasActiveJob) return "Content is being generated. You can close this page and come back later.";
     if (isPastMonth) return "Cannot generate AI content for past months";
     if (!hasSocialIntegrations) return "Connect Instagram or Facebook to generate AI posts";
     if (!hasBrandDesign) return "Create your brand design first";
@@ -327,6 +331,32 @@ export default function ContentCalendar() {
     },
     enabled: !!activeBrandId,
   });
+
+  // Query to check if there's an active job running for this brand
+  const activeJobQuery = useQuery({
+    queryKey: ["/api/post-generator/active", activeBrandId],
+    queryFn: async () => {
+      if (!activeBrandId) return { hasActiveJob: false, job: null };
+      const response = await fetch(`/api/post-generator/active/${activeBrandId}`, {
+        credentials: "include",
+      });
+      if (!response.ok) return { hasActiveJob: false, job: null };
+      return response.json();
+    },
+    enabled: !!activeBrandId,
+    refetchInterval: 5000, // Check every 5 seconds to detect when job finishes
+  });
+
+  // If there's an active job found on page load, start tracking it
+  useEffect(() => {
+    if (activeJobQuery.data?.hasActiveJob && activeJobQuery.data?.job) {
+      const job = activeJobQuery.data.job;
+      if ((job.status === "pending" || job.status === "processing") && !currentJobId) {
+        setCurrentJobId(job.id);
+        setShowGeneratingLoader(true);
+      }
+    }
+  }, [activeJobQuery.data, currentJobId]);
 
   // Set aiPendingPosts when existing posts are loaded
   useEffect(() => {
@@ -706,20 +736,23 @@ export default function ContentCalendar() {
                                   <span>
                                     <Button
                                       size="sm"
-                                      variant={canGenerateAiPosts ? "default" : "outline"}
+                                      variant={hasActiveJob ? "outline" : canGenerateAiPosts ? "default" : "outline"}
                                       onClick={() => generatePostsMutation.mutate()}
                                       disabled={
                                         generatePostsMutation.isPending ||
                                         !activeBrandId ||
-                                        !canGenerateAiPosts
+                                        !canGenerateAiPosts ||
+                                        hasActiveJob
                                       }
-                                      className={canGenerateAiPosts 
-                                        ? "bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white" 
-                                        : "opacity-60 cursor-not-allowed"
+                                      className={hasActiveJob
+                                        ? "bg-gradient-to-r from-brand-100 to-purple-100 border-brand-300"
+                                        : canGenerateAiPosts 
+                                          ? "bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white" 
+                                          : "opacity-60 cursor-not-allowed"
                                       }
                                       data-testid="button-generate-ai-posts"
                                     >
-                                      {generatePostsMutation.isPending ? (
+                                      {hasActiveJob || generatePostsMutation.isPending ? (
                                         <>
                                           <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                           Generating...
@@ -733,7 +766,7 @@ export default function ContentCalendar() {
                                     </Button>
                                   </span>
                                 </TooltipTrigger>
-                                {!canGenerateAiPosts && (
+                                {(!canGenerateAiPosts || hasActiveJob) && (
                                   <TooltipContent>
                                     <p>{getDisabledReason()}</p>
                                   </TooltipContent>
