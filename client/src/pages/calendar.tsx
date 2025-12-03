@@ -846,12 +846,12 @@ export default function ContentCalendar() {
 
                     {/* Posts already exist for month */}
                     {hasAiPostsForCurrentMonth && (
-                      <Alert className="border-green-200 bg-green-50">
-                        <Sparkles className="h-4 w-4 text-green-600" />
-                        <AlertTitle className="text-green-800">
+                      <Alert className="border-purple-200 bg-purple-50">
+                        <Sparkles className="h-4 w-4 text-purple-600" />
+                        <AlertTitle className="text-purple-800">
                           AI posts ready for {format(currentDate, "MMMM yyyy")}
                         </AlertTitle>
-                        <AlertDescription className="text-green-700">
+                        <AlertDescription className="text-purple-700">
                           You have {currentMonthAiPosts.length} AI-generated
                           posts for this month. Review them in the calendar
                           below.
