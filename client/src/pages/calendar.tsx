@@ -221,22 +221,6 @@ export default function ContentCalendar() {
     return currentViewYear < nowYear || (currentViewYear === nowYear && currentViewMonth < nowMonth);
   }, [currentDate]);
 
-  // Check if there's an active job running
-  const hasActiveJob = activeJobQuery.data?.hasActiveJob || showGeneratingLoader || currentJobId;
-
-  // Determine if AI generation is available
-  const canGenerateAiPosts = hasSocialIntegrations && hasBrandDesign && hasPostingFrequency && !hasAiPostsForCurrentMonth && !isPastMonth && !hasActiveJob;
-
-  // Get the reason why generation is disabled
-  const getDisabledReason = (): string => {
-    if (hasActiveJob) return "Content is being generated. You can close this page and come back later.";
-    if (isPastMonth) return "Cannot generate AI content for past months";
-    if (!hasSocialIntegrations) return "Connect Instagram or Facebook to generate AI posts";
-    if (!hasBrandDesign) return "Create your brand design first";
-    if (!hasPostingFrequency) return "Set your posting frequency first";
-    if (hasAiPostsForCurrentMonth) return `Posts already exist for ${format(currentDate, "MMMM yyyy")}`;
-    return "";
-  };
 
   // Helper function to convert day name to dates in current month
   const getDatesForDayOfWeek = (dayName: string): Date[] => {
@@ -357,6 +341,23 @@ export default function ContentCalendar() {
       }
     }
   }, [activeJobQuery.data, currentJobId]);
+
+  // Check if there's an active job running (must be after activeJobQuery is defined)
+  const hasActiveJob = activeJobQuery.data?.hasActiveJob || showGeneratingLoader || !!currentJobId;
+
+  // Determine if AI generation is available
+  const canGenerateAiPosts = hasSocialIntegrations && hasBrandDesign && hasPostingFrequency && !hasAiPostsForCurrentMonth && !isPastMonth && !hasActiveJob;
+
+  // Get the reason why generation is disabled
+  const getDisabledReason = (): string => {
+    if (hasActiveJob) return "Content is being generated. You can close this page and come back later.";
+    if (isPastMonth) return "Cannot generate AI content for past months";
+    if (!hasSocialIntegrations) return "Connect Instagram or Facebook to generate AI posts";
+    if (!hasBrandDesign) return "Create your brand design first";
+    if (!hasPostingFrequency) return "Set your posting frequency first";
+    if (hasAiPostsForCurrentMonth) return `Posts already exist for ${format(currentDate, "MMMM yyyy")}`;
+    return "";
+  };
 
   // Set aiPendingPosts when existing posts are loaded
   useEffect(() => {
