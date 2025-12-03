@@ -430,7 +430,7 @@ export default function ContentCalendar() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, brandId: activeBrandId }),
       });
       if (!response.ok) throw new Error("Failed to update post status");
       return response.json();
@@ -454,7 +454,7 @@ export default function ContentCalendar() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ postIds, status }),
+        body: JSON.stringify({ postIds, status, brandId: activeBrandId }),
       });
       if (!response.ok) throw new Error("Failed to bulk update post status");
       return response.json();

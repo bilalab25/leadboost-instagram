@@ -2360,7 +2360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { status } = req.body;
         const brandId = req.brandId;
 
-        if (!status || !["accepted", "rejected"].includes(status)) {
+        if (!status || !["accepted", "rejected", "pending"].includes(status)) {
           return res.status(400).json({ message: "Invalid status" });
         }
 
