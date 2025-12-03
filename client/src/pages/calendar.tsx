@@ -1270,6 +1270,17 @@ export default function ContentCalendar() {
                         {editPost.platform}
                       </span>
                     )}
+                    {/* Status badge next to platform */}
+                    {editPost.status === "accepted" && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium border border-green-200">
+                        <CheckCircle className="w-4 h-4" /> Approved
+                      </span>
+                    )}
+                    {editPost.status === "rejected" && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium border border-red-200">
+                        <XCircle className="w-4 h-4" /> Rejected
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1387,18 +1398,8 @@ export default function ContentCalendar() {
 
               {/* Footer */}
               <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
-                {/* Show status badge if already approved or rejected */}
-                {editPost.status === "accepted" ? (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full border border-green-200">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Approved & Scheduled</span>
-                  </div>
-                ) : editPost.status === "rejected" ? (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-full border border-red-200">
-                    <XCircle className="w-5 h-5" />
-                    <span className="font-medium">Rejected</span>
-                  </div>
-                ) : (
+                {/* Show reject button only for pending posts */}
+                {editPost.status === "pending" ? (
                   <Button 
                     variant="ghost" 
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -1415,6 +1416,8 @@ export default function ContentCalendar() {
                   >
                     <XCircle className="w-4 h-4 mr-2" /> Reject Post
                   </Button>
+                ) : (
+                  <div></div>
                 )}
                 
                 <div className="flex gap-3">
