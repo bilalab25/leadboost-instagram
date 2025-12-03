@@ -784,58 +784,60 @@ export async function processPostGeneration(
     const metaInsights = metaIntegration ? await fetchMetaInsights(metaIntegration) : null;
 
     // Fetch posting frequency settings from social_posting_frequency table
+    // THIS IS THE SOURCE OF TRUTH - only platforms in this table will get posts generated
     const postingFrequencies = await storage.getSocialPostingFrequenciesByBrand(brandId);
     console.log(`[PostGenerator] Found ${postingFrequencies.length} posting frequency settings for brand ${brandId}`);
+    
+    if (postingFrequencies.length === 0) {
+      throw new Error("No posting frequency settings found. Please configure your posting schedule first in Settings > Posting Frequency.");
+    }
     
     // Determine if we're generating for current month (need to skip past dates)
     const now = new Date();
     const isCurrentMonth = year === now.getFullYear() && month === (now.getMonth() + 1);
     
-    // Build posting schedule for each connected platform
+    // Build posting schedule ONLY for platforms that are in social_posting_frequency AND have active integrations
     const postingSchedule: PlatformPostingSchedule[] = [];
     
-    for (const platform of uniquePlatforms) {
-      // Find posting frequency for this platform (normalize instagram_direct to instagram)
-      const normalizedPlatform = platform === 'instagram_direct' ? 'instagram' : platform;
-      const frequency = postingFrequencies.find(f => 
-        f.platform.toLowerCase() === normalizedPlatform.toLowerCase()
+    // Start from social_posting_frequency (source of truth), then validate against integrations
+    for (const frequency of postingFrequencies) {
+      const frequencyPlatform = frequency.platform.toLowerCase();
+      
+      // Check if this platform has an active integration
+      const hasIntegration = uniquePlatforms.some(p => {
+        const normalizedIntegration = p === 'instagram_direct' ? 'instagram' : p.toLowerCase();
+        return normalizedIntegration === frequencyPlatform;
+      });
+      
+      if (!hasIntegration) {
+        console.log(`[PostGenerator] Platform "${frequencyPlatform}" is in posting frequency but has no active integration - skipping`);
+        continue;
+      }
+      
+      if (!frequency.daysWeek || frequency.daysWeek.length === 0) {
+        console.log(`[PostGenerator] Platform "${frequencyPlatform}" has no posting days configured - skipping`);
+        continue;
+      }
+      
+      // Calculate posting dates based on frequency settings
+      const postingDates = calculatePostingDates(
+        month, 
+        year, 
+        frequency.daysWeek,
+        isCurrentMonth // Skip past dates if generating for current month
       );
       
-      if (frequency && frequency.daysWeek && frequency.daysWeek.length > 0) {
-        // Calculate posting dates based on frequency settings
-        const postingDates = calculatePostingDates(
-          month, 
-          year, 
-          frequency.daysWeek,
-          isCurrentMonth // Skip past dates if generating for current month
-        );
+      if (postingDates.length > 0) {
+        postingSchedule.push({
+          platform: frequencyPlatform,
+          frequencyDays: frequency.frequencyDays,
+          daysWeek: frequency.daysWeek,
+          postingDates
+        });
         
-        if (postingDates.length > 0) {
-          postingSchedule.push({
-            platform: normalizedPlatform,
-            frequencyDays: frequency.frequencyDays,
-            daysWeek: frequency.daysWeek,
-            postingDates
-          });
-          
-          console.log(`[PostGenerator] Platform ${normalizedPlatform}: ${postingDates.length} posts scheduled on days ${frequency.daysWeek.join(', ')}`);
-        } else {
-          console.log(`[PostGenerator] Platform ${normalizedPlatform}: No valid posting dates found (all may be in the past)`);
-        }
+        console.log(`[PostGenerator] Platform ${frequencyPlatform}: ${postingDates.length} posts scheduled on days ${frequency.daysWeek.join(', ')}`);
       } else {
-        console.log(`[PostGenerator] No posting frequency found for platform ${normalizedPlatform}, using defaults`);
-        // Default: 3 posts per week on Monday, Wednesday, Friday
-        const defaultDays = ['mon', 'wed', 'fri'];
-        const postingDates = calculatePostingDates(month, year, defaultDays, isCurrentMonth);
-        
-        if (postingDates.length > 0) {
-          postingSchedule.push({
-            platform: normalizedPlatform,
-            frequencyDays: 3,
-            daysWeek: defaultDays,
-            postingDates
-          });
-        }
+        console.log(`[PostGenerator] Platform ${frequencyPlatform}: No valid posting dates found (all may be in the past)`);
       }
     }
     
@@ -843,10 +845,13 @@ export async function processPostGeneration(
     const totalPosts = postingSchedule.reduce((sum, s) => sum + s.postingDates.length, 0);
     console.log(`[PostGenerator] Total posts to generate: ${totalPosts} across ${postingSchedule.length} platforms`);
     
-    if (totalPosts === 0) {
-      throw new Error("No valid posting dates found for this month. Please check your posting frequency settings or try a future month.");
+    if (postingSchedule.length === 0 || totalPosts === 0) {
+      throw new Error("No valid posting schedule found. Please ensure you have configured posting frequency for platforms that are connected, or try a future month if all dates are in the past.");
     }
 
+    // Get platforms from the schedule (source of truth)
+    const scheduledPlatforms = postingSchedule.map(s => s.platform);
+    
     const context: PostGenerationContext = {
       brandId,
       brandName: brand.name,
@@ -856,40 +861,52 @@ export async function processPostGeneration(
       metaInsights: metaInsights || undefined,
       month,
       year,
-      connectedPlatforms: uniquePlatforms,
+      connectedPlatforms: scheduledPlatforms,
       postingSchedule,
     };
 
     const allPosts = await generatePostsWithGemini(context);
 
-    // Server-side filtering: Only keep posts for connected platforms
-    // This ensures that even if the LLM generates posts for other platforms, they are not saved
-    const allowedPlatforms = new Set([
-      ...uniquePlatforms,
-      // Include Instagram variants if Instagram is connected
-      ...(uniquePlatforms.includes('instagram') ? ['instagram', 'instagram_story', 'instagram_reel'] : []),
-      // Include Facebook if connected
-      ...(uniquePlatforms.includes('facebook') ? ['facebook'] : []),
-    ]);
+    // Server-side filtering: Only keep posts for platforms in the posting schedule
+    // Build a map of allowed platform -> allowed dates
+    const allowedSchedule = new Map<string, Set<string>>();
+    for (const schedule of postingSchedule) {
+      const dates = new Set(schedule.postingDates);
+      // Add the base platform
+      allowedSchedule.set(schedule.platform, dates);
+      // Include Instagram variants if Instagram is in the schedule
+      if (schedule.platform === 'instagram') {
+        allowedSchedule.set('instagram_story', dates);
+        allowedSchedule.set('instagram_reel', dates);
+      }
+    }
     
     // Get today's date for filtering past dates
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     const posts = allPosts.filter(post => {
-      // Check platform is allowed
-      const isAllowed = allowedPlatforms.has(post.platform);
-      if (!isAllowed) {
-        console.log(`[PostGenerator] Filtering out post for platform "${post.platform}" - not connected`);
+      // Check platform is in the posting schedule
+      const allowedDates = allowedSchedule.get(post.platform);
+      if (!allowedDates) {
+        console.log(`[PostGenerator] Filtering out post for platform "${post.platform}" - not in posting schedule`);
         return false;
       }
       
-      // Check date is not in the past
+      // Check date is in the allowed dates for this platform
       if (post.dia) {
         const postDate = new Date(post.dia);
         postDate.setHours(0, 0, 0, 0);
+        
+        // Check date is not in the past
         if (postDate < today) {
           console.log(`[PostGenerator] Filtering out post for date "${post.dia}" - date is in the past`);
+          return false;
+        }
+        
+        // Check date is in the allowed dates for this platform
+        if (!allowedDates.has(post.dia)) {
+          console.log(`[PostGenerator] Filtering out post for platform "${post.platform}" on date "${post.dia}" - not a scheduled posting day`);
           return false;
         }
       }
