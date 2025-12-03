@@ -447,10 +447,15 @@ export default function ContentCalendar() {
         throw new Error("No brand selected");
       }
 
+      // Send the month and year that the user is currently viewing
+      const targetMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+      const targetYear = currentDate.getFullYear();
+
       const response = await fetch(`/api/post-generator/${activeBrandId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
+        body: JSON.stringify({ month: targetMonth, year: targetYear }),
       });
 
       if (!response.ok) {
