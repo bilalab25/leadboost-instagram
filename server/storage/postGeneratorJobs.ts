@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { postGeneratorJobs } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, or, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface PostGeneratorJob {
@@ -97,27 +97,31 @@ export async function getPostGeneratorJob(
 export async function getActiveJobByBrand(
   brandId: string,
 ): Promise<PostGeneratorJob | null> {
+  // Query directly for pending/processing jobs, ordered by newest first
   const result = await db
     .select()
     .from(postGeneratorJobs)
-    .where(eq(postGeneratorJobs.brandId, brandId))
-    .orderBy(postGeneratorJobs.createdAt)
-    .limit(10);
+    .where(
+      and(
+        eq(postGeneratorJobs.brandId, brandId),
+        or(
+          eq(postGeneratorJobs.status, "pending"),
+          eq(postGeneratorJobs.status, "processing")
+        )
+      )
+    )
+    .orderBy(desc(postGeneratorJobs.createdAt))
+    .limit(1);
 
-  // Find the most recent job that is still pending or processing
-  const activeJob = result.find(
-    (job) => job.status === "pending" || job.status === "processing"
-  );
-
-  if (!activeJob) return null;
+  if (!result[0]) return null;
 
   return {
-    id: activeJob.id,
-    brandId: activeJob.brandId,
-    status: activeJob.status as any,
-    result: activeJob.result,
-    error: activeJob.error,
-    createdAt: activeJob.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: activeJob.updatedAt?.toISOString() || new Date().toISOString(),
+    id: result[0].id,
+    brandId: result[0].brandId,
+    status: result[0].status as any,
+    result: result[0].result,
+    error: result[0].error,
+    createdAt: result[0].createdAt?.toISOString() || new Date().toISOString(),
+    updatedAt: result[0].updatedAt?.toISOString() || new Date().toISOString(),
   };
 }
