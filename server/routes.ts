@@ -2496,6 +2496,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Check if there's an active job running for a brand
+  app.get(
+    "/api/post-generator/active/:brandId",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.params.brandId || req.brandId;
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        const { getActiveJobByBrand } = await import(
+          "./storage/postGeneratorJobs"
+        );
+
+        const activeJob = await getActiveJobByBrand(brandId);
+        
+        res.json({
+          hasActiveJob: !!activeJob,
+          job: activeJob,
+        });
+      } catch (error) {
+        console.error("[Post Generator Active Check] Error:", error);
+        res.status(500).json({
+          message: "Failed to check active job status",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
   // Campaigns routes
   app.get(
     "/api/campaigns",

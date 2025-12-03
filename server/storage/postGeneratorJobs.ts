@@ -93,3 +93,31 @@ export async function getPostGeneratorJob(
     updatedAt: result[0].updatedAt?.toISOString() || new Date().toISOString(),
   };
 }
+
+export async function getActiveJobByBrand(
+  brandId: string,
+): Promise<PostGeneratorJob | null> {
+  const result = await db
+    .select()
+    .from(postGeneratorJobs)
+    .where(eq(postGeneratorJobs.brandId, brandId))
+    .orderBy(postGeneratorJobs.createdAt)
+    .limit(10);
+
+  // Find the most recent job that is still pending or processing
+  const activeJob = result.find(
+    (job) => job.status === "pending" || job.status === "processing"
+  );
+
+  if (!activeJob) return null;
+
+  return {
+    id: activeJob.id,
+    brandId: activeJob.brandId,
+    status: activeJob.status as any,
+    result: activeJob.result,
+    error: activeJob.error,
+    createdAt: activeJob.createdAt?.toISOString() || new Date().toISOString(),
+    updatedAt: activeJob.updatedAt?.toISOString() || new Date().toISOString(),
+  };
+}
