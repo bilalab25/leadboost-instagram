@@ -1057,122 +1057,60 @@ export default function ContentCalendar() {
                       </Card>
                     </div>
 
-                    {/* 📊 Sidebar */}
+                    {/* Sidebar */}
                     <div className="space-y-4">
-                      <Card>
-                        <CardHeader className="flex flex-col gap-2">
+                      <Card className="border-0 shadow-sm">
+                        <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg">
+                            <CardTitle className="text-lg font-semibold text-foreground">
                               {selectedDate
-                                ? format(selectedDate, "EEEE, MMMM d")
+                                ? format(selectedDate, "EEEE, MMM d")
                                 : "Select a date"}
                             </CardTitle>
+                            {selectedDate && selectedDatePosts.length > 0 && 
+                              selectedDatePosts.some((post) => post.status === "pending") && (
+                              <Button
+                                size="sm"
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                onClick={() => handleApproveDay("accepted")}
+                                disabled={bulkUpdatePostStatusMutation.isPending}
+                                data-testid="button-approve-day"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                                Approve
+                              </Button>
+                            )}
                           </div>
-                          {/* ✅ Approve all posts for the day - only show if there are pending posts */}
-                          {selectedDate && selectedDatePosts.length > 0 && 
-                            selectedDatePosts.some((post) => post.status === "pending") && (
-                            <Button
-                              size="sm"
-                              className="w-full bg-green-500 hover:bg-green-600 text-white"
-                              onClick={() => handleApproveDay("accepted")}
-                              disabled={bulkUpdatePostStatusMutation.isPending}
-                              data-testid="button-approve-day"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" /> Approve
-                              Day
-                            </Button>
-                          )}
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-0">
                           {selectedDatePosts.length > 0 ? (
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                               {selectedDatePosts.map((post) => {
-                                const PlatformIcon =
-                                  platformIcons[
-                                    post.platform as keyof typeof platformIcons
-                                  ];
-                                const isImageLoading =
-                                  imageLoadingStates[post.id] !== false;
+                                const PlatformIcon = platformIcons[post.platform as keyof typeof platformIcons];
+                                const isImageLoading = imageLoadingStates[post.id] !== false;
                                 const isAiPost = post.source === "ai";
-                                const postStatus = post.status as
-                                  | "pending"
-                                  | "accepted"
-                                  | "rejected";
+                                const postStatus = post.status as "pending" | "accepted" | "rejected";
 
-                                const statusConfig = {
-                                  pending: {
-                                    bg: "bg-yellow-100",
-                                    text: "text-yellow-800",
-                                    border: "border-yellow-200",
-                                    icon: Clock,
-                                    label: "Pending",
-                                  },
-                                  accepted: {
-                                    bg: "bg-green-100",
-                                    text: "text-green-800",
-                                    border: "border-green-200",
-                                    icon: CheckCircle,
-                                    label: "Approved",
-                                  },
-                                  rejected: {
-                                    bg: "bg-red-100",
-                                    text: "text-red-800",
-                                    border: "border-red-200",
-                                    icon: XCircle,
-                                    label: "Rejected",
-                                  },
+                                const statusStyles = {
+                                  pending: "border-l-amber-400 bg-amber-50/30",
+                                  accepted: "border-l-emerald-500 bg-emerald-50/30",
+                                  rejected: "border-l-red-400 bg-red-50/30 opacity-60",
                                 };
-
-                                const currentStatus =
-                                  statusConfig[postStatus] ||
-                                  statusConfig.pending;
-                                const StatusIcon = currentStatus.icon;
 
                                 return (
                                   <div
                                     key={post.id}
-                                    className={`border rounded-lg p-4 transition-all hover:shadow-md relative ${
-                                      isAiPost
-                                        ? postStatus === "accepted"
-                                          ? "border-green-300 bg-gradient-to-br from-green-50/50 to-white"
-                                          : postStatus === "rejected"
-                                            ? "border-red-300 bg-gradient-to-br from-red-50/50 to-white opacity-60"
-                                            : "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white"
-                                        : ""
+                                    className={`rounded-lg overflow-hidden border border-border bg-card cursor-pointer transition-all hover:shadow-md ${
+                                      isAiPost ? `border-l-4 ${statusStyles[postStatus]}` : ""
                                     }`}
+                                    onClick={() => handleOpenPost(post)}
                                     data-testid={`post-preview-${post.id}`}
                                   >
-                                    {/* Status Badge - Top Right Corner */}
-                                    {isAiPost && (
-                                      <div
-                                        className={`absolute top-2 right-2 flex items-center gap-1 text-xs px-2 py-1 rounded-full ${currentStatus.bg} ${currentStatus.text} ${currentStatus.border} border`}
-                                        data-testid={`post-status-${post.id}`}
-                                      >
-                                        <StatusIcon className="w-3 h-3" />
-                                        <span className="font-medium">
-                                          {currentStatus.label}
-                                        </span>
-                                      </div>
-                                    )}
-
-                                    {/* AI Badge */}
-                                    {isAiPost && (
-                                      <div className="flex items-center gap-1 text-xs text-purple-600 mb-2">
-                                        <Sparkles className="w-3 h-3" />
-                                        <span className="font-medium">
-                                          AI Generated
-                                        </span>
-                                      </div>
-                                    )}
-
-                                    {/* Image with loading state */}
-                                    <div className="relative w-full h-32 mb-2 rounded overflow-hidden bg-gray-100">
+                                    {/* Image */}
+                                    <div className="relative w-full h-28 bg-muted">
                                       {isImageLoading && post.imageUrl && (
                                         <div className="absolute inset-0 flex items-center justify-center">
                                           <Skeleton className="w-full h-full" />
-                                          <div className="absolute inset-0 flex items-center justify-center">
-                                            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                                          </div>
                                         </div>
                                       )}
                                       {post.imageUrl ? (
@@ -1180,132 +1118,44 @@ export default function ContentCalendar() {
                                           src={post.imageUrl}
                                           alt={post.title}
                                           className={`w-full h-full object-cover transition-opacity duration-300 ${isImageLoading ? "opacity-0" : "opacity-100"}`}
-                                          onLoad={() =>
-                                            setImageLoadingStates((prev) => ({
-                                              ...prev,
-                                              [post.id]: false,
-                                            }))
-                                          }
-                                          onError={() =>
-                                            setImageLoadingStates((prev) => ({
-                                              ...prev,
-                                              [post.id]: false,
-                                            }))
-                                          }
+                                          onLoad={() => setImageLoadingStates((prev) => ({ ...prev, [post.id]: false }))}
+                                          onError={() => setImageLoadingStates((prev) => ({ ...prev, [post.id]: false }))}
                                         />
                                       ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                          <ImageIcon className="w-8 h-8 text-gray-300" />
+                                        <div className="w-full h-full flex items-center justify-center">
+                                          <ImageIcon className="w-8 h-8 text-muted-foreground/30" />
                                         </div>
                                       )}
-                                    </div>
-
-                                    <div className="flex items-center justify-between mb-1">
-                                      <p className="font-medium text-sm line-clamp-1">
-                                        {post.title}
-                                      </p>
-                                      <div
-                                        className={`flex items-center text-xs px-2 py-1 rounded flex-shrink-0 ml-2 ${platformColors[post.platform as keyof typeof platformColors]}`}
-                                      >
-                                        <PlatformIcon className="w-3 h-3 mr-1" />
-                                        {post.platform.charAt(0).toUpperCase() +
-                                          post.platform.slice(1)}
+                                      {/* Platform badge on image */}
+                                      <div className="absolute top-2 left-2 flex items-center gap-1 text-xs bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+                                        <PlatformIcon className="w-3 h-3" />
+                                        <span className="font-medium capitalize">{post.platform}</span>
                                       </div>
                                     </div>
-                                    <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {format(
-                                        new Date(post.scheduledFor),
-                                        "h:mm a",
-                                      )}
-                                    </p>
-                                    <p className="text-sm text-gray-700 line-clamp-2">
-                                      {post.content}
-                                    </p>
 
-                                    {/* Action buttons */}
-                                    <div className="flex gap-2 mt-3">
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="flex-1"
-                                        onClick={() => handleOpenPost(post)}
-                                        data-testid={`button-view-post-${post.id}`}
-                                      >
-                                        <Eye className="w-3 h-3 mr-1" /> View
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="flex-1"
-                                        onClick={() => setEditPost({ ...post })}
-                                        data-testid={`button-edit-post-${post.id}`}
-                                      >
-                                        <Edit className="w-3 h-3 mr-1" /> Edit
-                                      </Button>
+                                    {/* Content */}
+                                    <div className="p-3">
+                                      <div className="flex items-start justify-between gap-2 mb-1">
+                                        <p className="font-medium text-sm text-foreground line-clamp-1">{post.title}</p>
+                                        <span className="text-xs text-muted-foreground flex-shrink-0">
+                                          {format(new Date(post.scheduledFor), "h:mm a")}
+                                        </span>
+                                      </div>
+                                      <p className="text-xs text-muted-foreground line-clamp-2">{post.content}</p>
                                     </div>
 
-                                    {/* Individual Approve button for AI posts */}
-                                    {isAiPost && postStatus === "pending" && (
-                                      <div className="mt-2 pt-2 border-t border-gray-100">
-                                        <Button
-                                          size="sm"
-                                          className="w-full bg-green-500 hover:bg-green-600 text-white"
-                                          onClick={() =>
-                                            handleUpdatePostStatus(
-                                              post.id,
-                                              "accepted",
-                                            )
-                                          }
-                                          disabled={
-                                            updatePostStatusMutation.isPending
-                                          }
-                                          data-testid={`button-approve-post-${post.id}`}
-                                        >
-                                          <CheckCircle className="w-3 h-3 mr-1" />{" "}
-                                          Approve & Schedule
-                                        </Button>
-                                      </div>
-                                    )}
                                   </div>
                                 );
                               })}
                             </div>
                           ) : (
-                            <p className="text-gray-500 text-center py-8">
-                              {selectedDate
-                                ? "No posts for this day"
-                                : "Click on a day to view posts"}
-                            </p>
+                            <div className="text-center py-12">
+                              <CalendarIcon className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                              <p className="text-muted-foreground text-sm">
+                                {selectedDate ? "No posts scheduled" : "Select a date to view posts"}
+                              </p>
+                            </div>
                           )}
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">This Week</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">
-                                Scheduled
-                              </span>
-                              <span className="font-medium">3</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">
-                                Published
-                              </span>
-                              <span className="font-medium">1</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">
-                                Drafts
-                              </span>
-                              <span className="font-medium">1</span>
-                            </div>
-                          </div>
                         </CardContent>
                       </Card>
                     </div>
