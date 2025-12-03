@@ -763,12 +763,12 @@ export default function ContentCalendar() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex h-screen overflow-hidden bg-gray-50">
+      <div className="min-h-screen bg-background">
+        <div className="flex h-screen overflow-hidden">
           <div className="flex flex-col w-0 flex-1 overflow-hidden">
             <main className="flex-1 relative overflow-y-auto focus:outline-none">
-              <div className="py-6">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+              <div className="py-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   {/* Alert Banners for Missing Requirements */}
                   <div className="space-y-3 mb-6">
                     {/* No integrations banner */}
@@ -861,24 +861,21 @@ export default function ContentCalendar() {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* 📅 Calendar */}
+                    {/* Calendar */}
                     <div className="lg:col-span-2">
-                      <Card className="shadow-lg border-0">
-                        <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b">
+                      <Card className="border-0 shadow-sm">
+                        <CardHeader className="pb-4">
                           <div className="flex flex-col gap-4">
                             {/* Header with title and navigation */}
                             <div className="flex items-center justify-between">
-                              <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                <CalendarIcon className="h-6 w-6 text-gray-500" />
-                                <span className="text-gray-800">
-                                  {format(currentDate, "MMMM yyyy")}
-                                </span>
+                              <CardTitle className="text-2xl font-semibold text-foreground">
+                                {format(currentDate, "MMMM yyyy")}
                               </CardTitle>
-                              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-white"
+                                  className="h-8 w-8 p-0 hover:bg-background"
                                   onClick={() =>
                                     setCurrentDate(
                                       new Date(
@@ -894,7 +891,7 @@ export default function ContentCalendar() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 px-3 hover:bg-white text-xs font-medium"
+                                  className="h-8 px-3 hover:bg-background text-xs font-medium"
                                   onClick={() => setCurrentDate(new Date())}
                                   data-testid="button-today"
                                 >
@@ -903,7 +900,7 @@ export default function ContentCalendar() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-white"
+                                  className="h-8 w-8 p-0 hover:bg-background"
                                   onClick={() =>
                                     setCurrentDate(
                                       new Date(
@@ -920,247 +917,137 @@ export default function ContentCalendar() {
                             </div>
 
                             {/* Action buttons row */}
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                              <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setIsFrequencyModalOpen(true)}
+                                className="text-muted-foreground"
+                                data-testid="button-set-posting-frequency"
+                              >
+                                <Settings className="w-4 h-4" />
+                                {hasPostingFrequency ? "Frequency" : "Set Frequency"}
+                              </Button>
+
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => generatePostsMutation.mutate()}
+                                      disabled={
+                                        generatePostsMutation.isPending ||
+                                        !activeBrandId ||
+                                        !canGenerateAiPosts ||
+                                        hasActiveJob ||
+                                        isLoadingAiPosts
+                                      }
+                                      className={
+                                        canGenerateAiPosts && !hasActiveJob && !isLoadingAiPosts
+                                          ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                                          : ""
+                                      }
+                                      variant={canGenerateAiPosts && !hasActiveJob && !isLoadingAiPosts ? "default" : "outline"}
+                                      data-testid="button-generate-ai-posts"
+                                    >
+                                      {isLoadingAiPosts || hasActiveJob || generatePostsMutation.isPending ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <Sparkles className="w-4 h-4" />
+                                      )}
+                                      {isLoadingAiPosts ? "Loading..." : hasActiveJob || generatePostsMutation.isPending ? "Generating..." : "Generate"}
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                {(!canGenerateAiPosts || hasActiveJob || isLoadingAiPosts) && (
+                                  <TooltipContent>
+                                    <p>{isLoadingAiPosts ? "Loading existing posts..." : getDisabledReason()}</p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+
+                              {hasPendingPostsForMonth && (
                                 <Button
                                   size="sm"
-                                  variant="outline"
-                                  onClick={() => setIsFrequencyModalOpen(true)}
-                                  className={
-                                    !hasPostingFrequency
-                                      ? "border-blue-300 text-blue-700 hover:bg-blue-50"
-                                      : ""
-                                  }
-                                  data-testid="button-set-posting-frequency"
+                                  onClick={() => handleApproveMonth("accepted")}
+                                  disabled={isPastMonth || bulkUpdatePostStatusMutation.isPending || isLoadingAiPosts}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                  data-testid="button-approve-month"
                                 >
-                                  <Settings className="w-4 h-4 mr-1" />
-                                  {hasPostingFrequency
-                                    ? "Edit Frequency"
-                                    : "Set Frequency"}
+                                  <CheckCircle className="w-4 h-4" />
+                                  Approve All
                                 </Button>
-
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span>
-                                      <Button
-                                        size="sm"
-                                        variant={
-                                          hasActiveJob || isLoadingAiPosts
-                                            ? "outline"
-                                            : canGenerateAiPosts
-                                              ? "default"
-                                              : "outline"
-                                        }
-                                        onClick={() =>
-                                          generatePostsMutation.mutate()
-                                        }
-                                        disabled={
-                                          generatePostsMutation.isPending ||
-                                          !activeBrandId ||
-                                          !canGenerateAiPosts ||
-                                          hasActiveJob ||
-                                          isLoadingAiPosts
-                                        }
-                                        className={
-                                          hasActiveJob || isLoadingAiPosts
-                                            ? "bg-gradient-to-r from-brand-100 to-purple-100 border-brand-300"
-                                            : canGenerateAiPosts
-                                              ? "bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white"
-                                              : "opacity-60 cursor-not-allowed"
-                                        }
-                                        data-testid="button-generate-ai-posts"
-                                      >
-                                        {isLoadingAiPosts ? (
-                                          <>
-                                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                            Loading...
-                                          </>
-                                        ) : hasActiveJob ||
-                                        generatePostsMutation.isPending ? (
-                                          <>
-                                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                            Generating...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Sparkles className="w-4 h-4 mr-1" />
-                                            AI Suggestions
-                                          </>
-                                        )}
-                                      </Button>
-                                    </span>
-                                  </TooltipTrigger>
-                                  {(!canGenerateAiPosts || hasActiveJob || isLoadingAiPosts) && (
-                                    <TooltipContent>
-                                      <p>{isLoadingAiPosts ? "Loading existing posts..." : getDisabledReason()}</p>
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
-
-                                {/* Only show Approve Month button if there are pending posts */}
-                                {hasPendingPostsForMonth && (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span>
-                                        <Button
-                                          size="sm"
-                                          onClick={() =>
-                                            handleApproveMonth("accepted")
-                                          }
-                                          disabled={
-                                            isPastMonth ||
-                                            bulkUpdatePostStatusMutation.isPending ||
-                                            isLoadingAiPosts
-                                          }
-                                          className={
-                                            isPastMonth || isLoadingAiPosts
-                                              ? "opacity-60 cursor-not-allowed bg-gray-300"
-                                              : "bg-green-500 hover:bg-green-600 text-white"
-                                          }
-                                          data-testid="button-approve-month"
-                                        >
-                                          {isLoadingAiPosts ? (
-                                            <>
-                                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                              Loading...
-                                            </>
-                                          ) : (
-                                            <>
-                                              <CheckCircle className="w-4 h-4 mr-1" />
-                                              Approve Month
-                                            </>
-                                          )}
-                                        </Button>
-                                      </span>
-                                    </TooltipTrigger>
-                                    {(isPastMonth || isLoadingAiPosts) && (
-                                      <TooltipContent>
-                                        <p>{isLoadingAiPosts ? "Loading posts..." : "Cannot approve past months"}</p>
-                                      </TooltipContent>
-                                    )}
-                                  </Tooltip>
-                                )}
-                              </div>
-
-                              {/* Pause/Autopost toggle */}
-                              <div
-                                onClick={handleToggle}
-                                className={`relative flex w-36 h-9 rounded-full cursor-pointer select-none transition-all duration-300 border ${
-                                  isPaused
-                                    ? "bg-gray-100 border-gray-300"
-                                    : "bg-gray-100 border-gray-300"
-                                }`}
-                              >
-                                <span
-                                  className={`absolute top-1 left-1 h-7 w-[calc(50%-4px)] rounded-full shadow-sm transform transition-all duration-300 ${
-                                    isPaused
-                                      ? "translate-x-0 bg-white border border-gray-300"
-                                      : "translate-x-full bg-white border border-gray-300"
-                                  }`}
-                                ></span>
-                                <div className="absolute inset-0 flex items-center justify-between px-3 text-xs font-medium">
-                                  <span
-                                    className={`transition-colors ${isPaused ? "text-gray-800" : "text-gray-400"}`}
-                                  >
-                                    Pause
-                                  </span>
-                                  <span
-                                    className={`transition-colors ${!isPaused ? "text-gray-800" : "text-gray-400"}`}
-                                  >
-                                    Auto
-                                  </span>
-                                </div>
-                              </div>
+                              )}
                             </div>
                           </div>
                         </CardHeader>
 
-                        <CardContent>
+                        <CardContent className="pt-0">
                           {/* Week headers */}
-                          <div className="grid grid-cols-7 gap-2 mb-4">
-                            {[
-                              "Sun",
-                              "Mon",
-                              "Tue",
-                              "Wed",
-                              "Thu",
-                              "Fri",
-                              "Sat",
-                            ].map((day) => (
-                              <div
-                                key={day}
-                                className="text-center text-sm font-medium text-gray-500 py-2"
-                              >
+                          <div className="grid grid-cols-7 gap-1 mb-2">
+                            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                              <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2 uppercase tracking-wide">
                                 {day}
                               </div>
                             ))}
                           </div>
 
                           {/* Days */}
-                          <div className="grid grid-cols-7 gap-2">
+                          <div className="grid grid-cols-7 gap-1">
                             {daysInMonth.map((day) => {
                               const postsForDay = getPostsForDate(day);
-                              const isSelected =
-                                selectedDate && isSameDay(selectedDate, day);
+                              const isSelected = selectedDate && isSameDay(selectedDate, day);
+                              const hasApprovedPosts = postsForDay.some((p) => p.status === "accepted");
+                              const hasPendingPosts = postsForDay.some((p) => p.status === "pending");
+                              
                               return (
                                 <div
                                   key={day.toISOString()}
-                                  className={`p-2 min-h-[80px] border rounded-lg cursor-pointer transition-colors ${
-                                    isToday(day)
-                                      ? "bg-brand-50 border-brand-200"
-                                      : "bg-white border-gray-200"
-                                  } ${isSelected ? "ring-2 ring-brand-500" : ""}`}
+                                  className={`p-2 min-h-[90px] rounded-lg cursor-pointer transition-all duration-200 border ${
+                                    isSelected
+                                      ? "bg-primary/5 border-primary ring-1 ring-primary"
+                                      : isToday(day)
+                                        ? "bg-primary/5 border-primary/30"
+                                        : "bg-card hover:bg-muted/50 border-border"
+                                  }`}
                                   onClick={() => handleDateClick(day)}
                                 >
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className={`text-sm font-medium mb-1 ${
+                                    isToday(day) ? "text-primary" : "text-foreground"
+                                  }`}>
                                     {format(day, "d")}
                                   </div>
-                                  <div className="mt-1 space-y-1">
+                                  <div className="space-y-1">
                                     {postsForDay.slice(0, 2).map((post) => {
-                                      const PlatformIcon =
-                                        platformIcons[
-                                          post.platform as keyof typeof platformIcons
-                                        ];
-                                      const isAiPost = post.source === "ai";
-                                      const postStatus = post.status as
-                                        | "pending"
-                                        | "accepted"
-                                        | "rejected";
-
-                                      const getStatusBorder = () => {
-                                        if (!isAiPost) return "";
-                                        if (postStatus === "accepted")
-                                          return "ring-2 ring-green-400 ring-offset-1";
-                                        if (postStatus === "rejected")
-                                          return "ring-2 ring-red-400 ring-offset-1 opacity-50";
-                                        return "ring-2 ring-yellow-400 ring-offset-1";
-                                      };
-
+                                      const PlatformIcon = platformIcons[post.platform as keyof typeof platformIcons];
+                                      const postStatus = post.status as "pending" | "accepted" | "rejected";
+                                      
                                       return (
                                         <div
                                           key={post.id}
                                           data-testid={`calendar-post-${post.id}`}
-                                          className={`text-xs px-2 py-1 rounded truncate flex items-center gap-1 ${platformColors[post.platform as keyof typeof platformColors]} ${getStatusBorder()}`}
+                                          className={`text-xs px-1.5 py-0.5 rounded flex items-center gap-1 cursor-pointer transition-colors ${
+                                            postStatus === "accepted"
+                                              ? "bg-emerald-100 text-emerald-800"
+                                              : postStatus === "rejected"
+                                                ? "bg-red-50 text-red-600 opacity-60"
+                                                : "bg-amber-100 text-amber-800"
+                                          }`}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             handleOpenPost(post);
                                           }}
                                         >
-                                          <PlatformIcon className="inline w-3 h-3 flex-shrink-0" />
-                                          <span className="truncate">
-                                            {post.title}
-                                          </span>
-                                          {isAiPost &&
-                                            postStatus === "accepted" && (
-                                              <CheckCircle className="w-3 h-3 text-green-600 flex-shrink-0" />
-                                            )}
-                                          {isAiPost &&
-                                            postStatus === "rejected" && (
-                                              <XCircle className="w-3 h-3 text-red-600 flex-shrink-0" />
-                                            )}
+                                          <PlatformIcon className="w-3 h-3 flex-shrink-0" />
+                                          <span className="truncate text-[10px]">{post.title.slice(0, 12)}...</span>
                                         </div>
                                       );
                                     })}
+                                    {postsForDay.length > 2 && (
+                                      <div className="text-[10px] text-muted-foreground text-center">
+                                        +{postsForDay.length - 2} more
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               );
