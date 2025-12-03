@@ -671,6 +671,12 @@ export default function ContentCalendar() {
     });
   };
 
+  // Check if there are pending posts for the current month
+  const hasPendingPostsForMonth = useMemo(() => {
+    const monthPosts = getAiPostsForMonth();
+    return monthPosts.some((post) => post.status === "pending");
+  }, [aiPendingPosts, currentDate]);
+
   // Get AI posts for the selected day
   const getAiPostsForDay = (date: Date) => {
     const dayName = format(date, "EEEE").toLowerCase();
@@ -991,46 +997,49 @@ export default function ContentCalendar() {
                                   )}
                                 </Tooltip>
 
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span>
-                                      <Button
-                                        size="sm"
-                                        onClick={() =>
-                                          handleApproveMonth("accepted")
-                                        }
-                                        disabled={
-                                          isPastMonth ||
-                                          bulkUpdatePostStatusMutation.isPending ||
-                                          isLoadingAiPosts
-                                        }
-                                        className={
-                                          isPastMonth || isLoadingAiPosts
-                                            ? "opacity-60 cursor-not-allowed bg-gray-300"
-                                            : "bg-green-500 hover:bg-green-600 text-white"
-                                        }
-                                        data-testid="button-approve-month"
-                                      >
-                                        {isLoadingAiPosts ? (
-                                          <>
-                                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                            Loading...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <CheckCircle className="w-4 h-4 mr-1" />
-                                            Approve Month
-                                          </>
-                                        )}
-                                      </Button>
-                                    </span>
-                                  </TooltipTrigger>
-                                  {(isPastMonth || isLoadingAiPosts) && (
-                                    <TooltipContent>
-                                      <p>{isLoadingAiPosts ? "Loading posts..." : "Cannot approve past months"}</p>
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
+                                {/* Only show Approve Month button if there are pending posts */}
+                                {hasPendingPostsForMonth && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span>
+                                        <Button
+                                          size="sm"
+                                          onClick={() =>
+                                            handleApproveMonth("accepted")
+                                          }
+                                          disabled={
+                                            isPastMonth ||
+                                            bulkUpdatePostStatusMutation.isPending ||
+                                            isLoadingAiPosts
+                                          }
+                                          className={
+                                            isPastMonth || isLoadingAiPosts
+                                              ? "opacity-60 cursor-not-allowed bg-gray-300"
+                                              : "bg-green-500 hover:bg-green-600 text-white"
+                                          }
+                                          data-testid="button-approve-month"
+                                        >
+                                          {isLoadingAiPosts ? (
+                                            <>
+                                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                              Loading...
+                                            </>
+                                          ) : (
+                                            <>
+                                              <CheckCircle className="w-4 h-4 mr-1" />
+                                              Approve Month
+                                            </>
+                                          )}
+                                        </Button>
+                                      </span>
+                                    </TooltipTrigger>
+                                    {(isPastMonth || isLoadingAiPosts) && (
+                                      <TooltipContent>
+                                        <p>{isLoadingAiPosts ? "Loading posts..." : "Cannot approve past months"}</p>
+                                      </TooltipContent>
+                                    )}
+                                  </Tooltip>
+                                )}
                               </div>
 
                               {/* Pause/Autopost toggle */}
@@ -1172,8 +1181,9 @@ export default function ContentCalendar() {
                                 : "Select a date"}
                             </CardTitle>
                           </div>
-                          {/* ✅ Approve all posts for the day */}
-                          {selectedDate && selectedDatePosts.length > 0 && (
+                          {/* ✅ Approve all posts for the day - only show if there are pending posts */}
+                          {selectedDate && selectedDatePosts.length > 0 && 
+                            selectedDatePosts.some((post) => post.status === "pending") && (
                             <Button
                               size="sm"
                               className="w-full bg-green-500 hover:bg-green-600 text-white"
