@@ -31,7 +31,6 @@ import {
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
@@ -769,94 +768,67 @@ export default function ContentCalendar() {
             <main className="flex-1 relative overflow-y-auto focus:outline-none">
               <div className="py-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  {/* Alert Banners for Missing Requirements */}
-                  <div className="space-y-3 mb-6">
-                    {/* No integrations banner */}
+                  {/* Onboarding alerts */}
+                  <div className="space-y-2 mb-6">
                     {!integrationsLoading && !hasSocialIntegrations && (
-                      <Alert className="border-amber-200 bg-amber-50">
-                        <Link2 className="h-4 w-4 text-amber-600" />
-                        <AlertTitle className="text-amber-800">
-                          Connect your social accounts
-                        </AlertTitle>
-                        <AlertDescription className="text-amber-700">
-                          To generate AI posts, connect your Instagram or
-                          Facebook account first.
-                          <Link href="/integrations">
-                            <Button
-                              variant="link"
-                              className="text-amber-800 font-semibold p-0 h-auto ml-1"
-                              data-testid="link-connect-integrations"
-                            >
-                              Connect now →
-                            </Button>
-                          </Link>
-                        </AlertDescription>
-                      </Alert>
+                      <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50/50 border border-amber-200/50">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                          <Link2 className="h-4 w-4 text-amber-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Connect your social accounts</p>
+                          <p className="text-xs text-muted-foreground">Connect Instagram or Facebook to generate AI posts.</p>
+                        </div>
+                        <Link href="/integrations">
+                          <Button size="sm" variant="outline" className="text-amber-700 border-amber-300 hover:bg-amber-100" data-testid="link-connect-integrations">
+                            Connect
+                          </Button>
+                        </Link>
+                      </div>
                     )}
 
-                    {/* No brand design banner */}
-                    {!brandDesignLoading &&
-                      hasSocialIntegrations &&
-                      !hasBrandDesign && (
-                        <Alert className="border-purple-200 bg-purple-50">
-                          <Palette className="h-4 w-4 text-purple-600" />
-                          <AlertTitle className="text-purple-800">
-                            Create your brand design
-                          </AlertTitle>
-                          <AlertDescription className="text-purple-700">
-                            Define your brand colors, fonts, and style to enable
-                            AI post generation.
-                            <Link href="/brand-studio">
-                              <Button
-                                variant="link"
-                                className="text-purple-800 font-semibold p-0 h-auto ml-1"
-                                data-testid="link-brand-studio"
-                              >
-                                Go to Brand Studio →
-                              </Button>
-                            </Link>
-                          </AlertDescription>
-                        </Alert>
-                      )}
+                    {!brandDesignLoading && hasSocialIntegrations && !hasBrandDesign && (
+                      <div className="flex items-center gap-3 p-4 rounded-lg bg-violet-50/50 border border-violet-200/50">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
+                          <Palette className="h-4 w-4 text-violet-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Create your brand design</p>
+                          <p className="text-xs text-muted-foreground">Define your brand colors and style for AI posts.</p>
+                        </div>
+                        <Link href="/brand-studio">
+                          <Button size="sm" variant="outline" className="text-violet-700 border-violet-300 hover:bg-violet-100" data-testid="link-brand-studio">
+                            Create
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
 
-                    {/* No posting frequency banner */}
-                    {!postingFrequencyLoading &&
-                      hasSocialIntegrations &&
-                      hasBrandDesign &&
-                      !hasPostingFrequency && (
-                        <Alert className="border-blue-200 bg-blue-50">
-                          <CalendarDays className="h-4 w-4 text-blue-600" />
-                          <AlertTitle className="text-blue-800">
-                            Set your posting frequency
-                          </AlertTitle>
-                          <AlertDescription className="text-blue-700">
-                            Configure how often you want to post on each
-                            platform to generate the right amount of content.
-                            <Button
-                              variant="link"
-                              className="text-blue-800 font-semibold p-0 h-auto ml-1"
-                              onClick={() => setIsFrequencyModalOpen(true)}
-                              data-testid="link-set-frequency"
-                            >
-                              Set frequency →
-                            </Button>
-                          </AlertDescription>
-                        </Alert>
-                      )}
+                    {!postingFrequencyLoading && hasSocialIntegrations && hasBrandDesign && !hasPostingFrequency && (
+                      <div className="flex items-center gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <CalendarDays className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Set your posting frequency</p>
+                          <p className="text-xs text-muted-foreground">Configure how often you want to post on each platform.</p>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => setIsFrequencyModalOpen(true)} data-testid="link-set-frequency">
+                          Configure
+                        </Button>
+                      </div>
+                    )}
 
-                    {/* Posts already exist for month */}
                     {hasAiPostsForCurrentMonth && (
-                      <Alert className="border-green-200 bg-green-50">
-                        <Sparkles className="h-4 w-4 text-green-600" />
-                        <AlertTitle className="text-green-800">
-                          AI posts ready for {format(currentDate, "MMMM yyyy")}
-                        </AlertTitle>
-                        <AlertDescription className="text-green-700">
-                          You have {currentMonthAiPosts.length} AI-generated
-                          posts for this month. Review them in the calendar
-                          below.
-                        </AlertDescription>
-                      </Alert>
+                      <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-50/50 border border-emerald-200/50">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                          <Sparkles className="h-4 w-4 text-emerald-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">{currentMonthAiPosts.length} AI posts ready</p>
+                          <p className="text-xs text-muted-foreground">Review and approve your posts in the calendar below.</p>
+                        </div>
+                      </div>
                     )}
                   </div>
 
