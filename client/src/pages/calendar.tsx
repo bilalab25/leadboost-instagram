@@ -877,12 +877,11 @@ export default function ContentCalendar() {
                                   <span>
                                     <Button
                                       size="sm"
-                                      variant="outline"
                                       onClick={() => handleApproveMonth("accepted")}
                                       disabled={isPastMonth || bulkUpdatePostStatusMutation.isPending}
                                       className={isPastMonth 
-                                        ? "opacity-60 cursor-not-allowed" 
-                                        : "text-green-700 border-green-300 hover:bg-green-50"
+                                        ? "opacity-60 cursor-not-allowed bg-gray-300" 
+                                        : "bg-green-500 hover:bg-green-600 text-white"
                                       }
                                       data-testid="button-approve-month"
                                     >
@@ -894,32 +893,6 @@ export default function ContentCalendar() {
                                 {isPastMonth && (
                                   <TooltipContent>
                                     <p>Cannot approve past months</p>
-                                  </TooltipContent>
-                                )}
-                              </Tooltip>
-
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleApproveMonth("rejected")}
-                                      disabled={isPastMonth || bulkUpdatePostStatusMutation.isPending}
-                                      className={isPastMonth 
-                                        ? "opacity-60 cursor-not-allowed" 
-                                        : "text-red-700 border-red-300 hover:bg-red-50"
-                                      }
-                                      data-testid="button-reject-month"
-                                    >
-                                      <XCircle className="w-4 h-4 mr-1" />
-                                      Reject Month
-                                    </Button>
-                                  </span>
-                                </TooltipTrigger>
-                                {isPastMonth && (
-                                  <TooltipContent>
-                                    <p>Cannot reject past months</p>
                                   </TooltipContent>
                                 )}
                               </Tooltip>
@@ -1049,30 +1022,17 @@ export default function ContentCalendar() {
                               : "Select a date"}
                           </CardTitle>
                         </div>
-                        {/* ✅ Approve/Reject all posts for the day */}
+                        {/* ✅ Approve all posts for the day */}
                         {selectedDate && selectedDatePosts.length > 0 && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 text-green-700 border-green-300 hover:bg-green-50"
-                              onClick={() => handleApproveDay("accepted")}
-                              disabled={bulkUpdatePostStatusMutation.isPending}
-                              data-testid="button-approve-day"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" /> Approve Day
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 text-red-700 border-red-300 hover:bg-red-50"
-                              onClick={() => handleApproveDay("rejected")}
-                              disabled={bulkUpdatePostStatusMutation.isPending}
-                              data-testid="button-reject-day"
-                            >
-                              <XCircle className="w-4 h-4 mr-1" /> Reject Day
-                            </Button>
-                          </div>
+                          <Button
+                            size="sm"
+                            className="w-full bg-green-500 hover:bg-green-600 text-white"
+                            onClick={() => handleApproveDay("accepted")}
+                            disabled={bulkUpdatePostStatusMutation.isPending}
+                            data-testid="button-approve-day"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" /> Approve Day
+                          </Button>
                         )}
                       </CardHeader>
                       <CardContent>
@@ -1215,28 +1175,17 @@ export default function ContentCalendar() {
                                     </Button>
                                   </div>
                                   
-                                  {/* Individual Approve/Reject buttons for AI posts */}
+                                  {/* Individual Approve button for AI posts */}
                                   {isAiPost && postStatus === "pending" && (
-                                    <div className="flex gap-2 mt-2 pt-2 border-t border-gray-100">
+                                    <div className="mt-2 pt-2 border-t border-gray-100">
                                       <Button
                                         size="sm"
-                                        variant="outline"
-                                        className="flex-1 text-green-700 border-green-300 hover:bg-green-50"
+                                        className="w-full bg-green-500 hover:bg-green-600 text-white"
                                         onClick={() => handleUpdatePostStatus(post.id, "accepted")}
                                         disabled={updatePostStatusMutation.isPending}
                                         data-testid={`button-approve-post-${post.id}`}
                                       >
-                                        <CheckCircle className="w-3 h-3 mr-1" /> Approve
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="flex-1 text-red-700 border-red-300 hover:bg-red-50"
-                                        onClick={() => handleUpdatePostStatus(post.id, "rejected")}
-                                        disabled={updatePostStatusMutation.isPending}
-                                        data-testid={`button-reject-post-${post.id}`}
-                                      >
-                                        <XCircle className="w-3 h-3 mr-1" /> Reject
+                                        <CheckCircle className="w-3 h-3 mr-1" /> Approve & Schedule
                                       </Button>
                                     </div>
                                   )}
