@@ -32,6 +32,7 @@ import {
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Tooltip,
   TooltipContent,
@@ -56,10 +57,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PauseCircle, PlayCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Pause, Play } from "lucide-react";
 import { Link } from "wouter";
+import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import PostingFrequencyModal from "@/components/PostingFrequencyModal";
 
 interface ContentPost {
@@ -762,80 +763,75 @@ export default function ContentCalendar() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary/5">
         <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+
           <div className="flex flex-col w-0 flex-1 overflow-hidden">
+            <TopHeader pageName="Content Calendar" />
             <main className="flex-1 relative overflow-y-auto focus:outline-none">
-              <div className="py-8">
+              <div className="py-6">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   {/* Onboarding alerts */}
-                  <div className="space-y-2 mb-6">
+                  <div className="space-y-3 mb-6">
                     {!integrationsLoading && !hasSocialIntegrations && (
-                      <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50/50 border border-amber-200/50">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                          <Link2 className="h-4 w-4 text-amber-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground">Connect your social accounts</p>
-                          <p className="text-xs text-muted-foreground">Connect Instagram or Facebook to generate AI posts.</p>
-                        </div>
-                        <Link href="/integrations">
-                          <Button size="sm" variant="outline" className="text-amber-700 border-amber-300 hover:bg-amber-100" data-testid="link-connect-integrations">
-                            Connect
-                          </Button>
-                        </Link>
-                      </div>
+                      <Alert className="border-amber-200 bg-amber-50" data-testid="alert-no-integrations">
+                        <Link2 className="h-4 w-4 text-amber-600" />
+                        <AlertTitle className="text-amber-800">Connect your social accounts</AlertTitle>
+                        <AlertDescription className="text-amber-700 text-sm">
+                          Connect Instagram or Facebook to generate AI posts.{" "}
+                          <Link href="/integrations">
+                            <Button variant="link" className="text-amber-800 font-semibold p-0 h-auto" data-testid="link-connect-integrations">
+                              Connect now →
+                            </Button>
+                          </Link>
+                        </AlertDescription>
+                      </Alert>
                     )}
 
                     {!brandDesignLoading && hasSocialIntegrations && !hasBrandDesign && (
-                      <div className="flex items-center gap-3 p-4 rounded-lg bg-violet-50/50 border border-violet-200/50">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
-                          <Palette className="h-4 w-4 text-violet-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground">Create your brand design</p>
-                          <p className="text-xs text-muted-foreground">Define your brand colors and style for AI posts.</p>
-                        </div>
-                        <Link href="/brand-studio">
-                          <Button size="sm" variant="outline" className="text-violet-700 border-violet-300 hover:bg-violet-100" data-testid="link-brand-studio">
-                            Create
-                          </Button>
-                        </Link>
-                      </div>
+                      <Alert className="border-purple-200 bg-purple-50" data-testid="alert-no-design">
+                        <Palette className="h-4 w-4 text-purple-600" />
+                        <AlertTitle className="text-purple-800">Create your brand design</AlertTitle>
+                        <AlertDescription className="text-purple-700 text-sm">
+                          Define your brand colors and style for AI posts.{" "}
+                          <Link href="/brand-studio">
+                            <Button variant="link" className="text-purple-800 font-semibold p-0 h-auto" data-testid="link-brand-studio">
+                              Go to Brand Studio →
+                            </Button>
+                          </Link>
+                        </AlertDescription>
+                      </Alert>
                     )}
 
                     {!postingFrequencyLoading && hasSocialIntegrations && hasBrandDesign && !hasPostingFrequency && (
-                      <div className="flex items-center gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <CalendarDays className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground">Set your posting frequency</p>
-                          <p className="text-xs text-muted-foreground">Configure how often you want to post on each platform.</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => setIsFrequencyModalOpen(true)} data-testid="link-set-frequency">
-                          Configure
-                        </Button>
-                      </div>
+                      <Alert className="border-blue-200 bg-blue-50" data-testid="alert-no-frequency">
+                        <CalendarDays className="h-4 w-4 text-blue-600" />
+                        <AlertTitle className="text-blue-800">Set your posting frequency</AlertTitle>
+                        <AlertDescription className="text-blue-700 text-sm">
+                          Configure how often you want to post on each platform.{" "}
+                          <Button variant="link" className="text-blue-800 font-semibold p-0 h-auto" onClick={() => setIsFrequencyModalOpen(true)} data-testid="link-set-frequency">
+                            Set frequency →
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
                     )}
 
                     {hasAiPostsForCurrentMonth && (
-                      <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-50/50 border border-emerald-200/50">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                          <Sparkles className="h-4 w-4 text-emerald-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground">{currentMonthAiPosts.length} AI posts ready</p>
-                          <p className="text-xs text-muted-foreground">Review and approve your posts in the calendar below.</p>
-                        </div>
-                      </div>
+                      <Alert className="border-green-200 bg-green-50" data-testid="alert-posts-ready">
+                        <Sparkles className="h-4 w-4 text-green-600" />
+                        <AlertTitle className="text-green-800">{currentMonthAiPosts.length} AI posts ready</AlertTitle>
+                        <AlertDescription className="text-green-700 text-sm">
+                          Review and approve your posts in the calendar below.
+                        </AlertDescription>
+                      </Alert>
                     )}
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Calendar */}
                     <div className="lg:col-span-2">
-                      <Card className="border-0 shadow-sm">
+                      <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="pb-4">
                           <div className="flex flex-col gap-4">
                             {/* Header with title and navigation */}
@@ -843,11 +839,11 @@ export default function ContentCalendar() {
                               <CardTitle className="text-2xl font-semibold text-foreground">
                                 {format(currentDate, "MMMM yyyy")}
                               </CardTitle>
-                              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                              <div className="flex items-center bg-white rounded-xl border border-gray-200 p-1 shadow-sm">
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-background"
+                                  className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100"
                                   onClick={() =>
                                     setCurrentDate(
                                       new Date(
@@ -863,7 +859,7 @@ export default function ContentCalendar() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 px-3 hover:bg-background text-xs font-medium"
+                                  className="h-8 px-3 rounded-lg text-sm font-medium hover:bg-gray-100"
                                   onClick={() => setCurrentDate(new Date())}
                                   data-testid="button-today"
                                 >
@@ -872,7 +868,7 @@ export default function ContentCalendar() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-background"
+                                  className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100"
                                   onClick={() =>
                                     setCurrentDate(
                                       new Date(
@@ -1031,7 +1027,7 @@ export default function ContentCalendar() {
 
                     {/* Sidebar */}
                     <div className="space-y-4">
-                      <Card className="border-0 shadow-sm">
+                      <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-lg font-semibold text-foreground">
