@@ -1259,31 +1259,43 @@ export default function ContentCalendar() {
       />
 
       {/* AI Generation Loading Modal */}
-      <Dialog open={showGeneratingLoader} onOpenChange={() => {}}>
-        <DialogContent
-          className="max-w-md"
-          onInteractOutside={(e) => e.preventDefault()}
-        >
+      <Dialog open={showGeneratingLoader} onOpenChange={(open) => {
+        if (!open) {
+          setShowGeneratingLoader(false);
+        }
+      }}>
+        <DialogContent className="max-w-md">
           <div className="flex flex-col items-center justify-center py-8">
             <div className="mb-6">
               <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-primary"></div>
             </div>
             <DialogTitle className="text-center text-xl mb-2">
-              🤖 Generating AI Posts
+              Generating AI Posts
             </DialogTitle>
             <p className="text-center text-gray-600 mb-4">
               Our AI is analyzing your brand data and creating personalized post
               suggestions...
             </p>
-            <p className="text-center text-sm text-gray-500 mb-4">
-              This may take up to 10 minutes. Please don't close this window.
-            </p>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-center text-sm text-blue-700">
+                <strong>You can close this window!</strong><br />
+                Generation continues in the background. Come back anytime to see your posts.
+              </p>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
               <div
                 className="bg-primary h-2 rounded-full animate-pulse"
                 style={{ width: "66%" }}
               ></div>
             </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowGeneratingLoader(false)}
+              className="text-gray-600"
+            >
+              Close and continue working
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
