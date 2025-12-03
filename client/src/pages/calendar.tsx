@@ -91,13 +91,23 @@ const platformIcons: Record<string, any> = {
 };
 
 const platformColors: Record<string, string> = {
-  instagram: "text-gray-700 bg-gray-100",
-  instagram_story: "text-gray-700 bg-gray-100",
-  instagram_reel: "text-gray-700 bg-gray-100",
-  whatsapp: "text-gray-700 bg-gray-100",
-  facebook: "text-gray-700 bg-gray-100",
-  tiktok: "text-gray-700 bg-gray-100",
-  linkedin: "text-gray-700 bg-gray-100",
+  instagram: "bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-100",
+  instagram_story: "bg-gradient-to-r from-pink-50 to-orange-50 border border-pink-100",
+  instagram_reel: "bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100",
+  whatsapp: "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100",
+  facebook: "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100",
+  tiktok: "bg-gradient-to-r from-gray-50 to-slate-100 border border-gray-200",
+  linkedin: "bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-100",
+};
+
+const platformIconColors: Record<string, string> = {
+  instagram: "text-pink-500",
+  instagram_story: "text-pink-400",
+  instagram_reel: "text-purple-500",
+  whatsapp: "text-green-500",
+  facebook: "text-blue-600",
+  tiktok: "text-gray-800",
+  linkedin: "text-sky-600",
 };
 
 const statusColors = {
@@ -1127,36 +1137,29 @@ export default function ContentCalendar() {
                                         | "accepted"
                                         | "rejected";
 
-                                      const getStatusBorder = () => {
-                                        if (!isAiPost) return "";
-                                        if (postStatus === "accepted")
-                                          return "border-l-2 border-l-green-500";
-                                        if (postStatus === "rejected")
-                                          return "border-l-2 border-l-red-400 opacity-50";
-                                        return "border-l-2 border-l-purple-400";
-                                      };
+                                      const iconColor = platformIconColors[post.platform as keyof typeof platformIconColors] || "text-gray-600";
 
                                       return (
                                         <div
                                           key={post.id}
                                           data-testid={`calendar-post-${post.id}`}
-                                          className={`text-xs px-2 py-1 rounded truncate flex items-center gap-1 ${platformColors[post.platform as keyof typeof platformColors]} ${getStatusBorder()}`}
+                                          className={`text-xs px-2 py-1.5 rounded-md truncate flex items-center gap-1.5 shadow-sm hover:shadow transition-shadow cursor-pointer ${platformColors[post.platform as keyof typeof platformColors]} ${postStatus === "rejected" ? "opacity-50" : ""}`}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             handleOpenPost(post);
                                           }}
                                         >
-                                          <PlatformIcon className="inline w-3 h-3 flex-shrink-0" />
-                                          <span className="truncate">
+                                          <PlatformIcon className={`inline w-3 h-3 flex-shrink-0 ${iconColor}`} />
+                                          <span className="truncate font-medium text-gray-700">
                                             {post.title}
                                           </span>
                                           {isAiPost &&
                                             postStatus === "accepted" && (
-                                              <CheckCircle className="w-3 h-3 text-green-600 flex-shrink-0" />
+                                              <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
                                             )}
                                           {isAiPost &&
-                                            postStatus === "rejected" && (
-                                              <XCircle className="w-3 h-3 text-red-600 flex-shrink-0" />
+                                            postStatus === "pending" && (
+                                              <Clock className="w-3 h-3 text-purple-400 flex-shrink-0" />
                                             )}
                                         </div>
                                       );
