@@ -34,6 +34,13 @@ export interface GeneratedPost {
   imageUrl?: string;
 }
 
+export interface PlatformPostingSchedule {
+  platform: string;
+  frequencyDays: number; // posts per week
+  daysWeek: string[]; // ["mon", "tue", "thu"]
+  postingDates: string[]; // Calculated dates in YYYY-MM-DD format
+}
+
 export interface PostGenerationContext {
   brandId: string;
   brandName: string;
@@ -45,6 +52,7 @@ export interface PostGenerationContext {
   year: number;
   postsToGenerate?: number;
   connectedPlatforms?: string[]; // Platforms to generate posts for (e.g., ['instagram', 'facebook'])
+  postingSchedule?: PlatformPostingSchedule[]; // Schedule per platform from social_posting_frequency
 }
 
 async function fetchMetaInsights(
@@ -141,8 +149,64 @@ async function fetchMetaInsights(
   }
 }
 
+// Day name mapping from short form to day number (0 = Sunday, 6 = Saturday)
+const dayNameToNumber: Record<string, number> = {
+  'sun': 0, 'sunday': 0,
+  'mon': 1, 'monday': 1,
+  'tue': 2, 'tuesday': 2,
+  'wed': 3, 'wednesday': 3,
+  'thu': 4, 'thursday': 4,
+  'fri': 5, 'friday': 5,
+  'sat': 6, 'saturday': 6,
+};
+
+// Calculate posting dates for a given month based on posting frequency settings
+export function calculatePostingDates(
+  month: number, 
+  year: number, 
+  daysWeek: string[],
+  startFromToday: boolean = false
+): string[] {
+  const dates: string[] = [];
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0);
+  
+  // Get today's date for comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Convert day names to day numbers
+  const targetDays = daysWeek
+    .map(d => dayNameToNumber[d.toLowerCase()])
+    .filter(d => d !== undefined);
+  
+  if (targetDays.length === 0) {
+    console.warn("[PostGenerator] No valid days found in daysWeek:", daysWeek);
+    return dates;
+  }
+  
+  // Iterate through all days of the month
+  for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+    const dayOfWeek = d.getDay();
+    
+    // Check if this day is one of the target posting days
+    if (targetDays.includes(dayOfWeek)) {
+      // Skip past dates if startFromToday is true
+      if (startFromToday && d < today) {
+        continue;
+      }
+      
+      // Format date as YYYY-MM-DD
+      const dateStr = d.toISOString().split('T')[0];
+      dates.push(dateStr);
+    }
+  }
+  
+  return dates;
+}
+
 function buildTextPrompt(context: PostGenerationContext): string {
-  const { brandName, brandDescription, brandDesign, brandAssets, metaInsights, month, year, postsToGenerate = 15, connectedPlatforms } = context;
+  const { brandName, brandDescription, brandDesign, brandAssets, metaInsights, month, year, postingSchedule, connectedPlatforms } = context;
 
   const monthName = new Date(year, month - 1).toLocaleString('en-US', { month: 'long' });
   
@@ -207,6 +271,34 @@ function buildTextPrompt(context: PostGenerationContext): string {
     ? `- Brand Logo URL: ${logoUrl}\n- IMPORTANT: The brand has a logo that should be conceptually referenced in image prompts. Describe elements that complement the logo style.`
     : "- No logo uploaded";
 
+  // Build the posting schedule instructions based on social_posting_frequency table
+  let postingScheduleInstructions = '';
+  let totalPosts = 0;
+  
+  if (postingSchedule && postingSchedule.length > 0) {
+    const scheduleDetails = postingSchedule.map(schedule => {
+      const platformName = schedule.platform === 'instagram' ? 'Instagram' : 
+                          schedule.platform === 'facebook' ? 'Facebook' : schedule.platform;
+      totalPosts += schedule.postingDates.length;
+      return `- ${platformName}: Generate ${schedule.postingDates.length} posts on these EXACT dates: ${schedule.postingDates.join(', ')}`;
+    }).join('\n');
+    
+    postingScheduleInstructions = `
+POSTING SCHEDULE (from brand settings - DO NOT deviate from these dates):
+${scheduleDetails}
+
+TOTAL POSTS TO GENERATE: ${totalPosts}
+
+CRITICAL: You MUST generate posts ONLY for the dates listed above for each platform. These dates are based on the brand's posting frequency settings. Do NOT generate posts for any other dates.`;
+  } else {
+    // Fallback to default behavior if no schedule is provided
+    postingScheduleInstructions = `
+POSTING SCHEDULE:
+- Generate posts distributed evenly across the month
+- Aim for 3-4 posts per week per platform`;
+    totalPosts = 15; // Fallback default
+  }
+
   return `You are an expert social media strategist and content creator. Generate a comprehensive content calendar for ${monthName} ${year}.
 
 BRAND IDENTITY:
@@ -225,31 +317,31 @@ ASSET CATEGORIES SUMMARY:
 ${Object.entries(assetsByCategory).map(([cat, items]) => `- ${cat}: ${items.join(", ")}`).join("\n") || "No categorized assets"}
 
 AUDIENCE INSIGHTS:
-- Best Posting Times: ${bestTimes}
+- Best Posting Times (use these to suggest optimal posting times): ${bestTimes}
 - Reach: ${metaInsights?.reach || "Not available"}
 - Impressions: ${metaInsights?.impressions || "Not available"}
 - Engagement: ${metaInsights?.engagement || "Not available"}
+${postingScheduleInstructions}
 
 REQUIREMENTS:
-1. Generate exactly ${postsToGenerate} posts for ${monthName} ${year}
-2. ${dateRestriction}
-3. Distribute posts ONLY across these connected platforms: ${platformInstructions}
-4. IMPORTANT: Only generate posts for the platforms listed above. Do NOT generate posts for any other platform.
-5. Each post must include:
+1. ${dateRestriction}
+2. IMPORTANT: Only generate posts for the platforms and dates specified in the POSTING SCHEDULE above.
+3. For each post, YOU suggest the optimal posting time based on audience insights (e.g., "9:00 AM", "6:00 PM"). The dates are fixed but you choose the best time.
+4. Each post must include:
    - A catchy title/hook (titulo)
    - Full post caption/content with emojis
    - Relevant hashtags (5-10 per post)
-   - Optimal posting time based on insights
+   - Optimal posting time based on insights (optimalTime field)
    - A detailed image prompt for AI image generation that:
      * Incorporates the brand colors: ${colorPalette}
      * Follows the brand style: ${brandDesign.brandStyle || "modern"}
      * References specific products or assets from the brand when relevant
      * Creates visuals that would complement the brand's logo and identity
      * Uses professional composition suitable for social media
-6. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
-7. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
-8. When creating image prompts, reference the actual products/services from the brand assets list
-9. PLATFORM MAPPING: Use these exact platform values in the JSON:
+5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
+6. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
+7. When creating image prompts, reference the actual products/services from the brand assets list
+8. PLATFORM MAPPING: Use these exact platform values in the JSON:
    - For Instagram posts: "instagram"
    - For Instagram Stories: "instagram_story"
    - For Instagram Reels: "instagram_reel"
@@ -691,6 +783,70 @@ export async function processPostGeneration(
 
     const metaInsights = metaIntegration ? await fetchMetaInsights(metaIntegration) : null;
 
+    // Fetch posting frequency settings from social_posting_frequency table
+    const postingFrequencies = await storage.getSocialPostingFrequenciesByBrand(brandId);
+    console.log(`[PostGenerator] Found ${postingFrequencies.length} posting frequency settings for brand ${brandId}`);
+    
+    // Determine if we're generating for current month (need to skip past dates)
+    const now = new Date();
+    const isCurrentMonth = year === now.getFullYear() && month === (now.getMonth() + 1);
+    
+    // Build posting schedule for each connected platform
+    const postingSchedule: PlatformPostingSchedule[] = [];
+    
+    for (const platform of uniquePlatforms) {
+      // Find posting frequency for this platform (normalize instagram_direct to instagram)
+      const normalizedPlatform = platform === 'instagram_direct' ? 'instagram' : platform;
+      const frequency = postingFrequencies.find(f => 
+        f.platform.toLowerCase() === normalizedPlatform.toLowerCase()
+      );
+      
+      if (frequency && frequency.daysWeek && frequency.daysWeek.length > 0) {
+        // Calculate posting dates based on frequency settings
+        const postingDates = calculatePostingDates(
+          month, 
+          year, 
+          frequency.daysWeek,
+          isCurrentMonth // Skip past dates if generating for current month
+        );
+        
+        if (postingDates.length > 0) {
+          postingSchedule.push({
+            platform: normalizedPlatform,
+            frequencyDays: frequency.frequencyDays,
+            daysWeek: frequency.daysWeek,
+            postingDates
+          });
+          
+          console.log(`[PostGenerator] Platform ${normalizedPlatform}: ${postingDates.length} posts scheduled on days ${frequency.daysWeek.join(', ')}`);
+        } else {
+          console.log(`[PostGenerator] Platform ${normalizedPlatform}: No valid posting dates found (all may be in the past)`);
+        }
+      } else {
+        console.log(`[PostGenerator] No posting frequency found for platform ${normalizedPlatform}, using defaults`);
+        // Default: 3 posts per week on Monday, Wednesday, Friday
+        const defaultDays = ['mon', 'wed', 'fri'];
+        const postingDates = calculatePostingDates(month, year, defaultDays, isCurrentMonth);
+        
+        if (postingDates.length > 0) {
+          postingSchedule.push({
+            platform: normalizedPlatform,
+            frequencyDays: 3,
+            daysWeek: defaultDays,
+            postingDates
+          });
+        }
+      }
+    }
+    
+    // Calculate total posts
+    const totalPosts = postingSchedule.reduce((sum, s) => sum + s.postingDates.length, 0);
+    console.log(`[PostGenerator] Total posts to generate: ${totalPosts} across ${postingSchedule.length} platforms`);
+    
+    if (totalPosts === 0) {
+      throw new Error("No valid posting dates found for this month. Please check your posting frequency settings or try a future month.");
+    }
+
     const context: PostGenerationContext = {
       brandId,
       brandName: brand.name,
@@ -700,8 +856,8 @@ export async function processPostGeneration(
       metaInsights: metaInsights || undefined,
       month,
       year,
-      postsToGenerate: 15,
       connectedPlatforms: uniquePlatforms,
+      postingSchedule,
     };
 
     const allPosts = await generatePostsWithGemini(context);
