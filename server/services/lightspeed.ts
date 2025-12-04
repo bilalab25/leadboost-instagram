@@ -82,9 +82,9 @@ export class LightspeedService {
       state: state,
     });
 
-    // Use Vend/X-Series OAuth endpoint for authorization
-    // X-Series (formerly Vend) uses secure.vendhq.com/connect for OAuth
-    return `https://secure.vendhq.com/connect?${params.toString()}`;
+    // Use domain-specific vendhq.com endpoint for X-Series OAuth
+    // X-Series (formerly Vend) uses {domain}.vendhq.com for OAuth authorization
+    return `https://${domainPrefix}.vendhq.com/oauth/authorize?${params.toString()}`;
   }
 
   async exchangeCodeForToken(code: string, domainPrefix: string): Promise<LightspeedTokenResponse> {
