@@ -342,6 +342,11 @@ export default function IntegrationsPage() {
   const [integrationToDelete, setIntegrationToDelete] = useState<Integration | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Lightspeed domain dialog state
+  const [isLightspeedDomainDialogOpen, setIsLightspeedDomainDialogOpen] = useState(false);
+  const [lightspeedDomainPrefix, setLightspeedDomainPrefix] = useState("");
+  const [isLightspeedConnecting, setIsLightspeedConnecting] = useState(false);
+
   // Fetch integrations
   const fetchIntegrations = async () => {
     if (!activeBrandId) return;
@@ -450,8 +455,8 @@ export default function IntegrationsPage() {
     }, 1000);
   };
 
-  // Lightspeed OAuth connection handler
-  const handleLightspeedConnect = async () => {
+  // Lightspeed OAuth connection handler - opens domain dialog first
+  const handleLightspeedConnect = () => {
     if (!activeBrandId) {
       toast({
         title: isSpanish ? "Error" : "Error",
@@ -460,9 +465,33 @@ export default function IntegrationsPage() {
       });
       return;
     }
+    // Open domain dialog to get the user's Lightspeed store domain
+    setLightspeedDomainPrefix("");
+    setIsLightspeedDomainDialogOpen(true);
+  };
+
+  // Actually connect to Lightspeed after getting domain prefix
+  const handleLightspeedDomainSubmit = async () => {
+    if (!lightspeedDomainPrefix.trim()) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish 
+          ? "Por favor ingresa tu dominio de Lightspeed"
+          : "Please enter your Lightspeed domain",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Clean the domain prefix - remove .retail.lightspeed.app if included
+    let cleanDomain = lightspeedDomainPrefix.trim().toLowerCase();
+    cleanDomain = cleanDomain.replace(/\.retail\.lightspeed\.app.*$/i, '');
+    cleanDomain = cleanDomain.replace(/^https?:\/\//i, '');
+
+    setIsLightspeedConnecting(true);
 
     try {
-      const response = await fetch(`/api/lightspeed/auth?brandId=${activeBrandId}`, {
+      const response = await fetch(`/api/lightspeed/auth?brandId=${activeBrandId}&domainPrefix=${encodeURIComponent(cleanDomain)}`, {
         credentials: 'include',
       });
       
@@ -473,6 +502,7 @@ export default function IntegrationsPage() {
       const data = await response.json();
       
       if (data.authUrl) {
+        setIsLightspeedDomainDialogOpen(false);
         const popup = window.open(data.authUrl, "_blank", "width=600,height=700");
         
         // Listen for OAuth success message
@@ -508,6 +538,8 @@ export default function IntegrationsPage() {
           : "Failed to initiate Lightspeed connection",
         variant: "destructive",
       });
+    } finally {
+      setIsLightspeedConnecting(false);
     }
   };
 
@@ -1629,6 +1661,80 @@ export default function IntegrationsPage() {
                       )}
                     </div>
                   ) : null}
+                </DialogContent>
+              </Dialog>
+
+              {/* Lightspeed Domain Dialog */}
+              <Dialog open={isLightspeedDomainDialogOpen} onOpenChange={setIsLightspeedDomainDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Store className="h-5 w-5 text-emerald-600" />
+                      {isSpanish ? "Conectar Lightspeed" : "Connect Lightspeed"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {isSpanish 
+                        ? "Ingresa el nombre de tu tienda Lightspeed para conectar tu cuenta."
+                        : "Enter your Lightspeed store name to connect your account."
+                      }
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="lightspeed-domain">
+                        {isSpanish ? "Nombre de tu tienda" : "Your store name"}
+                      </Label>
+                      <div className="flex items-center gap-0">
+                        <Input
+                          id="lightspeed-domain"
+                          placeholder="mitienda"
+                          value={lightspeedDomainPrefix}
+                          onChange={(e) => setLightspeedDomainPrefix(e.target.value)}
+                          className="rounded-r-none border-r-0"
+                          data-testid="lightspeed-domain-input"
+                        />
+                        <div className="flex items-center h-9 px-3 bg-muted border border-input rounded-r-md text-sm text-muted-foreground whitespace-nowrap">
+                          .retail.lightspeed.app
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {isSpanish 
+                          ? "Ejemplo: Si tu URL es renuveaestheticsbar.retail.lightspeed.app, ingresa 'renuveaestheticsbar'"
+                          : "Example: If your URL is renuveaestheticsbar.retail.lightspeed.app, enter 'renuveaestheticsbar'"
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsLightspeedDomainDialogOpen(false)}
+                      disabled={isLightspeedConnecting}
+                      data-testid="lightspeed-cancel-btn"
+                    >
+                      {isSpanish ? "Cancelar" : "Cancel"}
+                    </Button>
+                    <Button
+                      onClick={handleLightspeedDomainSubmit}
+                      disabled={isLightspeedConnecting || !lightspeedDomainPrefix.trim()}
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      data-testid="lightspeed-connect-btn"
+                    >
+                      {isLightspeedConnecting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {isSpanish ? "Conectando..." : "Connecting..."}
+                        </>
+                      ) : (
+                        <>
+                          <Plug className="h-4 w-4 mr-2" />
+                          {isSpanish ? "Conectar" : "Connect"}
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </DialogContent>
               </Dialog>
 
