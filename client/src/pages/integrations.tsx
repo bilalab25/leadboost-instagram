@@ -1283,27 +1283,21 @@ export default function IntegrationsPage() {
                   setIsBaileysConnecting(false);
                 }
               }}>
-                <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden">
-                  <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 text-white">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                        <MessageCircle className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <DialogTitle className="text-white text-lg font-semibold">
-                          {isSpanish ? "Conectar WhatsApp Business" : "Connect WhatsApp Business"}
-                        </DialogTitle>
-                        <DialogDescription className="text-green-100 text-sm mt-0.5">
-                          {isSpanish 
-                            ? "Elige tu método de conexión preferido" 
-                            : "Choose your preferred connection method"}
-                        </DialogDescription>
-                      </div>
-                    </div>
-                  </div>
+                <DialogContent className="sm:max-w-[480px]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <MessageCircle className="h-5 w-5 text-green-500" />
+                      {isSpanish ? "Conectar WhatsApp Business" : "Connect WhatsApp Business"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {isSpanish 
+                        ? "Elige tu método de conexión preferido" 
+                        : "Choose your preferred connection method"}
+                    </DialogDescription>
+                  </DialogHeader>
 
                   {!whatsAppMethod ? (
-                    <div className="p-5 space-y-3">
+                    <div className="space-y-3 pt-2">
                       {/* Embedded Signup Option - Premium & Recommended */}
                       <div 
                         className="group cursor-pointer relative rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50/80 to-emerald-50/50 p-4 hover:border-green-400 hover:shadow-md hover:shadow-green-100/50 transition-all duration-200"
@@ -1387,7 +1381,7 @@ export default function IntegrationsPage() {
                       </div>
                     </div>
                   ) : whatsAppMethod === "embedded" ? (
-                    <div className="p-5 space-y-4">
+                    <div className="space-y-4 pt-2">
                       <Alert className="border-green-200 bg-green-50">
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                         <AlertTitle className="text-green-800">{isSpanish ? "Proceso Oficial de Meta" : "Official Meta Process"}</AlertTitle>
@@ -1418,7 +1412,7 @@ export default function IntegrationsPage() {
                       </div>
                     </div>
                   ) : whatsAppMethod === "baileys" ? (
-                    <div className="p-5 space-y-4">
+                    <div className="space-y-4 pt-2">
                       {/* Warning Alert */}
                       <Alert className="border-orange-300 bg-orange-50">
                         <AlertCircle className="h-4 w-4 text-orange-600" />
