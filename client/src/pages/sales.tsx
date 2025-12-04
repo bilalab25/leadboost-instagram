@@ -111,6 +111,9 @@ export default function SalesPage() {
   const [salesDateFrom, setSalesDateFrom] = useState("");
   const [salesDateTo, setSalesDateTo] = useState("");
   
+  // Status filter for sales
+  const [salesStatusFilter, setSalesStatusFilter] = useState<string>("all");
+  
   // Stats period filter
   const [statsPeriod, setStatsPeriod] = useState<"this_month" | "last_month" | "all_time">("this_month");
 
@@ -239,6 +242,11 @@ export default function SalesPage() {
       });
     }
     
+    // Apply status filter
+    if (salesStatusFilter !== "all") {
+      result = result.filter((s) => s.status === salesStatusFilter);
+    }
+    
     // Apply search query
     if (searchQuery) {
       const lowerSearch = searchQuery.toLowerCase();
@@ -257,7 +265,13 @@ export default function SalesPage() {
     });
     
     return result;
-  }, [sales, searchQuery, salesDateFrom, salesDateTo]);
+  }, [sales, searchQuery, salesDateFrom, salesDateTo, salesStatusFilter]);
+
+  // Get unique statuses from sales
+  const availableStatuses = useMemo(() => {
+    const statuses = new Set(sales.map(s => s.status).filter(Boolean));
+    return Array.from(statuses) as string[];
+  }, [sales]);
 
   // Pagination for customers
   const customersTotalPages = Math.ceil(filteredCustomers.length / customersPageSize);
@@ -289,12 +303,16 @@ export default function SalesPage() {
     setSalesPage(1);
   };
 
-  // Clear sales date filters
-  const clearSalesDateFilters = () => {
+  // Clear all sales filters
+  const clearSalesFilters = () => {
     setSalesDateFrom("");
     setSalesDateTo("");
+    setSalesStatusFilter("all");
     setSalesPage(1);
   };
+
+  // Check if any sales filter is active
+  const hasSalesFilters = salesDateFrom || salesDateTo || salesStatusFilter !== "all";
 
   // Sync data from Lightspeed
   const handleSync = async () => {
@@ -949,38 +967,73 @@ export default function SalesPage() {
                       <TabsContent value="sales" className="m-0">
                         {/* Sales Filters */}
                         <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50/50 dark:bg-gray-800/30 border-b border-gray-100 dark:border-gray-800">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <Input
-                                type="date"
-                                value={salesDateFrom}
-                                onChange={(e) => handleSalesDateChange('from', e.target.value)}
-                                className="w-[140px] h-9 bg-white dark:bg-gray-800"
-                                data-testid="sales-date-from"
-                              />
-                            </div>
+                          {/* Date Range Filter */}
+                          <div className="flex items-center gap-3">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <Input
+                              type="date"
+                              value={salesDateFrom}
+                              onChange={(e) => handleSalesDateChange('from', e.target.value)}
+                              className="w-[160px] h-9 bg-white dark:bg-gray-800"
+                              data-testid="sales-date-from"
+                            />
                             <span className="text-sm text-muted-foreground">—</span>
                             <Input
                               type="date"
                               value={salesDateTo}
                               onChange={(e) => handleSalesDateChange('to', e.target.value)}
-                              className="w-[140px] h-9 bg-white dark:bg-gray-800"
+                              className="w-[160px] h-9 bg-white dark:bg-gray-800"
                               data-testid="sales-date-to"
                             />
-                            {(salesDateFrom || salesDateTo) && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={clearSalesDateFilters}
-                                className="h-9 gap-1 text-muted-foreground hover:text-foreground"
-                                data-testid="clear-date-filters"
-                              >
-                                <X className="h-4 w-4" />
-                                {isSpanish ? "Limpiar" : "Clear"}
-                              </Button>
-                            )}
                           </div>
+
+                          {/* Status Filter */}
+                          <div className="flex items-center gap-2">
+                            <Select
+                              value={salesStatusFilter}
+                              onValueChange={(value) => {
+                                setSalesStatusFilter(value);
+                                setSalesPage(1);
+                              }}
+                            >
+                              <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-gray-800" data-testid="sales-status-filter">
+                                <SelectValue placeholder={isSpanish ? "Estado" : "Status"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">
+                                  {isSpanish ? "Todos los estados" : "All statuses"}
+                                </SelectItem>
+                                <SelectItem value="completed">
+                                  {isSpanish ? "Completada" : "Completed"}
+                                </SelectItem>
+                                <SelectItem value="pending">
+                                  {isSpanish ? "Pendiente" : "Pending"}
+                                </SelectItem>
+                                <SelectItem value="cancelled">
+                                  {isSpanish ? "Cancelada" : "Cancelled"}
+                                </SelectItem>
+                                <SelectItem value="refunded">
+                                  {isSpanish ? "Reembolsada" : "Refunded"}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Clear Filters */}
+                          {hasSalesFilters && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={clearSalesFilters}
+                              className="h-9 gap-1 text-muted-foreground hover:text-foreground"
+                              data-testid="clear-sales-filters"
+                            >
+                              <X className="h-4 w-4" />
+                              {isSpanish ? "Limpiar filtros" : "Clear filters"}
+                            </Button>
+                          )}
+
+                          {/* Results Count */}
                           <div className="ml-auto">
                             <Badge variant="secondary" className="font-normal">
                               {filteredSales.length} {isSpanish ? "ventas" : "sales"}
@@ -998,10 +1051,10 @@ export default function SalesPage() {
                               <DollarSign className="h-7 w-7 text-gray-400" />
                             </div>
                             <p className="text-muted-foreground">
-                              {(salesDateFrom || salesDateTo)
+                              {hasSalesFilters
                                 ? isSpanish
-                                  ? "No se encontraron ventas en este rango"
-                                  : "No sales found in this date range"
+                                  ? "No se encontraron ventas con estos filtros"
+                                  : "No sales found with these filters"
                                 : isSpanish
                                 ? "No hay ventas sincronizadas"
                                 : "No sales synced yet"}
