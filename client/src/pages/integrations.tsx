@@ -573,7 +573,7 @@ export default function IntegrationsPage() {
     
     const interval = setInterval(async () => {
       try {
-        const res = await fetch("/api/whatsapp-baileys/status");
+        const res = await fetch(`/api/whatsapp-baileys/status?brandId=${activeBrandId}`);
         const data = await res.json();
         
         if (data.status === "connected") {
@@ -619,6 +619,8 @@ export default function IntegrationsPage() {
     try {
       const res = await fetch("/api/whatsapp-baileys/disconnect", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandId: activeBrandId }),
       });
       
       const data = await res.json();
