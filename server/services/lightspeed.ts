@@ -72,7 +72,7 @@ export class LightspeedService {
     }
   }
 
-  generateAuthUrl(state: string): string {
+  generateAuthUrl(state: string, domainPrefix: string): string {
     const redirectUri = `${APP_URL}/api/lightspeed/callback`;
     const scopes = 'customer:read customer:write sale:read sale:write product:read';
     
@@ -84,7 +84,8 @@ export class LightspeedService {
       state: state,
     });
 
-    return `https://cloud.lightspeedapp.com/oauth/authorize?${params.toString()}`;
+    // Use domain-specific OAuth URL for X-Series
+    return `https://${domainPrefix}.retail.lightspeed.app/oauth/authorize?${params.toString()}`;
   }
 
   async exchangeCodeForToken(code: string, domainPrefix: string): Promise<LightspeedTokenResponse> {
