@@ -467,6 +467,53 @@ export const products = pgTable("products", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// POS Customers - Customers synced from POS systems (Lightspeed, Square, etc.)
+export const posCustomers = pgTable(
+  "pos_customers",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    posIntegrationId: uuid("pos_integration_id")
+      .notNull()
+      .references(() => posIntegrations.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
+    externalCustomerId: varchar("external_customer_id").notNull(), // Lightspeed customer ID
+    customerCode: varchar("customer_code"), // Lightspeed customer_code
+    name: varchar("name").notNull(),
+    firstName: varchar("first_name"),
+    lastName: varchar("last_name"),
+    email: varchar("email"),
+    phone: varchar("phone"),
+    mobile: varchar("mobile"),
+    companyName: varchar("company_name"),
+    loyaltyBalance: numeric("loyalty_balance"),
+    yearToDate: numeric("year_to_date"), // Total spent this year
+    balance: numeric("balance"), // Account balance
+    conversationId: uuid("conversation_id").references(() => conversations.id, {
+      onDelete: "set null",
+    }), // Link to WhatsApp conversation
+    metadata: jsonb("metadata"), // Additional customer data from POS
+    lastSyncAt: timestamp("last_sync_at").defaultNow(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    unique("pos_customers_integration_external_unique").on(
+      table.posIntegrationId,
+      table.externalCustomerId,
+    ),
+    index("pos_customers_brand_idx").on(table.brandId),
+    index("pos_customers_phone_idx").on(table.phone),
+    index("pos_customers_mobile_idx").on(table.mobile),
+  ],
+);
+
 // Automated campaign triggers based on POS data
 export const campaignTriggers = pgTable("campaign_triggers", {
   id: uuid("id")
@@ -1594,3 +1641,14 @@ export type InsertConversationHistory = z.infer<
   typeof insertConversationHistorySchema
 >;
 export type ConversationHistory = typeof conversationHistory.$inferSelect;
+
+// POS Customers schemas
+export const insertPosCustomerSchema = createInsertSchema(posCustomers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastSyncAt: true,
+});
+
+export type InsertPosCustomer = z.infer<typeof insertPosCustomerSchema>;
+export type PosCustomer = typeof posCustomers.$inferSelect;
