@@ -74,19 +74,17 @@ export class LightspeedService {
 
   generateAuthUrl(state: string, domainPrefix: string): string {
     const redirectUri = `${APP_URL}/api/lightspeed/callback`;
-    const scopes = 'customer:read customer:write sale:read sale:write product:read';
     
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: LIGHTSPEED_CLIENT_ID,
       redirect_uri: redirectUri,
-      scope: scopes,
       state: state,
     });
 
-    // Use central Lightspeed OAuth server for authorization (X-Series uses cloud.lightspeedapp.com)
-    // The domain-specific endpoint is only used for token exchange and API calls
-    return `https://cloud.lightspeedapp.com/oauth/authorize?${params.toString()}`;
+    // Use Vend/X-Series OAuth endpoint for authorization
+    // X-Series (formerly Vend) uses secure.vendhq.com/connect for OAuth
+    return `https://secure.vendhq.com/connect?${params.toString()}`;
   }
 
   async exchangeCodeForToken(code: string, domainPrefix: string): Promise<LightspeedTokenResponse> {
