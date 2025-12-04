@@ -485,10 +485,10 @@ export default function SalesPage() {
               {lightspeedStatus?.connected && (
                 <div className="flex items-center gap-3">
                   {/* Connection Badge */}
-                  <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                      {lightspeedStatus.storeName}
+                      {lightspeedStatus.storeName || (isSpanish ? "Conectado" : "Connected")}
                     </span>
                   </div>
                   
