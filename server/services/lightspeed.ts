@@ -323,7 +323,10 @@ export class LightspeedService {
     const effectiveDateFrom =
       dateFrom || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
 
-    console.log(`Syncing sales from: ${effectiveDateFrom.toISOString()}`);
+    // Format date for Lightspeed API (UTC ISO format)
+    const dateFromStr = effectiveDateFrom.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    
+    console.log(`Syncing sales from: ${dateFromStr} using search endpoint`);
 
     // Pre-fetch all customers for this integration to enable linking
     const posCustomersList = await db.query.posCustomers.findMany({
@@ -334,24 +337,26 @@ export class LightspeedService {
     );
 
     let syncedCount = 0;
-    let afterVersion: number | undefined = undefined;
+    let offset = 0;
     let hasMorePages = true;
     let totalFetched = 0;
-    const maxPages = 20; // Safety limit to avoid infinite loops
+    const pageSize = 500; // Search endpoint allows up to 1000
+    const maxPages = 20; // Safety limit
     let pageCount = 0;
 
     while (hasMorePages && pageCount < maxPages) {
       pageCount++;
-      const params = new URLSearchParams();
-      params.set("page_size", "100");
       
-      // Use version-based pagination (after parameter)
-      if (afterVersion !== undefined) {
-        params.set("after", String(afterVersion));
-      }
+      // Use the search endpoint with date filtering
+      const params = new URLSearchParams();
+      params.set("type", "sales");
+      params.set("date_from", dateFromStr);
+      params.set("page_size", String(pageSize));
+      params.set("offset", String(offset));
+      params.set("order_direction", "desc"); // Most recent first
 
-      const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/sales?${params.toString()}`;
-      console.log(`Fetching sales page ${pageCount}${afterVersion ? ` (after version ${afterVersion})` : ''}...`);
+      const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/search?${params.toString()}`;
+      console.log(`Fetching sales page ${pageCount} (offset: ${offset})...`);
 
       const response = await fetch(url, {
         headers: {
@@ -368,21 +373,11 @@ export class LightspeedService {
 
       const data = await response.json();
       const sales: LightspeedSale[] = data.data || [];
-      const versionInfo = data.version as { min: number; max: number } | undefined;
       
       totalFetched += sales.length;
       console.log(`Page ${pageCount}: Found ${sales.length} sales (total: ${totalFetched})`);
 
-      // Filter sales by date (only process sales from the effective date onwards)
-      const filteredSales = sales.filter((sale) => {
-        if (!sale.sale_date) return false;
-        const saleDate = new Date(sale.sale_date);
-        return saleDate >= effectiveDateFrom;
-      });
-
-      console.log(`Filtered to ${filteredSales.length} sales after ${effectiveDateFrom.toISOString()}`);
-
-      for (const sale of filteredSales) {
+      for (const sale of sales) {
         try {
           const existingTransaction = await db.query.salesTransactions.findFirst({
             where: and(
@@ -439,19 +434,16 @@ export class LightspeedService {
       }
 
       // Check if there are more pages
-      if (sales.length < 100) {
+      if (sales.length < pageSize) {
         // Less than page_size means we've reached the end
         hasMorePages = false;
-      } else if (versionInfo && versionInfo.max) {
-        // Use the max version from this page for the next request
-        afterVersion = versionInfo.max;
       } else {
-        // No version info and full page - stop to be safe
-        hasMorePages = false;
+        // Move to next page
+        offset += pageSize;
       }
     }
 
-    console.log(`Sync complete: ${syncedCount} new sales synced from ${totalFetched} total fetched`);
+    console.log(`Sync complete: ${syncedCount} new sales synced from ${totalFetched} total fetched (filtered from ${dateFromStr})`);
     return syncedCount;
   }
 
