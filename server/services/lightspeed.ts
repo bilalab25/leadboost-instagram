@@ -319,33 +319,11 @@ export class LightspeedService {
       throw new Error("Domain prefix not found");
     }
 
-    // Default to last 365 days if no date provided (avoid fetching ancient records)
+    // Default to last 365 days if no date provided
     const effectiveDateFrom =
       dateFrom || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
 
-    const params = new URLSearchParams();
-    params.set("page_size", "100");
-
-    const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/sales?${params.toString()}`;
     console.log(`Syncing sales from: ${effectiveDateFrom.toISOString()}`);
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Failed to fetch Lightspeed sales:", errorText);
-      throw new Error(`Failed to fetch sales: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const sales: LightspeedSale[] = data.data || [];
-    let syncedCount = 0;
-    console.log(`Found ${sales.length} sales from Lightspeed`);
 
     // Pre-fetch all customers for this integration to enable linking
     const posCustomersList = await db.query.posCustomers.findMany({
@@ -355,50 +333,125 @@ export class LightspeedService {
       posCustomersList.map((c) => [c.externalCustomerId, c.id]),
     );
 
-    for (const sale of sales) {
-      try {
-        const existingTransaction = await db.query.salesTransactions.findFirst({
-          where: and(
-            eq(salesTransactions.posIntegrationId, integration.id),
-            eq(salesTransactions.transactionId, sale.id),
-          ),
-        });
+    let syncedCount = 0;
+    let afterVersion: number | undefined = undefined;
+    let hasMorePages = true;
+    let totalFetched = 0;
+    const maxPages = 20; // Safety limit to avoid infinite loops
+    let pageCount = 0;
 
-        if (existingTransaction) continue;
+    while (hasMorePages && pageCount < maxPages) {
+      pageCount++;
+      const params = new URLSearchParams();
+      params.set("page_size", "100");
+      
+      // Use version-based pagination (after parameter)
+      if (afterVersion !== undefined) {
+        params.set("after", String(afterVersion));
+      }
 
-        // Look up the internal posCustomer by external customer ID
-        const posCustomerId = sale.customer?.id
-          ? customerMap.get(sale.customer.id)
-          : null;
+      const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/sales?${params.toString()}`;
+      console.log(`Fetching sales page ${pageCount}${afterVersion ? ` (after version ${afterVersion})` : ''}...`);
 
-        await db.insert(salesTransactions).values({
-          posIntegrationId: integration.id,
-          userId: integration.userId,
-          posCustomerId: posCustomerId || null,
-          transactionId: sale.id,
-          customerId: sale.customer?.id,
-          customerEmail: sale.customer?.email,
-          customerName: sale.customer?.name,
-          customerPhone: sale.customer?.phone || sale.customer?.mobile,
-          totalAmount: Math.round((sale.total_price || 0) * 100),
-          currency: "USD",
-          status: sale.status || "completed",
-          paymentMethod: sale.payments?.[0] ? "card" : "unknown",
-          items: sale.line_items || [],
-          metadata: {
-            invoiceNumber: sale.invoice_number,
-            totalTax: sale.total_tax,
-          },
-          transactionDate: sale.sale_date
-            ? new Date(sale.sale_date)
-            : new Date(),
-        });
-        syncedCount++;
-      } catch (error) {
-        console.error(`Failed to sync sale ${sale.id}:`, error);
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to fetch Lightspeed sales:", errorText);
+        throw new Error(`Failed to fetch sales: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const sales: LightspeedSale[] = data.data || [];
+      const versionInfo = data.version as { min: number; max: number } | undefined;
+      
+      totalFetched += sales.length;
+      console.log(`Page ${pageCount}: Found ${sales.length} sales (total: ${totalFetched})`);
+
+      // Filter sales by date (only process sales from the effective date onwards)
+      const filteredSales = sales.filter((sale) => {
+        if (!sale.sale_date) return false;
+        const saleDate = new Date(sale.sale_date);
+        return saleDate >= effectiveDateFrom;
+      });
+
+      console.log(`Filtered to ${filteredSales.length} sales after ${effectiveDateFrom.toISOString()}`);
+
+      for (const sale of filteredSales) {
+        try {
+          const existingTransaction = await db.query.salesTransactions.findFirst({
+            where: and(
+              eq(salesTransactions.posIntegrationId, integration.id),
+              eq(salesTransactions.transactionId, sale.id),
+            ),
+          });
+
+          if (existingTransaction) continue;
+
+          // Look up the internal posCustomer by external customer ID
+          const posCustomerId = sale.customer?.id
+            ? customerMap.get(sale.customer.id)
+            : null;
+
+          // Map state to a normalized status (state is the new field, status is deprecated)
+          const saleState = (sale as any).state as string | undefined;
+          let normalizedStatus = "completed";
+          if (saleState === "voided") {
+            normalizedStatus = "cancelled";
+          } else if (saleState === "parked" || saleState === "pending") {
+            normalizedStatus = "pending";
+          } else if (saleState === "closed") {
+            normalizedStatus = "completed";
+          }
+
+          await db.insert(salesTransactions).values({
+            posIntegrationId: integration.id,
+            userId: integration.userId,
+            posCustomerId: posCustomerId || null,
+            transactionId: sale.id,
+            customerId: sale.customer?.id,
+            customerEmail: sale.customer?.email,
+            customerName: sale.customer?.name,
+            customerPhone: sale.customer?.phone || sale.customer?.mobile,
+            totalAmount: Math.round((sale.total_price || 0) * 100),
+            currency: "USD",
+            status: normalizedStatus,
+            paymentMethod: sale.payments?.[0] ? "card" : "unknown",
+            items: sale.line_items || [],
+            metadata: {
+              invoiceNumber: sale.invoice_number,
+              totalTax: sale.total_tax,
+              state: saleState,
+            },
+            transactionDate: sale.sale_date
+              ? new Date(sale.sale_date)
+              : new Date(),
+          });
+          syncedCount++;
+        } catch (error) {
+          console.error(`Failed to sync sale ${sale.id}:`, error);
+        }
+      }
+
+      // Check if there are more pages
+      if (sales.length < 100) {
+        // Less than page_size means we've reached the end
+        hasMorePages = false;
+      } else if (versionInfo && versionInfo.max) {
+        // Use the max version from this page for the next request
+        afterVersion = versionInfo.max;
+      } else {
+        // No version info and full page - stop to be safe
+        hasMorePages = false;
       }
     }
 
+    console.log(`Sync complete: ${syncedCount} new sales synced from ${totalFetched} total fetched`);
     return syncedCount;
   }
 

@@ -1,0 +1,93 @@
+ async syncSales(
+    integration: typeof posIntegrations.$inferSelect,
+    dateFrom?: Date,
+  ): Promise<number> {
+    const accessToken = await this.getValidAccessToken(integration);
+    const domainPrefix = (integration.settings as any)?.domainPrefix;
+
+    if (!domainPrefix) {
+      throw new Error("Domain prefix not found");
+    }
+
+    // Default to last 365 days if no date provided (avoid fetching ancient records)
+    const effectiveDateFrom =
+      dateFrom || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+
+    const params = new URLSearchParams();
+    params.set("page_size", "100");
+
+    const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/sales?${params.toString()}`;
+    console.log(`Syncing sales from: ${effectiveDateFrom.toISOString()}`);
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Failed to fetch Lightspeed sales:", errorText);
+      throw new Error(`Failed to fetch sales: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const sales: LightspeedSale[] = data.data || [];
+    let syncedCount = 0;
+    console.log(`Found ${sales.length} sales from Lightspeed`);
+
+    // Pre-fetch all customers for this integration to enable linking
+    const posCustomersList = await db.query.posCustomers.findMany({
+      where: eq(posCustomers.posIntegrationId, integration.id),
+    });
+    const customerMap = new Map(
+      posCustomersList.map((c) => [c.externalCustomerId, c.id]),
+    );
+
+    for (const sale of sales) {
+      try {
+        const existingTransaction = await db.query.salesTransactions.findFirst({
+          where: and(
+            eq(salesTransactions.posIntegrationId, integration.id),
+            eq(salesTransactions.transactionId, sale.id),
+          ),
+        });
+
+        if (existingTransaction) continue;
+
+        // Look up the internal posCustomer by external customer ID
+        const posCustomerId = sale.customer?.id
+          ? customerMap.get(sale.customer.id)
+          : null;
+
+        await db.insert(salesTransactions).values({
+          posIntegrationId: integration.id,
+          userId: integration.userId,
+          posCustomerId: posCustomerId || null,
+          transactionId: sale.id,
+          customerId: sale.customer?.id,
+          customerEmail: sale.customer?.email,
+          customerName: sale.customer?.name,
+          customerPhone: sale.customer?.phone || sale.customer?.mobile,
+          totalAmount: Math.round((sale.total_price || 0) * 100),
+          currency: "USD",
+          status: sale.status || "completed",
+          paymentMethod: sale.payments?.[0] ? "card" : "unknown",
+          items: sale.line_items || [],
+          metadata: {
+            invoiceNumber: sale.invoice_number,
+            totalTax: sale.total_tax,
+          },
+          transactionDate: sale.sale_date
+            ? new Date(sale.sale_date)
+            : new Date(),
+        });
+        syncedCount++;
+      } catch (error) {
+        console.error(`Failed to sync sale ${sale.id}:`, error);
+      }
+    }
+
+    return syncedCount;
+  }
