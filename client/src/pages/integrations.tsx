@@ -1214,17 +1214,17 @@ export default function IntegrationsPage() {
                             >
                               <CardContent className="p-4">
                                 {/* Header Row */}
-                                <div className="flex items-start justify-between mb-3">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                                <div className="flex items-start justify-between gap-2 mb-3">
+                                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
                                       <Icon className={`h-5 w-5 ${getIconColor()}`} />
                                     </div>
-                                    <div className="min-w-0">
-                                      <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                    <div className="min-w-0 flex-1">
+                                      <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
                                         {providerInfo.name}
                                       </h3>
                                       {(connectedIntegration || lightspeedStoreName) && (
-                                        <p className="text-xs text-green-600 dark:text-green-400 truncate">
+                                        <p className="text-xs text-green-600 dark:text-green-400 truncate max-w-[150px]">
                                           {lightspeedStoreName || connectedIntegration?.accountName || connectedIntegration?.storeName}
                                         </p>
                                       )}
