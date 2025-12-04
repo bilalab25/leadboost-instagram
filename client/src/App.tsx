@@ -34,6 +34,7 @@ import FlowBuilder from "@/pages/flow-builder";
 import FlowsDashboard from "@/pages/flows-dashboard";
 import Onboarding from "@/pages/onboarding";
 import WhatsAppTemplates from "@/pages/whatsapp-templates";
+import Sales from "@/pages/sales";
 
 function Router() {
   return (
@@ -68,6 +69,7 @@ function Router() {
       <PrivateRoute path="/flows-dashboard" component={FlowsDashboard} />
       <PrivateRoute path="/flow-builder/:id" component={FlowBuilder} />
       <PrivateRoute path="/whatsapp-templates" component={WhatsAppTemplates} />
+      <PrivateRoute path="/sales" component={Sales} />
 
       {/* Ruta 404 para cualquier otra ruta no definida */}
       <Route component={NotFound} />
