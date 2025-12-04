@@ -1283,101 +1283,111 @@ export default function IntegrationsPage() {
                   setIsBaileysConnecting(false);
                 }
               }}>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <MessageCircle className="h-5 w-5 text-green-500" />
-                      {isSpanish ? "Conectar WhatsApp Business" : "Connect WhatsApp Business"}
-                    </DialogTitle>
-                    <DialogDescription>
-                      {isSpanish 
-                        ? "Elige cómo deseas conectar tu cuenta de WhatsApp Business" 
-                        : "Choose how you want to connect your WhatsApp Business account"}
-                    </DialogDescription>
-                  </DialogHeader>
+                <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden">
+                  <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 text-white">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <MessageCircle className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <DialogTitle className="text-white text-lg font-semibold">
+                          {isSpanish ? "Conectar WhatsApp Business" : "Connect WhatsApp Business"}
+                        </DialogTitle>
+                        <DialogDescription className="text-green-100 text-sm mt-0.5">
+                          {isSpanish 
+                            ? "Elige tu método de conexión preferido" 
+                            : "Choose your preferred connection method"}
+                        </DialogDescription>
+                      </div>
+                    </div>
+                  </div>
 
                   {!whatsAppMethod ? (
-                    <div className="space-y-3 pt-4">
-                      {/* Embedded Signup Option - Clean & Recommended */}
-                      <Card 
-                        className="cursor-pointer border border-gray-200 hover:border-green-400 hover:bg-gray-50 transition-all relative"
+                    <div className="p-5 space-y-3">
+                      {/* Embedded Signup Option - Premium & Recommended */}
+                      <div 
+                        className="group cursor-pointer relative rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50/80 to-emerald-50/50 p-4 hover:border-green-400 hover:shadow-md hover:shadow-green-100/50 transition-all duration-200"
                         onClick={() => setWhatsAppMethod("embedded")}
                         data-testid="whatsapp-embedded-option"
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-4">
-                            <div className="p-2.5 bg-green-50 rounded-lg border border-green-100">
-                              <Shield className="h-5 w-5 text-green-600" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-medium text-sm">
-                                  {isSpanish ? "Conexión Oficial de Meta" : "Official Meta Connection"}
-                                </h3>
-                                <Badge className="text-[10px] bg-green-600 hover:bg-green-600 text-white px-1.5 py-0">
-                                  {isSpanish ? "Recomendado" : "Recommended"}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {isSpanish 
-                                  ? "Conexión segura respaldada por Meta. Tu cuenta está protegida." 
-                                  : "Secure connection backed by Meta. Your account is protected."}
-                              </p>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <CheckCircle2 className="h-3 w-3 text-green-600" />
-                                  {isSpanish ? "Sin riesgo" : "No risk"}
-                                </span>
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Zap className="h-3 w-3 text-green-600" />
-                                  {isSpanish ? "2-5 min" : "2-5 min"}
-                                </span>
-                              </div>
-                            </div>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <div className="absolute -top-2.5 left-4">
+                          <Badge className="text-[10px] bg-green-600 hover:bg-green-600 text-white shadow-sm">
+                            <Star className="h-2.5 w-2.5 mr-1 fill-current" />
+                            {isSpanish ? "Recomendado" : "Recommended"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 mt-1">
+                          <div className="p-3 bg-white rounded-xl shadow-sm border border-green-100 group-hover:scale-105 transition-transform">
+                            <Shield className="h-6 w-6 text-green-600" />
                           </div>
-                        </CardContent>
-                      </Card>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">
+                              {isSpanish ? "Conexión Oficial de Meta" : "Official Meta Connection"}
+                            </h3>
+                            <p className="text-xs text-gray-600 mt-0.5">
+                              {isSpanish 
+                                ? "Segura, estable y respaldada por Meta" 
+                                : "Secure, stable and backed by Meta"}
+                            </p>
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="text-xs text-green-700 flex items-center gap-1 bg-green-100 px-2 py-0.5 rounded-full">
+                                <CheckCircle2 className="h-3 w-3" />
+                                {isSpanish ? "Sin riesgo" : "No risk"}
+                              </span>
+                              <span className="text-xs text-green-700 flex items-center gap-1 bg-green-100 px-2 py-0.5 rounded-full">
+                                <Zap className="h-3 w-3" />
+                                2-5 min
+                              </span>
+                            </div>
+                          </div>
+                          <div className="p-2 bg-green-100 rounded-full group-hover:bg-green-200 transition-colors">
+                            <ArrowRight className="h-4 w-4 text-green-700" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="relative py-2">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                          <span className="bg-white px-3 text-xs text-gray-400 uppercase tracking-wider">
+                            {isSpanish ? "Alternativa" : "Alternative"}
+                          </span>
+                        </div>
+                      </div>
 
                       {/* Baileys QR Code Option (Experimental) */}
-                      <Card 
-                        className="cursor-pointer border border-dashed border-gray-200 hover:border-orange-300 hover:bg-orange-50/30 transition-all"
+                      <div 
+                        className="group cursor-pointer rounded-xl border border-dashed border-gray-200 p-4 hover:border-orange-300 hover:bg-orange-50/30 transition-all duration-200 opacity-75 hover:opacity-100"
                         onClick={() => setWhatsAppMethod("baileys")}
                         data-testid="whatsapp-baileys-option"
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-4">
-                            <div className="p-2.5 bg-gray-50 rounded-lg border border-gray-100">
-                              <Smartphone className="h-5 w-5 text-gray-500" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-medium text-sm text-gray-600">
-                                  {isSpanish ? "Conexión Rápida" : "Quick Connect"}
-                                </h3>
-                                <Badge variant="outline" className="text-[10px] text-orange-500 border-orange-200 px-1.5 py-0">
-                                  {isSpanish ? "Experimental" : "Experimental"}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {isSpanish 
-                                  ? "Conexión vía QR. Puede causar suspensión de cuenta." 
-                                  : "QR connection. May cause account suspension."}
-                              </p>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                <span className="text-xs text-orange-500 flex items-center gap-1">
-                                  <AlertTriangle className="h-3 w-3" />
-                                  {isSpanish ? "Riesgo de ban" : "Ban risk"}
-                                </span>
-                              </div>
-                            </div>
-                            <ArrowRight className="h-4 w-4 text-gray-400" />
+                        <div className="flex items-center gap-4">
+                          <div className="p-2.5 bg-gray-100 rounded-xl">
+                            <Smartphone className="h-5 w-5 text-gray-500" />
                           </div>
-                        </CardContent>
-                      </Card>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-medium text-sm text-gray-600">
+                                {isSpanish ? "Conexión Rápida" : "Quick Connect"}
+                              </h3>
+                              <Badge variant="outline" className="text-[9px] text-orange-500 border-orange-200 px-1.5 py-0">
+                                {isSpanish ? "Experimental" : "Experimental"}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {isSpanish 
+                                ? "Conexión vía QR. Riesgo de suspensión." 
+                                : "QR connection. Suspension risk."}
+                            </p>
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        </div>
+                      </div>
                     </div>
                   ) : whatsAppMethod === "embedded" ? (
-                    <div className="space-y-4 pt-4">
+                    <div className="p-5 space-y-4">
                       <Alert className="border-green-200 bg-green-50">
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                         <AlertTitle className="text-green-800">{isSpanish ? "Proceso Oficial de Meta" : "Official Meta Process"}</AlertTitle>
@@ -1408,7 +1418,7 @@ export default function IntegrationsPage() {
                       </div>
                     </div>
                   ) : whatsAppMethod === "baileys" ? (
-                    <div className="space-y-4 pt-4">
+                    <div className="p-5 space-y-4">
                       {/* Warning Alert */}
                       <Alert className="border-orange-300 bg-orange-50">
                         <AlertCircle className="h-4 w-4 text-orange-600" />
