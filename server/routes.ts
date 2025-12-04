@@ -7324,9 +7324,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sync Lightspeed data manually
   app.post("/api/lightspeed/sync", isAuthenticated, async (req: any, res) => {
     try {
-      const brandId = req.body.brandId as string;
+      console.log("Lightspeed sync - req.body:", JSON.stringify(req.body));
+      const brandId = req.body?.brandId as string;
 
       if (!brandId) {
+        console.log("Brand ID missing from body");
         return res.status(400).json({ message: "Brand ID is required" });
       }
 
