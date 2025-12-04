@@ -3333,7 +3333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "base64",
       );
 
-      const authUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      const authUrl = `https://www.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri,
       )}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
       console.log(
