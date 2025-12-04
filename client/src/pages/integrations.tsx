@@ -209,6 +209,14 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
       { name: "publishableKey", label: "Publishable Key", type: "text", required: false, placeholder: "pk_..." },
     ],
   },
+  lightspeed: {
+    name: "Lightspeed Retail",
+    icon: Store,
+    description: "X-Series POS for retail businesses - sync sales & customers",
+    category: "pos",
+    fields: [],
+    oauth: true,
+  },
 
   // E-commerce Integrations
   shopify: {
@@ -420,6 +428,9 @@ export default function IntegrationsPage() {
       url = `/api/integrations/facebook/connect?brandId=${activeBrandId}`;
     } else if (provider === "instagram_direct") {
       url = `/api/integrations/instagram/connect?brandId=${activeBrandId}`;
+    } else if (provider === "lightspeed") {
+      handleLightspeedConnect();
+      return;
     } else {
       toast({
         title: isSpanish ? "Próximamente" : "Coming Soon",
@@ -437,6 +448,67 @@ export default function IntegrationsPage() {
         window.location.reload();
       }
     }, 1000);
+  };
+
+  // Lightspeed OAuth connection handler
+  const handleLightspeedConnect = async () => {
+    if (!activeBrandId) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish ? "Selecciona una marca primero" : "Select a brand first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/lightspeed/auth?brandId=${activeBrandId}`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to get authorization URL");
+      }
+      
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        const popup = window.open(data.authUrl, "_blank", "width=600,height=700");
+        
+        // Listen for OAuth success message
+        const handleMessage = (event: MessageEvent) => {
+          if (event.data?.type === 'lightspeed-oauth-success') {
+            window.removeEventListener('message', handleMessage);
+            toast({
+              title: isSpanish ? "Conectado" : "Connected",
+              description: isSpanish 
+                ? "Lightspeed se conectó correctamente. Sincronizando datos..."
+                : "Lightspeed connected successfully. Syncing data...",
+            });
+            window.location.reload();
+          }
+        };
+        window.addEventListener('message', handleMessage);
+
+        // Fallback: check if popup closed
+        const timer = setInterval(() => {
+          if (popup?.closed) {
+            clearInterval(timer);
+            window.removeEventListener('message', handleMessage);
+            window.location.reload();
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Lightspeed OAuth error:", error);
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish 
+          ? "No se pudo iniciar la conexión con Lightspeed"
+          : "Failed to initiate Lightspeed connection",
+        variant: "destructive",
+      });
+    }
   };
 
   // WhatsApp Embedded Signup handler
@@ -1015,6 +1087,7 @@ export default function IntegrationsPage() {
                               case 'shopify': return 'text-green-600';
                               case 'stripe': return 'text-purple-600';
                               case 'square': return 'text-gray-900 dark:text-gray-100';
+                              case 'lightspeed': return 'text-emerald-600';
                               case 'woocommerce': return 'text-purple-700';
                               case 'wix': return 'text-black dark:text-white';
                               case 'custom_website': return 'text-blue-500';
@@ -1112,7 +1185,7 @@ export default function IntegrationsPage() {
                                     size="sm"
                                     className="w-full h-8 text-xs"
                                     onClick={() => {
-                                      if (category.key === "social_media") {
+                                      if (category.key === "social_media" || providerKey === "lightspeed") {
                                         handleConnect(providerKey);
                                       } else {
                                         setDialogSelectedCategory(category.key);

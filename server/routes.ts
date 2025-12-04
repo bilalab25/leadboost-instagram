@@ -45,11 +45,12 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { posIntegrationService } from "./services/posIntegrations";
+import { lightspeedService } from "./services/lightspeed";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
 import cloudinary from "./cloudinary";
 import { db } from "./db";
-import { brandDesigns } from "@shared/schema";
+import { brandDesigns, posIntegrations } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import dayjs from "dayjs";
 import { nanoid } from "nanoid";
@@ -7106,6 +7107,307 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   );
+
+  // ==================================================================================
+  // LIGHTSPEED RETAIL X-SERIES OAUTH ROUTES
+  // ==================================================================================
+
+  // Initiate Lightspeed OAuth flow
+  app.get("/api/lightspeed/auth", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
+      const brandId = req.query.brandId as string;
+
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      // Generate state with user info for callback
+      const state = Buffer.from(
+        JSON.stringify({ userId, brandId, timestamp: Date.now() })
+      ).toString("base64");
+
+      // Store state in session for verification
+      (req.session as any).lightspeedOAuthState = state;
+
+      const authUrl = lightspeedService.generateAuthUrl(state);
+      console.log("🔗 Lightspeed OAuth URL generated for brand:", brandId);
+
+      res.json({ authUrl });
+    } catch (error) {
+      console.error("Error initiating Lightspeed OAuth:", error);
+      res.status(500).json({ message: "Failed to initiate Lightspeed OAuth" });
+    }
+  });
+
+  // Lightspeed OAuth callback
+  app.get("/api/lightspeed/callback", async (req: any, res) => {
+    try {
+      const { code, domain_prefix, state } = req.query;
+
+      console.log("📥 Lightspeed OAuth callback received:", {
+        hasCode: !!code,
+        domainPrefix: domain_prefix,
+        hasState: !!state,
+      });
+
+      if (!code || !domain_prefix || !state) {
+        return res.status(400).send(`
+          <html>
+            <head><title>Error</title></head>
+            <body>
+              <h1>Connection Failed</h1>
+              <p>Missing required parameters from Lightspeed.</p>
+              <script>
+                setTimeout(() => window.close(), 3000);
+              </script>
+            </body>
+          </html>
+        `);
+      }
+
+      // Decode state
+      let stateData: { userId: string; brandId: string; timestamp: number };
+      try {
+        stateData = JSON.parse(Buffer.from(state as string, "base64").toString());
+      } catch (e) {
+        return res.status(400).send("Invalid OAuth state");
+      }
+
+      // Exchange code for tokens
+      const tokens = await lightspeedService.exchangeCodeForToken(
+        code as string,
+        domain_prefix as string
+      );
+
+      console.log("✅ Lightspeed tokens received:", {
+        hasAccessToken: !!tokens.access_token,
+        hasRefreshToken: !!tokens.refresh_token,
+        expiresIn: tokens.expires_in,
+      });
+
+      // Create the integration
+      const integrationId = await lightspeedService.createIntegration(
+        stateData.userId,
+        stateData.brandId,
+        domain_prefix as string,
+        tokens
+      );
+
+      console.log("✅ Lightspeed integration created:", integrationId);
+
+      // Initial sync of customers and sales
+      try {
+        const integration = await db.query.posIntegrations.findFirst({
+          where: eq(posIntegrations.id, integrationId),
+        });
+
+        if (integration) {
+          const customerCount = await lightspeedService.syncCustomers(integration);
+          const salesCount = await lightspeedService.syncSales(integration);
+          console.log(`✅ Initial sync completed: ${customerCount} customers, ${salesCount} sales`);
+        }
+      } catch (syncError) {
+        console.error("Initial sync failed (integration still created):", syncError);
+      }
+
+      // Send success page that closes the popup
+      res.send(`
+        <html>
+          <head>
+            <title>Connection Successful</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+              }
+              .container {
+                text-align: center;
+                padding: 40px;
+                background: rgba(255,255,255,0.1);
+                border-radius: 16px;
+                backdrop-filter: blur(10px);
+              }
+              .checkmark {
+                font-size: 64px;
+                margin-bottom: 16px;
+              }
+              h1 { margin: 0 0 8px 0; font-size: 24px; }
+              p { margin: 0; opacity: 0.9; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="checkmark">✓</div>
+              <h1>Lightspeed Connected!</h1>
+              <p>This window will close automatically...</p>
+            </div>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({ type: 'lightspeed-oauth-success' }, '*');
+              }
+              setTimeout(() => window.close(), 2000);
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error("❌ Lightspeed OAuth callback error:", error);
+      res.status(500).send(`
+        <html>
+          <head><title>Error</title></head>
+          <body>
+            <h1>Connection Failed</h1>
+            <p>${error instanceof Error ? error.message : 'Unknown error occurred'}</p>
+            <script>
+              setTimeout(() => window.close(), 5000);
+            </script>
+          </body>
+        </html>
+      `);
+    }
+  });
+
+  // Get Lightspeed integration status for a brand
+  app.get("/api/lightspeed/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.query.brandId as string;
+      
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      const integration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (!integration) {
+        return res.json({ connected: false });
+      }
+
+      const stats = await lightspeedService.getSalesStats(integration.id);
+
+      res.json({
+        connected: true,
+        integration: {
+          id: integration.id,
+          storeName: integration.storeName,
+          storeUrl: integration.storeUrl,
+          lastSyncAt: integration.lastSyncAt,
+          isActive: integration.isActive,
+        },
+        stats,
+      });
+    } catch (error) {
+      console.error("Error fetching Lightspeed status:", error);
+      res.status(500).json({ message: "Failed to fetch Lightspeed status" });
+    }
+  });
+
+  // Sync Lightspeed data manually
+  app.post("/api/lightspeed/sync", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.body.brandId as string;
+
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      const integration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (!integration) {
+        return res.status(404).json({ message: "Lightspeed integration not found" });
+      }
+
+      const customerCount = await lightspeedService.syncCustomers(integration);
+      const salesCount = await lightspeedService.syncSales(integration);
+
+      res.json({
+        success: true,
+        synced: {
+          customers: customerCount,
+          sales: salesCount,
+        },
+      });
+    } catch (error) {
+      console.error("Error syncing Lightspeed data:", error);
+      res.status(500).json({ message: "Failed to sync Lightspeed data" });
+    }
+  });
+
+  // Get Lightspeed customers for a brand
+  app.get("/api/lightspeed/customers", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.query.brandId as string;
+
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      const integration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (!integration) {
+        return res.status(404).json({ message: "Lightspeed integration not found" });
+      }
+
+      const customers = await lightspeedService.getCustomers(integration.id);
+      res.json(customers);
+    } catch (error) {
+      console.error("Error fetching Lightspeed customers:", error);
+      res.status(500).json({ message: "Failed to fetch customers" });
+    }
+  });
+
+  // Get Lightspeed sales for a brand
+  app.get("/api/lightspeed/sales", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.query.brandId as string;
+      const limit = parseInt(req.query.limit as string) || 100;
+
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      const integration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (!integration) {
+        return res.status(404).json({ message: "Lightspeed integration not found" });
+      }
+
+      const sales = await lightspeedService.getSales(integration.id, limit);
+      res.json(sales);
+    } catch (error) {
+      console.error("Error fetching Lightspeed sales:", error);
+      res.status(500).json({ message: "Failed to fetch sales" });
+    }
+  });
+
+  // Disconnect Lightspeed integration
+  app.delete("/api/lightspeed/disconnect", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.body.brandId as string;
+
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      const integration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (!integration) {
+        return res.status(404).json({ message: "Lightspeed integration not found" });
+      }
+
+      await lightspeedService.disconnectIntegration(integration.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error disconnecting Lightspeed:", error);
+      res.status(500).json({ message: "Failed to disconnect Lightspeed" });
+    }
+  });
 
   // POS Integration routes
   // Get user's POS integrations
