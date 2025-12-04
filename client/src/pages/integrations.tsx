@@ -1223,11 +1223,6 @@ export default function IntegrationsPage() {
                                       <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
                                         {providerInfo.name}
                                       </h3>
-                                      {(connectedIntegration || lightspeedStoreName) && (
-                                        <p className="text-xs text-green-600 dark:text-green-400 truncate max-w-[150px]">
-                                          {lightspeedStoreName || connectedIntegration?.accountName || connectedIntegration?.storeName}
-                                        </p>
-                                      )}
                                     </div>
                                   </div>
                                   {isConnected && (
@@ -1238,9 +1233,16 @@ export default function IntegrationsPage() {
                                 </div>
 
                                 {/* Description */}
-                                <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                                <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                                   {providerInfo.description}
                                 </p>
+                                
+                                {/* Connected Store Name */}
+                                {(connectedIntegration || lightspeedStoreName) && (
+                                  <p className="text-xs text-green-600 dark:text-green-400 truncate mb-3">
+                                    {lightspeedStoreName || connectedIntegration?.accountName || connectedIntegration?.storeName}
+                                  </p>
+                                )}
 
                                 {/* Action Button */}
                                 {isConnected ? (
