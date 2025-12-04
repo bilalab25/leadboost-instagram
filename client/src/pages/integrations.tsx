@@ -130,6 +130,7 @@ interface ProviderInfo {
   description: string;
   category: "pos" | "ecommerce" | "social_media" | "crm";
   fields: IntegrationField[];
+  oauth?: boolean;
 }
 
 // =====================================================
