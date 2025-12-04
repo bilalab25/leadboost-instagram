@@ -508,6 +508,15 @@ export default function IntegrationsPage() {
 
   // Baileys QR connection handler
   const handleBaileysConnect = async () => {
+    if (!activeBrandId) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish ? "Por favor, selecciona una marca primero" : "Please select a brand first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsBaileysConnecting(true);
     setBaileysQrCode(null);
     setBaileysStatus("connecting");
@@ -516,6 +525,7 @@ export default function IntegrationsPage() {
       const res = await fetch("/api/whatsapp-baileys/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandId: activeBrandId }),
       });
       
       const data = await res.json();
