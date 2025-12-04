@@ -311,12 +311,19 @@ export default function IntegrationsPage() {
 
   // WhatsApp connection method dialog state
   const [isWhatsAppMethodDialogOpen, setIsWhatsAppMethodDialogOpen] = useState(false);
-  const [whatsAppMethod, setWhatsAppMethod] = useState<"embedded" | "qrcode" | null>(null);
+  const [whatsAppMethod, setWhatsAppMethod] = useState<"embedded" | "qrcode" | "baileys" | null>(null);
   const [whatsAppPhoneNumber, setWhatsAppPhoneNumber] = useState("");
   const [whatsAppQrCode, setWhatsAppQrCode] = useState<string | null>(null);
   const [whatsAppPairingCode, setWhatsAppPairingCode] = useState<string | null>(null);
   const [isGeneratingQr, setIsGeneratingQr] = useState(false);
   const [qrCodeStep, setQrCodeStep] = useState<1 | 2 | 3>(1);
+  
+  // Baileys QR connection state
+  const [baileysQrCode, setBaileysQrCode] = useState<string | null>(null);
+  const [baileysStatus, setBaileysStatus] = useState<string>("disconnected");
+  const [baileysPhone, setBaileysPhone] = useState<string | null>(null);
+  const [isBaileysConnecting, setIsBaileysConnecting] = useState(false);
+  const [baileysPollingInterval, setBaileysPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Delete confirmation dialog state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -498,6 +505,131 @@ export default function IntegrationsPage() {
       });
     }
   };
+
+  // Baileys QR connection handler
+  const handleBaileysConnect = async () => {
+    setIsBaileysConnecting(true);
+    setBaileysQrCode(null);
+    setBaileysStatus("connecting");
+    
+    try {
+      const res = await fetch("/api/whatsapp-baileys/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to start connection");
+      }
+      
+      if (data.status === "already_connected") {
+        setBaileysStatus("connected");
+        setBaileysPhone(data.phoneNumber);
+        toast({
+          title: isSpanish ? "Ya conectado" : "Already connected",
+          description: isSpanish ? "Tu WhatsApp ya está conectado" : "Your WhatsApp is already connected",
+        });
+        return;
+      }
+      
+      if (data.qrCode) {
+        setBaileysQrCode(data.qrCode);
+        setBaileysStatus("qr_ready");
+      }
+      
+      // Start polling for status updates
+      startBaileysPolling();
+      
+    } catch (error) {
+      console.error("Baileys connection error:", error);
+      setBaileysStatus("error");
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: error instanceof Error ? error.message : "Failed to connect",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBaileysConnecting(false);
+    }
+  };
+  
+  // Poll Baileys status
+  const startBaileysPolling = () => {
+    if (baileysPollingInterval) {
+      clearInterval(baileysPollingInterval);
+    }
+    
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/whatsapp-baileys/status");
+        const data = await res.json();
+        
+        if (data.status === "connected") {
+          setBaileysStatus("connected");
+          setBaileysPhone(data.phoneNumber);
+          setBaileysQrCode(null);
+          clearInterval(interval);
+          setBaileysPollingInterval(null);
+          
+          toast({
+            title: isSpanish ? "¡Conectado!" : "Connected!",
+            description: isSpanish 
+              ? `WhatsApp conectado: ${data.phoneNumber}`
+              : `WhatsApp connected: ${data.phoneNumber}`,
+          });
+          
+          // Refresh integrations
+          fetchIntegrations();
+        } else if (data.status === "qr_ready" && data.qrCode) {
+          setBaileysQrCode(data.qrCode);
+          setBaileysStatus("qr_ready");
+        } else if (data.status === "disconnected") {
+          setBaileysStatus("disconnected");
+          clearInterval(interval);
+          setBaileysPollingInterval(null);
+        }
+      } catch (error) {
+        console.error("Status polling error:", error);
+      }
+    }, 2000);
+    
+    setBaileysPollingInterval(interval);
+  };
+  
+  // Disconnect Baileys
+  const handleBaileysDisconnect = async () => {
+    try {
+      const res = await fetch("/api/whatsapp-baileys/disconnect", {
+        method: "POST",
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        setBaileysStatus("disconnected");
+        setBaileysQrCode(null);
+        setBaileysPhone(null);
+        
+        toast({
+          title: isSpanish ? "Desconectado" : "Disconnected",
+          description: isSpanish ? "WhatsApp ha sido desconectado" : "WhatsApp has been disconnected",
+        });
+      }
+    } catch (error) {
+      console.error("Disconnect error:", error);
+    }
+  };
+  
+  // Cleanup polling on unmount or dialog close
+  useEffect(() => {
+    return () => {
+      if (baileysPollingInterval) {
+        clearInterval(baileysPollingInterval);
+      }
+    };
+  }, [baileysPollingInterval]);
 
   // Create integration handler
   const handleCreateIntegration = () => {
@@ -1118,6 +1250,15 @@ export default function IntegrationsPage() {
                   setWhatsAppQrCode(null);
                   setWhatsAppPairingCode(null);
                   setQrCodeStep(1);
+                  // Reset baileys state
+                  if (baileysPollingInterval) {
+                    clearInterval(baileysPollingInterval);
+                    setBaileysPollingInterval(null);
+                  }
+                  setBaileysQrCode(null);
+                  if (baileysStatus !== "connected") {
+                    setBaileysStatus("disconnected");
+                  }
                 }
               }}>
                 <DialogContent className="sm:max-w-[500px]">
@@ -1202,6 +1343,41 @@ export default function IntegrationsPage() {
                           </div>
                         </CardContent>
                       </Card>
+
+                      {/* Baileys QR Code Option (Experimental) */}
+                      <Card 
+                        className="cursor-pointer hover:border-orange-300 hover:bg-orange-50/50 transition-all border-dashed"
+                        onClick={() => setWhatsAppMethod("baileys")}
+                        data-testid="whatsapp-baileys-option"
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-orange-100 rounded-lg">
+                              <Smartphone className="h-5 w-5 text-orange-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-medium text-sm flex items-center gap-2">
+                                {isSpanish ? "Conexión Rápida (Experimental)" : "Quick Connect (Experimental)"}
+                                <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">Beta</Badge>
+                              </h3>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {isSpanish 
+                                  ? "Conecta cualquier WhatsApp escaneando un QR. Rápido pero no oficial - puede resultar en suspensión de cuenta." 
+                                  : "Connect any WhatsApp by scanning a QR. Fast but unofficial - may result in account suspension."}
+                              </p>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
+                                  {isSpanish ? "No oficial" : "Unofficial"}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {isSpanish ? "< 1 min" : "< 1 min"}
+                                </Badge>
+                              </div>
+                            </div>
+                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   ) : whatsAppMethod === "embedded" ? (
                     <div className="space-y-4 pt-4">
@@ -1233,6 +1409,150 @@ export default function IntegrationsPage() {
                           {isSpanish ? "Iniciar Registro" : "Start Signup"}
                         </Button>
                       </div>
+                    </div>
+                  ) : whatsAppMethod === "baileys" ? (
+                    <div className="space-y-4 pt-4">
+                      {/* Warning Alert */}
+                      <Alert className="border-orange-300 bg-orange-50">
+                        <AlertCircle className="h-4 w-4 text-orange-600" />
+                        <AlertTitle className="text-orange-800">{isSpanish ? "⚠️ Método Experimental" : "⚠️ Experimental Method"}</AlertTitle>
+                        <AlertDescription className="text-orange-700 text-sm">
+                          {isSpanish 
+                            ? "Este método NO es oficial de Meta/WhatsApp. Tu cuenta podría ser suspendida temporalmente o permanentemente. Úsalo bajo tu propio riesgo."
+                            : "This method is NOT official from Meta/WhatsApp. Your account could be temporarily or permanently suspended. Use at your own risk."}
+                        </AlertDescription>
+                      </Alert>
+
+                      {baileysStatus === "disconnected" && (
+                        <>
+                          <div className="text-center py-6">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-100 mb-4">
+                              <Smartphone className="h-8 w-8 text-orange-600" />
+                            </div>
+                            <h3 className="font-medium text-lg">
+                              {isSpanish ? "Conexión Rápida por QR" : "Quick QR Connection"}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {isSpanish 
+                                ? "Haz clic en el botón para generar un código QR que podrás escanear con WhatsApp."
+                                : "Click the button to generate a QR code that you can scan with WhatsApp."}
+                            </p>
+                          </div>
+                          
+                          <div className="flex gap-2 pt-2">
+                            <Button variant="outline" onClick={() => setWhatsAppMethod(null)} data-testid="baileys-back-btn">
+                              {isSpanish ? "Volver" : "Back"}
+                            </Button>
+                            <Button 
+                              className="flex-1 bg-orange-600 hover:bg-orange-700" 
+                              onClick={handleBaileysConnect}
+                              disabled={isBaileysConnecting}
+                              data-testid="baileys-connect-btn"
+                            >
+                              {isBaileysConnecting ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  {isSpanish ? "Conectando..." : "Connecting..."}
+                                </>
+                              ) : (
+                                <>
+                                  <QrCode className="h-4 w-4 mr-2" />
+                                  {isSpanish ? "Generar QR" : "Generate QR"}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+
+                      {(baileysStatus === "connecting" || baileysStatus === "qr_ready") && (
+                        <>
+                          <div className="text-center">
+                            <h3 className="font-medium">
+                              {isSpanish ? "Escanea con WhatsApp" : "Scan with WhatsApp"}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {isSpanish 
+                                ? "Abre WhatsApp > Menú > Dispositivos vinculados > Vincular dispositivo"
+                                : "Open WhatsApp > Menu > Linked Devices > Link a Device"}
+                            </p>
+                          </div>
+
+                          <div className="flex justify-center p-4 bg-white rounded-lg border">
+                            {baileysQrCode ? (
+                              <img 
+                                src={baileysQrCode} 
+                                alt="WhatsApp QR Code" 
+                                className="w-56 h-56"
+                                data-testid="baileys-qr-image"
+                              />
+                            ) : (
+                              <div className="w-56 h-56 flex items-center justify-center">
+                                <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button variant="outline" className="flex-1" onClick={() => {
+                              if (baileysPollingInterval) {
+                                clearInterval(baileysPollingInterval);
+                                setBaileysPollingInterval(null);
+                              }
+                              setBaileysStatus("disconnected");
+                              setBaileysQrCode(null);
+                            }} data-testid="baileys-cancel-btn">
+                              {isSpanish ? "Cancelar" : "Cancel"}
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              onClick={handleBaileysConnect}
+                              data-testid="baileys-refresh-qr-btn"
+                            >
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              {isSpanish ? "Refrescar QR" : "Refresh QR"}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+
+                      {baileysStatus === "connected" && (
+                        <>
+                          <div className="text-center py-6">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+                              <CheckCircle2 className="h-8 w-8 text-green-600" />
+                            </div>
+                            <h3 className="font-medium text-lg text-green-700">
+                              {isSpanish ? "¡WhatsApp Conectado!" : "WhatsApp Connected!"}
+                            </h3>
+                            {baileysPhone && (
+                              <p className="text-sm text-muted-foreground mt-2">
+                                {isSpanish ? `Número: ${baileysPhone}` : `Number: ${baileysPhone}`}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={handleBaileysDisconnect}
+                              data-testid="baileys-disconnect-btn"
+                            >
+                              <Ban className="h-4 w-4 mr-2" />
+                              {isSpanish ? "Desconectar" : "Disconnect"}
+                            </Button>
+                            <Button 
+                              className="flex-1" 
+                              onClick={() => setIsWhatsAppMethodDialogOpen(false)}
+                              data-testid="baileys-done-btn"
+                            >
+                              <Check className="h-4 w-4 mr-2" />
+                              {isSpanish ? "Listo" : "Done"}
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-4 pt-4">
