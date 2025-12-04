@@ -5,7 +5,7 @@ import {
   posCustomers,
   salesTransactions,
 } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 const LIGHTSPEED_CLIENT_ID = process.env.LIGHTSPEED_CLIENT_ID!;
 const LIGHTSPEED_CLIENT_SECRET = process.env.LIGHTSPEED_CLIENT_SECRET!;
@@ -319,9 +319,29 @@ export class LightspeedService {
       throw new Error("Domain prefix not found");
     }
 
-    // Default to last 3 months if no date provided (webhooks handle new data going forward)
-    const effectiveDateFrom =
-      dateFrom || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    let effectiveDateFrom: Date;
+
+    if (dateFrom) {
+      // Use provided date
+      effectiveDateFrom = dateFrom;
+      console.log("Using provided date for sync");
+    } else {
+      // Check for the most recent sale we already have for this integration
+      const mostRecentSale = await db.query.salesTransactions.findFirst({
+        where: eq(salesTransactions.posIntegrationId, integration.id),
+        orderBy: [desc(salesTransactions.transactionDate)],
+      });
+
+      if (mostRecentSale?.transactionDate) {
+        // Use the most recent sale date minus 1 hour buffer (to avoid missing any)
+        effectiveDateFrom = new Date(mostRecentSale.transactionDate.getTime() - 60 * 60 * 1000);
+        console.log(`Incremental sync: found ${mostRecentSale.transactionId}, syncing from ${effectiveDateFrom.toISOString()}`);
+      } else {
+        // No existing sales - default to last 3 months
+        effectiveDateFrom = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+        console.log("Initial sync: no existing sales, fetching last 3 months");
+      }
+    }
 
     // Format date for Lightspeed API (UTC ISO format)
     const dateFromStr = effectiveDateFrom.toISOString().replace(/\.\d{3}Z$/, 'Z');
