@@ -23,6 +23,23 @@ export interface MetaInsights {
   audienceAgeGender?: any;
 }
 
+export interface SalesInsights {
+  totalSales: number;
+  totalTransactions: number;
+  averageOrderValue: number;
+  totalCustomers: number;
+  topProducts?: Array<{
+    name: string;
+    quantity: number;
+    revenue: number;
+  }>;
+  recentSalesTrend?: "growing" | "stable" | "declining";
+  topCustomers?: Array<{
+    name: string;
+    totalSpent: number;
+  }>;
+}
+
 export interface GeneratedPost {
   platform: string;
   titulo: string;
@@ -48,6 +65,7 @@ export interface PostGenerationContext {
   brandDesign: BrandDesign;
   brandAssets: BrandAsset[];
   metaInsights?: MetaInsights;
+  salesInsights?: SalesInsights; // POS sales data from Lightspeed
   month: number;
   year: number;
   postsToGenerate?: number;
@@ -206,7 +224,7 @@ export function calculatePostingDates(
 }
 
 function buildTextPrompt(context: PostGenerationContext): string {
-  const { brandName, brandDescription, brandDesign, brandAssets, metaInsights, month, year, postingSchedule, connectedPlatforms } = context;
+  const { brandName, brandDescription, brandDesign, brandAssets, metaInsights, salesInsights, month, year, postingSchedule, connectedPlatforms } = context;
 
   const monthName = new Date(year, month - 1).toLocaleString('en-US', { month: 'long' });
   
@@ -321,6 +339,23 @@ AUDIENCE INSIGHTS:
 - Reach: ${metaInsights?.reach || "Not available"}
 - Impressions: ${metaInsights?.impressions || "Not available"}
 - Engagement: ${metaInsights?.engagement || "Not available"}
+${salesInsights ? `
+SALES DATA (use this to create content that promotes top products and drives sales):
+- Total Sales: $${(salesInsights.totalSales / 100).toFixed(2)}
+- Total Transactions: ${salesInsights.totalTransactions}
+- Average Order Value: $${(salesInsights.averageOrderValue / 100).toFixed(2)}
+- Total Customers: ${salesInsights.totalCustomers}
+${salesInsights.topProducts && salesInsights.topProducts.length > 0 ? `
+TOP SELLING PRODUCTS (prioritize content about these):
+${salesInsights.topProducts.map((p, i) => `  ${i + 1}. ${p.name} - ${p.quantity} sold, $${(p.revenue / 100).toFixed(2)} revenue`).join('\n')}
+` : ''}
+${salesInsights.recentSalesTrend ? `- Sales Trend: ${salesInsights.recentSalesTrend}` : ''}
+CONTENT STRATEGY BASED ON SALES:
+- Create promotional posts featuring the top-selling products
+- Highlight bestsellers and customer favorites
+- Use sales data to craft compelling offers and calls-to-action
+- Consider creating "limited stock" or "popular item" urgency posts for top sellers
+` : ''}
 ${postingScheduleInstructions}
 
 REQUIREMENTS:
@@ -852,6 +887,52 @@ export async function processPostGeneration(
     // Get platforms from the schedule (source of truth)
     const scheduledPlatforms = postingSchedule.map(s => s.platform);
     
+    // Fetch sales insights from Lightspeed if connected
+    let salesInsights: SalesInsights | undefined;
+    try {
+      const { lightspeedService } = await import("./lightspeed");
+      const lightspeedIntegration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (lightspeedIntegration) {
+        console.log(`[PostGenerator] Fetching sales insights from Lightspeed for brand ${brandId}`);
+        const stats = await lightspeedService.getSalesStats(lightspeedIntegration.id);
+        const sales = await lightspeedService.getSales(lightspeedIntegration.id, 100);
+        
+        // Calculate top products from sales data
+        const productSales = new Map<string, { quantity: number; revenue: number }>();
+        for (const sale of sales) {
+          const items = sale.items as any[];
+          if (items && Array.isArray(items)) {
+            for (const item of items) {
+              const key = item.name || 'Unknown Product';
+              const existing = productSales.get(key) || { quantity: 0, revenue: 0 };
+              productSales.set(key, {
+                quantity: existing.quantity + (item.quantity || 1),
+                revenue: existing.revenue + (item.price || 0) * (item.quantity || 1) * 100,
+              });
+            }
+          }
+        }
+        
+        const topProducts = Array.from(productSales.entries())
+          .map(([name, data]) => ({ name, ...data }))
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 5);
+        
+        salesInsights = {
+          totalSales: stats.totalSales,
+          totalTransactions: stats.totalTransactions,
+          averageOrderValue: stats.averageOrderValue,
+          totalCustomers: stats.totalCustomers,
+          topProducts: topProducts.length > 0 ? topProducts : undefined,
+        };
+        
+        console.log(`[PostGenerator] Loaded sales insights: ${stats.totalTransactions} transactions, ${topProducts.length} top products`);
+      }
+    } catch (error) {
+      console.log(`[PostGenerator] No Lightspeed integration found or error fetching sales: ${error}`);
+    }
+    
     const context: PostGenerationContext = {
       brandId,
       brandName: brand.name,
@@ -859,6 +940,7 @@ export async function processPostGeneration(
       brandDesign,
       brandAssets,
       metaInsights: metaInsights || undefined,
+      salesInsights,
       month,
       year,
       connectedPlatforms: scheduledPlatforms,
