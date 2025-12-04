@@ -72,7 +72,7 @@ export class LightspeedService {
     }
   }
 
-  generateAuthUrl(state: string, domainPrefix: string): string {
+  generateAuthUrl(state: string, domainPrefix?: string): string {
     const redirectUri = `${APP_URL}/api/lightspeed/callback`;
     
     const params = new URLSearchParams({
@@ -82,9 +82,9 @@ export class LightspeedService {
       state: state,
     });
 
-    // Use domain-specific vendhq.com endpoint for X-Series OAuth
-    // X-Series (formerly Vend) uses {domain}.vendhq.com for OAuth authorization
-    return `https://${domainPrefix}.vendhq.com/oauth/authorize?${params.toString()}`;
+    // Use the official Lightspeed X-Series OAuth endpoint
+    // This is the central auth server - domain_prefix is returned in the callback
+    return `https://secure.retail.lightspeed.app/connect?${params.toString()}`;
   }
 
   async exchangeCodeForToken(code: string, domainPrefix: string): Promise<LightspeedTokenResponse> {

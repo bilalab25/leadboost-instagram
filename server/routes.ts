@@ -7117,17 +7117,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
       const brandId = req.query.brandId as string;
-      const domainPrefix = req.query.domainPrefix as string;
+      const domainPrefix = req.query.domainPrefix as string | undefined;
 
       if (!brandId) {
         return res.status(400).json({ message: "Brand ID is required" });
       }
 
-      if (!domainPrefix) {
-        return res.status(400).json({ message: "Domain prefix is required. Please enter your Lightspeed store name." });
-      }
+      // domainPrefix is optional - Lightspeed returns it in the callback
+      // But we include it in state if provided for backwards compatibility
 
-      // Generate state with user info and domain for callback
+      // Generate state with user info (domainPrefix is optional)
       const state = Buffer.from(
         JSON.stringify({ userId, brandId, domainPrefix, timestamp: Date.now() })
       ).toString("base64");
@@ -7136,7 +7135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       (req.session as any).lightspeedOAuthState = state;
 
       const authUrl = lightspeedService.generateAuthUrl(state, domainPrefix);
-      console.log("🔗 Lightspeed OAuth URL generated for brand:", brandId, "domain:", domainPrefix);
+      console.log("🔗 Lightspeed OAuth URL generated for brand:", brandId, domainPrefix ? `domain: ${domainPrefix}` : "(domain from callback)");
 
       res.json({ authUrl });
     } catch (error) {
@@ -7148,11 +7147,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Lightspeed OAuth callback
   app.get("/api/lightspeed/callback", async (req: any, res) => {
     try {
-      const { code, state } = req.query;
+      const { code, state, domain_prefix: queryDomainPrefix } = req.query;
 
       console.log("📥 Lightspeed OAuth callback received:", {
         hasCode: !!code,
         hasState: !!state,
+        hasDomainPrefix: !!queryDomainPrefix,
       });
 
       if (!code || !state) {
@@ -7170,20 +7170,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `);
       }
 
-      // Decode state - now includes domainPrefix
-      let stateData: { userId: string; brandId: string; domainPrefix: string; timestamp: number };
+      // Decode state
+      let stateData: { userId: string; brandId: string; domainPrefix?: string; timestamp: number };
       try {
         stateData = JSON.parse(Buffer.from(state as string, "base64").toString());
       } catch (e) {
         return res.status(400).send("Invalid OAuth state");
       }
 
-      if (!stateData.domainPrefix) {
-        return res.status(400).send("Missing domain prefix in OAuth state");
+      // Get domain_prefix from query params (Lightspeed returns it) or fall back to state
+      const domainPrefix = (queryDomainPrefix as string) || stateData.domainPrefix;
+      
+      if (!domainPrefix) {
+        return res.status(400).send("Missing domain prefix from Lightspeed callback");
       }
 
-      const domainPrefix = stateData.domainPrefix;
-      console.log("📥 Using domain prefix from state:", domainPrefix);
+      console.log("📥 Using domain prefix:", domainPrefix, queryDomainPrefix ? "(from callback)" : "(from state)");
 
       // Exchange code for tokens using domain from state
       const tokens = await lightspeedService.exchangeCodeForToken(

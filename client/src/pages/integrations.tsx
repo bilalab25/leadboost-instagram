@@ -456,8 +456,8 @@ export default function IntegrationsPage() {
     }, 1000);
   };
 
-  // Lightspeed OAuth connection handler - opens domain dialog first
-  const handleLightspeedConnect = () => {
+  // Lightspeed OAuth connection handler - directly connects (domain returned by Lightspeed callback)
+  const handleLightspeedConnect = async () => {
     if (!activeBrandId) {
       toast({
         title: isSpanish ? "Error" : "Error",
@@ -466,33 +466,12 @@ export default function IntegrationsPage() {
       });
       return;
     }
-    // Open domain dialog to get the user's Lightspeed store domain
-    setLightspeedDomainPrefix("");
-    setIsLightspeedDomainDialogOpen(true);
-  };
-
-  // Actually connect to Lightspeed after getting domain prefix
-  const handleLightspeedDomainSubmit = async () => {
-    if (!lightspeedDomainPrefix.trim()) {
-      toast({
-        title: isSpanish ? "Error" : "Error",
-        description: isSpanish 
-          ? "Por favor ingresa tu dominio de Lightspeed"
-          : "Please enter your Lightspeed domain",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Clean the domain prefix - remove .retail.lightspeed.app if included
-    let cleanDomain = lightspeedDomainPrefix.trim().toLowerCase();
-    cleanDomain = cleanDomain.replace(/\.retail\.lightspeed\.app.*$/i, '');
-    cleanDomain = cleanDomain.replace(/^https?:\/\//i, '');
 
     setIsLightspeedConnecting(true);
 
     try {
-      const response = await fetch(`/api/lightspeed/auth?brandId=${activeBrandId}&domainPrefix=${encodeURIComponent(cleanDomain)}`, {
+      // Domain prefix is now optional - Lightspeed returns it in the callback
+      const response = await fetch(`/api/lightspeed/auth?brandId=${activeBrandId}`, {
         credentials: 'include',
       });
       
@@ -503,7 +482,6 @@ export default function IntegrationsPage() {
       const data = await response.json();
       
       if (data.authUrl) {
-        setIsLightspeedDomainDialogOpen(false);
         const popup = window.open(data.authUrl, "_blank", "width=600,height=700");
         
         // Listen for OAuth success message
@@ -542,6 +520,11 @@ export default function IntegrationsPage() {
     } finally {
       setIsLightspeedConnecting(false);
     }
+  };
+
+  // Legacy domain submit handler (kept for backwards compatibility but no longer used)
+  const handleLightspeedDomainSubmit = async () => {
+    handleLightspeedConnect();
   };
 
   // WhatsApp Embedded Signup handler
