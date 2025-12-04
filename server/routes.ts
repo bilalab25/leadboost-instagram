@@ -3827,6 +3827,182 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =========================================================================
+  // WHATSAPP BAILEYS - QR CODE CONNECTION (EXPERIMENTAL / UNOFFICIAL)
+  // =========================================================================
+  // ⚠️ WARNING: This uses Baileys library which is NOT an official Meta API.
+  // Using unofficial methods may result in account bans.
+  // =========================================================================
+
+  // Import Baileys service dynamically to avoid issues if not installed
+  let whatsappBaileysService: any = null;
+  try {
+    const baileysModule = await import("./services/whatsappBaileys");
+    whatsappBaileysService = baileysModule.whatsappBaileysService;
+    console.log("📱 [Baileys] WhatsApp Baileys service loaded");
+  } catch (err) {
+    console.warn("⚠️ [Baileys] WhatsApp Baileys service not available:", err);
+  }
+
+  // Start WhatsApp QR connection via Baileys
+  app.post(
+    "/api/whatsapp-baileys/connect",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      if (!whatsappBaileysService) {
+        return res.status(503).json({ 
+          error: "WhatsApp QR service not available",
+          message: "The Baileys service is not properly configured"
+        });
+      }
+
+      try {
+        const userId = req.user.id;
+        const brandId = req.brandMembership.brandId;
+
+        console.log(`📱 [Baileys] Starting connection for user ${userId}, brand ${brandId}`);
+
+        const result = await whatsappBaileysService.initSession(userId, brandId);
+        
+        res.json({
+          success: true,
+          status: result.status,
+          qrCode: result.qrCode,
+          message: result.status === "already_connected" 
+            ? "WhatsApp already connected" 
+            : "Scan the QR code with your WhatsApp"
+        });
+      } catch (error) {
+        console.error("❌ [Baileys] Connection error:", error);
+        res.status(500).json({
+          error: "Failed to start WhatsApp connection",
+          details: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+  );
+
+  // Get WhatsApp Baileys connection status
+  app.get(
+    "/api/whatsapp-baileys/status",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      if (!whatsappBaileysService) {
+        return res.status(503).json({ 
+          error: "WhatsApp QR service not available",
+          status: "unavailable"
+        });
+      }
+
+      try {
+        const userId = req.user.id;
+        const brandId = req.brandMembership.brandId;
+
+        const status = await whatsappBaileysService.getSessionStatus(userId, brandId);
+        
+        res.json({
+          success: true,
+          ...status
+        });
+      } catch (error) {
+        console.error("❌ [Baileys] Status check error:", error);
+        res.status(500).json({
+          error: "Failed to check WhatsApp status",
+          status: "error"
+        });
+      }
+    }
+  );
+
+  // Send message via WhatsApp Baileys
+  app.post(
+    "/api/whatsapp-baileys/send-message",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      if (!whatsappBaileysService) {
+        return res.status(503).json({ 
+          error: "WhatsApp QR service not available"
+        });
+      }
+
+      try {
+        const userId = req.user.id;
+        const brandId = req.brandMembership.brandId;
+        const { to, message } = req.body;
+
+        if (!to || !message) {
+          return res.status(400).json({
+            error: "Missing required fields",
+            message: "Both 'to' (phone number) and 'message' are required"
+          });
+        }
+
+        const result = await whatsappBaileysService.sendMessage(
+          userId,
+          brandId,
+          to,
+          message
+        );
+        
+        if (result.success) {
+          res.json({
+            success: true,
+            messageId: result.messageId,
+            message: "Message sent successfully"
+          });
+        } else {
+          res.status(400).json({
+            success: false,
+            error: result.error || "Failed to send message"
+          });
+        }
+      } catch (error) {
+        console.error("❌ [Baileys] Send message error:", error);
+        res.status(500).json({
+          error: "Failed to send message",
+          details: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+  );
+
+  // Disconnect WhatsApp Baileys session
+  app.post(
+    "/api/whatsapp-baileys/disconnect",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      if (!whatsappBaileysService) {
+        return res.status(503).json({ 
+          error: "WhatsApp QR service not available"
+        });
+      }
+
+      try {
+        const userId = req.user.id;
+        const brandId = req.brandMembership.brandId;
+
+        const disconnected = await whatsappBaileysService.disconnect(userId, brandId);
+        
+        res.json({
+          success: disconnected,
+          message: disconnected 
+            ? "WhatsApp disconnected successfully" 
+            : "No active session to disconnect"
+        });
+      } catch (error) {
+        console.error("❌ [Baileys] Disconnect error:", error);
+        res.status(500).json({
+          error: "Failed to disconnect WhatsApp",
+          details: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+  );
+
   app.get("/api/integrations", isAuthenticated, async (req: any, res) => {
     try {
       const brandId = req.query.brandId;
