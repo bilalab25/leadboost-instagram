@@ -84,8 +84,9 @@ export class LightspeedService {
       state: state,
     });
 
-    // Use domain-specific OAuth URL for X-Series
-    return `https://${domainPrefix}.retail.lightspeed.app/oauth/authorize?${params.toString()}`;
+    // Use central Lightspeed OAuth server for authorization (X-Series uses cloud.lightspeedapp.com)
+    // The domain-specific endpoint is only used for token exchange and API calls
+    return `https://cloud.lightspeedapp.com/oauth/authorize?${params.toString()}`;
   }
 
   async exchangeCodeForToken(code: string, domainPrefix: string): Promise<LightspeedTokenResponse> {
