@@ -596,6 +596,12 @@ export default function IntegrationsPage() {
     }, 2000);
     
     setBaileysPollingInterval(interval);
+    
+    // Auto-cleanup after 2 minutes if no connection
+    setTimeout(() => {
+      clearInterval(interval);
+      setBaileysPollingInterval(null);
+    }, 120000);
   };
   
   // Disconnect Baileys
@@ -1250,15 +1256,15 @@ export default function IntegrationsPage() {
                   setWhatsAppQrCode(null);
                   setWhatsAppPairingCode(null);
                   setQrCodeStep(1);
-                  // Reset baileys state
+                  // Reset ALL baileys state on dialog close
                   if (baileysPollingInterval) {
                     clearInterval(baileysPollingInterval);
                     setBaileysPollingInterval(null);
                   }
                   setBaileysQrCode(null);
-                  if (baileysStatus !== "connected") {
-                    setBaileysStatus("disconnected");
-                  }
+                  setBaileysStatus("disconnected");
+                  setBaileysPhone(null);
+                  setIsBaileysConnecting(false);
                 }
               }}>
                 <DialogContent className="sm:max-w-[500px]">
