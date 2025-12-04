@@ -30,6 +30,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -49,6 +56,12 @@ import {
   AlertCircle,
   Link2,
   Zap,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Calendar,
+  X,
 } from "lucide-react";
 import type { PosCustomer, SalesTransaction, Conversation } from "@shared/schema";
 import HelpChatbot from "@/components/HelpChatbot";
@@ -78,9 +91,20 @@ export default function SalesPage() {
   
   const [activeTab, setActiveTab] = useState("customers");
   const [searchQuery, setSearchQuery] = useState("");
+  const [customerNameFilter, setCustomerNameFilter] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithConversation | null>(null);
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Pagination state
+  const [customersPage, setCustomersPage] = useState(1);
+  const [salesPage, setSalesPage] = useState(1);
+  const [customersPageSize, setCustomersPageSize] = useState(10);
+  const [salesPageSize, setSalesPageSize] = useState(10);
+  
+  // Date filter state for sales
+  const [salesDateFrom, setSalesDateFrom] = useState("");
+  const [salesDateTo, setSalesDateTo] = useState("");
 
   // Fetch Lightspeed integration status
   const { data: lightspeedStatus, isLoading: statusLoading } = useQuery<LightspeedStatus>({
@@ -157,32 +181,105 @@ export default function SalesPage() {
     });
   }, [customers, conversations]);
 
-  // Filter customers by search
+  // Filter customers by name
   const filteredCustomers = useMemo(() => {
-    if (!searchQuery.trim()) return customersWithConversations;
-    const query = searchQuery.toLowerCase();
-    return customersWithConversations.filter(
-      (c) =>
-        c.name?.toLowerCase().includes(query) ||
-        c.email?.toLowerCase().includes(query) ||
-        c.phone?.includes(query) ||
-        c.mobile?.includes(query) ||
-        c.companyName?.toLowerCase().includes(query)
-    );
-  }, [customersWithConversations, searchQuery]);
+    let result = customersWithConversations;
+    
+    if (customerNameFilter.trim()) {
+      const query = customerNameFilter.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name?.toLowerCase().includes(query) ||
+          c.email?.toLowerCase().includes(query) ||
+          c.phone?.includes(query) ||
+          c.mobile?.includes(query) ||
+          c.companyName?.toLowerCase().includes(query)
+      );
+    }
+    
+    return result;
+  }, [customersWithConversations, customerNameFilter]);
 
-  // Filter sales by search
+  // Filter and sort sales (most recent first, with date range filter)
   const filteredSales = useMemo(() => {
-    if (!searchQuery.trim()) return sales;
-    const query = searchQuery.toLowerCase();
-    return sales.filter(
-      (s) =>
-        s.customerName?.toLowerCase().includes(query) ||
-        s.customerEmail?.toLowerCase().includes(query) ||
-        s.transactionId?.includes(query) ||
-        s.customerPhone?.includes(query)
-    );
-  }, [sales, searchQuery]);
+    let result = [...sales];
+    
+    // Sort by date, most recent first
+    result.sort((a, b) => {
+      const dateA = a.transactionDate ? new Date(a.transactionDate).getTime() : 0;
+      const dateB = b.transactionDate ? new Date(b.transactionDate).getTime() : 0;
+      return dateB - dateA;
+    });
+    
+    // Filter by date range
+    if (salesDateFrom) {
+      const fromDate = new Date(salesDateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      result = result.filter((s) => {
+        if (!s.transactionDate) return false;
+        return new Date(s.transactionDate) >= fromDate;
+      });
+    }
+    
+    if (salesDateTo) {
+      const toDate = new Date(salesDateTo);
+      toDate.setHours(23, 59, 59, 999);
+      result = result.filter((s) => {
+        if (!s.transactionDate) return false;
+        return new Date(s.transactionDate) <= toDate;
+      });
+    }
+    
+    // Also filter by general search query if provided
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (s) =>
+          s.customerName?.toLowerCase().includes(query) ||
+          s.customerEmail?.toLowerCase().includes(query) ||
+          s.transactionId?.includes(query) ||
+          s.customerPhone?.includes(query)
+      );
+    }
+    
+    return result;
+  }, [sales, salesDateFrom, salesDateTo, searchQuery]);
+
+  // Paginated data
+  const paginatedCustomers = useMemo(() => {
+    const start = (customersPage - 1) * customersPageSize;
+    return filteredCustomers.slice(start, start + customersPageSize);
+  }, [filteredCustomers, customersPage, customersPageSize]);
+
+  const paginatedSales = useMemo(() => {
+    const start = (salesPage - 1) * salesPageSize;
+    return filteredSales.slice(start, start + salesPageSize);
+  }, [filteredSales, salesPage, salesPageSize]);
+
+  // Total pages
+  const customersTotalPages = Math.ceil(filteredCustomers.length / customersPageSize);
+  const salesTotalPages = Math.ceil(filteredSales.length / salesPageSize);
+
+  // Reset page when filters change
+  const handleCustomerFilterChange = (value: string) => {
+    setCustomerNameFilter(value);
+    setCustomersPage(1);
+  };
+
+  const handleSalesDateChange = (type: 'from' | 'to', value: string) => {
+    if (type === 'from') {
+      setSalesDateFrom(value);
+    } else {
+      setSalesDateTo(value);
+    }
+    setSalesPage(1);
+  };
+
+  const clearSalesDateFilters = () => {
+    setSalesDateFrom("");
+    setSalesDateTo("");
+    setSalesPage(1);
+  };
 
   // Sync data from Lightspeed
   const handleSync = async () => {
@@ -452,6 +549,23 @@ export default function SalesPage() {
 
                       {/* Customers Tab */}
                       <TabsContent value="customers">
+                        {/* Customer Name Filter */}
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="relative flex-1 max-w-sm">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder={isSpanish ? "Filtrar por nombre..." : "Filter by name..."}
+                              value={customerNameFilter}
+                              onChange={(e) => handleCustomerFilterChange(e.target.value)}
+                              className="pl-9"
+                              data-testid="customer-name-filter"
+                            />
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {filteredCustomers.length} {isSpanish ? "clientes" : "customers"}
+                          </div>
+                        </div>
+
                         {customersLoading ? (
                           <div className="flex justify-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -460,7 +574,7 @@ export default function SalesPage() {
                           <div className="text-center py-12">
                             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                             <p className="text-muted-foreground">
-                              {searchQuery
+                              {customerNameFilter
                                 ? isSpanish
                                   ? "No se encontraron clientes"
                                   : "No customers found"
@@ -470,6 +584,7 @@ export default function SalesPage() {
                             </p>
                           </div>
                         ) : (
+                          <>
                           <div className="rounded-md border">
                             <Table>
                               <TableHeader>
@@ -483,7 +598,7 @@ export default function SalesPage() {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {filteredCustomers.map((customer) => (
+                                {paginatedCustomers.map((customer) => (
                                   <TableRow key={customer.id} data-testid={`customer-row-${customer.id}`}>
                                     <TableCell>
                                       <div className="font-medium">{customer.name}</div>
@@ -557,11 +672,128 @@ export default function SalesPage() {
                               </TableBody>
                             </Table>
                           </div>
+
+                          {/* Customers Pagination */}
+                          <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">
+                                {isSpanish ? "Filas por página:" : "Rows per page:"}
+                              </span>
+                              <Select
+                                value={String(customersPageSize)}
+                                onValueChange={(value) => {
+                                  setCustomersPageSize(Number(value));
+                                  setCustomersPage(1);
+                                }}
+                              >
+                                <SelectTrigger className="w-[70px] h-8" data-testid="customers-page-size">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="5">5</SelectItem>
+                                  <SelectItem value="10">10</SelectItem>
+                                  <SelectItem value="20">20</SelectItem>
+                                  <SelectItem value="50">50</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm text-muted-foreground mr-2">
+                                {isSpanish ? "Página" : "Page"} {customersPage} {isSpanish ? "de" : "of"} {customersTotalPages || 1}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setCustomersPage(1)}
+                                disabled={customersPage === 1}
+                                data-testid="customers-first-page"
+                              >
+                                <ChevronsLeft className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setCustomersPage(p => Math.max(1, p - 1))}
+                                disabled={customersPage === 1}
+                                data-testid="customers-prev-page"
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setCustomersPage(p => Math.min(customersTotalPages, p + 1))}
+                                disabled={customersPage >= customersTotalPages}
+                                data-testid="customers-next-page"
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setCustomersPage(customersTotalPages)}
+                                disabled={customersPage >= customersTotalPages}
+                                data-testid="customers-last-page"
+                              >
+                                <ChevronsRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          </>
                         )}
                       </TabsContent>
 
                       {/* Sales Tab */}
                       <TabsContent value="sales">
+                        {/* Sales Date Filter */}
+                        <div className="flex flex-wrap items-center gap-4 mb-4">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              {isSpanish ? "Desde:" : "From:"}
+                            </span>
+                            <Input
+                              type="date"
+                              value={salesDateFrom}
+                              onChange={(e) => handleSalesDateChange('from', e.target.value)}
+                              className="w-[150px] h-8"
+                              data-testid="sales-date-from"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">
+                              {isSpanish ? "Hasta:" : "To:"}
+                            </span>
+                            <Input
+                              type="date"
+                              value={salesDateTo}
+                              onChange={(e) => handleSalesDateChange('to', e.target.value)}
+                              className="w-[150px] h-8"
+                              data-testid="sales-date-to"
+                            />
+                          </div>
+                          {(salesDateFrom || salesDateTo) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={clearSalesDateFilters}
+                              className="h-8"
+                              data-testid="clear-date-filters"
+                            >
+                              <X className="h-4 w-4 mr-1" />
+                              {isSpanish ? "Limpiar" : "Clear"}
+                            </Button>
+                          )}
+                          <div className="ml-auto text-sm text-muted-foreground">
+                            {filteredSales.length} {isSpanish ? "ventas" : "sales"}
+                          </div>
+                        </div>
+
                         {salesLoading ? (
                           <div className="flex justify-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -570,16 +802,17 @@ export default function SalesPage() {
                           <div className="text-center py-12">
                             <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                             <p className="text-muted-foreground">
-                              {searchQuery
+                              {(salesDateFrom || salesDateTo)
                                 ? isSpanish
-                                  ? "No se encontraron ventas"
-                                  : "No sales found"
+                                  ? "No se encontraron ventas en este rango de fechas"
+                                  : "No sales found in this date range"
                                 : isSpanish
                                 ? "No hay ventas sincronizadas"
                                 : "No sales synced yet"}
                             </p>
                           </div>
                         ) : (
+                          <>
                           <div className="rounded-md border">
                             <Table>
                               <TableHeader>
@@ -592,7 +825,7 @@ export default function SalesPage() {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {filteredSales.map((sale) => (
+                                {paginatedSales.map((sale) => (
                                   <TableRow key={sale.id} data-testid={`sale-row-${sale.id}`}>
                                     <TableCell>
                                       {formatDate(sale.transactionDate)}
@@ -636,6 +869,79 @@ export default function SalesPage() {
                               </TableBody>
                             </Table>
                           </div>
+
+                          {/* Sales Pagination */}
+                          <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">
+                                {isSpanish ? "Filas por página:" : "Rows per page:"}
+                              </span>
+                              <Select
+                                value={String(salesPageSize)}
+                                onValueChange={(value) => {
+                                  setSalesPageSize(Number(value));
+                                  setSalesPage(1);
+                                }}
+                              >
+                                <SelectTrigger className="w-[70px] h-8" data-testid="sales-page-size">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="5">5</SelectItem>
+                                  <SelectItem value="10">10</SelectItem>
+                                  <SelectItem value="20">20</SelectItem>
+                                  <SelectItem value="50">50</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm text-muted-foreground mr-2">
+                                {isSpanish ? "Página" : "Page"} {salesPage} {isSpanish ? "de" : "of"} {salesTotalPages || 1}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setSalesPage(1)}
+                                disabled={salesPage === 1}
+                                data-testid="sales-first-page"
+                              >
+                                <ChevronsLeft className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setSalesPage(p => Math.max(1, p - 1))}
+                                disabled={salesPage === 1}
+                                data-testid="sales-prev-page"
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setSalesPage(p => Math.min(salesTotalPages, p + 1))}
+                                disabled={salesPage >= salesTotalPages}
+                                data-testid="sales-next-page"
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setSalesPage(salesTotalPages)}
+                                disabled={salesPage >= salesTotalPages}
+                                data-testid="sales-last-page"
+                              >
+                                <ChevronsRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          </>
                         )}
                       </TabsContent>
                     </Tabs>
