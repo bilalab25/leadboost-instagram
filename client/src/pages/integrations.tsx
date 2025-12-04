@@ -348,6 +348,41 @@ export default function IntegrationsPage() {
   const [lightspeedDomainPrefix, setLightspeedDomainPrefix] = useState("");
   const [isLightspeedConnecting, setIsLightspeedConnecting] = useState(false);
 
+  // Lightspeed connection status
+  const [lightspeedStatus, setLightspeedStatus] = useState<{
+    connected: boolean;
+    integration?: {
+      id: string;
+      storeName: string;
+      storeUrl: string;
+      lastSyncAt: string;
+      isActive: boolean;
+    };
+    stats?: {
+      totalSales: number;
+      totalTransactions: number;
+      averageOrderValue: number;
+      totalCustomers: number;
+    };
+  } | null>(null);
+
+  // Fetch Lightspeed status
+  const fetchLightspeedStatus = async () => {
+    if (!activeBrandId) return;
+    try {
+      const res = await fetch(`/api/lightspeed/status?brandId=${activeBrandId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLightspeedStatus(data);
+      } else if (res.status === 404) {
+        setLightspeedStatus({ connected: false });
+      }
+    } catch (error) {
+      console.error("Error fetching Lightspeed status:", error);
+      setLightspeedStatus({ connected: false });
+    }
+  };
+
   // Fetch integrations
   const fetchIntegrations = async () => {
     if (!activeBrandId) return;
@@ -366,12 +401,26 @@ export default function IntegrationsPage() {
 
   useEffect(() => {
     fetchIntegrations();
+    fetchLightspeedStatus();
   }, [activeBrandId]);
 
   // Helper functions
-  const getConnectedCount = (category: string) => integrations.filter((i) => i.category === category && i.isActive).length;
+  const getConnectedCount = (category: string) => {
+    let count = integrations.filter((i) => i.category === category && i.isActive).length;
+    // Add Lightspeed to POS count if connected
+    if (category === "pos" && lightspeedStatus?.connected) {
+      count += 1;
+    }
+    return count;
+  };
   const getProvidersForCategory = (category: string) => Object.entries(INTEGRATION_PROVIDERS).filter(([, info]) => info.category === category);
-  const isProviderConnected = (providerKey: string) => integrations.some((i) => i.provider === providerKey && i.isActive);
+  const isProviderConnected = (providerKey: string) => {
+    // Special handling for Lightspeed POS
+    if (providerKey === "lightspeed") {
+      return lightspeedStatus?.connected === true;
+    }
+    return integrations.some((i) => i.provider === providerKey && i.isActive);
+  };
   const getConnectedIntegration = (providerKey: string) => integrations.find((i) => i.provider === providerKey && i.isActive);
 
   // Instagram mutual exclusivity - only one Instagram integration type can be active
@@ -818,6 +867,41 @@ export default function IntegrationsPage() {
     }
   };
 
+  // Handle Lightspeed disconnection
+  const handleDisconnectLightspeed = async () => {
+    if (!activeBrandId || !lightspeedStatus?.integration?.id) return;
+    
+    try {
+      setIsDeleting(true);
+      const response = await fetch(`/api/lightspeed/disconnect?brandId=${activeBrandId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      
+      if (response.ok) {
+        setLightspeedStatus({ connected: false });
+        toast({
+          title: isSpanish ? "Lightspeed Desconectado" : "Lightspeed Disconnected",
+          description: isSpanish 
+            ? "La integración de Lightspeed ha sido eliminada." 
+            : "Lightspeed integration has been disconnected.",
+        });
+      } else {
+        throw new Error("Failed to disconnect Lightspeed");
+      }
+    } catch (error) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish 
+          ? "No se pudo desconectar Lightspeed." 
+          : "Failed to disconnect Lightspeed.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const resetDialog = () => {
     setDialogSelectedCategory("");
     setDialogSelectedProvider("");
@@ -1085,6 +1169,11 @@ export default function IntegrationsPage() {
                           const isConnected = isProviderConnected(providerKey);
                           const connectedIntegration = getConnectedIntegration(providerKey);
                           const isDisabledByConflict = isProviderDisabledByConflict(providerKey);
+                          
+                          // Special handling for Lightspeed - get store name from lightspeedStatus
+                          const lightspeedStoreName = providerKey === "lightspeed" && lightspeedStatus?.connected 
+                            ? lightspeedStatus.integration?.storeName 
+                            : null;
                           const Icon = providerInfo.icon;
 
                           const getIconColor = () => {
@@ -1134,9 +1223,9 @@ export default function IntegrationsPage() {
                                       <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100">
                                         {providerInfo.name}
                                       </h3>
-                                      {connectedIntegration && (
+                                      {(connectedIntegration || lightspeedStoreName) && (
                                         <p className="text-xs text-green-600 dark:text-green-400 truncate">
-                                          {connectedIntegration.accountName || connectedIntegration.storeName}
+                                          {lightspeedStoreName || connectedIntegration?.accountName || connectedIntegration?.storeName}
                                         </p>
                                       )}
                                     </div>
@@ -1171,7 +1260,13 @@ export default function IntegrationsPage() {
                                       variant="outline"
                                       size="sm"
                                       className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                                      onClick={() => handleDeleteIntegration(connectedIntegration!)}
+                                      onClick={() => {
+                                        if (providerKey === "lightspeed") {
+                                          handleDisconnectLightspeed();
+                                        } else if (connectedIntegration) {
+                                          handleDeleteIntegration(connectedIntegration);
+                                        }
+                                      }}
                                       data-testid={`disconnect-${providerKey}`}
                                     >
                                       <Trash2 className="h-3 w-3 mr-1" />
