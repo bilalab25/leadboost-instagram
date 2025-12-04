@@ -319,9 +319,9 @@ export class LightspeedService {
       throw new Error("Domain prefix not found");
     }
 
-    // Default to last 365 days if no date provided
+    // Default to last 3 months if no date provided (webhooks handle new data going forward)
     const effectiveDateFrom =
-      dateFrom || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+      dateFrom || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
 
     // Format date for Lightspeed API (UTC ISO format)
     const dateFromStr = effectiveDateFrom.toISOString().replace(/\.\d{3}Z$/, 'Z');
