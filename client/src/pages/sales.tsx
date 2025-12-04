@@ -124,7 +124,8 @@ export default function SalesPage() {
     queryFn: async () => {
       const res = await fetch(`/api/conversations?brandId=${activeBrandId}`);
       if (!res.ok) throw new Error("Failed to fetch conversations");
-      return res.json();
+      const data = await res.json();
+      return data.conversations || [];
     },
     enabled: !!activeBrandId,
   });
