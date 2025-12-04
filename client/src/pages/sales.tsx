@@ -318,8 +318,12 @@ export default function SalesPage() {
   const handleSync = async () => {
     setIsSyncing(true);
     try {
-      const res = await fetch(`/api/lightspeed/sync?brandId=${activeBrandId}`, {
+      const res = await fetch(`/api/lightspeed/sync`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ brandId: activeBrandId }),
       });
       
       if (!res.ok) {
