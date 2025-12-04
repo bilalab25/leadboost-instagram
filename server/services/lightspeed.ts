@@ -427,6 +427,337 @@ export class LightspeedService {
       totalCustomers: customers.length,
     };
   }
+
+  // ============ WEBHOOK METHODS ============
+
+  async registerWebhooks(integration: typeof posIntegrations.$inferSelect): Promise<{ saleWebhookId?: string; customerWebhookId?: string }> {
+    const accessToken = await this.getValidAccessToken(integration);
+    const domainPrefix = (integration.settings as any)?.domainPrefix;
+    
+    if (!domainPrefix) {
+      throw new Error('Domain prefix not found');
+    }
+
+    const webhookUrl = `${APP_URL}/api/lightspeed/webhook`;
+    const results: { saleWebhookId?: string; customerWebhookId?: string } = {};
+
+    // Register sale.update webhook
+    try {
+      const saleResponse = await fetch(`https://${domainPrefix}.retail.lightspeed.app/api/2.0/webhooks`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: webhookUrl,
+          type: 'sale.update',
+        }),
+      });
+
+      if (saleResponse.ok) {
+        const data = await saleResponse.json();
+        results.saleWebhookId = data.data?.id;
+        console.log(`✅ Registered sale.update webhook: ${results.saleWebhookId}`);
+      } else {
+        const errorText = await saleResponse.text();
+        console.error('Failed to register sale.update webhook:', errorText);
+      }
+    } catch (error) {
+      console.error('Error registering sale.update webhook:', error);
+    }
+
+    // Register customer.update webhook
+    try {
+      const customerResponse = await fetch(`https://${domainPrefix}.retail.lightspeed.app/api/2.0/webhooks`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: webhookUrl,
+          type: 'customer.update',
+        }),
+      });
+
+      if (customerResponse.ok) {
+        const data = await customerResponse.json();
+        results.customerWebhookId = data.data?.id;
+        console.log(`✅ Registered customer.update webhook: ${results.customerWebhookId}`);
+      } else {
+        const errorText = await customerResponse.text();
+        console.error('Failed to register customer.update webhook:', errorText);
+      }
+    } catch (error) {
+      console.error('Error registering customer.update webhook:', error);
+    }
+
+    // Store webhook IDs in integration settings
+    if (results.saleWebhookId || results.customerWebhookId) {
+      const currentSettings = integration.settings as any || {};
+      await db.update(posIntegrations)
+        .set({
+          settings: {
+            ...currentSettings,
+            webhooks: {
+              saleWebhookId: results.saleWebhookId,
+              customerWebhookId: results.customerWebhookId,
+            },
+          },
+          updatedAt: new Date(),
+        })
+        .where(eq(posIntegrations.id, integration.id));
+    }
+
+    return results;
+  }
+
+  async listWebhooks(integration: typeof posIntegrations.$inferSelect): Promise<any[]> {
+    const accessToken = await this.getValidAccessToken(integration);
+    const domainPrefix = (integration.settings as any)?.domainPrefix;
+    
+    if (!domainPrefix) {
+      throw new Error('Domain prefix not found');
+    }
+
+    const response = await fetch(`https://${domainPrefix}.retail.lightspeed.app/api/2.0/webhooks`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to list webhooks: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  }
+
+  async deleteWebhook(integration: typeof posIntegrations.$inferSelect, webhookId: string): Promise<void> {
+    const accessToken = await this.getValidAccessToken(integration);
+    const domainPrefix = (integration.settings as any)?.domainPrefix;
+    
+    if (!domainPrefix) {
+      throw new Error('Domain prefix not found');
+    }
+
+    const response = await fetch(`https://${domainPrefix}.retail.lightspeed.app/api/2.0/webhooks/${webhookId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to delete webhook: ${response.status} - ${errorText}`);
+    }
+    
+    console.log(`✅ Deleted webhook: ${webhookId}`);
+  }
+
+  verifyWebhookSignature(body: string, signatureHeader: string): boolean {
+    if (!signatureHeader) return false;
+    
+    try {
+      // Parse signature header: signature=abc123,algorithm=HMAC-SHA256
+      const parts: Record<string, string> = {};
+      signatureHeader.split(',').forEach(part => {
+        const [key, value] = part.split('=');
+        if (key && value) parts[key.trim()] = value.trim();
+      });
+
+      const expectedSignature = parts.signature;
+      const algorithm = parts.algorithm;
+
+      if (algorithm !== 'HMAC-SHA256' || !expectedSignature) {
+        return false;
+      }
+
+      // Compute signature using client secret
+      const computed = crypto
+        .createHmac('sha256', LIGHTSPEED_CLIENT_SECRET)
+        .update(body)
+        .digest('hex');
+
+      return crypto.timingSafeEqual(
+        Buffer.from(computed),
+        Buffer.from(expectedSignature)
+      );
+    } catch (error) {
+      console.error('Webhook signature verification failed:', error);
+      return false;
+    }
+  }
+
+  async processWebhookEvent(eventType: string, payload: any): Promise<void> {
+    console.log(`📥 Processing Lightspeed webhook: ${eventType}`);
+
+    // Find integration by looking up the customer/sale data
+    // The webhook payload includes store-specific data
+    
+    if (eventType === 'sale.update') {
+      await this.processSaleWebhook(payload);
+    } else if (eventType === 'customer.update') {
+      await this.processCustomerWebhook(payload);
+    }
+  }
+
+  private async processSaleWebhook(sale: any): Promise<void> {
+    // Find the integration by looking for matching webhooks or domain
+    const allIntegrations = await db.query.posIntegrations.findMany({
+      where: and(
+        eq(posIntegrations.provider, 'lightspeed'),
+        eq(posIntegrations.isActive, true)
+      ),
+    });
+
+    for (const integration of allIntegrations) {
+      try {
+        // Check if this sale belongs to this integration
+        const existingTransaction = await db.query.salesTransactions.findFirst({
+          where: and(
+            eq(salesTransactions.posIntegrationId, integration.id),
+            eq(salesTransactions.transactionId, sale.id)
+          ),
+        });
+
+        if (existingTransaction) {
+          // Update existing transaction
+          await db.update(salesTransactions)
+            .set({
+              totalAmount: Math.round((sale.total_price || sale.totals?.total_price || 0) * 100),
+              status: sale.status || 'completed',
+              customerName: sale.customer?.first_name 
+                ? `${sale.customer.first_name} ${sale.customer.last_name || ''}`.trim()
+                : sale.customer?.name,
+              customerEmail: sale.customer?.email,
+              customerPhone: sale.customer?.phone || sale.customer?.mobile,
+            })
+            .where(eq(salesTransactions.id, existingTransaction.id));
+          console.log(`✅ Updated sale: ${sale.id}`);
+          return;
+        }
+
+        // Look up internal customer
+        let posCustomerId: string | null = null;
+        if (sale.customer?.id || sale.customer_id) {
+          const customerId = sale.customer?.id || sale.customer_id;
+          const posCustomer = await db.query.posCustomers.findFirst({
+            where: and(
+              eq(posCustomers.posIntegrationId, integration.id),
+              eq(posCustomers.externalCustomerId, customerId)
+            ),
+          });
+          posCustomerId = posCustomer?.id || null;
+        }
+
+        // Insert new sale
+        await db.insert(salesTransactions).values({
+          posIntegrationId: integration.id,
+          userId: integration.userId,
+          posCustomerId: posCustomerId,
+          transactionId: sale.id,
+          customerId: sale.customer?.id || sale.customer_id,
+          customerEmail: sale.customer?.email,
+          customerName: sale.customer?.first_name 
+            ? `${sale.customer.first_name} ${sale.customer.last_name || ''}`.trim()
+            : sale.customer?.name,
+          customerPhone: sale.customer?.phone || sale.customer?.mobile,
+          totalAmount: Math.round((sale.total_price || sale.totals?.total_price || 0) * 100),
+          currency: 'USD',
+          status: sale.status || 'completed',
+          paymentMethod: sale.register_sale_payments?.[0] ? 'card' : 'unknown',
+          items: sale.line_items || [],
+          metadata: {
+            invoiceNumber: sale.invoice_number,
+            totalTax: sale.total_tax || sale.totals?.total_tax,
+          },
+          transactionDate: sale.sale_date ? new Date(sale.sale_date) : new Date(),
+        });
+        console.log(`✅ New sale synced via webhook: ${sale.id}`);
+        return;
+      } catch (error) {
+        console.error(`Error processing sale webhook for integration ${integration.id}:`, error);
+      }
+    }
+  }
+
+  private async processCustomerWebhook(customer: any): Promise<void> {
+    const allIntegrations = await db.query.posIntegrations.findMany({
+      where: and(
+        eq(posIntegrations.provider, 'lightspeed'),
+        eq(posIntegrations.isActive, true)
+      ),
+    });
+
+    for (const integration of allIntegrations) {
+      try {
+        const existingCustomer = await db.query.posCustomers.findFirst({
+          where: and(
+            eq(posCustomers.posIntegrationId, integration.id),
+            eq(posCustomers.externalCustomerId, customer.id)
+          ),
+        });
+
+        const customerName = customer.first_name
+          ? `${customer.first_name} ${customer.last_name || ''}`.trim()
+          : customer.name || 'Unknown';
+
+        const customerData = {
+          name: customerName,
+          firstName: customer.first_name,
+          lastName: customer.last_name,
+          email: customer.email,
+          phone: customer.phone,
+          mobile: customer.mobile,
+          companyName: customer.company_name,
+          loyaltyBalance: customer.loyalty_balance,
+          yearToDate: customer.year_to_date,
+          balance: customer.balance,
+          lastSyncAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        if (existingCustomer) {
+          await db.update(posCustomers)
+            .set(customerData)
+            .where(eq(posCustomers.id, existingCustomer.id));
+          console.log(`✅ Updated customer via webhook: ${customer.id}`);
+        } else {
+          if (!integration.brandId) {
+            console.log(`Skipping customer insert - no brandId for integration ${integration.id}`);
+            continue;
+          }
+          await db.insert(posCustomers).values({
+            posIntegrationId: integration.id,
+            userId: integration.userId!,
+            brandId: integration.brandId,
+            externalCustomerId: customer.id,
+            customerCode: customer.customer_code,
+            name: customerName,
+            firstName: customer.first_name,
+            lastName: customer.last_name,
+            email: customer.email,
+            phone: customer.phone,
+            mobile: customer.mobile,
+            companyName: customer.company_name,
+            loyaltyBalance: customer.loyalty_balance,
+            yearToDate: customer.year_to_date,
+            balance: customer.balance,
+            lastSyncAt: new Date(),
+            updatedAt: new Date(),
+          });
+          console.log(`✅ New customer synced via webhook: ${customer.id}`);
+        }
+        return;
+      } catch (error) {
+        console.error(`Error processing customer webhook for integration ${integration.id}:`, error);
+      }
+    }
+  }
 }
 
 export const lightspeedService = new LightspeedService();

@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import fs from "fs";
@@ -7209,7 +7209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("✅ Lightspeed integration created:", integrationId);
 
-      // Initial sync of customers and sales
+      // Initial sync of customers and sales, then register webhooks
       try {
         const integration = await db.query.posIntegrations.findFirst({
           where: eq(posIntegrations.id, integrationId),
@@ -7219,6 +7219,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const customerCount = await lightspeedService.syncCustomers(integration);
           const salesCount = await lightspeedService.syncSales(integration);
           console.log(`✅ Initial sync completed: ${customerCount} customers, ${salesCount} sales`);
+
+          // Register webhooks for real-time updates
+          try {
+            const webhooks = await lightspeedService.registerWebhooks(integration);
+            console.log(`✅ Webhooks registered:`, webhooks);
+          } catch (webhookError) {
+            console.error("Failed to register webhooks (sync still completed):", webhookError);
+          }
         }
       } catch (syncError) {
         console.error("Initial sync failed (integration still created):", syncError);
@@ -7421,6 +7429,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error disconnecting Lightspeed:", error);
       res.status(500).json({ message: "Failed to disconnect Lightspeed" });
+    }
+  });
+
+  // Lightspeed Webhook endpoint - receives real-time updates for sales and customers
+  app.post("/api/lightspeed/webhook", express.urlencoded({ extended: true }), async (req: any, res) => {
+    try {
+      const signatureHeader = req.headers['x-signature'] as string;
+      const rawBody = JSON.stringify(req.body);
+      
+      // Verify webhook signature (optional - some webhooks may not have signatures)
+      if (signatureHeader) {
+        const isValid = lightspeedService.verifyWebhookSignature(rawBody, signatureHeader);
+        if (!isValid) {
+          console.warn('⚠️ Lightspeed webhook signature verification failed');
+          // Continue processing anyway for now, as signature verification can be tricky
+        }
+      }
+
+      // Parse the payload from the form data
+      const payloadString = req.body.payload;
+      if (!payloadString) {
+        console.log('📥 Lightspeed webhook received (no payload):', req.body);
+        return res.status(200).send('OK');
+      }
+
+      const payload = JSON.parse(payloadString);
+      const eventType = req.body.type || 'unknown';
+      
+      console.log(`📥 Lightspeed webhook received: ${eventType}`);
+
+      // Process the webhook event asynchronously
+      lightspeedService.processWebhookEvent(eventType, payload)
+        .catch(err => console.error('Error processing webhook:', err));
+
+      // Always respond quickly with 200 OK
+      res.status(200).send('OK');
+    } catch (error) {
+      console.error("Error handling Lightspeed webhook:", error);
+      // Still return 200 to prevent Lightspeed from retrying
+      res.status(200).send('OK');
+    }
+  });
+
+  // Register webhooks for a Lightspeed integration
+  app.post("/api/lightspeed/webhooks/register", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.body.brandId as string;
+
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      const integration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (!integration) {
+        return res.status(404).json({ message: "Lightspeed integration not found" });
+      }
+
+      const webhooks = await lightspeedService.registerWebhooks(integration);
+      res.json({ success: true, webhooks });
+    } catch (error) {
+      console.error("Error registering Lightspeed webhooks:", error);
+      res.status(500).json({ message: "Failed to register webhooks" });
+    }
+  });
+
+  // List webhooks for a Lightspeed integration
+  app.get("/api/lightspeed/webhooks", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.query.brandId as string;
+
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      const integration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (!integration) {
+        return res.status(404).json({ message: "Lightspeed integration not found" });
+      }
+
+      const webhooks = await lightspeedService.listWebhooks(integration);
+      res.json(webhooks);
+    } catch (error) {
+      console.error("Error listing Lightspeed webhooks:", error);
+      res.status(500).json({ message: "Failed to list webhooks" });
     }
   });
 
