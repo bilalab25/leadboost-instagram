@@ -190,19 +190,26 @@ export default function SalesPage() {
     
     setIsSyncing(true);
     try {
-      const res = await fetch(`/api/lightspeed/sync?brandId=${activeBrandId}`, {
+      const res = await fetch("/api/lightspeed/sync", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
+        body: JSON.stringify({ brandId: activeBrandId }),
       });
       
-      if (!res.ok) throw new Error("Sync failed");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Sync failed");
+      }
       
       const data = await res.json();
+      const customers = data.synced?.customers || 0;
+      const sales = data.synced?.sales || 0;
       toast({
         title: isSpanish ? "Sincronización completada" : "Sync completed",
         description: isSpanish
-          ? `${data.customersSynced} clientes y ${data.salesSynced} ventas sincronizadas`
-          : `${data.customersSynced} customers and ${data.salesSynced} sales synced`,
+          ? `${customers} clientes y ${sales} ventas sincronizadas`
+          : `${customers} customers and ${sales} sales synced`,
       });
       
       refetchCustomers();
