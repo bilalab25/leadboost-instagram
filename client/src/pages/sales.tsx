@@ -105,6 +105,9 @@ export default function SalesPage() {
   // Date filter state for sales
   const [salesDateFrom, setSalesDateFrom] = useState("");
   const [salesDateTo, setSalesDateTo] = useState("");
+  
+  // Stats period filter
+  const [statsPeriod, setStatsPeriod] = useState<"this_month" | "last_month" | "all_time">("this_month");
 
   // Fetch Lightspeed integration status
   const { data: lightspeedStatus, isLoading: statusLoading } = useQuery<LightspeedStatus>({
@@ -351,6 +354,68 @@ export default function SalesPage() {
     (c) => c.linkedConversation
   ).length;
 
+  // Get date range for stats period
+  const getStatsDateRange = () => {
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+    switch (statsPeriod) {
+      case "this_month":
+        return { start: thisMonthStart, end: thisMonthEnd };
+      case "last_month":
+        return { start: lastMonthStart, end: lastMonthEnd };
+      case "all_time":
+        return null;
+    }
+  };
+
+  // Calculate stats based on selected period
+  const periodStats = useMemo(() => {
+    const dateRange = getStatsDateRange();
+    
+    let periodSales = sales;
+    if (dateRange) {
+      periodSales = sales.filter((s) => {
+        if (!s.transactionDate) return false;
+        const saleDate = new Date(s.transactionDate);
+        return saleDate >= dateRange.start && saleDate <= dateRange.end;
+      });
+    }
+
+    const totalSales = periodSales.reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+    const totalTransactions = periodSales.length;
+    const averageOrderValue = totalTransactions > 0 ? totalSales / totalTransactions : 0;
+    
+    return {
+      totalSales,
+      totalTransactions,
+      averageOrderValue,
+      totalCustomers: customersWithConversations.length,
+      linkedCustomers: linkedCustomersCount,
+    };
+  }, [sales, customersWithConversations, linkedCustomersCount, statsPeriod]);
+
+  // Get period label for display
+  const getPeriodLabel = () => {
+    const now = new Date();
+    const monthNames = isSpanish 
+      ? ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+      : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    
+    switch (statsPeriod) {
+      case "this_month":
+        return monthNames[now.getMonth()];
+      case "last_month":
+        const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+        return monthNames[lastMonth];
+      case "all_time":
+        return isSpanish ? "Todo el tiempo" : "All time";
+    }
+  };
+
   if (!activeBrandId) {
     return (
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -431,6 +496,45 @@ export default function SalesPage() {
               </Card>
             ) : (
               <>
+                {/* Period Selector */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {isSpanish ? "Mostrando:" : "Showing:"}
+                    </span>
+                    <span className="text-sm font-semibold">{getPeriodLabel()}</span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                    <Button
+                      variant={statsPeriod === "this_month" ? "secondary" : "ghost"}
+                      size="sm"
+                      onClick={() => setStatsPeriod("this_month")}
+                      className="h-8 text-xs"
+                      data-testid="period-this-month"
+                    >
+                      {isSpanish ? "Este mes" : "This month"}
+                    </Button>
+                    <Button
+                      variant={statsPeriod === "last_month" ? "secondary" : "ghost"}
+                      size="sm"
+                      onClick={() => setStatsPeriod("last_month")}
+                      className="h-8 text-xs"
+                      data-testid="period-last-month"
+                    >
+                      {isSpanish ? "Mes anterior" : "Last month"}
+                    </Button>
+                    <Button
+                      variant={statsPeriod === "all_time" ? "secondary" : "ghost"}
+                      size="sm"
+                      onClick={() => setStatsPeriod("all_time")}
+                      className="h-8 text-xs"
+                      data-testid="period-all-time"
+                    >
+                      {isSpanish ? "Todo" : "All time"}
+                    </Button>
+                  </div>
+                </div>
+
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Card>
@@ -444,7 +548,7 @@ export default function SalesPage() {
                             {isSpanish ? "Clientes POS" : "POS Customers"}
                           </p>
                           <p className="text-2xl font-bold" data-testid="stat-customers">
-                            {lightspeedStatus.stats?.totalCustomers || 0}
+                            {periodStats.totalCustomers}
                           </p>
                         </div>
                       </div>
@@ -462,7 +566,7 @@ export default function SalesPage() {
                             {isSpanish ? "Vinculados a WhatsApp" : "Linked to WhatsApp"}
                           </p>
                           <p className="text-2xl font-bold" data-testid="stat-linked">
-                            {linkedCustomersCount}
+                            {periodStats.linkedCustomers}
                           </p>
                         </div>
                       </div>
@@ -480,7 +584,7 @@ export default function SalesPage() {
                             {isSpanish ? "Transacciones" : "Transactions"}
                           </p>
                           <p className="text-2xl font-bold" data-testid="stat-transactions">
-                            {lightspeedStatus.stats?.totalTransactions || 0}
+                            {periodStats.totalTransactions}
                           </p>
                         </div>
                       </div>
@@ -498,7 +602,7 @@ export default function SalesPage() {
                             {isSpanish ? "Ventas Totales" : "Total Sales"}
                           </p>
                           <p className="text-2xl font-bold" data-testid="stat-sales">
-                            {formatCurrency(lightspeedStatus.stats?.totalSales || 0)}
+                            {formatCurrency(periodStats.totalSales)}
                           </p>
                         </div>
                       </div>
