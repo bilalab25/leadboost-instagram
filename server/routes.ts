@@ -7412,7 +7412,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Disconnect Lightspeed integration
   app.delete("/api/lightspeed/disconnect", isAuthenticated, async (req: any, res) => {
     try {
-      const brandId = req.body.brandId as string;
+      // Accept brandId from query params (for DELETE) or body
+      const brandId = (req.query.brandId || req.body.brandId) as string;
 
       if (!brandId) {
         return res.status(400).json({ message: "Brand ID is required" });
