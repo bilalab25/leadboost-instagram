@@ -285,12 +285,14 @@ export class LightspeedService {
       throw new Error('Domain prefix not found');
     }
 
+    // Default to last 365 days if no date provided (avoid fetching ancient records)
+    const effectiveDateFrom = dateFrom || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+    
     const params = new URLSearchParams();
-    if (dateFrom) {
-      params.set('date_from', dateFrom.toISOString());
-    }
+    params.set('date_from', effectiveDateFrom.toISOString());
 
-    const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/sales${params.toString() ? '?' + params.toString() : ''}`;
+    const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/sales?${params.toString()}`;
+    console.log(`Syncing sales from: ${effectiveDateFrom.toISOString()}`);
     
     const response = await fetch(url, {
       headers: {
@@ -308,6 +310,13 @@ export class LightspeedService {
     const data = await response.json();
     const sales: LightspeedSale[] = data.data || [];
     let syncedCount = 0;
+    console.log(`Found ${sales.length} sales from Lightspeed`);
+
+    // Pre-fetch all customers for this integration to enable linking
+    const posCustomersList = await db.query.posCustomers.findMany({
+      where: eq(posCustomers.posIntegrationId, integration.id),
+    });
+    const customerMap = new Map(posCustomersList.map(c => [c.externalCustomerId, c.id]));
 
     for (const sale of sales) {
       try {
@@ -320,9 +329,13 @@ export class LightspeedService {
 
         if (existingTransaction) continue;
 
+        // Look up the internal posCustomer by external customer ID
+        const posCustomerId = sale.customer?.id ? customerMap.get(sale.customer.id) : null;
+
         await db.insert(salesTransactions).values({
           posIntegrationId: integration.id,
           userId: integration.userId,
+          posCustomerId: posCustomerId || null,
           transactionId: sale.id,
           customerId: sale.customer?.id,
           customerEmail: sale.customer?.email,

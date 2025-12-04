@@ -425,6 +425,7 @@ export const salesTransactions = pgTable("sales_transactions", {
   userId: varchar("user_id").references(() => users.id, {
     onDelete: "cascade",
   }),
+  posCustomerId: uuid("pos_customer_id"), // link to internal posCustomers table
   transactionId: varchar("transaction_id").notNull(), // external transaction ID
   customerId: varchar("customer_id"), // external customer ID
   customerEmail: varchar("customer_email"),
