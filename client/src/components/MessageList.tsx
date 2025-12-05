@@ -214,9 +214,9 @@ export default function MessageList({
     .slice(0, limit);
 
   return (
-    <>
+    <div className="flex h-full w-full">
       {/* Left Panel - Conversation List */}
-      <div className="w-[35%] bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-[35%] bg-white border-r border-gray-200 flex flex-col h-full">
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             // Loading skeleton
@@ -383,7 +383,7 @@ export default function MessageList({
       </div>
 
       {/* Right Panel - Conversation or Empty State */}
-      <div className="flex-1 bg-gray-50 flex items-center justify-center">
+      <div className="flex-1 bg-gray-50 flex items-center justify-center h-full">
         {activeConversation ? (
           <div className="w-full h-full">
             <ConversationPanel
@@ -408,6 +408,6 @@ export default function MessageList({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }

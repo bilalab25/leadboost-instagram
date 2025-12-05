@@ -477,9 +477,10 @@ export default function Inbox() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
+                  className="flex-1"
                 >
-                  <Card className="border-0 shadow-lg overflow-hidden">
-                    <div className="h-[calc(100vh-480px)] min-h-[400px]">
+                  <Card className="border-0 shadow-lg overflow-hidden h-full">
+                    <div className="h-[calc(100vh-420px)] min-h-[500px]">
                       <MessageList
                         showHeader={false}
                         platform={selectedPlatform}
