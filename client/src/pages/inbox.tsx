@@ -181,12 +181,17 @@ export default function Inbox() {
                     facebook: SiFacebook,
                     instagram: Instagram,
                     whatsapp: SiWhatsapp,
+                    whatsapp_baileys: SiWhatsapp,
                     tiktok: SiTiktok,
                     twitter: Twitter,
                   };
 
+                  const labels: Record<string, string> = {
+                    whatsapp_baileys: "WhatsApp",
+                  };
+
                   const Icon = icons[provider] || Mail;
-                  const label =
+                  const label = labels[provider] ||
                     provider.charAt(0).toUpperCase() + provider.slice(1);
 
                   return (
