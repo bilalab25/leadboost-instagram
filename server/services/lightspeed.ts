@@ -364,6 +364,7 @@ export class LightspeedService {
     );
 
     let syncedCount = 0;
+    let inlineCustomersCreated = 0;
     let offset = 0;
     let hasMorePages = true;
     let totalFetched = 0;
@@ -432,9 +433,46 @@ export class LightspeedService {
           if (existingTransaction) continue;
 
           // Look up the internal posCustomer by external customer ID
-          const posCustomerId = sale.customer?.id
-            ? customerMap.get(sale.customer.id)
-            : null;
+          let posCustomerId: string | null = null;
+          
+          if (sale.customer?.id) {
+            // Check if customer exists in our map
+            posCustomerId = customerMap.get(sale.customer.id) || null;
+            
+            // If not found, create the customer "inline" from sale data
+            if (!posCustomerId) {
+              console.log(`Creating inline customer from sale: ${sale.customer.id} - ${sale.customer.name || 'Unknown'}`);
+              
+              const customerName = sale.customer.name || 
+                `${sale.customer.first_name || ""} ${sale.customer.last_name || ""}`.trim() || 
+                "Unknown";
+              
+              const newCustomerData = {
+                posIntegrationId: integration.id,
+                userId: integration.userId!,
+                brandId: integration.brandId!,
+                externalCustomerId: sale.customer.id,
+                name: customerName,
+                firstName: sale.customer.first_name,
+                lastName: sale.customer.last_name,
+                email: sale.customer.email,
+                phone: sale.customer.phone,
+                mobile: sale.customer.mobile,
+                companyName: sale.customer.company_name,
+                lastSyncAt: new Date(),
+                updatedAt: new Date(),
+              };
+              
+              const [newCustomer] = await db.insert(posCustomers).values(newCustomerData).returning();
+              
+              // Add to map for future sales in this batch
+              posCustomerId = newCustomer.id;
+              customerMap.set(sale.customer.id, newCustomer.id);
+              inlineCustomersCreated++;
+              
+              console.log(`Created inline customer: ${newCustomer.id} (external: ${sale.customer.id})`);
+            }
+          }
 
           // Map state to a normalized status (state is the new field, status is deprecated)
           const saleState = (sale as any).state as string | undefined;
@@ -486,7 +524,11 @@ export class LightspeedService {
       }
     }
 
-    console.log(`Sync complete: ${syncedCount} new sales synced from ${totalFetched} total fetched (filtered from ${dateFromStr})`);
+    console.log(`Sync complete: ${syncedCount} new sales synced from ${totalFetched} total fetched`);
+    if (inlineCustomersCreated > 0) {
+      console.log(`Created ${inlineCustomersCreated} inline customers from sales data`);
+    }
+    console.log(`Customer map now has ${customerMap.size} entries`);
     return syncedCount;
   }
 

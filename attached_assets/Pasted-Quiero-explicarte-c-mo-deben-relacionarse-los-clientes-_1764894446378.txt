@@ -1,0 +1,80 @@
+Quiero explicarte cómo deben relacionarse los clientes y las ventas cuando sincronizo datos desde Lightspeed X-Series (Vend) hacia mi base de datos externa. No quiero que implementes nada aún, solo que entiendas el comportamiento.
+
+Lightspeed devuelve información de cada venta desde el endpoint /api/2.0/sales. En cada venta puede venir un campo "customer", el cual contiene un "id". Ese "customer.id" es el identificador único del cliente dentro de Lightspeed, y es el valor que debo usar para relacionar una venta con un cliente en mi propio sistema.
+
+Esto es lo que necesito que comprendas:
+
+Cada venta puede incluir un campo "customer". Ejemplo:
+{
+"id": "sale_123",
+"customer": {
+"id": "cust_87",
+"name": "John Doe",
+"email": "john@example.com
+
+",
+"phone": "+15145550000"
+},
+"total_price": 45.00,
+"sale_date": "2024-12-03T18:41:22Z"
+}
+
+El dato importante es customer.id, porque ese valor representa al cliente en Lightspeed.
+
+En mi base de datos tengo una tabla llamada posCustomers. En esa tabla guardo:
+
+externalCustomerId → el customer.id de Lightspeed
+
+name
+
+email
+
+phone
+
+posIntegrationId (para saber qué integración pertenece)
+
+Ejemplo de registro:
+{
+"id": "localCustomerId123",
+"externalCustomerId": "cust_87",
+"name": "John Doe",
+"email": "john@example.com
+
+",
+"phone": "+15145550000"
+}
+
+Antes de sincronizar ventas, debo sincronizar los clientes. Esto lo hago llamando a /api/2.0/customers y guardando todos los clientes en la tabla posCustomers. Después genero un mapa en memoria así:
+externalCustomerId → id local del posCustomer
+Ejemplo:
+"cust_87" → "localCustomerId123"
+
+Cuando guardo una venta, la relaciono con el cliente usando ese mapa. Si una venta trae:
+"customer": { "id": "cust_87" }
+Busco ese ID en el mapa y guardo la venta con posCustomerId asignado. Ejemplo:
+{
+"transactionId": "sale_123",
+"posCustomerId": "localCustomerId123",
+"totalAmount": 4500,
+"transactionDate": "2024-12-03T18:41:22Z"
+}
+
+Si la venta trae un customer.id que no existe en mi tabla (esto pasa a veces porque Lightspeed puede devolver clientes “inline”), entonces debo:
+
+crear el cliente en posCustomers,
+
+agregarlo al mapa,
+
+y usar ese nuevo posCustomerId para relacionar la venta.
+
+Con este comportamiento lograré:
+
+ventas correctamente asociadas a sus clientes reales,
+
+historial de compras por cliente,
+
+posibilidad de combinar información del POS con mis canales multicanal (WhatsApp, Instagram, Facebook),
+
+sincronización limpia sin duplicados.
+
+Solo quiero que entiendas esta lógica por ahora. No implementes nada todavía.
