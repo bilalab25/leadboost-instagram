@@ -219,7 +219,7 @@ export default function Dashboard() {
   );
   const hasMessaging = integrations.some(
     (i: any) =>
-      i.isActive && ["facebook", "instagram", "whatsapp"].includes(i.provider),
+      i.isActive && ["facebook", "instagram", "whatsapp", "whatsapp_baileys"].includes(i.provider),
   );
 
   // Sample sparkline data
@@ -265,6 +265,12 @@ export default function Dashboard() {
       name: "Instagram",
     },
     whatsapp: {
+      icon: SiWhatsapp,
+      color: "#25D366",
+      bgGradient: "from-green-500/10 to-green-600/5",
+      name: "WhatsApp",
+    },
+    whatsapp_baileys: {
       icon: SiWhatsapp,
       color: "#25D366",
       bgGradient: "from-green-500/10 to-green-600/5",
