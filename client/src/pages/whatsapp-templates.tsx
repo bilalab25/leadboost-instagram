@@ -399,6 +399,17 @@ export default function WhatsAppTemplates() {
   const [showGuide, setShowGuide] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Fetch integrations to check for Baileys
+  const { data: integrations = [] } = useQuery<any[]>({
+    queryKey: ["/api/integrations", { brandId: activeBrandId }],
+    enabled: !!activeBrandId,
+  });
+
+  // Check if user has WhatsApp Baileys integration (QR code method)
+  const hasBaileysIntegration = integrations.some(
+    (i: any) => i.provider === "whatsapp_baileys"
+  );
+
   // Fetch WhatsApp templates from Meta API
   const {
     data: templatesData,
@@ -407,12 +418,12 @@ export default function WhatsAppTemplates() {
     refetch: refetchTemplates,
   } = useQuery<{ templates: WhatsAppTemplate[]; total: number }>({
     queryKey: ["/api/whatsapp-templates", { brandId: activeBrandId }],
-    enabled: !!activeBrandId,
+    enabled: !!activeBrandId && !hasBaileysIntegration,
   });
 
   // Check if error is due to no WhatsApp integration (404)
   const isNoIntegration =
-    templatesError && (templatesError as any)?.message?.includes("404");
+    (templatesError && (templatesError as any)?.message?.includes("404")) || hasBaileysIntegration;
   const templates = templatesData?.templates ?? [];
 
   const createForm = useForm<CreateTemplateForm>({
@@ -894,8 +905,60 @@ export default function WhatsAppTemplates() {
                     )}
                   </AnimatePresence>
 
+                  {/* Baileys Integration Banner */}
+                  {hasBaileysIntegration && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-8"
+                    >
+                      <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+                        <CardContent className="py-10 text-center">
+                          <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                            <Info className="w-8 h-8 text-amber-600" />
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            Templates no disponibles con conexión QR
+                          </h3>
+                          <p className="text-gray-600 max-w-lg mx-auto mb-4">
+                            Tu cuenta de WhatsApp está conectada mediante código QR. 
+                            Los templates de WhatsApp solo están disponibles cuando conectas 
+                            una cuenta de WhatsApp Business a través de la API oficial de Meta.
+                          </p>
+                          <div className="bg-white/60 rounded-lg p-4 max-w-md mx-auto mb-6 text-left">
+                            <p className="text-sm font-medium text-gray-800 mb-2">¿Por qué necesito WhatsApp Business API?</p>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                              <li className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                <span>Templates pre-aprobados por Meta para marketing</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                <span>Envío masivo de mensajes a clientes</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                <span>Notificaciones automáticas de pedidos</span>
+                              </li>
+                            </ul>
+                          </div>
+                          <p className="text-xs text-gray-500 mb-4">
+                            Con la conexión QR actual puedes enviar y recibir mensajes normalmente desde el Inbox.
+                          </p>
+                          <Link href="/integrations">
+                            <Button className="bg-green-600 hover:bg-green-700 text-white">
+                              <SiWhatsapp className="w-4 h-4 mr-2" />
+                              Conectar WhatsApp Business API
+                              <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                          </Link>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
+
                   {/* No Integration Warning */}
-                  {isNoIntegration && (
+                  {isNoIntegration && !hasBaileysIntegration && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
