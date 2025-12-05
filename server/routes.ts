@@ -4055,7 +4055,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log(`📱 [Baileys] Starting connection for user ${userId}, brand ${brandId}`);
 
-        const result = await whatsappBaileysService.initSession(userId, brandId);
+        // Pass forceInit=true since this is a user-initiated action
+        const result = await whatsappBaileysService.initSession(userId, brandId, true);
         
         res.json({
           success: true,

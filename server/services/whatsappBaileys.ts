@@ -135,8 +135,33 @@ class WhatsAppBaileysService extends EventEmitter {
     }, delay);
   }
 
-  async initSession(userId: string, brandId: string): Promise<{ qrCode: string | null; status: string }> {
+  private isDevelopmentEnvironment(): boolean {
+    // Check if we're in Replit development environment
+    const devDomain = process.env.REPLIT_DEV_DOMAIN;
+    const replitDomains = process.env.REPLIT_DOMAINS;
+    
+    // If REPLIT_DEV_DOMAIN is set, we're in development
+    if (devDomain) {
+      return true;
+    }
+    
+    // If only production domains exist, we're in production
+    if (replitDomains && !devDomain) {
+      return false;
+    }
+    
+    return false;
+  }
+
+  async initSession(userId: string, brandId: string, forceInit: boolean = false): Promise<{ qrCode: string | null; status: string }> {
     const sessionKey = this.getSessionKey(userId, brandId);
+    
+    // Prevent development environment from stealing production sessions
+    // unless explicitly forced (e.g., user clicking connect button)
+    if (this.isDevelopmentEnvironment() && !forceInit) {
+      console.log(`⚠️ [WhatsApp Baileys] Skipping auto-init in development environment for: ${sessionKey}`);
+      return { qrCode: null, status: "dev_skipped" };
+    }
     
     const existingSession = this.sessions.get(sessionKey);
     if (existingSession?.status === "connected") {
@@ -217,6 +242,12 @@ class WhatsAppBaileysService extends EventEmitter {
             session.status = "disconnected";
             session.reconnectAttempts = 0;
             this.emit("logged_out", { sessionKey });
+          } else if (statusCode === 440) {
+            // Conflict error - another instance is already connected
+            console.log(`⚠️ [WhatsApp Baileys] Conflict detected (440) - another instance is active. NOT reconnecting.`);
+            this.cleanupSession(sessionKey, { removeCredentials: false, removeFromMap: false });
+            session.status = "disconnected";
+            this.emit("conflict", { sessionKey, reason: "Another instance is already connected" });
           } else if (statusCode === 515 || statusCode === DisconnectReason.restartRequired) {
             console.log(`🔄 [WhatsApp Baileys] Stream error 515 / restart required, reconnecting...`);
             this.cleanupSession(sessionKey, { removeCredentials: false, removeFromMap: false });
@@ -419,6 +450,13 @@ class WhatsAppBaileysService extends EventEmitter {
   }
 
   async restoreExistingSessions(): Promise<void> {
+    // Don't auto-restore sessions in development to avoid stealing production sessions
+    if (this.isDevelopmentEnvironment()) {
+      console.log("⚠️ [WhatsApp Baileys] Skipping session restoration in development environment");
+      console.log("   (Production should handle WhatsApp connections)");
+      return;
+    }
+    
     console.log("🔄 [WhatsApp Baileys] Checking for existing sessions to restore...");
     
     if (!fs.existsSync(this.authBasePath)) {
@@ -433,7 +471,8 @@ class WhatsAppBaileysService extends EventEmitter {
         const brandId = parts.slice(1).join("_");
         console.log(`🔄 [WhatsApp Baileys] Restoring session for user ${userId}, brand ${brandId}`);
         try {
-          await this.initSession(userId, brandId);
+          // forceInit=true for restoration since we want to reconnect in production
+          await this.initSession(userId, brandId, true);
         } catch (error) {
           console.error(`❌ [WhatsApp Baileys] Failed to restore session:`, error);
         }
