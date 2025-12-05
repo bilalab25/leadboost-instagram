@@ -24,11 +24,15 @@ import {
   Mail,
   Twitter,
   Instagram,
+  Info,
+  Link2,
+  ArrowRight,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import HelpChatbot from "@/components/HelpChatbot";
 import { SiWhatsapp, SiTiktok, SiFacebook } from "react-icons/si";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -226,7 +230,85 @@ export default function Inbox() {
                   </div>
                 </motion.div>
 
-                {/* Filter Bar */}
+                {/* WhatsApp Baileys Info Banner */}
+                {integrations.some(i => i.provider === 'whatsapp_baileys') && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="mb-3"
+                  >
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                        <Info className="w-4 h-4 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-amber-800">
+                          {isSpanish 
+                            ? "Tu cuenta de WhatsApp está conectada mediante QR. Los templates de WhatsApp no están disponibles con este método de conexión."
+                            : "Your WhatsApp account is connected via QR. WhatsApp templates are not available with this connection method."}
+                        </p>
+                      </div>
+                      <Link href="/whatsapp-templates">
+                        <Button variant="ghost" size="sm" className="text-amber-700 hover:text-amber-900 hover:bg-amber-100">
+                          {isSpanish ? "Más info" : "Learn more"}
+                          <ArrowRight className="w-4 h-4 ml-1" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* No Integrations Empty State */}
+                {integrations.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="mb-4"
+                  >
+                    <Card className="border-2 border-dashed border-gray-200 bg-gradient-to-br from-gray-50 to-blue-50/30">
+                      <CardContent className="p-8">
+                        <div className="flex flex-col items-center text-center">
+                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 shadow-lg">
+                            <Link2 className="w-8 h-8 text-white" />
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            {isSpanish ? "Conecta tus redes sociales" : "Connect your social accounts"}
+                          </h3>
+                          <p className="text-gray-600 mb-6 max-w-md">
+                            {isSpanish 
+                              ? "Para comenzar a recibir mensajes, conecta tu cuenta de Facebook, Instagram o WhatsApp desde la página de integraciones."
+                              : "To start receiving messages, connect your Facebook, Instagram, or WhatsApp account from the integrations page."}
+                          </p>
+                          <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 shadow-sm">
+                              <SiFacebook className="w-5 h-5 text-blue-600" />
+                              <span className="text-sm font-medium text-gray-700">Facebook</span>
+                            </div>
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 shadow-sm">
+                              <Instagram className="w-5 h-5 text-pink-500" />
+                              <span className="text-sm font-medium text-gray-700">Instagram</span>
+                            </div>
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 shadow-sm">
+                              <SiWhatsapp className="w-5 h-5 text-green-500" />
+                              <span className="text-sm font-medium text-gray-700">WhatsApp</span>
+                            </div>
+                          </div>
+                          <Link href="/integrations">
+                            <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700">
+                              {isSpanish ? "Ir a Integraciones" : "Go to Integrations"}
+                              <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+
+                {/* Filter Bar - Only show if there are integrations */}
+                {integrations.length > 0 && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -357,6 +439,7 @@ export default function Inbox() {
                     </CardContent>
                   </Card>
                 </motion.div>
+                )}
 
                 {/* Messages List */}
                 <motion.div
