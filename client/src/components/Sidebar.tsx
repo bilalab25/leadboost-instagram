@@ -75,7 +75,7 @@ export default function Sidebar() {
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
     {
       name: "Boosty AI",
-      href: "/boosty",
+      href: "/waterfall",
       icon: Sparkles,
       special: true,
     },
