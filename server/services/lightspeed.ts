@@ -396,6 +396,22 @@ export class LightspeedService {
       
       totalFetched += sales.length;
       console.log(`Page ${pageCount}: Found ${sales.length} sales (total: ${totalFetched})`);
+      
+      // Log first 3 raw sale objects to see structure (including customer fields)
+      if (pageCount === 1 && sales.length > 0) {
+        console.log("=== RAW SALE OBJECTS FROM LIGHTSPEED (first 3) ===");
+        for (let i = 0; i < Math.min(3, sales.length); i++) {
+          const rawSale = sales[i] as any;
+          console.log(`\n--- Sale #${i + 1} (ID: ${rawSale.id}) ---`);
+          console.log("All keys:", Object.keys(rawSale));
+          console.log("customer field:", JSON.stringify(rawSale.customer, null, 2));
+          console.log("customer_id field:", rawSale.customer_id);
+          console.log("customerId field:", rawSale.customerId);
+          console.log("buyer field:", rawSale.buyer);
+          console.log("Full sale object:", JSON.stringify(rawSale, null, 2));
+        }
+        console.log("=== END RAW SALE OBJECTS ===\n");
+      }
 
       for (const sale of sales) {
         try {
