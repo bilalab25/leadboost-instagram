@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 
 const SOCKET_URL = window.location.origin;
 
-export function useSocket() {
-  const [socket, setSocket] = useState<Socket | null>(null);
+let globalSocket: Socket | null = null;
+let connectionCount = 0;
 
-  useEffect(() => {
-    const newSocket = io(SOCKET_URL, {
+function getSocket(): Socket {
+  if (!globalSocket) {
+    globalSocket = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -15,27 +16,65 @@ export function useSocket() {
       reconnectionAttempts: 5,
     });
 
-    newSocket.on("connect", () => {
-      console.log("✅ Socket.IO connected:", newSocket.id);
-      setSocket(newSocket); // Trigger re-render when connected
+    globalSocket.on("connect", () => {
+      console.log("✅ Socket.IO connected:", globalSocket?.id);
     });
 
-    newSocket.on("disconnect", () => {
+    globalSocket.on("disconnect", () => {
       console.log("❌ Socket.IO disconnected");
     });
 
-    newSocket.on("connect_error", (error) => {
+    globalSocket.on("connect_error", (error) => {
       console.error("Socket.IO connection error:", error);
     });
+  }
+  return globalSocket;
+}
 
-    // Set socket immediately so listeners can attach
-    setSocket(newSocket);
+export function useSocket() {
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    connectionCount++;
+    const s = getSocket();
+    setSocket(s);
 
     return () => {
-      newSocket.disconnect();
-      setSocket(null);
+      connectionCount--;
+      if (connectionCount === 0 && globalSocket) {
+        globalSocket.disconnect();
+        globalSocket = null;
+      }
     };
   }, []);
+
+  return socket;
+}
+
+export function useBrandSocket(brandId: string | null) {
+  const socket = useSocket();
+  const joinedRoomRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!socket || !brandId) return;
+
+    // Leave previous room if different
+    if (joinedRoomRef.current && joinedRoomRef.current !== brandId) {
+      socket.emit("leave_brand", joinedRoomRef.current);
+    }
+
+    // Join new room
+    socket.emit("join_brand", brandId);
+    joinedRoomRef.current = brandId;
+    console.log(`📢 Joining brand room: ${brandId}`);
+
+    return () => {
+      if (joinedRoomRef.current) {
+        socket.emit("leave_brand", joinedRoomRef.current);
+        joinedRoomRef.current = null;
+      }
+    };
+  }, [socket, brandId]);
 
   return socket;
 }

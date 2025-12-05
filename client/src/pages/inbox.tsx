@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useBrandSocket } from "@/hooks/useSocket";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import MessageList from "@/components/MessageList";
@@ -40,7 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useBrand } from "@/contexts/BrandContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 
 interface InboxStats {
@@ -70,6 +71,8 @@ export default function Inbox() {
   const { isAuthenticated, isLoading } = useAuth();
   const { isSpanish } = useLanguage();
   const { activeBrandId } = useBrand();
+  const queryClient = useQueryClient();
+  const socket = useBrandSocket(activeBrandId);
 
   const [integrations, setIntegrations] = useState<any[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState<string | undefined>(
@@ -79,6 +82,33 @@ export default function Inbox() {
     "all" | "none" | "important" | "archived"
   >("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Listen for real-time new message events
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (data: { conversationId: string; message: any }) => {
+      console.log("📨 Real-time message received:", data);
+      
+      // Invalidate and refetch conversations to show new message
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inbox/stats"] });
+      
+      // Show a toast notification for the new message
+      toast({
+        title: isSpanish ? "Nuevo mensaje" : "New message",
+        description: data.message?.from 
+          ? `${data.message.from}: ${data.message.text?.substring(0, 50)}...` 
+          : (isSpanish ? "Tienes un nuevo mensaje" : "You have a new message"),
+      });
+    };
+
+    socket.on("new_message", handleNewMessage);
+
+    return () => {
+      socket.off("new_message", handleNewMessage);
+    };
+  }, [socket, queryClient, toast, isSpanish]);
 
   // Fetch inbox statistics from the API
   const { data: inboxStats, isLoading: statsLoading } = useQuery<InboxStats>({
