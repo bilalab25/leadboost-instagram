@@ -485,50 +485,65 @@ export default function SalesPage() {
                 </motion.div>
               ) : (
                 <>
+                  {/* Purple Gradient Banner */}
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                    className="bg-gradient-to-r from-blue-600 via-purple-600 to-violet-600 rounded-2xl p-6 shadow-lg"
                   >
-                    <div>
-                      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
-                        {isSpanish ? "Ventas" : "Sales"}
-                      </h1>
-                      <p className="text-gray-500 dark:text-gray-400">
-                        {lightspeedStatus.storeName 
-                          ? `${lightspeedStatus.storeName} - Lightspeed POS`
-                          : "Lightspeed POS"
-                        }
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <Store className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <h1 className="text-xl font-bold text-white" data-testid="text-page-title">
+                            {isSpanish ? "Ventas POS y Clientes" : "POS Sales & Customers"}
+                          </h1>
+                          <p className="text-white/80 text-sm">
+                            {isSpanish
+                              ? "Administra tus clientes y ventas vinculados con WhatsApp"
+                              : "Manage your customers and sales linked with WhatsApp"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleForceResync}
+                          disabled={isForceResyncing || isSyncing}
+                          className="gap-2 bg-white/20 hover:bg-white/30 text-white border-0"
+                          data-testid="button-force-resync"
+                        >
+                          <Zap className={`h-4 w-4 ${isForceResyncing ? "animate-pulse" : ""}`} />
+                          {isForceResyncing
+                            ? isSpanish ? "Re-sincronizando..." : "Re-syncing..."
+                            : isSpanish ? "Re-sincronizar" : "Force Resync"}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleSync}
+                          disabled={isSyncing || isForceResyncing}
+                          className="gap-2 bg-white/20 hover:bg-white/30 text-white border-0"
+                          data-testid="button-sync"
+                        >
+                          <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+                          {isSyncing
+                            ? isSpanish ? "Sincronizando..." : "Syncing..."
+                            : isSpanish ? "Sincronizar" : "Sync"}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleForceResync}
-                        disabled={isForceResyncing || isSyncing}
-                        className="gap-2"
-                        data-testid="button-force-resync"
-                      >
-                        <Zap className={`h-4 w-4 ${isForceResyncing ? "animate-pulse" : ""}`} />
-                        {isForceResyncing
-                          ? isSpanish ? "Re-sincronizando..." : "Re-syncing..."
-                          : isSpanish ? "Re-sincronizar" : "Force Resync"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSync}
-                        disabled={isSyncing || isForceResyncing}
-                        className="gap-2"
-                        data-testid="button-sync"
-                      >
-                        <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-                        {isSyncing
-                          ? isSpanish ? "Sincronizando..." : "Syncing..."
-                          : isSpanish ? "Sincronizar" : "Sync"}
-                      </Button>
-                    </div>
+                    {lightspeedStatus.storeName && (
+                      <div className="mt-3 pt-3 border-t border-white/20">
+                        <p className="text-white/70 text-xs flex items-center gap-2">
+                          <Link2 className="h-3 w-3" />
+                          {isSpanish ? "Conectado a" : "Connected to"}: {lightspeedStatus.storeName}
+                        </p>
+                      </div>
+                    )}
                   </motion.div>
 
                   <div className="space-y-4">

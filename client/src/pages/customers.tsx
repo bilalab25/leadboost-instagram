@@ -344,38 +344,46 @@ export default function CustomersPage() {
                 </motion.div>
               ) : (
                 <>
+                  {/* Purple Gradient Banner */}
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                    className="bg-gradient-to-r from-blue-600 via-purple-600 to-violet-600 rounded-2xl p-6 shadow-lg"
                   >
-                    <div>
-                      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
-                        {isSpanish ? "Clientes" : "Customers"}
-                      </h1>
-                      <p className="text-gray-500 dark:text-gray-400">
-                        {isSpanish
-                          ? "Clientes sincronizados desde tu punto de venta"
-                          : "Customers synced from your point of sale"}
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <Users className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <h1 className="text-xl font-bold text-white" data-testid="text-page-title">
+                            {isSpanish ? "Clientes POS" : "POS Customers"}
+                          </h1>
+                          <p className="text-white/80 text-sm">
+                            {isSpanish
+                              ? "Clientes sincronizados y vinculados con WhatsApp"
+                              : "Customers synced and linked with WhatsApp"}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleSync}
+                        disabled={isSyncing}
+                        className="gap-2 bg-white/20 hover:bg-white/30 text-white border-0"
+                        data-testid="button-sync"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+                        {isSyncing
+                          ? isSpanish
+                            ? "Sincronizando..."
+                            : "Syncing..."
+                          : isSpanish
+                            ? "Sincronizar"
+                            : "Sync"}
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSync}
-                      disabled={isSyncing}
-                      className="gap-2"
-                      data-testid="button-sync"
-                    >
-                      <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-                      {isSyncing
-                        ? isSpanish
-                          ? "Sincronizando..."
-                          : "Syncing..."
-                        : isSpanish
-                          ? "Sincronizar"
-                          : "Sync"}
-                    </Button>
                   </motion.div>
 
                   <motion.div
