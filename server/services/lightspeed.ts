@@ -343,9 +343,10 @@ export class LightspeedService {
         effectiveDateFrom = new Date(mostRecentSale.transactionDate.getTime() - 60 * 60 * 1000);
         console.log(`Incremental sync: found ${mostRecentSale.transactionId}, syncing from ${effectiveDateFrom.toISOString()}`);
       } else {
-        // No existing sales - default to last 3 months
-        effectiveDateFrom = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-        console.log("Initial sync: no existing sales, fetching last 3 months");
+        // No existing sales - default to current month (start of month)
+        const now = new Date();
+        effectiveDateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+        console.log("Initial sync: no existing sales, fetching current month");
       }
     }
 

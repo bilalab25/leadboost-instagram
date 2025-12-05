@@ -68,7 +68,11 @@ import {
   Filter,
   BarChart3,
 } from "lucide-react";
-import type { PosCustomer, SalesTransaction, Conversation } from "@shared/schema";
+import type {
+  PosCustomer,
+  SalesTransaction,
+  Conversation,
+} from "@shared/schema";
 import HelpChatbot from "@/components/HelpChatbot";
 
 interface LightspeedStatus {
@@ -93,49 +97,61 @@ export default function SalesPage() {
   const { activeBrandId } = useBrand();
   const [, navigate] = useLocation();
   const { isSpanish } = useLanguage();
-  
+
   const [activeTab, setActiveTab] = useState("customers");
   const [searchQuery, setSearchQuery] = useState("");
   const [customerNameFilter, setCustomerNameFilter] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithConversation | null>(null);
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<CustomerWithConversation | null>(null);
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  
+
   // Pagination state
   const [customersPage, setCustomersPage] = useState(1);
   const [salesPage, setSalesPage] = useState(1);
   const [customersPageSize, setCustomersPageSize] = useState(10);
   const [salesPageSize, setSalesPageSize] = useState(10);
-  
+
   // Date filter state for sales
   const [salesDateFrom, setSalesDateFrom] = useState("");
   const [salesDateTo, setSalesDateTo] = useState("");
-  
+
   // Status filter for sales
   const [salesStatusFilter, setSalesStatusFilter] = useState<string>("all");
-  
+
   // Stats period filter
-  const [statsPeriod, setStatsPeriod] = useState<"today" | "this_week" | "this_month" | "last_month" | "all_time">("this_month");
+  const [statsPeriod, setStatsPeriod] = useState<
+    "today" | "this_week" | "this_month" | "last_month" | "all_time"
+  >("this_month");
 
   // Fetch Lightspeed integration status
-  const { data: lightspeedStatus, isLoading: statusLoading } = useQuery<LightspeedStatus>({
-    queryKey: ["/api/lightspeed/status", activeBrandId],
-    queryFn: async () => {
-      const res = await fetch(`/api/lightspeed/status?brandId=${activeBrandId}`);
-      if (!res.ok) {
-        if (res.status === 404) return { connected: false };
-        throw new Error("Failed to fetch status");
-      }
-      return res.json();
-    },
-    enabled: !!activeBrandId,
-  });
+  const { data: lightspeedStatus, isLoading: statusLoading } =
+    useQuery<LightspeedStatus>({
+      queryKey: ["/api/lightspeed/status", activeBrandId],
+      queryFn: async () => {
+        const res = await fetch(
+          `/api/lightspeed/status?brandId=${activeBrandId}`,
+        );
+        if (!res.ok) {
+          if (res.status === 404) return { connected: false };
+          throw new Error("Failed to fetch status");
+        }
+        return res.json();
+      },
+      enabled: !!activeBrandId,
+    });
 
   // Fetch POS customers
-  const { data: customers = [], isLoading: customersLoading, refetch: refetchCustomers } = useQuery<PosCustomer[]>({
+  const {
+    data: customers = [],
+    isLoading: customersLoading,
+    refetch: refetchCustomers,
+  } = useQuery<PosCustomer[]>({
     queryKey: ["/api/lightspeed/customers", activeBrandId],
     queryFn: async () => {
-      const res = await fetch(`/api/lightspeed/customers?brandId=${activeBrandId}`);
+      const res = await fetch(
+        `/api/lightspeed/customers?brandId=${activeBrandId}`,
+      );
       if (!res.ok) throw new Error("Failed to fetch customers");
       return res.json();
     },
@@ -143,7 +159,11 @@ export default function SalesPage() {
   });
 
   // Fetch sales transactions
-  const { data: sales = [], isLoading: salesLoading, refetch: refetchSales } = useQuery<SalesTransaction[]>({
+  const {
+    data: sales = [],
+    isLoading: salesLoading,
+    refetch: refetchSales,
+  } = useQuery<SalesTransaction[]>({
     queryKey: ["/api/lightspeed/sales", activeBrandId],
     queryFn: async () => {
       const res = await fetch(`/api/lightspeed/sales?brandId=${activeBrandId}`);
@@ -193,15 +213,15 @@ export default function SalesPage() {
   // Filter customers by search and name filter
   const filteredCustomers = useMemo(() => {
     let result = customersWithConversations;
-    
+
     // Apply name filter
     if (customerNameFilter) {
       const lowerFilter = customerNameFilter.toLowerCase();
       result = result.filter((c) =>
-        c.name?.toLowerCase().includes(lowerFilter)
+        c.name?.toLowerCase().includes(lowerFilter),
       );
     }
-    
+
     // Apply search query (for broader search)
     if (searchQuery) {
       const lowerSearch = searchQuery.toLowerCase();
@@ -210,17 +230,17 @@ export default function SalesPage() {
           c.name?.toLowerCase().includes(lowerSearch) ||
           c.email?.toLowerCase().includes(lowerSearch) ||
           c.phone?.includes(searchQuery) ||
-          c.mobile?.includes(searchQuery)
+          c.mobile?.includes(searchQuery),
       );
     }
-    
+
     return result;
   }, [customersWithConversations, searchQuery, customerNameFilter]);
 
   // Filter and sort sales
   const filteredSales = useMemo(() => {
     let result = [...sales];
-    
+
     // Apply date filters
     if (salesDateFrom) {
       const fromDate = new Date(salesDateFrom);
@@ -231,7 +251,7 @@ export default function SalesPage() {
         return saleDate >= fromDate;
       });
     }
-    
+
     if (salesDateTo) {
       const toDate = new Date(salesDateTo);
       toDate.setHours(23, 59, 59, 999);
@@ -241,40 +261,46 @@ export default function SalesPage() {
         return saleDate <= toDate;
       });
     }
-    
+
     // Apply status filter
     if (salesStatusFilter !== "all") {
       result = result.filter((s) => s.status === salesStatusFilter);
     }
-    
+
     // Apply search query
     if (searchQuery) {
       const lowerSearch = searchQuery.toLowerCase();
       result = result.filter(
         (s) =>
           s.customerName?.toLowerCase().includes(lowerSearch) ||
-          s.transactionId?.toLowerCase().includes(lowerSearch)
+          s.transactionId?.toLowerCase().includes(lowerSearch),
       );
     }
-    
+
     // Sort by date (newest first)
     result.sort((a, b) => {
-      const dateA = a.transactionDate ? new Date(a.transactionDate).getTime() : 0;
-      const dateB = b.transactionDate ? new Date(b.transactionDate).getTime() : 0;
+      const dateA = a.transactionDate
+        ? new Date(a.transactionDate).getTime()
+        : 0;
+      const dateB = b.transactionDate
+        ? new Date(b.transactionDate).getTime()
+        : 0;
       return dateB - dateA;
     });
-    
+
     return result;
   }, [sales, searchQuery, salesDateFrom, salesDateTo, salesStatusFilter]);
 
   // Get unique statuses from sales
   const availableStatuses = useMemo(() => {
-    const statuses = new Set(sales.map(s => s.status).filter(Boolean));
+    const statuses = new Set(sales.map((s) => s.status).filter(Boolean));
     return Array.from(statuses) as string[];
   }, [sales]);
 
   // Pagination for customers
-  const customersTotalPages = Math.ceil(filteredCustomers.length / customersPageSize);
+  const customersTotalPages = Math.ceil(
+    filteredCustomers.length / customersPageSize,
+  );
   const paginatedCustomers = useMemo(() => {
     const start = (customersPage - 1) * customersPageSize;
     return filteredCustomers.slice(start, start + customersPageSize);
@@ -294,8 +320,8 @@ export default function SalesPage() {
   };
 
   // Handle sales date filter change
-  const handleSalesDateChange = (type: 'from' | 'to', value: string) => {
-    if (type === 'from') {
+  const handleSalesDateChange = (type: "from" | "to", value: string) => {
+    if (type === "from") {
       setSalesDateFrom(value);
     } else {
       setSalesDateTo(value);
@@ -312,7 +338,8 @@ export default function SalesPage() {
   };
 
   // Check if any sales filter is active
-  const hasSalesFilters = salesDateFrom || salesDateTo || salesStatusFilter !== "all";
+  const hasSalesFilters =
+    salesDateFrom || salesDateTo || salesStatusFilter !== "all";
 
   // Sync data from Lightspeed
   const handleSync = async () => {
@@ -325,12 +352,12 @@ export default function SalesPage() {
         },
         body: JSON.stringify({ brandId: activeBrandId }),
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || "Sync failed");
       }
-      
+
       const data = await res.json();
       const customersCount = data.synced?.customers || 0;
       const salesCount = data.synced?.sales || 0;
@@ -340,14 +367,16 @@ export default function SalesPage() {
           ? `${customersCount} clientes y ${salesCount} ventas sincronizadas`
           : `${customersCount} customers and ${salesCount} sales synced`,
       });
-      
+
       refetchCustomers();
       refetchSales();
       queryClient.invalidateQueries({ queryKey: ["/api/lightspeed/status"] });
     } catch (error) {
       toast({
         title: isSpanish ? "Error" : "Error",
-        description: isSpanish ? "Error al sincronizar datos" : "Failed to sync data",
+        description: isSpanish
+          ? "Error al sincronizar datos"
+          : "Failed to sync data",
         variant: "destructive",
       });
     } finally {
@@ -387,7 +416,7 @@ export default function SalesPage() {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-    
+
     if (minutes < 60) return isSpanish ? `hace ${minutes}m` : `${minutes}m ago`;
     if (hours < 24) return isSpanish ? `hace ${hours}h` : `${hours}h ago`;
     return isSpanish ? `hace ${days}d` : `${days}d ago`;
@@ -395,24 +424,72 @@ export default function SalesPage() {
 
   // Customer count with linked WhatsApp
   const linkedCustomersCount = customersWithConversations.filter(
-    (c) => c.linkedConversation
+    (c) => c.linkedConversation,
   ).length;
 
   // Get date range for stats period
   const getStatsDateRange = () => {
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-    
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0,
+    );
+    const todayEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
+
     // Get start of week (Sunday = 0, so we go back to last Sunday or today if Sunday)
     const dayOfWeek = now.getDay();
-    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek, 0, 0, 0, 0);
-    const weekEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-    
+    const weekStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - dayOfWeek,
+      0,
+      0,
+      0,
+      0,
+    );
+    const weekEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
+
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const thisMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    const lastMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
 
     switch (statsPeriod) {
       case "today":
@@ -431,7 +508,7 @@ export default function SalesPage() {
   // Calculate stats based on selected period
   const periodStats = useMemo(() => {
     const dateRange = getStatsDateRange();
-    
+
     let periodSales = sales;
     if (dateRange) {
       periodSales = sales.filter((s) => {
@@ -441,10 +518,14 @@ export default function SalesPage() {
       });
     }
 
-    const totalSales = periodSales.reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+    const totalSales = periodSales.reduce(
+      (sum, s) => sum + (s.totalAmount || 0),
+      0,
+    );
     const totalTransactions = periodSales.length;
-    const averageOrderValue = totalTransactions > 0 ? totalSales / totalTransactions : 0;
-    
+    const averageOrderValue =
+      totalTransactions > 0 ? totalSales / totalTransactions : 0;
+
     return {
       totalSales,
       totalTransactions,
@@ -457,10 +538,36 @@ export default function SalesPage() {
   // Get period label for display
   const getPeriodLabel = () => {
     const now = new Date();
-    const monthNames = isSpanish 
-      ? ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-      : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    
+    const monthNames = isSpanish
+      ? [
+          "Enero",
+          "Febrero",
+          "Marzo",
+          "Abril",
+          "Mayo",
+          "Junio",
+          "Julio",
+          "Agosto",
+          "Septiembre",
+          "Octubre",
+          "Noviembre",
+          "Diciembre",
+        ]
+      : [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+
     switch (statsPeriod) {
       case "today":
         return isSpanish ? "Hoy" : "Today";
@@ -484,7 +591,9 @@ export default function SalesPage() {
           <TopHeader />
           <div className="flex-1 flex items-center justify-center">
             <p className="text-muted-foreground">
-              {isSpanish ? "Selecciona una marca para continuar" : "Select a brand to continue"}
+              {isSpanish
+                ? "Selecciona una marca para continuar"
+                : "Select a brand to continue"}
             </p>
           </div>
         </div>
@@ -497,7 +606,7 @@ export default function SalesPage() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopHeader />
-        
+
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto p-6 space-y-6">
             {/* Header Section */}
@@ -509,7 +618,9 @@ export default function SalesPage() {
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-                      {isSpanish ? "Ventas y Clientes POS" : "POS Sales & Customers"}
+                      {isSpanish
+                        ? "Ventas y Clientes POS"
+                        : "POS Sales & Customers"}
                     </h1>
                     <p className="text-sm text-muted-foreground">
                       {isSpanish
@@ -519,17 +630,18 @@ export default function SalesPage() {
                   </div>
                 </div>
               </div>
-              
+
               {lightspeedStatus?.connected && (
                 <div className="flex items-center gap-3">
                   {/* Connection Badge */}
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                      {lightspeedStatus.storeName || (isSpanish ? "Conectado" : "Connected")}
+                      {lightspeedStatus.storeName ||
+                        (isSpanish ? "Conectado" : "Connected")}
                     </span>
                   </div>
-                  
+
                   <Button
                     onClick={handleSync}
                     disabled={isSyncing}
@@ -567,15 +679,17 @@ export default function SalesPage() {
                       <Zap className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                     </div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                      {isSpanish ? "Conecta Lightspeed Retail" : "Connect Lightspeed Retail"}
+                      {isSpanish
+                        ? "Conecta Lightspeed Retail"
+                        : "Connect Lightspeed Retail"}
                     </h3>
                     <p className="text-muted-foreground mb-6">
                       {isSpanish
                         ? "Sincroniza clientes y ventas para vincularlos automáticamente con conversaciones de WhatsApp."
                         : "Sync customers and sales to automatically link them with WhatsApp conversations."}
                     </p>
-                    <Button 
-                      onClick={() => navigate("/integrations")} 
+                    <Button
+                      onClick={() => navigate("/integrations")}
                       className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                       data-testid="connect-lightspeed-cta"
                     >
@@ -600,7 +714,7 @@ export default function SalesPage() {
                         {getPeriodLabel()}
                       </span>
                     </div>
-                    
+
                     <div className="inline-flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
                       <button
                         onClick={() => setStatsPeriod("today")}
@@ -644,7 +758,7 @@ export default function SalesPage() {
                         }`}
                         data-testid="period-last-month"
                       >
-                        {isSpanish ? "Anterior" : "Last"}
+                        {isSpanish ? "Anterior" : "Last Month"}
                       </button>
                       <button
                         onClick={() => setStatsPeriod("all_time")}
@@ -669,7 +783,10 @@ export default function SalesPage() {
                           <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                             {isSpanish ? "Clientes POS" : "POS Customers"}
                           </p>
-                          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100" data-testid="stat-customers">
+                          <p
+                            className="text-3xl font-bold text-gray-900 dark:text-gray-100"
+                            data-testid="stat-customers"
+                          >
                             {periodStats.totalCustomers.toLocaleString()}
                           </p>
                         </div>
@@ -687,7 +804,10 @@ export default function SalesPage() {
                           <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                             {isSpanish ? "Vinculados" : "Linked"}
                           </p>
-                          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100" data-testid="stat-linked">
+                          <p
+                            className="text-3xl font-bold text-gray-900 dark:text-gray-100"
+                            data-testid="stat-linked"
+                          >
                             {periodStats.linkedCustomers.toLocaleString()}
                           </p>
                         </div>
@@ -705,7 +825,10 @@ export default function SalesPage() {
                           <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                             {isSpanish ? "Transacciones" : "Transactions"}
                           </p>
-                          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100" data-testid="stat-transactions">
+                          <p
+                            className="text-3xl font-bold text-gray-900 dark:text-gray-100"
+                            data-testid="stat-transactions"
+                          >
                             {periodStats.totalTransactions.toLocaleString()}
                           </p>
                         </div>
@@ -723,7 +846,10 @@ export default function SalesPage() {
                           <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                             {isSpanish ? "Ventas Totales" : "Total Sales"}
                           </p>
-                          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100" data-testid="stat-sales">
+                          <p
+                            className="text-3xl font-bold text-gray-900 dark:text-gray-100"
+                            data-testid="stat-sales"
+                          >
                             {formatCurrency(periodStats.totalSales)}
                           </p>
                         </div>
@@ -740,7 +866,8 @@ export default function SalesPage() {
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3.5 w-3.5" />
                       <span>
-                        {isSpanish ? "Última sincronización" : "Last sync"}: {formatRelativeTime(lightspeedStatus.lastSyncAt)}
+                        {isSpanish ? "Última sincronización" : "Last sync"}:{" "}
+                        {formatRelativeTime(lightspeedStatus.lastSyncAt)}
                       </span>
                     </div>
                   )}
@@ -753,15 +880,15 @@ export default function SalesPage() {
                       {/* Tabs Header */}
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border-b border-gray-100 dark:border-gray-800">
                         <TabsList className="bg-gray-100 dark:bg-gray-800 p-1">
-                          <TabsTrigger 
-                            value="customers" 
+                          <TabsTrigger
+                            value="customers"
                             className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700"
                             data-testid="tab-customers"
                           >
                             <Users className="h-4 w-4" />
                             {isSpanish ? "Clientes" : "Customers"}
                           </TabsTrigger>
-                          <TabsTrigger 
+                          <TabsTrigger
                             value="sales"
                             className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700"
                             data-testid="tab-sales"
@@ -790,15 +917,22 @@ export default function SalesPage() {
                           <div className="relative flex-1 max-w-xs">
                             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                              placeholder={isSpanish ? "Filtrar por nombre..." : "Filter by name..."}
+                              placeholder={
+                                isSpanish
+                                  ? "Filtrar por nombre..."
+                                  : "Filter by name..."
+                              }
                               value={customerNameFilter}
-                              onChange={(e) => handleCustomerFilterChange(e.target.value)}
+                              onChange={(e) =>
+                                handleCustomerFilterChange(e.target.value)
+                              }
                               className="pl-9 h-9 bg-white dark:bg-gray-800"
                               data-testid="customer-name-filter"
                             />
                           </div>
                           <Badge variant="secondary" className="font-normal">
-                            {filteredCustomers.length} {isSpanish ? "clientes" : "customers"}
+                            {filteredCustomers.length}{" "}
+                            {isSpanish ? "clientes" : "customers"}
                           </Badge>
                         </div>
 
@@ -817,8 +951,8 @@ export default function SalesPage() {
                                   ? "No se encontraron clientes"
                                   : "No customers found"
                                 : isSpanish
-                                ? "No hay clientes sincronizados"
-                                : "No customers synced yet"}
+                                  ? "No hay clientes sincronizados"
+                                  : "No customers synced yet"}
                             </p>
                           </div>
                         ) : (
@@ -827,28 +961,44 @@ export default function SalesPage() {
                               <Table>
                                 <TableHeader>
                                   <TableRow className="bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-50/50 dark:hover:bg-gray-800/30">
-                                    <TableHead className="font-semibold">{isSpanish ? "Nombre" : "Name"}</TableHead>
-                                    <TableHead className="font-semibold">{isSpanish ? "Contacto" : "Contact"}</TableHead>
-                                    <TableHead className="font-semibold hidden md:table-cell">{isSpanish ? "Empresa" : "Company"}</TableHead>
-                                    <TableHead className="font-semibold text-right hidden sm:table-cell">{isSpanish ? "Total Año" : "YTD"}</TableHead>
-                                    <TableHead className="font-semibold text-center">WhatsApp</TableHead>
-                                    <TableHead className="font-semibold text-right">{isSpanish ? "Acciones" : "Actions"}</TableHead>
+                                    <TableHead className="font-semibold">
+                                      {isSpanish ? "Nombre" : "Name"}
+                                    </TableHead>
+                                    <TableHead className="font-semibold">
+                                      {isSpanish ? "Contacto" : "Contact"}
+                                    </TableHead>
+                                    <TableHead className="font-semibold hidden md:table-cell">
+                                      {isSpanish ? "Empresa" : "Company"}
+                                    </TableHead>
+                                    <TableHead className="font-semibold text-right hidden sm:table-cell">
+                                      {isSpanish ? "Total Año" : "YTD"}
+                                    </TableHead>
+                                    <TableHead className="font-semibold text-center">
+                                      WhatsApp
+                                    </TableHead>
+                                    <TableHead className="font-semibold text-right">
+                                      {isSpanish ? "Acciones" : "Actions"}
+                                    </TableHead>
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                   {paginatedCustomers.map((customer) => (
-                                    <TableRow 
-                                      key={customer.id} 
+                                    <TableRow
+                                      key={customer.id}
                                       className="hover:bg-gray-50 dark:hover:bg-gray-800/50"
                                       data-testid={`customer-row-${customer.id}`}
                                     >
                                       <TableCell>
                                         <div className="flex items-center gap-3">
                                           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-300">
-                                            {customer.name?.charAt(0).toUpperCase() || "?"}
+                                            {customer.name
+                                              ?.charAt(0)
+                                              .toUpperCase() || "?"}
                                           </div>
                                           <div>
-                                            <p className="font-medium text-gray-900 dark:text-gray-100">{customer.name}</p>
+                                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                                              {customer.name}
+                                            </p>
                                             {customer.customerCode && (
                                               <p className="text-xs text-muted-foreground">
                                                 #{customer.customerCode}
@@ -862,13 +1012,17 @@ export default function SalesPage() {
                                           {customer.email && (
                                             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                               <Mail className="h-3.5 w-3.5" />
-                                              <span className="truncate max-w-[150px]">{customer.email}</span>
+                                              <span className="truncate max-w-[150px]">
+                                                {customer.email}
+                                              </span>
                                             </div>
                                           )}
-                                          {(customer.phone || customer.mobile) && (
+                                          {(customer.phone ||
+                                            customer.mobile) && (
                                             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                               <Phone className="h-3.5 w-3.5" />
-                                              {customer.phone || customer.mobile}
+                                              {customer.phone ||
+                                                customer.mobile}
                                             </div>
                                           )}
                                         </div>
@@ -892,15 +1046,24 @@ export default function SalesPage() {
                                         {customer.linkedConversation ? (
                                           <Badge
                                             className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 cursor-pointer gap-1"
-                                            onClick={() => openConversation(customer.linkedConversation!.id)}
+                                            onClick={() =>
+                                              openConversation(
+                                                customer.linkedConversation!.id,
+                                              )
+                                            }
                                             data-testid={`linked-badge-${customer.id}`}
                                           >
                                             <MessageCircle className="h-3 w-3" />
                                             {isSpanish ? "Vinculado" : "Linked"}
                                           </Badge>
                                         ) : (
-                                          <Badge variant="outline" className="text-muted-foreground border-gray-200 dark:border-gray-700">
-                                            {isSpanish ? "Sin vincular" : "Not linked"}
+                                          <Badge
+                                            variant="outline"
+                                            className="text-muted-foreground border-gray-200 dark:border-gray-700"
+                                          >
+                                            {isSpanish
+                                              ? "Sin vincular"
+                                              : "Not linked"}
                                           </Badge>
                                         )}
                                       </TableCell>
@@ -938,7 +1101,10 @@ export default function SalesPage() {
                                     setCustomersPage(1);
                                   }}
                                 >
-                                  <SelectTrigger className="w-16 h-8" data-testid="customers-page-size">
+                                  <SelectTrigger
+                                    className="w-16 h-8"
+                                    data-testid="customers-page-size"
+                                  >
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -972,7 +1138,11 @@ export default function SalesPage() {
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8"
-                                    onClick={() => setCustomersPage(p => Math.max(1, p - 1))}
+                                    onClick={() =>
+                                      setCustomersPage((p) =>
+                                        Math.max(1, p - 1),
+                                      )
+                                    }
                                     disabled={customersPage === 1}
                                     data-testid="customers-prev-page"
                                   >
@@ -982,8 +1152,14 @@ export default function SalesPage() {
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8"
-                                    onClick={() => setCustomersPage(p => Math.min(customersTotalPages, p + 1))}
-                                    disabled={customersPage >= customersTotalPages}
+                                    onClick={() =>
+                                      setCustomersPage((p) =>
+                                        Math.min(customersTotalPages, p + 1),
+                                      )
+                                    }
+                                    disabled={
+                                      customersPage >= customersTotalPages
+                                    }
                                     data-testid="customers-next-page"
                                   >
                                     <ChevronRight className="h-4 w-4" />
@@ -992,8 +1168,12 @@ export default function SalesPage() {
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8"
-                                    onClick={() => setCustomersPage(customersTotalPages)}
-                                    disabled={customersPage >= customersTotalPages}
+                                    onClick={() =>
+                                      setCustomersPage(customersTotalPages)
+                                    }
+                                    disabled={
+                                      customersPage >= customersTotalPages
+                                    }
                                     data-testid="customers-last-page"
                                   >
                                     <ChevronsRight className="h-4 w-4" />
@@ -1015,15 +1195,21 @@ export default function SalesPage() {
                             <Input
                               type="date"
                               value={salesDateFrom}
-                              onChange={(e) => handleSalesDateChange('from', e.target.value)}
+                              onChange={(e) =>
+                                handleSalesDateChange("from", e.target.value)
+                              }
                               className="w-[160px] h-9 bg-white dark:bg-gray-800"
                               data-testid="sales-date-from"
                             />
-                            <span className="text-sm text-muted-foreground">—</span>
+                            <span className="text-sm text-muted-foreground">
+                              —
+                            </span>
                             <Input
                               type="date"
                               value={salesDateTo}
-                              onChange={(e) => handleSalesDateChange('to', e.target.value)}
+                              onChange={(e) =>
+                                handleSalesDateChange("to", e.target.value)
+                              }
                               className="w-[160px] h-9 bg-white dark:bg-gray-800"
                               data-testid="sales-date-to"
                             />
@@ -1038,12 +1224,19 @@ export default function SalesPage() {
                                 setSalesPage(1);
                               }}
                             >
-                              <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-gray-800" data-testid="sales-status-filter">
-                                <SelectValue placeholder={isSpanish ? "Estado" : "Status"} />
+                              <SelectTrigger
+                                className="w-[140px] h-9 bg-white dark:bg-gray-800"
+                                data-testid="sales-status-filter"
+                              >
+                                <SelectValue
+                                  placeholder={isSpanish ? "Estado" : "Status"}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="all">
-                                  {isSpanish ? "Todos los estados" : "All statuses"}
+                                  {isSpanish
+                                    ? "Todos los estados"
+                                    : "All statuses"}
                                 </SelectItem>
                                 <SelectItem value="completed">
                                   {isSpanish ? "Completada" : "Completed"}
@@ -1078,7 +1271,8 @@ export default function SalesPage() {
                           {/* Results Count */}
                           <div className="ml-auto">
                             <Badge variant="secondary" className="font-normal">
-                              {filteredSales.length} {isSpanish ? "ventas" : "sales"}
+                              {filteredSales.length}{" "}
+                              {isSpanish ? "ventas" : "sales"}
                             </Badge>
                           </div>
                         </div>
@@ -1098,8 +1292,8 @@ export default function SalesPage() {
                                   ? "No se encontraron ventas con estos filtros"
                                   : "No sales found with these filters"
                                 : isSpanish
-                                ? "No hay ventas sincronizadas"
-                                : "No sales synced yet"}
+                                  ? "No hay ventas sincronizadas"
+                                  : "No sales synced yet"}
                             </p>
                           </div>
                         ) : (
@@ -1108,22 +1302,34 @@ export default function SalesPage() {
                               <Table>
                                 <TableHeader>
                                   <TableRow className="bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-50/50 dark:hover:bg-gray-800/30">
-                                    <TableHead className="font-semibold">{isSpanish ? "Fecha" : "Date"}</TableHead>
-                                    <TableHead className="font-semibold hidden sm:table-cell">{isSpanish ? "ID" : "ID"}</TableHead>
-                                    <TableHead className="font-semibold">{isSpanish ? "Cliente" : "Customer"}</TableHead>
-                                    <TableHead className="font-semibold text-center">{isSpanish ? "Estado" : "Status"}</TableHead>
-                                    <TableHead className="font-semibold text-right">{isSpanish ? "Total" : "Total"}</TableHead>
+                                    <TableHead className="font-semibold">
+                                      {isSpanish ? "Fecha" : "Date"}
+                                    </TableHead>
+                                    <TableHead className="font-semibold hidden sm:table-cell">
+                                      {isSpanish ? "ID" : "ID"}
+                                    </TableHead>
+                                    <TableHead className="font-semibold">
+                                      {isSpanish ? "Cliente" : "Customer"}
+                                    </TableHead>
+                                    <TableHead className="font-semibold text-center">
+                                      {isSpanish ? "Estado" : "Status"}
+                                    </TableHead>
+                                    <TableHead className="font-semibold text-right">
+                                      {isSpanish ? "Total" : "Total"}
+                                    </TableHead>
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                   {paginatedSales.map((sale) => (
-                                    <TableRow 
+                                    <TableRow
                                       key={sale.id}
                                       className="hover:bg-gray-50 dark:hover:bg-gray-800/50"
                                       data-testid={`sale-row-${sale.id}`}
                                     >
                                       <TableCell>
-                                        <div className="font-medium">{formatDate(sale.transactionDate)}</div>
+                                        <div className="font-medium">
+                                          {formatDate(sale.transactionDate)}
+                                        </div>
                                       </TableCell>
                                       <TableCell className="hidden sm:table-cell">
                                         <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono">
@@ -1133,11 +1339,16 @@ export default function SalesPage() {
                                       <TableCell>
                                         <div className="flex items-center gap-3">
                                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
-                                            {(sale.customerName || "W").charAt(0).toUpperCase()}
+                                            {(sale.customerName || "W")
+                                              .charAt(0)
+                                              .toUpperCase()}
                                           </div>
                                           <div>
                                             <p className="font-medium text-gray-900 dark:text-gray-100">
-                                              {sale.customerName || (isSpanish ? "Cliente anónimo" : "Walk-in")}
+                                              {sale.customerName ||
+                                                (isSpanish
+                                                  ? "Cliente anónimo"
+                                                  : "Walk-in")}
                                             </p>
                                             {sale.customerEmail && (
                                               <p className="text-xs text-muted-foreground truncate max-w-[150px]">
@@ -1186,7 +1397,10 @@ export default function SalesPage() {
                                     setSalesPage(1);
                                   }}
                                 >
-                                  <SelectTrigger className="w-16 h-8" data-testid="sales-page-size">
+                                  <SelectTrigger
+                                    className="w-16 h-8"
+                                    data-testid="sales-page-size"
+                                  >
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1220,7 +1434,9 @@ export default function SalesPage() {
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8"
-                                    onClick={() => setSalesPage(p => Math.max(1, p - 1))}
+                                    onClick={() =>
+                                      setSalesPage((p) => Math.max(1, p - 1))
+                                    }
                                     disabled={salesPage === 1}
                                     data-testid="sales-prev-page"
                                   >
@@ -1230,7 +1446,11 @@ export default function SalesPage() {
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8"
-                                    onClick={() => setSalesPage(p => Math.min(salesTotalPages, p + 1))}
+                                    onClick={() =>
+                                      setSalesPage((p) =>
+                                        Math.min(salesTotalPages, p + 1),
+                                      )
+                                    }
                                     disabled={salesPage >= salesTotalPages}
                                     data-testid="sales-next-page"
                                   >
@@ -1240,7 +1460,9 @@ export default function SalesPage() {
                                     variant="outline"
                                     size="icon"
                                     className="h-8 w-8"
-                                    onClick={() => setSalesPage(salesTotalPages)}
+                                    onClick={() =>
+                                      setSalesPage(salesTotalPages)
+                                    }
                                     disabled={salesPage >= salesTotalPages}
                                     data-testid="sales-last-page"
                                   >
@@ -1262,7 +1484,10 @@ export default function SalesPage() {
       </div>
 
       {/* Customer Details Dialog */}
-      <Dialog open={isCustomerDialogOpen} onOpenChange={setIsCustomerDialogOpen}>
+      <Dialog
+        open={isCustomerDialogOpen}
+        onOpenChange={setIsCustomerDialogOpen}
+      >
         <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden">
           {selectedCustomer && (
             <>
@@ -1273,7 +1498,9 @@ export default function SalesPage() {
                     {selectedCustomer.name?.charAt(0).toUpperCase() || "?"}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">{selectedCustomer.name}</h2>
+                    <h2 className="text-xl font-bold">
+                      {selectedCustomer.name}
+                    </h2>
                     {selectedCustomer.customerCode && (
                       <p className="text-white/70 text-sm">
                         #{selectedCustomer.customerCode}
@@ -1292,7 +1519,9 @@ export default function SalesPage() {
                       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         Email
                       </p>
-                      <p className="text-sm font-medium">{selectedCustomer.email}</p>
+                      <p className="text-sm font-medium">
+                        {selectedCustomer.email}
+                      </p>
                     </div>
                   )}
                   {(selectedCustomer.phone || selectedCustomer.mobile) && (
@@ -1300,7 +1529,9 @@ export default function SalesPage() {
                       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         {isSpanish ? "Teléfono" : "Phone"}
                       </p>
-                      <p className="text-sm font-medium">{selectedCustomer.phone || selectedCustomer.mobile}</p>
+                      <p className="text-sm font-medium">
+                        {selectedCustomer.phone || selectedCustomer.mobile}
+                      </p>
                     </div>
                   )}
                   {selectedCustomer.companyName && (
@@ -1308,7 +1539,9 @@ export default function SalesPage() {
                       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         {isSpanish ? "Empresa" : "Company"}
                       </p>
-                      <p className="text-sm font-medium">{selectedCustomer.companyName}</p>
+                      <p className="text-sm font-medium">
+                        {selectedCustomer.companyName}
+                      </p>
                     </div>
                   )}
                   {selectedCustomer.yearToDate && (
@@ -1316,7 +1549,13 @@ export default function SalesPage() {
                       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         {isSpanish ? "Total del año" : "Year to Date"}
                       </p>
-                      <p className="text-sm font-medium">${parseFloat(selectedCustomer.yearToDate).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                      <p className="text-sm font-medium">
+                        $
+                        {parseFloat(selectedCustomer.yearToDate).toLocaleString(
+                          undefined,
+                          { minimumFractionDigits: 2 },
+                        )}
+                      </p>
                     </div>
                   )}
                   {selectedCustomer.loyaltyBalance && (
@@ -1324,7 +1563,9 @@ export default function SalesPage() {
                       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         {isSpanish ? "Puntos Lealtad" : "Loyalty Points"}
                       </p>
-                      <p className="text-sm font-medium">{selectedCustomer.loyaltyBalance}</p>
+                      <p className="text-sm font-medium">
+                        {selectedCustomer.loyaltyBalance}
+                      </p>
                     </div>
                   )}
                   {selectedCustomer.balance && (
@@ -1332,7 +1573,9 @@ export default function SalesPage() {
                       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         {isSpanish ? "Saldo" : "Balance"}
                       </p>
-                      <p className="text-sm font-medium">${parseFloat(selectedCustomer.balance).toFixed(2)}</p>
+                      <p className="text-sm font-medium">
+                        ${parseFloat(selectedCustomer.balance).toFixed(2)}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1343,7 +1586,7 @@ export default function SalesPage() {
                     <MessageCircle className="h-4 w-4" />
                     {isSpanish ? "Conexión WhatsApp" : "WhatsApp Connection"}
                   </h4>
-                  
+
                   {selectedCustomer.linkedConversation ? (
                     <div className="rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4">
                       <div className="flex items-center justify-between gap-3">
@@ -1353,7 +1596,9 @@ export default function SalesPage() {
                           </div>
                           <div>
                             <p className="font-medium text-green-700 dark:text-green-400">
-                              {isSpanish ? "Conversación vinculada" : "Linked conversation"}
+                              {isSpanish
+                                ? "Conversación vinculada"
+                                : "Linked conversation"}
                             </p>
                             <p className="text-sm text-green-600/70 dark:text-green-400/70">
                               {selectedCustomer.linkedConversation.contactName}
@@ -1364,7 +1609,9 @@ export default function SalesPage() {
                           size="sm"
                           className="gap-1.5 bg-green-600 hover:bg-green-700"
                           onClick={() => {
-                            openConversation(selectedCustomer.linkedConversation!.id);
+                            openConversation(
+                              selectedCustomer.linkedConversation!.id,
+                            );
                             setIsCustomerDialogOpen(false);
                           }}
                           data-testid="open-conversation-btn"
@@ -1393,7 +1640,8 @@ export default function SalesPage() {
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
                     <Clock className="h-3.5 w-3.5" />
                     <span>
-                      {isSpanish ? "Última sincronización" : "Last synced"}: {formatDate(selectedCustomer.lastSyncAt)}
+                      {isSpanish ? "Última sincronización" : "Last synced"}:{" "}
+                      {formatDate(selectedCustomer.lastSyncAt)}
                     </span>
                   </div>
                 )}
