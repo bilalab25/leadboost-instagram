@@ -189,6 +189,31 @@ async function fetchWhatsappMessagesFromDB(
   }));
 }
 
+async function fetchWhatsappBaileysMessagesFromDB(
+  integrationId: string,
+  conversationId: string,
+  accountId: string,
+): Promise<NormalizedMessage[]> {
+  const dbMessages = await storage.getMessagesByIntegrationAndConversation(
+    integrationId,
+    conversationId,
+  );
+
+  return dbMessages.map((m) => ({
+    id: m.metaMessageId,
+    conversationId,
+    metaConversationId: m.metaConversationId,
+    text: m.textContent || "",
+    imageUrl: m.imageUrl || null,
+    from: m.direction === "outbound" ? "You" : m.contactName || m.senderId || conversationId,
+    fromId: m.senderId,
+    created_time: m.timestamp.toISOString(),
+    provider: "whatsapp_baileys",
+    accountId,
+    direction: m.direction,
+  }));
+}
+
 // ==================================================================================
 // HYBRID SYNC HELPERS FOR MESSENGER/INSTAGRAM
 // ==================================================================================
@@ -5018,13 +5043,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { provider, conversationId } = req.params;
         const userId = req.user.id;
 
-        const validProviders = ["facebook", "instagram", "threads", "whatsapp"];
+        const validProviders = ["facebook", "instagram", "threads", "whatsapp", "whatsapp_baileys"];
         if (!validProviders.includes(provider)) {
           return res.status(400).json({ error: "Invalid provider" });
         }
 
         const integrations = await storage.getIntegrations(userId);
-        const integration = integrations.find((i) => i.provider === provider);
+        let integration = integrations.find((i) => i.provider === provider);
+        
+        // For whatsapp_baileys, find the integration by platform
+        if (!integration && provider === "whatsapp_baileys") {
+          integration = integrations.find((i) => i.provider === "whatsapp_baileys");
+        }
 
         if (!integration) {
           return res.status(404).json({
@@ -5059,6 +5089,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
           case "whatsapp":
             messages = await fetchWhatsappMessagesFromDB(
+              integrationId,
+              conversationId,
+              accountId,
+            );
+            break;
+          case "whatsapp_baileys":
+            // Fetch messages from DB for WhatsApp Baileys
+            messages = await fetchWhatsappBaileysMessagesFromDB(
               integrationId,
               conversationId,
               accountId,
@@ -6151,6 +6189,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
           recipientId = finalRecipientId;
           metaConversationId = conversationId;
           console.log("✅ [WhatsApp] Payload final:", payload);
+        }
+
+        // =========================================================
+        // 📱 WHATSAPP BAILEYS (QR CODE)
+        // =========================================================
+        else if (actualProvider === "whatsapp_baileys") {
+          console.log(`💬 [WhatsApp Baileys] Sending message to ${conversationId}`);
+          
+          // Extract phone number from conversationId (format: whatsapp_5217712409254)
+          const parts = conversationId.split("_");
+          let phoneNumber = conversationId;
+          if (parts.length >= 2 && parts[0] === "whatsapp") {
+            phoneNumber = parts.slice(1).join("_");
+          }
+          
+          console.log(`📱 [WhatsApp Baileys] Phone number: ${phoneNumber}`);
+          
+          if (!whatsappBaileysService) {
+            return res.status(503).json({ error: "WhatsApp QR service not available" });
+          }
+          
+          // Send message using Baileys service
+          const sendResult = await whatsappBaileysService.sendMessage(
+            userId,
+            brandId,
+            phoneNumber,
+            content
+          );
+          
+          if (!sendResult.success) {
+            console.error(`❌ [WhatsApp Baileys] Send error:`, sendResult.error);
+            return res.status(400).json({ error: sendResult.error || "Failed to send message" });
+          }
+          
+          console.log(`✅ [WhatsApp Baileys] Message sent, ID: ${sendResult.messageId}`);
+          
+          // Get or create conversation
+          metaConversationId = conversationId.startsWith("whatsapp_") ? conversationId : `whatsapp_${phoneNumber}`;
+          recipientId = phoneNumber;
+          
+          // Save message to database
+          const conversation = await storage.getOrCreateConversation({
+            integrationId: integration.id,
+            brandId,
+            userId,
+            metaConversationId,
+            platform: "whatsapp_baileys",
+            lastMessage: content,
+            lastMessageAt: new Date(),
+          });
+          
+          await storage.createMessage({
+            userId,
+            integrationId: integration.id,
+            brandId,
+            conversationId: conversation.id,
+            platform: "whatsapp_baileys",
+            metaMessageId: sendResult.messageId || `sent_${Date.now()}`,
+            metaConversationId,
+            senderId: integration.accountId || userId,
+            recipientId: phoneNumber,
+            contactName: null,
+            textContent: content,
+            direction: "outbound",
+            timestamp: new Date(),
+            messageType: "text",
+          });
+          
+          // Emit socket event for real-time update
+          if (io) {
+            io.to(`brand:${brandId}`).emit("new_message", {
+              conversationId: conversation.id,
+              message: {
+                id: sendResult.messageId,
+                text: content,
+                from: "You",
+                timestamp: new Date().toISOString(),
+                platform: "whatsapp_baileys",
+                direction: "outbound",
+              },
+            });
+          }
+          
+          return res.json({
+            success: true,
+            messageId: sendResult.messageId,
+            provider: "whatsapp_baileys",
+          });
         }
 
         // =========================================================
