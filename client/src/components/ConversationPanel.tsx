@@ -87,6 +87,11 @@ const platformColors = {
   discord: "bg-indigo-600",
 };
 
+const platformLabels: Record<string, string> = {
+  whatsapp_baileys: "WhatsApp",
+  instagram_direct: "Instagram",
+};
+
 export default function ConversationPanel({
   conversationId,
   participantName,
@@ -502,7 +507,9 @@ export default function ConversationPanel({
   const platformBg =
     platform && platformColors[platform as keyof typeof platformColors];
   const displayName = participantName || "Usuario";
-  const displayPlatform = platform || "facebook";
+  const displayPlatform = platform 
+    ? (platformLabels[platform] || platform.charAt(0).toUpperCase() + platform.slice(1))
+    : "Facebook";
 
   return (
     <div
@@ -536,7 +543,7 @@ export default function ConversationPanel({
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">{displayName}</h3>
-              <p className="text-xs text-gray-500 capitalize">
+              <p className="text-xs text-gray-500">
                 {displayPlatform}
               </p>
             </div>
@@ -787,7 +794,7 @@ export default function ConversationPanel({
                 <PlatformIcon className="text-white text-xs h-3 w-3" />
               </div>
             )}
-            <p className="text-sm text-gray-500 capitalize">
+            <p className="text-sm text-gray-500">
               {displayPlatform}
             </p>
           </div>
