@@ -7698,6 +7698,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Force re-sync: Delete all sales and re-fetch from Lightspeed (fixes missing customer_id)
+  app.post("/api/lightspeed/force-resync", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.body?.brandId as string;
+      const daysBack = parseInt(req.body?.daysBack) || 90;
+
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      const integration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (!integration) {
+        return res.status(404).json({ message: "Lightspeed integration not found" });
+      }
+
+      console.log(`Force re-sync requested for brand ${brandId}, daysBack: ${daysBack}`);
+      const result = await lightspeedService.forceResyncSales(integration, daysBack);
+
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      console.error("Error force re-syncing Lightspeed sales:", error);
+      res.status(500).json({ message: "Failed to force re-sync sales" });
+    }
+  });
+
   // Get Lightspeed customers for a brand
   app.get("/api/lightspeed/customers", isAuthenticated, async (req: any, res) => {
     try {

@@ -106,6 +106,7 @@ export default function SalesPage() {
     useState<CustomerWithConversation | null>(null);
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isForceResyncing, setIsForceResyncing] = useState(false);
 
   // Pagination state
   const [customersPage, setCustomersPage] = useState(1);
@@ -362,11 +363,12 @@ export default function SalesPage() {
       const data = await res.json();
       const customersCount = data.synced?.customers || 0;
       const salesCount = data.synced?.sales || 0;
+      const relinkedCount = data.relinked?.updated || 0;
       toast({
         title: isSpanish ? "Sincronización completada" : "Sync completed",
         description: isSpanish
-          ? `${customersCount} clientes y ${salesCount} ventas sincronizadas`
-          : `${customersCount} customers and ${salesCount} sales synced`,
+          ? `${customersCount} clientes, ${salesCount} ventas sincronizadas, ${relinkedCount} ventas vinculadas`
+          : `${customersCount} customers, ${salesCount} sales synced, ${relinkedCount} sales linked`,
       });
 
       refetchCustomers();
@@ -382,6 +384,53 @@ export default function SalesPage() {
       });
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  // Force re-sync: Delete all sales and re-fetch from Lightspeed (fixes customer linking)
+  const handleForceResync = async () => {
+    if (!confirm(isSpanish 
+      ? "Esto eliminará todas las ventas y las volverá a sincronizar desde Lightspeed. ¿Continuar?" 
+      : "This will delete all sales and re-sync from Lightspeed. Continue?")) {
+      return;
+    }
+    
+    setIsForceResyncing(true);
+    try {
+      const res = await fetch(`/api/lightspeed/force-resync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ brandId: activeBrandId, daysBack: 90 }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Force re-sync failed");
+      }
+
+      const data = await res.json();
+      toast({
+        title: isSpanish ? "Re-sincronización completada" : "Re-sync completed",
+        description: isSpanish
+          ? `${data.synced} ventas sincronizadas, ${data.linked} vinculadas con clientes`
+          : `${data.synced} sales synced, ${data.linked} linked to customers`,
+      });
+
+      refetchCustomers();
+      refetchSales();
+      queryClient.invalidateQueries({ queryKey: ["/api/lightspeed/status"] });
+    } catch (error) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish
+          ? "Error al re-sincronizar datos"
+          : "Failed to force re-sync data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsForceResyncing(false);
     }
   };
 
@@ -658,7 +707,7 @@ export default function SalesPage() {
 
                           <Button
                             onClick={handleSync}
-                            disabled={isSyncing}
+                            disabled={isSyncing || isForceResyncing}
                             className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30"
                             variant="outline"
                             data-testid="sync-lightspeed"
@@ -669,6 +718,24 @@ export default function SalesPage() {
                               <RefreshCw className="h-4 w-4" />
                             )}
                             {isSpanish ? "Sincronizar" : "Sync"}
+                          </Button>
+                          
+                          <Button
+                            onClick={handleForceResync}
+                            disabled={isSyncing || isForceResyncing}
+                            className="gap-2 bg-orange-500/20 hover:bg-orange-500/30 text-white border-orange-300/30"
+                            variant="outline"
+                            data-testid="force-resync-lightspeed"
+                            title={isSpanish 
+                              ? "Elimina y vuelve a sincronizar todas las ventas para corregir vinculación de clientes" 
+                              : "Deletes and re-syncs all sales to fix customer linking"}
+                          >
+                            {isForceResyncing ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Zap className="h-4 w-4" />
+                            )}
+                            {isSpanish ? "Re-sincronizar" : "Force Re-sync"}
                           </Button>
                         </div>
                       )}

@@ -608,6 +608,44 @@ export class LightspeedService {
     return { updated: updatedCount, total: salesWithoutLink.length };
   }
 
+  /**
+   * Force re-sync: Delete all existing sales and re-fetch from Lightspeed API
+   * This is needed when sales were synced without customer_id being captured
+   */
+  async forceResyncSales(
+    integration: typeof posIntegrations.$inferSelect,
+    daysBack: number = 90,
+  ): Promise<{ deleted: number; synced: number; linked: number }> {
+    console.log(`🔄 Force re-sync: Deleting all sales for integration ${integration.id}...`);
+    
+    // Delete all existing sales for this integration
+    const deleteResult = await db.delete(salesTransactions)
+      .where(eq(salesTransactions.posIntegrationId, integration.id));
+    
+    const deletedCount = deleteResult.rowCount || 0;
+    console.log(`🗑️ Deleted ${deletedCount} existing sales`);
+    
+    // Now sync from scratch with a date range
+    const dateFrom = new Date();
+    dateFrom.setDate(dateFrom.getDate() - daysBack);
+    
+    console.log(`📥 Re-syncing sales from ${dateFrom.toISOString()}...`);
+    const syncedCount = await this.syncSales(integration, dateFrom);
+    
+    // After syncing, count how many have customer links
+    const linkedSales = await db.query.salesTransactions.findMany({
+      where: and(
+        eq(salesTransactions.posIntegrationId, integration.id),
+      ),
+    });
+    
+    const linkedCount = linkedSales.filter(s => s.posCustomerId !== null).length;
+    
+    console.log(`✅ Force re-sync complete: Deleted ${deletedCount}, Synced ${syncedCount}, Linked ${linkedCount}`);
+    
+    return { deleted: deletedCount, synced: syncedCount, linked: linkedCount };
+  }
+
   async getIntegrationByBrand(
     brandId: string,
   ): Promise<typeof posIntegrations.$inferSelect | null> {
