@@ -85,20 +85,19 @@ class WhatsAppBaileysService extends EventEmitter {
       const authPath = this.getAuthPath(sessionKey);
       if (fs.existsSync(authPath)) {
         try {
-          // First, manually delete all files inside the directory
-          const files = fs.readdirSync(authPath);
-          for (const file of files) {
-            const filePath = path.join(authPath, file);
-            try {
-              fs.unlinkSync(filePath);
-            } catch (e) {
-              // File might be locked, ignore
-            }
-          }
-          // Then remove the directory with retry options
-          fs.rmSync(authPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+          // Use fs.rmSync with recursive and force options
+          // - recursive: true handles nested directories (fixes ENOTEMPTY)
+          // - force: true ignores errors if path doesn't exist
+          // - maxRetries/retryDelay handle transient file locks from Baileys
+          fs.rmSync(authPath, { 
+            recursive: true, 
+            force: true, 
+            maxRetries: 10, 
+            retryDelay: 200 
+          });
           console.log(`🗑️ [WhatsApp Baileys] Removed credentials for: ${sessionKey}`);
         } catch (e) {
+          // Log but don't throw - credentials removal is best-effort
           console.error(`❌ [WhatsApp Baileys] Error removing credentials: ${e}`);
         }
       }
