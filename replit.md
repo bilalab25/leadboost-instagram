@@ -67,3 +67,23 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
 ### Platform Integrations
 - **Social Media APIs**: Meta Graph API (Instagram, Messenger, WhatsApp, Threads), TikTok API (planned)
 - **Cloud Storage**: Cloudinary (for brand assets)
+- **POS Integration**: Lightspeed Retail X-Series
+
+### Lightspeed POS Integration
+The platform integrates with Lightspeed Retail X-Series as the single source of truth for customer and sales data.
+
+**Sync Strategy (Sales-First Approach)**:
+1. Fetch sales from the current month using `/api/2.0/search?type=sales`
+2. For each sale with `customer_id`:
+   - Check if customer already exists in our database
+   - Check session cache (already fetched this sync)
+   - If not found, fetch customer from Lightspeed using `/api/2.0/search?type=customers&customer_id=UUID`
+   - Create customer in our database if found
+   - Link sale to customer
+
+**Key Design Decisions**:
+- Only creates customers that are linked to sales (not all customers from Lightspeed)
+- Uses session cache to prevent duplicate API calls during one sync
+- Handles ID aliasing: `sale.customer_id` may differ from `customer.id` returned by search endpoint
+- Both IDs are mapped to the same customer record to prevent duplicates
+- Lightspeed is the single source of truth - no local customer creation
