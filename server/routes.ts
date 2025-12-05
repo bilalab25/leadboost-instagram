@@ -9629,6 +9629,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   io.on("connection", (socket) => {
     console.log("⚡ Socket.IO client connected:", socket.id);
 
+    // Handle room joining for brand-specific updates
+    socket.on("join_brand", (brandId: string) => {
+      if (brandId) {
+        const room = `brand:${brandId}`;
+        socket.join(room);
+        console.log(`📢 Socket ${socket.id} joined room: ${room}`);
+      }
+    });
+
+    // Handle room leaving
+    socket.on("leave_brand", (brandId: string) => {
+      if (brandId) {
+        const room = `brand:${brandId}`;
+        socket.leave(room);
+        console.log(`🚪 Socket ${socket.id} left room: ${room}`);
+      }
+    });
+
     socket.on("disconnect", () => {
       console.log("❌ Socket.IO client disconnected:", socket.id);
     });
