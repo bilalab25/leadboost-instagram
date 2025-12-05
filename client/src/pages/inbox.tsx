@@ -230,35 +230,6 @@ export default function Inbox() {
                   </div>
                 </motion.div>
 
-                {/* WhatsApp Baileys Info Banner */}
-                {integrations.some(i => i.provider === 'whatsapp_baileys') && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="mb-3"
-                  >
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
-                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                        <Info className="w-4 h-4 text-amber-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-amber-800">
-                          {isSpanish 
-                            ? "Tu cuenta de WhatsApp está conectada mediante QR. Los templates de WhatsApp no están disponibles con este método de conexión."
-                            : "Your WhatsApp account is connected via QR. WhatsApp templates are not available with this connection method."}
-                        </p>
-                      </div>
-                      <Link href="/whatsapp-templates">
-                        <Button variant="ghost" size="sm" className="text-amber-700 hover:text-amber-900 hover:bg-amber-100">
-                          {isSpanish ? "Más info" : "Learn more"}
-                          <ArrowRight className="w-4 h-4 ml-1" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </motion.div>
-                )}
-
                 {/* No Integrations Empty State */}
                 {integrations.length === 0 && (
                   <motion.div
