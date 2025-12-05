@@ -138,7 +138,9 @@ class WhatsAppBaileysService extends EventEmitter {
       session.status = "disconnected";
       
       try {
-        await this.initSession(userId, brandId);
+        // Pass forceInit: true because this is a legitimate reconnection attempt
+        // (not an auto-init that could steal production sessions)
+        await this.initSession(userId, brandId, true);
       } catch (error) {
         console.error(`❌ [WhatsApp Baileys] Reconnect failed: ${error}`);
       }
