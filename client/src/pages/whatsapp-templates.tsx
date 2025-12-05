@@ -88,6 +88,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface WhatsAppTemplate {
   id: string;
@@ -387,6 +388,7 @@ export default function WhatsAppTemplates() {
   const { toast } = useToast();
   const { isLoading } = useAuth();
   const { activeBrandId } = useBrand();
+  const { isSpanish } = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -918,37 +920,59 @@ export default function WhatsAppTemplates() {
                             <Info className="w-8 h-8 text-amber-600" />
                           </div>
                           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            Templates no disponibles con conexión QR
+                            {isSpanish 
+                              ? "Templates no disponibles con conexión QR" 
+                              : "Templates not available with QR connection"}
                           </h3>
                           <p className="text-gray-600 max-w-lg mx-auto mb-4">
-                            Tu cuenta de WhatsApp está conectada mediante código QR. 
-                            Los templates de WhatsApp solo están disponibles cuando conectas 
-                            una cuenta de WhatsApp Business a través de la API oficial de Meta.
+                            {isSpanish 
+                              ? "Tu cuenta de WhatsApp está conectada mediante código QR. Los templates de WhatsApp solo están disponibles cuando conectas una cuenta de WhatsApp Business a través de la API oficial de Meta."
+                              : "Your WhatsApp account is connected via QR code. WhatsApp templates are only available when you connect a WhatsApp Business account through Meta's official API."}
                           </p>
                           <div className="bg-white/60 rounded-lg p-4 max-w-md mx-auto mb-6 text-left">
-                            <p className="text-sm font-medium text-gray-800 mb-2">¿Por qué necesito WhatsApp Business API?</p>
+                            <p className="text-sm font-medium text-gray-800 mb-2">
+                              {isSpanish 
+                                ? "¿Por qué necesito WhatsApp Business API?" 
+                                : "Why do I need WhatsApp Business API?"}
+                            </p>
                             <ul className="text-sm text-gray-600 space-y-1">
                               <li className="flex items-start gap-2">
                                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                <span>Templates pre-aprobados por Meta para marketing</span>
+                                <span>
+                                  {isSpanish 
+                                    ? "Templates pre-aprobados por Meta para marketing" 
+                                    : "Pre-approved templates by Meta for marketing"}
+                                </span>
                               </li>
                               <li className="flex items-start gap-2">
                                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                <span>Envío masivo de mensajes a clientes</span>
+                                <span>
+                                  {isSpanish 
+                                    ? "Envío masivo de mensajes a clientes" 
+                                    : "Bulk messaging to customers"}
+                                </span>
                               </li>
                               <li className="flex items-start gap-2">
                                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                <span>Notificaciones automáticas de pedidos</span>
+                                <span>
+                                  {isSpanish 
+                                    ? "Notificaciones automáticas de pedidos" 
+                                    : "Automatic order notifications"}
+                                </span>
                               </li>
                             </ul>
                           </div>
                           <p className="text-xs text-gray-500 mb-4">
-                            Con la conexión QR actual puedes enviar y recibir mensajes normalmente desde el Inbox.
+                            {isSpanish 
+                              ? "Con la conexión QR actual puedes enviar y recibir mensajes normalmente desde el Inbox." 
+                              : "With your current QR connection you can send and receive messages normally from the Inbox."}
                           </p>
                           <Link href="/integrations">
                             <Button className="bg-green-600 hover:bg-green-700 text-white">
                               <SiWhatsapp className="w-4 h-4 mr-2" />
-                              Conectar WhatsApp Business API
+                              {isSpanish 
+                                ? "Conectar WhatsApp Business API" 
+                                : "Connect WhatsApp Business API"}
                               <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                           </Link>
