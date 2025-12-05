@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
@@ -602,107 +603,122 @@ export default function SalesPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <TopHeader />
-
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto p-6 space-y-6">
-            {/* Header Section */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/20">
-                    <Store className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-                      {isSpanish
-                        ? "Ventas y Clientes POS"
-                        : "POS Sales & Customers"}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                      {isSpanish
-                        ? "Gestiona tus clientes y ventas sincronizados con WhatsApp"
-                        : "Manage your customers and sales linked with WhatsApp"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {lightspeedStatus?.connected && (
-                <div className="flex items-center gap-3">
-                  {/* Connection Badge */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                      {lightspeedStatus.storeName ||
-                        (isSpanish ? "Conectado" : "Connected")}
-                    </span>
-                  </div>
-
-                  <Button
-                    onClick={handleSync}
-                    disabled={isSyncing}
-                    variant="outline"
-                    className="gap-2"
-                    data-testid="sync-lightspeed"
-                  >
-                    {isSyncing ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                    {isSpanish ? "Sincronizar" : "Sync"}
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Main Content */}
-            {statusLoading ? (
-              <div className="flex justify-center py-20">
-                <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
-                  <p className="text-sm text-muted-foreground">
-                    {isSpanish ? "Cargando..." : "Loading..."}
-                  </p>
-                </div>
-              </div>
-            ) : !lightspeedStatus?.connected ? (
-              /* Not Connected State */
-              <Card className="border-2 border-dashed border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50">
-                <CardContent className="py-16">
-                  <div className="text-center max-w-md mx-auto">
-                    <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 flex items-center justify-center">
-                      <Zap className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex flex-col w-0 flex-1 overflow-hidden">
+          <TopHeader />
+          <main className="flex-1 relative overflow-y-auto focus:outline-none">
+            <div className="py-6">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                {/* Hero Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-8"
+                >
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 p-6 md:p-8 shadow-xl">
+                    <div className="absolute inset-0 opacity-10">
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)`,
+                          backgroundSize: "20px 20px",
+                        }}
+                      />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                      {isSpanish
-                        ? "Conecta Lightspeed Retail"
-                        : "Connect Lightspeed Retail"}
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                      {isSpanish
-                        ? "Sincroniza clientes y ventas para vincularlos automáticamente con conversaciones de WhatsApp."
-                        : "Sync customers and sales to automatically link them with WhatsApp conversations."}
-                    </p>
-                    <Button
-                      onClick={() => navigate("/integrations")}
-                      className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                      data-testid="connect-lightspeed-cta"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      {isSpanish ? "Ir a Integraciones" : "Go to Integrations"}
-                    </Button>
+
+                    <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <Store className="w-7 h-7 text-white" />
+                          </div>
+                          <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-white" data-testid="text-page-title">
+                              {isSpanish ? "Ventas y Clientes POS" : "POS Sales & Customers"}
+                            </h1>
+                            <p className="text-purple-100 text-sm">
+                              {isSpanish
+                                ? "Gestiona tus clientes y ventas sincronizados con WhatsApp"
+                                : "Manage your customers and sales linked with WhatsApp"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {lightspeedStatus?.connected && (
+                        <div className="flex flex-wrap items-center gap-3">
+                          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+                            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                            <span className="text-sm font-medium text-white">
+                              {isSpanish ? "Conectado" : "Connected"}
+                            </span>
+                          </div>
+
+                          <Button
+                            onClick={handleSync}
+                            disabled={isSyncing}
+                            className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30"
+                            variant="outline"
+                            data-testid="sync-lightspeed"
+                          >
+                            {isSyncing ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-4 w-4" />
+                            )}
+                            {isSpanish ? "Sincronizar" : "Sync"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                {/* Period Selector & Stats */}
-                <div className="space-y-4">
+                </motion.div>
+
+                {/* Main Content */}
+                {statusLoading ? (
+                  <div className="flex justify-center py-20">
+                    <div className="flex flex-col items-center gap-3">
+                      <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
+                      <p className="text-sm text-muted-foreground">
+                        {isSpanish ? "Cargando..." : "Loading..."}
+                      </p>
+                    </div>
+                  </div>
+                ) : !lightspeedStatus?.connected ? (
+                  /* Not Connected State */
+                  <Card className="border-2 border-dashed border-gray-200 bg-white/50">
+                    <CardContent className="py-16">
+                      <div className="text-center max-w-md mx-auto">
+                        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
+                          <Zap className="h-8 w-8 text-purple-600" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                          {isSpanish
+                            ? "Conecta Lightspeed Retail"
+                            : "Connect Lightspeed Retail"}
+                        </h3>
+                        <p className="text-muted-foreground mb-6">
+                          {isSpanish
+                            ? "Sincroniza clientes y ventas para vincularlos automáticamente con conversaciones de WhatsApp."
+                            : "Sync customers and sales to automatically link them with WhatsApp conversations."}
+                        </p>
+                        <Button
+                          onClick={() => navigate("/integrations")}
+                          className="gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                          data-testid="connect-lightspeed-cta"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          {isSpanish ? "Ir a Integraciones" : "Go to Integrations"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    {/* Period Selector & Stats */}
+                    <div className="space-y-4">
                   {/* Period Toggle */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-2">
@@ -775,91 +791,88 @@ export default function SalesPage() {
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+                  >
                     {/* Customers Card */}
-                    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            {isSpanish ? "Clientes POS" : "POS Customers"}
-                          </p>
-                          <p
-                            className="text-3xl font-bold text-gray-900 dark:text-gray-100"
-                            data-testid="stat-customers"
-                          >
-                            {periodStats.totalCustomers.toLocaleString()}
-                          </p>
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-customers">
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              {isSpanish ? "Clientes POS" : "POS Customers"}
+                            </p>
+                            <p className="text-3xl font-bold text-gray-900" data-testid="stat-customers">
+                              {periodStats.totalCustomers.toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                            <Users className="w-6 h-6 text-blue-600" />
+                          </div>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50">
-                          <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-400" />
-                    </div>
+                      </CardContent>
+                    </Card>
 
                     {/* Linked to WhatsApp Card */}
-                    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            {isSpanish ? "Vinculados" : "Linked"}
-                          </p>
-                          <p
-                            className="text-3xl font-bold text-gray-900 dark:text-gray-100"
-                            data-testid="stat-linked"
-                          >
-                            {periodStats.linkedCustomers.toLocaleString()}
-                          </p>
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-linked">
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              {isSpanish ? "Vinculados" : "Linked"}
+                            </p>
+                            <p className="text-3xl font-bold text-green-600" data-testid="stat-linked">
+                              {periodStats.linkedCustomers.toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                            <Link2 className="w-6 h-6 text-green-600" />
+                          </div>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-green-50 dark:bg-green-950/50">
-                          <Link2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                        </div>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-400" />
-                    </div>
+                      </CardContent>
+                    </Card>
 
                     {/* Transactions Card */}
-                    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            {isSpanish ? "Transacciones" : "Transactions"}
-                          </p>
-                          <p
-                            className="text-3xl font-bold text-gray-900 dark:text-gray-100"
-                            data-testid="stat-transactions"
-                          >
-                            {periodStats.totalTransactions.toLocaleString()}
-                          </p>
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-transactions">
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              {isSpanish ? "Transacciones" : "Transactions"}
+                            </p>
+                            <p className="text-3xl font-bold text-purple-600" data-testid="stat-transactions">
+                              {periodStats.totalTransactions.toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                            <ShoppingCart className="w-6 h-6 text-purple-600" />
+                          </div>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50">
-                          <ShoppingCart className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                        </div>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-violet-400" />
-                    </div>
+                      </CardContent>
+                    </Card>
 
                     {/* Total Sales Card */}
-                    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            {isSpanish ? "Ventas Totales" : "Total Sales"}
-                          </p>
-                          <p
-                            className="text-3xl font-bold text-gray-900 dark:text-gray-100"
-                            data-testid="stat-sales"
-                          >
-                            {formatCurrency(periodStats.totalSales)}
-                          </p>
+                    <Card className="border-0 shadow-md hover:shadow-lg transition-shadow" data-testid="card-stat-sales">
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              {isSpanish ? "Ventas Totales" : "Total Sales"}
+                            </p>
+                            <p className="text-3xl font-bold text-amber-600" data-testid="stat-sales">
+                              {formatCurrency(periodStats.totalSales)}
+                            </p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                            <TrendingUp className="w-6 h-6 text-amber-600" />
+                          </div>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50">
-                          <TrendingUp className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                        </div>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-yellow-400" />
-                    </div>
-                  </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
 
                   {/* Last Sync Info */}
                   {lightspeedStatus.lastSyncAt && (
@@ -874,27 +887,32 @@ export default function SalesPage() {
                 </div>
 
                 {/* Data Tables */}
-                <Card className="overflow-hidden border-0 shadow-sm bg-white dark:bg-gray-900">
-                  <CardContent className="p-0">
-                    <Tabs value={activeTab} onValueChange={setActiveTab}>
-                      {/* Tabs Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border-b border-gray-100 dark:border-gray-800">
-                        <TabsList className="bg-gray-100 dark:bg-gray-800 p-1">
-                          <TabsTrigger
-                            value="customers"
-                            className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700"
-                            data-testid="tab-customers"
-                          >
-                            <Users className="h-4 w-4" />
-                            {isSpanish ? "Clientes" : "Customers"}
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="sales"
-                            className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700"
-                            data-testid="tab-sales"
-                          >
-                            <DollarSign className="h-4 w-4" />
-                            {isSpanish ? "Ventas" : "Sales"}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Card className="overflow-hidden border-0 shadow-lg">
+                    <CardContent className="p-0">
+                      <Tabs value={activeTab} onValueChange={setActiveTab}>
+                        {/* Tabs Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                          <TabsList className="bg-gray-100 p-1">
+                            <TabsTrigger
+                              value="customers"
+                              className="gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                              data-testid="tab-customers"
+                            >
+                              <Users className="h-4 w-4" />
+                              {isSpanish ? "Clientes" : "Customers"}
+                            </TabsTrigger>
+                            <TabsTrigger
+                              value="sales"
+                              className="gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                              data-testid="tab-sales"
+                            >
+                              <DollarSign className="h-4 w-4" />
+                              {isSpanish ? "Ventas" : "Sales"}
                           </TabsTrigger>
                         </TabsList>
 
@@ -1474,13 +1492,16 @@ export default function SalesPage() {
                           </>
                         )}
                       </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-          </div>
-        </main>
+                      </Tabs>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+                  </>
+                )}
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
 
       {/* Customer Details Dialog */}
