@@ -115,7 +115,7 @@ export default function SalesPage() {
   const [salesStatusFilter, setSalesStatusFilter] = useState<string>("all");
   
   // Stats period filter
-  const [statsPeriod, setStatsPeriod] = useState<"this_month" | "last_month" | "all_time">("this_month");
+  const [statsPeriod, setStatsPeriod] = useState<"today" | "this_week" | "this_month" | "last_month" | "all_time">("this_month");
 
   // Fetch Lightspeed integration status
   const { data: lightspeedStatus, isLoading: statusLoading } = useQuery<LightspeedStatus>({
@@ -401,12 +401,24 @@ export default function SalesPage() {
   // Get date range for stats period
   const getStatsDateRange = () => {
     const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    
+    // Get start of week (Sunday = 0, so we go back to last Sunday or today if Sunday)
+    const dayOfWeek = now.getDay();
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek, 0, 0, 0, 0);
+    const weekEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
     switch (statsPeriod) {
+      case "today":
+        return { start: todayStart, end: todayEnd };
+      case "this_week":
+        return { start: weekStart, end: weekEnd };
       case "this_month":
         return { start: thisMonthStart, end: thisMonthEnd };
       case "last_month":
@@ -450,6 +462,10 @@ export default function SalesPage() {
       : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     
     switch (statsPeriod) {
+      case "today":
+        return isSpanish ? "Hoy" : "Today";
+      case "this_week":
+        return isSpanish ? "Esta semana" : "This week";
       case "this_month":
         return monthNames[now.getMonth()];
       case "last_month":
@@ -587,6 +603,28 @@ export default function SalesPage() {
                     
                     <div className="inline-flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
                       <button
+                        onClick={() => setStatsPeriod("today")}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                          statsPeriod === "today"
+                            ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                        }`}
+                        data-testid="period-today"
+                      >
+                        {isSpanish ? "Hoy" : "Today"}
+                      </button>
+                      <button
+                        onClick={() => setStatsPeriod("this_week")}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                          statsPeriod === "this_week"
+                            ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                        }`}
+                        data-testid="period-this-week"
+                      >
+                        {isSpanish ? "Semana" : "Week"}
+                      </button>
+                      <button
                         onClick={() => setStatsPeriod("this_month")}
                         className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
                           statsPeriod === "this_month"
@@ -595,7 +633,7 @@ export default function SalesPage() {
                         }`}
                         data-testid="period-this-month"
                       >
-                        {isSpanish ? "Este mes" : "This month"}
+                        {isSpanish ? "Mes" : "Month"}
                       </button>
                       <button
                         onClick={() => setStatsPeriod("last_month")}
@@ -606,7 +644,7 @@ export default function SalesPage() {
                         }`}
                         data-testid="period-last-month"
                       >
-                        {isSpanish ? "Mes anterior" : "Last month"}
+                        {isSpanish ? "Anterior" : "Last"}
                       </button>
                       <button
                         onClick={() => setStatsPeriod("all_time")}
@@ -617,7 +655,7 @@ export default function SalesPage() {
                         }`}
                         data-testid="period-all-time"
                       >
-                        {isSpanish ? "Todo" : "All time"}
+                        {isSpanish ? "Todo" : "All"}
                       </button>
                     </div>
                   </div>
