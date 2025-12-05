@@ -536,10 +536,23 @@ export default function IntegrationsPage() {
     if (providerKey === "lightspeed") {
       return lightspeedStatus?.connected === true;
     }
+    // Special handling for WhatsApp - also check whatsapp_baileys
+    if (providerKey === "whatsapp") {
+      return integrations.some(
+        (i) => (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") && i.isActive
+      );
+    }
     return integrations.some((i) => i.provider === providerKey && i.isActive);
   };
-  const getConnectedIntegration = (providerKey: string) =>
-    integrations.find((i) => i.provider === providerKey && i.isActive);
+  const getConnectedIntegration = (providerKey: string) => {
+    // Special handling for WhatsApp - also check whatsapp_baileys
+    if (providerKey === "whatsapp") {
+      return integrations.find(
+        (i) => (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") && i.isActive
+      );
+    }
+    return integrations.find((i) => i.provider === providerKey && i.isActive);
+  };
 
   // Instagram mutual exclusivity - only one Instagram integration type can be active
   const hasInstagramViaFacebook = isProviderConnected("instagram");
@@ -996,6 +1009,17 @@ export default function IntegrationsPage() {
 
     try {
       setIsDeleting(true);
+      
+      // Special handling for WhatsApp Baileys - disconnect the session first
+      if (integrationToDelete.provider === "whatsapp_baileys") {
+        await fetch("/api/whatsapp-baileys/disconnect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ brandId: activeBrandId }),
+        });
+      }
+      
       const response = await fetch(
         `/api/integrations/${integrationToDelete.id}?brandId=${activeBrandId}`,
         {
