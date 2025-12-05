@@ -82,7 +82,6 @@ export class BoostyService {
     const [
       brand,
       design,
-      assets,
       platformIntegrations,
       posIntegration,
       activePlans,
@@ -94,9 +93,6 @@ export class BoostyService {
       }),
       db.query.brandDesigns.findFirst({
         where: eq(brandDesigns.brandId, brandId),
-      }),
-      db.query.brandAssets.findMany({
-        where: eq(brandAssets.brandDesignId, brandId),
       }),
       db.query.integrations.findMany({
         where: and(
@@ -128,6 +124,12 @@ export class BoostyService {
         limit: 50
       }),
     ]);
+
+    const assets = design 
+      ? await db.query.brandAssets.findMany({
+          where: eq(brandAssets.brandDesignId, design.id),
+        })
+      : [];
 
     let salesData: typeof salesTransactions.$inferSelect[] = [];
     let customers: typeof posCustomers.$inferSelect[] = [];

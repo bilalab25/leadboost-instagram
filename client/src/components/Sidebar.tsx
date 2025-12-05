@@ -74,9 +74,9 @@ export default function Sidebar() {
   const navigation = [
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
     {
-      name: "Boosty",
-      href: "/waterfall",
-      icon: Zap,
+      name: "Boosty AI",
+      href: "/boosty",
+      icon: Sparkles,
       special: true,
     },
     { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, badge: "12" },

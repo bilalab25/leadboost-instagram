@@ -46,6 +46,7 @@ import {
 import { z } from "zod";
 import { posIntegrationService } from "./services/posIntegrations";
 import { lightspeedService } from "./services/lightspeed";
+import { boostyService } from "./services/boosty";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
 import cloudinary from "./cloudinary";
@@ -8808,6 +8809,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ message: "Failed to delete asset" });
       }
     },
+  );
+
+  // ============================================
+  // Boosty AI Assistant Routes
+  // ============================================
+
+  app.post(
+    "/api/boosty/chat",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const userId = req.user.id;
+        const { message, conversationHistory, language } = req.body;
+
+        if (!message || typeof message !== "string") {
+          return res.status(400).json({ error: "Message is required" });
+        }
+
+        const response = await boostyService.chat(
+          brandId,
+          userId,
+          message,
+          conversationHistory || [],
+          language || "es"
+        );
+
+        res.json({ response });
+      } catch (error) {
+        console.error("Error in Boosty chat:", error);
+        res.status(500).json({ error: "Failed to process chat message" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/boosty/suggestions",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const userId = req.user.id;
+        const language = (req.query.language as string) || "es";
+
+        const suggestions = await boostyService.getQuickSuggestions(
+          brandId,
+          userId,
+          language as "es" | "en"
+        );
+
+        res.json({ suggestions });
+      } catch (error) {
+        console.error("Error getting Boosty suggestions:", error);
+        res.status(500).json({ error: "Failed to get suggestions" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/boosty/context",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const userId = req.user.id;
+
+        const context = await boostyService.getBrandContext(brandId, userId);
+
+        res.json({ context });
+      } catch (error) {
+        console.error("Error getting brand context:", error);
+        res.status(500).json({ error: "Failed to get brand context" });
+      }
+    }
   );
 
   // Demo data population function
