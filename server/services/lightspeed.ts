@@ -315,10 +315,44 @@ export class LightspeedService {
     return syncedCount;
   }
 
+  /**
+   * Fetch a customer from Lightspeed by customer_id using search endpoint
+   * Uses: /api/2.0/search?type=customers&customer_id=UUID
+   */
+  private async fetchCustomerFromLightspeed(
+    customerId: string,
+    accessToken: string,
+    domainPrefix: string
+  ): Promise<LightspeedCustomer | null> {
+    try {
+      const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/search?type=customers&customer_id=${customerId}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      const customers = data.data || [];
+      
+      return customers.length > 0 ? customers[0] as LightspeedCustomer : null;
+    } catch (error) {
+      console.log(`  -> Error fetching customer ${customerId}`);
+      return null;
+    }
+  }
+
   async syncSales(
     integration: typeof posIntegrations.$inferSelect,
     dateFrom?: Date,
   ): Promise<number> {
+    console.log("🔄 Starting sales sync for integration:", integration.id);
     const accessToken = await this.getValidAccessToken(integration);
     const domainPrefix = (integration.settings as any)?.domainPrefix;
 
@@ -329,77 +363,56 @@ export class LightspeedService {
     let effectiveDateFrom: Date;
 
     if (dateFrom) {
-      // Use provided date
       effectiveDateFrom = dateFrom;
       console.log("Using provided date for sync");
     } else {
-      // Check for the most recent sale we already have for this integration
       const mostRecentSale = await db.query.salesTransactions.findFirst({
         where: eq(salesTransactions.posIntegrationId, integration.id),
         orderBy: [desc(salesTransactions.transactionDate)],
       });
 
       if (mostRecentSale?.transactionDate) {
-        // Use the most recent sale date minus 1 hour buffer (to avoid missing any)
         effectiveDateFrom = new Date(mostRecentSale.transactionDate.getTime() - 60 * 60 * 1000);
-        console.log(`Incremental sync: found ${mostRecentSale.transactionId}, syncing from ${effectiveDateFrom.toISOString()}`);
+        console.log(`Incremental sync from ${effectiveDateFrom.toISOString()}`);
       } else {
-        // No existing sales - default to current month (start of month)
         const now = new Date();
         effectiveDateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
-        console.log("Initial sync: no existing sales, fetching current month");
+        console.log("Initial sync: fetching current month");
       }
     }
 
-    // Format date for Lightspeed API (UTC ISO format)
     const dateFromStr = effectiveDateFrom.toISOString().replace(/\.\d{3}Z$/, 'Z');
-    
-    console.log(`Syncing sales from: ${dateFromStr} using /api/2.0/search endpoint`);
+    console.log(`📅 Syncing sales from: ${dateFromStr}`);
 
-    // Pre-fetch all customers for this integration to enable linking
+    // Load existing customers from our database
     const posCustomersList = await db.query.posCustomers.findMany({
       where: eq(posCustomers.posIntegrationId, integration.id),
     });
+    
+    // Map by external ID for quick lookup
     const customerMap = new Map(
       posCustomersList.map((c) => [c.externalCustomerId, c.id]),
     );
+    
+    // Session cache: customer_id -> posCustomer.id
+    // This prevents fetching the same customer multiple times in one sync
+    const sessionCache = new Map<string, string>();
+    
+    console.log(`📦 Loaded ${customerMap.size} existing customers from database`);
 
     let syncedCount = 0;
-    let inlineCustomersCreated = 0;
+    let customersCreated = 0;
+    let customersFromCache = 0;
     let offset = 0;
     let hasMorePages = true;
     let totalFetched = 0;
-    const pageSize = 500; // Search endpoint allows up to 1000
-    const maxPages = 20; // Safety limit
+    const pageSize = 500;
+    const maxPages = 20;
     let pageCount = 0;
-
-    // Also build lookup maps by other fields for fallback matching
-    const customerByCodeMap = new Map<string, string>();
-    const customerByPhoneMap = new Map<string, string>();
-    const customerByNameMap = new Map<string, { id: string; name: string }>();
-    
-    for (const customer of posCustomersList) {
-      if (customer.customerCode) {
-        customerByCodeMap.set(customer.customerCode, customer.id);
-      }
-      // Normalize phone numbers for matching
-      const normalizePhone = (p: string | null | undefined) => p?.replace(/\D/g, '').slice(-10) || '';
-      const phone = normalizePhone(customer.phone);
-      const mobile = normalizePhone(customer.mobile);
-      if (phone.length >= 10) customerByPhoneMap.set(phone, customer.id);
-      if (mobile.length >= 10) customerByPhoneMap.set(mobile, customer.id);
-      // Name-based lookup (exact match, lowercase)
-      if (customer.name && customer.name !== "Unknown") {
-        customerByNameMap.set(customer.name.toLowerCase().trim(), { id: customer.id, name: customer.name });
-      }
-    }
-    
-    console.log(`Customer lookup maps: ID=${customerMap.size}, Code=${customerByCodeMap.size}, Phone=${customerByPhoneMap.size}, Name=${customerByNameMap.size}`);
 
     while (hasMorePages && pageCount < maxPages) {
       pageCount++;
       
-      // Use the search endpoint with date filtering
       const params = new URLSearchParams();
       params.set("type", "sales");
       params.set("date_from", dateFromStr);
@@ -408,12 +421,12 @@ export class LightspeedService {
       params.set("order_direction", "desc");
 
       const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/search?${params.toString()}`;
-      console.log(`Fetching sales page ${pageCount} (offset: ${offset})...`);
+      console.log(`📥 Fetching sales page ${pageCount} (offset: ${offset})...`);
 
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          Accept: "application/json",
         },
       });
 
@@ -427,26 +440,11 @@ export class LightspeedService {
       const sales: LightspeedSale[] = data.data || [];
       
       totalFetched += sales.length;
-      console.log(`Page ${pageCount}: Found ${sales.length} sales (total: ${totalFetched})`);
-      
-      // Log first 3 raw sale objects to see structure (including customer fields)
-      if (pageCount === 1 && sales.length > 0) {
-        console.log("=== RAW SALE OBJECTS FROM LIGHTSPEED (first 3) ===");
-        for (let i = 0; i < Math.min(3, sales.length); i++) {
-          const rawSale = sales[i] as any;
-          console.log(`\n--- Sale #${i + 1} (ID: ${rawSale.id}) ---`);
-          console.log("All keys:", Object.keys(rawSale));
-          console.log("customer field:", JSON.stringify(rawSale.customer, null, 2));
-          console.log("customer_id field:", rawSale.customer_id);
-          console.log("customerId field:", rawSale.customerId);
-          console.log("buyer field:", rawSale.buyer);
-          console.log("Full sale object:", JSON.stringify(rawSale, null, 2));
-        }
-        console.log("=== END RAW SALE OBJECTS ===\n");
-      }
+      console.log(`Page ${pageCount}: Found ${sales.length} sales`);
 
       for (const sale of sales) {
         try {
+          // Skip if already synced
           const existingTransaction = await db.query.salesTransactions.findFirst({
             where: and(
               eq(salesTransactions.posIntegrationId, integration.id),
@@ -456,131 +454,76 @@ export class LightspeedService {
 
           if (existingTransaction) continue;
 
-          // Lightspeed API has TWO customer ID formats:
-          // - sale.customer_id: A reference/lookup ID (different format, used for searching)
-          // - sale.customer.id: The actual customer UUID that matches /customers endpoint
-          // The search endpoint often doesn't include the full customer object, just customer_id
-          let nestedCustomerId = sale.customer?.id; // Correct ID (matches /customers)
-          const topLevelCustomerId = sale.customer_id; // Reference ID (different format)
-          let saleCustomer = sale.customer;
-          
-          // Track if we have customer data from the sale object
-          let hasCustomerData = !!saleCustomer;
-          let fetchedCustomerData = false;
-          
-          // If we have a customer_id but no customer object, try to:
-          // 1. Check if this ID exists in our customer map
-          // 2. If not, fetch the customer from Lightspeed API to get the canonical UUID
-          if (!hasCustomerData && topLevelCustomerId) {
-            // First check if this customer_id is in our database (by external ID)
-            const existingByTopLevel = customerMap.get(topLevelCustomerId);
-            if (existingByTopLevel) {
-              // We found a match using the top-level ID - use it
-              nestedCustomerId = topLevelCustomerId;
-            } else {
-              // Try to fetch the customer from Lightspeed to get the canonical ID
-              // This is expensive, so we only do it when we can't match otherwise
-              try {
-                const customerUrl = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/customers/${topLevelCustomerId}`;
-                const customerResponse = await fetch(customerUrl, {
-                  headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    "Content-Type": "application/json",
-                  },
+          const saleCustomerId = sale.customer_id;
+          let posCustomerId: string | null = null;
+          let customerData: LightspeedCustomer | null = null;
+
+          // SIMPLE APPROACH: For each sale with customer_id
+          // 1. Check if customer already exists in our DB
+          // 2. Check if we already fetched it this session
+          // 3. If not, fetch from Lightspeed and create it
+          if (saleCustomerId) {
+            // Step 1: Check if customer exists in our DB
+            posCustomerId = customerMap.get(saleCustomerId) || null;
+            
+            // Step 2: Check session cache (already fetched this sync)
+            if (!posCustomerId && sessionCache.has(saleCustomerId)) {
+              posCustomerId = sessionCache.get(saleCustomerId) || null;
+              if (posCustomerId) customersFromCache++;
+            }
+            
+            // Step 3: Fetch from Lightspeed and create in our DB
+            if (!posCustomerId) {
+              customerData = await this.fetchCustomerFromLightspeed(
+                saleCustomerId, 
+                accessToken, 
+                domainPrefix
+              );
+              
+              if (customerData) {
+                // Create customer in our database
+                const newCustomerId = crypto.randomUUID();
+                await db.insert(posCustomers).values({
+                  id: newCustomerId,
+                  posIntegrationId: integration.id,
+                  userId: integration.userId!,
+                  brandId: integration.brandId!,
+                  externalCustomerId: customerData.id,
+                  customerCode: customerData.customer_code,
+                  name: customerData.name || 
+                    `${customerData.first_name || ""} ${customerData.last_name || ""}`.trim() || 
+                    "Unknown",
+                  firstName: customerData.first_name,
+                  lastName: customerData.last_name,
+                  email: customerData.email,
+                  phone: customerData.phone,
+                  mobile: customerData.mobile,
+                  companyName: customerData.company_name,
+                  loyaltyBalance: customerData.loyalty_balance,
+                  yearToDate: customerData.year_to_date,
+                  balance: customerData.balance,
+                  lastSyncAt: new Date(),
+                  updatedAt: new Date(),
                 });
                 
-                if (customerResponse.ok) {
-                  const customerData = await customerResponse.json();
-                  const fetchedCustomer = customerData.data;
-                  if (fetchedCustomer?.id) {
-                    // Use the fetched customer's canonical ID
-                    nestedCustomerId = fetchedCustomer.id;
-                    saleCustomer = fetchedCustomer;
-                    hasCustomerData = true;
-                    fetchedCustomerData = true;
-                    
-                    // Add to customer map for future lookups
-                    const existingInMap = customerMap.get(fetchedCustomer.id);
-                    if (!existingInMap) {
-                      // Also try to match by code/phone/name in existing customers
-                      if (fetchedCustomer.customer_code && customerByCodeMap.has(fetchedCustomer.customer_code)) {
-                        const matchedId = customerByCodeMap.get(fetchedCustomer.customer_code);
-                        if (matchedId) customerMap.set(fetchedCustomer.id, matchedId);
-                      }
-                    }
-                    
-                    if (syncedCount < 3) {
-                      console.log(`  -> Fetched customer ${fetchedCustomer.id} for sale ${sale.id}`);
-                    }
-                  }
+                posCustomerId = newCustomerId;
+                customersCreated++;
+                
+                // Add to maps for future lookups
+                customerMap.set(customerData.id, newCustomerId);
+                sessionCache.set(saleCustomerId, newCustomerId);
+                
+                if (customersCreated <= 5) {
+                  console.log(`  👤 Created customer: ${customerData.name} (${customerData.id})`);
                 }
-              } catch (fetchError) {
-                // Silently continue - we'll store what we have
-                if (syncedCount < 3) {
-                  console.log(`  -> Failed to fetch customer for ${topLevelCustomerId}`);
-                }
+              } else {
+                // Mark as checked even if not found
+                sessionCache.set(saleCustomerId, "");
               }
             }
           }
-          
-          // Use nested ID as the primary external ID (if available)
-          // This is the ID that should match pos_customers.external_customer_id
-          const correctExternalId = nestedCustomerId;
-          const referenceId = topLevelCustomerId; // Save this for correlation
-          
-          // Look up the internal posCustomer using multiple strategies
-          let posCustomerId: string | null = null;
-          let matchMethod = "";
-          
-          // Strategy 1: Match by nested customer ID (the correct one)
-          if (correctExternalId) {
-            posCustomerId = customerMap.get(correctExternalId) || null;
-            if (posCustomerId) matchMethod = "NestedID";
-          }
-          
-          // Strategy 2: Match by top-level customer_id (fallback, might work for some)
-          if (!posCustomerId && referenceId) {
-            posCustomerId = customerMap.get(referenceId) || null;
-            if (posCustomerId) matchMethod = "TopLevelID";
-          }
-          
-          // Strategy 3: Match by customer_code (often a phone number or barcode)
-          if (!posCustomerId && saleCustomer?.customer_code) {
-            posCustomerId = customerByCodeMap.get(saleCustomer.customer_code) || null;
-            if (posCustomerId) matchMethod = "Code";
-          }
-          
-          // Strategy 4: Match by phone number (if customer data available)
-          if (!posCustomerId && hasCustomerData) {
-            const normalizePhone = (p: string | null | undefined) => p?.replace(/\D/g, '').slice(-10) || '';
-            const phone = normalizePhone(saleCustomer?.phone);
-            const mobile = normalizePhone(saleCustomer?.mobile);
-            if (phone.length >= 10) {
-              posCustomerId = customerByPhoneMap.get(phone) || null;
-              if (posCustomerId) matchMethod = "Phone";
-            }
-            if (!posCustomerId && mobile.length >= 10) {
-              posCustomerId = customerByPhoneMap.get(mobile) || null;
-              if (posCustomerId) matchMethod = "Mobile";
-            }
-          }
-          
-          // Strategy 5: Match by name (exact match, less reliable)
-          if (!posCustomerId && saleCustomer?.name && saleCustomer.name.trim() !== "") {
-            const nameKey = saleCustomer.name.toLowerCase().trim();
-            const nameMatch = customerByNameMap.get(nameKey);
-            if (nameMatch) {
-              posCustomerId = nameMatch.id;
-              matchMethod = "Name";
-            }
-          }
-          
-          // Log for debugging (first few sales only)
-          if (pageCount === 1 && syncedCount < 5) {
-            console.log(`Sale ${sale.id}: hasCustomer=${hasCustomerData}, nested.id=${nestedCustomerId}, customer_id=${topLevelCustomerId}, matched by ${matchMethod || 'NONE'}, posCustomerId=${posCustomerId}`);
-          }
 
-          // Map state to a normalized status (state is the new field, status is deprecated)
+          // Map state to normalized status
           const saleState = (sale as any).state as string | undefined;
           let normalizedStatus = "completed";
           if (saleState === "voided") {
@@ -591,7 +534,7 @@ export class LightspeedService {
             normalizedStatus = "completed";
           }
 
-          // Get customer details from our database if we have a linked customer
+          // Get customer details for the sale record
           let customerName: string | null = null;
           let customerEmail: string | null = null;
           let customerPhone: string | null = null;
@@ -612,13 +555,10 @@ export class LightspeedService {
             userId: integration.userId,
             posCustomerId: posCustomerId || null,
             transactionId: sale.id,
-            // Store the nested customer.id (if available) which matches /customers endpoint
-            // Fall back to top-level customer_id if nested is not available
-            customerId: correctExternalId || referenceId,
-            // Use saleCustomer (which may be fetched data) instead of sale.customer
-            customerEmail: customerEmail || saleCustomer?.email || sale.customer?.email,
-            customerName: customerName || saleCustomer?.name || sale.customer?.name,
-            customerPhone: customerPhone || saleCustomer?.phone || saleCustomer?.mobile || sale.customer?.phone || sale.customer?.mobile,
+            customerId: saleCustomerId,
+            customerEmail: customerEmail || customerData?.email,
+            customerName: customerName || customerData?.name,
+            customerPhone: customerPhone || customerData?.phone || customerData?.mobile,
             totalAmount: Math.round((sale.total_price || 0) * 100),
             currency: "USD",
             status: normalizedStatus,
@@ -628,12 +568,6 @@ export class LightspeedService {
               invoiceNumber: sale.invoice_number,
               totalTax: sale.total_tax,
               state: saleState,
-              // Store both IDs for correlation/debugging
-              nestedCustomerId: nestedCustomerId,
-              topLevelCustomerId: topLevelCustomerId,
-              matchMethod: matchMethod || null,
-              hasCustomerData: hasCustomerData,
-              fetchedCustomerData: fetchedCustomerData,
             },
             transactionDate: sale.sale_date
               ? new Date(sale.sale_date)
@@ -647,19 +581,14 @@ export class LightspeedService {
 
       // Check if there are more pages
       if (sales.length < pageSize) {
-        // Less than page_size means we've reached the end
         hasMorePages = false;
       } else {
-        // Move to next page
         offset += pageSize;
       }
     }
 
-    console.log(`Sync complete: ${syncedCount} new sales synced from ${totalFetched} total fetched`);
-    if (inlineCustomersCreated > 0) {
-      console.log(`Created ${inlineCustomersCreated} inline customers from sales data`);
-    }
-    console.log(`Customer map now has ${customerMap.size} entries`);
+    console.log(`✅ Sync complete: ${syncedCount} new sales synced from ${totalFetched} total fetched`);
+    console.log(`   👤 Customers: ${customersCreated} created, ${customersFromCache} from cache, ${customerMap.size} total`);
     return syncedCount;
   }
 
