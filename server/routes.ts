@@ -3841,6 +3841,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const baileysModule = await import("./services/whatsappBaileys");
     whatsappBaileysService = baileysModule.whatsappBaileysService;
     console.log("📱 [Baileys] WhatsApp Baileys service loaded");
+
+    // Set up event listeners for WhatsApp Baileys
+    whatsappBaileysService.on("connected", async ({ sessionKey, phoneNumber }: { sessionKey: string; phoneNumber: string | null }) => {
+      try {
+        const [userId, brandId] = sessionKey.split("_");
+        console.log(`✅ [Baileys] Connected event received for user ${userId}, brand ${brandId}, phone: ${phoneNumber}`);
+
+        // Check if integration already exists
+        const existingIntegrations = await storage.getIntegrationsByBrandId(brandId);
+        const existingBaileyIntegration = existingIntegrations.find(
+          (i: any) => i.provider === "whatsapp_baileys" && i.userId === userId
+        );
+
+        if (existingBaileyIntegration) {
+          // Update existing integration
+          await storage.updateIntegration(existingBaileyIntegration.id, {
+            isActive: true,
+            accountName: phoneNumber || "WhatsApp (QR)",
+            storeUrl: phoneNumber ? `https://wa.me/${phoneNumber.replace(/\D/g, "")}` : null,
+            metadata: {
+              ...((existingBaileyIntegration.metadata as any) || {}),
+              phoneNumber,
+              connectedAt: new Date().toISOString(),
+            },
+          });
+          console.log(`📝 [Baileys] Updated existing integration: ${existingBaileyIntegration.id}`);
+        } else {
+          // Create new integration
+          const newIntegration = await storage.createIntegration({
+            userId,
+            brandId,
+            provider: "whatsapp_baileys",
+            category: "messaging",
+            storeName: "WhatsApp (QR)",
+            storeUrl: phoneNumber ? `https://wa.me/${phoneNumber.replace(/\D/g, "")}` : null,
+            accountId: phoneNumber?.replace(/\D/g, "") || sessionKey,
+            accountName: phoneNumber || "WhatsApp (QR)",
+            accessToken: sessionKey, // Use session key as token reference
+            isActive: true,
+            syncEnabled: true,
+            metadata: {
+              phoneNumber,
+              connectionType: "baileys_qr",
+              connectedAt: new Date().toISOString(),
+            },
+          });
+          console.log(`✅ [Baileys] Created new integration: ${newIntegration.id}`);
+        }
+      } catch (error) {
+        console.error("❌ [Baileys] Error handling connected event:", error);
+      }
+    });
+
+    whatsappBaileysService.on("message", async ({ sessionKey, message }: { sessionKey: string; message: any }) => {
+      try {
+        const [userId, brandId] = sessionKey.split("_");
+        console.log(`📨 [Baileys] Message event received for user ${userId}, brand ${brandId}`);
+
+        // Find the WhatsApp Baileys integration for this brand
+        const existingIntegrations = await storage.getIntegrationsByBrandId(brandId);
+        const baileysIntegration = existingIntegrations.find(
+          (i: any) => i.provider === "whatsapp_baileys" && i.userId === userId
+        );
+
+        if (!baileysIntegration) {
+          console.warn(`⚠️ [Baileys] No integration found for brand ${brandId}, user ${userId}`);
+          return;
+        }
+
+        // Create/get conversation for this sender
+        const senderJid = message.from;
+        const senderId = senderJid.replace("@s.whatsapp.net", "").replace("@g.us", "");
+        const metaConversationId = `whatsapp_${senderId}`;
+
+        const conversation = await storage.getOrCreateConversation({
+          integrationId: baileysIntegration.id,
+          brandId,
+          userId,
+          metaConversationId,
+          platform: "whatsapp_baileys",
+          contactName: message.fromName || senderId,
+          lastMessage: message.text,
+          lastMessageAt: message.timestamp,
+        });
+
+        // Save the message
+        const savedMessage = await storage.createMessage({
+          userId,
+          integrationId: baileysIntegration.id,
+          brandId,
+          conversationId: conversation.id,
+          platform: "whatsapp_baileys",
+          metaMessageId: message.id,
+          metaConversationId,
+          senderId,
+          recipientId: baileysIntegration.accountId || userId,
+          contactName: message.fromName || senderId,
+          textContent: message.text,
+          direction: "inbound",
+          timestamp: message.timestamp,
+          messageType: message.type || "text",
+          mediaUrl: message.mediaUrl || null,
+          metadata: {
+            messageType: message.type,
+          },
+        });
+
+        // Increment unread count
+        await storage.incrementUnreadCount(conversation.id);
+
+        console.log(`✅ [Baileys] Saved message ${savedMessage.id} to conversation ${conversation.id}`);
+
+        // Emit socket event for real-time updates
+        if (io) {
+          io.to(`brand:${brandId}`).emit("new_message", {
+            conversationId: conversation.id,
+            message: {
+              id: savedMessage.id,
+              text: message.text,
+              from: message.fromName || senderId,
+              timestamp: message.timestamp,
+              platform: "whatsapp_baileys",
+            },
+          });
+        }
+      } catch (error) {
+        console.error("❌ [Baileys] Error handling message event:", error);
+      }
+    });
+
+    whatsappBaileysService.on("disconnected", async ({ sessionKey }: { sessionKey: string }) => {
+      try {
+        const [userId, brandId] = sessionKey.split("_");
+        console.log(`🔴 [Baileys] Disconnected event for user ${userId}, brand ${brandId}`);
+
+        // Update integration status
+        const existingIntegrations = await storage.getIntegrationsByBrandId(brandId);
+        const baileysIntegration = existingIntegrations.find(
+          (i: any) => i.provider === "whatsapp_baileys" && i.userId === userId
+        );
+
+        if (baileysIntegration) {
+          await storage.updateIntegration(baileysIntegration.id, {
+            isActive: false,
+            metadata: {
+              ...((baileysIntegration.metadata as any) || {}),
+              disconnectedAt: new Date().toISOString(),
+            },
+          });
+        }
+      } catch (error) {
+        console.error("❌ [Baileys] Error handling disconnected event:", error);
+      }
+    });
+
+    console.log("📱 [Baileys] Event listeners configured");
+
+    // Restore any existing sessions on startup
+    setTimeout(async () => {
+      try {
+        await whatsappBaileysService.restoreExistingSessions();
+        console.log("📱 [Baileys] Session restoration complete");
+      } catch (error) {
+        console.error("❌ [Baileys] Error restoring sessions:", error);
+      }
+    }, 2000); // Small delay to ensure routes are fully registered
   } catch (err) {
     console.warn("⚠️ [Baileys] WhatsApp Baileys service not available:", err);
   }
