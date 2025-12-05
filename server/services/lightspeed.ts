@@ -354,7 +354,7 @@ export class LightspeedService {
     // Format date for Lightspeed API (UTC ISO format)
     const dateFromStr = effectiveDateFrom.toISOString().replace(/\.\d{3}Z$/, 'Z');
     
-    console.log(`Syncing sales from: ${dateFromStr} using search endpoint`);
+    console.log(`Syncing sales from: ${dateFromStr} using /api/2.0/search endpoint`);
 
     // Pre-fetch all customers for this integration to enable linking
     const posCustomersList = await db.query.posCustomers.findMany({
@@ -373,6 +373,29 @@ export class LightspeedService {
     const maxPages = 20; // Safety limit
     let pageCount = 0;
 
+    // Also build lookup maps by other fields for fallback matching
+    const customerByCodeMap = new Map<string, string>();
+    const customerByPhoneMap = new Map<string, string>();
+    const customerByNameMap = new Map<string, { id: string; name: string }>();
+    
+    for (const customer of posCustomersList) {
+      if (customer.customerCode) {
+        customerByCodeMap.set(customer.customerCode, customer.id);
+      }
+      // Normalize phone numbers for matching
+      const normalizePhone = (p: string | null | undefined) => p?.replace(/\D/g, '').slice(-10) || '';
+      const phone = normalizePhone(customer.phone);
+      const mobile = normalizePhone(customer.mobile);
+      if (phone.length >= 10) customerByPhoneMap.set(phone, customer.id);
+      if (mobile.length >= 10) customerByPhoneMap.set(mobile, customer.id);
+      // Name-based lookup (exact match, lowercase)
+      if (customer.name && customer.name !== "Unknown") {
+        customerByNameMap.set(customer.name.toLowerCase().trim(), { id: customer.id, name: customer.name });
+      }
+    }
+    
+    console.log(`Customer lookup maps: ID=${customerMap.size}, Code=${customerByCodeMap.size}, Phone=${customerByPhoneMap.size}, Name=${customerByNameMap.size}`);
+
     while (hasMorePages && pageCount < maxPages) {
       pageCount++;
       
@@ -382,7 +405,7 @@ export class LightspeedService {
       params.set("date_from", dateFromStr);
       params.set("page_size", String(pageSize));
       params.set("offset", String(offset));
-      params.set("order_direction", "desc"); // Most recent first
+      params.set("order_direction", "desc");
 
       const url = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/search?${params.toString()}`;
       console.log(`Fetching sales page ${pageCount} (offset: ${offset})...`);
@@ -433,35 +456,128 @@ export class LightspeedService {
 
           if (existingTransaction) continue;
 
-          // Look up the internal posCustomer by external customer ID
-          // Lightspeed API returns customer_id as a direct field (not nested)
-          let posCustomerId: string | null = null;
-          const externalCustomerId = sale.customer_id || sale.customer?.id;
+          // Lightspeed API has TWO customer ID formats:
+          // - sale.customer_id: A reference/lookup ID (different format, used for searching)
+          // - sale.customer.id: The actual customer UUID that matches /customers endpoint
+          // The search endpoint often doesn't include the full customer object, just customer_id
+          let nestedCustomerId = sale.customer?.id; // Correct ID (matches /customers)
+          const topLevelCustomerId = sale.customer_id; // Reference ID (different format)
+          let saleCustomer = sale.customer;
           
-          if (externalCustomerId) {
-            // Check if customer exists in our map
-            posCustomerId = customerMap.get(externalCustomerId) || null;
-            
-            // Log for debugging
-            if (pageCount === 1 && syncedCount < 5) {
-              console.log(`Sale ${sale.id}: customer_id=${sale.customer_id}, customer?.id=${sale.customer?.id}, found posCustomerId=${posCustomerId}`);
-            }
-            
-            // If not found in map, look up directly in database
-            if (!posCustomerId) {
-              const dbCustomer = await db.query.posCustomers.findFirst({
-                where: and(
-                  eq(posCustomers.posIntegrationId, integration.id),
-                  eq(posCustomers.externalCustomerId, externalCustomerId),
-                ),
-              });
-              
-              if (dbCustomer) {
-                posCustomerId = dbCustomer.id;
-                customerMap.set(externalCustomerId, dbCustomer.id);
-                console.log(`Found customer in DB: ${dbCustomer.name} (${dbCustomer.id}) for external ID ${externalCustomerId}`);
+          // Track if we have customer data from the sale object
+          let hasCustomerData = !!saleCustomer;
+          let fetchedCustomerData = false;
+          
+          // If we have a customer_id but no customer object, try to:
+          // 1. Check if this ID exists in our customer map
+          // 2. If not, fetch the customer from Lightspeed API to get the canonical UUID
+          if (!hasCustomerData && topLevelCustomerId) {
+            // First check if this customer_id is in our database (by external ID)
+            const existingByTopLevel = customerMap.get(topLevelCustomerId);
+            if (existingByTopLevel) {
+              // We found a match using the top-level ID - use it
+              nestedCustomerId = topLevelCustomerId;
+            } else {
+              // Try to fetch the customer from Lightspeed to get the canonical ID
+              // This is expensive, so we only do it when we can't match otherwise
+              try {
+                const customerUrl = `https://${domainPrefix}.retail.lightspeed.app/api/2.0/customers/${topLevelCustomerId}`;
+                const customerResponse = await fetch(customerUrl, {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                  },
+                });
+                
+                if (customerResponse.ok) {
+                  const customerData = await customerResponse.json();
+                  const fetchedCustomer = customerData.data;
+                  if (fetchedCustomer?.id) {
+                    // Use the fetched customer's canonical ID
+                    nestedCustomerId = fetchedCustomer.id;
+                    saleCustomer = fetchedCustomer;
+                    hasCustomerData = true;
+                    fetchedCustomerData = true;
+                    
+                    // Add to customer map for future lookups
+                    const existingInMap = customerMap.get(fetchedCustomer.id);
+                    if (!existingInMap) {
+                      // Also try to match by code/phone/name in existing customers
+                      if (fetchedCustomer.customer_code && customerByCodeMap.has(fetchedCustomer.customer_code)) {
+                        const matchedId = customerByCodeMap.get(fetchedCustomer.customer_code);
+                        if (matchedId) customerMap.set(fetchedCustomer.id, matchedId);
+                      }
+                    }
+                    
+                    if (syncedCount < 3) {
+                      console.log(`  -> Fetched customer ${fetchedCustomer.id} for sale ${sale.id}`);
+                    }
+                  }
+                }
+              } catch (fetchError) {
+                // Silently continue - we'll store what we have
+                if (syncedCount < 3) {
+                  console.log(`  -> Failed to fetch customer for ${topLevelCustomerId}`);
+                }
               }
             }
+          }
+          
+          // Use nested ID as the primary external ID (if available)
+          // This is the ID that should match pos_customers.external_customer_id
+          const correctExternalId = nestedCustomerId;
+          const referenceId = topLevelCustomerId; // Save this for correlation
+          
+          // Look up the internal posCustomer using multiple strategies
+          let posCustomerId: string | null = null;
+          let matchMethod = "";
+          
+          // Strategy 1: Match by nested customer ID (the correct one)
+          if (correctExternalId) {
+            posCustomerId = customerMap.get(correctExternalId) || null;
+            if (posCustomerId) matchMethod = "NestedID";
+          }
+          
+          // Strategy 2: Match by top-level customer_id (fallback, might work for some)
+          if (!posCustomerId && referenceId) {
+            posCustomerId = customerMap.get(referenceId) || null;
+            if (posCustomerId) matchMethod = "TopLevelID";
+          }
+          
+          // Strategy 3: Match by customer_code (often a phone number or barcode)
+          if (!posCustomerId && saleCustomer?.customer_code) {
+            posCustomerId = customerByCodeMap.get(saleCustomer.customer_code) || null;
+            if (posCustomerId) matchMethod = "Code";
+          }
+          
+          // Strategy 4: Match by phone number (if customer data available)
+          if (!posCustomerId && hasCustomerData) {
+            const normalizePhone = (p: string | null | undefined) => p?.replace(/\D/g, '').slice(-10) || '';
+            const phone = normalizePhone(saleCustomer?.phone);
+            const mobile = normalizePhone(saleCustomer?.mobile);
+            if (phone.length >= 10) {
+              posCustomerId = customerByPhoneMap.get(phone) || null;
+              if (posCustomerId) matchMethod = "Phone";
+            }
+            if (!posCustomerId && mobile.length >= 10) {
+              posCustomerId = customerByPhoneMap.get(mobile) || null;
+              if (posCustomerId) matchMethod = "Mobile";
+            }
+          }
+          
+          // Strategy 5: Match by name (exact match, less reliable)
+          if (!posCustomerId && saleCustomer?.name && saleCustomer.name.trim() !== "") {
+            const nameKey = saleCustomer.name.toLowerCase().trim();
+            const nameMatch = customerByNameMap.get(nameKey);
+            if (nameMatch) {
+              posCustomerId = nameMatch.id;
+              matchMethod = "Name";
+            }
+          }
+          
+          // Log for debugging (first few sales only)
+          if (pageCount === 1 && syncedCount < 5) {
+            console.log(`Sale ${sale.id}: hasCustomer=${hasCustomerData}, nested.id=${nestedCustomerId}, customer_id=${topLevelCustomerId}, matched by ${matchMethod || 'NONE'}, posCustomerId=${posCustomerId}`);
           }
 
           // Map state to a normalized status (state is the new field, status is deprecated)
@@ -496,10 +612,13 @@ export class LightspeedService {
             userId: integration.userId,
             posCustomerId: posCustomerId || null,
             transactionId: sale.id,
-            customerId: externalCustomerId,
-            customerEmail: customerEmail || sale.customer?.email,
-            customerName: customerName || sale.customer?.name,
-            customerPhone: customerPhone || sale.customer?.phone || sale.customer?.mobile,
+            // Store the nested customer.id (if available) which matches /customers endpoint
+            // Fall back to top-level customer_id if nested is not available
+            customerId: correctExternalId || referenceId,
+            // Use saleCustomer (which may be fetched data) instead of sale.customer
+            customerEmail: customerEmail || saleCustomer?.email || sale.customer?.email,
+            customerName: customerName || saleCustomer?.name || sale.customer?.name,
+            customerPhone: customerPhone || saleCustomer?.phone || saleCustomer?.mobile || sale.customer?.phone || sale.customer?.mobile,
             totalAmount: Math.round((sale.total_price || 0) * 100),
             currency: "USD",
             status: normalizedStatus,
@@ -509,6 +628,12 @@ export class LightspeedService {
               invoiceNumber: sale.invoice_number,
               totalTax: sale.total_tax,
               state: saleState,
+              // Store both IDs for correlation/debugging
+              nestedCustomerId: nestedCustomerId,
+              topLevelCustomerId: topLevelCustomerId,
+              matchMethod: matchMethod || null,
+              hasCustomerData: hasCustomerData,
+              fetchedCustomerData: fetchedCustomerData,
             },
             transactionDate: sale.sale_date
               ? new Date(sale.sale_date)
@@ -539,12 +664,16 @@ export class LightspeedService {
   }
 
   /**
-   * Re-link existing sales transactions with customers based on customerId (external ID)
-   * This is used to fix sales that were synced before customers were properly linked
+   * Re-link existing sales transactions with customers using multiple strategies:
+   * 1. Match by external customer ID (customer.id from Lightspeed)
+   * 2. Match by metadata.nestedCustomerId or metadata.topLevelCustomerId
+   * 3. Fallback: Match by normalized phone number
+   * 4. Fallback: Match by email
+   * 5. Fallback: Match by name (exact match)
    */
   async relinkSalesWithCustomers(
     integration: typeof posIntegrations.$inferSelect,
-  ): Promise<{ updated: number; total: number }> {
+  ): Promise<{ updated: number; total: number; byId: number; byMetadata: number; byPhone: number; byEmail: number; byName: number }> {
     console.log(`🔗 Re-linking sales with customers for integration ${integration.id}...`);
     
     // Get all customers for this integration
@@ -552,60 +681,159 @@ export class LightspeedService {
       where: eq(posCustomers.posIntegrationId, integration.id),
     });
     
-    // Build map of external customer ID -> internal posCustomer ID
-    const customerMap = new Map<string, { id: string; name: string; email: string | null; phone: string | null }>();
+    // Helper to normalize phone for matching (last 10 digits)
+    const normalizePhone = (phone: string | null | undefined): string | null => {
+      if (!phone) return null;
+      const digits = phone.replace(/\D/g, '');
+      return digits.length >= 10 ? digits.slice(-10) : null;
+    };
+    
+    // Build multiple lookup maps for different matching strategies
+    const idMap = new Map<string, typeof customers[0]>();
+    const codeMap = new Map<string, typeof customers[0]>();
+    const phoneMap = new Map<string, typeof customers[0]>();
+    const emailMap = new Map<string, typeof customers[0]>();
+    const nameMap = new Map<string, typeof customers[0]>();
+    
     for (const customer of customers) {
+      // Map by external ID
       if (customer.externalCustomerId) {
-        customerMap.set(customer.externalCustomerId, {
-          id: customer.id,
-          name: customer.name,
-          email: customer.email,
-          phone: customer.phone || customer.mobile,
-        });
+        idMap.set(customer.externalCustomerId, customer);
+      }
+      
+      // Map by customer code
+      if (customer.customerCode) {
+        codeMap.set(customer.customerCode, customer);
+      }
+      
+      // Map by normalized phone (both phone and mobile fields)
+      const phone = normalizePhone(customer.phone);
+      const mobile = normalizePhone(customer.mobile);
+      if (phone) phoneMap.set(phone, customer);
+      if (mobile && mobile !== phone) phoneMap.set(mobile, customer);
+      
+      // Map by lowercase email
+      if (customer.email) {
+        emailMap.set(customer.email.toLowerCase(), customer);
+      }
+      
+      // Map by normalized name (lowercase, trimmed)
+      if (customer.name && customer.name !== "Unknown") {
+        nameMap.set(customer.name.toLowerCase().trim(), customer);
       }
     }
     
-    console.log(`Found ${customerMap.size} customers to match against`);
+    console.log(`Built lookup maps - ID: ${idMap.size}, Code: ${codeMap.size}, Phone: ${phoneMap.size}, Email: ${emailMap.size}, Name: ${nameMap.size}`);
     
-    // Get all sales transactions that have a customerId but no posCustomerId
-    const salesWithoutLink = await db.query.salesTransactions.findMany({
-      where: and(
-        eq(salesTransactions.posIntegrationId, integration.id),
-      ),
+    // Get all sales transactions for this integration
+    const allSales = await db.query.salesTransactions.findMany({
+      where: eq(salesTransactions.posIntegrationId, integration.id),
     });
     
-    console.log(`Found ${salesWithoutLink.length} sales to check`);
+    console.log(`Found ${allSales.length} sales to check`);
     
     let updatedCount = 0;
+    let byIdCount = 0;
+    let byMetadataCount = 0;
+    let byPhoneCount = 0;
+    let byEmailCount = 0;
+    let byNameCount = 0;
     
-    for (const sale of salesWithoutLink) {
-      // Check if this sale has a customerId that matches a customer
-      if (sale.customerId && customerMap.has(sale.customerId)) {
-        const customer = customerMap.get(sale.customerId)!;
+    for (const sale of allSales) {
+      // Skip if already linked
+      if (sale.posCustomerId) continue;
+      
+      let matchedCustomer: typeof customers[0] | undefined;
+      let matchType = "";
+      const metadata = sale.metadata as any;
+      
+      // Strategy 1: Match by external customer ID (customerId field)
+      if (sale.customerId && idMap.has(sale.customerId)) {
+        matchedCustomer = idMap.get(sale.customerId);
+        matchType = "ID";
+        byIdCount++;
+      }
+      
+      // Strategy 2: Try matching using metadata IDs (nestedCustomerId, topLevelCustomerId)
+      if (!matchedCustomer && metadata) {
+        // Try nested customer ID from metadata
+        if (metadata.nestedCustomerId && idMap.has(metadata.nestedCustomerId)) {
+          matchedCustomer = idMap.get(metadata.nestedCustomerId);
+          matchType = "MetadataNested";
+          byMetadataCount++;
+        }
+        // Try top-level customer ID from metadata
+        if (!matchedCustomer && metadata.topLevelCustomerId && idMap.has(metadata.topLevelCustomerId)) {
+          matchedCustomer = idMap.get(metadata.topLevelCustomerId);
+          matchType = "MetadataTopLevel";
+          byMetadataCount++;
+        }
+      }
+      
+      // Strategy 3: Match by phone
+      if (!matchedCustomer && sale.customerPhone) {
+        const normalizedSalePhone = normalizePhone(sale.customerPhone);
+        if (normalizedSalePhone && phoneMap.has(normalizedSalePhone)) {
+          matchedCustomer = phoneMap.get(normalizedSalePhone);
+          matchType = "Phone";
+          byPhoneCount++;
+        }
+      }
+      
+      // Strategy 4: Match by email
+      if (!matchedCustomer && sale.customerEmail) {
+        const lowerEmail = sale.customerEmail.toLowerCase();
+        if (emailMap.has(lowerEmail)) {
+          matchedCustomer = emailMap.get(lowerEmail);
+          matchType = "Email";
+          byEmailCount++;
+        }
+      }
+      
+      // Strategy 5: Match by name (exact match, less reliable)
+      if (!matchedCustomer && sale.customerName && sale.customerName !== "Unknown") {
+        const lowerName = sale.customerName.toLowerCase().trim();
+        if (nameMap.has(lowerName)) {
+          matchedCustomer = nameMap.get(lowerName);
+          matchType = "Name";
+          byNameCount++;
+        }
+      }
+      
+      // Update the sale if we found a match
+      if (matchedCustomer) {
+        await db.update(salesTransactions)
+          .set({
+            posCustomerId: matchedCustomer.id,
+            // Update customerId to the correct external ID
+            customerId: matchedCustomer.externalCustomerId,
+            customerName: matchedCustomer.name,
+            customerEmail: matchedCustomer.email || sale.customerEmail,
+            customerPhone: matchedCustomer.phone || matchedCustomer.mobile || sale.customerPhone,
+          })
+          .where(eq(salesTransactions.id, sale.id));
         
-        // Only update if posCustomerId is null or different
-        if (!sale.posCustomerId || sale.posCustomerId !== customer.id) {
-          await db.update(salesTransactions)
-            .set({
-              posCustomerId: customer.id,
-              customerName: customer.name,
-              customerEmail: customer.email || sale.customerEmail,
-              customerPhone: customer.phone || sale.customerPhone,
-            })
-            .where(eq(salesTransactions.id, sale.id));
-          
-          updatedCount++;
-          
-          if (updatedCount <= 5) {
-            console.log(`✓ Linked sale ${sale.transactionId} to customer ${customer.name} (${customer.id})`);
-          }
+        updatedCount++;
+        
+        if (updatedCount <= 10) {
+          console.log(`✓ [${matchType}] Linked sale ${sale.transactionId} to customer ${matchedCustomer.name}`);
         }
       }
     }
     
-    console.log(`✅ Re-linking complete: Updated ${updatedCount} of ${salesWithoutLink.length} sales`);
+    const unlinked = allSales.length - updatedCount - allSales.filter(s => s.posCustomerId).length;
+    console.log(`✅ Re-linking complete: Updated ${updatedCount} sales (ID: ${byIdCount}, Metadata: ${byMetadataCount}, Phone: ${byPhoneCount}, Email: ${byEmailCount}, Name: ${byNameCount})`);
+    console.log(`   Remaining unlinked: ${unlinked} sales`);
     
-    return { updated: updatedCount, total: salesWithoutLink.length };
+    return { 
+      updated: updatedCount, 
+      total: allSales.length, 
+      byId: byIdCount, 
+      byMetadata: byMetadataCount,
+      byPhone: byPhoneCount, 
+      byEmail: byEmailCount, 
+      byName: byNameCount 
+    };
   }
 
   /**
