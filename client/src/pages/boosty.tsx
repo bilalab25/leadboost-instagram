@@ -20,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useBrand } from "@/contexts/BrandContext";
 import ReactMarkdown from "react-markdown";
 
 interface ChatMessage {
@@ -56,27 +57,36 @@ interface BrandContext {
 
 export default function BoostyPage() {
   const { language } = useLanguage();
+  const { activeBrandId } = useBrand();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: suggestionsData } = useQuery<{ suggestions: string[] }>({
-    queryKey: ["/api/boosty/suggestions", language],
+    queryKey: ["/api/boosty/suggestions", activeBrandId, language],
     queryFn: async () => {
-      const response = await fetch(`/api/boosty/suggestions?language=${language}`);
+      const response = await fetch(`/api/boosty/suggestions?brandId=${activeBrandId}&language=${language}`);
       if (!response.ok) throw new Error("Failed to fetch suggestions");
       return response.json();
-    }
+    },
+    enabled: !!activeBrandId
   });
 
   const { data: contextData } = useQuery<{ context: BrandContext }>({
-    queryKey: ["/api/boosty/context"],
+    queryKey: ["/api/boosty/context", activeBrandId],
+    queryFn: async () => {
+      const response = await fetch(`/api/boosty/context?brandId=${activeBrandId}`);
+      if (!response.ok) throw new Error("Failed to fetch context");
+      return response.json();
+    },
+    enabled: !!activeBrandId
   });
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
       const response = await apiRequest("POST", "/api/boosty/chat", {
+        brandId: activeBrandId,
         message,
         conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
         language
@@ -142,6 +152,9 @@ export default function BoostyPage() {
     welcome: language === "es"
       ? "¡Hola! Soy Boosty, tu asistente de marketing. 🚀 Conozco todo sobre tu marca y estoy listo para ayudarte. ¿En qué puedo asistirte hoy?"
       : "Hello! I'm Boosty, your marketing assistant. 🚀 I know everything about your brand and I'm ready to help. How can I assist you today?",
+    noBrand: language === "es"
+      ? "Por favor selecciona una marca en el menú lateral para comenzar a chatear con Boosty."
+      : "Please select a brand from the sidebar to start chatting with Boosty.",
     stats: {
       revenue: language === "es" ? "Ingresos (30 días)" : "Revenue (30 days)",
       customers: language === "es" ? "Clientes" : "Customers",
@@ -149,6 +162,26 @@ export default function BoostyPage() {
       integrations: language === "es" ? "Integraciones" : "Integrations"
     }
   };
+
+  if (!activeBrandId) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center space-y-4"
+        >
+          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mx-auto shadow-xl">
+            <Sparkles className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            {t.title}
+          </h2>
+          <p className="text-muted-foreground max-w-md">{t.noBrand}</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
