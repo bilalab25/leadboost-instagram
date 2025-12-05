@@ -82,19 +82,23 @@ interface ChatResponse {
 
 const IMAGE_REQUEST_PATTERNS = {
   es: [
-    /genera(r)?\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
-    /crea(r)?\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
-    /haz(me)?\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
-    /quiero\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
-    /necesito\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
-    /dise[ñn]a(me)?\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n)/i,
+    /genera(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
+    /crea(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
+    /haz(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
+    /quiero\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
+    /necesito\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
+    /dise[ñn]a(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n)/i,
+    /genera(r)?\s*(eso|esto)/i,
   ],
   en: [
-    /generate\s*(an?\s*)?(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
-    /create\s*(an?\s*)?(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
-    /make\s*(me\s*)?(an?\s*)?(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
-    /i\s*(want|need)\s*(an?\s*)?(image|photo|post|visual)/i,
-    /design\s*(me\s*)?(an?\s*)?(image|photo|post|visual)/i,
+    /generate\s*(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
+    /create\s*(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
+    /make\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
+    /i\s*(want|need)\s*(the|an?|that|this)?\s*(image|photo|post|visual)/i,
+    /design\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual)/i,
+    /please\s+generate/i,
+    /can\s+you\s+generate/i,
+    /generate\s+(it|that|this)/i,
   ]
 };
 
