@@ -44,7 +44,8 @@ interface LightspeedSale {
   total_price?: number;
   total_tax?: number;
   sale_date?: string;
-  customer?: LightspeedCustomer;
+  customer_id?: string; // Direct customer ID from Lightspeed API
+  customer?: LightspeedCustomer; // Optional nested customer object (may not always be present)
   line_items?: Array<{
     product_id: string;
     name: string;
@@ -433,44 +434,33 @@ export class LightspeedService {
           if (existingTransaction) continue;
 
           // Look up the internal posCustomer by external customer ID
+          // Lightspeed API returns customer_id as a direct field (not nested)
           let posCustomerId: string | null = null;
+          const externalCustomerId = sale.customer_id || sale.customer?.id;
           
-          if (sale.customer?.id) {
+          if (externalCustomerId) {
             // Check if customer exists in our map
-            posCustomerId = customerMap.get(sale.customer.id) || null;
+            posCustomerId = customerMap.get(externalCustomerId) || null;
             
-            // If not found, create the customer "inline" from sale data
+            // Log for debugging
+            if (pageCount === 1 && syncedCount < 5) {
+              console.log(`Sale ${sale.id}: customer_id=${sale.customer_id}, customer?.id=${sale.customer?.id}, found posCustomerId=${posCustomerId}`);
+            }
+            
+            // If not found in map, look up directly in database
             if (!posCustomerId) {
-              console.log(`Creating inline customer from sale: ${sale.customer.id} - ${sale.customer.name || 'Unknown'}`);
+              const dbCustomer = await db.query.posCustomers.findFirst({
+                where: and(
+                  eq(posCustomers.posIntegrationId, integration.id),
+                  eq(posCustomers.externalCustomerId, externalCustomerId),
+                ),
+              });
               
-              const customerName = sale.customer.name || 
-                `${sale.customer.first_name || ""} ${sale.customer.last_name || ""}`.trim() || 
-                "Unknown";
-              
-              const newCustomerData = {
-                posIntegrationId: integration.id,
-                userId: integration.userId!,
-                brandId: integration.brandId!,
-                externalCustomerId: sale.customer.id,
-                name: customerName,
-                firstName: sale.customer.first_name,
-                lastName: sale.customer.last_name,
-                email: sale.customer.email,
-                phone: sale.customer.phone,
-                mobile: sale.customer.mobile,
-                companyName: sale.customer.company_name,
-                lastSyncAt: new Date(),
-                updatedAt: new Date(),
-              };
-              
-              const [newCustomer] = await db.insert(posCustomers).values(newCustomerData).returning();
-              
-              // Add to map for future sales in this batch
-              posCustomerId = newCustomer.id;
-              customerMap.set(sale.customer.id, newCustomer.id);
-              inlineCustomersCreated++;
-              
-              console.log(`Created inline customer: ${newCustomer.id} (external: ${sale.customer.id})`);
+              if (dbCustomer) {
+                posCustomerId = dbCustomer.id;
+                customerMap.set(externalCustomerId, dbCustomer.id);
+                console.log(`Found customer in DB: ${dbCustomer.name} (${dbCustomer.id}) for external ID ${externalCustomerId}`);
+              }
             }
           }
 
@@ -485,15 +475,31 @@ export class LightspeedService {
             normalizedStatus = "completed";
           }
 
+          // Get customer details from our database if we have a linked customer
+          let customerName: string | null = null;
+          let customerEmail: string | null = null;
+          let customerPhone: string | null = null;
+          
+          if (posCustomerId) {
+            const linkedCustomer = await db.query.posCustomers.findFirst({
+              where: eq(posCustomers.id, posCustomerId),
+            });
+            if (linkedCustomer) {
+              customerName = linkedCustomer.name;
+              customerEmail = linkedCustomer.email;
+              customerPhone = linkedCustomer.phone || linkedCustomer.mobile;
+            }
+          }
+
           await db.insert(salesTransactions).values({
             posIntegrationId: integration.id,
             userId: integration.userId,
             posCustomerId: posCustomerId || null,
             transactionId: sale.id,
-            customerId: sale.customer?.id,
-            customerEmail: sale.customer?.email,
-            customerName: sale.customer?.name,
-            customerPhone: sale.customer?.phone || sale.customer?.mobile,
+            customerId: externalCustomerId,
+            customerEmail: customerEmail || sale.customer?.email,
+            customerName: customerName || sale.customer?.name,
+            customerPhone: customerPhone || sale.customer?.phone || sale.customer?.mobile,
             totalAmount: Math.round((sale.total_price || 0) * 100),
             currency: "USD",
             status: normalizedStatus,
@@ -530,6 +536,76 @@ export class LightspeedService {
     }
     console.log(`Customer map now has ${customerMap.size} entries`);
     return syncedCount;
+  }
+
+  /**
+   * Re-link existing sales transactions with customers based on customerId (external ID)
+   * This is used to fix sales that were synced before customers were properly linked
+   */
+  async relinkSalesWithCustomers(
+    integration: typeof posIntegrations.$inferSelect,
+  ): Promise<{ updated: number; total: number }> {
+    console.log(`🔗 Re-linking sales with customers for integration ${integration.id}...`);
+    
+    // Get all customers for this integration
+    const customers = await db.query.posCustomers.findMany({
+      where: eq(posCustomers.posIntegrationId, integration.id),
+    });
+    
+    // Build map of external customer ID -> internal posCustomer ID
+    const customerMap = new Map<string, { id: string; name: string; email: string | null; phone: string | null }>();
+    for (const customer of customers) {
+      if (customer.externalCustomerId) {
+        customerMap.set(customer.externalCustomerId, {
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone || customer.mobile,
+        });
+      }
+    }
+    
+    console.log(`Found ${customerMap.size} customers to match against`);
+    
+    // Get all sales transactions that have a customerId but no posCustomerId
+    const salesWithoutLink = await db.query.salesTransactions.findMany({
+      where: and(
+        eq(salesTransactions.posIntegrationId, integration.id),
+      ),
+    });
+    
+    console.log(`Found ${salesWithoutLink.length} sales to check`);
+    
+    let updatedCount = 0;
+    
+    for (const sale of salesWithoutLink) {
+      // Check if this sale has a customerId that matches a customer
+      if (sale.customerId && customerMap.has(sale.customerId)) {
+        const customer = customerMap.get(sale.customerId)!;
+        
+        // Only update if posCustomerId is null or different
+        if (!sale.posCustomerId || sale.posCustomerId !== customer.id) {
+          await db.update(salesTransactions)
+            .set({
+              posCustomerId: customer.id,
+              customerName: customer.name,
+              customerEmail: customer.email || sale.customerEmail,
+              customerPhone: customer.phone || sale.customerPhone,
+            })
+            .where(eq(salesTransactions.id, sale.id));
+          
+          updatedCount++;
+          
+          if (updatedCount <= 5) {
+            console.log(`✓ Linked sale ${sale.transactionId} to customer ${customer.name} (${customer.id})`);
+          }
+        }
+      }
+    }
+    
+    console.log(`✅ Re-linking complete: Updated ${updatedCount} of ${salesWithoutLink.length} sales`);
+    
+    return { updated: updatedCount, total: salesWithoutLink.length };
   }
 
   async getIntegrationByBrand(

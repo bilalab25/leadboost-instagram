@@ -7653,6 +7653,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const customerCount = await lightspeedService.syncCustomers(integration);
       const salesCount = await lightspeedService.syncSales(integration);
+      
+      // Also re-link existing sales with customers
+      const relinkResult = await lightspeedService.relinkSalesWithCustomers(integration);
 
       res.json({
         success: true,
@@ -7660,10 +7663,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           customers: customerCount,
           sales: salesCount,
         },
+        relinked: relinkResult,
       });
     } catch (error) {
       console.error("Error syncing Lightspeed data:", error);
       res.status(500).json({ message: "Failed to sync Lightspeed data" });
+    }
+  });
+
+  // Re-link existing sales with customers (fix historical data)
+  app.post("/api/lightspeed/relink", isAuthenticated, async (req: any, res) => {
+    try {
+      const brandId = req.body?.brandId as string;
+
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      const integration = await lightspeedService.getIntegrationByBrand(brandId);
+      
+      if (!integration) {
+        return res.status(404).json({ message: "Lightspeed integration not found" });
+      }
+
+      const result = await lightspeedService.relinkSalesWithCustomers(integration);
+
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      console.error("Error re-linking Lightspeed sales:", error);
+      res.status(500).json({ message: "Failed to re-link sales with customers" });
     }
   });
 
