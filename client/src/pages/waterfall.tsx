@@ -187,7 +187,7 @@ export default function Waterfall() {
               <TabsList className="grid w-full grid-cols-2 mb-4 p-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
                 <TabsTrigger
                   value="campaigns"
-                  className="flex items-center gap-2 rounded-lg data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600"
+                  className="flex items-center gap-2 rounded-lg data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#0891b2] data-[state=active]:to-[#38bdf8]"
                   data-testid="tab-campaigns"
                 >
                   <Sparkles className="h-4 w-4" />
@@ -214,10 +214,10 @@ export default function Waterfall() {
                       animate={{ opacity: 1, scale: 1 }}
                       className="text-center space-y-4 p-8"
                     >
-                      <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mx-auto shadow-xl">
+                      <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#0891b2] to-[#38bdf8] flex items-center justify-center mx-auto shadow-xl">
                         <Sparkles className="w-12 h-12 text-white" />
                       </div>
-                      <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      <h2 className="text-2xl font-bold bg-gradient-to-r from-[#0891b2] to-[#38bdf8] bg-clip-text text-transparent">
                         Boosty AI
                       </h2>
                       <p className="text-muted-foreground max-w-md">{t.noBrand}</p>
@@ -238,17 +238,17 @@ export default function Waterfall() {
                               repeat: Infinity,
                               repeatDelay: 3
                             }}
-                            className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg"
+                            className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0891b2] to-[#38bdf8] flex items-center justify-center shadow-lg"
                           >
                             <Sparkles className="w-6 h-6 text-white" />
                           </motion.div>
                           <div>
-                            <h2 className="font-bold text-lg bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                            <h2 className="font-bold text-lg bg-gradient-to-r from-[#0891b2] to-[#38bdf8] bg-clip-text text-transparent">
                               Boosty AI
                             </h2>
                             {context && (
                               <p className="text-sm text-muted-foreground">
-                                {language === "es" ? "Asistente de" : "Assistant for"} <span className="font-medium text-purple-600">{context.brand.name}</span>
+                                {language === "es" ? "Asistente de" : "Assistant for"} <span className="font-medium text-cyan-600">{context.brand.name}</span>
                               </p>
                             )}
                           </div>
@@ -307,7 +307,7 @@ export default function Waterfall() {
                               <div
                                 className={`px-4 py-3 max-w-[80%] text-sm leading-relaxed ${
                                   msg.role === "user"
-                                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl rounded-br-sm shadow-md"
+                                    ? "bg-gradient-to-r from-[#0891b2] to-[#38bdf8] text-white rounded-2xl rounded-br-sm shadow-md"
                                     : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-sm"
                                 }`}
                               >
@@ -333,7 +333,7 @@ export default function Waterfall() {
                                       li: (props) => <li className="my-1" {...props} />,
                                       a: (props) => (
                                         <a
-                                          className="text-purple-600 dark:text-purple-400 underline"
+                                          className="text-cyan-600 dark:text-cyan-400 underline"
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           {...props}
@@ -363,7 +363,7 @@ export default function Waterfall() {
                                 )}
                               </div>
                               {msg.role === "user" && (
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-md flex-shrink-0">
+                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0891b2] to-[#38bdf8] flex items-center justify-center shadow-md flex-shrink-0">
                                   <span className="text-white text-sm font-medium">
                                     {language === "es" ? "Tú" : "You"}
                                   </span>
@@ -386,9 +386,9 @@ export default function Waterfall() {
                             />
                             <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-2">
                               <div className="flex gap-1">
-                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                               </div>
                               <span className="text-sm text-muted-foreground ml-2">{t.typing}</span>
                             </div>
@@ -410,7 +410,7 @@ export default function Waterfall() {
                               key={i}
                               onClick={() => handleSuggestionClick(s)}
                               disabled={chatMutation.isPending}
-                              className="px-3 py-1.5 text-xs bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-300 dark:hover:border-purple-700 hover:text-purple-700 dark:hover:text-purple-400 transition-all disabled:opacity-50"
+                              className="px-3 py-1.5 text-xs bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full text-gray-700 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:border-cyan-300 dark:hover:border-cyan-700 hover:text-cyan-700 dark:hover:text-cyan-400 transition-all disabled:opacity-50"
                               data-testid={`suggestion-${i}`}
                             >
                               {s}
@@ -430,7 +430,7 @@ export default function Waterfall() {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            className="min-h-[48px] max-h-[120px] resize-none rounded-xl border-gray-200 dark:border-gray-600 pr-12 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            className="min-h-[48px] max-h-[120px] resize-none rounded-xl border-gray-200 dark:border-gray-600 pr-12 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                             disabled={chatMutation.isPending}
                             rows={1}
                             data-testid="input-chat"
@@ -439,7 +439,7 @@ export default function Waterfall() {
                         <Button
                           onClick={handleSend}
                           disabled={chatMutation.isPending || !input.trim()}
-                          className="h-12 w-12 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg"
+                          className="h-12 w-12 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#38bdf8] hover:from-[#0e7490] hover:to-[#0ea5e9] shadow-lg"
                           data-testid="button-send"
                         >
                           <Send className="h-5 w-5" />
