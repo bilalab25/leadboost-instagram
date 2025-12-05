@@ -7492,6 +7492,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresIn: tokens.expires_in,
       });
 
+      // Ensure user exists in the database before creating integration
+      const existingUser = await storage.getUser(stateData.userId);
+      if (!existingUser) {
+        console.log("📝 Creating user for Lightspeed integration:", stateData.userId);
+        await storage.createUser({
+          id: stateData.userId,
+          email: `user-${stateData.userId.substring(0, 8)}@lightspeed.temp`,
+          firstName: "Lightspeed",
+          lastName: "User",
+        });
+      }
+
       // Create the integration
       const integrationId = await lightspeedService.createIntegration(
         stateData.userId,
