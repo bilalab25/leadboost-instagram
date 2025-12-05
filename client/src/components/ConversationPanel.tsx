@@ -18,7 +18,6 @@ import {
   Flag,
   Archive,
   Star,
-  UserPlus,
   Eye,
 } from "lucide-react";
 import {
@@ -339,77 +338,6 @@ export default function ConversationPanel({
     },
   });
 
-  // 🏁 Mutation to create customer lead
-  const createLeadMutation = useMutation({
-    mutationFn: async () => {
-      if (!activeBrandId) throw new Error("No active brand");
-
-      // Extract phone number from metaConversationId for WhatsApp
-      let phone = null;
-      if (platform === "whatsapp" && metaConversationId) {
-        // metaConversationId format: "PHONE_NUMBER_ID_SENDER_PHONE"
-        // Extract the sender phone (everything after the last underscore)
-        const parts = metaConversationId.split("_");
-        if (parts.length >= 2) {
-          phone = parts[parts.length - 1]; // Get the last part (sender's phone)
-        }
-      }
-
-      const res = await fetch(`/api/customers?brandId=${activeBrandId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: participantName || "Unknown Contact",
-          phone,
-          platform,
-          conversationId, // Pass the database conversation ID
-        }),
-      });
-
-      const result = await res.json();
-      if (!res.ok) {
-        if (res.status === 409) {
-          throw new Error("Customer already exists");
-        }
-        throw new Error(result.message || "Error creating customer");
-      }
-
-      return result;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/customers", activeBrandId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [
-          `/api/customers/by-conversation?brandId=${activeBrandId}`,
-          activeBrandId,
-          conversationId,
-        ],
-      });
-      toast({
-        title: "Lead Created!",
-        description: `${data.name} has been added to your customers`,
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title:
-          error.message === "Customer already exists"
-            ? "Already a Customer"
-            : "Error",
-        description:
-          error.message === "Customer already exists"
-            ? "This contact is already in your customer list"
-            : error.message,
-        variant:
-          error.message === "Customer already exists"
-            ? "default"
-            : "destructive",
-      });
-    },
-  });
-
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { content: string }) => {
       if (!activeBrandId) throw new Error("No active brand");
@@ -550,20 +478,6 @@ export default function ConversationPanel({
           </div>
 
           <div className="flex items-center gap-1">
-            {/* Create Lead Button - disabled if customer exists */}
-            {!linkedCustomer && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => createLeadMutation.mutate()}
-                disabled={createLeadMutation.isPending}
-                data-testid="button-create-lead"
-                title="Create Lead"
-              >
-                <UserPlus className="h-4 w-4 text-green-600" />
-              </Button>
-            )}
-
             {/* Flag Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
