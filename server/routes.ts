@@ -3109,8 +3109,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/integrations/facebook/callback", async (req, res) => {
     try {
       const { code, state } = req.query;
-      if (!code) return res.status(400).send("Missing code");
-      if (!state) return res.status(400).send("Missing OAuth state");
+      
+      console.log("📘 [Facebook Callback] Starting OAuth callback...");
+      
+      if (!code) {
+        console.log("❌ [Facebook Callback] Missing code parameter");
+        return res.redirect("/integrations?error=missing_code&provider=facebook");
+      }
+      if (!state) {
+        console.log("❌ [Facebook Callback] Missing state parameter");
+        return res.redirect("/integrations?error=missing_state&provider=facebook");
+      }
 
       // -----------------------------------------
       // 1️⃣ Decode OAuth state
@@ -3123,18 +3132,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const parsed = JSON.parse(decoded);
         userId = parsed.userId;
         brandId = parsed.brandId;
-      } catch {
-        return res.status(400).send("Invalid OAuth state");
+        console.log("📘 [Facebook Callback] Decoded state - userId:", userId, "brandId:", brandId);
+      } catch (e) {
+        console.log("❌ [Facebook Callback] Failed to decode state:", e);
+        return res.redirect("/integrations?error=invalid_state&provider=facebook");
       }
 
-      if (!userId) return res.status(400).send("Missing userId in state");
-      if (!brandId) return res.status(400).send("Missing brandId in state");
+      if (!userId) {
+        console.log("❌ [Facebook Callback] Missing userId in state");
+        return res.redirect("/integrations?error=missing_user&provider=facebook");
+      }
+      if (!brandId) {
+        console.log("❌ [Facebook Callback] Missing brandId in state");
+        return res.redirect("/integrations?error=missing_brand&provider=facebook");
+      }
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
 
       // -----------------------------------------
       // 2️⃣ Exchange CODE → USER TOKEN
       // -----------------------------------------
+      console.log("📘 [Facebook Callback] Exchanging code for access token...");
       const tokenRes = await fetch(
         `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${
           process.env.FB_APP_ID
@@ -3144,19 +3162,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       const tokenData = await tokenRes.json();
 
-      if (tokenData.error) return res.status(500).json(tokenData.error);
+      if (tokenData.error) {
+        console.log("❌ [Facebook Callback] Token exchange failed:", tokenData.error);
+        const errorMsg = encodeURIComponent(tokenData.error.message || "Token exchange failed");
+        return res.redirect(`/integrations?error=token_failed&provider=facebook&message=${errorMsg}`);
+      }
+      
+      console.log("✅ [Facebook Callback] Token exchange successful, expires_in:", tokenData.expires_in);
 
       // -----------------------------------------
       // 3️⃣ Get Pages of the logged-in user
       // -----------------------------------------
+      console.log("📘 [Facebook Callback] Fetching user's Facebook Pages...");
       const pagesRes = await fetch(
         `https://graph.facebook.com/v24.0/me/accounts?access_token=${tokenData.access_token}`,
       );
       const pagesData = await pagesRes.json();
+      
+      console.log("📘 [Facebook Callback] Pages response:", JSON.stringify(pagesData, null, 2));
+
+      if (pagesData.error) {
+        console.log("❌ [Facebook Callback] Failed to fetch pages:", pagesData.error);
+        const errorMsg = encodeURIComponent(pagesData.error.message || "Failed to fetch pages");
+        return res.redirect(`/integrations?error=pages_fetch_failed&provider=facebook&message=${errorMsg}`);
+      }
 
       if (!pagesData.data?.length) {
-        return res.status(400).send("No Facebook Pages found");
+        console.log("⚠️ [Facebook Callback] No Facebook Pages found for this user");
+        return res.redirect("/integrations?error=no_pages&provider=facebook&message=" + encodeURIComponent("No Facebook Pages found. Please create a Facebook Page first, or make sure you have admin access to an existing page."));
       }
+      
+      console.log("✅ [Facebook Callback] Found", pagesData.data.length, "pages");
 
       const page = pagesData.data[0];
       let pageAccessToken = page.access_token;

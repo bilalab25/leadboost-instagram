@@ -516,6 +516,67 @@ export default function IntegrationsPage() {
     fetchLightspeedStatus();
   }, [activeBrandId]);
 
+  // Check for OAuth error query parameters in the URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get("error");
+    const provider = urlParams.get("provider");
+    const message = urlParams.get("message");
+
+    if (error && provider) {
+      // Map error codes to user-friendly messages
+      const errorMessages: { [key: string]: { en: string; es: string } } = {
+        missing_code: {
+          en: "Authorization was cancelled or failed. Please try again.",
+          es: "La autorización fue cancelada o falló. Por favor, inténtalo de nuevo.",
+        },
+        missing_state: {
+          en: "Session expired. Please try connecting again.",
+          es: "La sesión expiró. Por favor, intenta conectarte de nuevo.",
+        },
+        invalid_state: {
+          en: "Invalid session. Please try connecting again.",
+          es: "Sesión inválida. Por favor, intenta conectarte de nuevo.",
+        },
+        missing_user: {
+          en: "User session expired. Please log in again.",
+          es: "La sesión de usuario expiró. Por favor, inicia sesión de nuevo.",
+        },
+        missing_brand: {
+          en: "Brand not selected. Please select a brand and try again.",
+          es: "Marca no seleccionada. Por favor, selecciona una marca e inténtalo de nuevo.",
+        },
+        token_failed: {
+          en: message || "Failed to authenticate. Please try again.",
+          es: message || "Error de autenticación. Por favor, inténtalo de nuevo.",
+        },
+        pages_fetch_failed: {
+          en: message || "Failed to fetch your pages. Please try again.",
+          es: message || "Error al obtener tus páginas. Por favor, inténtalo de nuevo.",
+        },
+        no_pages: {
+          en: message || "No Facebook Pages found. Please create a Facebook Page first.",
+          es: message || "No se encontraron páginas de Facebook. Por favor, crea una primero.",
+        },
+      };
+
+      const errorMessage = errorMessages[error] || {
+        en: message || "An error occurred. Please try again.",
+        es: message || "Ocurrió un error. Por favor, inténtalo de nuevo.",
+      };
+
+      toast({
+        title: isSpanish ? "Error de conexión" : "Connection Error",
+        description: isSpanish ? errorMessage.es : errorMessage.en,
+        variant: "destructive",
+      });
+
+      // Clean up the URL without refreshing the page
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }, [toast, isSpanish]);
+
   // Helper functions
   const getConnectedCount = (category: string) => {
     let count = integrations.filter(
