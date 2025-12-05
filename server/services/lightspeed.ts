@@ -156,6 +156,9 @@ export class LightspeedService {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Lightspeed token refresh failed:", errorText);
+      if (response.status === 429) {
+        throw new Error(`Rate limit exceeded. Please wait 5 minutes and try again.`);
+      }
       throw new Error(`Token refresh failed: ${response.status}`);
     }
 
