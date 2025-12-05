@@ -167,15 +167,15 @@ export default function Inbox() {
         {/* Main Content */}
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative overflow-y-auto focus:outline-none">
-            <div className="py-6">
+            <div className="py-4">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-                {/* Hero Header */}
+                {/* Compact Header with Stats and Filters */}
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6"
+                  className="mb-4"
                 >
-                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 p-6 md:p-8 shadow-xl">
+                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 p-4 shadow-lg">
                     <div className="absolute inset-0 opacity-10">
                       <div
                         className="absolute inset-0"
@@ -186,158 +186,44 @@ export default function Inbox() {
                       />
                     </div>
 
-                    <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                            <InboxIcon className="w-7 h-7 text-white" />
-                          </div>
-                          <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white" data-testid="text-page-title">
-                              {isSpanish ? "Bandeja de Entrada" : "Inbox"}
-                            </h1>
-                            <p className="text-blue-100 text-sm">
-                              {isSpanish 
-                                ? "Gestiona todas tus conversaciones en un solo lugar" 
-                                : "Manage all your conversations in one place"}
-                            </p>
-                          </div>
+                    <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                      {/* Title */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <InboxIcon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h1 className="text-xl font-bold text-white" data-testid="text-page-title">
+                            {isSpanish ? "Bandeja de Entrada" : "Inbox"}
+                          </h1>
                         </div>
                       </div>
 
-                      {/* Quick Stats in Header */}
-                      <div className="flex flex-wrap gap-3">
-                        <div className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-                          <div className="text-2xl font-bold text-white">
-                            {statsLoading ? "..." : inboxStats?.conversationCount ?? 0}
-                          </div>
-                          <div className="text-xs text-blue-100">
-                            {isSpanish ? "Conversaciones" : "Conversations"}
-                          </div>
+                      {/* Compact Stats */}
+                      <div className="flex flex-wrap gap-2">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
+                          <MessageCircle className="w-4 h-4 text-white/80" />
+                          <span className="text-sm font-semibold text-white">
+                            {statsLoading ? "..." : inboxStats?.totalMessages ?? 0}
+                          </span>
+                          <span className="text-xs text-blue-100">{isSpanish ? "mensajes" : "messages"}</span>
                         </div>
-                        <div className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-                          <div className="text-2xl font-bold text-white">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
+                          <Mail className="w-4 h-4 text-white/80" />
+                          <span className="text-sm font-semibold text-white">
                             {statsLoading ? "..." : inboxStats?.unread ?? 0}
-                          </div>
-                          <div className="text-xs text-blue-100">
-                            {isSpanish ? "Sin leer" : "Unread"}
-                          </div>
+                          </span>
+                          <span className="text-xs text-blue-100">{isSpanish ? "sin leer" : "unread"}</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
+                          <Clock className="w-4 h-4 text-white/80" />
+                          <span className="text-sm font-semibold text-white">
+                            {statsLoading ? "..." : inboxStats?.avgResponseTime ?? "N/A"}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
-                </motion.div>
-
-                {/* Stats Cards */}
-                <motion.div 
-                  variants={staggerContainer}
-                  initial="initial"
-                  animate="animate"
-                  className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
-                >
-                  {/* Total Messages */}
-                  <motion.div variants={fadeInUp}>
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white overflow-hidden relative">
-                      <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8" />
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                            <MessageCircle className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            {statsLoading ? (
-                              <Loader2 className="h-6 w-6 animate-spin" />
-                            ) : (
-                              <div className="text-2xl font-bold" data-testid="stat-total-messages">
-                                {inboxStats?.totalMessages ?? 0}
-                              </div>
-                            )}
-                            <div className="text-xs text-blue-100">
-                              {isSpanish ? "Mensajes Totales" : "Total Messages"}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-
-                  {/* Unread Messages */}
-                  <motion.div variants={fadeInUp}>
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-red-500 to-pink-600 text-white overflow-hidden relative">
-                      <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8" />
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                            <Mail className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            {statsLoading ? (
-                              <Loader2 className="h-6 w-6 animate-spin" />
-                            ) : (
-                              <div className="text-2xl font-bold" data-testid="stat-unread">
-                                {inboxStats?.unread ?? 0}
-                              </div>
-                            )}
-                            <div className="text-xs text-red-100">
-                              {isSpanish ? "Sin Leer" : "Unread"}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-
-                  {/* Urgent */}
-                  <motion.div variants={fadeInUp}>
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-500 to-orange-600 text-white overflow-hidden relative">
-                      <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8" />
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                            <AlertTriangle className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            {statsLoading ? (
-                              <Loader2 className="h-6 w-6 animate-spin" />
-                            ) : (
-                              <div className="text-2xl font-bold" data-testid="stat-urgent">
-                                {inboxStats?.urgent ?? 0}
-                              </div>
-                            )}
-                            <div className="text-xs text-amber-100">
-                              {isSpanish ? "Urgente" : "Urgent"}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-
-                  {/* Avg Response */}
-                  <motion.div variants={fadeInUp}>
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white overflow-hidden relative">
-                      <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8" />
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                            <Clock className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            {statsLoading ? (
-                              <Loader2 className="h-6 w-6 animate-spin" />
-                            ) : (
-                              <div className="text-2xl font-bold" data-testid="stat-avg-response">
-                                {inboxStats?.avgResponseTime ?? "N/A"}
-                              </div>
-                            )}
-                            <div className="text-xs text-emerald-100">
-                              {isSpanish ? "Tiempo Promedio" : "Avg Response"}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
                 </motion.div>
 
                 {/* Filter Bar */}
@@ -480,7 +366,7 @@ export default function Inbox() {
                   className="flex-1"
                 >
                   <Card className="border-0 shadow-lg overflow-hidden h-full">
-                    <div className="h-[calc(100vh-420px)] min-h-[500px]">
+                    <div className="h-[calc(100vh-240px)] min-h-[400px]">
                       <MessageList
                         showHeader={false}
                         platform={selectedPlatform}
