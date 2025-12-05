@@ -472,7 +472,7 @@ export class LightspeedService {
               if (posCustomerId) customersFromCache++;
             }
             
-            // Step 3: Fetch from Lightspeed and create in our DB
+            // Step 3: Fetch from Lightspeed and create/reuse in our DB
             if (!posCustomerId) {
               customerData = await this.fetchCustomerFromLightspeed(
                 saleCustomerId, 
@@ -481,40 +481,61 @@ export class LightspeedService {
               );
               
               if (customerData) {
-                // Create customer in our database
-                const newCustomerId = crypto.randomUUID();
-                await db.insert(posCustomers).values({
-                  id: newCustomerId,
-                  posIntegrationId: integration.id,
-                  userId: integration.userId!,
-                  brandId: integration.brandId!,
-                  externalCustomerId: customerData.id,
-                  customerCode: customerData.customer_code,
-                  name: customerData.name || 
-                    `${customerData.first_name || ""} ${customerData.last_name || ""}`.trim() || 
-                    "Unknown",
-                  firstName: customerData.first_name,
-                  lastName: customerData.last_name,
-                  email: customerData.email,
-                  phone: customerData.phone,
-                  mobile: customerData.mobile,
-                  companyName: customerData.company_name,
-                  loyaltyBalance: customerData.loyalty_balance,
-                  yearToDate: customerData.year_to_date,
-                  balance: customerData.balance,
-                  lastSyncAt: new Date(),
-                  updatedAt: new Date(),
-                });
+                const canonicalId = customerData.id;
                 
-                posCustomerId = newCustomerId;
-                customersCreated++;
+                // Check if canonical ID already exists in our database
+                // (sale.customer_id might differ from the canonical customer.id)
+                const existingByCanonical = customerMap.get(canonicalId);
                 
-                // Add to maps for future lookups
-                customerMap.set(customerData.id, newCustomerId);
-                sessionCache.set(saleCustomerId, newCustomerId);
-                
-                if (customersCreated <= 5) {
-                  console.log(`  👤 Created customer: ${customerData.name} (${customerData.id})`);
+                if (existingByCanonical) {
+                  // Customer already exists - reuse it
+                  posCustomerId = existingByCanonical;
+                  
+                  // Cache both the sale.customer_id alias and canonical ID
+                  sessionCache.set(saleCustomerId, posCustomerId);
+                  if (saleCustomerId !== canonicalId) {
+                    customerMap.set(saleCustomerId, posCustomerId);
+                  }
+                  customersFromCache++;
+                } else {
+                  // Customer doesn't exist - create it
+                  const newCustomerId = crypto.randomUUID();
+                  await db.insert(posCustomers).values({
+                    id: newCustomerId,
+                    posIntegrationId: integration.id,
+                    userId: integration.userId!,
+                    brandId: integration.brandId!,
+                    externalCustomerId: canonicalId,
+                    customerCode: customerData.customer_code,
+                    name: customerData.name || 
+                      `${customerData.first_name || ""} ${customerData.last_name || ""}`.trim() || 
+                      "Unknown",
+                    firstName: customerData.first_name,
+                    lastName: customerData.last_name,
+                    email: customerData.email,
+                    phone: customerData.phone,
+                    mobile: customerData.mobile,
+                    companyName: customerData.company_name,
+                    loyaltyBalance: customerData.loyalty_balance,
+                    yearToDate: customerData.year_to_date,
+                    balance: customerData.balance,
+                    lastSyncAt: new Date(),
+                    updatedAt: new Date(),
+                  });
+                  
+                  posCustomerId = newCustomerId;
+                  customersCreated++;
+                  
+                  // Add BOTH IDs to maps for future lookups
+                  customerMap.set(canonicalId, newCustomerId);
+                  sessionCache.set(saleCustomerId, newCustomerId);
+                  if (saleCustomerId !== canonicalId) {
+                    customerMap.set(saleCustomerId, newCustomerId);
+                  }
+                  
+                  if (customersCreated <= 5) {
+                    console.log(`  👤 Created customer: ${customerData.name} (${canonicalId})`);
+                  }
                 }
               } else {
                 // Mark as checked even if not found
