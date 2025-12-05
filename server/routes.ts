@@ -8829,7 +8829,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Message is required" });
         }
 
-        const response = await boostyService.chat(
+        const chatResponse = await boostyService.chat(
           brandId,
           userId,
           message,
@@ -8837,7 +8837,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           language || "es"
         );
 
-        res.json({ response });
+        res.json({ 
+          response: chatResponse.text,
+          image: chatResponse.image,
+          imagePrompt: chatResponse.imagePrompt
+        });
       } catch (error) {
         console.error("Error in Boosty chat:", error);
         res.status(500).json({ error: "Failed to process chat message" });

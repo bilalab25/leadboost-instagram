@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 import { db } from "../db";
 import { 
   brands, 
@@ -73,6 +73,30 @@ interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }
+
+interface ChatResponse {
+  text: string;
+  image?: string;
+  imagePrompt?: string;
+}
+
+const IMAGE_REQUEST_PATTERNS = {
+  es: [
+    /genera(r)?\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
+    /crea(r)?\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
+    /haz(me)?\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
+    /quiero\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
+    /necesito\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
+    /dise[ñn]a(me)?\s*(una?\s*)?(imagen|foto|post|publicaci[oó]n)/i,
+  ],
+  en: [
+    /generate\s*(an?\s*)?(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
+    /create\s*(an?\s*)?(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
+    /make\s*(me\s*)?(an?\s*)?(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
+    /i\s*(want|need)\s*(an?\s*)?(image|photo|post|visual)/i,
+    /design\s*(me\s*)?(an?\s*)?(image|photo|post|visual)/i,
+  ]
+};
 
 export class BoostyService {
   async getBrandContext(brandId: string, userId: string): Promise<BrandContext> {
@@ -363,15 +387,150 @@ ${activityInfo}
 ${capabilities}`;
   }
 
+  private isImageRequest(message: string, language: "es" | "en"): boolean {
+    const patterns = IMAGE_REQUEST_PATTERNS[language];
+    return patterns.some(pattern => pattern.test(message));
+  }
+
+  private async generateImage(
+    imagePrompt: string,
+    context: BrandContext
+  ): Promise<string | null> {
+    try {
+      const primaryColor = context.design?.colors?.primary || '#4F46E5';
+      const accentColor = context.design?.colors?.accent1 || '#7C3AED';
+      const brandStyle = context.design?.brandStyle || 'modern and professional';
+      const brandName = context.brand?.name || 'Brand';
+      const industry = context.brand?.industry || '';
+      
+      const enhancedPrompt = `${imagePrompt}. 
+Style: ${brandStyle}. 
+Color scheme: Use these brand colors - Primary: ${primaryColor}, 
+Accent: ${accentColor}. 
+Brand: ${brandName}${industry ? `, ${industry} industry` : ''}.
+High quality, professional social media post image, clean composition, vibrant colors, no text overlay.`;
+
+      console.log("[Boosty] Generating image with prompt:", enhancedPrompt.substring(0, 100) + "...");
+      
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-image",
+        contents: enhancedPrompt,
+        config: {
+          responseModalities: [Modality.TEXT, Modality.IMAGE],
+        },
+      });
+
+      if (response.candidates?.[0]?.content?.parts) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData?.data) {
+            const base64Image = part.inlineData.data;
+            const mimeType = part.inlineData.mimeType || "image/png";
+            const dataUrl = `data:${mimeType};base64,${base64Image}`;
+            console.log("[Boosty] Image generated successfully");
+            return dataUrl;
+          }
+        }
+      }
+
+      console.log("[Boosty] No image in response");
+      return null;
+    } catch (error) {
+      console.error("[Boosty] Error generating image:", error);
+      return null;
+    }
+  }
+
+  private async generateImagePrompt(
+    userMessage: string,
+    context: BrandContext,
+    language: "es" | "en"
+  ): Promise<{ imagePrompt: string; caption: string; hashtags: string }> {
+    const prompt = language === "es"
+      ? `Eres un experto en marketing visual. Basándote en esta solicitud del usuario: "${userMessage}"
+         Y el contexto de la marca: ${context.brand.name} (${context.brand.industry || 'general'})
+         
+         Genera un JSON con:
+         1. "imagePrompt": Una descripción detallada en inglés para generar una imagen de marketing (máximo 100 palabras). Describe la escena, colores, estilo, composición. NO incluyas texto en la imagen.
+         2. "caption": Un caption atractivo en español para acompañar la imagen en redes sociales (máximo 150 caracteres).
+         3. "hashtags": 5-7 hashtags relevantes en español.
+         
+         Responde SOLO con el JSON, sin explicaciones adicionales.`
+      : `You are a visual marketing expert. Based on this user request: "${userMessage}"
+         And the brand context: ${context.brand.name} (${context.brand.industry || 'general'})
+         
+         Generate a JSON with:
+         1. "imagePrompt": A detailed description in English to generate a marketing image (max 100 words). Describe the scene, colors, style, composition. Do NOT include text in the image.
+         2. "caption": An engaging caption in English to accompany the image on social media (max 150 characters).
+         3. "hashtags": 5-7 relevant hashtags in English.
+         
+         Respond ONLY with the JSON, no additional explanations.`;
+
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+          temperature: 0.7,
+          maxOutputTokens: 500,
+        },
+      });
+
+      const text = response.text || "";
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          imagePrompt: parsed.imagePrompt || "Professional marketing image",
+          caption: parsed.caption || "",
+          hashtags: parsed.hashtags || "",
+        };
+      }
+    } catch (error) {
+      console.error("[Boosty] Error generating image prompt:", error);
+    }
+
+    return {
+      imagePrompt: "Professional marketing image for social media, modern and clean design",
+      caption: "",
+      hashtags: "",
+    };
+  }
+
   async chat(
     brandId: string,
     userId: string,
     message: string,
     conversationHistory: ChatMessage[] = [],
     language: "es" | "en" = "es"
-  ): Promise<string> {
+  ): Promise<ChatResponse> {
     const context = await this.getBrandContext(brandId, userId);
     const systemPrompt = this.buildSystemPrompt(context, language);
+    const wantsImage = this.isImageRequest(message, language);
+
+    if (wantsImage) {
+      console.log("[Boosty] Image request detected, generating image...");
+      
+      const { imagePrompt, caption, hashtags } = await this.generateImagePrompt(message, context, language);
+      const generatedImage = await this.generateImage(imagePrompt, context);
+
+      if (generatedImage) {
+        const textResponse = language === "es"
+          ? `¡Aquí está tu imagen! 🎨\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
+          : `Here's your image! 🎨\n\n**Suggested caption:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\nWould you like me to make any adjustments or generate another version?`;
+
+        return {
+          text: textResponse,
+          image: generatedImage,
+          imagePrompt,
+        };
+      } else {
+        const errorResponse = language === "es"
+          ? "Lo siento, no pude generar la imagen en este momento. ¿Podrías intentarlo de nuevo o ser más específico con lo que necesitas?"
+          : "Sorry, I couldn't generate the image right now. Could you try again or be more specific about what you need?";
+        
+        return { text: errorResponse };
+      }
+    }
 
     const messages = [
       { role: "user" as const, parts: [{ text: systemPrompt }] },
@@ -403,9 +562,11 @@ ${capabilities}`;
         },
       });
 
-      return response.text || (language === "es" 
-        ? "Lo siento, no pude procesar tu mensaje. ¿Podrías intentar de nuevo?"
-        : "Sorry, I couldn't process your message. Could you try again?");
+      return {
+        text: response.text || (language === "es" 
+          ? "Lo siento, no pude procesar tu mensaje. ¿Podrías intentar de nuevo?"
+          : "Sorry, I couldn't process your message. Could you try again?")
+      };
     } catch (error) {
       console.error("[Boosty] Error generating response:", error);
       throw error;

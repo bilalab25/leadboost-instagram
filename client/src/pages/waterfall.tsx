@@ -63,7 +63,7 @@ export default function Waterfall() {
   };
 
   const [messages, setMessages] = useState<
-    { role: "user" | "assistant"; content: string }[]
+    { role: "user" | "assistant"; content: string; image?: string }[]
   >([
     {
       role: "assistant",
@@ -107,7 +107,8 @@ export default function Waterfall() {
     onSuccess: (data) => {
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: data.response
+        content: data.response,
+        image: data.image
       }]);
     },
     onError: (error) => {
@@ -148,9 +149,9 @@ export default function Waterfall() {
   }, [messages, chatMutation.isPending]);
 
   const suggestions = suggestionsData?.suggestions || [
+    language === "es" ? "Genera una imagen para mi próximo post de Instagram" : "Generate an image for my next Instagram post",
+    language === "es" ? "Crea un diseño promocional para mi marca" : "Create a promotional design for my brand",
     language === "es" ? "Genera una estrategia de redes sociales para Q4" : "Generate a comprehensive Q4 social media strategy",
-    language === "es" ? "Analiza el rendimiento de mis competidores" : "Analyze competitor performance data",
-    language === "es" ? "Crea un calendario de publicaciones para 7 días" : "Create a 7-day posting calendar",
     language === "es" ? "Ayúdame a escribir un post para Instagram" : "Help me write an Instagram post",
   ];
 
@@ -312,52 +313,78 @@ export default function Waterfall() {
                                 }`}
                               >
                                 {msg.role === "assistant" ? (
-                                  <ReactMarkdown
-                                    remarkPlugins={[remarkGfm]}
-                                    components={{
-                                      p: (props) => (
-                                        <p className="mb-2 last:mb-0" {...props} />
-                                      ),
-                                      strong: (props) => (
-                                        <strong className="font-semibold" {...props} />
-                                      ),
-                                      em: (props) => (
-                                        <em className="italic" {...props} />
-                                      ),
-                                      ul: (props) => (
-                                        <ul className="list-disc ml-5 my-2" {...props} />
-                                      ),
-                                      ol: (props) => (
-                                        <ol className="list-decimal ml-5 my-2" {...props} />
-                                      ),
-                                      li: (props) => <li className="my-1" {...props} />,
-                                      a: (props) => (
-                                        <a
-                                          className="text-brand-600 dark:text-cyan-400 underline"
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          {...props}
-                                        />
-                                      ),
-                                      code: (props) => (
-                                        <code className="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm" {...props} />
-                                      ),
-                                      hr: (props) => (
-                                        <hr className="my-3 border-t border-gray-300 dark:border-gray-600" {...props} />
-                                      ),
-                                      img: ({ src, alt }) => (
-                                        <img
-                                          src={src}
-                                          alt={alt || "Preview"}
-                                          className="w-full max-w-md rounded-lg shadow-md my-3 object-cover"
-                                          style={{ maxHeight: "400px" }}
-                                          data-testid="image-preview"
-                                        />
-                                      ),
-                                    }}
-                                  >
-                                    {msg.content}
-                                  </ReactMarkdown>
+                                  <>
+                                    {msg.image && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="mb-4"
+                                      >
+                                        <div className="relative group">
+                                          <img
+                                            src={msg.image}
+                                            alt="Generated content"
+                                            className="w-full max-w-md rounded-xl shadow-lg object-cover cursor-pointer hover:shadow-xl transition-shadow"
+                                            style={{ maxHeight: "400px" }}
+                                            data-testid="generated-image"
+                                            onClick={() => window.open(msg.image, '_blank')}
+                                          />
+                                          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Badge className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white text-xs">
+                                              <Sparkles className="w-3 h-3 mr-1" />
+                                              {language === "es" ? "IA Generada" : "AI Generated"}
+                                            </Badge>
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                    <ReactMarkdown
+                                      remarkPlugins={[remarkGfm]}
+                                      components={{
+                                        p: (props) => (
+                                          <p className="mb-2 last:mb-0" {...props} />
+                                        ),
+                                        strong: (props) => (
+                                          <strong className="font-semibold" {...props} />
+                                        ),
+                                        em: (props) => (
+                                          <em className="italic" {...props} />
+                                        ),
+                                        ul: (props) => (
+                                          <ul className="list-disc ml-5 my-2" {...props} />
+                                        ),
+                                        ol: (props) => (
+                                          <ol className="list-decimal ml-5 my-2" {...props} />
+                                        ),
+                                        li: (props) => <li className="my-1" {...props} />,
+                                        a: (props) => (
+                                          <a
+                                            className="text-brand-600 dark:text-cyan-400 underline"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            {...props}
+                                          />
+                                        ),
+                                        code: (props) => (
+                                          <code className="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm" {...props} />
+                                        ),
+                                        hr: (props) => (
+                                          <hr className="my-3 border-t border-gray-300 dark:border-gray-600" {...props} />
+                                        ),
+                                        img: ({ src, alt }) => (
+                                          <img
+                                            src={src}
+                                            alt={alt || "Preview"}
+                                            className="w-full max-w-md rounded-lg shadow-md my-3 object-cover"
+                                            style={{ maxHeight: "400px" }}
+                                            data-testid="image-preview"
+                                          />
+                                        ),
+                                      }}
+                                    >
+                                      {msg.content}
+                                    </ReactMarkdown>
+                                  </>
                                 ) : (
                                   <span className="whitespace-pre-wrap">{msg.content}</span>
                                 )}
