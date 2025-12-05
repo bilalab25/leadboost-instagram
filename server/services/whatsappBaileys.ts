@@ -19,6 +19,9 @@ interface WhatsAppSession {
   lastActivity: Date;
   userId: string;
   brandId: string;
+  reconnectTimer: NodeJS.Timeout | null;
+  isReconnecting: boolean;
+  reconnectAttempts: number;
 }
 
 interface IncomingMessage {
@@ -34,6 +37,8 @@ interface IncomingMessage {
 class WhatsAppBaileysService extends EventEmitter {
   private sessions: Map<string, WhatsAppSession> = new Map();
   private authBasePath = "./whatsapp-sessions";
+  private maxReconnectAttempts = 5;
+  private baseReconnectDelay = 3000;
 
   constructor() {
     super();
@@ -50,6 +55,86 @@ class WhatsAppBaileysService extends EventEmitter {
     return path.join(this.authBasePath, sessionKey);
   }
 
+  private cleanupSession(sessionKey: string, options: { removeCredentials?: boolean; removeFromMap?: boolean } = {}): void {
+    const session = this.sessions.get(sessionKey);
+    if (!session) return;
+
+    console.log(`🧹 [WhatsApp Baileys] Cleaning up session: ${sessionKey}`);
+
+    if (session.reconnectTimer) {
+      clearTimeout(session.reconnectTimer);
+      session.reconnectTimer = null;
+    }
+
+    if (session.socket) {
+      try {
+        session.socket.ev.removeAllListeners("connection.update");
+        session.socket.ev.removeAllListeners("creds.update");
+        session.socket.ev.removeAllListeners("messages.upsert");
+        session.socket.end(new Error("Session cleanup"));
+      } catch (e) {
+        console.log(`⚠️ [WhatsApp Baileys] Error ending socket: ${e}`);
+      }
+      session.socket = null;
+    }
+
+    session.qrCode = null;
+    session.isReconnecting = false;
+
+    if (options.removeCredentials) {
+      const authPath = this.getAuthPath(sessionKey);
+      if (fs.existsSync(authPath)) {
+        try {
+          fs.rmSync(authPath, { recursive: true, force: true });
+          console.log(`🗑️ [WhatsApp Baileys] Removed credentials for: ${sessionKey}`);
+        } catch (e) {
+          console.error(`❌ [WhatsApp Baileys] Error removing credentials: ${e}`);
+        }
+      }
+    }
+
+    if (options.removeFromMap) {
+      this.sessions.delete(sessionKey);
+    }
+  }
+
+  private scheduleReconnect(userId: string, brandId: string, sessionKey: string): void {
+    const session = this.sessions.get(sessionKey);
+    if (!session) return;
+
+    if (session.isReconnecting) {
+      console.log(`⏳ [WhatsApp Baileys] Reconnect already scheduled for: ${sessionKey}`);
+      return;
+    }
+
+    if (session.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.log(`❌ [WhatsApp Baileys] Max reconnect attempts reached for: ${sessionKey}`);
+      session.status = "disconnected";
+      this.emit("max_reconnect_reached", { sessionKey });
+      return;
+    }
+
+    session.isReconnecting = true;
+    const delay = this.baseReconnectDelay * Math.pow(1.5, session.reconnectAttempts);
+    
+    console.log(`🔄 [WhatsApp Baileys] Scheduling reconnect in ${delay}ms (attempt ${session.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
+
+    session.reconnectTimer = setTimeout(async () => {
+      session.isReconnecting = false;
+      session.reconnectAttempts++;
+      
+      this.cleanupSession(sessionKey, { removeCredentials: false, removeFromMap: false });
+      
+      session.status = "disconnected";
+      
+      try {
+        await this.initSession(userId, brandId);
+      } catch (error) {
+        console.error(`❌ [WhatsApp Baileys] Reconnect failed: ${error}`);
+      }
+    }, delay);
+  }
+
   async initSession(userId: string, brandId: string): Promise<{ qrCode: string | null; status: string }> {
     const sessionKey = this.getSessionKey(userId, brandId);
     
@@ -58,8 +143,17 @@ class WhatsAppBaileysService extends EventEmitter {
       return { qrCode: null, status: "already_connected" };
     }
 
-    if (existingSession?.status === "connecting" || existingSession?.status === "qr_ready") {
+    if (existingSession?.isReconnecting) {
+      console.log(`⏳ [WhatsApp Baileys] Session is reconnecting, waiting...`);
+      return { qrCode: existingSession.qrCode, status: "reconnecting" };
+    }
+
+    if (existingSession?.status === "qr_ready" && existingSession.qrCode) {
       return { qrCode: existingSession.qrCode, status: existingSession.status };
+    }
+
+    if (existingSession?.socket) {
+      this.cleanupSession(sessionKey, { removeCredentials: false, removeFromMap: false });
     }
 
     const session: WhatsAppSession = {
@@ -70,6 +164,9 @@ class WhatsAppBaileysService extends EventEmitter {
       lastActivity: new Date(),
       userId,
       brandId,
+      reconnectTimer: null,
+      isReconnecting: false,
+      reconnectAttempts: existingSession?.reconnectAttempts || 0,
     };
     this.sessions.set(sessionKey, session);
 
@@ -82,6 +179,7 @@ class WhatsAppBaileysService extends EventEmitter {
         printQRInTerminal: false,
         browser: ["CampAIgner", "Chrome", "1.0.0"],
         syncFullHistory: false,
+        markOnlineOnConnect: false,
       });
 
       session.socket = socket;
@@ -99,6 +197,7 @@ class WhatsAppBaileysService extends EventEmitter {
             });
             session.qrCode = qrDataUrl;
             session.status = "qr_ready";
+            session.reconnectAttempts = 0;
             this.emit("qr", { sessionKey, qrCode: qrDataUrl });
             console.log(`📱 [WhatsApp Baileys] QR code generated for session: ${sessionKey}`);
           } catch (err) {
@@ -107,24 +206,40 @@ class WhatsAppBaileysService extends EventEmitter {
         }
 
         if (connection === "close") {
-          const shouldReconnect =
-            (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+          const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+          const errorMessage = (lastDisconnect?.error as Boom)?.message || "Unknown error";
+          
+          console.log(`🔴 [WhatsApp Baileys] Connection closed for ${sessionKey}. Status: ${statusCode}, Error: ${errorMessage}`);
 
-          console.log(`🔴 [WhatsApp Baileys] Connection closed for ${sessionKey}. Reconnect: ${shouldReconnect}`);
-
-          if (shouldReconnect) {
-            session.status = "connecting";
-            setTimeout(() => this.initSession(userId, brandId), 5000);
-          } else {
+          if (statusCode === DisconnectReason.loggedOut) {
+            console.log(`🚪 [WhatsApp Baileys] User logged out, clearing credentials`);
+            this.cleanupSession(sessionKey, { removeCredentials: true, removeFromMap: false });
             session.status = "disconnected";
-            session.socket = null;
-            session.qrCode = null;
-            this.emit("disconnected", { sessionKey });
+            session.reconnectAttempts = 0;
+            this.emit("logged_out", { sessionKey });
+          } else if (statusCode === 515 || statusCode === DisconnectReason.restartRequired) {
+            console.log(`🔄 [WhatsApp Baileys] Stream error 515 / restart required, reconnecting...`);
+            this.cleanupSession(sessionKey, { removeCredentials: false, removeFromMap: false });
+            session.status = "connecting";
+            this.scheduleReconnect(userId, brandId, sessionKey);
+          } else if (statusCode === DisconnectReason.connectionClosed || 
+                     statusCode === DisconnectReason.connectionLost ||
+                     statusCode === DisconnectReason.timedOut) {
+            console.log(`🔄 [WhatsApp Baileys] Connection issue, reconnecting...`);
+            this.cleanupSession(sessionKey, { removeCredentials: false, removeFromMap: false });
+            session.status = "connecting";
+            this.scheduleReconnect(userId, brandId, sessionKey);
+          } else {
+            console.log(`⚠️ [WhatsApp Baileys] Unknown disconnect reason: ${statusCode}`);
+            this.cleanupSession(sessionKey, { removeCredentials: false, removeFromMap: false });
+            session.status = "disconnected";
+            this.emit("disconnected", { sessionKey, reason: errorMessage });
           }
         } else if (connection === "open") {
           session.status = "connected";
           session.qrCode = null;
           session.lastActivity = new Date();
+          session.reconnectAttempts = 0;
 
           const phoneNumber = socket.user?.id?.split(":")[0] || socket.user?.id;
           session.phoneNumber = phoneNumber || null;
@@ -201,7 +316,7 @@ class WhatsAppBaileysService extends EventEmitter {
     }
 
     return {
-      status: session.status,
+      status: session.isReconnecting ? "reconnecting" : session.status,
       qrCode: session.qrCode,
       phoneNumber: session.phoneNumber,
     };
@@ -229,7 +344,7 @@ class WhatsAppBaileysService extends EventEmitter {
       const result = await session.socket.sendMessage(jid, { text: message });
 
       console.log(`📤 [WhatsApp Baileys] Message sent to ${to}`);
-      return { success: true, messageId: result?.key?.id };
+      return { success: true, messageId: result?.key?.id || undefined };
     } catch (error) {
       console.error(`❌ [WhatsApp Baileys] Error sending message:`, error);
       return { success: false, error: String(error) };
@@ -269,7 +384,7 @@ class WhatsAppBaileysService extends EventEmitter {
       const result = await session.socket.sendMessage(jid, messageContent);
 
       console.log(`📤 [WhatsApp Baileys] Media sent to ${to}`);
-      return { success: true, messageId: result?.key?.id };
+      return { success: true, messageId: result?.key?.id || undefined };
     } catch (error) {
       console.error(`❌ [WhatsApp Baileys] Error sending media:`, error);
       return { success: false, error: String(error) };
@@ -280,23 +395,21 @@ class WhatsAppBaileysService extends EventEmitter {
     const sessionKey = this.getSessionKey(userId, brandId);
     const session = this.sessions.get(sessionKey);
 
-    if (!session || !session.socket) {
+    if (!session) {
       return false;
     }
 
     try {
-      await session.socket.logout();
-      session.socket = null;
-      session.status = "disconnected";
-      session.qrCode = null;
-      session.phoneNumber = null;
-
-      const authPath = this.getAuthPath(sessionKey);
-      if (fs.existsSync(authPath)) {
-        fs.rmSync(authPath, { recursive: true, force: true });
+      if (session.socket) {
+        try {
+          await session.socket.logout();
+        } catch (e) {
+          console.log(`⚠️ [WhatsApp Baileys] Logout error (expected): ${e}`);
+        }
       }
 
-      this.sessions.delete(sessionKey);
+      this.cleanupSession(sessionKey, { removeCredentials: true, removeFromMap: true });
+
       console.log(`🔴 [WhatsApp Baileys] Session disconnected: ${sessionKey}`);
       return true;
     } catch (error) {
