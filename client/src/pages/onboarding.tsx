@@ -961,7 +961,7 @@ export default function Onboarding() {
     try {
       await apiRequest(
         "DELETE",
-        `/api/brand-assets/${assetId}?brandId=${createdBrandId}`,
+        `/api/brand-assets/${assetId}?brandId=${createdBrandId}&brandDesignId=${brandDesign?.id}`,
       );
       await queryClientInstance.invalidateQueries({
         queryKey: ["/api/brand-assets", createdBrandId, brandDesign?.id],
