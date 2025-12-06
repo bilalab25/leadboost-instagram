@@ -708,6 +708,20 @@ export default function Onboarding() {
     },
   });
 
+  // Populate form with existing brand data when going back to step 1
+  useEffect(() => {
+    if (createdBrandId && currentStep === 1 && brands.length > 0) {
+      const existingBrand = brands.find((b: any) => b.id === createdBrandId);
+      if (existingBrand) {
+        createForm.reset({
+          name: existingBrand.name || "",
+          industry: existingBrand.industry || "",
+          description: existingBrand.description || "",
+        });
+      }
+    }
+  }, [createdBrandId, currentStep, brands]);
+
   // Mutations
   const createBrandMutation = useMutation({
     mutationFn: async (data: CreateBrandForm) => {
@@ -737,6 +751,35 @@ export default function Onboarding() {
         description:
           error.message ||
           (isSpanish ? "No se pudo crear la marca" : "Failed to create brand"),
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update existing brand mutation (when user goes back to step 1)
+  const updateBrandMutation = useMutation({
+    mutationFn: async (data: CreateBrandForm & { brandId: number }) => {
+      const { brandId, ...updateData } = data;
+      const res = await apiRequest("PUT", `/api/brands/${brandId}`, updateData);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: isSpanish ? "¡Marca actualizada!" : "Brand updated!",
+        description: isSpanish
+          ? "Tu marca ha sido actualizada."
+          : "Your brand has been updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/brand-memberships"] });
+      refreshBrands();
+      setCurrentStep(2);
+    },
+    onError: (error: any) => {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description:
+          error.message ||
+          (isSpanish ? "No se pudo actualizar la marca" : "Failed to update brand"),
         variant: "destructive",
       });
     },
@@ -1020,7 +1063,12 @@ export default function Onboarding() {
 
   // Form submission handlers
   const onCreateSubmit = (data: CreateBrandForm) => {
-    createBrandMutation.mutate(data);
+    // If brand already exists (user went back to step 1), update instead of create
+    if (createdBrandId) {
+      updateBrandMutation.mutate({ ...data, brandId: createdBrandId });
+    } else {
+      createBrandMutation.mutate(data);
+    }
   };
 
   const onJoinSubmit = (data: JoinBrandForm) => {
@@ -1377,13 +1425,13 @@ export default function Onboarding() {
                     <Button
                       type="submit"
                       className="flex-1"
-                      disabled={createBrandMutation.isPending}
+                      disabled={createBrandMutation.isPending || updateBrandMutation.isPending}
                       data-testid="button-next-step-1"
                     >
-                      {createBrandMutation.isPending
+                      {createBrandMutation.isPending || updateBrandMutation.isPending
                         ? isSpanish
-                          ? "Creando..."
-                          : "Creating..."
+                          ? createdBrandId ? "Actualizando..." : "Creando..."
+                          : createdBrandId ? "Updating..." : "Creating..."
                         : isSpanish
                           ? "Siguiente"
                           : "Next"}
