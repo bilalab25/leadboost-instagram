@@ -47,6 +47,7 @@ interface SocialAccount {
 
 const platformIcons = {
   instagram: Instagram,
+  instagram_direct: Instagram,
   whatsapp: SiWhatsapp,
   whatsapp_baileys: SiWhatsapp,
   email: Mail,
@@ -56,6 +57,7 @@ const platformIcons = {
 
 const platformColors = {
   instagram: "text-pink-500",
+  instagram_direct: "text-pink-500",
   whatsapp: "text-green-500",
   whatsapp_baileys: "text-green-500",
   email: "text-primary",
