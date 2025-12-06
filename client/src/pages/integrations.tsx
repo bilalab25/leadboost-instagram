@@ -516,13 +516,42 @@ export default function IntegrationsPage() {
     fetchLightspeedStatus();
   }, [activeBrandId]);
 
-  // Check for OAuth error query parameters in the URL
+  // Check for OAuth success/error query parameters in the URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get("error");
     const provider = urlParams.get("provider");
     const message = urlParams.get("message");
+    const connected = urlParams.get("connected");
 
+    // Handle successful connection
+    if (connected) {
+      const providerNames: { [key: string]: string } = {
+        facebook: "Facebook",
+        instagram: "Instagram",
+        instagram_direct: "Instagram",
+        whatsapp: "WhatsApp",
+        threads: "Threads",
+      };
+      const providerName = providerNames[connected] || connected;
+      
+      toast({
+        title: isSpanish ? "¡Conexión exitosa!" : "Connection Successful!",
+        description: isSpanish 
+          ? `${providerName} se ha conectado correctamente.`
+          : `${providerName} has been connected successfully.`,
+      });
+
+      // Refresh integrations list
+      fetchIntegrations();
+
+      // Clean up the URL without refreshing the page
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      return;
+    }
+
+    // Handle errors
     if (error && provider) {
       // Map error codes to user-friendly messages
       const errorMessages: { [key: string]: { en: string; es: string } } = {
@@ -557,6 +586,10 @@ export default function IntegrationsPage() {
         no_pages: {
           en: message || "No Facebook Pages found. Please create a Facebook Page first.",
           es: message || "No se encontraron páginas de Facebook. Por favor, crea una primero.",
+        },
+        save_failed: {
+          en: message || "Failed to save the integration. Please try again.",
+          es: message || "Error al guardar la integración. Por favor, inténtalo de nuevo.",
         },
       };
 

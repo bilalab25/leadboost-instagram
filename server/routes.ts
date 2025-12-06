@@ -3212,37 +3212,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 5️⃣ Save Facebook Integration
       // -----------------------------------------
+      console.log("📘 [Facebook Callback] Saving Facebook integration to database...");
       const expiresAt = tokenData.expires_in
         ? dayjs().add(tokenData.expires_in, "seconds").toDate()
         : null;
 
-      await storage.createOrUpdateIntegration({
-        userId,
-        brandId,
-        provider: "facebook",
-        category: "social_media",
-        storeName: "Facebook",
-        storeUrl: `https://facebook.com/${page.id}`,
-        accountId: page.id,
-        accountName: page.name,
-        pageId: page.id,
-        accessToken: pageAccessToken,
-        expiresAt,
-        isActive: true,
-        syncEnabled: true,
-        metadata: {
-          fbPageName: page.name,
-          fbCategory: page.category,
-          fbPermissions: page.tasks || [],
-          source: "facebook_callback",
-        },
-      });
+      try {
+        await storage.createOrUpdateIntegration({
+          userId,
+          brandId,
+          provider: "facebook",
+          category: "social_media",
+          storeName: "Facebook",
+          storeUrl: `https://facebook.com/${page.id}`,
+          accountId: page.id,
+          accountName: page.name,
+          pageId: page.id,
+          accessToken: pageAccessToken,
+          expiresAt,
+          isActive: true,
+          syncEnabled: true,
+          metadata: {
+            fbPageName: page.name,
+            fbCategory: page.category,
+            fbPermissions: page.tasks || [],
+            source: "facebook_callback",
+          },
+        });
+        console.log("✅ [Facebook Callback] Facebook integration saved successfully");
+      } catch (dbErr) {
+        console.error("❌ [Facebook Callback] Failed to save integration:", dbErr);
+        return res.redirect("/integrations?error=save_failed&provider=facebook&message=" + encodeURIComponent("Failed to save integration. Please try again."));
+      }
 
       // -----------------------------------------
       // 6️⃣ SUBSCRIBE PAGE TO WEBHOOK EVENTS
       // -----------------------------------------
+      console.log("📘 [Facebook Callback] Subscribing to webhook events...");
       try {
-        await fetch(
+        const subscribeRes = await fetch(
           `https://graph.facebook.com/v24.0/${page.id}/subscribed_apps`,
           {
             method: "POST",
@@ -3261,8 +3269,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }),
           },
         );
+        const subscribeData = await subscribeRes.json();
+        console.log("📘 [Facebook Callback] Webhook subscription response:", JSON.stringify(subscribeData));
       } catch (err) {
-        console.error("❌ Subscription error:", err);
+        console.error("❌ [Facebook Callback] Subscription error:", err);
       }
 
       // -----------------------------------------
@@ -3350,9 +3360,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // -----------------------------------------
-      // 9️⃣ Redirect
+      // 9️⃣ Redirect to integrations page with success
       // -----------------------------------------
-      return res.redirect(`/settings?connected=${connectedType}`);
+      console.log(`✅ [Facebook Callback] Successfully connected ${connectedType} for brand ${brandId}`);
+      return res.redirect(`/integrations?connected=${connectedType}`);
     } catch (err) {
       console.error("❌ Facebook callback error:", err);
       return res.status(500).send("Error in Facebook callback");
@@ -3881,7 +3892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       console.log(`✅ WhatsApp connected for brand ${brandId}: ${wabaId}`);
-      res.redirect(`/settings?connected=whatsapp`);
+      res.redirect(`/integrations?connected=whatsapp`);
     } catch (err: any) {
       console.error("❌ WhatsApp callback error:", err.message || err);
       res
