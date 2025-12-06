@@ -1811,6 +1811,25 @@ export default function Onboarding() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-amber-100 dark:bg-amber-800 rounded-full p-2">
+                    <Palette className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-amber-800 dark:text-amber-200">
+                      {isSpanish 
+                        ? "💡 Estos colores y estilos se usarán para generar contenido con IA"
+                        : "💡 These colors and styles will be used to generate AI content"}
+                    </p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                      {isSpanish 
+                        ? "Asegúrate de que reflejen la identidad de tu marca"
+                        : "Make sure they reflect your brand identity"}
+                    </p>
+                  </div>
+                </div>
+              </div>
               {isDesignLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -1937,11 +1956,18 @@ export default function Onboarding() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <p className="text-sm text-gray-500 mb-3">
-                        {isSpanish 
-                          ? "📌 Formato PNG con fondo transparente recomendado" 
-                          : "📌 PNG format with transparent background recommended"}
-                      </p>
+                      <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 rounded-r-lg p-3 mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="bg-blue-100 dark:bg-blue-800 rounded-full p-1.5">
+                            <Image className="h-4 w-4 text-blue-600 dark:text-blue-300" />
+                          </div>
+                          <p className="font-medium text-blue-800 dark:text-blue-200">
+                            {isSpanish 
+                              ? "⚠️ Importante: Formato PNG con fondo transparente" 
+                              : "⚠️ Important: PNG format with transparent background"}
+                          </p>
+                        </div>
+                      </div>
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
                         {/* Light Logo */}
                         <div className="space-y-2">
@@ -2267,6 +2293,25 @@ export default function Onboarding() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-green-100 dark:bg-green-800 rounded-full p-2">
+                    <Image className="h-4 w-4 text-green-600 dark:text-green-300" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-green-800 dark:text-green-200">
+                      {isSpanish 
+                        ? "📁 Estos archivos estarán disponibles para tu contenido de marketing"
+                        : "📁 These files will be available for your marketing content"}
+                    </p>
+                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                      {isSpanish 
+                        ? "Sube fotos de productos, materiales promocionales o cualquier recurso de marca"
+                        : "Upload product photos, promotional materials, or any brand resources"}
+                    </p>
+                  </div>
+                </div>
+              </div>
               {isAssetsLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -2824,6 +2869,25 @@ export default function Onboarding() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-purple-100 dark:bg-purple-800 rounded-full p-2">
+                    <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-purple-800 dark:text-purple-200">
+                      {isSpanish 
+                        ? "📅 Define tu calendario de publicación para cada red social"
+                        : "📅 Set your posting schedule for each social network"}
+                    </p>
+                    <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
+                      {isSpanish 
+                        ? "La IA usará esta configuración para planificar tu contenido automáticamente"
+                        : "AI will use this setting to automatically plan your content"}
+                    </p>
+                  </div>
+                </div>
+              </div>
               {/* AI Suggestion Banner */}
               {!isEditingFrequency && postingSchedules.length > 0 && (
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
