@@ -879,15 +879,8 @@ export default function Onboarding() {
       return;
     }
 
-    const popup = window.open(url, "_blank", "width=600,height=700");
-
-    const timer = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(timer);
-        setConnectingProvider(null);
-        window.location.reload();
-      }
-    }, 1000);
+    // Navigate in same window instead of opening new tab
+    window.location.href = url;
   };
 
   // Handle disconnecting integrations
@@ -1944,11 +1937,16 @@ export default function Onboarding() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
+                      <p className="text-sm text-gray-500 mb-3">
+                        {isSpanish 
+                          ? "📌 Formato PNG con fondo transparente recomendado" 
+                          : "📌 PNG format with transparent background recommended"}
+                      </p>
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
-                        {/* White Logo */}
+                        {/* Light Logo */}
                         <div className="space-y-2">
                           <Label>
-                            {isSpanish ? "Logo Claro" : "White Logo"}
+                            {isSpanish ? "Logo Claro" : "Light Logo"}
                           </Label>
                           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                             {whiteLogoPreviewUrl ? (
@@ -2000,10 +1998,10 @@ export default function Onboarding() {
                           </div>
                         </div>
 
-                        {/* Black Logo */}
+                        {/* Dark Logo */}
                         <div className="space-y-2">
                           <Label>
-                            {isSpanish ? "Logo Oscuro" : "Black Logo"}
+                            {isSpanish ? "Logo Oscuro" : "Dark Logo"}
                           </Label>
                           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                             {blackLogoPreviewUrl ? (
@@ -2055,10 +2053,10 @@ export default function Onboarding() {
                           </div>
                         </div>
 
-                        {/* White Favicon */}
+                        {/* Light Favicon */}
                         <div className="space-y-2">
                           <Label>
-                            {isSpanish ? "Favicon Claro" : "White Favicon"}
+                            {isSpanish ? "Favicon Claro" : "Light Favicon"}
                           </Label>
                           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                             {whiteFaviconPreviewUrl ? (
@@ -2112,10 +2110,10 @@ export default function Onboarding() {
                           </div>
                         </div>
 
-                        {/* Black Favicon */}
+                        {/* Dark Favicon */}
                         <div className="space-y-2">
                           <Label>
-                            {isSpanish ? "Favicon Oscuro" : "Black Favicon"}
+                            {isSpanish ? "Favicon Oscuro" : "Dark Favicon"}
                           </Label>
                           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                             {blackFaviconPreviewUrl ? (
