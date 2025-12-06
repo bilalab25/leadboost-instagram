@@ -27,6 +27,7 @@ import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function BrandIdentity({
+  activeBrandId,
   brandDesign,
   brandStyles,
   selectedStyle,
@@ -113,7 +114,7 @@ export default function BrandIdentity({
         if (previewUrl && previewUrl.startsWith("http") && brandDesign?.id) {
           const res = await apiRequest(
             "DELETE",
-            `/api/brand-design/logo/${logoType}?brandDesignId=${brandDesign.id}`,
+            `/api/brand-design/logo/${logoType}?brandId=${activeBrandId}&brandDesignId=${brandDesign.id}`,
           );
 
           if (!res.ok) throw new Error("Failed to delete from Cloudinary");

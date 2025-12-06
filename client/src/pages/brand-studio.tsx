@@ -773,6 +773,7 @@ export default function BrandStudio() {
 
                   {/* Brand Identity Tab */}
                   <BrandIdentity
+                    activeBrandId={activeBrandId}
                     brandDesign={brandDesign}
                     brandStyles={brandStyles}
                     selectedStyle={selectedStyle}
