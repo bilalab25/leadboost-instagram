@@ -83,6 +83,8 @@ export const brands = pgTable("brands", {
   description: text("description"),
   settings: jsonb("settings"), // brand-specific settings
   isActive: boolean("is_active").default(true),
+  onboardingStep: integer("onboarding_step").default(1), // Current step in onboarding (1-5)
+  onboardingCompleted: boolean("onboarding_completed").default(false), // Whether onboarding is finished
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
