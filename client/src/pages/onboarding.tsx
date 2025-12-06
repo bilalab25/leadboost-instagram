@@ -243,9 +243,16 @@ const INTEGRATION_PROVIDERS = {
     category: "ecommerce",
   },
   instagram: {
-    name: "Instagram",
+    name: "Instagram (via Facebook)",
     icon: Instagram,
-    description: "Connect your Instagram account for posts and analytics",
+    description: "Manage Instagram through your Facebook Business Page",
+    category: "social_media",
+    isOAuthSupported: true,
+  },
+  instagram_direct: {
+    name: "Instagram Direct",
+    icon: Instagram,
+    description: "Connect directly to Instagram for messaging and content",
     category: "social_media",
     isOAuthSupported: true,
   },
@@ -257,11 +264,18 @@ const INTEGRATION_PROVIDERS = {
     isOAuthSupported: true,
   },
   whatsapp: {
-    name: "WhatsApp",
+    name: "WhatsApp Business (Meta)",
     icon: MessageCircle,
-    description: "Connect WhatsApp Business for customer messaging",
+    description: "Official WhatsApp Cloud API integration",
     category: "social_media",
     isOAuthSupported: true,
+  },
+  whatsapp_baileys: {
+    name: "WhatsApp (QR Code)",
+    icon: MessageCircle,
+    description: "Connect via QR code - experimental",
+    category: "social_media",
+    isOAuthSupported: false,
   },
   tiktok: {
     name: "TikTok",
@@ -559,6 +573,14 @@ export default function Onboarding() {
     null,
   );
 
+  // WhatsApp Baileys state
+  const [isWhatsAppDialogOpen, setIsWhatsAppDialogOpen] = useState(false);
+  const [baileysQrCode, setBaileysQrCode] = useState<string | null>(null);
+  const [baileysStatus, setBaileysStatus] = useState<"disconnected" | "connecting" | "qr_ready" | "connected" | "error">("disconnected");
+  const [baileysPhone, setBaileysPhone] = useState<string | null>(null);
+  const [isBaileysConnecting, setIsBaileysConnecting] = useState(false);
+  const [baileysPollingInterval, setBaileysPollingInterval] = useState<NodeJS.Timeout | null>(null);
+
   useGoogleFontLoader([primaryFont, secondaryFont]);
 
   // Query brand design data after brand is created
@@ -623,6 +645,180 @@ export default function Onboarding() {
     retry: false,
   });
 
+  // Helper function to check if provider is connected
+  const isProviderConnected = (providerKey: string) => {
+    if (providerKey === "whatsapp") {
+      return integrations.some(
+        (i) => (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") && i.isActive
+      );
+    }
+    return integrations.some((i) => i.provider === providerKey && i.isActive);
+  };
+
+  const getConnectedIntegration = (providerKey: string) => {
+    if (providerKey === "whatsapp" || providerKey === "whatsapp_baileys") {
+      return integrations.find(
+        (i) => (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") && i.isActive
+      );
+    }
+    return integrations.find((i) => i.provider === providerKey && i.isActive);
+  };
+
+  // Instagram mutual exclusivity
+  const hasInstagramViaFacebook = isProviderConnected("instagram");
+  const hasInstagramDirect = isProviderConnected("instagram_direct");
+  const hasAnyInstagram = hasInstagramViaFacebook || hasInstagramDirect;
+
+  // WhatsApp mutual exclusivity
+  const hasWhatsAppBusiness = integrations.some((i) => i.provider === "whatsapp" && i.isActive);
+  const hasWhatsAppBaileys = integrations.some((i) => i.provider === "whatsapp_baileys" && i.isActive);
+  const hasAnyWhatsApp = hasWhatsAppBusiness || hasWhatsAppBaileys;
+
+  const isProviderDisabledByConflict = (providerKey: string): boolean => {
+    // Instagram conflicts
+    if (providerKey === "instagram" && hasInstagramDirect) return true;
+    if (providerKey === "instagram_direct" && hasInstagramViaFacebook) return true;
+    // WhatsApp conflicts
+    if (providerKey === "whatsapp" && hasWhatsAppBaileys) return true;
+    if (providerKey === "whatsapp_baileys" && hasWhatsAppBusiness) return true;
+    return false;
+  };
+
+  // WhatsApp Baileys handlers
+  const handleBaileysConnect = async () => {
+    if (!effectiveBrandId) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish ? "Selecciona una marca primero" : "Select a brand first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsBaileysConnecting(true);
+    setBaileysQrCode(null);
+    setBaileysStatus("connecting");
+
+    try {
+      const res = await fetch("/api/whatsapp-baileys/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandId: effectiveBrandId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to start connection");
+      }
+
+      if (data.status === "already_connected") {
+        setBaileysStatus("connected");
+        setBaileysPhone(data.phoneNumber);
+        toast({
+          title: isSpanish ? "Ya conectado" : "Already connected",
+          description: isSpanish ? "Tu WhatsApp ya está conectado" : "Your WhatsApp is already connected",
+        });
+        return;
+      }
+
+      if (data.qrCode) {
+        setBaileysQrCode(data.qrCode);
+        setBaileysStatus("qr_ready");
+      }
+
+      // Start polling for status updates
+      startBaileysPolling();
+    } catch (error) {
+      console.error("Baileys connection error:", error);
+      setBaileysStatus("error");
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: error instanceof Error ? error.message : "Failed to connect",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBaileysConnecting(false);
+    }
+  };
+
+  const startBaileysPolling = () => {
+    if (baileysPollingInterval) {
+      clearInterval(baileysPollingInterval);
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/whatsapp-baileys/status?brandId=${effectiveBrandId}`);
+        const data = await res.json();
+
+        if (data.status === "connected") {
+          setBaileysStatus("connected");
+          setBaileysPhone(data.phoneNumber);
+          setBaileysQrCode(null);
+          clearInterval(interval);
+          setBaileysPollingInterval(null);
+
+          toast({
+            title: isSpanish ? "¡Conectado!" : "Connected!",
+            description: isSpanish ? "WhatsApp conectado exitosamente" : "WhatsApp connected successfully",
+          });
+          refetchIntegrations();
+          setIsWhatsAppDialogOpen(false);
+        } else if (data.qrCode && data.qrCode !== baileysQrCode) {
+          setBaileysQrCode(data.qrCode);
+          setBaileysStatus("qr_ready");
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
+    }, 3000);
+
+    setBaileysPollingInterval(interval);
+
+    // Timeout after 2 minutes
+    setTimeout(() => {
+      if (baileysPollingInterval) {
+        clearInterval(baileysPollingInterval);
+        setBaileysPollingInterval(null);
+        if (baileysStatus !== "connected") {
+          setBaileysStatus("disconnected");
+          toast({
+            title: isSpanish ? "Tiempo agotado" : "Timeout",
+            description: isSpanish ? "La conexión tardó demasiado" : "Connection timed out",
+            variant: "destructive",
+          });
+        }
+      }
+    }, 120000);
+  };
+
+  const handleBaileysDisconnect = async () => {
+    try {
+      const res = await fetch("/api/whatsapp-baileys/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandId: effectiveBrandId }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setBaileysStatus("disconnected");
+        setBaileysQrCode(null);
+        setBaileysPhone(null);
+        refetchIntegrations();
+
+        toast({
+          title: isSpanish ? "Desconectado" : "Disconnected",
+          description: isSpanish ? "WhatsApp ha sido desconectado" : "WhatsApp has been disconnected",
+        });
+      }
+    } catch (error) {
+      console.error("Disconnect error:", error);
+    }
+  };
+
   // Handle connecting integrations (OAuth flow)
   const handleConnect = (provider: string) => {
     if (!effectiveBrandId) {
@@ -639,8 +835,15 @@ export default function Onboarding() {
 
     if (["facebook", "instagram", "threads"].includes(provider)) {
       url = `/api/integrations/facebook/connect?brandId=${effectiveBrandId}&origin=onboarding`;
+    } else if (provider === "instagram_direct") {
+      url = `/api/integrations/instagram/connect?brandId=${effectiveBrandId}&origin=onboarding`;
     } else if (provider === "whatsapp") {
       url = `/api/integrations/whatsapp/connect?brandId=${effectiveBrandId}&origin=onboarding`;
+    } else if (provider === "whatsapp_baileys") {
+      // Open WhatsApp QR dialog instead of OAuth
+      setIsWhatsAppDialogOpen(true);
+      setConnectingProvider(null);
+      return;
     } else {
       toast({
         title: isSpanish ? "Próximamente" : "Coming Soon",
@@ -2164,6 +2367,7 @@ export default function Onboarding() {
 
         {/* STEP 4: Integrations Setup */}
         {currentStep === 4 && (
+          <>
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl flex items-center gap-2">
@@ -2213,33 +2417,82 @@ export default function Onboarding() {
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-3">
+                              {/* Instagram/WhatsApp conflict warnings */}
+                              {key === "social_media" && hasAnyInstagram && (
+                                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                                  <p className="text-amber-800 dark:text-amber-200">
+                                    <strong>⚠️</strong>{" "}
+                                    {hasInstagramViaFacebook
+                                      ? (isSpanish ? "Instagram conectado vía Facebook. Para usar Instagram Direct, desconecta primero." : "Instagram connected via Facebook. To use Instagram Direct, disconnect first.")
+                                      : (isSpanish ? "Instagram Direct conectado. Para usar Instagram vía Facebook, desconecta primero." : "Instagram Direct connected. To use Instagram via Facebook, disconnect first.")}
+                                  </p>
+                                </div>
+                              )}
+                              {key === "social_media" && hasAnyWhatsApp && (
+                                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                                  <p className="text-amber-800 dark:text-amber-200">
+                                    <strong>⚠️</strong>{" "}
+                                    {hasWhatsAppBusiness
+                                      ? (isSpanish ? "WhatsApp Business conectado. Para usar QR Code, desconecta primero." : "WhatsApp Business connected. To use QR Code, disconnect first.")
+                                      : (isSpanish ? "WhatsApp QR conectado. Para usar WhatsApp Business, desconecta primero." : "WhatsApp QR connected. To use WhatsApp Business, disconnect first.")}
+                                  </p>
+                                </div>
+                              )}
+
                               {providersInCategory.map(
                                 ([providerKey, provider]) => {
                                   const ProviderIcon = provider.icon;
-                                  const connectedIntegration =
-                                    integrations.find(
-                                      (int) =>
-                                        int.provider === providerKey &&
-                                        int.isActive,
-                                    );
-                                  const isConnecting =
-                                    connectingProvider === providerKey;
+                                  const connectedIntegration = getConnectedIntegration(providerKey);
+                                  const isConnecting = connectingProvider === providerKey;
+                                  const isDisabled = isProviderDisabledByConflict(providerKey);
+
+                                  // Get icon color based on provider
+                                  const getIconColor = () => {
+                                    if (isDisabled) return "text-gray-400";
+                                    switch (providerKey) {
+                                      case "facebook": return "text-blue-600";
+                                      case "instagram":
+                                      case "instagram_direct": return "text-pink-500";
+                                      case "whatsapp":
+                                      case "whatsapp_baileys": return "text-green-500";
+                                      case "youtube": return "text-red-600";
+                                      default: return "text-gray-600 dark:text-gray-400";
+                                    }
+                                  };
 
                                   return (
                                     <div
                                       key={providerKey}
-                                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                      className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
+                                        isDisabled
+                                          ? "opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-900"
+                                          : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                                      }`}
                                       data-testid={`integration-${providerKey}`}
                                     >
                                       <div className="flex items-center gap-3">
-                                        <ProviderIcon className="w-8 h-8 text-gray-600 dark:text-gray-400" />
+                                        <ProviderIcon className={`w-8 h-8 ${getIconColor()}`} />
                                         <div>
-                                          <p className="font-medium">
-                                            {provider.name}
-                                          </p>
+                                          <div className="flex items-center gap-2">
+                                            <p className={`font-medium ${isDisabled ? "text-gray-500" : ""}`}>
+                                              {provider.name}
+                                            </p>
+                                            {isDisabled && (
+                                              <Badge variant="outline" className="text-xs text-amber-600 border-amber-400 bg-amber-50">
+                                                {isSpanish ? "Conflicto" : "Conflict"}
+                                              </Badge>
+                                            )}
+                                          </div>
                                           <p className="text-sm text-muted-foreground">
                                             {provider.description}
                                           </p>
+                                          {isDisabled && (
+                                            <p className="text-xs text-amber-600 mt-1">
+                                              {(providerKey === "instagram" || providerKey === "instagram_direct")
+                                                ? (isSpanish ? "Desconecta la otra opción de Instagram primero" : "Disconnect the other Instagram option first")
+                                                : (isSpanish ? "Desconecta la otra opción de WhatsApp primero" : "Disconnect the other WhatsApp option first")}
+                                            </p>
+                                          )}
                                           {connectedIntegration && (
                                             <p className="text-xs text-green-600 mt-1">
                                               ✅{" "}
@@ -2257,17 +2510,28 @@ export default function Onboarding() {
                                         <Button
                                           variant="outline"
                                           size="sm"
-                                          onClick={() =>
-                                            handleDisconnect(
-                                              connectedIntegration.id,
-                                            )
-                                          }
+                                          onClick={() => {
+                                            if (connectedIntegration.provider === "whatsapp_baileys") {
+                                              handleBaileysDisconnect();
+                                            } else {
+                                              handleDisconnect(connectedIntegration.id);
+                                            }
+                                          }}
                                           className="text-red-600 border-red-400 hover:bg-red-50"
                                           data-testid={`disconnect-${providerKey}`}
                                         >
                                           {isSpanish
                                             ? "Desconectar"
                                             : "Disconnect"}
+                                        </Button>
+                                      ) : isDisabled ? (
+                                        <Button
+                                          size="sm"
+                                          disabled
+                                          variant="secondary"
+                                          data-testid={`connect-${providerKey}`}
+                                        >
+                                          {isSpanish ? "No Disponible" : "Unavailable"}
                                         </Button>
                                       ) : (
                                         <Button
@@ -2328,6 +2592,124 @@ export default function Onboarding() {
               </div>
             </CardContent>
           </Card>
+
+          {/* WhatsApp Baileys QR Code Dialog */}
+          <Dialog
+            open={isWhatsAppDialogOpen}
+            onOpenChange={(open) => {
+              setIsWhatsAppDialogOpen(open);
+              if (!open) {
+                if (baileysPollingInterval) {
+                  clearInterval(baileysPollingInterval);
+                  setBaileysPollingInterval(null);
+                }
+                setBaileysQrCode(null);
+                setBaileysStatus("disconnected");
+                setIsBaileysConnecting(false);
+              }
+            }}
+          >
+            <DialogContent className="sm:max-w-[400px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5 text-green-500" />
+                  {isSpanish ? "Conectar WhatsApp" : "Connect WhatsApp"}
+                </DialogTitle>
+                <DialogDescription>
+                  {isSpanish
+                    ? "Escanea el código QR con tu app de WhatsApp"
+                    : "Scan the QR code with your WhatsApp app"}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+                {baileysStatus === "connected" ? (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                      <Check className="h-8 w-8 text-green-600" />
+                    </div>
+                    <p className="text-green-700 font-medium">
+                      {isSpanish ? "¡Conectado!" : "Connected!"}
+                    </p>
+                    {baileysPhone && (
+                      <p className="text-sm text-gray-500">{baileysPhone}</p>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={handleBaileysDisconnect}
+                      className="text-red-600"
+                    >
+                      {isSpanish ? "Desconectar" : "Disconnect"}
+                    </Button>
+                  </div>
+                ) : baileysStatus === "qr_ready" && baileysQrCode ? (
+                  <div className="text-center space-y-4">
+                    <div className="bg-white p-4 rounded-lg inline-block mx-auto">
+                      <img
+                        src={baileysQrCode}
+                        alt="WhatsApp QR Code"
+                        className="w-48 h-48"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      {isSpanish
+                        ? "Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo"
+                        : "Open WhatsApp → Linked Devices → Link a Device"}
+                    </p>
+                    <Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-400" />
+                    <p className="text-xs text-gray-400">
+                      {isSpanish ? "Esperando escaneo..." : "Waiting for scan..."}
+                    </p>
+                  </div>
+                ) : baileysStatus === "connecting" || isBaileysConnecting ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-green-500" />
+                    <p className="mt-4 text-gray-500">
+                      {isSpanish ? "Generando código QR..." : "Generating QR code..."}
+                    </p>
+                  </div>
+                ) : baileysStatus === "error" ? (
+                  <div className="text-center space-y-4 py-4">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                      <X className="h-8 w-8 text-red-600" />
+                    </div>
+                    <p className="text-red-600">
+                      {isSpanish ? "Error de conexión" : "Connection error"}
+                    </p>
+                    <Button onClick={handleBaileysConnect}>
+                      {isSpanish ? "Reintentar" : "Try Again"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-4 py-4">
+                    <p className="text-sm text-gray-500 mb-4">
+                      {isSpanish
+                        ? "Conecta tu WhatsApp personal escaneando un código QR. Esta es una opción experimental."
+                        : "Connect your personal WhatsApp by scanning a QR code. This is an experimental option."}
+                    </p>
+                    <Button
+                      onClick={handleBaileysConnect}
+                      className="bg-green-600 hover:bg-green-700"
+                      disabled={isBaileysConnecting}
+                    >
+                      {isBaileysConnecting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {isSpanish ? "Iniciando..." : "Starting..."}
+                        </>
+                      ) : (
+                        <>
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          {isSpanish ? "Generar Código QR" : "Generate QR Code"}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+          </>
         )}
       </div>
     </div>
