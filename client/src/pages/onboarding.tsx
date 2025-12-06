@@ -403,7 +403,7 @@ const ONBOARDING_STATE_KEY = "leadboost_onboarding_state";
 interface OnboardingState {
   mode: "choose" | "create" | "join";
   currentStep: number;
-  createdBrandId: number | null;
+  createdBrandId: string | number | null;
 }
 
 function saveOnboardingState(state: OnboardingState) {
@@ -432,7 +432,7 @@ export default function Onboarding() {
     savedState?.mode || "choose",
   );
   const [currentStep, setCurrentStep] = useState(savedState?.currentStep || 1);
-  const [createdBrandId, setCreatedBrandId] = useState<number | null>(
+  const [createdBrandId, setCreatedBrandId] = useState<string | number | null>(
     savedState?.createdBrandId || null,
   );
   const [, setLocation] = useLocation();
@@ -441,6 +441,23 @@ export default function Onboarding() {
   const { refreshBrands, brands, setActiveBrandId, activeBrandId } = useBrand();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const queryClientInstance = useQueryClient();
+
+  // Validate saved state - clear if brand no longer exists
+  useEffect(() => {
+    if (createdBrandId && brands.length > 0) {
+      const brandExists = brands.some((b: any) => 
+        String(b.id) === String(createdBrandId)
+      );
+      if (!brandExists) {
+        // Brand was deleted or user lost access - reset to step 1
+        console.log("Saved brand not found, clearing onboarding state");
+        clearOnboardingState();
+        setCreatedBrandId(null);
+        setCurrentStep(1);
+        setMode("create");
+      }
+    }
+  }, [createdBrandId, brands]);
 
   useEffect(() => {
     if (mode === "create" && createdBrandId) {
@@ -758,7 +775,7 @@ export default function Onboarding() {
 
   // Update existing brand mutation (when user goes back to step 1)
   const updateBrandMutation = useMutation({
-    mutationFn: async (data: CreateBrandForm & { brandId: number }) => {
+    mutationFn: async (data: CreateBrandForm & { brandId: string | number }) => {
       const { brandId, ...updateData } = data;
       const res = await apiRequest("PUT", `/api/brands/${brandId}`, updateData);
       return await res.json();
