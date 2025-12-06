@@ -3413,9 +3413,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("🔐 Instagram Direct OAuth scopes:", scopes);
 
+      // Get origin from query params (onboarding or integrations)
+      const origin = req.query.origin as string || "integrations";
+      
       const statePayload = {
         userId: req.user.id,
         brandId: req.brandMembership.brandId,
+        origin, // Include origin for redirect after callback
       };
 
       const state = Buffer.from(JSON.stringify(statePayload)).toString(
@@ -3442,12 +3446,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 1️⃣ Decode OAuth state
       let userId: string | null = null;
       let brandId: string | null = null;
+      let origin: string = "integrations";
 
       try {
         const decoded = Buffer.from(state as string, "base64").toString("utf8");
         const parsed = JSON.parse(decoded);
         userId = parsed.userId;
         brandId = parsed.brandId;
+        origin = parsed.origin || "integrations";
       } catch {
         return res.status(400).send("Invalid OAuth state");
       }
@@ -3614,7 +3620,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // 7️⃣ Redirect to integrations page
+      // 7️⃣ Redirect based on origin (onboarding or integrations)
+      console.log(`✅ [Instagram Direct Callback] Successfully connected for brand ${brandId}, origin: ${origin}`);
+      if (origin === "onboarding") {
+        return res.redirect(`/onboarding?step=4&connected=instagram_direct`);
+      }
       return res.redirect(`/integrations?connected=instagram_direct`);
     } catch (err) {
       console.error("❌ Instagram callback error:", err);
@@ -3639,10 +3649,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "pages_show_list",
       ].join(",");
 
-      // Pass brandId in state along with userId
+      // Get origin from query params (onboarding or integrations)
+      const origin = req.query.origin as string || "integrations";
+      
+      // Pass brandId in state along with userId and origin
       const state = JSON.stringify({
         userId: req.user.id,
         brandId: req.brandMembership.brandId,
+        origin, // Include origin for redirect after callback
       });
 
       // URL base del Embedded Signup
@@ -3735,14 +3749,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code, state } = req.query;
       if (!code) return res.status(400).send("Missing code");
 
-      // 0️⃣ State: recuperar userId y brandId
+      // 0️⃣ State: recuperar userId, brandId y origin
       let userId: string | undefined;
       let brandId: string | undefined;
+      let origin: string = "integrations";
 
       try {
         const parsedState = JSON.parse(decodeURIComponent(state as string));
         userId = parsedState.userId;
         brandId = parsedState.brandId;
+        origin = parsedState.origin || "integrations";
       } catch {
         // Fallback legacy: state era solo userId
         userId = (state as string) || (req as any).user?.id;
@@ -3906,8 +3922,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         syncEnabled: true,
       });
 
-      console.log(`✅ WhatsApp connected for brand ${brandId}: ${wabaId}`);
-      res.redirect(`/integrations?connected=whatsapp`);
+      // Redirect based on origin (onboarding or integrations)
+      console.log(`✅ WhatsApp connected for brand ${brandId}: ${wabaId}, origin: ${origin}`);
+      if (origin === "onboarding") {
+        res.redirect(`/onboarding?step=4&connected=whatsapp`);
+      } else {
+        res.redirect(`/integrations?connected=whatsapp`);
+      }
     } catch (err: any) {
       console.error("❌ WhatsApp callback error:", err.message || err);
       res
