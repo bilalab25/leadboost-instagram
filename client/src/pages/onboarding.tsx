@@ -462,6 +462,7 @@ export default function Onboarding() {
   const [createdBrandId, setCreatedBrandId] = useState<string | number | null>(
     savedState?.createdBrandId || null,
   );
+  const [hasLoadedFromDb, setHasLoadedFromDb] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { isSpanish } = useLanguage();
@@ -469,9 +470,78 @@ export default function Onboarding() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const queryClientInstance = useQueryClient();
 
+  // Fetch onboarding progress from database
+  const { data: onboardingProgress, isLoading: isLoadingProgress } = useQuery<{
+    hasIncompleteBrand: boolean;
+    brand: any | null;
+    onboardingStep: number | null;
+    onboardingCompleted: boolean;
+  }>({
+    queryKey: ["/api/onboarding/progress"],
+    enabled: isAuthenticated,
+  });
+
+  // Mutation to update onboarding step in DB
+  const updateOnboardingStepMutation = useMutation({
+    mutationFn: async ({ brandId, step, completed }: { brandId: string; step?: number; completed?: boolean }) => {
+      const res = await apiRequest("PATCH", `/api/brands/${brandId}/onboarding`, {
+        onboardingStep: step,
+        onboardingCompleted: completed,
+      });
+      if (!res.ok) throw new Error("Failed to update onboarding step");
+      return res.json();
+    },
+  });
+
+  // Initialize state from DB when data loads (only once)
+  useEffect(() => {
+    if (!hasLoadedFromDb && onboardingProgress && !isLoadingProgress) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const stepFromUrl = urlParams.get("step");
+      
+      // If returning from OAuth with step param, use that
+      if (stepFromUrl) {
+        setCurrentStep(parseInt(stepFromUrl, 10));
+        setMode("create");
+        if (onboardingProgress.brand) {
+          setCreatedBrandId(onboardingProgress.brand.id);
+        }
+        setHasLoadedFromDb(true);
+        return;
+      }
+
+      if (onboardingProgress.hasIncompleteBrand && onboardingProgress.brand) {
+        // Resume incomplete onboarding from DB
+        console.log("Resuming onboarding from step:", onboardingProgress.onboardingStep);
+        setCreatedBrandId(onboardingProgress.brand.id);
+        setCurrentStep(onboardingProgress.onboardingStep || 1);
+        setMode("create");
+        // Sync sessionStorage with DB
+        saveOnboardingState({
+          mode: "create",
+          currentStep: onboardingProgress.onboardingStep || 1,
+          createdBrandId: onboardingProgress.brand.id,
+        });
+      } else if (onboardingProgress.onboardingCompleted) {
+        // User already completed onboarding, redirect to dashboard
+        console.log("Onboarding already completed, redirecting to dashboard");
+        setLocation("/dashboard");
+        return;
+      } else {
+        // No brand exists - clear any stale sessionStorage and start fresh
+        console.log("No incomplete brand found, starting fresh");
+        clearOnboardingState();
+        setCreatedBrandId(null);
+        setCurrentStep(1);
+        setMode("choose");
+      }
+      setHasLoadedFromDb(true);
+    }
+  }, [onboardingProgress, isLoadingProgress, hasLoadedFromDb, setLocation]);
+
   // Validate saved state - clear if brand no longer exists
   useEffect(() => {
-    if (createdBrandId && brands.length > 0) {
+    if (createdBrandId && brands.length > 0 && hasLoadedFromDb) {
       const brandExists = brands.some(
         (b: any) => String(b.id) === String(createdBrandId),
       );
@@ -481,10 +551,10 @@ export default function Onboarding() {
         clearOnboardingState();
         setCreatedBrandId(null);
         setCurrentStep(1);
-        setMode("create");
+        setMode("choose");
       }
     }
-  }, [createdBrandId, brands]);
+  }, [createdBrandId, brands, hasLoadedFromDb]);
 
   useEffect(() => {
     if (mode === "create" && createdBrandId) {
@@ -1058,6 +1128,7 @@ export default function Onboarding() {
           : "Your brand has been created successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/brand-memberships"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/onboarding/progress"] });
       refreshBrands();
 
       // Set the created brand ID and advance to step 2
@@ -1065,6 +1136,12 @@ export default function Onboarding() {
         setCreatedBrandId(data.brand.id);
         setActiveBrandId(data.brand.id);
         setCurrentStep(2);
+        
+        // Save step 2 to database
+        updateOnboardingStepMutation.mutate({
+          brandId: String(data.brand.id),
+          step: 2,
+        });
       }
     },
     onError: (error: any) => {
@@ -1418,14 +1495,44 @@ export default function Onboarding() {
       const saved = await handleSaveBrandDesign();
       if (!saved) return;
     }
-    setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
+    const nextStep = Math.min(currentStep + 1, totalSteps);
+    setCurrentStep(nextStep);
+    
+    // Save step progress to database
+    if (createdBrandId) {
+      updateOnboardingStepMutation.mutate({
+        brandId: String(createdBrandId),
+        step: nextStep,
+      });
+    }
   };
 
   const handlePrevStep = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    const prevStep = Math.max(currentStep - 1, 1);
+    setCurrentStep(prevStep);
+    
+    // Save step progress to database
+    if (createdBrandId) {
+      updateOnboardingStepMutation.mutate({
+        brandId: String(createdBrandId),
+        step: prevStep,
+      });
+    }
   };
 
   const handleFinishOnboarding = async () => {
+    // Mark onboarding as completed in database
+    if (createdBrandId) {
+      try {
+        await updateOnboardingStepMutation.mutateAsync({
+          brandId: String(createdBrandId),
+          completed: true,
+        });
+      } catch (error) {
+        console.error("Failed to mark onboarding as completed:", error);
+      }
+    }
+    
     clearOnboardingState();
     toast({
       title: isSpanish ? "¡Onboarding completado!" : "Onboarding complete!",
@@ -1550,7 +1657,7 @@ export default function Onboarding() {
   };
 
   // Show loading while checking authentication
-  if (authLoading) {
+  if (authLoading || (isLoadingProgress && !hasLoadedFromDb)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
