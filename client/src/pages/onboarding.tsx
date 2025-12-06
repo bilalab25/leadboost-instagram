@@ -466,6 +466,46 @@ export default function Onboarding() {
     }
   }, [mode, currentStep, createdBrandId]);
 
+  // Handle OAuth return - check for connected query param
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const connected = urlParams.get("connected");
+    const step = urlParams.get("step");
+    const error = urlParams.get("error");
+    const provider = urlParams.get("provider");
+    
+    if (step) {
+      setCurrentStep(parseInt(step, 10));
+      setMode("create");
+    }
+    
+    if (connected) {
+      // Integration was connected successfully
+      toast({
+        title: isSpanish ? "¡Conectado!" : "Connected!",
+        description: isSpanish 
+          ? `${connected} conectado exitosamente` 
+          : `${connected} connected successfully`,
+      });
+      // Refresh integrations list
+      refetchIntegrations();
+      // Clean URL
+      window.history.replaceState({}, "", "/onboarding");
+    }
+    
+    if (error && provider) {
+      toast({
+        title: isSpanish ? "Error de conexión" : "Connection Error",
+        description: isSpanish 
+          ? `No se pudo conectar ${provider}: ${error}` 
+          : `Failed to connect ${provider}: ${error}`,
+        variant: "destructive",
+      });
+      // Clean URL
+      window.history.replaceState({}, "", "/onboarding");
+    }
+  }, []);
+
   // Brand Design State (from brand-studio.tsx)
   const [selectedStyle, setSelectedStyle] = useState<string>("");
   const [mainColor, setMainColor] = useState<string>("#2563eb");
@@ -598,9 +638,9 @@ export default function Onboarding() {
     let url = "";
 
     if (["facebook", "instagram", "threads"].includes(provider)) {
-      url = `/api/integrations/facebook/connect?brandId=${effectiveBrandId}`;
+      url = `/api/integrations/facebook/connect?brandId=${effectiveBrandId}&origin=onboarding`;
     } else if (provider === "whatsapp") {
-      url = `/api/integrations/whatsapp/connect?brandId=${effectiveBrandId}`;
+      url = `/api/integrations/whatsapp/connect?brandId=${effectiveBrandId}&origin=onboarding`;
     } else {
       toast({
         title: isSpanish ? "Próximamente" : "Coming Soon",

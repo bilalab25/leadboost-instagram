@@ -3089,9 +3089,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -------------------------------------
       // 🔥 CORRECTO: stringify SOLO UNA VEZ
       // -------------------------------------
+      const origin = req.query.origin as string | undefined;
       const statePayload = {
         userId: req.user.id,
         brandId: req.brandMembership.brandId,
+        origin: origin || null,
       };
 
       const state = Buffer.from(JSON.stringify(statePayload)).toString(
@@ -3126,25 +3128,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       let userId = null;
       let brandId = null;
+      let origin: string | null = null;
 
       try {
         const decoded = Buffer.from(state as string, "base64").toString("utf8");
         const parsed = JSON.parse(decoded);
         userId = parsed.userId;
         brandId = parsed.brandId;
-        console.log("📘 [Facebook Callback] Decoded state - userId:", userId, "brandId:", brandId);
+        origin = parsed.origin || null;
+        console.log("📘 [Facebook Callback] Decoded state - userId:", userId, "brandId:", brandId, "origin:", origin);
       } catch (e) {
         console.log("❌ [Facebook Callback] Failed to decode state:", e);
         return res.redirect("/integrations?error=invalid_state&provider=facebook");
       }
+      
+      // Helper to get redirect URL based on origin
+      const getRedirectUrl = (success: boolean, provider: string, error?: string, message?: string) => {
+        const basePath = origin === "onboarding" ? "/onboarding" : "/integrations";
+        if (success) {
+          return origin === "onboarding" 
+            ? `${basePath}?step=4&connected=${provider}`
+            : `${basePath}?success=true&provider=${provider}`;
+        } else {
+          const errorParams = `error=${error}&provider=${provider}${message ? `&message=${encodeURIComponent(message)}` : ''}`;
+          return `${basePath}?${errorParams}`;
+        }
+      };
 
       if (!userId) {
         console.log("❌ [Facebook Callback] Missing userId in state");
-        return res.redirect("/integrations?error=missing_user&provider=facebook");
+        return res.redirect(getRedirectUrl(false, "facebook", "missing_user"));
       }
       if (!brandId) {
         console.log("❌ [Facebook Callback] Missing brandId in state");
-        return res.redirect("/integrations?error=missing_brand&provider=facebook");
+        return res.redirect(getRedirectUrl(false, "facebook", "missing_brand"));
       }
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
@@ -3164,8 +3181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (tokenData.error) {
         console.log("❌ [Facebook Callback] Token exchange failed:", tokenData.error);
-        const errorMsg = encodeURIComponent(tokenData.error.message || "Token exchange failed");
-        return res.redirect(`/integrations?error=token_failed&provider=facebook&message=${errorMsg}`);
+        return res.redirect(getRedirectUrl(false, "facebook", "token_failed", tokenData.error.message || "Token exchange failed"));
       }
       
       console.log("✅ [Facebook Callback] Token exchange successful, expires_in:", tokenData.expires_in);
@@ -3183,13 +3199,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (pagesData.error) {
         console.log("❌ [Facebook Callback] Failed to fetch pages:", pagesData.error);
-        const errorMsg = encodeURIComponent(pagesData.error.message || "Failed to fetch pages");
-        return res.redirect(`/integrations?error=pages_fetch_failed&provider=facebook&message=${errorMsg}`);
+        return res.redirect(getRedirectUrl(false, "facebook", "pages_fetch_failed", pagesData.error.message || "Failed to fetch pages"));
       }
 
       if (!pagesData.data?.length) {
         console.log("⚠️ [Facebook Callback] No Facebook Pages found for this user");
-        return res.redirect("/integrations?error=no_pages&provider=facebook&message=" + encodeURIComponent("No Facebook Pages found. Please create a Facebook Page first, or make sure you have admin access to an existing page."));
+        return res.redirect(getRedirectUrl(false, "facebook", "no_pages", "No Facebook Pages found. Please create a Facebook Page first, or make sure you have admin access to an existing page."));
       }
       
       console.log("✅ [Facebook Callback] Found", pagesData.data.length, "pages");
@@ -3242,7 +3257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("✅ [Facebook Callback] Facebook integration saved successfully");
       } catch (dbErr) {
         console.error("❌ [Facebook Callback] Failed to save integration:", dbErr);
-        return res.redirect("/integrations?error=save_failed&provider=facebook&message=" + encodeURIComponent("Failed to save integration. Please try again."));
+        return res.redirect(getRedirectUrl(false, "facebook", "save_failed", "Failed to save integration. Please try again."));
       }
 
       // -----------------------------------------
@@ -3360,10 +3375,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // -----------------------------------------
-      // 9️⃣ Redirect to integrations page with success
+      // 9️⃣ Redirect based on origin (onboarding or integrations)
       // -----------------------------------------
-      console.log(`✅ [Facebook Callback] Successfully connected ${connectedType} for brand ${brandId}`);
-      return res.redirect(`/integrations?connected=${connectedType}`);
+      console.log(`✅ [Facebook Callback] Successfully connected ${connectedType} for brand ${brandId}, origin: ${origin}`);
+      return res.redirect(getRedirectUrl(true, connectedType));
     } catch (err) {
       console.error("❌ Facebook callback error:", err);
       return res.status(500).send("Error in Facebook callback");
