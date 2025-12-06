@@ -213,13 +213,13 @@ export default function Dashboard() {
   const hasSocial = integrations.some(
     (i: any) =>
       i.isActive &&
-      ["facebook", "instagram", "tiktok", "youtube", "threads"].includes(
+      ["facebook", "instagram", "instagram_direct", "tiktok", "youtube", "threads"].includes(
         i.provider,
       ),
   );
   const hasMessaging = integrations.some(
     (i: any) =>
-      i.isActive && ["facebook", "instagram", "whatsapp", "whatsapp_baileys"].includes(i.provider),
+      i.isActive && ["facebook", "instagram", "instagram_direct", "whatsapp", "whatsapp_baileys"].includes(i.provider),
   );
 
   // Sample sparkline data
@@ -259,6 +259,12 @@ export default function Dashboard() {
       name: "Facebook",
     },
     instagram: {
+      icon: SiInstagram,
+      color: "#E4405F",
+      bgGradient: "from-pink-500/10 to-purple-600/5",
+      name: "Instagram",
+    },
+    instagram_direct: {
       icon: SiInstagram,
       color: "#E4405F",
       bgGradient: "from-pink-500/10 to-purple-600/5",

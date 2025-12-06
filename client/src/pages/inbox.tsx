@@ -146,7 +146,7 @@ export default function Inbox() {
       const data = await res.json();
       // Filter only messaging integrations
       const messagingIntegrations = data.filter((i: any) => 
-        ['facebook', 'instagram', 'whatsapp', 'whatsapp_baileys', 'threads'].includes(i.provider)
+        ['facebook', 'instagram', 'instagram_direct', 'whatsapp', 'whatsapp_baileys', 'threads'].includes(i.provider)
       );
       setIntegrations(messagingIntegrations);
     } catch (err) {
@@ -172,6 +172,7 @@ export default function Inbox() {
   const icons: Record<string, any> = {
     facebook: SiFacebook,
     instagram: Instagram,
+    instagram_direct: Instagram,
     whatsapp: SiWhatsapp,
     whatsapp_baileys: SiWhatsapp,
     threads: MessageCircle,
@@ -181,11 +182,13 @@ export default function Inbox() {
 
   const labels: Record<string, string> = {
     whatsapp_baileys: "WhatsApp",
+    instagram_direct: "Instagram",
   };
 
   const platformColors: Record<string, string> = {
     facebook: "text-blue-600",
     instagram: "text-pink-500",
+    instagram_direct: "text-pink-500",
     whatsapp: "text-green-500",
     whatsapp_baileys: "text-green-500",
     threads: "text-gray-800",
