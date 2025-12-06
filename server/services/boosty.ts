@@ -396,6 +396,28 @@ ${capabilities}`;
     return patterns.some(pattern => pattern.test(message));
   }
 
+  // Helper function to fetch an image from URL and convert to base64
+  private async fetchImageAsBase64(url: string): Promise<{ data: string; mimeType: string } | null> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.log(`[Boosty] Failed to fetch image from ${url}: ${response.status}`);
+        return null;
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64 = buffer.toString('base64');
+      
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      const mimeType = contentType.split(';')[0].trim();
+      
+      return { data: base64, mimeType };
+    } catch (error) {
+      console.error(`[Boosty] Error fetching image from ${url}:`, error);
+      return null;
+    }
+  }
+
   private async generateImage(
     imagePrompt: string,
     context: BrandContext
@@ -416,9 +438,57 @@ High quality, professional social media post image, clean composition, vibrant c
 
       console.log("[Boosty] Generating image with prompt:", enhancedPrompt.substring(0, 100) + "...");
       
+      // Build multimodal content parts
+      const contentParts: any[] = [];
+      
+      // If we have brand assets, include them as visual reference (up to 3)
+      if (context.assets && context.assets.length > 0) {
+        // Prioritize product images, then logos, then general assets
+        const sortedAssets = [...context.assets].sort((a, b) => {
+          const priority: Record<string, number> = { 'products': 1, 'product': 1, 'logo': 2, 'logos': 2, 'general': 3 };
+          const aPriority = priority[a.category?.toLowerCase() || 'general'] || 3;
+          const bPriority = priority[b.category?.toLowerCase() || 'general'] || 3;
+          return aPriority - bPriority;
+        });
+        
+        // Take up to 3 images for context
+        const assetsToUse = sortedAssets.slice(0, 3);
+        console.log(`[Boosty] Including ${assetsToUse.length} brand assets as visual reference`);
+        
+        for (const asset of assetsToUse) {
+          const imageData = await this.fetchImageAsBase64(asset.url);
+          if (imageData) {
+            contentParts.push({
+              inlineData: {
+                data: imageData.data,
+                mimeType: imageData.mimeType,
+              }
+            });
+            console.log(`[Boosty] Added asset "${asset.name}" as visual reference`);
+          }
+        }
+        
+        // Add instruction to use the reference images
+        if (contentParts.length > 0) {
+          contentParts.push({
+            text: `IMPORTANT: The images above are brand assets showing the actual products and style of this brand. 
+Use them as visual inspiration to create a NEW image that:
+1. Matches the visual style and aesthetic of these brand images
+2. Features similar products or elements shown in the reference images
+3. Maintains brand consistency in colors, mood, and quality
+
+Now create this image: ${enhancedPrompt}`
+          });
+        } else {
+          contentParts.push({ text: enhancedPrompt });
+        }
+      } else {
+        contentParts.push({ text: enhancedPrompt });
+      }
+      
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-image",
-        contents: enhancedPrompt,
+        contents: contentParts,
         config: {
           responseModalities: [Modality.TEXT, Modality.IMAGE],
         },
