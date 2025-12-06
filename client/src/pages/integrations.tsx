@@ -612,9 +612,15 @@ export default function IntegrationsPage() {
 
   // Helper functions
   const getConnectedCount = (category: string) => {
-    let count = integrations.filter(
-      (i) => i.category === category && i.isActive,
-    ).length;
+    let count = integrations.filter((i) => {
+      if (!i.isActive) return false;
+      const integrationCategory = i.category as string;
+      // For social_media, also include messaging category (WhatsApp is stored as messaging)
+      if (category === "social_media") {
+        return integrationCategory === "social_media" || integrationCategory === "messaging" || integrationCategory === "social";
+      }
+      return integrationCategory === category;
+    }).length;
     // Add Lightspeed to POS count if connected
     if (category === "pos" && lightspeedStatus?.connected) {
       count += 1;
