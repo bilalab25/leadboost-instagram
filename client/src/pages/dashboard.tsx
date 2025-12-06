@@ -213,13 +213,25 @@ export default function Dashboard() {
   const hasSocial = integrations.some(
     (i: any) =>
       i.isActive &&
-      ["facebook", "instagram", "instagram_direct", "tiktok", "youtube", "threads"].includes(
-        i.provider,
-      ),
+      [
+        "facebook",
+        "instagram",
+        "instagram_direct",
+        "tiktok",
+        "youtube",
+        "threads",
+      ].includes(i.provider),
   );
   const hasMessaging = integrations.some(
     (i: any) =>
-      i.isActive && ["facebook", "instagram", "instagram_direct", "whatsapp", "whatsapp_baileys"].includes(i.provider),
+      i.isActive &&
+      [
+        "facebook",
+        "instagram",
+        "instagram_direct",
+        "whatsapp",
+        "whatsapp_baileys",
+      ].includes(i.provider),
   );
 
   // Sample sparkline data
@@ -232,14 +244,14 @@ export default function Dashboard() {
     {
       icon: Wand2,
       text: isSpanish ? "Crear post viral" : "Create viral post",
-      action: "/content-planner",
+      action: "/waterfall",
     },
     {
       icon: Target,
       text: isSpanish
         ? "Estrategia de contenido de 30 días"
         : "30 day content strategy",
-      action: "/campaigns",
+      action: "/waterfall",
     },
     {
       icon: MessageCircle,
@@ -863,9 +875,9 @@ export default function Dashboard() {
                     <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-brand-50 via-white to-purple-50 h-full">
                       <CardHeader className="border-b border-brand-100/50 px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <img 
-                            src={boostyFace} 
-                            alt="Boosty" 
+                          <img
+                            src={boostyFace}
+                            alt="Boosty"
                             className="w-10 h-10 rounded-full object-cover"
                           />
                           <div>
