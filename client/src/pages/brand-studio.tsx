@@ -690,7 +690,7 @@ export default function BrandStudio() {
     try {
       const res = await apiRequest(
         "DELETE",
-        `/api/brand-assets/${id}?brandDesignId=${brandDesign?.id}`,
+        `/api/brand-assets/${id}?brandId=${activeBrandId}&brandDesignId=${brandDesign?.id}`,
       );
 
       if (res.ok) {
