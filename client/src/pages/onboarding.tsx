@@ -1080,10 +1080,21 @@ export default function Onboarding() {
 
   // Form submission handlers
   const onCreateSubmit = (data: CreateBrandForm) => {
-    // If brand already exists (user went back to step 1), update instead of create
-    if (createdBrandId) {
+    // Check if brand actually exists before trying to update
+    const brandExists = createdBrandId && brands.some((b: any) => 
+      String(b.id) === String(createdBrandId)
+    );
+    
+    if (brandExists) {
+      // Brand exists - update it
       updateBrandMutation.mutate({ ...data, brandId: createdBrandId });
     } else {
+      // No valid brand - create new one (also clears stale state)
+      if (createdBrandId) {
+        console.log("Stale brand ID detected, clearing and creating new brand");
+        clearOnboardingState();
+        setCreatedBrandId(null);
+      }
       createBrandMutation.mutate(data);
     }
   };
