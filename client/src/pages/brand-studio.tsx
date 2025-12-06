@@ -703,7 +703,7 @@ export default function BrandStudio() {
 
         // Refresh the assets list
         await queryClient.invalidateQueries({
-          queryKey: ["/api/brand-assets", brandDesign?.id],
+          queryKey: ["/api/brand-assets", activeBrandId, brandDesign?.id],
         });
       } else {
         const error = await res.json();
