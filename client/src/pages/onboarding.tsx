@@ -73,6 +73,7 @@ import {
   Facebook,
   Youtube,
   LayoutGrid,
+  ZoomIn,
   DollarSign,
   BriefcaseBusiness,
   Share2,
@@ -1525,11 +1526,30 @@ export default function Onboarding() {
                               {style.description}
                             </p>
                             {styleImages[style.id] && (
-                              <img
-                                src={styleImages[style.id]}
-                                alt={style.name}
-                                className="w-full h-20 object-cover rounded-md shadow-md"
-                              />
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <div 
+                                    className="relative group"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <img
+                                      src={styleImages[style.id]}
+                                      alt={style.name}
+                                      className="w-full h-20 object-cover rounded-md shadow-md cursor-pointer"
+                                    />
+                                    <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                                      <ZoomIn className="text-white h-6 w-6" />
+                                    </div>
+                                  </div>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-3xl">
+                                  <img
+                                    src={styleImages[style.id]}
+                                    alt={`${style.name} Preview`}
+                                    className="w-full h-auto rounded-lg"
+                                  />
+                                </DialogContent>
+                              </Dialog>
                             )}
                           </div>
                         ))}
