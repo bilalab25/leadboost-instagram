@@ -86,7 +86,15 @@ import {
   Calendar,
   X,
 } from "lucide-react";
-import { SiFacebook, SiWhatsapp, SiTiktok, SiLinkedin, SiYoutube, SiPinterest, SiX } from "react-icons/si";
+import {
+  SiFacebook,
+  SiWhatsapp,
+  SiTiktok,
+  SiLinkedin,
+  SiYoutube,
+  SiPinterest,
+  SiX,
+} from "react-icons/si";
 
 import minimal from "./brand-images/minimalist.png";
 import luxury from "./brand-images/luxury.png";
@@ -464,8 +472,8 @@ export default function Onboarding() {
   // Validate saved state - clear if brand no longer exists
   useEffect(() => {
     if (createdBrandId && brands.length > 0) {
-      const brandExists = brands.some((b: any) => 
-        String(b.id) === String(createdBrandId)
+      const brandExists = brands.some(
+        (b: any) => String(b.id) === String(createdBrandId),
       );
       if (!brandExists) {
         // Brand was deleted or user lost access - reset to step 1
@@ -491,18 +499,18 @@ export default function Onboarding() {
     const step = urlParams.get("step");
     const error = urlParams.get("error");
     const provider = urlParams.get("provider");
-    
+
     if (step) {
       setCurrentStep(parseInt(step, 10));
       setMode("create");
     }
-    
+
     if (connected) {
       // Integration was connected successfully
       toast({
         title: isSpanish ? "¡Conectado!" : "Connected!",
-        description: isSpanish 
-          ? `${connected} conectado exitosamente` 
+        description: isSpanish
+          ? `${connected} conectado exitosamente`
           : `${connected} connected successfully`,
       });
       // Refresh integrations list
@@ -510,12 +518,12 @@ export default function Onboarding() {
       // Clean URL
       window.history.replaceState({}, "", "/onboarding");
     }
-    
+
     if (error && provider) {
       toast({
         title: isSpanish ? "Error de conexión" : "Connection Error",
-        description: isSpanish 
-          ? `No se pudo conectar ${provider}: ${error}` 
+        description: isSpanish
+          ? `No se pudo conectar ${provider}: ${error}`
           : `Failed to connect ${provider}: ${error}`,
         variant: "destructive",
       });
@@ -580,10 +588,13 @@ export default function Onboarding() {
   // WhatsApp Baileys state
   const [isWhatsAppDialogOpen, setIsWhatsAppDialogOpen] = useState(false);
   const [baileysQrCode, setBaileysQrCode] = useState<string | null>(null);
-  const [baileysStatus, setBaileysStatus] = useState<"disconnected" | "connecting" | "qr_ready" | "connected" | "error">("disconnected");
+  const [baileysStatus, setBaileysStatus] = useState<
+    "disconnected" | "connecting" | "qr_ready" | "connected" | "error"
+  >("disconnected");
   const [baileysPhone, setBaileysPhone] = useState<string | null>(null);
   const [isBaileysConnecting, setIsBaileysConnecting] = useState(false);
-  const [baileysPollingInterval, setBaileysPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [baileysPollingInterval, setBaileysPollingInterval] =
+    useState<NodeJS.Timeout | null>(null);
 
   // Step 5: Posting Frequency state
   interface PlatformSchedule {
@@ -591,7 +602,9 @@ export default function Onboarding() {
     postsPerWeek: number;
     selectedDays: string[];
   }
-  const [postingSchedules, setPostingSchedules] = useState<PlatformSchedule[]>([]);
+  const [postingSchedules, setPostingSchedules] = useState<PlatformSchedule[]>(
+    [],
+  );
   const [isEditingFrequency, setIsEditingFrequency] = useState(false);
   const [isSavingFrequency, setIsSavingFrequency] = useState(false);
 
@@ -663,7 +676,9 @@ export default function Onboarding() {
   const isProviderConnected = (providerKey: string) => {
     if (providerKey === "whatsapp") {
       return integrations.some(
-        (i) => (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") && i.isActive
+        (i) =>
+          (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") &&
+          i.isActive,
       );
     }
     return integrations.some((i) => i.provider === providerKey && i.isActive);
@@ -672,7 +687,9 @@ export default function Onboarding() {
   const getConnectedIntegration = (providerKey: string) => {
     if (providerKey === "whatsapp" || providerKey === "whatsapp_baileys") {
       return integrations.find(
-        (i) => (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") && i.isActive
+        (i) =>
+          (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") &&
+          i.isActive,
       );
     }
     return integrations.find((i) => i.provider === providerKey && i.isActive);
@@ -684,14 +701,27 @@ export default function Onboarding() {
   const hasAnyInstagram = hasInstagramViaFacebook || hasInstagramDirect;
 
   // WhatsApp mutual exclusivity
-  const hasWhatsAppBusiness = integrations.some((i) => i.provider === "whatsapp" && i.isActive);
-  const hasWhatsAppBaileys = integrations.some((i) => i.provider === "whatsapp_baileys" && i.isActive);
+  const hasWhatsAppBusiness = integrations.some(
+    (i) => i.provider === "whatsapp" && i.isActive,
+  );
+  const hasWhatsAppBaileys = integrations.some(
+    (i) => i.provider === "whatsapp_baileys" && i.isActive,
+  );
   const hasAnyWhatsApp = hasWhatsAppBusiness || hasWhatsAppBaileys;
 
   // Check if any social media platforms are connected (for Step 5)
   const hasFacebook = isProviderConnected("facebook");
   const connectedSocialPlatforms = integrations.filter(
-    (i) => ["facebook", "instagram", "instagram_direct", "whatsapp", "whatsapp_baileys", "tiktok", "youtube"].includes(i.provider) && i.isActive
+    (i) =>
+      [
+        "facebook",
+        "instagram",
+        "instagram_direct",
+        "whatsapp",
+        "whatsapp_baileys",
+        "tiktok",
+        "youtube",
+      ].includes(i.provider) && i.isActive,
   );
   const hasSocialConnections = connectedSocialPlatforms.length > 0;
 
@@ -701,7 +731,8 @@ export default function Onboarding() {
   const isProviderDisabledByConflict = (providerKey: string): boolean => {
     // Instagram conflicts
     if (providerKey === "instagram" && hasInstagramDirect) return true;
-    if (providerKey === "instagram_direct" && hasInstagramViaFacebook) return true;
+    if (providerKey === "instagram_direct" && hasInstagramViaFacebook)
+      return true;
     // WhatsApp conflicts
     if (providerKey === "whatsapp" && hasWhatsAppBaileys) return true;
     if (providerKey === "whatsapp_baileys" && hasWhatsAppBusiness) return true;
@@ -713,7 +744,9 @@ export default function Onboarding() {
     if (!effectiveBrandId) {
       toast({
         title: isSpanish ? "Error" : "Error",
-        description: isSpanish ? "Selecciona una marca primero" : "Select a brand first",
+        description: isSpanish
+          ? "Selecciona una marca primero"
+          : "Select a brand first",
         variant: "destructive",
       });
       return;
@@ -741,7 +774,9 @@ export default function Onboarding() {
         setBaileysPhone(data.phoneNumber);
         toast({
           title: isSpanish ? "Ya conectado" : "Already connected",
-          description: isSpanish ? "Tu WhatsApp ya está conectado" : "Your WhatsApp is already connected",
+          description: isSpanish
+            ? "Tu WhatsApp ya está conectado"
+            : "Your WhatsApp is already connected",
         });
         return;
       }
@@ -758,7 +793,8 @@ export default function Onboarding() {
       setBaileysStatus("error");
       toast({
         title: isSpanish ? "Error" : "Error",
-        description: error instanceof Error ? error.message : "Failed to connect",
+        description:
+          error instanceof Error ? error.message : "Failed to connect",
         variant: "destructive",
       });
     } finally {
@@ -773,7 +809,9 @@ export default function Onboarding() {
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/whatsapp-baileys/status?brandId=${effectiveBrandId}`);
+        const res = await fetch(
+          `/api/whatsapp-baileys/status?brandId=${effectiveBrandId}`,
+        );
         const data = await res.json();
 
         if (data.status === "connected") {
@@ -785,7 +823,9 @@ export default function Onboarding() {
 
           toast({
             title: isSpanish ? "¡Conectado!" : "Connected!",
-            description: isSpanish ? "WhatsApp conectado exitosamente" : "WhatsApp connected successfully",
+            description: isSpanish
+              ? "WhatsApp conectado exitosamente"
+              : "WhatsApp connected successfully",
           });
           refetchIntegrations();
           setIsWhatsAppDialogOpen(false);
@@ -809,7 +849,9 @@ export default function Onboarding() {
           setBaileysStatus("disconnected");
           toast({
             title: isSpanish ? "Tiempo agotado" : "Timeout",
-            description: isSpanish ? "La conexión tardó demasiado" : "Connection timed out",
+            description: isSpanish
+              ? "La conexión tardó demasiado"
+              : "Connection timed out",
             variant: "destructive",
           });
         }
@@ -835,7 +877,9 @@ export default function Onboarding() {
 
         toast({
           title: isSpanish ? "Desconectado" : "Disconnected",
-          description: isSpanish ? "WhatsApp ha sido desconectado" : "WhatsApp has been disconnected",
+          description: isSpanish
+            ? "WhatsApp ha sido desconectado"
+            : "WhatsApp has been disconnected",
         });
       }
     } catch (error) {
@@ -1036,7 +1080,9 @@ export default function Onboarding() {
 
   // Update existing brand mutation (when user goes back to step 1)
   const updateBrandMutation = useMutation({
-    mutationFn: async (data: CreateBrandForm & { brandId: string | number }) => {
+    mutationFn: async (
+      data: CreateBrandForm & { brandId: string | number },
+    ) => {
       const { brandId, ...updateData } = data;
       const res = await apiRequest("PUT", `/api/brands/${brandId}`, updateData);
       return await res.json();
@@ -1057,7 +1103,9 @@ export default function Onboarding() {
         title: isSpanish ? "Error" : "Error",
         description:
           error.message ||
-          (isSpanish ? "No se pudo actualizar la marca" : "Failed to update brand"),
+          (isSpanish
+            ? "No se pudo actualizar la marca"
+            : "Failed to update brand"),
         variant: "destructive",
       });
     },
@@ -1342,10 +1390,10 @@ export default function Onboarding() {
   // Form submission handlers
   const onCreateSubmit = (data: CreateBrandForm) => {
     // Check if brand actually exists before trying to update
-    const brandExists = createdBrandId && brands.some((b: any) => 
-      String(b.id) === String(createdBrandId)
-    );
-    
+    const brandExists =
+      createdBrandId &&
+      brands.some((b: any) => String(b.id) === String(createdBrandId));
+
     if (brandExists) {
       // Brand exists - update it
       updateBrandMutation.mutate({ ...data, brandId: createdBrandId });
@@ -1390,21 +1438,67 @@ export default function Onboarding() {
 
   // Step 5: Generate AI-suggested posting schedules when entering step 5
   useEffect(() => {
-    if (currentStep === 5 && connectedSocialPlatforms.length > 0 && postingSchedules.length === 0) {
+    if (
+      currentStep === 5 &&
+      connectedSocialPlatforms.length > 0 &&
+      postingSchedules.length === 0
+    ) {
       // Generate default AI suggestions based on connected platforms
       const defaultSchedules: Record<string, PlatformSchedule> = {
-        facebook: { platform: "facebook", postsPerWeek: 3, selectedDays: ["monday", "wednesday", "friday"] },
-        instagram: { platform: "instagram", postsPerWeek: 5, selectedDays: ["monday", "tuesday", "wednesday", "thursday", "friday"] },
-        instagram_direct: { platform: "instagram_direct", postsPerWeek: 5, selectedDays: ["monday", "tuesday", "wednesday", "thursday", "friday"] },
-        whatsapp: { platform: "whatsapp", postsPerWeek: 2, selectedDays: ["monday", "thursday"] },
-        whatsapp_baileys: { platform: "whatsapp_baileys", postsPerWeek: 2, selectedDays: ["monday", "thursday"] },
-        tiktok: { platform: "tiktok", postsPerWeek: 4, selectedDays: ["monday", "wednesday", "thursday", "saturday"] },
-        youtube: { platform: "youtube", postsPerWeek: 2, selectedDays: ["tuesday", "friday"] },
+        facebook: {
+          platform: "facebook",
+          postsPerWeek: 3,
+          selectedDays: ["monday", "wednesday", "friday"],
+        },
+        instagram: {
+          platform: "instagram",
+          postsPerWeek: 5,
+          selectedDays: [
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+          ],
+        },
+        instagram_direct: {
+          platform: "instagram_direct",
+          postsPerWeek: 5,
+          selectedDays: [
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+          ],
+        },
+        whatsapp: {
+          platform: "whatsapp",
+          postsPerWeek: 2,
+          selectedDays: ["monday", "thursday"],
+        },
+        whatsapp_baileys: {
+          platform: "whatsapp_baileys",
+          postsPerWeek: 2,
+          selectedDays: ["monday", "thursday"],
+        },
+        tiktok: {
+          platform: "tiktok",
+          postsPerWeek: 4,
+          selectedDays: ["monday", "wednesday", "thursday", "saturday"],
+        },
+        youtube: {
+          platform: "youtube",
+          postsPerWeek: 2,
+          selectedDays: ["tuesday", "friday"],
+        },
       };
 
       const suggestedSchedules = connectedSocialPlatforms
         .map((integration) => defaultSchedules[integration.provider])
-        .filter((schedule): schedule is PlatformSchedule => schedule !== undefined);
+        .filter(
+          (schedule): schedule is PlatformSchedule => schedule !== undefined,
+        );
 
       setPostingSchedules(suggestedSchedules);
     }
@@ -1416,9 +1510,13 @@ export default function Onboarding() {
 
     setIsSavingFrequency(true);
     try {
-      const response = await apiRequest("POST", `/api/posting-frequency?brandId=${effectiveBrandId}`, {
-        schedules: postingSchedules,
-      });
+      const response = await apiRequest(
+        "POST",
+        `/api/posting-frequency?brandId=${effectiveBrandId}`,
+        {
+          schedules: postingSchedules,
+        },
+      );
 
       if (!response.ok) {
         throw new Error("Failed to save posting frequency");
@@ -1777,13 +1875,21 @@ export default function Onboarding() {
                     <Button
                       type="submit"
                       className="flex-1"
-                      disabled={createBrandMutation.isPending || updateBrandMutation.isPending}
+                      disabled={
+                        createBrandMutation.isPending ||
+                        updateBrandMutation.isPending
+                      }
                       data-testid="button-next-step-1"
                     >
-                      {createBrandMutation.isPending || updateBrandMutation.isPending
+                      {createBrandMutation.isPending ||
+                      updateBrandMutation.isPending
                         ? isSpanish
-                          ? createdBrandId ? "Actualizando..." : "Creando..."
-                          : createdBrandId ? "Updating..." : "Creating..."
+                          ? createdBrandId
+                            ? "Actualizando..."
+                            : "Creando..."
+                          : createdBrandId
+                            ? "Updating..."
+                            : "Creating..."
                         : isSpanish
                           ? "Siguiente"
                           : "Next"}
@@ -1818,12 +1924,12 @@ export default function Onboarding() {
                   </div>
                   <div>
                     <p className="font-medium text-amber-800 dark:text-amber-200">
-                      {isSpanish 
-                        ? "💡 Estos colores y estilos se usarán para generar contenido con IA"
-                        : "💡 These colors and styles will be used to generate AI content"}
+                      {isSpanish
+                        ? "Estos colores y estilos se usarán para generar contenido con IA"
+                        : "These colors and styles will be used to generate AI content"}
                     </p>
                     <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                      {isSpanish 
+                      {isSpanish
                         ? "Asegúrate de que reflejen la identidad de tu marca"
                         : "Make sure they reflect your brand identity"}
                     </p>
@@ -1870,7 +1976,7 @@ export default function Onboarding() {
                             {styleImages[style.id] && (
                               <Dialog>
                                 <DialogTrigger asChild>
-                                  <div 
+                                  <div
                                     className="relative group"
                                     onClick={(e) => e.stopPropagation()}
                                   >
@@ -1962,9 +2068,9 @@ export default function Onboarding() {
                             <Image className="h-4 w-4 text-blue-600 dark:text-blue-300" />
                           </div>
                           <p className="font-medium text-blue-800 dark:text-blue-200">
-                            {isSpanish 
-                              ? "⚠️ Importante: Formato PNG con fondo transparente" 
-                              : "⚠️ Important: PNG format with transparent background"}
+                            {isSpanish
+                              ? "Importante: Formato PNG con fondo transparente"
+                              : "Important: PNG format with transparent background"}
                           </p>
                         </div>
                       </div>
@@ -2300,12 +2406,12 @@ export default function Onboarding() {
                   </div>
                   <div>
                     <p className="font-medium text-green-800 dark:text-green-200">
-                      {isSpanish 
-                        ? "📁 Estos archivos estarán disponibles para tu contenido de marketing"
-                        : "📁 These files will be available for your marketing content"}
+                      {isSpanish
+                        ? "Estos archivos estarán disponibles para tu contenido de marketing"
+                        : "These files will be available for your marketing content"}
                     </p>
                     <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                      {isSpanish 
+                      {isSpanish
                         ? "Sube fotos de productos, materiales promocionales o cualquier recurso de marca"
                         : "Upload product photos, promotional materials, or any brand resources"}
                     </p>
@@ -2498,359 +2604,405 @@ export default function Onboarding() {
         {/* STEP 4: Integrations Setup */}
         {currentStep === 4 && (
           <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl flex items-center gap-2">
-                <Link className="w-6 h-6" />
-                {isSpanish ? "Configurar Integraciones" : "Setup Integrations"}
-              </CardTitle>
-              <CardDescription>
-                {isSpanish
-                  ? "Conecta tus cuentas de redes sociales y otras plataformas"
-                  : "Connect your social media accounts and other platforms"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Integration Categories */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>{isSpanish ? "Nota:" : "Note:"}</strong>{" "}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Link className="w-6 h-6" />
                   {isSpanish
-                    ? "Puedes configurar las integraciones más tarde desde la página de Configuración."
-                    : "You can configure integrations later from the Settings page."}
-                </p>
-              </div>
-
-              {isIntegrationsLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                    ? "Configurar Integraciones"
+                    : "Setup Integrations"}
+                </CardTitle>
+                <CardDescription>
+                  {isSpanish
+                    ? "Conecta tus cuentas de redes sociales y otras plataformas"
+                    : "Connect your social media accounts and other platforms"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Integration Categories */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>{isSpanish ? "Nota:" : "Note:"}</strong>{" "}
+                    {isSpanish
+                      ? "Puedes configurar las integraciones más tarde desde la página de Configuración."
+                      : "You can configure integrations later from the Settings page."}
+                  </p>
                 </div>
-              ) : (
-                <div className="grid gap-6">
-                  {Object.entries(INTEGRATION_CATEGORIES).map(
-                    ([key, category]) => {
-                      const CategoryIcon = category.icon;
-                      const providersInCategory = Object.entries(
-                        INTEGRATION_PROVIDERS,
-                      ).filter(([, provider]) => provider.category === key);
 
-                      return (
-                        <Card key={key} className="border">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <CategoryIcon className="w-5 h-5" />
-                              {category.name}
-                            </CardTitle>
-                            <CardDescription>
-                              {category.description}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              {/* Instagram/WhatsApp conflict warnings */}
-                              {key === "social_media" && hasAnyInstagram && (
-                                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
-                                  <p className="text-amber-800 dark:text-amber-200">
-                                    <strong>⚠️</strong>{" "}
-                                    {hasInstagramViaFacebook
-                                      ? (isSpanish ? "Instagram conectado vía Facebook. Para usar Instagram Direct, desconecta primero." : "Instagram connected via Facebook. To use Instagram Direct, disconnect first.")
-                                      : (isSpanish ? "Instagram Direct conectado. Para usar Instagram vía Facebook, desconecta primero." : "Instagram Direct connected. To use Instagram via Facebook, disconnect first.")}
-                                  </p>
-                                </div>
-                              )}
-                              {key === "social_media" && hasAnyWhatsApp && (
-                                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
-                                  <p className="text-amber-800 dark:text-amber-200">
-                                    <strong>⚠️</strong>{" "}
-                                    {hasWhatsAppBusiness
-                                      ? (isSpanish ? "WhatsApp Business conectado. Para usar QR Code, desconecta primero." : "WhatsApp Business connected. To use QR Code, disconnect first.")
-                                      : (isSpanish ? "WhatsApp QR conectado. Para usar WhatsApp Business, desconecta primero." : "WhatsApp QR connected. To use WhatsApp Business, disconnect first.")}
-                                  </p>
-                                </div>
-                              )}
+                {isIntegrationsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                  </div>
+                ) : (
+                  <div className="grid gap-6">
+                    {Object.entries(INTEGRATION_CATEGORIES).map(
+                      ([key, category]) => {
+                        const CategoryIcon = category.icon;
+                        const providersInCategory = Object.entries(
+                          INTEGRATION_PROVIDERS,
+                        ).filter(([, provider]) => provider.category === key);
 
-                              {providersInCategory.map(
-                                ([providerKey, provider]) => {
-                                  const ProviderIcon = provider.icon;
-                                  const connectedIntegration = getConnectedIntegration(providerKey);
-                                  const isConnecting = connectingProvider === providerKey;
-                                  const isDisabled = isProviderDisabledByConflict(providerKey);
+                        return (
+                          <Card key={key} className="border">
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-lg flex items-center gap-2">
+                                <CategoryIcon className="w-5 h-5" />
+                                {category.name}
+                              </CardTitle>
+                              <CardDescription>
+                                {category.description}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                {/* Instagram/WhatsApp conflict warnings */}
+                                {key === "social_media" && hasAnyInstagram && (
+                                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                                    <p className="text-amber-800 dark:text-amber-200">
+                                      <strong>⚠️</strong>{" "}
+                                      {hasInstagramViaFacebook
+                                        ? isSpanish
+                                          ? "Instagram conectado vía Facebook. Para usar Instagram Direct, desconecta primero."
+                                          : "Instagram connected via Facebook. To use Instagram Direct, disconnect first."
+                                        : isSpanish
+                                          ? "Instagram Direct conectado. Para usar Instagram vía Facebook, desconecta primero."
+                                          : "Instagram Direct connected. To use Instagram via Facebook, disconnect first."}
+                                    </p>
+                                  </div>
+                                )}
+                                {key === "social_media" && hasAnyWhatsApp && (
+                                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                                    <p className="text-amber-800 dark:text-amber-200">
+                                      <strong>⚠️</strong>{" "}
+                                      {hasWhatsAppBusiness
+                                        ? isSpanish
+                                          ? "WhatsApp Business conectado. Para usar QR Code, desconecta primero."
+                                          : "WhatsApp Business connected. To use QR Code, disconnect first."
+                                        : isSpanish
+                                          ? "WhatsApp QR conectado. Para usar WhatsApp Business, desconecta primero."
+                                          : "WhatsApp QR connected. To use WhatsApp Business, disconnect first."}
+                                    </p>
+                                  </div>
+                                )}
 
-                                  // Get icon color based on provider
-                                  const getIconColor = () => {
-                                    if (isDisabled) return "text-gray-400";
-                                    switch (providerKey) {
-                                      case "facebook": return "text-blue-600";
-                                      case "instagram":
-                                      case "instagram_direct": return "text-pink-500";
-                                      case "whatsapp":
-                                      case "whatsapp_baileys": return "text-green-500";
-                                      case "youtube": return "text-red-600";
-                                      default: return "text-gray-600 dark:text-gray-400";
-                                    }
-                                  };
+                                {providersInCategory.map(
+                                  ([providerKey, provider]) => {
+                                    const ProviderIcon = provider.icon;
+                                    const connectedIntegration =
+                                      getConnectedIntegration(providerKey);
+                                    const isConnecting =
+                                      connectingProvider === providerKey;
+                                    const isDisabled =
+                                      isProviderDisabledByConflict(providerKey);
 
-                                  return (
-                                    <div
-                                      key={providerKey}
-                                      className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
-                                        isDisabled
-                                          ? "opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-900"
-                                          : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                                      }`}
-                                      data-testid={`integration-${providerKey}`}
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <ProviderIcon className={`w-8 h-8 ${getIconColor()}`} />
-                                        <div>
-                                          <div className="flex items-center gap-2">
-                                            <p className={`font-medium ${isDisabled ? "text-gray-500" : ""}`}>
-                                              {provider.name}
+                                    // Get icon color based on provider
+                                    const getIconColor = () => {
+                                      if (isDisabled) return "text-gray-400";
+                                      switch (providerKey) {
+                                        case "facebook":
+                                          return "text-blue-600";
+                                        case "instagram":
+                                        case "instagram_direct":
+                                          return "text-pink-500";
+                                        case "whatsapp":
+                                        case "whatsapp_baileys":
+                                          return "text-green-500";
+                                        case "youtube":
+                                          return "text-red-600";
+                                        default:
+                                          return "text-gray-600 dark:text-gray-400";
+                                      }
+                                    };
+
+                                    return (
+                                      <div
+                                        key={providerKey}
+                                        className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
+                                          isDisabled
+                                            ? "opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-900"
+                                            : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                                        }`}
+                                        data-testid={`integration-${providerKey}`}
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <ProviderIcon
+                                            className={`w-8 h-8 ${getIconColor()}`}
+                                          />
+                                          <div>
+                                            <div className="flex items-center gap-2">
+                                              <p
+                                                className={`font-medium ${isDisabled ? "text-gray-500" : ""}`}
+                                              >
+                                                {provider.name}
+                                              </p>
+                                              {isDisabled && (
+                                                <Badge
+                                                  variant="outline"
+                                                  className="text-xs text-amber-600 border-amber-400 bg-amber-50"
+                                                >
+                                                  {isSpanish
+                                                    ? "Conflicto"
+                                                    : "Conflict"}
+                                                </Badge>
+                                              )}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">
+                                              {provider.description}
                                             </p>
                                             {isDisabled && (
-                                              <Badge variant="outline" className="text-xs text-amber-600 border-amber-400 bg-amber-50">
-                                                {isSpanish ? "Conflicto" : "Conflict"}
-                                              </Badge>
+                                              <p className="text-xs text-amber-600 mt-1">
+                                                {providerKey === "instagram" ||
+                                                providerKey ===
+                                                  "instagram_direct"
+                                                  ? isSpanish
+                                                    ? "Desconecta la otra opción de Instagram primero"
+                                                    : "Disconnect the other Instagram option first"
+                                                  : isSpanish
+                                                    ? "Desconecta la otra opción de WhatsApp primero"
+                                                    : "Disconnect the other WhatsApp option first"}
+                                              </p>
+                                            )}
+                                            {connectedIntegration && (
+                                              <p className="text-xs text-green-600 mt-1">
+                                                ✅{" "}
+                                                {isSpanish
+                                                  ? "Conectado como"
+                                                  : "Connected as"}{" "}
+                                                {connectedIntegration.accountName ||
+                                                  connectedIntegration.storeName}
+                                              </p>
                                             )}
                                           </div>
-                                          <p className="text-sm text-muted-foreground">
-                                            {provider.description}
-                                          </p>
-                                          {isDisabled && (
-                                            <p className="text-xs text-amber-600 mt-1">
-                                              {(providerKey === "instagram" || providerKey === "instagram_direct")
-                                                ? (isSpanish ? "Desconecta la otra opción de Instagram primero" : "Disconnect the other Instagram option first")
-                                                : (isSpanish ? "Desconecta la otra opción de WhatsApp primero" : "Disconnect the other WhatsApp option first")}
-                                            </p>
-                                          )}
-                                          {connectedIntegration && (
-                                            <p className="text-xs text-green-600 mt-1">
-                                              ✅{" "}
-                                              {isSpanish
-                                                ? "Conectado como"
-                                                : "Connected as"}{" "}
-                                              {connectedIntegration.accountName ||
-                                                connectedIntegration.storeName}
-                                            </p>
-                                          )}
                                         </div>
-                                      </div>
 
-                                      {connectedIntegration ? (
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => {
-                                            if (connectedIntegration.provider === "whatsapp_baileys") {
-                                              handleBaileysDisconnect();
-                                            } else {
-                                              handleDisconnect(connectedIntegration.id);
+                                        {connectedIntegration ? (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              if (
+                                                connectedIntegration.provider ===
+                                                "whatsapp_baileys"
+                                              ) {
+                                                handleBaileysDisconnect();
+                                              } else {
+                                                handleDisconnect(
+                                                  connectedIntegration.id,
+                                                );
+                                              }
+                                            }}
+                                            className="text-red-600 border-red-400 hover:bg-red-50"
+                                            data-testid={`disconnect-${providerKey}`}
+                                          >
+                                            {isSpanish
+                                              ? "Desconectar"
+                                              : "Disconnect"}
+                                          </Button>
+                                        ) : isDisabled ? (
+                                          <Button
+                                            size="sm"
+                                            disabled
+                                            variant="secondary"
+                                            data-testid={`connect-${providerKey}`}
+                                          >
+                                            {isSpanish
+                                              ? "No Disponible"
+                                              : "Unavailable"}
+                                          </Button>
+                                        ) : (
+                                          <Button
+                                            size="sm"
+                                            onClick={() =>
+                                              handleConnect(providerKey)
                                             }
-                                          }}
-                                          className="text-red-600 border-red-400 hover:bg-red-50"
-                                          data-testid={`disconnect-${providerKey}`}
-                                        >
-                                          {isSpanish
-                                            ? "Desconectar"
-                                            : "Disconnect"}
-                                        </Button>
-                                      ) : isDisabled ? (
-                                        <Button
-                                          size="sm"
-                                          disabled
-                                          variant="secondary"
-                                          data-testid={`connect-${providerKey}`}
-                                        >
-                                          {isSpanish ? "No Disponible" : "Unavailable"}
-                                        </Button>
-                                      ) : (
-                                        <Button
-                                          size="sm"
-                                          onClick={() =>
-                                            handleConnect(providerKey)
-                                          }
-                                          disabled={isConnecting}
-                                          data-testid={`connect-${providerKey}`}
-                                        >
-                                          {isConnecting ? (
-                                            <>
-                                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                              {isSpanish
-                                                ? "Conectando..."
-                                                : "Connecting..."}
-                                            </>
-                                          ) : isSpanish ? (
-                                            "Conectar"
-                                          ) : (
-                                            "Connect"
-                                          )}
-                                        </Button>
-                                      )}
-                                    </div>
-                                  );
-                                },
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    },
+                                            disabled={isConnecting}
+                                            data-testid={`connect-${providerKey}`}
+                                          >
+                                            {isConnecting ? (
+                                              <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                {isSpanish
+                                                  ? "Conectando..."
+                                                  : "Connecting..."}
+                                              </>
+                                            ) : isSpanish ? (
+                                              "Conectar"
+                                            ) : (
+                                              "Connect"
+                                            )}
+                                          </Button>
+                                        )}
+                                      </div>
+                                    );
+                                  },
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      },
+                    )}
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-6">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevStep}
+                    className="flex-1"
+                    data-testid="button-prev-step-4"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    {isSpanish ? "Anterior" : "Previous"}
+                  </Button>
+                  {hasSocialConnections ? (
+                    <Button
+                      type="button"
+                      onClick={handleNextStep}
+                      className="flex-1"
+                      data-testid="button-next-step-4"
+                    >
+                      {isSpanish ? "Siguiente" : "Next"}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={handleFinishOnboarding}
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      data-testid="button-finish-onboarding"
+                    >
+                      <Check className="w-4 h-4 mr-2" />
+                      {isSpanish ? "Finalizar Onboarding" : "Finish Onboarding"}
+                    </Button>
                   )}
                 </div>
-              )}
+              </CardContent>
+            </Card>
 
-              <div className="flex gap-3 pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handlePrevStep}
-                  className="flex-1"
-                  data-testid="button-prev-step-4"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  {isSpanish ? "Anterior" : "Previous"}
-                </Button>
-                {hasSocialConnections ? (
-                  <Button
-                    type="button"
-                    onClick={handleNextStep}
-                    className="flex-1"
-                    data-testid="button-next-step-4"
-                  >
-                    {isSpanish ? "Siguiente" : "Next"}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    onClick={handleFinishOnboarding}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                    data-testid="button-finish-onboarding"
-                  >
-                    <Check className="w-4 h-4 mr-2" />
-                    {isSpanish ? "Finalizar Onboarding" : "Finish Onboarding"}
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* WhatsApp Baileys QR Code Dialog */}
-          <Dialog
-            open={isWhatsAppDialogOpen}
-            onOpenChange={(open) => {
-              setIsWhatsAppDialogOpen(open);
-              if (!open) {
-                if (baileysPollingInterval) {
-                  clearInterval(baileysPollingInterval);
-                  setBaileysPollingInterval(null);
+            {/* WhatsApp Baileys QR Code Dialog */}
+            <Dialog
+              open={isWhatsAppDialogOpen}
+              onOpenChange={(open) => {
+                setIsWhatsAppDialogOpen(open);
+                if (!open) {
+                  if (baileysPollingInterval) {
+                    clearInterval(baileysPollingInterval);
+                    setBaileysPollingInterval(null);
+                  }
+                  setBaileysQrCode(null);
+                  setBaileysStatus("disconnected");
+                  setIsBaileysConnecting(false);
                 }
-                setBaileysQrCode(null);
-                setBaileysStatus("disconnected");
-                setIsBaileysConnecting(false);
-              }
-            }}
-          >
-            <DialogContent className="sm:max-w-[400px]">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5 text-green-500" />
-                  {isSpanish ? "Conectar WhatsApp" : "Connect WhatsApp"}
-                </DialogTitle>
-                <DialogDescription>
-                  {isSpanish
-                    ? "Escanea el código QR con tu app de WhatsApp"
-                    : "Scan the QR code with your WhatsApp app"}
-                </DialogDescription>
-              </DialogHeader>
+              }}
+            >
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-green-500" />
+                    {isSpanish ? "Conectar WhatsApp" : "Connect WhatsApp"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {isSpanish
+                      ? "Escanea el código QR con tu app de WhatsApp"
+                      : "Scan the QR code with your WhatsApp app"}
+                  </DialogDescription>
+                </DialogHeader>
 
-              <div className="space-y-4 py-4">
-                {baileysStatus === "connected" ? (
-                  <div className="text-center space-y-4">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                      <Check className="h-8 w-8 text-green-600" />
-                    </div>
-                    <p className="text-green-700 font-medium">
-                      {isSpanish ? "¡Conectado!" : "Connected!"}
-                    </p>
-                    {baileysPhone && (
-                      <p className="text-sm text-gray-500">{baileysPhone}</p>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={handleBaileysDisconnect}
-                      className="text-red-600"
-                    >
-                      {isSpanish ? "Desconectar" : "Disconnect"}
-                    </Button>
-                  </div>
-                ) : baileysStatus === "qr_ready" && baileysQrCode ? (
-                  <div className="text-center space-y-4">
-                    <div className="bg-white p-4 rounded-lg inline-block mx-auto">
-                      <img
-                        src={baileysQrCode}
-                        alt="WhatsApp QR Code"
-                        className="w-48 h-48"
-                      />
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      {isSpanish
-                        ? "Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo"
-                        : "Open WhatsApp → Linked Devices → Link a Device"}
-                    </p>
-                    <Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-400" />
-                    <p className="text-xs text-gray-400">
-                      {isSpanish ? "Esperando escaneo..." : "Waiting for scan..."}
-                    </p>
-                  </div>
-                ) : baileysStatus === "connecting" || isBaileysConnecting ? (
-                  <div className="text-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-green-500" />
-                    <p className="mt-4 text-gray-500">
-                      {isSpanish ? "Generando código QR..." : "Generating QR code..."}
-                    </p>
-                  </div>
-                ) : baileysStatus === "error" ? (
-                  <div className="text-center space-y-4 py-4">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                      <X className="h-8 w-8 text-red-600" />
-                    </div>
-                    <p className="text-red-600">
-                      {isSpanish ? "Error de conexión" : "Connection error"}
-                    </p>
-                    <Button onClick={handleBaileysConnect}>
-                      {isSpanish ? "Reintentar" : "Try Again"}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-4 py-4">
-                    <p className="text-sm text-gray-500 mb-4">
-                      {isSpanish
-                        ? "Conecta tu WhatsApp personal escaneando un código QR. Esta es una opción experimental."
-                        : "Connect your personal WhatsApp by scanning a QR code. This is an experimental option."}
-                    </p>
-                    <Button
-                      onClick={handleBaileysConnect}
-                      className="bg-green-600 hover:bg-green-700"
-                      disabled={isBaileysConnecting}
-                    >
-                      {isBaileysConnecting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          {isSpanish ? "Iniciando..." : "Starting..."}
-                        </>
-                      ) : (
-                        <>
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          {isSpanish ? "Generar Código QR" : "Generate QR Code"}
-                        </>
+                <div className="space-y-4 py-4">
+                  {baileysStatus === "connected" ? (
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                        <Check className="h-8 w-8 text-green-600" />
+                      </div>
+                      <p className="text-green-700 font-medium">
+                        {isSpanish ? "¡Conectado!" : "Connected!"}
+                      </p>
+                      {baileysPhone && (
+                        <p className="text-sm text-gray-500">{baileysPhone}</p>
                       )}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+                      <Button
+                        variant="outline"
+                        onClick={handleBaileysDisconnect}
+                        className="text-red-600"
+                      >
+                        {isSpanish ? "Desconectar" : "Disconnect"}
+                      </Button>
+                    </div>
+                  ) : baileysStatus === "qr_ready" && baileysQrCode ? (
+                    <div className="text-center space-y-4">
+                      <div className="bg-white p-4 rounded-lg inline-block mx-auto">
+                        <img
+                          src={baileysQrCode}
+                          alt="WhatsApp QR Code"
+                          className="w-48 h-48"
+                        />
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {isSpanish
+                          ? "Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo"
+                          : "Open WhatsApp → Linked Devices → Link a Device"}
+                      </p>
+                      <Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-400" />
+                      <p className="text-xs text-gray-400">
+                        {isSpanish
+                          ? "Esperando escaneo..."
+                          : "Waiting for scan..."}
+                      </p>
+                    </div>
+                  ) : baileysStatus === "connecting" || isBaileysConnecting ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto text-green-500" />
+                      <p className="mt-4 text-gray-500">
+                        {isSpanish
+                          ? "Generando código QR..."
+                          : "Generating QR code..."}
+                      </p>
+                    </div>
+                  ) : baileysStatus === "error" ? (
+                    <div className="text-center space-y-4 py-4">
+                      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                        <X className="h-8 w-8 text-red-600" />
+                      </div>
+                      <p className="text-red-600">
+                        {isSpanish ? "Error de conexión" : "Connection error"}
+                      </p>
+                      <Button onClick={handleBaileysConnect}>
+                        {isSpanish ? "Reintentar" : "Try Again"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center space-y-4 py-4">
+                      <p className="text-sm text-gray-500 mb-4">
+                        {isSpanish
+                          ? "Conecta tu WhatsApp personal escaneando un código QR. Esta es una opción experimental."
+                          : "Connect your personal WhatsApp by scanning a QR code. This is an experimental option."}
+                      </p>
+                      <Button
+                        onClick={handleBaileysConnect}
+                        className="bg-green-600 hover:bg-green-700"
+                        disabled={isBaileysConnecting}
+                      >
+                        {isBaileysConnecting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            {isSpanish ? "Iniciando..." : "Starting..."}
+                          </>
+                        ) : (
+                          <>
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            {isSpanish
+                              ? "Generar Código QR"
+                              : "Generate QR Code"}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
           </>
         )}
 
@@ -2876,12 +3028,12 @@ export default function Onboarding() {
                   </div>
                   <div>
                     <p className="font-medium text-purple-800 dark:text-purple-200">
-                      {isSpanish 
-                        ? "📅 Define tu calendario de publicación para cada red social"
-                        : "📅 Set your posting schedule for each social network"}
+                      {isSpanish
+                        ? "Define tu calendario de publicación para cada red social"
+                        : "Set your posting schedule for each social network"}
                     </p>
                     <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
-                      {isSpanish 
+                      {isSpanish
                         ? "La IA usará esta configuración para planificar tu contenido automáticamente"
                         : "AI will use this setting to automatically plan your content"}
                     </p>
@@ -2911,8 +3063,12 @@ export default function Onboarding() {
                         >
                           <Check className="h-4 w-4 mr-1" />
                           {isSavingFrequency
-                            ? (isSpanish ? "Guardando..." : "Saving...")
-                            : (isSpanish ? "Aceptar Sugerencia" : "Accept Suggestion")}
+                            ? isSpanish
+                              ? "Guardando..."
+                              : "Saving..."
+                            : isSpanish
+                              ? "Aceptar Sugerencia"
+                              : "Accept Suggestion"}
                         </Button>
                         <Button
                           size="sm"
@@ -2933,7 +3089,9 @@ export default function Onboarding() {
                 <div className="py-8 text-center">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
                   <p className="text-gray-500 mt-4">
-                    {isSpanish ? "Generando sugerencias..." : "Generating suggestions..."}
+                    {isSpanish
+                      ? "Generando sugerencias..."
+                      : "Generating suggestions..."}
                   </p>
                 </div>
               )}
@@ -2943,7 +3101,9 @@ export default function Onboarding() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-gray-900 dark:text-white">
-                      {isSpanish ? "Calendarios por Plataforma" : "Platform Schedules"}
+                      {isSpanish
+                        ? "Calendarios por Plataforma"
+                        : "Platform Schedules"}
                     </h3>
                     {isEditingFrequency && (
                       <Button
@@ -2960,16 +3120,53 @@ export default function Onboarding() {
 
                   {postingSchedules.map((schedule) => {
                     const getPlatformInfo = (platformId: string) => {
-                      const platformConfigs: Record<string, { name: string; icon: any; color: string }> = {
-                        facebook: { name: "Facebook", icon: SiFacebook, color: "text-blue-600" },
-                        instagram: { name: "Instagram", icon: Instagram, color: "text-pink-500" },
-                        instagram_direct: { name: "Instagram Direct", icon: Instagram, color: "text-pink-500" },
-                        whatsapp: { name: "WhatsApp", icon: SiWhatsapp, color: "text-green-500" },
-                        whatsapp_baileys: { name: "WhatsApp", icon: SiWhatsapp, color: "text-green-500" },
-                        tiktok: { name: "TikTok", icon: SiTiktok, color: "text-gray-800 dark:text-white" },
-                        youtube: { name: "YouTube", icon: SiYoutube, color: "text-red-600" },
+                      const platformConfigs: Record<
+                        string,
+                        { name: string; icon: any; color: string }
+                      > = {
+                        facebook: {
+                          name: "Facebook",
+                          icon: SiFacebook,
+                          color: "text-blue-600",
+                        },
+                        instagram: {
+                          name: "Instagram",
+                          icon: Instagram,
+                          color: "text-pink-500",
+                        },
+                        instagram_direct: {
+                          name: "Instagram Direct",
+                          icon: Instagram,
+                          color: "text-pink-500",
+                        },
+                        whatsapp: {
+                          name: "WhatsApp",
+                          icon: SiWhatsapp,
+                          color: "text-green-500",
+                        },
+                        whatsapp_baileys: {
+                          name: "WhatsApp",
+                          icon: SiWhatsapp,
+                          color: "text-green-500",
+                        },
+                        tiktok: {
+                          name: "TikTok",
+                          icon: SiTiktok,
+                          color: "text-gray-800 dark:text-white",
+                        },
+                        youtube: {
+                          name: "YouTube",
+                          icon: SiYoutube,
+                          color: "text-red-600",
+                        },
                       };
-                      return platformConfigs[platformId] || { name: platformId, icon: Globe, color: "text-gray-500" };
+                      return (
+                        platformConfigs[platformId] || {
+                          name: platformId,
+                          icon: Globe,
+                          color: "text-gray-500",
+                        }
+                      );
                     };
 
                     const platformInfo = getPlatformInfo(schedule.platform);
@@ -2994,9 +3191,12 @@ export default function Onboarding() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Icon className={`h-5 w-5 ${platformInfo.color}`} />
-                            <span className="font-medium">{platformInfo.name}</span>
+                            <span className="font-medium">
+                              {platformInfo.name}
+                            </span>
                             <Badge variant="secondary" className="ml-2">
-                              {schedule.postsPerWeek} {isSpanish ? "posts/semana" : "posts/week"}
+                              {schedule.postsPerWeek}{" "}
+                              {isSpanish ? "posts/semana" : "posts/week"}
                             </Badge>
                           </div>
                         </div>
@@ -3004,11 +3204,15 @@ export default function Onboarding() {
                         {/* Days of Week Selection */}
                         <div className="space-y-2">
                           <Label className="text-sm text-gray-600 dark:text-gray-400">
-                            {isSpanish ? "Días de publicación:" : "Posting Days:"}
+                            {isSpanish
+                              ? "Días de publicación:"
+                              : "Posting Days:"}
                           </Label>
                           <div className="flex flex-wrap gap-2">
                             {daysOfWeek.map((day) => {
-                              const isSelected = schedule.selectedDays.includes(day.id);
+                              const isSelected = schedule.selectedDays.includes(
+                                day.id,
+                              );
                               return (
                                 <button
                                   key={day.id}
@@ -3016,12 +3220,21 @@ export default function Onboarding() {
                                     if (!isEditingFrequency) return;
                                     setPostingSchedules((prev) =>
                                       prev.map((s) => {
-                                        if (s.platform !== schedule.platform) return s;
-                                        const days = s.selectedDays.includes(day.id)
-                                          ? s.selectedDays.filter((d) => d !== day.id)
+                                        if (s.platform !== schedule.platform)
+                                          return s;
+                                        const days = s.selectedDays.includes(
+                                          day.id,
+                                        )
+                                          ? s.selectedDays.filter(
+                                              (d) => d !== day.id,
+                                            )
                                           : [...s.selectedDays, day.id];
-                                        return { ...s, selectedDays: days, postsPerWeek: days.length };
-                                      })
+                                        return {
+                                          ...s,
+                                          selectedDays: days,
+                                          postsPerWeek: days.length,
+                                        };
+                                      }),
                                     );
                                   }}
                                   disabled={!isEditingFrequency}
