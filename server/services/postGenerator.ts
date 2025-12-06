@@ -836,7 +836,9 @@ export async function processPostGeneration(
     
     // Start from social_posting_frequency (source of truth), then validate against integrations
     for (const frequency of postingFrequencies) {
-      const frequencyPlatform = frequency.platform.toLowerCase();
+      const rawFrequencyPlatform = frequency.platform.toLowerCase();
+      // Normalize instagram_direct to instagram for matching
+      const frequencyPlatform = rawFrequencyPlatform === 'instagram_direct' ? 'instagram' : rawFrequencyPlatform;
       
       // Check if this platform has an active integration
       const hasIntegration = uniquePlatforms.some(p => {
