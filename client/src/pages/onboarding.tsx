@@ -83,7 +83,10 @@ import {
   Download,
   Loader2,
   MessageCircle,
+  Calendar,
+  X,
 } from "lucide-react";
+import { SiFacebook, SiWhatsapp, SiTiktok, SiLinkedin, SiYoutube, SiPinterest, SiX } from "react-icons/si";
 
 import minimal from "./brand-images/minimalist.png";
 import luxury from "./brand-images/luxury.png";
@@ -370,6 +373,7 @@ function StepIndicator({
     { number: 2, label: "Brand Design" },
     { number: 3, label: "Brand Assets" },
     { number: 4, label: "Integrations" },
+    { number: 5, label: "Posting Schedule" },
   ];
 
   return (
@@ -581,6 +585,16 @@ export default function Onboarding() {
   const [isBaileysConnecting, setIsBaileysConnecting] = useState(false);
   const [baileysPollingInterval, setBaileysPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
+  // Step 5: Posting Frequency state
+  interface PlatformSchedule {
+    platform: string;
+    postsPerWeek: number;
+    selectedDays: string[];
+  }
+  const [postingSchedules, setPostingSchedules] = useState<PlatformSchedule[]>([]);
+  const [isEditingFrequency, setIsEditingFrequency] = useState(false);
+  const [isSavingFrequency, setIsSavingFrequency] = useState(false);
+
   useGoogleFontLoader([primaryFont, secondaryFont]);
 
   // Query brand design data after brand is created
@@ -673,6 +687,16 @@ export default function Onboarding() {
   const hasWhatsAppBusiness = integrations.some((i) => i.provider === "whatsapp" && i.isActive);
   const hasWhatsAppBaileys = integrations.some((i) => i.provider === "whatsapp_baileys" && i.isActive);
   const hasAnyWhatsApp = hasWhatsAppBusiness || hasWhatsAppBaileys;
+
+  // Check if any social media platforms are connected (for Step 5)
+  const hasFacebook = isProviderConnected("facebook");
+  const connectedSocialPlatforms = integrations.filter(
+    (i) => ["facebook", "instagram", "instagram_direct", "whatsapp", "whatsapp_baileys", "tiktok", "youtube"].includes(i.provider) && i.isActive
+  );
+  const hasSocialConnections = connectedSocialPlatforms.length > 0;
+
+  // Dynamic total steps - 5 if social connected, 4 if not
+  const totalSteps = hasSocialConnections ? 5 : 4;
 
   const isProviderDisabledByConflict = (providerKey: string): boolean => {
     // Instagram conflicts
@@ -1353,7 +1377,7 @@ export default function Onboarding() {
       const saved = await handleSaveBrandDesign();
       if (!saved) return;
     }
-    setCurrentStep((prev) => Math.min(prev + 1, 4));
+    setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
   const handlePrevStep = () => {
@@ -1369,6 +1393,69 @@ export default function Onboarding() {
         : "Your brand is ready to use.",
     });
     setLocation("/dashboard");
+  };
+
+  // Step 5: Generate AI-suggested posting schedules when entering step 5
+  useEffect(() => {
+    if (currentStep === 5 && connectedSocialPlatforms.length > 0 && postingSchedules.length === 0) {
+      // Generate default AI suggestions based on connected platforms
+      const defaultSchedules: Record<string, PlatformSchedule> = {
+        facebook: { platform: "facebook", postsPerWeek: 3, selectedDays: ["monday", "wednesday", "friday"] },
+        instagram: { platform: "instagram", postsPerWeek: 5, selectedDays: ["monday", "tuesday", "wednesday", "thursday", "friday"] },
+        instagram_direct: { platform: "instagram_direct", postsPerWeek: 5, selectedDays: ["monday", "tuesday", "wednesday", "thursday", "friday"] },
+        whatsapp: { platform: "whatsapp", postsPerWeek: 2, selectedDays: ["monday", "thursday"] },
+        whatsapp_baileys: { platform: "whatsapp_baileys", postsPerWeek: 2, selectedDays: ["monday", "thursday"] },
+        tiktok: { platform: "tiktok", postsPerWeek: 4, selectedDays: ["monday", "wednesday", "thursday", "saturday"] },
+        youtube: { platform: "youtube", postsPerWeek: 2, selectedDays: ["tuesday", "friday"] },
+      };
+
+      const suggestedSchedules = connectedSocialPlatforms
+        .map((integration) => defaultSchedules[integration.provider])
+        .filter((schedule): schedule is PlatformSchedule => schedule !== undefined);
+
+      setPostingSchedules(suggestedSchedules);
+    }
+  }, [currentStep, connectedSocialPlatforms, postingSchedules.length]);
+
+  // Step 5: Save posting frequency
+  const handleSavePostingFrequency = async () => {
+    if (!effectiveBrandId) return;
+
+    setIsSavingFrequency(true);
+    try {
+      const response = await apiRequest("POST", `/api/posting-frequency?brandId=${effectiveBrandId}`, {
+        schedules: postingSchedules,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save posting frequency");
+      }
+
+      toast({
+        title: isSpanish ? "¡Guardado!" : "Saved!",
+        description: isSpanish
+          ? "Tu frecuencia de publicación ha sido guardada."
+          : "Your posting frequency has been saved.",
+      });
+
+      handleFinishOnboarding();
+    } catch (error) {
+      console.error("Error saving posting frequency:", error);
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish
+          ? "No se pudo guardar la frecuencia de publicación"
+          : "Failed to save posting frequency",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingFrequency(false);
+    }
+  };
+
+  // Step 5: Skip posting frequency configuration
+  const handleSkipFrequency = () => {
+    handleFinishOnboarding();
   };
 
   // Show loading while checking authentication
@@ -1593,7 +1680,7 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <StepIndicator currentStep={currentStep} totalSteps={4} />
+        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
 
         {/* STEP 1: Create Brand */}
         {currentStep === 1 && (
@@ -2580,15 +2667,27 @@ export default function Onboarding() {
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   {isSpanish ? "Anterior" : "Previous"}
                 </Button>
-                <Button
-                  type="button"
-                  onClick={handleFinishOnboarding}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                  data-testid="button-finish-onboarding"
-                >
-                  <Check className="w-4 h-4 mr-2" />
-                  {isSpanish ? "Finalizar Onboarding" : "Finish Onboarding"}
-                </Button>
+                {hasSocialConnections ? (
+                  <Button
+                    type="button"
+                    onClick={handleNextStep}
+                    className="flex-1"
+                    data-testid="button-next-step-4"
+                  >
+                    {isSpanish ? "Siguiente" : "Next"}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleFinishOnboarding}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    data-testid="button-finish-onboarding"
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    {isSpanish ? "Finalizar Onboarding" : "Finish Onboarding"}
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -2710,6 +2809,226 @@ export default function Onboarding() {
             </DialogContent>
           </Dialog>
           </>
+        )}
+
+        {/* STEP 5: Posting Frequency Configuration */}
+        {currentStep === 5 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Calendar className="w-6 h-6" />
+                {isSpanish ? "Frecuencia de Publicación" : "Posting Frequency"}
+              </CardTitle>
+              <CardDescription>
+                {isSpanish
+                  ? "Configura cuándo y con qué frecuencia quieres publicar en cada plataforma"
+                  : "Configure when and how often you want to post on each platform"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* AI Suggestion Banner */}
+              {!isEditingFrequency && postingSchedules.length > 0 && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                        {isSpanish ? "Sugerencia de IA" : "AI Suggestion"}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                        {isSpanish
+                          ? "Basado en las mejores prácticas de la industria y horarios óptimos de engagement, hemos creado un calendario de publicación adaptado para maximizar tu alcance."
+                          : "Based on industry best practices and optimal engagement times, we've created a posting schedule tailored for maximum reach."}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={handleSavePostingFrequency}
+                          disabled={isSavingFrequency}
+                          data-testid="button-accept-frequency"
+                        >
+                          <Check className="h-4 w-4 mr-1" />
+                          {isSavingFrequency
+                            ? (isSpanish ? "Guardando..." : "Saving...")
+                            : (isSpanish ? "Aceptar Sugerencia" : "Accept Suggestion")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setIsEditingFrequency(true)}
+                          data-testid="button-customize-frequency"
+                        >
+                          {isSpanish ? "Personalizar" : "Customize"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Loading state */}
+              {postingSchedules.length === 0 && !isEditingFrequency && (
+                <div className="py-8 text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
+                  <p className="text-gray-500 mt-4">
+                    {isSpanish ? "Generando sugerencias..." : "Generating suggestions..."}
+                  </p>
+                </div>
+              )}
+
+              {/* Platform Schedules */}
+              {postingSchedules.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      {isSpanish ? "Calendarios por Plataforma" : "Platform Schedules"}
+                    </h3>
+                    {isEditingFrequency && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsEditingFrequency(false)}
+                        className="text-gray-500"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        {isSpanish ? "Cancelar" : "Cancel"}
+                      </Button>
+                    )}
+                  </div>
+
+                  {postingSchedules.map((schedule) => {
+                    const getPlatformInfo = (platformId: string) => {
+                      const platformConfigs: Record<string, { name: string; icon: any; color: string }> = {
+                        facebook: { name: "Facebook", icon: SiFacebook, color: "text-blue-600" },
+                        instagram: { name: "Instagram", icon: Instagram, color: "text-pink-500" },
+                        instagram_direct: { name: "Instagram Direct", icon: Instagram, color: "text-pink-500" },
+                        whatsapp: { name: "WhatsApp", icon: SiWhatsapp, color: "text-green-500" },
+                        whatsapp_baileys: { name: "WhatsApp", icon: SiWhatsapp, color: "text-green-500" },
+                        tiktok: { name: "TikTok", icon: SiTiktok, color: "text-gray-800 dark:text-white" },
+                        youtube: { name: "YouTube", icon: SiYoutube, color: "text-red-600" },
+                      };
+                      return platformConfigs[platformId] || { name: platformId, icon: Globe, color: "text-gray-500" };
+                    };
+
+                    const platformInfo = getPlatformInfo(schedule.platform);
+                    const Icon = platformInfo.icon;
+
+                    const daysOfWeek = [
+                      { id: "monday", name: isSpanish ? "Lun" : "Mon" },
+                      { id: "tuesday", name: isSpanish ? "Mar" : "Tue" },
+                      { id: "wednesday", name: isSpanish ? "Mié" : "Wed" },
+                      { id: "thursday", name: isSpanish ? "Jue" : "Thu" },
+                      { id: "friday", name: isSpanish ? "Vie" : "Fri" },
+                      { id: "saturday", name: isSpanish ? "Sáb" : "Sat" },
+                      { id: "sunday", name: isSpanish ? "Dom" : "Sun" },
+                    ];
+
+                    return (
+                      <div
+                        key={schedule.platform}
+                        className="border rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800"
+                        data-testid={`schedule-${schedule.platform}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Icon className={`h-5 w-5 ${platformInfo.color}`} />
+                            <span className="font-medium">{platformInfo.name}</span>
+                            <Badge variant="secondary" className="ml-2">
+                              {schedule.postsPerWeek} {isSpanish ? "posts/semana" : "posts/week"}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Days of Week Selection */}
+                        <div className="space-y-2">
+                          <Label className="text-sm text-gray-600 dark:text-gray-400">
+                            {isSpanish ? "Días de publicación:" : "Posting Days:"}
+                          </Label>
+                          <div className="flex flex-wrap gap-2">
+                            {daysOfWeek.map((day) => {
+                              const isSelected = schedule.selectedDays.includes(day.id);
+                              return (
+                                <button
+                                  key={day.id}
+                                  onClick={() => {
+                                    if (!isEditingFrequency) return;
+                                    setPostingSchedules((prev) =>
+                                      prev.map((s) => {
+                                        if (s.platform !== schedule.platform) return s;
+                                        const days = s.selectedDays.includes(day.id)
+                                          ? s.selectedDays.filter((d) => d !== day.id)
+                                          : [...s.selectedDays, day.id];
+                                        return { ...s, selectedDays: days, postsPerWeek: days.length };
+                                      })
+                                    );
+                                  }}
+                                  disabled={!isEditingFrequency}
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                                    isSelected
+                                      ? "bg-blue-600 text-white"
+                                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                                  } ${isEditingFrequency ? "hover:opacity-80 cursor-pointer" : "cursor-default"}`}
+                                  data-testid={`day-${schedule.platform}-${day.id}`}
+                                >
+                                  {day.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Navigation buttons */}
+              <div className="flex gap-3 pt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevStep}
+                  className="flex-1"
+                  data-testid="button-prev-step-5"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  {isSpanish ? "Anterior" : "Previous"}
+                </Button>
+                {isEditingFrequency ? (
+                  <Button
+                    type="button"
+                    onClick={handleSavePostingFrequency}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    disabled={isSavingFrequency}
+                    data-testid="button-save-frequency"
+                  >
+                    {isSavingFrequency ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {isSpanish ? "Guardando..." : "Saving..."}
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        {isSpanish ? "Guardar y Finalizar" : "Save & Finish"}
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleSkipFrequency}
+                    variant="outline"
+                    className="flex-1"
+                    data-testid="button-skip-frequency"
+                  >
+                    {isSpanish ? "Omitir por Ahora" : "Skip for Now"}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

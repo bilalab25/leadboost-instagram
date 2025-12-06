@@ -38,7 +38,11 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
   - Bilingual support (English/Spanish) via useLanguage hook
 - **Automation Flows**: Visual builder for custom workflows with various node types and advanced condition logic.
 - **Brand Studio**: Brand-specific designs and Cloudinary-based asset management with category organization.
-- **Posting Frequency Management**: Brand-specific scheduling with AI suggestions.
+- **Posting Frequency Management**: Brand-specific scheduling with AI suggestions. Integrated into onboarding as Step 5 (conditional - only appears when social media accounts are connected). Features:
+  - AI-suggested posting schedules based on industry best practices
+  - Customizable days-of-week selection per platform
+  - Supports Facebook, Instagram, WhatsApp, TikTok, YouTube
+  - Saves to database via `/api/posting-frequency` endpoint
 - **WhatsApp Templates**: Full Meta Graph API integration for fetching templates and sending template messages with variable substitution. Supports HEADER, BODY, and BUTTON parameters following Meta's component schema.
 - **Integrations Page**: Standalone page at `/integrations` for managing OAuth platform connections (Facebook, Instagram, WhatsApp, etc.). Features popup-based OAuth flow with session state persistence.
 - **Instagram Direct Integration**: Separate OAuth flow for Instagram Business accounts (not via Facebook). Uses Instagram's standalone OAuth with scopes for messaging, content publishing, comments, and insights. Environment variables: `IG_APP_ID`, `IG_APP_SECRET`.
