@@ -879,6 +879,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's onboarding progress (returns brand with onboarding info if exists)
+  app.get("/api/onboarding/progress", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      
+      // Get user's brand memberships to find incomplete onboarding
+      const memberships = await storage.getBrandMemberships(userId);
+      
+      if (!memberships || memberships.length === 0) {
+        // No brands - user needs to start from scratch
+        return res.json({ 
+          hasIncompleteBrand: false,
+          brand: null,
+          onboardingStep: 1,
+          onboardingCompleted: false
+        });
+      }
+
+      // Find the first brand with incomplete onboarding (owned by this user)
+      const ownedMemberships = memberships.filter(m => m.role === 'owner');
+      
+      for (const membership of ownedMemberships) {
+        const brand = await storage.getBrandById(membership.brandId, userId);
+        if (brand && !brand.onboardingCompleted) {
+          return res.json({
+            hasIncompleteBrand: true,
+            brand: brand,
+            onboardingStep: brand.onboardingStep || 1,
+            onboardingCompleted: false
+          });
+        }
+      }
+
+      // All brands have completed onboarding
+      res.json({
+        hasIncompleteBrand: false,
+        brand: memberships[0] ? await storage.getBrandById(memberships[0].brandId, userId) : null,
+        onboardingStep: null,
+        onboardingCompleted: true
+      });
+    } catch (error) {
+      console.error("Error fetching onboarding progress:", error);
+      res.status(500).json({ message: "Failed to fetch onboarding progress" });
+    }
+  });
+
+  // Update onboarding step for a brand
+  app.patch("/api/brands/:id/onboarding", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId =
+        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.params.id;
+      const { onboardingStep, onboardingCompleted } = req.body;
+
+      const updates: any = {};
+      if (onboardingStep !== undefined) {
+        updates.onboardingStep = onboardingStep;
+      }
+      if (onboardingCompleted !== undefined) {
+        updates.onboardingCompleted = onboardingCompleted;
+      }
+
+      const brand = await storage.updateBrand(brandId, userId, updates);
+
+      if (!brand) {
+        return res.status(404).json({ message: "Brand not found" });
+      }
+
+      res.json(brand);
+    } catch (error) {
+      console.error("Error updating onboarding progress:", error);
+      res.status(500).json({ message: "Failed to update onboarding progress" });
+    }
+  });
+
   // Brand memberships endpoint
   app.get("/api/brand-memberships", isAuthenticated, async (req: any, res) => {
     try {
