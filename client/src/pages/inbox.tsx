@@ -458,7 +458,8 @@ export default function Inbox() {
                 </motion.div>
                 )}
 
-                {/* Messages List */}
+                {/* Messages List - Only show if there are integrations */}
+                {integrations.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -476,6 +477,7 @@ export default function Inbox() {
                     </div>
                   </Card>
                 </motion.div>
+                )}
               </div>
             </div>
           </main>
