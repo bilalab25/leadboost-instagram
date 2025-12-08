@@ -41,16 +41,6 @@ if (
 }
 // --- FIN INICIALIZACIÓN FIREBASE ADMIN SDK ---
 
-// Import connect-pg-simple only if DATABASE_URL is available
-let connectPg: any = null;
-if (process.env.DATABASE_URL) {
-  try {
-    connectPg = require("connect-pg-simple");
-  } catch (error) {
-    console.log("PostgreSQL session store not available, using memory store");
-  }
-}
-
 // --- INICIO DE CÓDIGO RELACIONADO CON LA CONTRASEÑA DEL SITIO (A ELIMINAR/COMENTAR) ---
 // // Site password protection - require environment variable
 // const SITE_PASSWORD = process.env.WEBSITE_PASSWORD;
@@ -61,14 +51,20 @@ if (process.env.DATABASE_URL) {
 // --- FIN DE CÓDIGO RELACIONADO CON LA CONTRASEÑA DEL SITIO ---
 
 // Función para configurar la sesión de Express
-export function getSession() {
+export async function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const isProduction = process.env.NODE_ENV === "production";
 
+  console.log(`[Session] Initializing session store, isProduction=${isProduction}`);
+  console.log(`[Session] DATABASE_URL available: ${!!process.env.DATABASE_URL}`);
+
   let sessionStore: any = undefined;
 
-  if (process.env.DATABASE_URL && connectPg) {
+  if (process.env.DATABASE_URL) {
     try {
+      // Import connect-pg-simple at runtime using dynamic import
+      const connectPgModule = await import("connect-pg-simple");
+      const connectPg = connectPgModule.default;
       const pgStore = connectPg(session);
       sessionStore = new pgStore({
         conString: process.env.DATABASE_URL,
@@ -127,7 +123,7 @@ export function getSession() {
 // Configuración principal de autenticación
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
-  app.use(getSession());
+  app.use(await getSession());
 
   // Configuración de Passport para manejar sesiones
   app.use(passport.initialize());
