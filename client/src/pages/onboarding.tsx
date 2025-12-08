@@ -2983,12 +2983,34 @@ export default function Onboarding() {
                 </DialogHeader>
 
                 <div className="space-y-3 pt-2">
+                  {hasAnyInstagram && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
+                      <p className="text-green-800">
+                        <strong>✅</strong>{" "}
+                        {hasInstagramViaFacebook
+                          ? isSpanish
+                            ? "Instagram conectado vía Facebook"
+                            : "Instagram connected via Facebook"
+                          : isSpanish
+                            ? "Instagram Direct conectado"
+                            : "Instagram Direct connected"}
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        {isSpanish
+                          ? "Para usar otro método, primero desconecta esta integración desde la lista."
+                          : "To use another method, first disconnect this integration from the list."}
+                      </p>
+                    </div>
+                  )}
+                  
                   {/* Instagram via Facebook Option */}
                   <div
-                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-pink-300 hover:bg-pink-50/50 ${
-                      hasInstagramViaFacebook ? "opacity-50 cursor-not-allowed bg-gray-50" : ""
+                    className={`p-4 border rounded-lg transition-all ${
+                      hasAnyInstagram 
+                        ? "opacity-50 cursor-not-allowed bg-gray-50" 
+                        : "cursor-pointer hover:border-pink-300 hover:bg-pink-50/50"
                     }`}
-                    onClick={() => !hasInstagramViaFacebook && !hasInstagramDirect && handleInstagramConnect("facebook")}
+                    onClick={() => !hasAnyInstagram && handleInstagramConnect("facebook")}
                     data-testid="instagram-facebook-option"
                   >
                     <div className="flex items-center gap-3">
@@ -3013,10 +3035,12 @@ export default function Onboarding() {
 
                   {/* Instagram Direct Option */}
                   <div
-                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-pink-300 hover:bg-pink-50/50 ${
-                      hasInstagramDirect ? "opacity-50 cursor-not-allowed bg-gray-50" : ""
+                    className={`p-4 border rounded-lg transition-all ${
+                      hasAnyInstagram 
+                        ? "opacity-50 cursor-not-allowed bg-gray-50" 
+                        : "cursor-pointer hover:border-pink-300 hover:bg-pink-50/50"
                     }`}
-                    onClick={() => !hasInstagramDirect && !hasInstagramViaFacebook && handleInstagramConnect("direct")}
+                    onClick={() => !hasAnyInstagram && handleInstagramConnect("direct")}
                     data-testid="instagram-direct-option"
                   >
                     <div className="flex items-center gap-3">
@@ -3038,17 +3062,6 @@ export default function Onboarding() {
                       <p className="text-xs text-green-600 mt-2">✅ {isSpanish ? "Conectado" : "Connected"}</p>
                     )}
                   </div>
-
-                  {hasAnyInstagram && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
-                      <p className="text-amber-800">
-                        <strong>⚠️</strong>{" "}
-                        {isSpanish
-                          ? "Ya tienes una conexión de Instagram. Desconéctala primero para usar otro método."
-                          : "You already have an Instagram connection. Disconnect it first to use another method."}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </DialogContent>
             </Dialog>
@@ -3072,12 +3085,34 @@ export default function Onboarding() {
                 </DialogHeader>
 
                 <div className="space-y-3 pt-2">
+                  {hasAnyWhatsApp && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
+                      <p className="text-green-800">
+                        <strong>✅</strong>{" "}
+                        {hasWhatsAppBusiness
+                          ? isSpanish
+                            ? "WhatsApp Business conectado"
+                            : "WhatsApp Business connected"
+                          : isSpanish
+                            ? "WhatsApp (QR Code) conectado"
+                            : "WhatsApp (QR Code) connected"}
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        {isSpanish
+                          ? "Para usar otro método, primero desconecta esta integración desde la lista."
+                          : "To use another method, first disconnect this integration from the list."}
+                      </p>
+                    </div>
+                  )}
+                  
                   {/* WhatsApp Business (Meta) Option - Recommended */}
                   <div
-                    className={`p-4 border-2 border-green-200 rounded-lg cursor-pointer transition-all hover:border-green-400 hover:bg-green-50/50 ${
-                      hasWhatsAppBusiness ? "opacity-50 cursor-not-allowed bg-gray-50" : ""
+                    className={`p-4 border-2 border-green-200 rounded-lg transition-all ${
+                      hasAnyWhatsApp 
+                        ? "opacity-50 cursor-not-allowed bg-gray-50" 
+                        : "cursor-pointer hover:border-green-400 hover:bg-green-50/50"
                     }`}
-                    onClick={() => !hasWhatsAppBusiness && !hasWhatsAppBaileys && handleWhatsAppConnect("business")}
+                    onClick={() => !hasAnyWhatsApp && handleWhatsAppConnect("business")}
                     data-testid="whatsapp-business-option"
                   >
                     <div className="flex items-center gap-3">
@@ -3107,10 +3142,12 @@ export default function Onboarding() {
 
                   {/* WhatsApp Baileys (QR Code) Option */}
                   <div
-                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-orange-300 hover:bg-orange-50/50 ${
-                      hasWhatsAppBaileys ? "opacity-50 cursor-not-allowed bg-gray-50" : ""
+                    className={`p-4 border rounded-lg transition-all ${
+                      hasAnyWhatsApp 
+                        ? "opacity-50 cursor-not-allowed bg-gray-50" 
+                        : "cursor-pointer hover:border-orange-300 hover:bg-orange-50/50"
                     }`}
-                    onClick={() => !hasWhatsAppBaileys && !hasWhatsAppBusiness && handleWhatsAppConnect("baileys")}
+                    onClick={() => !hasAnyWhatsApp && handleWhatsAppConnect("baileys")}
                     data-testid="whatsapp-baileys-option"
                   >
                     <div className="flex items-center gap-3">
@@ -3139,22 +3176,13 @@ export default function Onboarding() {
                   </div>
 
                   {/* Warning for Baileys */}
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm">
-                    <p className="text-orange-800">
-                      <strong>⚠️</strong>{" "}
-                      {isSpanish
-                        ? "El método QR Code es experimental y puede ser inestable. Se recomienda usar WhatsApp Business para producción."
-                        : "The QR Code method is experimental and may be unstable. WhatsApp Business is recommended for production."}
-                    </p>
-                  </div>
-
-                  {hasAnyWhatsApp && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
-                      <p className="text-amber-800">
+                  {!hasAnyWhatsApp && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm">
+                      <p className="text-orange-800">
                         <strong>⚠️</strong>{" "}
                         {isSpanish
-                          ? "Ya tienes una conexión de WhatsApp. Desconéctala primero para usar otro método."
-                          : "You already have a WhatsApp connection. Disconnect it first to use another method."}
+                          ? "El método QR Code es experimental y puede ser inestable. Se recomienda usar WhatsApp Business para producción."
+                          : "The QR Code method is experimental and may be unstable. WhatsApp Business is recommended for production."}
                       </p>
                     </div>
                   )}
