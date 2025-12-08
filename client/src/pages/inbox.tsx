@@ -87,12 +87,19 @@ export default function Inbox() {
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewMessage = (data: { conversationId: string; message: any }) => {
+    const handleNewMessage = (data: { conversationId: string; dbConversationId?: string; message: any; brandId?: string }) => {
       console.log("📨 Real-time message received:", data);
       
       // Invalidate and refetch conversations to show new message
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/inbox/stats"] });
+      // Use exact match with activeBrandId to ensure proper cache invalidation
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inbox/stats", activeBrandId] });
+      
+      // Also invalidate conversation messages - use dbConversationId (database ID) if available
+      const conversationIdForMessages = data.dbConversationId || data.conversationId;
+      if (conversationIdForMessages) {
+        queryClient.invalidateQueries({ queryKey: ["/api/conversations", conversationIdForMessages, "messages"] });
+      }
       
       // Show a toast notification for the new message
       toast({
