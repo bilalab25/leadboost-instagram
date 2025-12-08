@@ -113,6 +113,7 @@ export default function ConversationPanel({
   const [conversationFlag, setConversationFlag] = useState<
     "none" | "important" | "archived"
   >("none");
+  const [contactProfilePicture, setContactProfilePicture] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch linked customer for this conversation (brand-scoped)
@@ -148,6 +149,9 @@ export default function ConversationPanel({
         const conversationData = await conversationRes.json();
         if (conversationData.conversation) {
           setConversationFlag(conversationData.conversation.flag || "none");
+          if (conversationData.conversation.contactProfilePicture) {
+            setContactProfilePicture(conversationData.conversation.contactProfilePicture);
+          }
         }
 
         const res = await fetch(
@@ -455,7 +459,9 @@ export default function ConversationPanel({
           <div className="flex items-center space-x-3 flex-1">
             <div className="relative">
               <Avatar className="h-10 w-10">
-                <AvatarImage alt={displayName} />
+                {contactProfilePicture && (
+                  <AvatarImage src={contactProfilePicture} alt={displayName} />
+                )}
                 <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
               </Avatar>
               {PlatformIcon && (
@@ -691,7 +697,9 @@ export default function ConversationPanel({
         {/* Participant Info Header */}
         <div className="p-6 border-b border-gray-200 flex flex-col items-center">
           <Avatar className="h-20 w-20 mb-3">
-            <AvatarImage alt={displayName} />
+            {contactProfilePicture && (
+              <AvatarImage src={contactProfilePicture} alt={displayName} />
+            )}
             <AvatarFallback className="text-2xl">
               {displayName.charAt(0)}
             </AvatarFallback>

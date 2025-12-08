@@ -46,6 +46,7 @@ interface Conversation {
   metaConversationId: string;
   platform: string;
   contactName: string | null;
+  contactProfilePicture: string | null;
   lastMessage: string | null;
   lastMessageAt: Date;
   unreadCount: number;
@@ -292,6 +293,12 @@ export default function MessageList({
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0 relative">
                       <Avatar className="h-12 w-12">
+                        {conversation.contactProfilePicture && (
+                          <AvatarImage 
+                            src={conversation.contactProfilePicture} 
+                            alt={conversation.contactName || "Contact"} 
+                          />
+                        )}
                         <AvatarFallback className="bg-primary/10 text-primary">
                           {(conversation.contactName || "?")
                             .charAt(0)
