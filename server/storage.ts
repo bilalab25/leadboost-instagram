@@ -183,6 +183,7 @@ export interface IStorage {
   findConversationBySenderId(
     integrationId: string,
     senderId: string,
+    contactName?: string | null,
   ): Promise<Conversation | undefined>;
 
   // Message attachment operations
@@ -885,7 +886,10 @@ export class DatabaseStorage implements IStorage {
   async findConversationBySenderId(
     integrationId: string,
     senderId: string,
+    contactName?: string | null,
   ): Promise<Conversation | undefined> {
+    console.log(`[Storage] findConversationBySenderId: integrationId=${integrationId}, senderId=${senderId}, contactName=${contactName}`);
+    
     // Find conversation by looking at messages from this sender in this integration
     const messagesFromSender = await db
       .select({ conversationId: messages.conversationId })
@@ -905,7 +909,10 @@ export class DatabaseStorage implements IStorage {
         .from(conversations)
         .where(eq(conversations.id, messagesFromSender[0].conversationId))
         .limit(1);
-      return conversation;
+      if (conversation) {
+        console.log(`[Storage] Found conversation by senderId in messages: ${conversation.id}`);
+        return conversation;
+      }
     }
 
     // Also check metaConversationId patterns that might contain the senderId
@@ -920,7 +927,32 @@ export class DatabaseStorage implements IStorage {
       )
       .limit(1);
 
-    return conversationsWithSenderId[0];
+    if (conversationsWithSenderId[0]) {
+      console.log(`[Storage] Found conversation by senderId in metaConversationId: ${conversationsWithSenderId[0].id}`);
+      return conversationsWithSenderId[0];
+    }
+
+    // Fallback: search by contactName (Instagram username) for instagram_direct platform
+    if (contactName) {
+      const conversationsByContactName = await db
+        .select()
+        .from(conversations)
+        .where(
+          and(
+            eq(conversations.integrationId, integrationId),
+            eq(conversations.contactName, contactName)
+          )
+        )
+        .limit(1);
+
+      if (conversationsByContactName[0]) {
+        console.log(`[Storage] Found conversation by contactName: ${conversationsByContactName[0].id}`);
+        return conversationsByContactName[0];
+      }
+    }
+
+    console.log(`[Storage] No conversation found for senderId=${senderId}, contactName=${contactName}`);
+    return undefined;
   }
 
   // Message attachment operations

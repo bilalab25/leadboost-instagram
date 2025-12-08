@@ -5022,12 +5022,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   console.log(`   - metaConversationId: ${metaConversationId}`);
                   console.log(`   - platform: ${platform}`);
                   console.log(`   - senderId: ${senderId}`);
+                  console.log(`   - contactName: ${contactName}`);
                   
                   // First, check if there's an existing conversation for this sender
                   // This handles cases where metaConversationId format changed
+                  // Also passes contactName for Instagram to match by username
                   let existingConversation = await storage.findConversationBySenderId(
                     integration.id,
-                    senderId
+                    senderId,
+                    contactName
                   );
                   
                   let conversation;
