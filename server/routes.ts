@@ -5004,17 +5004,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 if (integration) {
                   const platform = "instagram_direct";
                   const accessToken = integration.accessToken;
-                  let metaConversationId = `ig_${senderId}_${recipientId}`;
+                  
+                  // ✅ CRITICAL: Detect if this is an outbound "echo" message (sent BY the business account)
+                  // If senderId matches our accountId/pageId, this is a message WE sent - don't overwrite contact info
+                  const isOutbound = senderId === integration.accountId || 
+                                     senderId === integration.pageId ||
+                                     senderId.startsWith("1784"); // Instagram business accounts start with 1784
+                  
+                  // For outbound messages, the conversation ID should use the recipientId as the contact
+                  // For inbound messages, use senderId as the contact
+                  const contactId = isOutbound ? recipientId : senderId;
+                  let metaConversationId = `ig_${contactId}_${integration.accountId || integration.pageId}`;
+                  
+                  // Fallback metaConversationId format for legacy conversations
+                  const legacyMetaConversationId = `ig_${senderId}_${recipientId}`;
+                  
+                  console.log(`📊 [Instagram Direct] Direction analysis:`);
+                  console.log(`   - senderId: ${senderId}`);
+                  console.log(`   - integration.accountId: ${integration.accountId}`);
+                  console.log(`   - isOutbound (echo): ${isOutbound}`);
+                  console.log(`   - contactId: ${contactId}`);
+                  console.log(`   - metaConversationId: ${metaConversationId}`);
+                  
                   let contactName: string | null = null;
                   let contactProfilePicture: string | null = null;
-                  let shouldFetchProfilePicture = true;
+                  let shouldFetchProfilePicture = !isOutbound; // Only fetch profile for inbound messages
                   
-                  // Find existing conversation FIRST to check if we already have profile picture
+                  // Find existing conversation by contactId (the real contact, not the business account)
                   let existingConversation = await storage.findConversationBySenderId(
                     integration.id,
-                    senderId,
+                    contactId,
                     null
                   );
+                  
+                  // Also try legacy format if not found
+                  if (!existingConversation) {
+                    existingConversation = await storage.findConversationByMetaConversationId(legacyMetaConversationId);
+                  }
                   
                   // Check if profile picture is already cached and recent (less than 7 days old)
                   if (existingConversation?.contactProfilePicture && existingConversation?.contactProfilePictureFetchedAt) {
@@ -5024,14 +5050,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       shouldFetchProfilePicture = false;
                       contactProfilePicture = existingConversation.contactProfilePicture;
                       contactName = existingConversation.contactName;
-                      console.log(`⏭️ [Instagram Direct] Using cached profile picture (fetched ${fetchedAt.toISOString()})`);
+                      console.log(`⏭️ [Instagram Direct] Using cached profile data (fetched ${fetchedAt.toISOString()})`);
                     }
                   }
                   
-                  // Only fetch profile if we don't have a recent one
-                  if (shouldFetchProfilePicture) {
+                  // If outbound (echo), preserve existing contact info - DO NOT fetch profile of the business account
+                  if (isOutbound && existingConversation) {
+                    contactName = existingConversation.contactName;
+                    contactProfilePicture = existingConversation.contactProfilePicture;
+                    console.log(`📤 [Instagram Direct] Echo message - preserving existing contactName: ${contactName}`);
+                  }
+                  
+                  // Only fetch profile for INBOUND messages if we don't have recent data
+                  if (shouldFetchProfilePicture && !isOutbound) {
                     try {
-                      const igProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=username,name,profile_pic&access_token=${accessToken}`;
+                      const igProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=username,name,profile_pic&access_token=${accessToken}`;
                       console.log(`📱 [Instagram Direct] Fetching profile for sender: ${senderId}`);
                       
                       const igProfileRes = await fetch(igProfileUrl);
@@ -5052,24 +5085,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     }
                   }
                   
-                  // Re-find existing conversation with contact name (for legacy compatibility)
-                  existingConversation = await storage.findConversationBySenderId(
-                    integration.id,
-                    senderId,
-                    contactName
-                  );
+                  // Re-find existing conversation by contactId (the real contact, not business account)
+                  if (!existingConversation) {
+                    existingConversation = await storage.findConversationBySenderId(
+                      integration.id,
+                      contactId,
+                      contactName
+                    );
+                  }
                   
                   let conversation;
                   if (existingConversation) {
                     console.log(`🔗 [Instagram Direct] Found existing conversation: ${existingConversation.id}`);
+                    // ✅ For outbound (echo), ONLY update lastMessage - DO NOT touch contactName
                     const updateData: any = {
-                      metaConversationId: metaConversationId,
                       lastMessage: messageText,
                       lastMessageAt: new Date(parseInt(timestamp) * 1000 || Date.now()),
-                      contactName: contactName || existingConversation.contactName,
                     };
-                    // Only update profile picture and timestamp if we fetched a new one
-                    if (shouldFetchProfilePicture && contactProfilePicture) {
+                    
+                    // Only update contactName for INBOUND messages (from the customer)
+                    if (!isOutbound && contactName) {
+                      updateData.contactName = contactName;
+                    }
+                    
+                    // Only update profile picture and timestamp if we fetched a new one (only for inbound)
+                    if (!isOutbound && shouldFetchProfilePicture && contactProfilePicture) {
                       updateData.contactProfilePicture = contactProfilePicture;
                       updateData.contactProfilePictureFetchedAt = new Date();
                     }
@@ -5097,7 +5137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     continue;
                   }
                   
-                  // Save the message
+                  // Save the message with correct direction
                   try {
                     const savedMessage = await storage.createMessage({
                       userId: integration.userId,
@@ -5109,17 +5149,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       metaConversationId,
                       senderId,
                       recipientId,
-                      contactName,
+                      contactName: isOutbound ? null : contactName, // Don't set contactName for outbound
                       textContent: messageText,
-                      direction: "inbound",
-                      isRead: false,
+                      direction: isOutbound ? "outbound" : "inbound",
+                      isRead: isOutbound, // Outbound messages are automatically read
                       timestamp: new Date(parseInt(timestamp) * 1000 || Date.now()),
                       rawPayload: change.value,
                     });
-                    console.log(`✅ [Instagram Direct] Message saved: ${savedMessage.id}`);
+                    console.log(`✅ [Instagram Direct] Message saved: ${savedMessage.id} (direction: ${isOutbound ? "outbound" : "inbound"})`);
                     
-                    // Increment unread count
-                    await storage.incrementUnreadCount(conversation.id);
+                    // Only increment unread count for INBOUND messages
+                    if (!isOutbound) {
+                      await storage.incrementUnreadCount(conversation.id);
+                    }
                     
                     // Emit socket event to brand room only
                     const io = app.get("io");
