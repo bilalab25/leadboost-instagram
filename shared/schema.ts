@@ -182,6 +182,7 @@ export const conversations = pgTable(
     metaConversationId: text("meta_conversation_id").notNull(), // Meta-specific conversation ID
     platform: varchar("platform").notNull(), // whatsapp, messenger, instagram, threads
     contactName: varchar("contact_name"), // Contact/participant name
+    contactProfilePicture: text("contact_profile_picture"), // Profile picture URL from Meta API
     lastMessage: text("last_message"), // Preview of last message
     lastMessageAt: timestamp("last_message_at").defaultNow(),
     unreadCount: integer("unread_count").default(0),
