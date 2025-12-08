@@ -156,6 +156,7 @@ export interface IStorage {
   ): Promise<void>;
   updateMessagePriority(id: string, priority: string): Promise<void>;
   assignMessage(id: string, assignedTo: string): Promise<void>;
+  findMessageByMetaId(integrationId: string, metaMessageId: string): Promise<Message | undefined>;
 
   // New Conversations operations (using conversations table)
   getOrCreateConversation(params: {
@@ -761,6 +762,20 @@ export class DatabaseStorage implements IStorage {
 
   async updateMessagePriority(id: string, priority: string): Promise<void> {
     await db.update(messages).set({ priority }).where(eq(messages.id, id));
+  }
+
+  async findMessageByMetaId(integrationId: string, metaMessageId: string): Promise<Message | undefined> {
+    const [message] = await db
+      .select()
+      .from(messages)
+      .where(
+        and(
+          eq(messages.integrationId, integrationId),
+          eq(messages.metaMessageId, metaMessageId),
+        ),
+      )
+      .limit(1);
+    return message;
   }
 
   // Conversation operations
