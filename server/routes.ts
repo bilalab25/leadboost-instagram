@@ -5088,12 +5088,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   await storage.incrementUnreadCount(conversation.id);
 
                   const io = app.get("io");
+                  
+                  // Fetch the updated conversation for the socket event
+                  const updatedConversation = await storage.getConversation(conversation.id);
+                  
                   io?.emit("new_message", {
                     provider: platform,
                     conversationId: metaConversationId,
                     metaConversationId,
+                    dbConversationId: conversation.id,
                     message: savedMessage,
+                    conversation: updatedConversation,
+                    brandId: integration.brandId,
                   });
+                  
+                  console.log(`🔔 [Socket] Emitted new_message for conversation ${conversation.id}`);
                 } else {
                   console.warn(
                     `⚠️ [${searchPlatform}] No integration found for recipient: ${recipientId}`,
