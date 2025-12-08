@@ -5007,17 +5007,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   let metaConversationId = `ig_${senderId}_${recipientId}`;
                   let contactName: string | null = null;
                   
-                  // Try to get contact name from Instagram API
+                  // Try to get contact name and profile picture from Instagram API
+                  let contactProfilePicture: string | null = null;
                   try {
-                    const igProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=username,name&access_token=${accessToken}`;
+                    const igProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=username,name,profile_pic&access_token=${accessToken}`;
                     console.log(`📱 [Instagram Direct] Fetching profile for sender: ${senderId}`);
                     
                     const igProfileRes = await fetch(igProfileUrl);
                     const igProfileData = await igProfileRes.json();
                     
-                    if (!igProfileData.error && (igProfileData.username || igProfileData.name)) {
-                      contactName = igProfileData.username || igProfileData.name;
-                      console.log(`✅ [Instagram Direct] Got contact name: ${contactName}`);
+                    if (!igProfileData.error) {
+                      if (igProfileData.username || igProfileData.name) {
+                        contactName = igProfileData.username || igProfileData.name;
+                        console.log(`✅ [Instagram Direct] Got contact name: ${contactName}`);
+                      }
+                      if (igProfileData.profile_pic) {
+                        contactProfilePicture = igProfileData.profile_pic;
+                        console.log(`✅ [Instagram Direct] Got profile picture`);
+                      }
                     }
                   } catch (profileErr) {
                     console.warn(`⚠️ [Instagram Direct] Error fetching profile:`, profileErr);
@@ -5038,6 +5045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       lastMessage: messageText,
                       lastMessageAt: new Date(parseInt(timestamp) * 1000 || Date.now()),
                       contactName: contactName || existingConversation.contactName,
+                      contactProfilePicture: contactProfilePicture || existingConversation.contactProfilePicture,
                     }) || existingConversation;
                   } else {
                     console.log(`🆕 [Instagram Direct] Creating new conversation`);
@@ -5048,6 +5056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       metaConversationId,
                       platform,
                       contactName,
+                      contactProfilePicture: contactProfilePicture || undefined,
                       lastMessage: messageText,
                       lastMessageAt: new Date(parseInt(timestamp) * 1000 || Date.now()),
                     });
@@ -5215,24 +5224,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   metaConversationId = `ig_dm_${senderId}`;
                 }
 
+                let contactProfilePicture: string | null = null;
                 try {
                   if (platform === "instagram_direct" || platform === "instagram") {
-                    const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name&access_token=${accessToken}`;
+                    const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name,profile_picture_url&access_token=${accessToken}`;
                     const profileRes = await fetch(profileUrl);
                     const profileData = await profileRes.json();
-                    if (!profileData.error && (profileData.username || profileData.name)) {
-                      contactName = profileData.username || profileData.name;
+                    if (!profileData.error) {
+                      if (profileData.username || profileData.name) {
+                        contactName = profileData.username || profileData.name;
+                      }
+                      if (profileData.profile_picture_url) {
+                        contactProfilePicture = profileData.profile_picture_url;
+                      }
                     }
                   } else if (platform === "facebook") {
-                    const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name&access_token=${accessToken}`;
+                    const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,profile_pic&access_token=${accessToken}`;
                     const fbProfileRes = await fetch(fbProfileUrl);
                     const fbProfileData = await fbProfileRes.json();
-                    if (!fbProfileData.error && fbProfileData.name) {
-                      contactName = fbProfileData.name;
+                    if (!fbProfileData.error) {
+                      if (fbProfileData.name) {
+                        contactName = fbProfileData.name;
+                      }
+                      if (fbProfileData.profile_pic) {
+                        contactProfilePicture = fbProfileData.profile_pic;
+                      }
                     }
                   }
                 } catch (profileErr) {
-                  // Continue without contact name
+                  // Continue without contact name and profile picture
                 }
 
                 let existingConversation = await storage.findConversationBySenderId(
@@ -5248,6 +5268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     lastMessage: messageText,
                     lastMessageAt: new Date(event.timestamp || Date.now()),
                     contactName: contactName || existingConversation.contactName,
+                    contactProfilePicture: contactProfilePicture || existingConversation.contactProfilePicture,
                   }) || existingConversation;
                 } else {
                   conversation = await storage.getOrCreateConversation({
@@ -5257,6 +5278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     metaConversationId: metaConversationId || "",
                     platform,
                     contactName,
+                    contactProfilePicture: contactProfilePicture || undefined,
                     lastMessage: messageText,
                     lastMessageAt: new Date(event.timestamp || Date.now()),
                   });
