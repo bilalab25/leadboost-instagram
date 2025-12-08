@@ -5274,35 +5274,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
 
                 // Only fetch profile if we don't have a recent one
+                // For Instagram Messaging, use graph.facebook.com with profile_pic field (not graph.instagram.com)
                 if (shouldFetchProfilePicture) {
                   try {
-                    if (platform === "instagram_direct" || platform === "instagram") {
-                      const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name,profile_picture_url&access_token=${accessToken}`;
-                      const profileRes = await fetch(profileUrl);
-                      const profileData = await profileRes.json();
-                      if (!profileData.error) {
-                        if (profileData.username || profileData.name) {
-                          contactName = profileData.username || profileData.name;
-                        }
-                        if (profileData.profile_picture_url) {
-                          contactProfilePicture = profileData.profile_picture_url;
-                        }
+                    // All messaging platforms use graph.facebook.com with profile_pic
+                    const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`;
+                    console.log(`📷 [${platform}] Fetching profile for sender: ${senderId}`);
+                    
+                    const profileRes = await fetch(profileUrl);
+                    const profileData = await profileRes.json();
+                    
+                    if (!profileData.error) {
+                      if (profileData.username || profileData.name) {
+                        contactName = profileData.username || profileData.name;
+                        console.log(`✅ [${platform}] Got contact name: ${contactName}`);
                       }
-                    } else if (platform === "facebook") {
-                      const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,profile_pic&access_token=${accessToken}`;
-                      const fbProfileRes = await fetch(fbProfileUrl);
-                      const fbProfileData = await fbProfileRes.json();
-                      if (!fbProfileData.error) {
-                        if (fbProfileData.name) {
-                          contactName = fbProfileData.name;
-                        }
-                        if (fbProfileData.profile_pic) {
-                          contactProfilePicture = fbProfileData.profile_pic;
-                        }
+                      if (profileData.profile_pic) {
+                        contactProfilePicture = profileData.profile_pic;
+                        console.log(`✅ [${platform}] Got profile picture`);
                       }
+                    } else {
+                      console.warn(`⚠️ [${platform}] Profile API error:`, profileData.error);
                     }
                   } catch (profileErr) {
-                    // Continue without contact name and profile picture
+                    console.warn(`⚠️ [${platform}] Error fetching profile:`, profileErr);
                   }
                 }
 
