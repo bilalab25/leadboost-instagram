@@ -330,38 +330,28 @@ export default function Dashboard() {
                 variants={staggerContainer}
                 className="max-w-7xl mx-auto space-y-6"
               >
-                {/* Hero Section with Gradient */}
+                {/* Hero Section - Clean Style */}
                 <motion.div
                   variants={fadeInUp}
-                  className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-brand-600 via-brand-500 to-purple-600 p-8 shadow-2xl"
+                  className="relative p-8"
                 >
-                  <div className="absolute inset-0 opacity-20">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)`,
-                        backgroundSize: "24px 24px",
-                      }}
-                    />
-                  </div>
-
                   <div className="relative">
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <Badge className="bg-white/20 text-white border-white/30 mb-4 backdrop-blur-sm">
+                      <Badge className="bg-brand-100 text-brand-700 border-brand-200 mb-4">
                         <Sparkles className="w-3 h-3 mr-1" />
                         {isSpanish ? "Centro de Control" : "Command Center"}
                       </Badge>
-                      <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+                      <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
                         {t.dashboard.welcomeBack},{" "}
                         {activeMembership?.brandName ||
                           (isSpanish ? "Usuario" : "User")}
                         !
                       </h1>
-                      <p className="text-white/80 text-lg">
+                      <p className="text-gray-600 text-lg">
                         {isSpanish
                           ? "Tu marca está creciendo. Aquí tienes lo que está pasando."
                           : "Your brand is growing. Here's what's happening."}
@@ -381,7 +371,7 @@ export default function Dashboard() {
                         <motion.button
                           whileHover={{ scale: 1.05, y: -2 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full text-white text-sm font-medium transition-all border border-white/20"
+                          className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 rounded-full text-white text-sm font-medium transition-all shadow-md"
                         >
                           <suggestion.icon className="w-4 h-4" />
                           {suggestion.text}
