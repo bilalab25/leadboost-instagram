@@ -430,6 +430,14 @@ export interface IStorage {
     accountId: string,
     provider: string,
   ): Promise<Integration | undefined>;
+  
+  // Check if an account is already connected anywhere in the platform (for duplicate prevention)
+  checkDuplicateIntegration(
+    pageId: string,
+    accountId: string | null,
+    provider: string,
+    excludeBrandId?: string,
+  ): Promise<Integration | undefined>;
 
   // Social Posting Frequency operations
   saveSocialPostingFrequencies(
@@ -2201,6 +2209,59 @@ export class DatabaseStorage implements IStorage {
     }
     
     return integration;
+  }
+
+  async checkDuplicateIntegration(
+    pageId: string,
+    accountId: string | null,
+    provider: string,
+    excludeBrandId?: string,
+  ): Promise<Integration | undefined> {
+    // For Instagram, check both instagram and instagram_direct providers
+    const providersToCheck = provider === "instagram" || provider === "instagram_direct"
+      ? ["instagram", "instagram_direct"]
+      : [provider];
+    
+    // Build conditions for finding duplicates
+    const conditions = [
+      inArray(integrations.provider, providersToCheck),
+    ];
+    
+    // Check by pageId first (primary identifier)
+    if (pageId) {
+      const [byPageId] = await db
+        .select()
+        .from(integrations)
+        .where(
+          and(
+            eq(integrations.pageId, pageId),
+            inArray(integrations.provider, providersToCheck),
+            excludeBrandId ? sql`${integrations.brandId} != ${excludeBrandId}` : undefined,
+          ),
+        )
+        .limit(1);
+      
+      if (byPageId) return byPageId;
+    }
+    
+    // Also check by accountId if provided
+    if (accountId) {
+      const [byAccountId] = await db
+        .select()
+        .from(integrations)
+        .where(
+          and(
+            eq(integrations.accountId, accountId),
+            inArray(integrations.provider, providersToCheck),
+            excludeBrandId ? sql`${integrations.brandId} != ${excludeBrandId}` : undefined,
+          ),
+        )
+        .limit(1);
+      
+      if (byAccountId) return byAccountId;
+    }
+    
+    return undefined;
   }
 
   // Social Posting Frequency operations

@@ -3301,7 +3301,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch {}
 
       // -----------------------------------------
-      // 5️⃣ Save Facebook Integration
+      // 5️⃣ Check for duplicate integration (same account connected to another brand)
+      // -----------------------------------------
+      const existingIntegration = await storage.checkDuplicateIntegration(
+        page.id,
+        page.id,
+        "facebook",
+        brandId, // Exclude current brand from check
+      );
+
+      if (existingIntegration) {
+        console.warn(`⚠️ [Facebook Callback] Page ${page.name} (${page.id}) already connected to another brand: ${existingIntegration.brandId}`);
+        const errorMsg = `Esta página de Facebook (${page.name}) ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`;
+        return res.redirect(getRedirectUrl(false, "facebook", "duplicate", errorMsg));
+      }
+
+      // -----------------------------------------
+      // 6️⃣ Save Facebook Integration
       // -----------------------------------------
       console.log("📘 [Facebook Callback] Saving Facebook integration to database...");
       const expiresAt = tokenData.expires_in
@@ -3653,7 +3669,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         appScopedId,
       });
 
-      // 5️⃣ Save Instagram Direct Integration
+      // 5️⃣ Check for duplicate integration (same account connected to another brand)
+      const existingIntegration = await storage.checkDuplicateIntegration(
+        igbaId.toString(),
+        appScopedId.toString(),
+        "instagram_direct",
+        brandId, // Exclude current brand from check
+      );
+
+      if (existingIntegration) {
+        console.warn(`⚠️ Instagram account ${igUsername} (${igbaId}) already connected to another brand: ${existingIntegration.brandId}`);
+        const errorMsg = encodeURIComponent(`Esta cuenta de Instagram (@${igUsername}) ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`);
+        if (origin === "onboarding") {
+          return res.redirect(`/onboarding?step=4&error=duplicate&message=${errorMsg}`);
+        }
+        return res.redirect(`/integrations?error=duplicate&message=${errorMsg}`);
+      }
+
+      // 6️⃣ Save Instagram Direct Integration
       // Use IGBA ID for pageId (this is what webhooks use for recipient matching)
       await storage.createOrUpdateIntegration({
         userId,
@@ -3975,7 +4008,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const phoneNumber = phoneData.data?.[0] || null;
 
-      // 5️⃣ Guardar la integración en tu storage
+      // 5️⃣ Check for duplicate integration (same WhatsApp account connected to another brand)
+      const existingIntegration = await storage.checkDuplicateIntegration(
+        wabaId,
+        wabaId,
+        "whatsapp",
+        brandId, // Exclude current brand from check
+      );
+
+      if (existingIntegration) {
+        console.warn(`⚠️ [WhatsApp Callback] WABA ${wabaId} already connected to another brand: ${existingIntegration.brandId}`);
+        const errorMsg = encodeURIComponent(`Esta cuenta de WhatsApp Business ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`);
+        if (origin === "onboarding") {
+          return res.redirect(`/onboarding?step=4&error=duplicate&message=${errorMsg}`);
+        }
+        return res.redirect(`/integrations?error=duplicate&message=${errorMsg}`);
+      }
+
+      // 6️⃣ Guardar la integración en tu storage
       await storage.createOrUpdateIntegration({
         userId,
         brandId,
