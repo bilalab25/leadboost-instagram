@@ -591,6 +591,10 @@ export default function IntegrationsPage() {
           en: message || "Failed to save the integration. Please try again.",
           es: message || "Error al guardar la integración. Por favor, inténtalo de nuevo.",
         },
+        duplicate: {
+          en: message ? decodeURIComponent(message) : "This account is already connected to another brand in the platform. Please use a different account or disconnect it first from the other brand.",
+          es: message ? decodeURIComponent(message) : "Esta cuenta ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.",
+        },
       };
 
       const errorMessage = errorMessages[error] || {

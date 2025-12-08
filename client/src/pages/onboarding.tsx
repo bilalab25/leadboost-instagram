@@ -589,12 +589,26 @@ export default function Onboarding() {
       window.history.replaceState({}, "", "/onboarding");
     }
 
-    if (error && provider) {
+    if (error) {
+      const message = urlParams.get("message");
+      let errorDescription = "";
+      
+      if (error === "duplicate") {
+        // Account already connected to another brand
+        errorDescription = message 
+          ? decodeURIComponent(message)
+          : (isSpanish 
+            ? "Esta cuenta ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca."
+            : "This account is already connected to another brand in the platform. Please use a different account or disconnect it first from the other brand.");
+      } else {
+        errorDescription = isSpanish
+          ? `No se pudo conectar ${provider || "la integración"}: ${message || error}`
+          : `Failed to connect ${provider || "integration"}: ${message || error}`;
+      }
+      
       toast({
         title: isSpanish ? "Error de conexión" : "Connection Error",
-        description: isSpanish
-          ? `No se pudo conectar ${provider}: ${error}`
-          : `Failed to connect ${provider}: ${error}`,
+        description: errorDescription,
         variant: "destructive",
       });
       // Clean URL
