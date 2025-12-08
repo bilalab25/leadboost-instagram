@@ -449,6 +449,27 @@ export default function Onboarding() {
     savedState?.createdBrandId || null,
   );
   const [hasLoadedFromDb, setHasLoadedFromDb] = useState(false);
+  const [isOtherIndustry, setIsOtherIndustry] = useState(false);
+  const [customIndustry, setCustomIndustry] = useState("");
+  
+  const INDUSTRY_OPTIONS = [
+    { value: "technology", labelEn: "Technology", labelEs: "Tecnología" },
+    { value: "retail", labelEn: "Retail", labelEs: "Retail" },
+    { value: "healthcare", labelEn: "Healthcare", labelEs: "Salud" },
+    { value: "finance", labelEn: "Finance & Banking", labelEs: "Finanzas y Banca" },
+    { value: "education", labelEn: "Education", labelEs: "Educación" },
+    { value: "hospitality", labelEn: "Hospitality & Tourism", labelEs: "Hotelería y Turismo" },
+    { value: "food", labelEn: "Food & Beverage", labelEs: "Alimentos y Bebidas" },
+    { value: "beauty", labelEn: "Beauty & Cosmetics", labelEs: "Belleza y Cosméticos" },
+    { value: "fashion", labelEn: "Fashion & Apparel", labelEs: "Moda y Ropa" },
+    { value: "automotive", labelEn: "Automotive", labelEs: "Automotriz" },
+    { value: "realestate", labelEn: "Real Estate", labelEs: "Bienes Raíces" },
+    { value: "sports", labelEn: "Sports & Fitness", labelEs: "Deportes y Fitness" },
+    { value: "entertainment", labelEn: "Entertainment & Media", labelEs: "Entretenimiento y Medios" },
+    { value: "professional", labelEn: "Professional Services", labelEs: "Servicios Profesionales" },
+    { value: "nonprofit", labelEn: "Nonprofit & NGO", labelEs: "Sin Fines de Lucro / ONG" },
+    { value: "other", labelEn: "Other", labelEs: "Otro" },
+  ];
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { isSpanish } = useLanguage();
@@ -1970,17 +1991,51 @@ export default function Onboarding() {
                         <FormLabel>
                           {isSpanish ? "Industria" : "Industry"}
                         </FormLabel>
-                        <FormControl>
+                        <Select
+                          value={isOtherIndustry ? "other" : field.value || ""}
+                          onValueChange={(value) => {
+                            if (value === "other") {
+                              setIsOtherIndustry(true);
+                              field.onChange(customIndustry || "");
+                            } else {
+                              setIsOtherIndustry(false);
+                              setCustomIndustry("");
+                              const option = INDUSTRY_OPTIONS.find(opt => opt.value === value);
+                              field.onChange(option ? (isSpanish ? option.labelEs : option.labelEn) : value);
+                            }
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid="select-brand-industry">
+                              <SelectValue 
+                                placeholder={isSpanish ? "Selecciona una industria" : "Select an industry"} 
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {INDUSTRY_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {isSpanish ? option.labelEs : option.labelEn}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isOtherIndustry && (
                           <Input
-                            {...field}
+                            value={customIndustry}
+                            onChange={(e) => {
+                              setCustomIndustry(e.target.value);
+                              field.onChange(e.target.value);
+                            }}
                             placeholder={
                               isSpanish
-                                ? "ej. Tecnología, Retail, Salud"
-                                : "e.g. Technology, Retail, Healthcare"
+                                ? "Escribe tu industria"
+                                : "Enter your industry"
                             }
-                            data-testid="input-brand-industry"
+                            className="mt-2"
+                            data-testid="input-custom-industry"
                           />
-                        </FormControl>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
