@@ -1,0 +1,127 @@
+3b947cfb
+User
+file: 'nbtinsert.c',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+code: '23505',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+at async file:///home/runner/workspace/dist/index.js:11159:38 {
+2025-12-08 12:05:56.62
+3b947cfb
+User
+detail: 'Key (integration_id, meta_message_id)=(30d5b245-acf6-4a38-85a3-70a8d59753aa, aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDU4NDMzNDc4MjY1OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjE0OTgxNTgxMDAzNDc1OTozMjU2MjUwODcwNDc4NzE3MTA0MTk1MTcxMjI0OTExODcyMAZDZD) already exists.',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+internalQuery: undefined,
+2025-12-08 12:05:56.62
+3b947cfb
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+2025-12-08 12:05:56.62
+3b947cfb
+User
+internalPosition: undefined,
+2025-12-08 12:05:56.62
+3b947cfb
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-08 12:05:56.62
+3b947cfb
+User
+line: '666',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+severity: 'ERROR',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+❌ Error procesando evento Meta: error: duplicate key value violates unique constraint "messages_integration_message_unique"
+2025-12-08 12:05:56.62
+3b947cfb
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+2025-12-08 12:05:56.62
+3b947cfb
+User
+routine: '_bt_check_unique'
+2025-12-08 12:05:56.62
+3b947cfb
+User
+constraint: 'messages_integration_message_unique',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+file: 'nbtinsert.c',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+dataType: undefined,
+2025-12-08 12:05:56.62
+3b947cfb
+User
+code: '23505',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+at async file:///home/runner/workspace/dist/index.js:11159:38 {
+2025-12-08 12:05:56.62
+3b947cfb
+User
+position: undefined,
+2025-12-08 12:05:56.62
+3b947cfb
+User
+at async DatabaseStorage.createMessage (file:///home/runner/workspace/dist/index.js:1694:30)
+2025-12-08 12:05:56.62
+3b947cfb
+User
+schema: 'public',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+detail: 'Key (integration_id, meta_message_id)=(30d5b245-acf6-4a38-85a3-70a8d59753aa, aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDU4NDMzNDc4MjY1OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjE0OTgxNTgxMDAzNDc1OTozMjU2MjUwODcwNDc4NzE3MTA0MTk1MTcxMjI0OTExODcyMAZDZD) already exists.',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+length: 463,
+2025-12-08 12:05:56.62
+3b947cfb
+User
+column: undefined,
+2025-12-08 12:05:56.62
+3b947cfb
+User
+internalQuery: undefined,
+2025-12-08 12:05:56.62
+3b947cfb
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+2025-12-08 12:05:56.62
+3b947cfb
+User
+internalPosition: undefined,
+2025-12-08 12:05:56.62
+3b947cfb
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-08 12:05:56.62
+3b947cfb
+User
+line: '666',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+severity: 'ERROR',
+2025-12-08 12:05:56.62
+3b947cfb
+User
+❌ Error procesando evento Meta: error: duplicate key value violates unique constraint "messages_integration_message_unique"
+2025-12-08 12:05:56.62
+3b947cfb
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
