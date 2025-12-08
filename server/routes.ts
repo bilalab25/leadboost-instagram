@@ -4068,14 +4068,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =========================================================================
   // ⚠️ WARNING: This uses Baileys library which is NOT an official Meta API.
   // Using unofficial methods may result in account bans.
+  // ⚠️ NOTE: Baileys is disabled by default in production (Autoscale) because
+  // it maintains persistent WebSocket connections incompatible with stateless instances.
+  // Set ENABLE_BAILEYS=true to enable (use Reserved VM, not Autoscale).
   // =========================================================================
+
+  const isProduction = process.env.NODE_ENV === "production";
+  const baileysEnabled = process.env.ENABLE_BAILEYS === "true";
 
   // Import Baileys service dynamically to avoid issues if not installed
   let whatsappBaileysService: any = null;
-  try {
-    const baileysModule = await import("./services/whatsappBaileys");
-    whatsappBaileysService = baileysModule.whatsappBaileysService;
-    console.log("📱 [Baileys] WhatsApp Baileys service loaded");
+  
+  // Skip Baileys in production unless explicitly enabled
+  if (isProduction && !baileysEnabled) {
+    console.log("📱 [Baileys] Skipping WhatsApp Baileys in production (Autoscale compatible mode)");
+    console.log("📱 [Baileys] Set ENABLE_BAILEYS=true and use Reserved VM deployment to enable");
+  } else {
+    try {
+      const baileysModule = await import("./services/whatsappBaileys");
+      whatsappBaileysService = baileysModule.whatsappBaileysService;
+      console.log("📱 [Baileys] WhatsApp Baileys service loaded");
 
     // Set up event listeners for WhatsApp Baileys
     whatsappBaileysService.on("connected", async ({ sessionKey, phoneNumber }: { sessionKey: string; phoneNumber: string | null }) => {
@@ -4242,9 +4254,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("❌ [Baileys] Error restoring sessions:", error);
       }
     }, 2000); // Small delay to ensure routes are fully registered
-  } catch (err) {
-    console.warn("⚠️ [Baileys] WhatsApp Baileys service not available:", err);
-  }
+    } catch (err) {
+      console.warn("⚠️ [Baileys] WhatsApp Baileys service not available:", err);
+    }
+  } // End of else block for Baileys enabled
 
   // Start WhatsApp QR connection via Baileys
   app.post(

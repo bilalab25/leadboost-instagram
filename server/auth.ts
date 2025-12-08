@@ -63,6 +63,7 @@ if (process.env.DATABASE_URL) {
 // Función para configurar la sesión de Express
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const isProduction = process.env.NODE_ENV === "production";
 
   let sessionStore: any = undefined;
 
@@ -71,32 +72,43 @@ export function getSession() {
       const pgStore = connectPg(session);
       sessionStore = new pgStore({
         conString: process.env.DATABASE_URL,
-        createTableIfMissing: false, // Asegúrate de que tu tabla de sesiones exista o se cree por migración
+        createTableIfMissing: true, // Auto-create sessions table if it doesn't exist
         ttl: sessionTtl,
         tableName: "sessions",
+        pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
       });
       console.log("Using PostgreSQL session store");
     } catch (error) {
       console.log(
-        "Failed to setup PostgreSQL session store, using memory store:",
+        "Failed to setup PostgreSQL session store:",
         (error as Error).message,
       );
+      if (isProduction) {
+        console.error("FATAL: PostgreSQL session store is required in production for Autoscale");
+        throw new Error("PostgreSQL session store required in production");
+      }
     }
   } else {
+    if (isProduction) {
+      console.error("FATAL: DATABASE_URL is required in production for session persistence");
+      console.error("MemoryStore is not compatible with Autoscale's multi-instance architecture");
+      throw new Error("DATABASE_URL required in production");
+    }
     console.log("Using memory session store (not recommended for production)");
   }
 
   return session({
     secret:
       process.env.SESSION_SECRET ||
-      "demo-secret-" + Math.random().toString(36).substring(7),
+      (isProduction ? (() => { throw new Error("SESSION_SECRET required in production"); })() : "demo-secret-" + Math.random().toString(36).substring(7)),
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       maxAge: sessionTtl,
+      sameSite: isProduction ? "lax" : undefined,
     },
   });
 }
