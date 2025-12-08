@@ -679,6 +679,10 @@ export default function Onboarding() {
   const [isBaileysConnecting, setIsBaileysConnecting] = useState(false);
   const [baileysPollingInterval, setBaileysPollingInterval] =
     useState<NodeJS.Timeout | null>(null);
+  
+  // Instagram and WhatsApp method selection modals
+  const [isInstagramMethodDialogOpen, setIsInstagramMethodDialogOpen] = useState(false);
+  const [isWhatsAppMethodDialogOpen, setIsWhatsAppMethodDialogOpen] = useState(false);
 
   // Step 5: Posting Frequency state
   interface PlatformSchedule {
@@ -1014,9 +1018,12 @@ export default function Onboarding() {
   // Handle disconnecting integrations
   const handleDisconnect = async (integrationId: string) => {
     try {
-      const res = await apiRequest(
-        "DELETE",
-        `/api/integrations/${integrationId}`,
+      const res = await fetch(
+        `/api/integrations/${integrationId}?brandId=${effectiveBrandId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
       );
       if (!res.ok) {
         throw new Error("Failed to disconnect");
