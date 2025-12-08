@@ -254,16 +254,9 @@ const INTEGRATION_PROVIDERS = {
     category: "ecommerce",
   },
   instagram: {
-    name: "Instagram (via Facebook)",
+    name: "Instagram",
     icon: Instagram,
-    description: "Manage Instagram through your Facebook Business Page",
-    category: "social_media",
-    isOAuthSupported: true,
-  },
-  instagram_direct: {
-    name: "Instagram Direct",
-    icon: Instagram,
-    description: "Connect directly to Instagram for messaging and content",
+    description: "Connect your Instagram account for messaging and content",
     category: "social_media",
     isOAuthSupported: true,
   },
@@ -275,18 +268,11 @@ const INTEGRATION_PROVIDERS = {
     isOAuthSupported: true,
   },
   whatsapp: {
-    name: "WhatsApp Business (Meta)",
+    name: "WhatsApp",
     icon: MessageCircle,
-    description: "Official WhatsApp Cloud API integration",
+    description: "Connect your WhatsApp for messaging",
     category: "social_media",
     isOAuthSupported: true,
-  },
-  whatsapp_baileys: {
-    name: "WhatsApp (QR Code)",
-    icon: MessageCircle,
-    description: "Connect via QR code - experimental",
-    category: "social_media",
-    isOAuthSupported: false,
   },
   tiktok: {
     name: "TikTok",
@@ -760,7 +746,7 @@ export default function Onboarding() {
     retry: false,
   });
 
-  // Helper function to check if provider is connected
+  // Helper function to check if provider is connected (handles consolidated providers)
   const isProviderConnected = (providerKey: string) => {
     if (providerKey === "whatsapp") {
       return integrations.some(
@@ -769,23 +755,41 @@ export default function Onboarding() {
           i.isActive,
       );
     }
+    if (providerKey === "instagram") {
+      return integrations.some(
+        (i) =>
+          (i.provider === "instagram" || i.provider === "instagram_direct") &&
+          i.isActive,
+      );
+    }
     return integrations.some((i) => i.provider === providerKey && i.isActive);
   };
 
   const getConnectedIntegration = (providerKey: string) => {
-    if (providerKey === "whatsapp" || providerKey === "whatsapp_baileys") {
+    if (providerKey === "whatsapp") {
       return integrations.find(
         (i) =>
           (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") &&
           i.isActive,
       );
     }
+    if (providerKey === "instagram") {
+      return integrations.find(
+        (i) =>
+          (i.provider === "instagram" || i.provider === "instagram_direct") &&
+          i.isActive,
+      );
+    }
     return integrations.find((i) => i.provider === providerKey && i.isActive);
   };
 
-  // Instagram mutual exclusivity
-  const hasInstagramViaFacebook = isProviderConnected("instagram");
-  const hasInstagramDirect = isProviderConnected("instagram_direct");
+  // Instagram mutual exclusivity - check specific providers
+  const hasInstagramViaFacebook = integrations.some(
+    (i) => i.provider === "instagram" && i.isActive,
+  );
+  const hasInstagramDirect = integrations.some(
+    (i) => i.provider === "instagram_direct" && i.isActive,
+  );
   const hasAnyInstagram = hasInstagramViaFacebook || hasInstagramDirect;
 
   // WhatsApp mutual exclusivity
@@ -817,13 +821,7 @@ export default function Onboarding() {
   const totalSteps = hasSocialConnections ? 5 : 4;
 
   const isProviderDisabledByConflict = (providerKey: string): boolean => {
-    // Instagram conflicts
-    if (providerKey === "instagram" && hasInstagramDirect) return true;
-    if (providerKey === "instagram_direct" && hasInstagramViaFacebook)
-      return true;
-    // WhatsApp conflicts
-    if (providerKey === "whatsapp" && hasWhatsAppBaileys) return true;
-    if (providerKey === "whatsapp_baileys" && hasWhatsAppBusiness) return true;
+    // No conflicts for consolidated providers - handled in modal selection
     return false;
   };
 
@@ -986,20 +984,22 @@ export default function Onboarding() {
       return;
     }
 
+    // Open method selection dialogs for platforms with multiple options
+    if (provider === "instagram" || provider === "instagram_direct") {
+      setIsInstagramMethodDialogOpen(true);
+      return;
+    }
+    
+    if (provider === "whatsapp" || provider === "whatsapp_baileys") {
+      setIsWhatsAppMethodDialogOpen(true);
+      return;
+    }
+    
     setConnectingProvider(provider);
     let url = "";
 
-    if (["facebook", "instagram", "threads"].includes(provider)) {
+    if (["facebook", "threads"].includes(provider)) {
       url = `/api/integrations/facebook/connect?brandId=${effectiveBrandId}&origin=onboarding`;
-    } else if (provider === "instagram_direct") {
-      url = `/api/integrations/instagram/connect?brandId=${effectiveBrandId}&origin=onboarding`;
-    } else if (provider === "whatsapp") {
-      url = `/api/integrations/whatsapp/connect?brandId=${effectiveBrandId}&origin=onboarding`;
-    } else if (provider === "whatsapp_baileys") {
-      // Open WhatsApp QR dialog instead of OAuth
-      setIsWhatsAppDialogOpen(true);
-      setConnectingProvider(null);
-      return;
     } else {
       toast({
         title: isSpanish ? "Próximamente" : "Coming Soon",
@@ -1013,6 +1013,28 @@ export default function Onboarding() {
 
     // Navigate in same window instead of opening new tab
     window.location.href = url;
+  };
+  
+  // Direct connection handlers for specific methods
+  const handleInstagramConnect = (method: "facebook" | "direct") => {
+    setIsInstagramMethodDialogOpen(false);
+    setConnectingProvider(method === "facebook" ? "instagram" : "instagram_direct");
+    const url = method === "facebook" 
+      ? `/api/integrations/facebook/connect?brandId=${effectiveBrandId}&origin=onboarding`
+      : `/api/integrations/instagram/connect?brandId=${effectiveBrandId}&origin=onboarding`;
+    window.location.href = url;
+  };
+  
+  const handleWhatsAppConnect = (method: "business" | "baileys") => {
+    if (method === "business") {
+      setIsWhatsAppMethodDialogOpen(false);
+      setConnectingProvider("whatsapp");
+      const url = `/api/integrations/whatsapp/connect?brandId=${effectiveBrandId}&origin=onboarding`;
+      window.location.href = url;
+    } else {
+      setIsWhatsAppMethodDialogOpen(false);
+      setIsWhatsAppDialogOpen(true);
+    }
   };
 
   // Handle disconnecting integrations
@@ -2783,36 +2805,6 @@ export default function Onboarding() {
                             </CardHeader>
                             <CardContent>
                               <div className="space-y-3">
-                                {/* Instagram/WhatsApp conflict warnings */}
-                                {key === "social_media" && hasAnyInstagram && (
-                                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
-                                    <p className="text-amber-800 dark:text-amber-200">
-                                      <strong>⚠️</strong>{" "}
-                                      {hasInstagramViaFacebook
-                                        ? isSpanish
-                                          ? "Instagram conectado vía Facebook. Para usar Instagram Direct, desconecta primero."
-                                          : "Instagram connected via Facebook. To use Instagram Direct, disconnect first."
-                                        : isSpanish
-                                          ? "Instagram Direct conectado. Para usar Instagram vía Facebook, desconecta primero."
-                                          : "Instagram Direct connected. To use Instagram via Facebook, disconnect first."}
-                                    </p>
-                                  </div>
-                                )}
-                                {key === "social_media" && hasAnyWhatsApp && (
-                                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
-                                    <p className="text-amber-800 dark:text-amber-200">
-                                      <strong>⚠️</strong>{" "}
-                                      {hasWhatsAppBusiness
-                                        ? isSpanish
-                                          ? "WhatsApp Business conectado. Para usar QR Code, desconecta primero."
-                                          : "WhatsApp Business connected. To use QR Code, disconnect first."
-                                        : isSpanish
-                                          ? "WhatsApp QR conectado. Para usar WhatsApp Business, desconecta primero."
-                                          : "WhatsApp QR connected. To use WhatsApp Business, disconnect first."}
-                                    </p>
-                                  </div>
-                                )}
-
                                 {providersInCategory.map(
                                   ([providerKey, provider]) => {
                                     const ProviderIcon = provider.icon;
@@ -2820,20 +2812,15 @@ export default function Onboarding() {
                                       getConnectedIntegration(providerKey);
                                     const isConnecting =
                                       connectingProvider === providerKey;
-                                    const isDisabled =
-                                      isProviderDisabledByConflict(providerKey);
 
                                     // Get icon color based on provider
                                     const getIconColor = () => {
-                                      if (isDisabled) return "text-gray-400";
                                       switch (providerKey) {
                                         case "facebook":
                                           return "text-blue-600";
                                         case "instagram":
-                                        case "instagram_direct":
                                           return "text-pink-500";
                                         case "whatsapp":
-                                        case "whatsapp_baileys":
                                           return "text-green-500";
                                         case "youtube":
                                           return "text-red-600";
@@ -2845,11 +2832,7 @@ export default function Onboarding() {
                                     return (
                                       <div
                                         key={providerKey}
-                                        className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
-                                          isDisabled
-                                            ? "opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-900"
-                                            : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                                        }`}
+                                        className="flex items-center justify-between p-4 border rounded-lg transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
                                         data-testid={`integration-${providerKey}`}
                                       >
                                         <div className="flex items-center gap-3">
@@ -2857,39 +2840,12 @@ export default function Onboarding() {
                                             className={`w-8 h-8 ${getIconColor()}`}
                                           />
                                           <div>
-                                            <div className="flex items-center gap-2">
-                                              <p
-                                                className={`font-medium ${isDisabled ? "text-gray-500" : ""}`}
-                                              >
-                                                {provider.name}
-                                              </p>
-                                              {isDisabled && (
-                                                <Badge
-                                                  variant="outline"
-                                                  className="text-xs text-amber-600 border-amber-400 bg-amber-50"
-                                                >
-                                                  {isSpanish
-                                                    ? "Conflicto"
-                                                    : "Conflict"}
-                                                </Badge>
-                                              )}
-                                            </div>
+                                            <p className="font-medium">
+                                              {provider.name}
+                                            </p>
                                             <p className="text-sm text-muted-foreground">
                                               {provider.description}
                                             </p>
-                                            {isDisabled && (
-                                              <p className="text-xs text-amber-600 mt-1">
-                                                {providerKey === "instagram" ||
-                                                providerKey ===
-                                                  "instagram_direct"
-                                                  ? isSpanish
-                                                    ? "Desconecta la otra opción de Instagram primero"
-                                                    : "Disconnect the other Instagram option first"
-                                                  : isSpanish
-                                                    ? "Desconecta la otra opción de WhatsApp primero"
-                                                    : "Disconnect the other WhatsApp option first"}
-                                              </p>
-                                            )}
                                             {connectedIntegration && (
                                               <p className="text-xs text-green-600 mt-1">
                                                 ✅{" "}
@@ -2898,6 +2854,16 @@ export default function Onboarding() {
                                                   : "Connected as"}{" "}
                                                 {connectedIntegration.accountName ||
                                                   connectedIntegration.storeName}
+                                                {connectedIntegration.provider === "instagram_direct" && (
+                                                  <span className="ml-1 text-gray-500">
+                                                    ({isSpanish ? "Directo" : "Direct"})
+                                                  </span>
+                                                )}
+                                                {connectedIntegration.provider === "whatsapp_baileys" && (
+                                                  <span className="ml-1 text-gray-500">
+                                                    ({isSpanish ? "QR Code" : "QR Code"})
+                                                  </span>
+                                                )}
                                               </p>
                                             )}
                                           </div>
@@ -2925,17 +2891,6 @@ export default function Onboarding() {
                                             {isSpanish
                                               ? "Desconectar"
                                               : "Disconnect"}
-                                          </Button>
-                                        ) : isDisabled ? (
-                                          <Button
-                                            size="sm"
-                                            disabled
-                                            variant="secondary"
-                                            data-testid={`connect-${providerKey}`}
-                                          >
-                                            {isSpanish
-                                              ? "No Disponible"
-                                              : "Unavailable"}
                                           </Button>
                                         ) : (
                                           <Button
@@ -3008,6 +2963,204 @@ export default function Onboarding() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Instagram Method Selection Dialog */}
+            <Dialog
+              open={isInstagramMethodDialogOpen}
+              onOpenChange={setIsInstagramMethodDialogOpen}
+            >
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Instagram className="h-5 w-5 text-pink-500" />
+                    {isSpanish ? "Conectar Instagram" : "Connect Instagram"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {isSpanish
+                      ? "Elige tu método de conexión preferido"
+                      : "Choose your preferred connection method"}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-3 pt-2">
+                  {/* Instagram via Facebook Option */}
+                  <div
+                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-pink-300 hover:bg-pink-50/50 ${
+                      hasInstagramViaFacebook ? "opacity-50 cursor-not-allowed bg-gray-50" : ""
+                    }`}
+                    onClick={() => !hasInstagramViaFacebook && !hasInstagramDirect && handleInstagramConnect("facebook")}
+                    data-testid="instagram-facebook-option"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Facebook className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">
+                          {isSpanish ? "Instagram vía Facebook" : "Instagram via Facebook"}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {isSpanish
+                            ? "Gestiona Instagram a través de tu página de Facebook"
+                            : "Manage Instagram through your Facebook Page"}
+                        </p>
+                      </div>
+                    </div>
+                    {hasInstagramViaFacebook && (
+                      <p className="text-xs text-green-600 mt-2">✅ {isSpanish ? "Conectado" : "Connected"}</p>
+                    )}
+                  </div>
+
+                  {/* Instagram Direct Option */}
+                  <div
+                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-pink-300 hover:bg-pink-50/50 ${
+                      hasInstagramDirect ? "opacity-50 cursor-not-allowed bg-gray-50" : ""
+                    }`}
+                    onClick={() => !hasInstagramDirect && !hasInstagramViaFacebook && handleInstagramConnect("direct")}
+                    data-testid="instagram-direct-option"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <Instagram className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">
+                          {isSpanish ? "Instagram Directo" : "Instagram Direct"}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {isSpanish
+                            ? "Conexión directa a Instagram Business"
+                            : "Direct connection to Instagram Business"}
+                        </p>
+                      </div>
+                    </div>
+                    {hasInstagramDirect && (
+                      <p className="text-xs text-green-600 mt-2">✅ {isSpanish ? "Conectado" : "Connected"}</p>
+                    )}
+                  </div>
+
+                  {hasAnyInstagram && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                      <p className="text-amber-800">
+                        <strong>⚠️</strong>{" "}
+                        {isSpanish
+                          ? "Ya tienes una conexión de Instagram. Desconéctala primero para usar otro método."
+                          : "You already have an Instagram connection. Disconnect it first to use another method."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* WhatsApp Method Selection Dialog */}
+            <Dialog
+              open={isWhatsAppMethodDialogOpen}
+              onOpenChange={setIsWhatsAppMethodDialogOpen}
+            >
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-green-500" />
+                    {isSpanish ? "Conectar WhatsApp" : "Connect WhatsApp"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {isSpanish
+                      ? "Elige tu método de conexión preferido"
+                      : "Choose your preferred connection method"}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-3 pt-2">
+                  {/* WhatsApp Business (Meta) Option - Recommended */}
+                  <div
+                    className={`p-4 border-2 border-green-200 rounded-lg cursor-pointer transition-all hover:border-green-400 hover:bg-green-50/50 ${
+                      hasWhatsAppBusiness ? "opacity-50 cursor-not-allowed bg-gray-50" : ""
+                    }`}
+                    onClick={() => !hasWhatsAppBusiness && !hasWhatsAppBaileys && handleWhatsAppConnect("business")}
+                    data-testid="whatsapp-business-option"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <MessageCircle className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">
+                            {isSpanish ? "WhatsApp Business (Meta)" : "WhatsApp Business (Meta)"}
+                          </p>
+                          <Badge className="bg-green-100 text-green-700 text-xs">
+                            {isSpanish ? "Recomendado" : "Recommended"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          {isSpanish
+                            ? "API oficial de WhatsApp Cloud - estable y confiable"
+                            : "Official WhatsApp Cloud API - stable and reliable"}
+                        </p>
+                      </div>
+                    </div>
+                    {hasWhatsAppBusiness && (
+                      <p className="text-xs text-green-600 mt-2">✅ {isSpanish ? "Conectado" : "Connected"}</p>
+                    )}
+                  </div>
+
+                  {/* WhatsApp Baileys (QR Code) Option */}
+                  <div
+                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-orange-300 hover:bg-orange-50/50 ${
+                      hasWhatsAppBaileys ? "opacity-50 cursor-not-allowed bg-gray-50" : ""
+                    }`}
+                    onClick={() => !hasWhatsAppBaileys && !hasWhatsAppBusiness && handleWhatsAppConnect("baileys")}
+                    data-testid="whatsapp-baileys-option"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <MessageCircle className="h-5 w-5 text-orange-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">
+                            {isSpanish ? "WhatsApp (QR Code)" : "WhatsApp (QR Code)"}
+                          </p>
+                          <Badge variant="outline" className="text-xs text-orange-600 border-orange-400">
+                            {isSpanish ? "Experimental" : "Experimental"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          {isSpanish
+                            ? "Conexión via código QR - solo desarrollo"
+                            : "Connection via QR code - development only"}
+                        </p>
+                      </div>
+                    </div>
+                    {hasWhatsAppBaileys && (
+                      <p className="text-xs text-green-600 mt-2">✅ {isSpanish ? "Conectado" : "Connected"}</p>
+                    )}
+                  </div>
+
+                  {/* Warning for Baileys */}
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm">
+                    <p className="text-orange-800">
+                      <strong>⚠️</strong>{" "}
+                      {isSpanish
+                        ? "El método QR Code es experimental y puede ser inestable. Se recomienda usar WhatsApp Business para producción."
+                        : "The QR Code method is experimental and may be unstable. WhatsApp Business is recommended for production."}
+                    </p>
+                  </div>
+
+                  {hasAnyWhatsApp && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                      <p className="text-amber-800">
+                        <strong>⚠️</strong>{" "}
+                        {isSpanish
+                          ? "Ya tienes una conexión de WhatsApp. Desconéctala primero para usar otro método."
+                          : "You already have a WhatsApp connection. Disconnect it first to use another method."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
 
             {/* WhatsApp Baileys QR Code Dialog */}
             <Dialog
