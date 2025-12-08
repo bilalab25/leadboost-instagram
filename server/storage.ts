@@ -167,6 +167,7 @@ export interface IStorage {
     platform: string;
     contactName?: string;
     contactProfilePicture?: string;
+    contactProfilePictureFetchedAt?: Date;
     lastMessage?: string;
     lastMessageAt?: Date;
   }): Promise<Conversation>;
@@ -803,6 +804,7 @@ export class DatabaseStorage implements IStorage {
     platform: string;
     contactName?: string;
     contactProfilePicture?: string;
+    contactProfilePictureFetchedAt?: Date;
     lastMessage?: string;
     lastMessageAt?: Date;
   }): Promise<Conversation> {
@@ -818,6 +820,7 @@ export class DatabaseStorage implements IStorage {
           platform: params.platform,
           contactName: params.contactName,
           contactProfilePicture: params.contactProfilePicture,
+          contactProfilePictureFetchedAt: params.contactProfilePictureFetchedAt,
           lastMessage: params.lastMessage,
           lastMessageAt: params.lastMessageAt || new Date(),
           unreadCount: 0,
@@ -833,6 +836,7 @@ export class DatabaseStorage implements IStorage {
               params.lastMessage || sql`${conversations.lastMessage}`,
             lastMessageAt: params.lastMessageAt || new Date(),
             contactProfilePicture: params.contactProfilePicture || sql`${conversations.contactProfilePicture}`,
+            contactProfilePictureFetchedAt: params.contactProfilePictureFetchedAt || sql`${conversations.contactProfilePictureFetchedAt}`,
             updatedAt: new Date(),
           },
         })

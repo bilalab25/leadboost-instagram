@@ -5006,32 +5006,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   const accessToken = integration.accessToken;
                   let metaConversationId = `ig_${senderId}_${recipientId}`;
                   let contactName: string | null = null;
-                  
-                  // Try to get contact name and profile picture from Instagram API
                   let contactProfilePicture: string | null = null;
-                  try {
-                    const igProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=username,name,profile_pic&access_token=${accessToken}`;
-                    console.log(`📱 [Instagram Direct] Fetching profile for sender: ${senderId}`);
-                    
-                    const igProfileRes = await fetch(igProfileUrl);
-                    const igProfileData = await igProfileRes.json();
-                    
-                    if (!igProfileData.error) {
-                      if (igProfileData.username || igProfileData.name) {
-                        contactName = igProfileData.username || igProfileData.name;
-                        console.log(`✅ [Instagram Direct] Got contact name: ${contactName}`);
-                      }
-                      if (igProfileData.profile_pic) {
-                        contactProfilePicture = igProfileData.profile_pic;
-                        console.log(`✅ [Instagram Direct] Got profile picture`);
-                      }
+                  let shouldFetchProfilePicture = true;
+                  
+                  // Find existing conversation FIRST to check if we already have profile picture
+                  let existingConversation = await storage.findConversationBySenderId(
+                    integration.id,
+                    senderId,
+                    null
+                  );
+                  
+                  // Check if profile picture is already cached and recent (less than 7 days old)
+                  if (existingConversation?.contactProfilePicture && existingConversation?.contactProfilePictureFetchedAt) {
+                    const fetchedAt = new Date(existingConversation.contactProfilePictureFetchedAt);
+                    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                    if (fetchedAt > sevenDaysAgo) {
+                      shouldFetchProfilePicture = false;
+                      contactProfilePicture = existingConversation.contactProfilePicture;
+                      contactName = existingConversation.contactName;
+                      console.log(`⏭️ [Instagram Direct] Using cached profile picture (fetched ${fetchedAt.toISOString()})`);
                     }
-                  } catch (profileErr) {
-                    console.warn(`⚠️ [Instagram Direct] Error fetching profile:`, profileErr);
                   }
                   
-                  // Find existing conversation
-                  let existingConversation = await storage.findConversationBySenderId(
+                  // Only fetch profile if we don't have a recent one
+                  if (shouldFetchProfilePicture) {
+                    try {
+                      const igProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=username,name,profile_pic&access_token=${accessToken}`;
+                      console.log(`📱 [Instagram Direct] Fetching profile for sender: ${senderId}`);
+                      
+                      const igProfileRes = await fetch(igProfileUrl);
+                      const igProfileData = await igProfileRes.json();
+                      
+                      if (!igProfileData.error) {
+                        if (igProfileData.username || igProfileData.name) {
+                          contactName = igProfileData.username || igProfileData.name;
+                          console.log(`✅ [Instagram Direct] Got contact name: ${contactName}`);
+                        }
+                        if (igProfileData.profile_pic) {
+                          contactProfilePicture = igProfileData.profile_pic;
+                          console.log(`✅ [Instagram Direct] Got profile picture`);
+                        }
+                      }
+                    } catch (profileErr) {
+                      console.warn(`⚠️ [Instagram Direct] Error fetching profile:`, profileErr);
+                    }
+                  }
+                  
+                  // Re-find existing conversation with contact name (for legacy compatibility)
+                  existingConversation = await storage.findConversationBySenderId(
                     integration.id,
                     senderId,
                     contactName
@@ -5040,13 +5062,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   let conversation;
                   if (existingConversation) {
                     console.log(`🔗 [Instagram Direct] Found existing conversation: ${existingConversation.id}`);
-                    conversation = await storage.updateConversationMetadata(existingConversation.id, {
+                    const updateData: any = {
                       metaConversationId: metaConversationId,
                       lastMessage: messageText,
                       lastMessageAt: new Date(parseInt(timestamp) * 1000 || Date.now()),
                       contactName: contactName || existingConversation.contactName,
-                      contactProfilePicture: contactProfilePicture || existingConversation.contactProfilePicture,
-                    }) || existingConversation;
+                    };
+                    // Only update profile picture and timestamp if we fetched a new one
+                    if (shouldFetchProfilePicture && contactProfilePicture) {
+                      updateData.contactProfilePicture = contactProfilePicture;
+                      updateData.contactProfilePictureFetchedAt = new Date();
+                    }
+                    conversation = await storage.updateConversationMetadata(existingConversation.id, updateData) || existingConversation;
                   } else {
                     console.log(`🆕 [Instagram Direct] Creating new conversation`);
                     conversation = await storage.getOrCreateConversation({
@@ -5057,6 +5084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       platform,
                       contactName,
                       contactProfilePicture: contactProfilePicture || undefined,
+                      contactProfilePictureFetchedAt: contactProfilePicture ? new Date() : undefined,
                       lastMessage: messageText,
                       lastMessageAt: new Date(parseInt(timestamp) * 1000 || Date.now()),
                     });
@@ -5208,6 +5236,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const pageId = integration.pageId || recipientId;
                 let metaConversationId: string | null = null;
                 let contactName: string | null = null;
+                let contactProfilePicture: string | null = null;
+                let shouldFetchProfilePicture = true;
 
                 try {
                   const metaPlatformParam = platform === "facebook" ? "messenger" : "instagram";
@@ -5224,38 +5254,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   metaConversationId = `ig_dm_${senderId}`;
                 }
 
-                let contactProfilePicture: string | null = null;
-                try {
-                  if (platform === "instagram_direct" || platform === "instagram") {
-                    const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name,profile_picture_url&access_token=${accessToken}`;
-                    const profileRes = await fetch(profileUrl);
-                    const profileData = await profileRes.json();
-                    if (!profileData.error) {
-                      if (profileData.username || profileData.name) {
-                        contactName = profileData.username || profileData.name;
-                      }
-                      if (profileData.profile_picture_url) {
-                        contactProfilePicture = profileData.profile_picture_url;
-                      }
-                    }
-                  } else if (platform === "facebook") {
-                    const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,profile_pic&access_token=${accessToken}`;
-                    const fbProfileRes = await fetch(fbProfileUrl);
-                    const fbProfileData = await fbProfileRes.json();
-                    if (!fbProfileData.error) {
-                      if (fbProfileData.name) {
-                        contactName = fbProfileData.name;
-                      }
-                      if (fbProfileData.profile_pic) {
-                        contactProfilePicture = fbProfileData.profile_pic;
-                      }
-                    }
+                // Find existing conversation FIRST to check if we already have profile picture
+                let existingConversation = await storage.findConversationBySenderId(
+                  integration.id,
+                  senderId,
+                  null
+                );
+                
+                // Check if profile picture is already cached and recent (less than 7 days old)
+                if (existingConversation?.contactProfilePicture && existingConversation?.contactProfilePictureFetchedAt) {
+                  const fetchedAt = new Date(existingConversation.contactProfilePictureFetchedAt);
+                  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                  if (fetchedAt > sevenDaysAgo) {
+                    shouldFetchProfilePicture = false;
+                    contactProfilePicture = existingConversation.contactProfilePicture;
+                    contactName = existingConversation.contactName;
+                    console.log(`⏭️ [${platform}] Using cached profile picture (fetched ${fetchedAt.toISOString()})`);
                   }
-                } catch (profileErr) {
-                  // Continue without contact name and profile picture
                 }
 
-                let existingConversation = await storage.findConversationBySenderId(
+                // Only fetch profile if we don't have a recent one
+                if (shouldFetchProfilePicture) {
+                  try {
+                    if (platform === "instagram_direct" || platform === "instagram") {
+                      const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name,profile_picture_url&access_token=${accessToken}`;
+                      const profileRes = await fetch(profileUrl);
+                      const profileData = await profileRes.json();
+                      if (!profileData.error) {
+                        if (profileData.username || profileData.name) {
+                          contactName = profileData.username || profileData.name;
+                        }
+                        if (profileData.profile_picture_url) {
+                          contactProfilePicture = profileData.profile_picture_url;
+                        }
+                      }
+                    } else if (platform === "facebook") {
+                      const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,profile_pic&access_token=${accessToken}`;
+                      const fbProfileRes = await fetch(fbProfileUrl);
+                      const fbProfileData = await fbProfileRes.json();
+                      if (!fbProfileData.error) {
+                        if (fbProfileData.name) {
+                          contactName = fbProfileData.name;
+                        }
+                        if (fbProfileData.profile_pic) {
+                          contactProfilePicture = fbProfileData.profile_pic;
+                        }
+                      }
+                    }
+                  } catch (profileErr) {
+                    // Continue without contact name and profile picture
+                  }
+                }
+
+                // Re-find existing conversation with contact name (for legacy compatibility)
+                existingConversation = await storage.findConversationBySenderId(
                   integration.id,
                   senderId,
                   contactName
@@ -5263,13 +5315,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 
                 let conversation;
                 if (existingConversation) {
-                  conversation = await storage.updateConversationMetadata(existingConversation.id, {
+                  const updateData: any = {
                     metaConversationId: metaConversationId || existingConversation.metaConversationId,
                     lastMessage: messageText,
                     lastMessageAt: new Date(event.timestamp || Date.now()),
                     contactName: contactName || existingConversation.contactName,
-                    contactProfilePicture: contactProfilePicture || existingConversation.contactProfilePicture,
-                  }) || existingConversation;
+                  };
+                  // Only update profile picture and timestamp if we fetched a new one
+                  if (shouldFetchProfilePicture && contactProfilePicture) {
+                    updateData.contactProfilePicture = contactProfilePicture;
+                    updateData.contactProfilePictureFetchedAt = new Date();
+                  }
+                  conversation = await storage.updateConversationMetadata(existingConversation.id, updateData) || existingConversation;
                 } else {
                   conversation = await storage.getOrCreateConversation({
                     integrationId: integration.id,
@@ -5279,6 +5336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     platform,
                     contactName,
                     contactProfilePicture: contactProfilePicture || undefined,
+                    contactProfilePictureFetchedAt: contactProfilePicture ? new Date() : undefined,
                     lastMessage: messageText,
                     lastMessageAt: new Date(event.timestamp || Date.now()),
                   });
