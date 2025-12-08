@@ -4,6 +4,12 @@ import { setupVite, serveStatic, log } from "./vite";
 import { logStartup } from "./diagnostic";
 
 const app = express();
+
+// Health check endpoint - MUST be before any middleware for Autoscale
+app.get("/healthz", (_req, res) => {
+  res.status(200).json({ status: "ok", timestamp: Date.now() });
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
