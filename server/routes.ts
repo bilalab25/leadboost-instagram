@@ -4973,46 +4973,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     });
                   }
                   
+                  // Check for duplicate message before saving
+                  const existingMessage = await storage.findMessageByMetaId(integration.id, messageId);
+                  if (existingMessage) {
+                    console.log(`⏭️ [Instagram Direct] Message already exists: ${existingMessage.id}, skipping`);
+                    continue;
+                  }
+                  
                   // Save the message
-                  const messageData = {
-                    userId: integration.userId,
-                    brandId: integration.brandId,
-                    integrationId: integration.id,
-                    conversationId: conversation.id,
-                    platform,
-                    metaMessageId: messageId,
-                    metaConversationId,
-                    senderId,
-                    recipientId,
-                    contactName,
-                    textContent: messageText,
-                    direction: "inbound",
-                    isRead: false,
-                    timestamp: new Date(parseInt(timestamp) * 1000 || Date.now()),
-                    rawPayload: change.value,
-                  };
-                  
-                  const savedMessage = await storage.createMessage(messageData);
-                  console.log(`✅ [Instagram Direct] Message saved: ${savedMessage.id}`);
-                  
-                  // Increment unread count
-                  await storage.incrementUnreadCount(conversation.id);
-                  
-                  // Emit socket event
-                  const io = app.get("io");
-                  const updatedConversation = await storage.getConversation(conversation.id);
-                  
-                  io?.emit("new_message", {
-                    provider: platform,
-                    conversationId: metaConversationId,
-                    metaConversationId,
-                    dbConversationId: conversation.id,
-                    message: savedMessage,
-                    conversation: updatedConversation,
-                    brandId: integration.brandId,
-                  });
-                  
-                  console.log(`🔔 [Instagram Direct] Socket event emitted for conversation ${conversation.id}`);
+                  try {
+                    const savedMessage = await storage.createMessage({
+                      userId: integration.userId,
+                      brandId: integration.brandId,
+                      integrationId: integration.id,
+                      conversationId: conversation.id,
+                      platform,
+                      metaMessageId: messageId,
+                      metaConversationId,
+                      senderId,
+                      recipientId,
+                      contactName,
+                      textContent: messageText,
+                      direction: "inbound",
+                      isRead: false,
+                      timestamp: new Date(parseInt(timestamp) * 1000 || Date.now()),
+                      rawPayload: change.value,
+                    });
+                    console.log(`✅ [Instagram Direct] Message saved: ${savedMessage.id}`);
+                    
+                    // Increment unread count
+                    await storage.incrementUnreadCount(conversation.id);
+                    
+                    // Emit socket event
+                    const io = app.get("io");
+                    const updatedConversation = await storage.getConversation(conversation.id);
+                    
+                    io?.emit("new_message", {
+                      provider: platform,
+                      conversationId: metaConversationId,
+                      metaConversationId,
+                      dbConversationId: conversation.id,
+                      message: savedMessage,
+                      conversation: updatedConversation,
+                      brandId: integration.brandId,
+                    });
+                    
+                    console.log(`🔔 [Instagram Direct] Socket event emitted for conversation ${conversation.id}`);
+                  } catch (msgErr: any) {
+                    if (msgErr.code === "23505") {
+                      console.log(`⏭️ [Instagram Direct] Duplicate message detected via constraint, skipping`);
+                    } else {
+                      throw msgErr;
+                    }
+                  }
                 } else {
                   console.warn(`⚠️ [Instagram Direct] No integration found for recipientId: ${recipientId}`);
                 }
@@ -5148,39 +5161,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   });
                 }
 
-                const savedMessage = await storage.createMessage({
-                  userId: integration.userId,
-                  brandId: integration.brandId,
-                  integrationId: integration.id,
-                  conversationId: conversation.id,
-                  platform,
-                  metaMessageId: messageId,
-                  metaConversationId,
-                  senderId,
-                  recipientId,
-                  contactName,
-                  textContent: messageText,
-                  direction: "inbound",
-                  isRead: false,
-                  timestamp: new Date(event.timestamp || Date.now()),
-                  rawPayload: body,
-                });
-                console.log(`✅ [${platform}] Message saved: ${savedMessage.id}`);
+                // Check for duplicate message before saving
+                const existingMessage = await storage.findMessageByMetaId(integration.id, messageId);
+                if (existingMessage) {
+                  console.log(`⏭️ [${platform}] Message already exists: ${existingMessage.id}, skipping`);
+                  continue;
+                }
 
-                await storage.incrementUnreadCount(conversation.id);
+                try {
+                  const savedMessage = await storage.createMessage({
+                    userId: integration.userId,
+                    brandId: integration.brandId,
+                    integrationId: integration.id,
+                    conversationId: conversation.id,
+                    platform,
+                    metaMessageId: messageId,
+                    metaConversationId,
+                    senderId,
+                    recipientId,
+                    contactName,
+                    textContent: messageText,
+                    direction: "inbound",
+                    isRead: false,
+                    timestamp: new Date(event.timestamp || Date.now()),
+                    rawPayload: body,
+                  });
+                  console.log(`✅ [${platform}] Message saved: ${savedMessage.id}`);
 
-                const io = app.get("io");
-                const updatedConversation = await storage.getConversation(conversation.id);
-                
-                io?.emit("new_message", {
-                  provider: platform,
-                  conversationId: metaConversationId,
-                  metaConversationId,
-                  dbConversationId: conversation.id,
-                  message: savedMessage,
-                  conversation: updatedConversation,
-                  brandId: integration.brandId,
-                });
+                  await storage.incrementUnreadCount(conversation.id);
+
+                  const io = app.get("io");
+                  const updatedConversation = await storage.getConversation(conversation.id);
+                  
+                  io?.emit("new_message", {
+                    provider: platform,
+                    conversationId: metaConversationId,
+                    metaConversationId,
+                    dbConversationId: conversation.id,
+                    message: savedMessage,
+                    conversation: updatedConversation,
+                    brandId: integration.brandId,
+                  });
+                } catch (msgErr: any) {
+                  if (msgErr.code === "23505") {
+                    console.log(`⏭️ [${platform}] Duplicate message detected via constraint, skipping`);
+                  } else {
+                    throw msgErr;
+                  }
+                }
               } else {
                 console.warn(`⚠️ [${searchPlatform}] No integration found for recipient: ${recipientId}`);
               }

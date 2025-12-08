@@ -169,6 +169,7 @@ export interface IStorage {
     lastMessage?: string;
     lastMessageAt?: Date;
   }): Promise<Conversation>;
+  getConversation(id: string): Promise<Conversation | undefined>;
   getConversationsByBrandId(
     brandId: string,
     limit?: number,
@@ -829,6 +830,15 @@ export class DatabaseStorage implements IStorage {
 
       return conversation;
     });
+  }
+
+  async getConversation(id: string): Promise<Conversation | undefined> {
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, id))
+      .limit(1);
+    return conversation;
   }
 
   async getConversationsByBrandId(

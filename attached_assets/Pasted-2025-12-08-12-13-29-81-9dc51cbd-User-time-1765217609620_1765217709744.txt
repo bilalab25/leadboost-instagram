@@ -1,0 +1,116 @@
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+time: 1765217609620,
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+object: 'instagram',
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+id: '17841458433478265',
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+text: 'Test'
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+messaging: [
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+=================================================
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+message: {
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+mid: 'aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDU4NDMzNDc4MjY1OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjE0OTgxNTgxMDAzNDc1OTozMjU2MjUxNzQ2OTk3MTU4MTQ0OTU1NjExOTY4MDcxMjcwNAZDZD',
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+- recipientId: 17841458433478265
+2025-12-08 12:13:29.81
+9dc51cbd
+User
+timestamp: 1765217609127,
+2025-12-08 12:13:29.87
+9dc51cbd
+User
+- ID: d91015a4-effd-45fe-be19-3f27de110023, provider: instagram_direct, accountId: 2041846339885995, pageId: 2041846339885995
+2025-12-08 12:13:29.87
+9dc51cbd
+User
+- ID: 795ee61e-9aef-4b21-9121-4fd98afc8155, provider: whatsapp_baileys, accountId: 5215581730828, pageId: null
+2025-12-08 12:13:29.87
+9dc51cbd
+User
+- ID: 501256d1-d98b-4bfa-9181-5e676bc4fe4d, provider: facebook, accountId: 104271062755801, pageId: 104271062755801
+2025-12-08 12:13:29.87
+9dc51cbd
+User
+- ID: 5b94a896-b1bb-4247-9639-fd87556cb8b0, provider: whatsapp_baileys, accountId: 5215636688253, pageId: null
+2025-12-08 12:13:29.87
+9dc51cbd
+User
+- ID: 04c42322-0fca-4ca6-b91d-1ff264023cc7, provider: whatsapp_baileys, accountId: 5217714143787, pageId: null
+2025-12-08 12:13:29.87
+9dc51cbd
+User
+- ID: 1dec6353-45fe-448b-aee2-f16911322abd, provider: instagram_direct, accountId: 25343891241895020, pageId: 25343891241895020
+2025-12-08 12:13:29.87
+9dc51cbd
+User
+- ID: 30d5b245-acf6-4a38-85a3-70a8d59753aa, provider: instagram_direct, accountId: 17841458433478265, pageId: 17841458433478265
+2025-12-08 12:13:29.87
+9dc51cbd
+User
+- ID: e9547767-b6b1-46de-8ad8-945dbb241a64, provider: facebook, accountId: 1630307990514455, pageId: 1630307990514455
+2025-12-08 12:13:29.87
+9dc51cbd
+User
+📋 All integrations in DB (8 total):
+2025-12-08 12:13:29.91
+9dc51cbd
+User
+🔎 findIntegrationByAccount result: Found (instagram_direct)
+2025-12-08 12:13:30.10
+9dc51cbd
+User
+[Storage] findConversationBySenderId: integrationId=30d5b245-acf6-4a38-85a3-70a8d59753aa, senderId=2041846339885995, contactName=null
+2025-12-08 12:13:30.17
+9dc51cbd
+User
+[Storage] Found conversation by senderId in messages: 608cbb74-a85f-4cdf-8b28-c28ba9ce49cc
+2025-12-08 12:13:30.25
+9dc51cbd
+User
+✅ [instagram_direct] Message saved: 57483210-03bf-4d07-a6db-a9d699b055de
+2025-12-08 12:13:30.28
+9dc51cbd
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-12-08 12:13:30.28
+9dc51cbd
+User
+❌ Error procesando evento Meta: TypeError: storage.getConversation is not a function
+2025-12-08 12:13:30.28
+9dc51cbd
+User
+at file:///home/runner/workspace/dist/index.js:11188:59
+2025-12-08 12:13:30.28
+9dc51cbd
+User
+6:13:30 PM [express] POST /api/webhooks/meta 500 in 476ms :: {"error":"Meta webhook processing failed"}
+2025-12-08 12:13:30.28
+9dc51cbd
+User
+6:13:30 PM [express] POST /api/webhooks/meta 500 in 476ms :: {"error":"Meta webhook processing failed"}
+2025-12-08 12:13:30.28
+9dc51cbd
+User
+6:13:30 PM [express] POST /api/webhooks/meta 500 in 476ms :: {"error":"Meta webhook processing failed"}
