@@ -187,6 +187,11 @@ export interface IStorage {
     senderId: string,
     contactName?: string | null,
   ): Promise<Conversation | undefined>;
+  
+  // Find conversation by metaConversationId (for webhook routing)
+  findConversationByMetaConversationId(
+    metaConversationId: string,
+  ): Promise<Conversation | undefined>;
 
   // Message attachment operations
   createMessageAttachment(
@@ -986,6 +991,26 @@ export class DatabaseStorage implements IStorage {
 
     console.log(`[Storage] No conversation found for senderId=${senderId}, contactName=${contactName}`);
     return undefined;
+  }
+
+  async findConversationByMetaConversationId(
+    metaConversationId: string,
+  ): Promise<Conversation | undefined> {
+    console.log(`[Storage] findConversationByMetaConversationId: ${metaConversationId}`);
+    
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.metaConversationId, metaConversationId))
+      .limit(1);
+    
+    if (conversation) {
+      console.log(`[Storage] Found conversation by metaConversationId: ${conversation.id}, integrationId: ${conversation.integrationId}`);
+    } else {
+      console.log(`[Storage] No conversation found for metaConversationId: ${metaConversationId}`);
+    }
+    
+    return conversation;
   }
 
   // Message attachment operations

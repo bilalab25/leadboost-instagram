@@ -4937,41 +4937,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.log(`   - messageId: ${messageId}`);
                 console.log(`   - messageText: ${messageText}`);
                 
-                // Search for instagram_direct or instagram integration
-                const allIntegrations = await storage.getAllIntegrations();
-                console.log(`📋 All integrations (${allIntegrations.length} total):`);
-                for (const int of allIntegrations) {
-                  console.log(`   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`);
+                // PRIORITY 1: Check if there's an existing conversation for this metaConversationId
+                // This ensures messages go to the correct brand even if same IG account is in multiple brands
+                const potentialMetaConversationId = `ig_${senderId}_${recipientId}`;
+                const existingConversationByMeta = await storage.findConversationByMetaConversationId(potentialMetaConversationId);
+                
+                let integration;
+                if (existingConversationByMeta) {
+                  console.log(`✅ [Instagram Direct] Found existing conversation by metaConversationId, using its integration`);
+                  integration = await storage.getIntegrationById(existingConversationByMeta.integrationId);
                 }
                 
-                // Find integration by recipientId matching accountId or pageId
-                let integration = allIntegrations.find(
-                  (int) => (int.provider === "instagram_direct" || int.provider === "instagram") &&
-                           (int.accountId === recipientId || int.pageId === recipientId)
-                );
-                
-                // If not found, try to find any instagram_direct integration and update it
+                // PRIORITY 2: If no existing conversation, search for integration by pageId
                 if (!integration) {
-                  console.log(`🔧 [Instagram Direct] No exact match found, trying to auto-fix...`);
+                  const allIntegrations = await storage.getAllIntegrations();
+                  console.log(`📋 All integrations (${allIntegrations.length} total):`);
+                  for (const int of allIntegrations) {
+                    console.log(`   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`);
+                  }
+                  
+                  // Find integration by recipientId matching accountId or pageId
                   integration = allIntegrations.find(
-                    (int) => int.provider === "instagram_direct" || int.provider === "instagram"
+                    (int) => (int.provider === "instagram_direct" || int.provider === "instagram") &&
+                             (int.accountId === recipientId || int.pageId === recipientId)
                   );
                   
-                  if (integration) {
-                    console.log(`🔧 [Instagram Direct] Found integration, updating accountId/pageId...`);
-                    console.log(`   - Old accountId: ${integration.accountId}`);
-                    console.log(`   - New accountId: ${recipientId}`);
+                  // If not found, try to find any instagram_direct integration and update it
+                  if (!integration) {
+                    console.log(`🔧 [Instagram Direct] No exact match found, trying to auto-fix...`);
+                    integration = allIntegrations.find(
+                      (int) => int.provider === "instagram_direct" || int.provider === "instagram"
+                    );
                     
-                    integration = await storage.updateIntegration(integration.id, {
-                      accountId: recipientId,
-                      pageId: recipientId,
-                      metadata: {
-                        ...(typeof integration.metadata === 'object' ? integration.metadata : {}),
-                        igbaId: recipientId,
-                        autoFixedFromWebhook: true,
-                        autoFixedAt: new Date().toISOString(),
-                      },
-                    }) || integration;
+                    if (integration) {
+                      console.log(`🔧 [Instagram Direct] Found integration, updating accountId/pageId...`);
+                      console.log(`   - Old accountId: ${integration.accountId}`);
+                      console.log(`   - New accountId: ${recipientId}`);
+                      
+                      integration = await storage.updateIntegration(integration.id, {
+                        accountId: recipientId,
+                        pageId: recipientId,
+                        metadata: {
+                          ...(typeof integration.metadata === 'object' ? integration.metadata : {}),
+                          igbaId: recipientId,
+                          autoFixedFromWebhook: true,
+                          autoFixedAt: new Date().toISOString(),
+                        },
+                      }) || integration;
+                    }
                   }
                 }
                 
@@ -5104,45 +5117,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`   - recipientId: ${recipientId}`);
               console.log(`   - searchPlatform: ${searchPlatform}`);
               
-              // Debug: List all integrations to see what's in DB
-              const allIntegrations = await storage.getAllIntegrations();
-              console.log(`📋 All integrations in DB (${allIntegrations.length} total):`);
-              for (const int of allIntegrations) {
-                console.log(`   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`);
+              // PRIORITY 1: Check if there's an existing conversation for potential metaConversationIds
+              // This ensures messages go to the correct brand even if same account is in multiple brands
+              const potentialMetaIds = [
+                `ig_dm_${senderId}`,
+                `ig_${senderId}_${recipientId}`,
+              ];
+              
+              let integration;
+              for (const metaId of potentialMetaIds) {
+                const existingConvo = await storage.findConversationByMetaConversationId(metaId);
+                if (existingConvo) {
+                  console.log(`✅ Found existing conversation by metaConversationId: ${metaId}`);
+                  integration = await storage.getIntegrationById(existingConvo.integrationId);
+                  if (integration) break;
+                }
               }
+              
+              // PRIORITY 2: If no existing conversation, search for integration by pageId
+              if (!integration) {
+                // Debug: List all integrations to see what's in DB
+                const allIntegrations = await storage.getAllIntegrations();
+                console.log(`📋 All integrations in DB (${allIntegrations.length} total):`);
+                for (const int of allIntegrations) {
+                  console.log(`   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`);
+                }
 
-              let integration = await storage.findIntegrationByAccount(
-                recipientId,
-                searchPlatform,
-              );
-
-              console.log(`🔎 findIntegrationByAccount result:`, integration ? `Found (${integration.provider})` : 'NOT FOUND');
-
-              // Auto-fix: If no integration found for Instagram, try to find any instagram_direct integration
-              if (!integration && searchPlatform === "instagram") {
-                console.log(`🔧 Attempting auto-fix for Instagram integration...`);
-                const igDirectIntegration = allIntegrations.find(
-                  (int) => int.provider === "instagram_direct" || int.provider === "instagram"
+                integration = await storage.findIntegrationByAccount(
+                  recipientId,
+                  searchPlatform,
                 );
-                
-                if (igDirectIntegration) {
-                  console.log(`🔧 Found instagram_direct integration with mismatched ID. Updating...`);
-                  const updatedIntegration = await storage.updateIntegration(
-                    igDirectIntegration.id,
-                    {
-                      accountId: recipientId,
-                      pageId: recipientId,
-                      metadata: {
-                        ...(typeof igDirectIntegration.metadata === 'object' ? igDirectIntegration.metadata : {}),
-                        igbaId: recipientId,
-                        autoFixedFromWebhook: true,
-                      },
-                    }
+
+                console.log(`🔎 findIntegrationByAccount result:`, integration ? `Found (${integration.provider})` : 'NOT FOUND');
+
+                // Auto-fix: If no integration found for Instagram, try to find any instagram_direct integration
+                if (!integration && searchPlatform === "instagram") {
+                  console.log(`🔧 Attempting auto-fix for Instagram integration...`);
+                  const igDirectIntegration = allIntegrations.find(
+                    (int) => int.provider === "instagram_direct" || int.provider === "instagram"
                   );
                   
-                  if (updatedIntegration) {
-                    console.log(`✅ Auto-fixed Instagram integration!`);
-                    integration = updatedIntegration;
+                  if (igDirectIntegration) {
+                    console.log(`🔧 Found instagram_direct integration with mismatched ID. Updating...`);
+                    const updatedIntegration = await storage.updateIntegration(
+                      igDirectIntegration.id,
+                      {
+                        accountId: recipientId,
+                        pageId: recipientId,
+                        metadata: {
+                          ...(typeof igDirectIntegration.metadata === 'object' ? igDirectIntegration.metadata : {}),
+                          igbaId: recipientId,
+                          autoFixedFromWebhook: true,
+                        },
+                      }
+                    );
+                    
+                    if (updatedIntegration) {
+                      console.log(`✅ Auto-fixed Instagram integration!`);
+                      integration = updatedIntegration;
+                    }
                   }
                 }
               }
