@@ -4842,12 +4842,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     await storage.incrementUnreadCount(conversation.id);
 
                     const io = app.get("io");
-                    io?.emit("new_message", {
-                      provider: "whatsapp",
-                      conversationId: metaConversationId,
-                      metaConversationId,
-                      message: savedMessage,
-                    });
+                    if (io && integration.brandId) {
+                      io.to(`brand:${integration.brandId}`).emit("new_message", {
+                        provider: "whatsapp",
+                        conversationId: metaConversationId,
+                        metaConversationId,
+                        dbConversationId: conversation.id,
+                        message: savedMessage,
+                        brandId: integration.brandId,
+                      });
+                    }
                   }
                 }
               }
@@ -5004,21 +5008,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     // Increment unread count
                     await storage.incrementUnreadCount(conversation.id);
                     
-                    // Emit socket event
+                    // Emit socket event to brand room only
                     const io = app.get("io");
                     const updatedConversation = await storage.getConversation(conversation.id);
                     
-                    io?.emit("new_message", {
-                      provider: platform,
-                      conversationId: metaConversationId,
-                      metaConversationId,
-                      dbConversationId: conversation.id,
-                      message: savedMessage,
-                      conversation: updatedConversation,
-                      brandId: integration.brandId,
-                    });
-                    
-                    console.log(`🔔 [Instagram Direct] Socket event emitted for conversation ${conversation.id}`);
+                    if (io && integration.brandId) {
+                      io.to(`brand:${integration.brandId}`).emit("new_message", {
+                        provider: platform,
+                        conversationId: metaConversationId,
+                        metaConversationId,
+                        dbConversationId: conversation.id,
+                        message: savedMessage,
+                        conversation: updatedConversation,
+                        brandId: integration.brandId,
+                      });
+                      console.log(`🔔 [Instagram Direct] Socket event emitted to brand:${integration.brandId}`);
+                    }
                   } catch (msgErr: any) {
                     if (msgErr.code === "23505") {
                       console.log(`⏭️ [Instagram Direct] Duplicate message detected via constraint, skipping`);
@@ -5190,18 +5195,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                   await storage.incrementUnreadCount(conversation.id);
 
+                  // Emit socket event to brand room only
                   const io = app.get("io");
                   const updatedConversation = await storage.getConversation(conversation.id);
                   
-                  io?.emit("new_message", {
-                    provider: platform,
-                    conversationId: metaConversationId,
-                    metaConversationId,
-                    dbConversationId: conversation.id,
-                    message: savedMessage,
-                    conversation: updatedConversation,
-                    brandId: integration.brandId,
-                  });
+                  if (io && integration.brandId) {
+                    io.to(`brand:${integration.brandId}`).emit("new_message", {
+                      provider: platform,
+                      conversationId: metaConversationId,
+                      metaConversationId,
+                      dbConversationId: conversation.id,
+                      message: savedMessage,
+                      conversation: updatedConversation,
+                      brandId: integration.brandId,
+                    });
+                    console.log(`🔔 [${platform}] Socket event emitted to brand:${integration.brandId}`);
+                  }
                 } catch (msgErr: any) {
                   if (msgErr.code === "23505") {
                     console.log(`⏭️ [${platform}] Duplicate message detected via constraint, skipping`);

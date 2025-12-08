@@ -1,0 +1,57 @@
+Ignoring unsupported entryTypes: longtask. contentTrackerLoader.js:18:34801
+No valid entryTypes; aborting registration. contentTrackerLoader.js:18:34801
+TypeError: can't access property "length", t is undefined 4 contentTrackerLoader.js:18:39720
+Firebase Email Login Error: FirebaseError: Firebase: Error (auth/invalid-credential).
+    PC https://leadboostio.com/assets/index-ns4jKxWi.js:1103
+    fa https://leadboostio.com/assets/index-ns4jKxWi.js:1103
+    BO https://leadboostio.com/assets/index-ns4jKxWi.js:1208
+index-ns4jKxWi.js:2243:1915
+TypeError: can't access property "length", t is undefined 2 contentTrackerLoader.js:18:39720
+Array []
+ social accounts index-ns4jKxWi.js:2243:44416
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+TypeError: can't access property "length", t is undefined contentTrackerLoader.js:18:39720
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+📢 Joining brand room: d8eeadd5-c1ca-4d5e-9626-fc6cb2b1adcc index-ns4jKxWi.js:2251:93605
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+✅ Socket.IO connected: X0qmPIKbbwXzWCmeAAAB index-ns4jKxWi.js:2251:93062
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+💬 New message received via Socket.IO: 
+Object { provider: "instagram_direct", conversationId: "ig_dm_2041846339885995", metaConversationId: "ig_dm_2041846339885995", dbConversationId: "608cbb74-a85f-4cdf-8b28-c28ba9ce49cc", message: {…}, conversation: {…}, brandId: "8d98e1b2-0eed-43d5-b8bd-de88b46a3b79" }
+index-ns4jKxWi.js:2251:113685
+📨 Real-time message received: 
+Object { provider: "instagram_direct", conversationId: "ig_dm_2041846339885995", metaConversationId: "ig_dm_2041846339885995", dbConversationId: "608cbb74-a85f-4cdf-8b28-c28ba9ce49cc", message: {…}, conversation: {…}, brandId: "8d98e1b2-0eed-43d5-b8bd-de88b46a3b79" }
+index-ns4jKxWi.js:2251:118913
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+Array [ {…} ]
+ social accounts index-ns4jKxWi.js:2243:44416
+TypeError: can't access property "length", t is undefined contentTrackerLoader.js:18:39720
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-DMQsn2tc.css:1:18383
+Error in parsing value for ‘-webkit-text-size-adjust’.  Declaration dropped. index-DMQsn2tc.css:1:20604
+XHRGET
+https://leadboostio.com/api/inbox/stats?brandId=d8eeadd5-c1ca-4d5e-9626-fc6cb2b1adcc
+[HTTP/2 200  521ms]
+
+XHRGET
+https://leadboostio.com/api/inbox/stats?brandId=d8eeadd5-c1ca-4d5e-9626-fc6cb2b1adcc
+[HTTP/2 200  480ms]
+

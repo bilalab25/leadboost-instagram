@@ -90,6 +90,12 @@ export default function Inbox() {
     const handleNewMessage = (data: { conversationId: string; dbConversationId?: string; message: any; brandId?: string }) => {
       console.log("📨 Real-time message received:", data);
       
+      // Verify the message is for the current active brand (safety check)
+      if (data.brandId && data.brandId !== activeBrandId) {
+        console.log(`⏭️ Message is for brand ${data.brandId}, ignoring (active: ${activeBrandId})`);
+        return;
+      }
+      
       // Invalidate and refetch conversations to show new message
       // Use exact match with activeBrandId to ensure proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
@@ -104,8 +110,8 @@ export default function Inbox() {
       // Show a toast notification for the new message
       toast({
         title: isSpanish ? "Nuevo mensaje" : "New message",
-        description: data.message?.from 
-          ? `${data.message.from}: ${data.message.text?.substring(0, 50)}...` 
+        description: data.message?.contactName 
+          ? `${data.message.contactName}: ${data.message.textContent?.substring(0, 50) || ""}` 
           : (isSpanish ? "Tienes un nuevo mensaje" : "You have a new message"),
       });
     };
@@ -115,7 +121,7 @@ export default function Inbox() {
     return () => {
       socket.off("new_message", handleNewMessage);
     };
-  }, [socket, queryClient, toast, isSpanish]);
+  }, [socket, queryClient, toast, isSpanish, activeBrandId]);
 
   // Fetch inbox statistics from the API
   const { data: inboxStats, isLoading: statsLoading } = useQuery<InboxStats>({
