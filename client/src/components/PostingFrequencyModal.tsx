@@ -146,10 +146,13 @@ export default function PostingFrequencyModal({
     retry: false, // Don't retry on error
   });
 
-  // Get connected platform providers
-  const connectedPlatforms = integrations.map((integration) =>
-    integration.provider?.toLowerCase(),
-  );
+  // Get connected platform providers - map instagram_direct to instagram for UI purposes
+  const connectedPlatforms = integrations.map((integration) => {
+    const provider = integration.provider?.toLowerCase();
+    // Map instagram_direct to instagram for the frequency modal
+    if (provider === "instagram_direct") return "instagram";
+    return provider;
+  });
 
   // Filter platforms to only show connected ones
   const userPlatforms = platforms.filter((p) =>
