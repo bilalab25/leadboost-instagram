@@ -725,6 +725,9 @@ export default function Onboarding() {
   const [connectingProvider, setConnectingProvider] = useState<string | null>(
     null,
   );
+  const [disconnectingIds, setDisconnectingIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   // WhatsApp Baileys state
   const [isWhatsAppDialogOpen, setIsWhatsAppDialogOpen] = useState(false);
@@ -736,6 +739,7 @@ export default function Onboarding() {
   const [isBaileysConnecting, setIsBaileysConnecting] = useState(false);
   const [baileysPollingInterval, setBaileysPollingInterval] =
     useState<NodeJS.Timeout | null>(null);
+  const [disconnectingBaileys, setDisconnectingBaileys] = useState(false);
 
   // Instagram and WhatsApp method selection modals
   const [isInstagramMethodDialogOpen, setIsInstagramMethodDialogOpen] =
@@ -1019,6 +1023,7 @@ export default function Onboarding() {
   };
 
   const handleBaileysDisconnect = async () => {
+    setDisconnectingBaileys(true);
     try {
       const res = await fetch("/api/whatsapp-baileys/disconnect", {
         method: "POST",
@@ -1043,6 +1048,8 @@ export default function Onboarding() {
       }
     } catch (error) {
       console.error("Disconnect error:", error);
+    } finally {
+      setDisconnectingBaileys(false);
     }
   };
 
@@ -1115,6 +1122,8 @@ export default function Onboarding() {
 
   // Handle disconnecting integrations
   const handleDisconnect = async (integrationId: string) => {
+    setDisconnectingIds((prev) => new Set(prev).add(integrationId));
+
     try {
       const res = await fetch(
         `/api/integrations/${integrationId}?brandId=${effectiveBrandId}`,
@@ -1140,6 +1149,12 @@ export default function Onboarding() {
           ? "No se pudo desconectar la integración"
           : "Failed to disconnect integration",
         variant: "destructive",
+      });
+    } finally {
+      setDisconnectingIds((prev) => {
+        const updated = new Set(prev);
+        updated.delete(integrationId);
+        return updated;
       });
     }
   };
@@ -2894,7 +2909,9 @@ export default function Onboarding() {
                                         variant="destructive"
                                         size="icon"
                                         disabled={deletingAssets.has(asset.id)}
-                                        onClick={() => handleRemoveAsset(asset.id)}
+                                        onClick={() =>
+                                          handleRemoveAsset(asset.id)
+                                        }
                                         className="m-1"
                                       >
                                         {deletingAssets.has(asset.id) ? (
@@ -3108,12 +3125,38 @@ export default function Onboarding() {
                                                 );
                                               }
                                             }}
+                                            disabled={
+                                              disconnectingBaileys ||
+                                              disconnectingIds.has(
+                                                connectedIntegration.id,
+                                              )
+                                            }
                                             className="text-red-600 border-red-400 hover:bg-red-50"
                                             data-testid={`disconnect-${providerKey}`}
                                           >
-                                            {isSpanish
-                                              ? "Desconectar"
-                                              : "Disconnect"}
+                                            {connectedIntegration.provider ===
+                                              "whatsapp_baileys" &&
+                                            disconnectingBaileys ? (
+                                              <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                {isSpanish
+                                                  ? "Desconectando..."
+                                                  : "Disconnecting..."}
+                                              </>
+                                            ) : disconnectingIds.has(
+                                                connectedIntegration.id,
+                                              ) ? (
+                                              <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                {isSpanish
+                                                  ? "Desconectando..."
+                                                  : "Disconnecting..."}
+                                              </>
+                                            ) : isSpanish ? (
+                                              "Desconectar"
+                                            ) : (
+                                              "Disconnect"
+                                            )}
                                           </Button>
                                         ) : (
                                           <Button
