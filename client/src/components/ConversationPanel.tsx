@@ -113,7 +113,9 @@ export default function ConversationPanel({
   const [conversationFlag, setConversationFlag] = useState<
     "none" | "important" | "archived"
   >("none");
-  const [contactProfilePicture, setContactProfilePicture] = useState<string | null>(null);
+  const [contactProfilePicture, setContactProfilePicture] = useState<
+    string | null
+  >(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch linked customer for this conversation (brand-scoped)
@@ -134,6 +136,10 @@ export default function ConversationPanel({
   });
 
   const isFacebookConversation = platform === "facebook";
+  const isMetaConversation =
+    platform === "facebook" ||
+    platform === "instagram" ||
+    platform === "instagram_direct";
 
   // 🔹 Load messages from conversations endpoint
   useEffect(() => {
@@ -150,7 +156,9 @@ export default function ConversationPanel({
         if (conversationData.conversation) {
           setConversationFlag(conversationData.conversation.flag || "none");
           if (conversationData.conversation.contactProfilePicture) {
-            setContactProfilePicture(conversationData.conversation.contactProfilePicture);
+            setContactProfilePicture(
+              conversationData.conversation.contactProfilePicture,
+            );
           }
         }
 
@@ -171,7 +179,7 @@ export default function ConversationPanel({
         }
 
         // 🔹 Detectar ventana de 24 h solo para Facebook
-        if (platform === "facebook" && msgs.length > 0) {
+        if (isMetaConversation && msgs.length > 0) {
           // Busca el último mensaje entrante (del usuario)
           const lastInbound = msgs
             .filter((m: any) => m.direction === "inbound")
@@ -288,10 +296,7 @@ export default function ConversationPanel({
           if (exists) return prev;
 
           // **ACTUALIZAR LÓGICA DE 24H AL RECIBIR NUEVO MENSAJE INBOUND**
-          if (
-            isFacebookConversation &&
-            formattedMessage.direction === "inbound"
-          ) {
+          if (isMetaConversation && formattedMessage.direction === "inbound") {
             setCanSendFacebookMessage(true);
           }
 
@@ -299,7 +304,7 @@ export default function ConversationPanel({
         });
       }
     },
-    [platform, conversationId, isFacebookConversation, activeBrandId],
+    [platform, conversationId, isMetaConversation, activeBrandId],
   );
 
   useNewMessageListener(handleNewMessage);
@@ -428,7 +433,7 @@ export default function ConversationPanel({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       // También se debe verificar la restricción para la tecla Enter
-      if (!isFacebookConversation || canSendFacebookMessage) {
+      if (!isMetaConversation || canSendFacebookMessage) {
         handleSendMessage();
       }
     }
@@ -439,8 +444,9 @@ export default function ConversationPanel({
   const platformBg =
     platform && platformColors[platform as keyof typeof platformColors];
   const displayName = participantName || "Usuario";
-  const displayPlatform = platform 
-    ? (platformLabels[platform] || platform.charAt(0).toUpperCase() + platform.slice(1))
+  const displayPlatform = platform
+    ? platformLabels[platform] ||
+      platform.charAt(0).toUpperCase() + platform.slice(1)
     : "Facebook";
 
   return (
@@ -477,9 +483,7 @@ export default function ConversationPanel({
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">{displayName}</h3>
-              <p className="text-xs text-gray-500">
-                {displayPlatform}
-              </p>
+              <p className="text-xs text-gray-500">{displayPlatform}</p>
             </div>
           </div>
 
@@ -630,11 +634,11 @@ export default function ConversationPanel({
         {/* Composer MODIFICADO */}
         <div className="bg-white border-t border-gray-200 p-4">
           {/* Bloque de alerta de 24 horas */}
-          {isFacebookConversation && !canSendFacebookMessage && (
+          {isMetaConversation && !canSendFacebookMessage && (
             <div className="mb-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg flex items-center space-x-2">
               <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
               <p className="text-sm text-yellow-800">
-                **Restricción de 24 h:** Han pasado más de 24 horas desde el
+                <b>Restricción de 24 h:</b>Han pasado más de 24 horas desde el
                 último mensaje del usuario. Solo se pueden enviar mensajes de
                 respuesta estándar dentro de este plazo.
               </p>
@@ -648,18 +652,18 @@ export default function ConversationPanel({
                 onChange={(e) => setMessageText(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder={
-                  isFacebookConversation && !canSendFacebookMessage
+                  isMetaConversation && !canSendFacebookMessage
                     ? "No se puede responder (Restricción de 24 h)"
                     : "Escribe un mensaje..."
                 }
                 className={cn(
                   "w-full bg-transparent border-none outline-none resize-none text-sm max-h-32",
-                  isFacebookConversation &&
+                  isMetaConversation &&
                     !canSendFacebookMessage &&
                     "cursor-not-allowed text-gray-500",
                 )}
                 rows={1}
-                disabled={isFacebookConversation && !canSendFacebookMessage} // Deshabilitar el input
+                disabled={isMetaConversation && !canSendFacebookMessage} // Deshabilitar el input
               />
             </div>
             <Button
@@ -667,7 +671,7 @@ export default function ConversationPanel({
               disabled={
                 !messageText.trim() ||
                 sendMessageMutation.isPending ||
-                (isFacebookConversation && !canSendFacebookMessage) // Deshabilitar el botón
+                (isMetaConversation && !canSendFacebookMessage) // Deshabilitar el botón
               }
               className="rounded-full"
               size="icon"
@@ -716,9 +720,7 @@ export default function ConversationPanel({
                 <PlatformIcon className="text-white text-xs h-3 w-3" />
               </div>
             )}
-            <p className="text-sm text-gray-500">
-              {displayPlatform}
-            </p>
+            <p className="text-sm text-gray-500">{displayPlatform}</p>
           </div>
         </div>
 

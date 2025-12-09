@@ -3794,6 +3794,13 @@ export default function Onboarding() {
                             <span className="font-medium">
                               {platformInfo.name}
                             </span>
+                            <Badge
+                              variant="default"
+                              className="ml-2 bg-green-600 text-white hover:bg-green-700"
+                            >
+                              {isSpanish ? "Conectada" : "Connected"}
+                            </Badge>
+
                             <Badge variant="secondary" className="ml-2">
                               {schedule.postsPerWeek}{" "}
                               {isSpanish ? "posts/semana" : "posts/week"}
@@ -3838,11 +3845,19 @@ export default function Onboarding() {
                                     );
                                   }}
                                   disabled={!isEditingFrequency}
-                                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                                    isSelected
-                                      ? "bg-blue-600 text-white"
-                                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-                                  } ${isEditingFrequency ? "hover:opacity-80 cursor-pointer" : "cursor-default"}`}
+                                  className={`
+                                    px-3 py-1.5 rounded-full text-sm font-medium transition-colors
+                                    ${
+                                      isSelected
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                                    }
+                                    ${
+                                      isEditingFrequency
+                                        ? "hover:opacity-80 cursor-pointer"
+                                        : "opacity-50 cursor-not-allowed"
+                                    }
+                                  `}
                                   data-testid={`day-${schedule.platform}-${day.id}`}
                                 >
                                   {day.name}
