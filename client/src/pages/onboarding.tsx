@@ -2444,7 +2444,7 @@ export default function Onboarding() {
                                   <input
                                     id="white-logo"
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/png"
                                     className="sr-only"
                                     onChange={(e) =>
                                       handleFileUpload(
@@ -2499,7 +2499,7 @@ export default function Onboarding() {
                                   <input
                                     id="black-logo"
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/png"
                                     className="sr-only"
                                     onChange={(e) =>
                                       handleFileUpload(
@@ -2556,7 +2556,7 @@ export default function Onboarding() {
                                   <input
                                     id="white-favicon"
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/png"
                                     className="sr-only"
                                     onChange={(e) =>
                                       handleFileUpload(
@@ -2613,7 +2613,7 @@ export default function Onboarding() {
                                   <input
                                     id="black-favicon"
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/png"
                                     className="sr-only"
                                     onChange={(e) =>
                                       handleFileUpload(
