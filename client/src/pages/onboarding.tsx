@@ -717,6 +717,7 @@ export default function Onboarding() {
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [currentAssetUploadCategory, setCurrentAssetUploadCategory] =
     useState<string>(assetCategories[0].value);
+  const [deletingAssets, setDeletingAssets] = useState<Set<string>>(new Set());
 
   // Integration state
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -1478,13 +1479,18 @@ export default function Onboarding() {
 
   const handleRemoveAsset = async (assetId: string) => {
     try {
+      // Marcar este asset como eliminándose
+      setDeletingAssets((prev) => new Set(prev).add(assetId));
+
       await apiRequest(
         "DELETE",
         `/api/brand-assets/${assetId}?brandId=${createdBrandId}&brandDesignId=${brandDesign?.id}`,
       );
+
       await queryClientInstance.invalidateQueries({
         queryKey: ["/api/brand-assets", createdBrandId, brandDesign?.id],
       });
+
       toast({
         title: isSpanish ? "Eliminado" : "Deleted",
         description: isSpanish
@@ -1498,6 +1504,13 @@ export default function Onboarding() {
           ? "No se pudo eliminar el recurso"
           : "Failed to delete asset",
         variant: "destructive",
+      });
+    } finally {
+      // Remover del set de eliminándose
+      setDeletingAssets((prev) => {
+        const updated = new Set(prev);
+        updated.delete(assetId);
+        return updated;
       });
     }
   };
@@ -2880,13 +2893,17 @@ export default function Onboarding() {
                                       <Button
                                         variant="destructive"
                                         size="icon"
-                                        onClick={() =>
-                                          handleRemoveAsset(asset.id)
-                                        }
+                                        disabled={deletingAssets.has(asset.id)}
+                                        onClick={() => handleRemoveAsset(asset.id)}
                                         className="m-1"
                                       >
-                                        <Trash2 className="h-4 w-4" />
+                                        {deletingAssets.has(asset.id) ? (
+                                          <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                          <Trash2 className="h-4 w-4" />
+                                        )}
                                       </Button>
+
                                       <a
                                         href={asset.url}
                                         download={asset.name}
