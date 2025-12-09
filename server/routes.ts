@@ -206,7 +206,10 @@ async function fetchWhatsappBaileysMessagesFromDB(
     metaConversationId: m.metaConversationId,
     text: m.textContent || "",
     imageUrl: m.imageUrl || null,
-    from: m.direction === "outbound" ? "You" : m.contactName || m.senderId || conversationId,
+    from:
+      m.direction === "outbound"
+        ? "You"
+        : m.contactName || m.senderId || conversationId,
     fromId: m.senderId,
     created_time: m.timestamp.toISOString(),
     provider: "whatsapp_baileys",
@@ -408,9 +411,7 @@ async function performInstagramDirectSync(
   integration: any,
 ): Promise<void> {
   try {
-    console.log(
-      `\n🔄 [INITIAL SYNC] Starting for INSTAGRAM_DIRECT...`,
-    );
+    console.log(`\n🔄 [INITIAL SYNC] Starting for INSTAGRAM_DIRECT...`);
 
     const accessToken = integration.accessToken;
     const igbaId = integration.accountId;
@@ -427,7 +428,10 @@ async function performInstagramDirectSync(
     const convoData = await convoRes.json();
 
     if (convoData.error) {
-      console.error(`❌ Initial sync error for instagram_direct:`, convoData.error);
+      console.error(
+        `❌ Initial sync error for instagram_direct:`,
+        convoData.error,
+      );
       return;
     }
 
@@ -455,11 +459,13 @@ async function performInstagramDirectSync(
       }
 
       const messageIds = msgListData.messages?.data || [];
-      console.log(`  📨 Conversation ${convo.id}: ${messageIds.length} message IDs`);
+      console.log(
+        `  📨 Conversation ${convo.id}: ${messageIds.length} message IDs`,
+      );
 
       // Step 3: Fetch details for each message (limit to 50 for initial sync)
       const limitedMessageIds = messageIds.slice(0, 50);
-      
+
       for (const msgRef of limitedMessageIds) {
         const msgDetailUrl = `https://graph.instagram.com/v24.0/${msgRef.id}?fields=id,created_time,from,to,message&access_token=${accessToken}`;
         const msgDetailRes = await fetch(msgDetailUrl);
@@ -474,7 +480,8 @@ async function performInstagramDirectSync(
         const fromId = m.from?.id || "";
         const fromName = m.from?.username || m.from?.name || "Unknown";
         const toId = m.to?.data?.[0]?.id || "";
-        const toName = m.to?.data?.[0]?.username || m.to?.data?.[0]?.name || "Unknown";
+        const toName =
+          m.to?.data?.[0]?.username || m.to?.data?.[0]?.name || "Unknown";
 
         // Detect direction - if from ID matches IGBA ID, it's outbound
         const isOutbound = fromId === igbaId || fromId.startsWith("1784");
@@ -566,9 +573,7 @@ async function performInstagramDirectSync(
     // Step 7: Mark integration as fetched
     await storage.markIntegrationAsFetched(integration.id);
     integration.hasFetchedHistory = true;
-    console.log(
-      `🏁 [INSTAGRAM_DIRECT] Marked as fetched in DB and memory`,
-    );
+    console.log(`🏁 [INSTAGRAM_DIRECT] Marked as fetched in DB and memory`);
   } catch (err) {
     console.error(`❌ Initial sync failed for instagram_direct:`, err);
   }
@@ -880,80 +885,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's onboarding progress (returns brand with onboarding info if exists)
-  app.get("/api/onboarding/progress", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      
-      // Get user's brand memberships to find incomplete onboarding
-      const memberships = await storage.getBrandMemberships(userId);
-      
-      if (!memberships || memberships.length === 0) {
-        // No brands - user needs to start from scratch
-        return res.json({ 
-          hasIncompleteBrand: false,
-          brand: null,
-          onboardingStep: 1,
-          onboardingCompleted: false
-        });
-      }
+  app.get(
+    "/api/onboarding/progress",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
 
-      // Find the first brand with incomplete onboarding (owned by this user)
-      const ownedMemberships = memberships.filter(m => m.role === 'owner');
-      
-      for (const membership of ownedMemberships) {
-        const brand = await storage.getBrandById(membership.brandId, userId);
-        if (brand && !brand.onboardingCompleted) {
+        // Get user's brand memberships to find incomplete onboarding
+        const memberships = await storage.getBrandMemberships(userId);
+
+        if (!memberships || memberships.length === 0) {
+          // No brands - user needs to start from scratch
           return res.json({
-            hasIncompleteBrand: true,
-            brand: brand,
-            onboardingStep: brand.onboardingStep || 1,
-            onboardingCompleted: false
+            hasIncompleteBrand: false,
+            brand: null,
+            onboardingStep: 1,
+            onboardingCompleted: false,
           });
         }
-      }
 
-      // All brands have completed onboarding
-      res.json({
-        hasIncompleteBrand: false,
-        brand: memberships[0] ? await storage.getBrandById(memberships[0].brandId, userId) : null,
-        onboardingStep: null,
-        onboardingCompleted: true
-      });
-    } catch (error) {
-      console.error("Error fetching onboarding progress:", error);
-      res.status(500).json({ message: "Failed to fetch onboarding progress" });
-    }
-  });
+        // Find the first brand with incomplete onboarding (owned by this user)
+        const ownedMemberships = memberships.filter((m) => m.role === "owner");
+
+        for (const membership of ownedMemberships) {
+          const brand = await storage.getBrandById(membership.brandId, userId);
+          if (brand && !brand.onboardingCompleted) {
+            return res.json({
+              hasIncompleteBrand: true,
+              brand: brand,
+              onboardingStep: brand.onboardingStep || 1,
+              onboardingCompleted: false,
+            });
+          }
+        }
+
+        // All brands have completed onboarding
+        res.json({
+          hasIncompleteBrand: false,
+          brand: memberships[0]
+            ? await storage.getBrandById(memberships[0].brandId, userId)
+            : null,
+          onboardingStep: null,
+          onboardingCompleted: true,
+        });
+      } catch (error) {
+        console.error("Error fetching onboarding progress:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to fetch onboarding progress" });
+      }
+    },
+  );
 
   // Update onboarding step for a brand
-  app.patch("/api/brands/:id/onboarding", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandId = req.params.id;
-      const { onboardingStep, onboardingCompleted } = req.body;
+  app.patch(
+    "/api/brands/:id/onboarding",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.params.id;
+        const { onboardingStep, onboardingCompleted } = req.body;
 
-      const updates: any = {};
-      if (onboardingStep !== undefined) {
-        updates.onboardingStep = onboardingStep;
+        const updates: any = {};
+        if (onboardingStep !== undefined) {
+          updates.onboardingStep = onboardingStep;
+        }
+        if (onboardingCompleted !== undefined) {
+          updates.onboardingCompleted = onboardingCompleted;
+        }
+
+        const brand = await storage.updateBrand(brandId, userId, updates);
+
+        if (!brand) {
+          return res.status(404).json({ message: "Brand not found" });
+        }
+
+        res.json(brand);
+      } catch (error) {
+        console.error("Error updating onboarding progress:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to update onboarding progress" });
       }
-      if (onboardingCompleted !== undefined) {
-        updates.onboardingCompleted = onboardingCompleted;
-      }
-
-      const brand = await storage.updateBrand(brandId, userId, updates);
-
-      if (!brand) {
-        return res.status(404).json({ message: "Brand not found" });
-      }
-
-      res.json(brand);
-    } catch (error) {
-      console.error("Error updating onboarding progress:", error);
-      res.status(500).json({ message: "Failed to update onboarding progress" });
-    }
-  });
+    },
+  );
 
   // Brand memberships endpoint
   app.get("/api/brand-memberships", isAuthenticated, async (req: any, res) => {
@@ -2303,7 +2326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { validatePostGenerationRequirements } = await import(
           "./services/postGenerator"
         );
-        
+
         const validation = await validatePostGenerationRequirements(brandId);
         res.json(validation);
       } catch (error) {
@@ -2325,7 +2348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const brandId = req.params.brandId || req.brandId;
         const { month, year } = req.body;
-        
+
         if (!brandId) {
           return res.status(400).json({ message: "Brand ID is required" });
         }
@@ -2338,19 +2361,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const now = new Date();
         const currentMonth = now.getMonth() + 1;
         const currentYear = now.getFullYear();
-        
-        if (targetYear < currentYear || (targetYear === currentYear && targetMonth < currentMonth)) {
+
+        if (
+          targetYear < currentYear ||
+          (targetYear === currentYear && targetMonth < currentMonth)
+        ) {
           return res.status(400).json({
             success: false,
-            message: "No se puede generar contenido de IA para meses pasados. Por favor selecciona el mes actual o un mes futuro.",
+            message:
+              "No se puede generar contenido de IA para meses pasados. Por favor selecciona el mes actual o un mes futuro.",
           });
         }
 
         // Validate requirements first
-        const { validatePostGenerationRequirements, processPostGeneration } = await import(
-          "./services/postGenerator"
-        );
-        
+        const { validatePostGenerationRequirements, processPostGeneration } =
+          await import("./services/postGenerator");
+
         const validation = await validatePostGenerationRequirements(brandId);
         if (!validation.valid) {
           return res.status(400).json({
@@ -2376,9 +2402,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Fire-and-forget: Process in background with Gemini AI
-        processPostGeneration(brandId, job.id, targetMonth, targetYear).catch((error) => {
-          console.error("[Post Generator] Background processing error:", error);
-        });
+        processPostGeneration(brandId, job.id, targetMonth, targetYear).catch(
+          (error) => {
+            console.error(
+              "[Post Generator] Background processing error:",
+              error,
+            );
+          },
+        );
       } catch (error) {
         console.error("[Post Generator] Error:", error);
         res.status(500).json({
@@ -2505,25 +2536,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Invalid status" });
         }
 
-        const { bulkUpdateAiGeneratedPostsStatus, getAiGeneratedPostsByBrand } = await import(
-          "./storage/aiGeneratedPosts"
-        );
+        const { bulkUpdateAiGeneratedPostsStatus, getAiGeneratedPostsByBrand } =
+          await import("./storage/aiGeneratedPosts");
 
         // Verify all posts belong to the brand
         const brandPosts = await getAiGeneratedPostsByBrand(brandId);
-        const brandPostIds = new Set(brandPosts.map(p => p.id));
-        const validPostIds = postIds.filter((id: string) => brandPostIds.has(id));
+        const brandPostIds = new Set(brandPosts.map((p) => p.id));
+        const validPostIds = postIds.filter((id: string) =>
+          brandPostIds.has(id),
+        );
 
         if (validPostIds.length === 0) {
           return res.status(404).json({ message: "No valid posts found" });
         }
 
-        const updatedCount = await bulkUpdateAiGeneratedPostsStatus(validPostIds, status);
-        
-        res.json({ 
-          success: true, 
+        const updatedCount = await bulkUpdateAiGeneratedPostsStatus(
+          validPostIds,
+          status,
+        );
+
+        res.json({
+          success: true,
           updatedCount,
-          message: `${updatedCount} post(s) updated to ${status}`
+          message: `${updatedCount} post(s) updated to ${status}`,
         });
       } catch (error) {
         console.error("[AI Posts Bulk] Error:", error);
@@ -2664,7 +2699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         const activeJob = await getActiveJobByBrand(brandId);
-        
+
         res.json({
           hasActiveJob: !!activeJob,
           job: activeJob,
@@ -3185,59 +3220,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.get("/api/integrations/facebook/callback", async (req, res) => {
+    console.log("\n🔵 [FB Callback] START — Facebook OAuth callback\n");
+
     try {
       const { code, state } = req.query;
-      
-      console.log("📘 [Facebook Callback] Starting OAuth callback...");
-      
+
+      // -----------------------------------------
+      // 0️⃣ Validate query params
+      // -----------------------------------------
       if (!code) {
-        console.log("❌ [Facebook Callback] Missing code parameter");
-        return res.redirect("/integrations?error=missing_code&provider=facebook");
+        console.log("❌ Missing ?code in callback");
+        return res.redirect("/integrations?error=missing_code");
       }
+
       if (!state) {
-        console.log("❌ [Facebook Callback] Missing state parameter");
-        return res.redirect("/integrations?error=missing_state&provider=facebook");
+        console.log("❌ Missing ?state in callback");
+        return res.redirect("/integrations?error=missing_state");
       }
 
       // -----------------------------------------
-      // 1️⃣ Decode OAuth state
+      // 1️⃣ Decode state
       // -----------------------------------------
-      let userId = null;
-      let brandId = null;
-      let origin: string | null = null;
+      console.log("🔵 Decoding state...");
+      let userId, brandId, origin;
 
       try {
-        const decoded = Buffer.from(state as string, "base64").toString("utf8");
+        const decoded = Buffer.from(state, "base64").toString("utf8");
         const parsed = JSON.parse(decoded);
+
         userId = parsed.userId;
         brandId = parsed.brandId;
-        origin = parsed.origin || null;
-        console.log("📘 [Facebook Callback] Decoded state - userId:", userId, "brandId:", brandId, "origin:", origin);
-      } catch (e) {
-        console.log("❌ [Facebook Callback] Failed to decode state:", e);
-        return res.redirect("/integrations?error=invalid_state&provider=facebook");
-      }
-      
-      // Helper to get redirect URL based on origin
-      const getRedirectUrl = (success: boolean, provider: string, error?: string, message?: string) => {
-        const basePath = origin === "onboarding" ? "/onboarding" : "/integrations";
-        if (success) {
-          return origin === "onboarding" 
-            ? `${basePath}?step=4&connected=${provider}`
-            : `${basePath}?success=true&provider=${provider}`;
-        } else {
-          const errorParams = `error=${error}&provider=${provider}${message ? `&message=${encodeURIComponent(message)}` : ''}`;
-          return `${basePath}?${errorParams}`;
-        }
-      };
+        origin = parsed.origin || "integrations";
 
-      if (!userId) {
-        console.log("❌ [Facebook Callback] Missing userId in state");
-        return res.redirect(getRedirectUrl(false, "facebook", "missing_user"));
-      }
-      if (!brandId) {
-        console.log("❌ [Facebook Callback] Missing brandId in state");
-        return res.redirect(getRedirectUrl(false, "facebook", "missing_brand"));
+        console.log("🟢 State decoded:", parsed);
+      } catch (err) {
+        console.log("❌ Failed to decode state:", err);
+        return res.redirect("/integrations?error=invalid_state");
       }
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
@@ -3245,7 +3263,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 2️⃣ Exchange CODE → USER TOKEN
       // -----------------------------------------
-      console.log("📘 [Facebook Callback] Exchanging code for access token...");
+      console.log("🔵 Exchanging code for access token…");
+
       const tokenRes = await fetch(
         `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${
           process.env.FB_APP_ID
@@ -3253,227 +3272,205 @@ export async function registerRoutes(app: Express): Promise<Server> {
           redirect_uri,
         )}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`,
       );
-      const tokenData = await tokenRes.json();
+      const tokenJson = await tokenRes.json();
 
-      if (tokenData.error) {
-        console.log("❌ [Facebook Callback] Token exchange failed:", tokenData.error);
-        return res.redirect(getRedirectUrl(false, "facebook", "token_failed", tokenData.error.message || "Token exchange failed"));
+      console.log("🟢 Token response:", tokenJson);
+
+      if (!tokenJson.access_token) {
+        return res.redirect("/integrations?error=token_failed");
       }
-      
-      console.log("✅ [Facebook Callback] Token exchange successful, expires_in:", tokenData.expires_in);
+
+      const userAccessToken = tokenJson.access_token;
 
       // -----------------------------------------
-      // 3️⃣ Get Pages of the logged-in user
+      // 3️⃣ Get ALL pages the user manages
       // -----------------------------------------
-      console.log("📘 [Facebook Callback] Fetching user's Facebook Pages...");
+      console.log("🔵 Fetching Facebook Pages…");
+
       const pagesRes = await fetch(
-        `https://graph.facebook.com/v24.0/me/accounts?access_token=${tokenData.access_token}`,
+        `https://graph.facebook.com/v24.0/me/accounts?access_token=${userAccessToken}`,
       );
-      const pagesData = await pagesRes.json();
-      
-      console.log("📘 [Facebook Callback] Pages response:", JSON.stringify(pagesData, null, 2));
+      const pagesJson = await pagesRes.json();
 
-      if (pagesData.error) {
-        console.log("❌ [Facebook Callback] Failed to fetch pages:", pagesData.error);
-        return res.redirect(getRedirectUrl(false, "facebook", "pages_fetch_failed", pagesData.error.message || "Failed to fetch pages"));
+      console.log("🟢 Pages found:", pagesJson);
+
+      if (!pagesJson.data?.length) {
+        console.log("❌ User has no Facebook Pages.");
+        return res.redirect("/integrations?error=no_pages");
       }
 
-      if (!pagesData.data?.length) {
-        console.log("⚠️ [Facebook Callback] No Facebook Pages found for this user");
-        return res.redirect(getRedirectUrl(false, "facebook", "no_pages", "No Facebook Pages found. Please create a Facebook Page first, or make sure you have admin access to an existing page."));
-      }
-      
-      console.log("✅ [Facebook Callback] Found", pagesData.data.length, "pages");
-
-      const page = pagesData.data[0];
-      let pageAccessToken = page.access_token;
-
       // -----------------------------------------
-      // 4️⃣ Convert to Long-Lived Page Token
+      // 4️⃣ Find a page that has an associated IG Business Account
       // -----------------------------------------
-      try {
-        const refreshRes = await fetch(
-          `https://graph.facebook.com/v24.0/${page.id}?fields=access_token&access_token=${pageAccessToken}`,
+      console.log("🔵 Searching for IG Business linked to ANY selected page…");
+      let selectedPage = null;
+      let igInfo = null;
+
+      for (const p of pagesJson.data) {
+        console.log(`   🔍 Checking Page ${p.name} (${p.id})`);
+
+        const detailsRes = await fetch(
+          `https://graph.facebook.com/v24.0/${p.id}?fields=connected_instagram_account,instagram_business_account&access_token=${p.access_token}`,
         );
-        const refreshJson = await refreshRes.json();
-        if (refreshJson.access_token)
-          pageAccessToken = refreshJson.access_token;
-      } catch {}
+        const details = await detailsRes.json();
 
-      // -----------------------------------------
-      // 5️⃣ Check for duplicate integration (same account connected to another brand)
-      // -----------------------------------------
-      const existingIntegration = await storage.checkDuplicateIntegration(
-        page.id,
-        page.id,
-        "facebook",
-        brandId, // Exclude current brand from check
-      );
+        console.log("   → Page IG details:", details);
 
-      if (existingIntegration) {
-        console.warn(`⚠️ [Facebook Callback] Page ${page.name} (${page.id}) already connected to another brand: ${existingIntegration.brandId}`);
-        const errorMsg = `Esta página de Facebook (${page.name}) ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`;
-        return res.redirect(getRedirectUrl(false, "facebook", "duplicate", errorMsg));
+        if (
+          details.connected_instagram_account ||
+          details.instagram_business_account
+        ) {
+          console.log(`   🟢 Page ${p.name} HAS Instagram Business attached!`);
+          selectedPage = p;
+          igInfo = details;
+          break;
+        }
       }
 
-      // -----------------------------------------
-      // 6️⃣ Save Facebook Integration
-      // -----------------------------------------
-      console.log("📘 [Facebook Callback] Saving Facebook integration to database...");
-      const expiresAt = tokenData.expires_in
-        ? dayjs().add(tokenData.expires_in, "seconds").toDate()
-        : null;
+      // Fall back to first page if none has IG
+      if (!selectedPage) {
+        selectedPage = pagesJson.data[0];
+        console.log(
+          `⚠️ No IG found. Using first page: ${selectedPage.name} (${selectedPage.id})`,
+        );
+      }
 
-      try {
+      console.log("🟡 Selected Page →", selectedPage.name);
+
+      let pageAccessToken = selectedPage.access_token;
+
+      // -----------------------------------------
+      // 5️⃣ Save FACEBOOK integration
+      // -----------------------------------------
+      console.log("🔵 Saving Facebook integration…");
+
+      await storage.createOrUpdateIntegration({
+        userId,
+        brandId,
+        provider: "facebook",
+        category: "social_media",
+        storeName: "Facebook",
+        storeUrl: `https://facebook.com/${selectedPage.id}`,
+        accountId: selectedPage.id,
+        accountName: selectedPage.name,
+        accessToken: pageAccessToken,
+        pageId: selectedPage.id,
+        isActive: true,
+        syncEnabled: true,
+        metadata: {
+          fbPageId: selectedPage.id,
+          igLinked: !!igInfo,
+          source: "facebook_callback",
+        },
+      });
+
+      console.log("🟢 Facebook integration saved!");
+
+      // -----------------------------------------
+      // 6️⃣ Subscribe Page to Webhook
+      // -----------------------------------------
+      console.log("🔵 Subscribing to webhook events…");
+
+      await fetch(
+        `https://graph.facebook.com/v24.0/${selectedPage.id}/subscribed_apps`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subscribed_fields: [
+              "messages",
+              "messaging_postbacks",
+              "messaging_reactions",
+              "message_reads",
+              "message_deliveries",
+              "instagram_messages",
+            ],
+            access_token: pageAccessToken,
+          }),
+        },
+      );
+
+      console.log("🟢 Webhook subscription OK!");
+
+      // -----------------------------------------
+      // 7️⃣ IF PAGE HAS INSTAGRAM → Save IG integration
+      // -----------------------------------------
+      if (igInfo) {
+        console.log("🔵 Fetching Instagram account details…");
+
+        const igAcc =
+          igInfo.connected_instagram_account ||
+          igInfo.instagram_business_account;
+
+        const igDetailsRes = await fetch(
+          `https://graph.facebook.com/v24.0/${igAcc.id}?fields=username,name,profile_picture_url&access_token=${pageAccessToken}`,
+        );
+        const igDetails = await igDetailsRes.json();
+
+        console.log("🟢 IG Details:", igDetails);
+
         await storage.createOrUpdateIntegration({
           userId,
           brandId,
-          provider: "facebook",
+          provider: "instagram",
           category: "social_media",
-          storeName: "Facebook",
-          storeUrl: `https://facebook.com/${page.id}`,
-          accountId: page.id,
-          accountName: page.name,
-          pageId: page.id,
+          storeName: "Instagram",
+          storeUrl: `https://instagram.com/${igDetails.username}`,
+          accountId: igAcc.id,
+          accountName: igDetails.username,
           accessToken: pageAccessToken,
-          expiresAt,
+          pageId: selectedPage.id,
           isActive: true,
           syncEnabled: true,
           metadata: {
-            fbPageName: page.name,
-            fbCategory: page.category,
-            fbPermissions: page.tasks || [],
+            fbPageId: selectedPage.id,
+            igAccountId: igAcc.id,
+            igUsername: igDetails.username,
             source: "facebook_callback",
           },
         });
-        console.log("✅ [Facebook Callback] Facebook integration saved successfully");
-      } catch (dbErr) {
-        console.error("❌ [Facebook Callback] Failed to save integration:", dbErr);
-        return res.redirect(getRedirectUrl(false, "facebook", "save_failed", "Failed to save integration. Please try again."));
-      }
 
-      // -----------------------------------------
-      // 6️⃣ SUBSCRIBE PAGE TO WEBHOOK EVENTS
-      // -----------------------------------------
-      console.log("📘 [Facebook Callback] Subscribing to webhook events...");
-      try {
-        const subscribeRes = await fetch(
-          `https://graph.facebook.com/v24.0/${page.id}/subscribed_apps`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              subscribed_fields: [
-                "messages",
-                "messaging_postbacks",
-                "messaging_reactions",
-                "message_reads",
-                "message_deliveries",
-                "standby", // IG fallback
-                "instagram_messages",
-              ],
-              access_token: pageAccessToken,
-            }),
+        console.log("🟢 Instagram integration saved!");
+
+        // -----------------------------------------
+        // 8️⃣ Save Threads (auto-linked to IG)
+        // -----------------------------------------
+        await storage.createOrUpdateIntegration({
+          userId,
+          brandId,
+          provider: "threads",
+          category: "social_media",
+          storeName: "Threads",
+          storeUrl: `https://threads.net/@${igDetails.username}`,
+          accountId: igAcc.id,
+          accountName: igDetails.username,
+          accessToken: pageAccessToken,
+          pageId: selectedPage.id,
+          isActive: true,
+          syncEnabled: true,
+          metadata: {
+            fbPageId: selectedPage.id,
+            igAccountId: igAcc.id,
+            igUsername: igDetails.username,
+            source: "facebook_callback",
           },
-        );
-        const subscribeData = await subscribeRes.json();
-        console.log("📘 [Facebook Callback] Webhook subscription response:", JSON.stringify(subscribeData));
-      } catch (err) {
-        console.error("❌ [Facebook Callback] Subscription error:", err);
+        });
+
+        console.log("🟢 Threads integration saved!");
       }
 
       // -----------------------------------------
-      // 7️⃣ Detect Instagram Business automatically
+      // 9️⃣ Redirect user
       // -----------------------------------------
-      let connectedType = "facebook";
+      const redirectBase =
+        origin === "onboarding" ? "/onboarding?step=4" : "/integrations";
 
-      try {
-        // Check if user already has Instagram Direct integration (mutual exclusivity)
-        const existingIntegrations = await storage.getIntegrationsByBrandId(brandId);
-        const hasInstagramDirect = existingIntegrations.some(
-          (i) => i.provider === "instagram_direct" && i.isActive
-        );
+      console.log("🟩 OAuth COMPLETE → redirecting user…");
 
-        if (hasInstagramDirect) {
-          console.log("⚠️ Skipping Instagram (via Facebook) - User already has Instagram Direct connected");
-        } else {
-          const igRes = await fetch(
-            `https://graph.facebook.com/v24.0/${page.id}?fields=connected_instagram_account,instagram_business_account&access_token=${pageAccessToken}`,
-          );
-          const igData = await igRes.json();
-
-          const igAccount =
-            igData.connected_instagram_account ||
-            igData.instagram_business_account;
-
-          if (igAccount?.id) {
-            const igDetailsRes = await fetch(
-              `https://graph.facebook.com/v24.0/${igAccount.id}?fields=username,name,profile_picture_url&access_token=${pageAccessToken}`,
-            );
-            const igDetails = await igDetailsRes.json();
-
-            await storage.createOrUpdateIntegration({
-              userId,
-              brandId,
-              provider: "instagram",
-              category: "social_media",
-              storeName: "Instagram",
-              storeUrl: `https://instagram.com/${igDetails.username}`,
-              accountId: igAccount.id,
-              accountName: igDetails.username,
-              accessToken: pageAccessToken,
-              pageId: page.id,
-              isActive: true,
-              syncEnabled: true,
-              metadata: {
-                fbPageId: page.id,
-                igAccountId: igAccount.id,
-                igUsername: igDetails.username,
-                source: "facebook_callback",
-              },
-            });
-
-            connectedType = "facebook,instagram";
-
-            // -----------------------------------------
-            // 8️⃣ Register Threads (Linked to IG)
-            // -----------------------------------------
-            await storage.createOrUpdateIntegration({
-              userId,
-              brandId,
-              provider: "threads",
-              category: "social_media",
-              storeName: "Threads",
-              storeUrl: `https://threads.net/@${igDetails.username}`,
-              accountId: igAccount.id,
-              accountName: igDetails.username,
-              accessToken: pageAccessToken,
-              pageId: page.id,
-              isActive: true,
-              syncEnabled: true,
-              metadata: {
-                fbPageId: page.id,
-                igAccountId: igAccount.id,
-                igUsername: igDetails.username,
-                source: "facebook_callback",
-              },
-            });
-
-            connectedType = "facebook,instagram,threads";
-          }
-        }
-      } catch (err) {
-        console.warn("⚠️ IG auto-connect failed:", err);
-      }
-
-      // -----------------------------------------
-      // 9️⃣ Redirect based on origin (onboarding or integrations)
-      // -----------------------------------------
-      console.log(`✅ [Facebook Callback] Successfully connected ${connectedType} for brand ${brandId}, origin: ${origin}`);
-      return res.redirect(getRedirectUrl(true, connectedType));
-    } catch (err) {
-      console.error("❌ Facebook callback error:", err);
-      return res.status(500).send("Error in Facebook callback");
+      return res.redirect(`${redirectBase}&connected=facebook`);
+    } catch (error) {
+      console.error("❌ [FB Callback] Unexpected error:", error);
+      return res.redirect("/integrations?error=callback_failed");
     }
   });
 
@@ -3506,8 +3503,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔐 Instagram Direct OAuth scopes:", scopes);
 
       // Get origin from query params (onboarding or integrations)
-      const origin = req.query.origin as string || "integrations";
-      
+      const origin = (req.query.origin as string) || "integrations";
+
       const statePayload = {
         userId: req.user.id,
         brandId: req.brandMembership.brandId,
@@ -3634,7 +3631,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `https://graph.instagram.com/v24.0/me?fields=id,username&access_token=${longLivedToken}`,
         );
         const profileData = await profileRes.json();
-        console.log("📱 Profile response:", JSON.stringify(profileData, null, 2));
+        console.log(
+          "📱 Profile response:",
+          JSON.stringify(profileData, null, 2),
+        );
 
         if (!profileData.error) {
           if (profileData.username) {
@@ -3646,18 +3646,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             igbaId = profileData.id.toString();
             appScopedId = igUserId.toString(); // Keep token's user_id as app-scoped reference
           }
-          console.log("✅ Profile fetched successfully:", { 
-            igUsername, 
-            igbaId, 
+          console.log("✅ Profile fetched successfully:", {
+            igUsername,
+            igbaId,
             appScopedId,
-            note: "igbaId from /me endpoint, appScopedId from token"
+            note: "igbaId from /me endpoint, appScopedId from token",
           });
         } else {
-          console.warn("⚠️ Profile fetch returned error, using token's user_id as fallback:", profileData.error);
+          console.warn(
+            "⚠️ Profile fetch returned error, using token's user_id as fallback:",
+            profileData.error,
+          );
           // Fallback to token's user_id (less reliable for webhook matching)
         }
       } catch (profileErr) {
-        console.warn("⚠️ Profile fetch failed, using token's user_id as fallback:", profileErr);
+        console.warn(
+          "⚠️ Profile fetch failed, using token's user_id as fallback:",
+          profileErr,
+        );
         // Continue with default values from token response
       }
 
@@ -3678,12 +3684,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (existingIntegration) {
-        console.warn(`⚠️ Instagram account ${igUsername} (${igbaId}) already connected to another brand: ${existingIntegration.brandId}`);
-        const errorMsg = encodeURIComponent(`Esta cuenta de Instagram (@${igUsername}) ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`);
+        console.warn(
+          `⚠️ Instagram account ${igUsername} (${igbaId}) already connected to another brand: ${existingIntegration.brandId}`,
+        );
+        const errorMsg = encodeURIComponent(
+          `Esta cuenta de Instagram (@${igUsername}) ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`,
+        );
         if (origin === "onboarding") {
-          return res.redirect(`/onboarding?step=4&error=duplicate&message=${errorMsg}`);
+          return res.redirect(
+            `/onboarding?step=4&error=duplicate&message=${errorMsg}`,
+          );
         }
-        return res.redirect(`/integrations?error=duplicate&message=${errorMsg}`);
+        return res.redirect(
+          `/integrations?error=duplicate&message=${errorMsg}`,
+        );
       }
 
       // 6️⃣ Save Instagram Direct Integration
@@ -3718,19 +3732,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fetch the saved integration to get its ID
       const brandIntegrations = await storage.getIntegrationsByBrandId(brandId);
       const savedIntegration = brandIntegrations.find(
-        (i) => i.provider === "instagram_direct" && i.userId === userId
+        (i) => i.provider === "instagram_direct" && i.userId === userId,
       );
-      
+
       if (savedIntegration && !savedIntegration.hasFetchedHistory) {
         console.log("🔄 Starting initial message sync for Instagram Direct...");
         // Run sync in background (don't await to avoid blocking redirect)
-        performInstagramDirectSync(userId, savedIntegration).catch(err => {
+        performInstagramDirectSync(userId, savedIntegration).catch((err) => {
           console.error("❌ Background sync failed:", err);
         });
       }
 
       // 7️⃣ Redirect based on origin (onboarding or integrations)
-      console.log(`✅ [Instagram Direct Callback] Successfully connected for brand ${brandId}, origin: ${origin}`);
+      console.log(
+        `✅ [Instagram Direct Callback] Successfully connected for brand ${brandId}, origin: ${origin}`,
+      );
       if (origin === "onboarding") {
         return res.redirect(`/onboarding?step=4&connected=instagram_direct`);
       }
@@ -3759,8 +3775,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ].join(",");
 
       // Get origin from query params (onboarding or integrations)
-      const origin = req.query.origin as string || "integrations";
-      
+      const origin = (req.query.origin as string) || "integrations";
+
       // Pass brandId in state along with userId and origin
       const state = JSON.stringify({
         userId: req.user.id,
@@ -3807,13 +3823,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Since we can't generate a true device-linking QR without Meta's system token,
         // we'll provide a pairing flow that guides users through the process
-        
+
         // Generate a unique pairing code for this session
-        const pairingCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-        
+        const pairingCode = Math.random()
+          .toString(36)
+          .substring(2, 10)
+          .toUpperCase();
+
         // Store the pairing session temporarily (in production, use Redis or DB)
         // For now, we'll return instructions and a pairing code
-        
+
         // Create a simple QR code URL that points to WhatsApp's wa.me link
         // This helps users verify their phone number is correct
         const waLink = `https://wa.me/${phoneNumber}`;
@@ -4017,12 +4036,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (existingIntegration) {
-        console.warn(`⚠️ [WhatsApp Callback] WABA ${wabaId} already connected to another brand: ${existingIntegration.brandId}`);
-        const errorMsg = encodeURIComponent(`Esta cuenta de WhatsApp Business ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`);
+        console.warn(
+          `⚠️ [WhatsApp Callback] WABA ${wabaId} already connected to another brand: ${existingIntegration.brandId}`,
+        );
+        const errorMsg = encodeURIComponent(
+          `Esta cuenta de WhatsApp Business ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`,
+        );
         if (origin === "onboarding") {
-          return res.redirect(`/onboarding?step=4&error=duplicate&message=${errorMsg}`);
+          return res.redirect(
+            `/onboarding?step=4&error=duplicate&message=${errorMsg}`,
+          );
         }
-        return res.redirect(`/integrations?error=duplicate&message=${errorMsg}`);
+        return res.redirect(
+          `/integrations?error=duplicate&message=${errorMsg}`,
+        );
       }
 
       // 6️⃣ Guardar la integración en tu storage
@@ -4049,7 +4076,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Redirect based on origin (onboarding or integrations)
-      console.log(`✅ WhatsApp connected for brand ${brandId}: ${wabaId}, origin: ${origin}`);
+      console.log(
+        `✅ WhatsApp connected for brand ${brandId}: ${wabaId}, origin: ${origin}`,
+      );
       if (origin === "onboarding") {
         res.redirect(`/onboarding?step=4&connected=whatsapp`);
       } else {
@@ -4078,182 +4107,239 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import Baileys service dynamically to avoid issues if not installed
   let whatsappBaileysService: any = null;
-  
+
   // Skip Baileys in production unless explicitly enabled
   if (isProduction && !baileysEnabled) {
-    console.log("📱 [Baileys] Skipping WhatsApp Baileys in production (Autoscale compatible mode)");
-    console.log("📱 [Baileys] Set ENABLE_BAILEYS=true and use Reserved VM deployment to enable");
+    console.log(
+      "📱 [Baileys] Skipping WhatsApp Baileys in production (Autoscale compatible mode)",
+    );
+    console.log(
+      "📱 [Baileys] Set ENABLE_BAILEYS=true and use Reserved VM deployment to enable",
+    );
   } else {
     try {
       const baileysModule = await import("./services/whatsappBaileys");
       whatsappBaileysService = baileysModule.whatsappBaileysService;
       console.log("📱 [Baileys] WhatsApp Baileys service loaded");
 
-    // Set up event listeners for WhatsApp Baileys
-    whatsappBaileysService.on("connected", async ({ sessionKey, phoneNumber }: { sessionKey: string; phoneNumber: string | null }) => {
-      try {
-        const [userId, brandId] = sessionKey.split("_");
-        console.log(`✅ [Baileys] Connected event received for user ${userId}, brand ${brandId}, phone: ${phoneNumber}`);
+      // Set up event listeners for WhatsApp Baileys
+      whatsappBaileysService.on(
+        "connected",
+        async ({
+          sessionKey,
+          phoneNumber,
+        }: {
+          sessionKey: string;
+          phoneNumber: string | null;
+        }) => {
+          try {
+            const [userId, brandId] = sessionKey.split("_");
+            console.log(
+              `✅ [Baileys] Connected event received for user ${userId}, brand ${brandId}, phone: ${phoneNumber}`,
+            );
 
-        // Check if integration already exists
-        const existingIntegrations = await storage.getIntegrationsByBrandId(brandId);
-        const existingBaileyIntegration = existingIntegrations.find(
-          (i: any) => i.provider === "whatsapp_baileys" && i.userId === userId
-        );
+            // Check if integration already exists
+            const existingIntegrations =
+              await storage.getIntegrationsByBrandId(brandId);
+            const existingBaileyIntegration = existingIntegrations.find(
+              (i: any) =>
+                i.provider === "whatsapp_baileys" && i.userId === userId,
+            );
 
-        if (existingBaileyIntegration) {
-          // Update existing integration
-          await storage.updateIntegration(existingBaileyIntegration.id, {
-            isActive: true,
-            accountName: phoneNumber || "WhatsApp (QR)",
-            storeUrl: phoneNumber ? `https://wa.me/${phoneNumber.replace(/\D/g, "")}` : null,
-            metadata: {
-              ...((existingBaileyIntegration.metadata as any) || {}),
-              phoneNumber,
-              connectedAt: new Date().toISOString(),
-            },
-          });
-          console.log(`📝 [Baileys] Updated existing integration: ${existingBaileyIntegration.id}`);
-        } else {
-          // Create new integration
-          const newIntegration = await storage.createIntegration({
-            userId,
-            brandId,
-            provider: "whatsapp_baileys",
-            category: "messaging",
-            storeName: "WhatsApp (QR)",
-            storeUrl: phoneNumber ? `https://wa.me/${phoneNumber.replace(/\D/g, "")}` : null,
-            accountId: phoneNumber?.replace(/\D/g, "") || sessionKey,
-            accountName: phoneNumber || "WhatsApp (QR)",
-            accessToken: sessionKey, // Use session key as token reference
-            isActive: true,
-            syncEnabled: true,
-            metadata: {
-              phoneNumber,
-              connectionType: "baileys_qr",
-              connectedAt: new Date().toISOString(),
-            },
-          });
-          console.log(`✅ [Baileys] Created new integration: ${newIntegration.id}`);
-        }
-      } catch (error) {
-        console.error("❌ [Baileys] Error handling connected event:", error);
-      }
-    });
+            if (existingBaileyIntegration) {
+              // Update existing integration
+              await storage.updateIntegration(existingBaileyIntegration.id, {
+                isActive: true,
+                accountName: phoneNumber || "WhatsApp (QR)",
+                storeUrl: phoneNumber
+                  ? `https://wa.me/${phoneNumber.replace(/\D/g, "")}`
+                  : null,
+                metadata: {
+                  ...((existingBaileyIntegration.metadata as any) || {}),
+                  phoneNumber,
+                  connectedAt: new Date().toISOString(),
+                },
+              });
+              console.log(
+                `📝 [Baileys] Updated existing integration: ${existingBaileyIntegration.id}`,
+              );
+            } else {
+              // Create new integration
+              const newIntegration = await storage.createIntegration({
+                userId,
+                brandId,
+                provider: "whatsapp_baileys",
+                category: "messaging",
+                storeName: "WhatsApp (QR)",
+                storeUrl: phoneNumber
+                  ? `https://wa.me/${phoneNumber.replace(/\D/g, "")}`
+                  : null,
+                accountId: phoneNumber?.replace(/\D/g, "") || sessionKey,
+                accountName: phoneNumber || "WhatsApp (QR)",
+                accessToken: sessionKey, // Use session key as token reference
+                isActive: true,
+                syncEnabled: true,
+                metadata: {
+                  phoneNumber,
+                  connectionType: "baileys_qr",
+                  connectedAt: new Date().toISOString(),
+                },
+              });
+              console.log(
+                `✅ [Baileys] Created new integration: ${newIntegration.id}`,
+              );
+            }
+          } catch (error) {
+            console.error(
+              "❌ [Baileys] Error handling connected event:",
+              error,
+            );
+          }
+        },
+      );
 
-    whatsappBaileysService.on("message", async ({ sessionKey, message }: { sessionKey: string; message: any }) => {
-      try {
-        const [userId, brandId] = sessionKey.split("_");
-        console.log(`📨 [Baileys] Message event received for user ${userId}, brand ${brandId}`);
+      whatsappBaileysService.on(
+        "message",
+        async ({
+          sessionKey,
+          message,
+        }: {
+          sessionKey: string;
+          message: any;
+        }) => {
+          try {
+            const [userId, brandId] = sessionKey.split("_");
+            console.log(
+              `📨 [Baileys] Message event received for user ${userId}, brand ${brandId}`,
+            );
 
-        // Find the WhatsApp Baileys integration for this brand
-        const existingIntegrations = await storage.getIntegrationsByBrandId(brandId);
-        const baileysIntegration = existingIntegrations.find(
-          (i: any) => i.provider === "whatsapp_baileys" && i.userId === userId
-        );
+            // Find the WhatsApp Baileys integration for this brand
+            const existingIntegrations =
+              await storage.getIntegrationsByBrandId(brandId);
+            const baileysIntegration = existingIntegrations.find(
+              (i: any) =>
+                i.provider === "whatsapp_baileys" && i.userId === userId,
+            );
 
-        if (!baileysIntegration) {
-          console.warn(`⚠️ [Baileys] No integration found for brand ${brandId}, user ${userId}`);
-          return;
-        }
+            if (!baileysIntegration) {
+              console.warn(
+                `⚠️ [Baileys] No integration found for brand ${brandId}, user ${userId}`,
+              );
+              return;
+            }
 
-        // Create/get conversation for this sender
-        const senderJid = message.from;
-        const senderId = senderJid.replace("@s.whatsapp.net", "").replace("@g.us", "");
-        const metaConversationId = `whatsapp_${senderId}`;
+            // Create/get conversation for this sender
+            const senderJid = message.from;
+            const senderId = senderJid
+              .replace("@s.whatsapp.net", "")
+              .replace("@g.us", "");
+            const metaConversationId = `whatsapp_${senderId}`;
 
-        const conversation = await storage.getOrCreateConversation({
-          integrationId: baileysIntegration.id,
-          brandId,
-          userId,
-          metaConversationId,
-          platform: "whatsapp_baileys",
-          contactName: message.fromName || senderId,
-          lastMessage: message.text,
-          lastMessageAt: message.timestamp,
-        });
-
-        // Save the message
-        const savedMessage = await storage.createMessage({
-          userId,
-          integrationId: baileysIntegration.id,
-          brandId,
-          conversationId: conversation.id,
-          platform: "whatsapp_baileys",
-          metaMessageId: message.id,
-          metaConversationId,
-          senderId,
-          recipientId: baileysIntegration.accountId || userId,
-          contactName: message.fromName || senderId,
-          textContent: message.text,
-          direction: "inbound",
-          timestamp: message.timestamp,
-          messageType: message.type || "text",
-          mediaUrl: message.mediaUrl || null,
-          metadata: {
-            messageType: message.type,
-          },
-        });
-
-        // Increment unread count
-        await storage.incrementUnreadCount(conversation.id);
-
-        console.log(`✅ [Baileys] Saved message ${savedMessage.id} to conversation ${conversation.id}`);
-
-        // Emit socket event for real-time updates
-        if (io) {
-          io.to(`brand:${brandId}`).emit("new_message", {
-            conversationId: conversation.id,
-            message: {
-              id: savedMessage.id,
-              text: message.text,
-              from: message.fromName || senderId,
-              timestamp: message.timestamp,
+            const conversation = await storage.getOrCreateConversation({
+              integrationId: baileysIntegration.id,
+              brandId,
+              userId,
+              metaConversationId,
               platform: "whatsapp_baileys",
-            },
-          });
+              contactName: message.fromName || senderId,
+              lastMessage: message.text,
+              lastMessageAt: message.timestamp,
+            });
+
+            // Save the message
+            const savedMessage = await storage.createMessage({
+              userId,
+              integrationId: baileysIntegration.id,
+              brandId,
+              conversationId: conversation.id,
+              platform: "whatsapp_baileys",
+              metaMessageId: message.id,
+              metaConversationId,
+              senderId,
+              recipientId: baileysIntegration.accountId || userId,
+              contactName: message.fromName || senderId,
+              textContent: message.text,
+              direction: "inbound",
+              timestamp: message.timestamp,
+              messageType: message.type || "text",
+              mediaUrl: message.mediaUrl || null,
+              metadata: {
+                messageType: message.type,
+              },
+            });
+
+            // Increment unread count
+            await storage.incrementUnreadCount(conversation.id);
+
+            console.log(
+              `✅ [Baileys] Saved message ${savedMessage.id} to conversation ${conversation.id}`,
+            );
+
+            // Emit socket event for real-time updates
+            if (io) {
+              io.to(`brand:${brandId}`).emit("new_message", {
+                conversationId: conversation.id,
+                message: {
+                  id: savedMessage.id,
+                  text: message.text,
+                  from: message.fromName || senderId,
+                  timestamp: message.timestamp,
+                  platform: "whatsapp_baileys",
+                },
+              });
+            }
+          } catch (error) {
+            console.error("❌ [Baileys] Error handling message event:", error);
+          }
+        },
+      );
+
+      whatsappBaileysService.on(
+        "disconnected",
+        async ({ sessionKey }: { sessionKey: string }) => {
+          try {
+            const [userId, brandId] = sessionKey.split("_");
+            console.log(
+              `🔴 [Baileys] Disconnected event for user ${userId}, brand ${brandId}`,
+            );
+
+            // Update integration status
+            const existingIntegrations =
+              await storage.getIntegrationsByBrandId(brandId);
+            const baileysIntegration = existingIntegrations.find(
+              (i: any) =>
+                i.provider === "whatsapp_baileys" && i.userId === userId,
+            );
+
+            if (baileysIntegration) {
+              await storage.updateIntegration(baileysIntegration.id, {
+                isActive: false,
+                metadata: {
+                  ...((baileysIntegration.metadata as any) || {}),
+                  disconnectedAt: new Date().toISOString(),
+                },
+              });
+            }
+          } catch (error) {
+            console.error(
+              "❌ [Baileys] Error handling disconnected event:",
+              error,
+            );
+          }
+        },
+      );
+
+      console.log("📱 [Baileys] Event listeners configured");
+
+      // Restore any existing sessions on startup
+      setTimeout(async () => {
+        try {
+          await whatsappBaileysService.restoreExistingSessions();
+          console.log("📱 [Baileys] Session restoration complete");
+        } catch (error) {
+          console.error("❌ [Baileys] Error restoring sessions:", error);
         }
-      } catch (error) {
-        console.error("❌ [Baileys] Error handling message event:", error);
-      }
-    });
-
-    whatsappBaileysService.on("disconnected", async ({ sessionKey }: { sessionKey: string }) => {
-      try {
-        const [userId, brandId] = sessionKey.split("_");
-        console.log(`🔴 [Baileys] Disconnected event for user ${userId}, brand ${brandId}`);
-
-        // Update integration status
-        const existingIntegrations = await storage.getIntegrationsByBrandId(brandId);
-        const baileysIntegration = existingIntegrations.find(
-          (i: any) => i.provider === "whatsapp_baileys" && i.userId === userId
-        );
-
-        if (baileysIntegration) {
-          await storage.updateIntegration(baileysIntegration.id, {
-            isActive: false,
-            metadata: {
-              ...((baileysIntegration.metadata as any) || {}),
-              disconnectedAt: new Date().toISOString(),
-            },
-          });
-        }
-      } catch (error) {
-        console.error("❌ [Baileys] Error handling disconnected event:", error);
-      }
-    });
-
-    console.log("📱 [Baileys] Event listeners configured");
-
-    // Restore any existing sessions on startup
-    setTimeout(async () => {
-      try {
-        await whatsappBaileysService.restoreExistingSessions();
-        console.log("📱 [Baileys] Session restoration complete");
-      } catch (error) {
-        console.error("❌ [Baileys] Error restoring sessions:", error);
-      }
-    }, 2000); // Small delay to ensure routes are fully registered
+      }, 2000); // Small delay to ensure routes are fully registered
     } catch (err) {
       console.warn("⚠️ [Baileys] WhatsApp Baileys service not available:", err);
     }
@@ -4266,9 +4352,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     async (req: any, res) => {
       if (!whatsappBaileysService) {
-        return res.status(503).json({ 
+        return res.status(503).json({
           error: "WhatsApp QR service not available",
-          message: "The Baileys service is not properly configured"
+          message: "The Baileys service is not properly configured",
         });
       }
 
@@ -4276,27 +4362,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = req.user.id;
         const brandId = req.brandMembership.brandId;
 
-        console.log(`📱 [Baileys] Starting connection for user ${userId}, brand ${brandId}`);
+        console.log(
+          `📱 [Baileys] Starting connection for user ${userId}, brand ${brandId}`,
+        );
 
         // Pass forceInit=true since this is a user-initiated action
-        const result = await whatsappBaileysService.initSession(userId, brandId, true);
-        
+        const result = await whatsappBaileysService.initSession(
+          userId,
+          brandId,
+          true,
+        );
+
         res.json({
           success: true,
           status: result.status,
           qrCode: result.qrCode,
-          message: result.status === "already_connected" 
-            ? "WhatsApp already connected" 
-            : "Scan the QR code with your WhatsApp"
+          message:
+            result.status === "already_connected"
+              ? "WhatsApp already connected"
+              : "Scan the QR code with your WhatsApp",
         });
       } catch (error) {
         console.error("❌ [Baileys] Connection error:", error);
         res.status(500).json({
           error: "Failed to start WhatsApp connection",
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
-    }
+    },
   );
 
   // Get WhatsApp Baileys connection status
@@ -4306,9 +4399,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     async (req: any, res) => {
       if (!whatsappBaileysService) {
-        return res.status(503).json({ 
+        return res.status(503).json({
           error: "WhatsApp QR service not available",
-          status: "unavailable"
+          status: "unavailable",
         });
       }
 
@@ -4316,20 +4409,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = req.user.id;
         const brandId = req.brandMembership.brandId;
 
-        const status = await whatsappBaileysService.getSessionStatus(userId, brandId);
-        
+        const status = await whatsappBaileysService.getSessionStatus(
+          userId,
+          brandId,
+        );
+
         res.json({
           success: true,
-          ...status
+          ...status,
         });
       } catch (error) {
         console.error("❌ [Baileys] Status check error:", error);
         res.status(500).json({
           error: "Failed to check WhatsApp status",
-          status: "error"
+          status: "error",
         });
       }
-    }
+    },
   );
 
   // Send message via WhatsApp Baileys
@@ -4339,8 +4435,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     async (req: any, res) => {
       if (!whatsappBaileysService) {
-        return res.status(503).json({ 
-          error: "WhatsApp QR service not available"
+        return res.status(503).json({
+          error: "WhatsApp QR service not available",
         });
       }
 
@@ -4352,7 +4448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!to || !message) {
           return res.status(400).json({
             error: "Missing required fields",
-            message: "Both 'to' (phone number) and 'message' are required"
+            message: "Both 'to' (phone number) and 'message' are required",
           });
         }
 
@@ -4360,29 +4456,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId,
           brandId,
           to,
-          message
+          message,
         );
-        
+
         if (result.success) {
           res.json({
             success: true,
             messageId: result.messageId,
-            message: "Message sent successfully"
+            message: "Message sent successfully",
           });
         } else {
           res.status(400).json({
             success: false,
-            error: result.error || "Failed to send message"
+            error: result.error || "Failed to send message",
           });
         }
       } catch (error) {
         console.error("❌ [Baileys] Send message error:", error);
         res.status(500).json({
           error: "Failed to send message",
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
-    }
+    },
   );
 
   // Disconnect WhatsApp Baileys session
@@ -4392,8 +4488,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     async (req: any, res) => {
       if (!whatsappBaileysService) {
-        return res.status(503).json({ 
-          error: "WhatsApp QR service not available"
+        return res.status(503).json({
+          error: "WhatsApp QR service not available",
         });
       }
 
@@ -4401,22 +4497,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = req.user.id;
         const brandId = req.brandMembership.brandId;
 
-        const disconnected = await whatsappBaileysService.disconnect(userId, brandId);
-        
+        const disconnected = await whatsappBaileysService.disconnect(
+          userId,
+          brandId,
+        );
+
         res.json({
           success: disconnected,
-          message: disconnected 
-            ? "WhatsApp disconnected successfully" 
-            : "No active session to disconnect"
+          message: disconnected
+            ? "WhatsApp disconnected successfully"
+            : "No active session to disconnect",
         });
       } catch (error) {
         console.error("❌ [Baileys] Disconnect error:", error);
         res.status(500).json({
           error: "Failed to disconnect WhatsApp",
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
-    }
+    },
   );
 
   app.get("/api/integrations", isAuthenticated, async (req: any, res) => {
@@ -4447,7 +4546,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!allowedRoles.includes(userRole)) {
           return res.status(403).json({
             error: "Permission denied",
-            message: "You need editor permissions or higher to disconnect integrations",
+            message:
+              "You need editor permissions or higher to disconnect integrations",
           });
         }
 
@@ -4469,7 +4569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const deleted = await storage.deleteIntegration(id, userId);
         if (deleted) {
           console.log(
-            `✅ Integration ${id} (${integration.provider}) deleted for brand ${brandId} by user ${userId}`
+            `✅ Integration ${id} (${integration.provider}) deleted for brand ${brandId} by user ${userId}`,
           );
           res.status(200).json({
             success: true,
@@ -4482,7 +4582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("❌ Error deleting integration:", error);
         res.status(500).json({ error: "Failed to delete integration" });
       }
-    }
+    },
   );
 
   // WhatsApp Templates - Fetch from Meta Graph API
@@ -4906,14 +5006,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                     const io = app.get("io");
                     if (io && integration.brandId) {
-                      io.to(`brand:${integration.brandId}`).emit("new_message", {
-                        provider: "whatsapp",
-                        conversationId: metaConversationId,
-                        metaConversationId,
-                        dbConversationId: conversation.id,
-                        message: savedMessage,
-                        brandId: integration.brandId,
-                      });
+                      io.to(`brand:${integration.brandId}`).emit(
+                        "new_message",
+                        {
+                          provider: "whatsapp",
+                          conversationId: metaConversationId,
+                          metaConversationId,
+                          dbConversationId: conversation.id,
+                          message: savedMessage,
+                          brandId: integration.brandId,
+                        },
+                      );
                     }
                   }
                 }
@@ -4928,194 +5031,271 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // First, check for Instagram Direct messages via entry.changes structure
             for (const change of entry.changes || []) {
               if (change.field === "messages" && change.value?.message) {
-                console.log(`📸 [Instagram Direct] Processing message via entry.changes structure`);
+                console.log(
+                  `📸 [Instagram Direct] Processing message via entry.changes structure`,
+                );
                 console.log(`   - change.field: ${change.field}`);
-                console.log(`   - change.value:`, JSON.stringify(change.value, null, 2));
-                
+                console.log(
+                  `   - change.value:`,
+                  JSON.stringify(change.value, null, 2),
+                );
+
                 const value = change.value;
                 const senderId = value.sender?.id;
                 const recipientId = value.recipient?.id;
                 const messageId = value.message?.mid;
                 const messageText = value.message?.text || "";
                 const timestamp = value.timestamp;
-                
+
                 if (!senderId || !recipientId || !messageId) {
-                  console.warn(`⚠️ [Instagram Direct] Missing required fields in change.value`);
+                  console.warn(
+                    `⚠️ [Instagram Direct] Missing required fields in change.value`,
+                  );
                   continue;
                 }
-                
+
                 console.log(`📸 [Instagram Direct] Message details:`);
                 console.log(`   - senderId: ${senderId}`);
                 console.log(`   - recipientId: ${recipientId}`);
                 console.log(`   - messageId: ${messageId}`);
                 console.log(`   - messageText: ${messageText}`);
-                
+
                 // PRIORITY 1: Check if there's an existing conversation for this metaConversationId
                 // This ensures messages go to the correct brand even if same IG account is in multiple brands
                 const potentialMetaConversationId = `ig_${senderId}_${recipientId}`;
-                const existingConversationByMeta = await storage.findConversationByMetaConversationId(potentialMetaConversationId);
-                
+                const existingConversationByMeta =
+                  await storage.findConversationByMetaConversationId(
+                    potentialMetaConversationId,
+                  );
+
                 let integration;
                 if (existingConversationByMeta) {
-                  console.log(`✅ [Instagram Direct] Found existing conversation by metaConversationId, using its integration`);
-                  integration = await storage.getIntegrationById(existingConversationByMeta.integrationId);
+                  console.log(
+                    `✅ [Instagram Direct] Found existing conversation by metaConversationId, using its integration`,
+                  );
+                  integration = await storage.getIntegrationById(
+                    existingConversationByMeta.integrationId,
+                  );
                 }
-                
+
                 // PRIORITY 2: If no existing conversation, search for integration by pageId
                 if (!integration) {
                   const allIntegrations = await storage.getAllIntegrations();
-                  console.log(`📋 All integrations (${allIntegrations.length} total):`);
+                  console.log(
+                    `📋 All integrations (${allIntegrations.length} total):`,
+                  );
                   for (const int of allIntegrations) {
-                    console.log(`   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`);
+                    console.log(
+                      `   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`,
+                    );
                   }
-                  
+
                   // Find integration by recipientId matching accountId or pageId
                   integration = allIntegrations.find(
-                    (int) => (int.provider === "instagram_direct" || int.provider === "instagram") &&
-                             (int.accountId === recipientId || int.pageId === recipientId)
+                    (int) =>
+                      (int.provider === "instagram_direct" ||
+                        int.provider === "instagram") &&
+                      (int.accountId === recipientId ||
+                        int.pageId === recipientId),
                   );
-                  
+
                   // If not found, try to find any instagram_direct integration and update it
                   if (!integration) {
-                    console.log(`🔧 [Instagram Direct] No exact match found, trying to auto-fix...`);
-                    integration = allIntegrations.find(
-                      (int) => int.provider === "instagram_direct" || int.provider === "instagram"
+                    console.log(
+                      `🔧 [Instagram Direct] No exact match found, trying to auto-fix...`,
                     );
-                    
+                    integration = allIntegrations.find(
+                      (int) =>
+                        int.provider === "instagram_direct" ||
+                        int.provider === "instagram",
+                    );
+
                     if (integration) {
-                      console.log(`🔧 [Instagram Direct] Found integration, updating accountId/pageId...`);
-                      console.log(`   - Old accountId: ${integration.accountId}`);
+                      console.log(
+                        `🔧 [Instagram Direct] Found integration, updating accountId/pageId...`,
+                      );
+                      console.log(
+                        `   - Old accountId: ${integration.accountId}`,
+                      );
                       console.log(`   - New accountId: ${recipientId}`);
-                      
-                      integration = await storage.updateIntegration(integration.id, {
-                        accountId: recipientId,
-                        pageId: recipientId,
-                        metadata: {
-                          ...(typeof integration.metadata === 'object' ? integration.metadata : {}),
-                          igbaId: recipientId,
-                          autoFixedFromWebhook: true,
-                          autoFixedAt: new Date().toISOString(),
-                        },
-                      }) || integration;
+
+                      integration =
+                        (await storage.updateIntegration(integration.id, {
+                          accountId: recipientId,
+                          pageId: recipientId,
+                          metadata: {
+                            ...(typeof integration.metadata === "object"
+                              ? integration.metadata
+                              : {}),
+                            igbaId: recipientId,
+                            autoFixedFromWebhook: true,
+                            autoFixedAt: new Date().toISOString(),
+                          },
+                        })) || integration;
                     }
                   }
                 }
-                
+
                 if (integration) {
                   const platform = "instagram_direct";
                   const accessToken = integration.accessToken;
-                  
+
                   // ✅ CRITICAL: Detect if this is an outbound "echo" message (sent BY the business account)
                   // If senderId matches our accountId/pageId, this is a message WE sent - don't overwrite contact info
-                  const isOutbound = senderId === integration.accountId || 
-                                     senderId === integration.pageId ||
-                                     senderId.startsWith("1784"); // Instagram business accounts start with 1784
-                  
+                  const isOutbound =
+                    senderId === integration.accountId ||
+                    senderId === integration.pageId ||
+                    senderId.startsWith("1784"); // Instagram business accounts start with 1784
+
                   // For outbound messages, the conversation ID should use the recipientId as the contact
                   // For inbound messages, use senderId as the contact
                   const contactId = isOutbound ? recipientId : senderId;
                   let metaConversationId = `ig_${contactId}_${integration.accountId || integration.pageId}`;
-                  
+
                   // Fallback metaConversationId format for legacy conversations
                   const legacyMetaConversationId = `ig_${senderId}_${recipientId}`;
-                  
+
                   console.log(`📊 [Instagram Direct] Direction analysis:`);
                   console.log(`   - senderId: ${senderId}`);
-                  console.log(`   - integration.accountId: ${integration.accountId}`);
+                  console.log(
+                    `   - integration.accountId: ${integration.accountId}`,
+                  );
                   console.log(`   - isOutbound (echo): ${isOutbound}`);
                   console.log(`   - contactId: ${contactId}`);
                   console.log(`   - metaConversationId: ${metaConversationId}`);
-                  
+
                   let contactName: string | null = null;
                   let contactProfilePicture: string | null = null;
                   let shouldFetchProfilePicture = !isOutbound; // Only fetch profile for inbound messages
-                  
+
                   // Find existing conversation by contactId (the real contact, not the business account)
-                  let existingConversation = await storage.findConversationBySenderId(
-                    integration.id,
-                    contactId,
-                    null
-                  );
-                  
+                  let existingConversation =
+                    await storage.findConversationBySenderId(
+                      integration.id,
+                      contactId,
+                      null,
+                    );
+
                   // Also try legacy format if not found
                   if (!existingConversation) {
-                    existingConversation = await storage.findConversationByMetaConversationId(legacyMetaConversationId);
+                    existingConversation =
+                      await storage.findConversationByMetaConversationId(
+                        legacyMetaConversationId,
+                      );
                   }
-                  
+
                   // Check if profile picture is already cached and recent (less than 7 days old)
-                  if (existingConversation?.contactProfilePicture && existingConversation?.contactProfilePictureFetchedAt) {
-                    const fetchedAt = new Date(existingConversation.contactProfilePictureFetchedAt);
-                    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                  if (
+                    existingConversation?.contactProfilePicture &&
+                    existingConversation?.contactProfilePictureFetchedAt
+                  ) {
+                    const fetchedAt = new Date(
+                      existingConversation.contactProfilePictureFetchedAt,
+                    );
+                    const sevenDaysAgo = new Date(
+                      Date.now() - 7 * 24 * 60 * 60 * 1000,
+                    );
                     if (fetchedAt > sevenDaysAgo) {
                       shouldFetchProfilePicture = false;
-                      contactProfilePicture = existingConversation.contactProfilePicture;
+                      contactProfilePicture =
+                        existingConversation.contactProfilePicture;
                       contactName = existingConversation.contactName;
-                      console.log(`⏭️ [Instagram Direct] Using cached profile data (fetched ${fetchedAt.toISOString()})`);
+                      console.log(
+                        `⏭️ [Instagram Direct] Using cached profile data (fetched ${fetchedAt.toISOString()})`,
+                      );
                     }
                   }
-                  
+
                   // If outbound (echo), preserve existing contact info - DO NOT fetch profile of the business account
                   if (isOutbound && existingConversation) {
                     contactName = existingConversation.contactName;
-                    contactProfilePicture = existingConversation.contactProfilePicture;
-                    console.log(`📤 [Instagram Direct] Echo message - preserving existing contactName: ${contactName}`);
+                    contactProfilePicture =
+                      existingConversation.contactProfilePicture;
+                    console.log(
+                      `📤 [Instagram Direct] Echo message - preserving existing contactName: ${contactName}`,
+                    );
                   }
-                  
+
                   // Only fetch profile for INBOUND messages if we don't have recent data
                   if (shouldFetchProfilePicture && !isOutbound) {
                     try {
                       const igProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=username,name,profile_pic&access_token=${accessToken}`;
-                      console.log(`📱 [Instagram Direct] Fetching profile for sender: ${senderId}`);
-                      
+                      console.log(
+                        `📱 [Instagram Direct] Fetching profile for sender: ${senderId}`,
+                      );
+
                       const igProfileRes = await fetch(igProfileUrl);
                       const igProfileData = await igProfileRes.json();
-                      
+
                       if (!igProfileData.error) {
                         if (igProfileData.username || igProfileData.name) {
-                          contactName = igProfileData.username || igProfileData.name;
-                          console.log(`✅ [Instagram Direct] Got contact name: ${contactName}`);
+                          contactName =
+                            igProfileData.username || igProfileData.name;
+                          console.log(
+                            `✅ [Instagram Direct] Got contact name: ${contactName}`,
+                          );
                         }
                         if (igProfileData.profile_pic) {
                           contactProfilePicture = igProfileData.profile_pic;
-                          console.log(`✅ [Instagram Direct] Got profile picture`);
+                          console.log(
+                            `✅ [Instagram Direct] Got profile picture`,
+                          );
                         }
                       }
                     } catch (profileErr) {
-                      console.warn(`⚠️ [Instagram Direct] Error fetching profile:`, profileErr);
+                      console.warn(
+                        `⚠️ [Instagram Direct] Error fetching profile:`,
+                        profileErr,
+                      );
                     }
                   }
-                  
+
                   // Re-find existing conversation by contactId (the real contact, not business account)
                   if (!existingConversation) {
-                    existingConversation = await storage.findConversationBySenderId(
-                      integration.id,
-                      contactId,
-                      contactName
-                    );
+                    existingConversation =
+                      await storage.findConversationBySenderId(
+                        integration.id,
+                        contactId,
+                        contactName,
+                      );
                   }
-                  
+
                   let conversation;
                   if (existingConversation) {
-                    console.log(`🔗 [Instagram Direct] Found existing conversation: ${existingConversation.id}`);
+                    console.log(
+                      `🔗 [Instagram Direct] Found existing conversation: ${existingConversation.id}`,
+                    );
                     // ✅ For outbound (echo), ONLY update lastMessage - DO NOT touch contactName
                     const updateData: any = {
                       lastMessage: messageText,
-                      lastMessageAt: new Date(parseInt(timestamp) * 1000 || Date.now()),
+                      lastMessageAt: new Date(
+                        parseInt(timestamp) * 1000 || Date.now(),
+                      ),
                     };
-                    
+
                     // Only update contactName for INBOUND messages (from the customer)
                     if (!isOutbound && contactName) {
                       updateData.contactName = contactName;
                     }
-                    
+
                     // Only update profile picture and timestamp if we fetched a new one (only for inbound)
-                    if (!isOutbound && shouldFetchProfilePicture && contactProfilePicture) {
+                    if (
+                      !isOutbound &&
+                      shouldFetchProfilePicture &&
+                      contactProfilePicture
+                    ) {
                       updateData.contactProfilePicture = contactProfilePicture;
                       updateData.contactProfilePictureFetchedAt = new Date();
                     }
-                    conversation = await storage.updateConversationMetadata(existingConversation.id, updateData) || existingConversation;
+                    conversation =
+                      (await storage.updateConversationMetadata(
+                        existingConversation.id,
+                        updateData,
+                      )) || existingConversation;
                   } else {
-                    console.log(`🆕 [Instagram Direct] Creating new conversation`);
+                    console.log(
+                      `🆕 [Instagram Direct] Creating new conversation`,
+                    );
                     conversation = await storage.getOrCreateConversation({
                       integrationId: integration.id,
                       brandId: integration.brandId,
@@ -5124,19 +5304,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       platform,
                       contactName,
                       contactProfilePicture: contactProfilePicture || undefined,
-                      contactProfilePictureFetchedAt: contactProfilePicture ? new Date() : undefined,
+                      contactProfilePictureFetchedAt: contactProfilePicture
+                        ? new Date()
+                        : undefined,
                       lastMessage: messageText,
-                      lastMessageAt: new Date(parseInt(timestamp) * 1000 || Date.now()),
+                      lastMessageAt: new Date(
+                        parseInt(timestamp) * 1000 || Date.now(),
+                      ),
                     });
                   }
-                  
+
                   // Check for duplicate message before saving
-                  const existingMessage = await storage.findMessageByMetaId(integration.id, messageId);
+                  const existingMessage = await storage.findMessageByMetaId(
+                    integration.id,
+                    messageId,
+                  );
                   if (existingMessage) {
-                    console.log(`⏭️ [Instagram Direct] Message already exists: ${existingMessage.id}, skipping`);
+                    console.log(
+                      `⏭️ [Instagram Direct] Message already exists: ${existingMessage.id}, skipping`,
+                    );
                     continue;
                   }
-                  
+
                   // Save the message with correct direction
                   try {
                     const savedMessage = await storage.createMessage({
@@ -5153,50 +5342,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       textContent: messageText,
                       direction: isOutbound ? "outbound" : "inbound",
                       isRead: isOutbound, // Outbound messages are automatically read
-                      timestamp: new Date(parseInt(timestamp) * 1000 || Date.now()),
+                      timestamp: new Date(
+                        parseInt(timestamp) * 1000 || Date.now(),
+                      ),
                       rawPayload: change.value,
                     });
-                    console.log(`✅ [Instagram Direct] Message saved: ${savedMessage.id} (direction: ${isOutbound ? "outbound" : "inbound"})`);
-                    
+                    console.log(
+                      `✅ [Instagram Direct] Message saved: ${savedMessage.id} (direction: ${isOutbound ? "outbound" : "inbound"})`,
+                    );
+
                     // Only increment unread count for INBOUND messages
                     if (!isOutbound) {
                       await storage.incrementUnreadCount(conversation.id);
                     }
-                    
+
                     // Emit socket event to brand room only
                     const io = app.get("io");
-                    const updatedConversation = await storage.getConversation(conversation.id);
-                    
+                    const updatedConversation = await storage.getConversation(
+                      conversation.id,
+                    );
+
                     if (io && integration.brandId) {
-                      io.to(`brand:${integration.brandId}`).emit("new_message", {
-                        provider: platform,
-                        conversationId: metaConversationId,
-                        metaConversationId,
-                        dbConversationId: conversation.id,
-                        message: savedMessage,
-                        conversation: updatedConversation,
-                        brandId: integration.brandId,
-                      });
-                      console.log(`🔔 [Instagram Direct] Socket event emitted to brand:${integration.brandId}`);
+                      io.to(`brand:${integration.brandId}`).emit(
+                        "new_message",
+                        {
+                          provider: platform,
+                          conversationId: metaConversationId,
+                          metaConversationId,
+                          dbConversationId: conversation.id,
+                          message: savedMessage,
+                          conversation: updatedConversation,
+                          brandId: integration.brandId,
+                        },
+                      );
+                      console.log(
+                        `🔔 [Instagram Direct] Socket event emitted to brand:${integration.brandId}`,
+                      );
                     }
                   } catch (msgErr: any) {
                     if (msgErr.code === "23505") {
-                      console.log(`⏭️ [Instagram Direct] Duplicate message detected via constraint, skipping`);
+                      console.log(
+                        `⏭️ [Instagram Direct] Duplicate message detected via constraint, skipping`,
+                      );
                     } else {
                       throw msgErr;
                     }
                   }
                 } else {
-                  console.warn(`⚠️ [Instagram Direct] No integration found for recipientId: ${recipientId}`);
+                  console.warn(
+                    `⚠️ [Instagram Direct] No integration found for recipientId: ${recipientId}`,
+                  );
                 }
               }
             }
-            
+
             // Also handle Messenger-style messages via entry.messaging
             for (const event of events) {
               // Skip if this is an Instagram Direct message (already handled above)
               if (!event.message || !event.sender || !event.recipient) continue;
-              
+
               const senderId = event.sender.id;
               const recipientId = event.recipient.id;
               const messageId = event.message.mid;
@@ -5208,31 +5412,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`🔍 Searching for integration:`);
               console.log(`   - recipientId: ${recipientId}`);
               console.log(`   - searchPlatform: ${searchPlatform}`);
-              
+
               // PRIORITY 1: Check if there's an existing conversation for potential metaConversationIds
               // This ensures messages go to the correct brand even if same account is in multiple brands
               const potentialMetaIds = [
                 `ig_dm_${senderId}`,
                 `ig_${senderId}_${recipientId}`,
               ];
-              
+
               let integration;
               for (const metaId of potentialMetaIds) {
-                const existingConvo = await storage.findConversationByMetaConversationId(metaId);
+                const existingConvo =
+                  await storage.findConversationByMetaConversationId(metaId);
                 if (existingConvo) {
-                  console.log(`✅ Found existing conversation by metaConversationId: ${metaId}`);
-                  integration = await storage.getIntegrationById(existingConvo.integrationId);
+                  console.log(
+                    `✅ Found existing conversation by metaConversationId: ${metaId}`,
+                  );
+                  integration = await storage.getIntegrationById(
+                    existingConvo.integrationId,
+                  );
                   if (integration) break;
                 }
               }
-              
+
               // PRIORITY 2: If no existing conversation, search for integration by pageId
               if (!integration) {
                 // Debug: List all integrations to see what's in DB
                 const allIntegrations = await storage.getAllIntegrations();
-                console.log(`📋 All integrations in DB (${allIntegrations.length} total):`);
+                console.log(
+                  `📋 All integrations in DB (${allIntegrations.length} total):`,
+                );
                 for (const int of allIntegrations) {
-                  console.log(`   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`);
+                  console.log(
+                    `   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`,
+                  );
                 }
 
                 integration = await storage.findIntegrationByAccount(
@@ -5240,30 +5453,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   searchPlatform,
                 );
 
-                console.log(`🔎 findIntegrationByAccount result:`, integration ? `Found (${integration.provider})` : 'NOT FOUND');
+                console.log(
+                  `🔎 findIntegrationByAccount result:`,
+                  integration ? `Found (${integration.provider})` : "NOT FOUND",
+                );
 
                 // Auto-fix: If no integration found for Instagram, try to find any instagram_direct integration
                 if (!integration && searchPlatform === "instagram") {
-                  console.log(`🔧 Attempting auto-fix for Instagram integration...`);
-                  const igDirectIntegration = allIntegrations.find(
-                    (int) => int.provider === "instagram_direct" || int.provider === "instagram"
+                  console.log(
+                    `🔧 Attempting auto-fix for Instagram integration...`,
                   );
-                  
+                  const igDirectIntegration = allIntegrations.find(
+                    (int) =>
+                      int.provider === "instagram_direct" ||
+                      int.provider === "instagram",
+                  );
+
                   if (igDirectIntegration) {
-                    console.log(`🔧 Found instagram_direct integration with mismatched ID. Updating...`);
+                    console.log(
+                      `🔧 Found instagram_direct integration with mismatched ID. Updating...`,
+                    );
                     const updatedIntegration = await storage.updateIntegration(
                       igDirectIntegration.id,
                       {
                         accountId: recipientId,
                         pageId: recipientId,
                         metadata: {
-                          ...(typeof igDirectIntegration.metadata === 'object' ? igDirectIntegration.metadata : {}),
+                          ...(typeof igDirectIntegration.metadata === "object"
+                            ? igDirectIntegration.metadata
+                            : {}),
                           igbaId: recipientId,
                           autoFixedFromWebhook: true,
                         },
-                      }
+                      },
                     );
-                    
+
                     if (updatedIntegration) {
                       console.log(`✅ Auto-fixed Instagram integration!`);
                       integration = updatedIntegration;
@@ -5282,7 +5506,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 let shouldFetchProfilePicture = true;
 
                 try {
-                  const metaPlatformParam = platform === "facebook" ? "messenger" : "instagram";
+                  const metaPlatformParam =
+                    platform === "facebook" ? "messenger" : "instagram";
                   const convoRes = await fetch(
                     `https://graph.facebook.com/v24.0/${pageId}/conversations?platform=${metaPlatformParam}&user_id=${senderId}&access_token=${accessToken}`,
                   );
@@ -5297,21 +5522,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
 
                 // Find existing conversation FIRST to check if we already have profile picture
-                let existingConversation = await storage.findConversationBySenderId(
-                  integration.id,
-                  senderId,
-                  null
-                );
-                
+                let existingConversation =
+                  await storage.findConversationBySenderId(
+                    integration.id,
+                    senderId,
+                    null,
+                  );
+
                 // Check if profile picture is already cached and recent (less than 7 days old)
-                if (existingConversation?.contactProfilePicture && existingConversation?.contactProfilePictureFetchedAt) {
-                  const fetchedAt = new Date(existingConversation.contactProfilePictureFetchedAt);
-                  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                if (
+                  existingConversation?.contactProfilePicture &&
+                  existingConversation?.contactProfilePictureFetchedAt
+                ) {
+                  const fetchedAt = new Date(
+                    existingConversation.contactProfilePictureFetchedAt,
+                  );
+                  const sevenDaysAgo = new Date(
+                    Date.now() - 7 * 24 * 60 * 60 * 1000,
+                  );
                   if (fetchedAt > sevenDaysAgo) {
                     shouldFetchProfilePicture = false;
-                    contactProfilePicture = existingConversation.contactProfilePicture;
+                    contactProfilePicture =
+                      existingConversation.contactProfilePicture;
                     contactName = existingConversation.contactName;
-                    console.log(`⏭️ [${platform}] Using cached profile picture (fetched ${fetchedAt.toISOString()})`);
+                    console.log(
+                      `⏭️ [${platform}] Using cached profile picture (fetched ${fetchedAt.toISOString()})`,
+                    );
                   }
                 }
 
@@ -5321,25 +5557,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   try {
                     // All messaging platforms use graph.facebook.com with profile_pic
                     const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`;
-                    console.log(`📷 [${platform}] Fetching profile for sender: ${senderId}`);
-                    
+                    console.log(
+                      `📷 [${platform}] Fetching profile for sender: ${senderId}`,
+                    );
+
                     const profileRes = await fetch(profileUrl);
                     const profileData = await profileRes.json();
-                    
+
                     if (!profileData.error) {
                       if (profileData.username || profileData.name) {
                         contactName = profileData.username || profileData.name;
-                        console.log(`✅ [${platform}] Got contact name: ${contactName}`);
+                        console.log(
+                          `✅ [${platform}] Got contact name: ${contactName}`,
+                        );
                       }
                       if (profileData.profile_pic) {
                         contactProfilePicture = profileData.profile_pic;
                         console.log(`✅ [${platform}] Got profile picture`);
                       }
                     } else {
-                      console.warn(`⚠️ [${platform}] Profile API error:`, profileData.error);
+                      console.warn(
+                        `⚠️ [${platform}] Profile API error:`,
+                        profileData.error,
+                      );
                     }
                   } catch (profileErr) {
-                    console.warn(`⚠️ [${platform}] Error fetching profile:`, profileErr);
+                    console.warn(
+                      `⚠️ [${platform}] Error fetching profile:`,
+                      profileErr,
+                    );
                   }
                 }
 
@@ -5347,23 +5593,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 existingConversation = await storage.findConversationBySenderId(
                   integration.id,
                   senderId,
-                  contactName
+                  contactName,
                 );
-                
+
                 let conversation;
                 if (existingConversation) {
                   const updateData: any = {
-                    metaConversationId: metaConversationId || existingConversation.metaConversationId,
+                    metaConversationId:
+                      metaConversationId ||
+                      existingConversation.metaConversationId,
                     lastMessage: messageText,
                     lastMessageAt: new Date(event.timestamp || Date.now()),
-                    contactName: contactName || existingConversation.contactName,
+                    contactName:
+                      contactName || existingConversation.contactName,
                   };
                   // Only update profile picture and timestamp if we fetched a new one
                   if (shouldFetchProfilePicture && contactProfilePicture) {
                     updateData.contactProfilePicture = contactProfilePicture;
                     updateData.contactProfilePictureFetchedAt = new Date();
                   }
-                  conversation = await storage.updateConversationMetadata(existingConversation.id, updateData) || existingConversation;
+                  conversation =
+                    (await storage.updateConversationMetadata(
+                      existingConversation.id,
+                      updateData,
+                    )) || existingConversation;
                 } else {
                   conversation = await storage.getOrCreateConversation({
                     integrationId: integration.id,
@@ -5373,16 +5626,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     platform,
                     contactName,
                     contactProfilePicture: contactProfilePicture || undefined,
-                    contactProfilePictureFetchedAt: contactProfilePicture ? new Date() : undefined,
+                    contactProfilePictureFetchedAt: contactProfilePicture
+                      ? new Date()
+                      : undefined,
                     lastMessage: messageText,
                     lastMessageAt: new Date(event.timestamp || Date.now()),
                   });
                 }
 
                 // Check for duplicate message before saving
-                const existingMessage = await storage.findMessageByMetaId(integration.id, messageId);
+                const existingMessage = await storage.findMessageByMetaId(
+                  integration.id,
+                  messageId,
+                );
                 if (existingMessage) {
-                  console.log(`⏭️ [${platform}] Message already exists: ${existingMessage.id}, skipping`);
+                  console.log(
+                    `⏭️ [${platform}] Message already exists: ${existingMessage.id}, skipping`,
+                  );
                   continue;
                 }
 
@@ -5404,14 +5664,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     timestamp: new Date(event.timestamp || Date.now()),
                     rawPayload: body,
                   });
-                  console.log(`✅ [${platform}] Message saved: ${savedMessage.id}`);
+                  console.log(
+                    `✅ [${platform}] Message saved: ${savedMessage.id}`,
+                  );
 
                   await storage.incrementUnreadCount(conversation.id);
 
                   // Emit socket event to brand room only
                   const io = app.get("io");
-                  const updatedConversation = await storage.getConversation(conversation.id);
-                  
+                  const updatedConversation = await storage.getConversation(
+                    conversation.id,
+                  );
+
                   if (io && integration.brandId) {
                     io.to(`brand:${integration.brandId}`).emit("new_message", {
                       provider: platform,
@@ -5422,17 +5686,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       conversation: updatedConversation,
                       brandId: integration.brandId,
                     });
-                    console.log(`🔔 [${platform}] Socket event emitted to brand:${integration.brandId}`);
+                    console.log(
+                      `🔔 [${platform}] Socket event emitted to brand:${integration.brandId}`,
+                    );
                   }
                 } catch (msgErr: any) {
                   if (msgErr.code === "23505") {
-                    console.log(`⏭️ [${platform}] Duplicate message detected via constraint, skipping`);
+                    console.log(
+                      `⏭️ [${platform}] Duplicate message detected via constraint, skipping`,
+                    );
                   } else {
                     throw msgErr;
                   }
                 }
               } else {
-                console.warn(`⚠️ [${searchPlatform}] No integration found for recipient: ${recipientId}`);
+                console.warn(
+                  `⚠️ [${searchPlatform}] No integration found for recipient: ${recipientId}`,
+                );
               }
             }
           }
@@ -5541,17 +5811,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { provider, conversationId } = req.params;
         const userId = req.user.id;
 
-        const validProviders = ["facebook", "instagram", "threads", "whatsapp", "whatsapp_baileys"];
+        const validProviders = [
+          "facebook",
+          "instagram",
+          "threads",
+          "whatsapp",
+          "whatsapp_baileys",
+        ];
         if (!validProviders.includes(provider)) {
           return res.status(400).json({ error: "Invalid provider" });
         }
 
         const integrations = await storage.getIntegrations(userId);
         let integration = integrations.find((i) => i.provider === provider);
-        
+
         // For whatsapp_baileys, find the integration by platform
         if (!integration && provider === "whatsapp_baileys") {
-          integration = integrations.find((i) => i.provider === "whatsapp_baileys");
+          integration = integrations.find(
+            (i) => i.provider === "whatsapp_baileys",
+          );
         }
 
         if (!integration) {
@@ -5732,9 +6010,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Continue with other integrations even if one fails
             }
           }
-          
+
           // Sync for Instagram Direct (via Instagram Login API)
-          if (provider === "instagram_direct" && !integration.hasFetchedHistory) {
+          if (
+            provider === "instagram_direct" &&
+            !integration.hasFetchedHistory
+          ) {
             console.log(
               `🔄 [Initial Sync] Starting initial sync for instagram_direct (${integration.accountName})`,
             );
@@ -5914,7 +6195,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const brandId = req.brandMembership.brandId;
 
         // Get conversation and verify access
-        const conversationsList = await storage.getConversationsByBrandId(brandId);
+        const conversationsList =
+          await storage.getConversationsByBrandId(brandId);
         const conversation = conversationsList.find((c) => c.id === id);
 
         if (!conversation) {
@@ -5922,21 +6204,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Get the integration to access the platform API
-        const integration = await storage.getIntegrationById(conversation.integrationId);
+        const integration = await storage.getIntegrationById(
+          conversation.integrationId,
+        );
         if (!integration) {
           return res.status(404).json({ error: "Integration not found" });
         }
 
         const accessToken = integration.accessToken;
         const platform = conversation.platform;
-        
+
         // Extract sender ID from meta_conversation_id (format: pageId_senderId or similar)
         const metaConvoId = conversation.metaConversationId;
         let senderId: string | null = null;
-        
+
         // Try to get sender ID from messages in this conversation
         const conversationMessages = await storage.getConversationMessages(id);
-        const inboundMessage = conversationMessages.find((m) => m.direction === "inbound");
+        const inboundMessage = conversationMessages.find(
+          (m) => m.direction === "inbound",
+        );
         if (inboundMessage) {
           senderId = inboundMessage.senderId;
         }
@@ -5950,10 +6236,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (!senderId) {
-          return res.status(400).json({ error: "Could not determine sender ID" });
+          return res
+            .status(400)
+            .json({ error: "Could not determine sender ID" });
         }
 
-        console.log(`🔄 Refreshing contact name for conversation ${id}, sender: ${senderId}, platform: ${platform}`);
+        console.log(
+          `🔄 Refreshing contact name for conversation ${id}, sender: ${senderId}, platform: ${platform}`,
+        );
 
         let contactName: string | null = null;
 
@@ -5962,34 +6252,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Try Instagram Graph API first
             const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name&access_token=${accessToken}`;
             console.log(`📱 Fetching Instagram profile for: ${senderId}`);
-            
+
             const profileRes = await fetch(profileUrl);
             const profileData = await profileRes.json();
-            
-            if (!profileData.error && (profileData.username || profileData.name)) {
+
+            if (
+              !profileData.error &&
+              (profileData.username || profileData.name)
+            ) {
               contactName = profileData.username || profileData.name;
               console.log(`✅ Got Instagram contact name: ${contactName}`);
             } else if (profileData.error) {
-              console.warn(`⚠️ Instagram API error:`, profileData.error.message);
-              
+              console.warn(
+                `⚠️ Instagram API error:`,
+                profileData.error.message,
+              );
+
               // Fallback: Try Facebook Graph API
               const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username&access_token=${accessToken}`;
               const fbProfileRes = await fetch(fbProfileUrl);
               const fbProfileData = await fbProfileRes.json();
-              
-              if (!fbProfileData.error && (fbProfileData.name || fbProfileData.username)) {
+
+              if (
+                !fbProfileData.error &&
+                (fbProfileData.name || fbProfileData.username)
+              ) {
                 contactName = fbProfileData.name || fbProfileData.username;
-                console.log(`✅ Got contact name from FB Graph: ${contactName}`);
+                console.log(
+                  `✅ Got contact name from FB Graph: ${contactName}`,
+                );
               }
             }
           } else if (platform === "facebook") {
             // Facebook Messenger - use Facebook Graph API
             const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,first_name,last_name&access_token=${accessToken}`;
             console.log(`📱 Fetching Facebook profile for: ${senderId}`);
-            
+
             const fbProfileRes = await fetch(fbProfileUrl);
             const fbProfileData = await fbProfileRes.json();
-            
+
             if (!fbProfileData.error && fbProfileData.name) {
               contactName = fbProfileData.name;
               console.log(`✅ Got Facebook contact name: ${contactName}`);
@@ -6006,11 +6307,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (contactName) {
           // Update the conversation with the new contact name
-          const updated = await storage.updateConversationMetadata(id, { contactName });
-          console.log(`✅ Updated contact name for conversation ${id}: ${contactName}`);
+          const updated = await storage.updateConversationMetadata(id, {
+            contactName,
+          });
+          console.log(
+            `✅ Updated contact name for conversation ${id}: ${contactName}`,
+          );
           res.json({ success: true, contactName, conversation: updated });
         } else {
-          res.json({ success: false, message: "Could not fetch contact name from platform API" });
+          res.json({
+            success: false,
+            message: "Could not fetch contact name from platform API",
+          });
         }
       } catch (err) {
         console.error("❌ Error refreshing contact name:", err);
@@ -6029,28 +6337,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const brandId = req.brandMembership.brandId;
 
         // Get all conversations for the brand
-        const conversationsList = await storage.getConversationsByBrandId(brandId);
-        
+        const conversationsList =
+          await storage.getConversationsByBrandId(brandId);
+
         // Filter conversations without contact names
         const conversationsToUpdate = conversationsList.filter(
-          (c) => !c.contactName || c.contactName === "Contact"
+          (c) => !c.contactName || c.contactName === "Contact",
         );
 
-        console.log(`🔄 Found ${conversationsToUpdate.length} conversations without contact names`);
+        console.log(
+          `🔄 Found ${conversationsToUpdate.length} conversations without contact names`,
+        );
 
-        const results: { id: string; contactName: string | null; success: boolean }[] = [];
+        const results: {
+          id: string;
+          contactName: string | null;
+          success: boolean;
+        }[] = [];
 
         for (const conversation of conversationsToUpdate) {
           try {
-            const integration = await storage.getIntegrationById(conversation.integrationId);
+            const integration = await storage.getIntegrationById(
+              conversation.integrationId,
+            );
             if (!integration) continue;
 
             const accessToken = integration.accessToken;
             const platform = conversation.platform;
 
             // Get sender ID from messages
-            const conversationMessages = await storage.getConversationMessages(conversation.id);
-            const inboundMessage = conversationMessages.find((m) => m.direction === "inbound");
+            const conversationMessages = await storage.getConversationMessages(
+              conversation.id,
+            );
+            const inboundMessage = conversationMessages.find(
+              (m) => m.direction === "inbound",
+            );
             let senderId = inboundMessage?.senderId;
 
             if (!senderId) {
@@ -6061,7 +6382,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             if (!senderId) {
-              results.push({ id: conversation.id, contactName: null, success: false });
+              results.push({
+                id: conversation.id,
+                contactName: null,
+                success: false,
+              });
               continue;
             }
 
@@ -6071,16 +6396,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name&access_token=${accessToken}`;
               const profileRes = await fetch(profileUrl);
               const profileData = await profileRes.json();
-              
-              if (!profileData.error && (profileData.username || profileData.name)) {
+
+              if (
+                !profileData.error &&
+                (profileData.username || profileData.name)
+              ) {
                 contactName = profileData.username || profileData.name;
               } else if (profileData.error) {
                 // Fallback to Facebook Graph API
                 const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username&access_token=${accessToken}`;
                 const fbProfileRes = await fetch(fbProfileUrl);
                 const fbProfileData = await fbProfileRes.json();
-                
-                if (!fbProfileData.error && (fbProfileData.name || fbProfileData.username)) {
+
+                if (
+                  !fbProfileData.error &&
+                  (fbProfileData.name || fbProfileData.username)
+                ) {
                   contactName = fbProfileData.name || fbProfileData.username;
                 }
               }
@@ -6088,30 +6419,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,first_name,last_name&access_token=${accessToken}`;
               const fbProfileRes = await fetch(fbProfileUrl);
               const fbProfileData = await fbProfileRes.json();
-              
+
               if (!fbProfileData.error && fbProfileData.name) {
                 contactName = fbProfileData.name;
               }
             }
 
             if (contactName) {
-              await storage.updateConversationMetadata(conversation.id, { contactName });
+              await storage.updateConversationMetadata(conversation.id, {
+                contactName,
+              });
               console.log(`✅ Updated: ${conversation.id} -> ${contactName}`);
               results.push({ id: conversation.id, contactName, success: true });
             } else {
-              results.push({ id: conversation.id, contactName: null, success: false });
+              results.push({
+                id: conversation.id,
+                contactName: null,
+                success: false,
+              });
             }
 
             // Small delay to avoid rate limiting
             await new Promise((resolve) => setTimeout(resolve, 100));
           } catch (err) {
-            console.error(`❌ Error updating conversation ${conversation.id}:`, err);
-            results.push({ id: conversation.id, contactName: null, success: false });
+            console.error(
+              `❌ Error updating conversation ${conversation.id}:`,
+              err,
+            );
+            results.push({
+              id: conversation.id,
+              contactName: null,
+              success: false,
+            });
           }
         }
 
         const successCount = results.filter((r) => r.success).length;
-        console.log(`✅ Refreshed ${successCount}/${conversationsToUpdate.length} contact names`);
+        console.log(
+          `✅ Refreshed ${successCount}/${conversationsToUpdate.length} contact names`,
+        );
 
         res.json({
           success: true,
@@ -6136,7 +6482,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const brandId = req.brandMembership.brandId;
 
         // Get all conversations for the brand
-        const conversationsList = await storage.getConversationsByBrandId(brandId);
+        const conversationsList =
+          await storage.getConversationsByBrandId(brandId);
 
         // Calculate statistics
         let totalMessages = 0;
@@ -6154,7 +6501,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           // Get messages for this conversation to count total and calculate response times
-          const conversationMessages = await storage.getConversationMessages(conversation.id);
+          const conversationMessages = await storage.getConversationMessages(
+            conversation.id,
+          );
           totalMessages += conversationMessages.length;
 
           // Calculate response times (time between inbound and next outbound message)
@@ -6163,7 +6512,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (msg.direction === "inbound") {
               lastInboundTime = msg.timestamp;
             } else if (msg.direction === "outbound" && lastInboundTime) {
-              const responseTime = msg.timestamp.getTime() - lastInboundTime.getTime();
+              const responseTime =
+                msg.timestamp.getTime() - lastInboundTime.getTime();
               responseTimes.push(responseTime);
               lastInboundTime = null; // Reset for next pair
             }
@@ -6173,9 +6523,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Calculate average response time
         let avgResponseTime = "N/A";
         if (responseTimes.length > 0) {
-          const avgMs = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+          const avgMs =
+            responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
           const avgMinutes = Math.round(avgMs / 60000);
-          
+
           if (avgMinutes < 60) {
             avgResponseTime = `${avgMinutes}m`;
           } else {
@@ -6185,7 +6536,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        console.log(`📊 Inbox stats for brand ${brandId}: ${totalMessages} messages, ${totalUnread} unread, ${urgentCount} urgent`);
+        console.log(
+          `📊 Inbox stats for brand ${brandId}: ${totalMessages} messages, ${totalUnread} unread, ${urgentCount} urgent`,
+        );
 
         res.json({
           totalMessages,
@@ -6407,15 +6760,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const integrations = await storage.getIntegrationsByBrandId(brandId);
-        
+
         // For Instagram, also check instagram_direct provider (conversations may have old platform value)
         let integration = integrations.find((i) => i.provider === provider);
-        
+
         // If no exact match and provider is "instagram", try "instagram_direct"
         if (!integration && provider === "instagram") {
-          integration = integrations.find((i) => i.provider === "instagram_direct");
+          integration = integrations.find(
+            (i) => i.provider === "instagram_direct",
+          );
           if (integration) {
-            console.log(`🔄 Found instagram_direct integration for instagram request`);
+            console.log(
+              `🔄 Found instagram_direct integration for instagram request`,
+            );
           }
         }
 
@@ -6427,7 +6784,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .status(404)
             .json({ error: `No ${provider} integration found for brand` });
         }
-        
+
         // Use the actual provider from the integration for subsequent logic
         const actualProvider = integration.provider;
 
@@ -6536,7 +6893,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // =========================================================
         // 🟣 INSTAGRAM / THREADS (via Facebook)
         // =========================================================
-        else if (actualProvider === "instagram" || actualProvider === "threads") {
+        else if (
+          actualProvider === "instagram" ||
+          actualProvider === "threads"
+        ) {
           console.log(
             `💬 [Instagram/Threads] Sending message to conversation ${conversationId}`,
           );
@@ -6591,7 +6951,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Instagram Direct uses the IGBA ID (accountId) for messaging
           const igbaId = integration.accountId;
           if (!igbaId)
-            throw new Error("No se encontró el IGBA ID de la cuenta Instagram.");
+            throw new Error(
+              "No se encontró el IGBA ID de la cuenta Instagram.",
+            );
 
           console.log(`🆔 IGBA ID: ${igbaId}`);
 
@@ -6604,10 +6966,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (parts.length >= 2) {
             // The recipient ID is the second part
             recipientId = parts[1];
-            console.log(`📍 Recipient ID extracted from conversation ID: ${recipientId}`);
+            console.log(
+              `📍 Recipient ID extracted from conversation ID: ${recipientId}`,
+            );
           } else {
             // Fallback: try to get from local messages
-            console.log("⚠️ Could not extract recipient from conversation ID, trying local DB...");
+            console.log(
+              "⚠️ Could not extract recipient from conversation ID, trying local DB...",
+            );
             const localMessages = await storage.findMessagesByConversation(
               userId,
               integration.id,
@@ -6624,7 +6990,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               return res
                 .status(400)
-                .json({ error: "No se pudo determinar el destinatario de Instagram Direct" });
+                .json({
+                  error:
+                    "No se pudo determinar el destinatario de Instagram Direct",
+                });
             }
           }
 
@@ -6633,7 +7002,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Instagram Direct uses /me/messages endpoint with Bearer token
           // Per Meta's API docs, uses Authorization header instead of access_token param
           url = `https://graph.instagram.com/v21.0/me/messages`;
-          
+
           // Build payload - Instagram Direct API expects stringified JSON for message and recipient
           payload = {
             recipient: JSON.stringify({ id: recipientId }),
@@ -6641,7 +7010,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           console.log("✅ [Instagram Direct] Payload final:", payload);
-          console.log("✅ [Instagram Direct] Using Authorization Bearer header");
+          console.log(
+            "✅ [Instagram Direct] Using Authorization Bearer header",
+          );
         }
 
         // =========================================================
@@ -6693,40 +7064,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 📱 WHATSAPP BAILEYS (QR CODE)
         // =========================================================
         else if (actualProvider === "whatsapp_baileys") {
-          console.log(`💬 [WhatsApp Baileys] Sending message to ${conversationId}`);
-          
+          console.log(
+            `💬 [WhatsApp Baileys] Sending message to ${conversationId}`,
+          );
+
           // Extract phone number from conversationId (format: whatsapp_5217712409254)
           const parts = conversationId.split("_");
           let phoneNumber = conversationId;
           if (parts.length >= 2 && parts[0] === "whatsapp") {
             phoneNumber = parts.slice(1).join("_");
           }
-          
+
           console.log(`📱 [WhatsApp Baileys] Phone number: ${phoneNumber}`);
-          
+
           if (!whatsappBaileysService) {
-            return res.status(503).json({ error: "WhatsApp QR service not available" });
+            return res
+              .status(503)
+              .json({ error: "WhatsApp QR service not available" });
           }
-          
+
           // Send message using Baileys service
           const sendResult = await whatsappBaileysService.sendMessage(
             userId,
             brandId,
             phoneNumber,
-            content
+            content,
           );
-          
+
           if (!sendResult.success) {
-            console.error(`❌ [WhatsApp Baileys] Send error:`, sendResult.error);
-            return res.status(400).json({ error: sendResult.error || "Failed to send message" });
+            console.error(
+              `❌ [WhatsApp Baileys] Send error:`,
+              sendResult.error,
+            );
+            return res
+              .status(400)
+              .json({ error: sendResult.error || "Failed to send message" });
           }
-          
-          console.log(`✅ [WhatsApp Baileys] Message sent, ID: ${sendResult.messageId}`);
-          
+
+          console.log(
+            `✅ [WhatsApp Baileys] Message sent, ID: ${sendResult.messageId}`,
+          );
+
           // Get or create conversation
-          metaConversationId = conversationId.startsWith("whatsapp_") ? conversationId : `whatsapp_${phoneNumber}`;
+          metaConversationId = conversationId.startsWith("whatsapp_")
+            ? conversationId
+            : `whatsapp_${phoneNumber}`;
           recipientId = phoneNumber;
-          
+
           // Save message to database
           const conversation = await storage.getOrCreateConversation({
             integrationId: integration.id,
@@ -6737,7 +7121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastMessage: content,
             lastMessageAt: new Date(),
           });
-          
+
           await storage.createMessage({
             userId,
             integrationId: integration.id,
@@ -6754,7 +7138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             timestamp: new Date(),
             messageType: "text",
           });
-          
+
           // Emit socket event for real-time update
           if (io) {
             io.to(`brand:${brandId}`).emit("new_message", {
@@ -6769,7 +7153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               },
             });
           }
-          
+
           return res.json({
             success: true,
             messageId: sendResult.messageId,
@@ -6792,15 +7176,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("📦 Payload:", JSON.stringify(payload, null, 2));
 
         let response;
-        
+
         // Instagram Direct uses Authorization header instead of access_token param
         if (actualProvider === "instagram_direct") {
-          console.log("🔐 Using Authorization Bearer header for Instagram Direct");
+          console.log(
+            "🔐 Using Authorization Bearer header for Instagram Direct",
+          );
           response = await fetch(url, {
             method: "POST",
-            headers: { 
+            headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${integration.accessToken}`
+              Authorization: `Bearer ${integration.accessToken}`,
             },
             body: JSON.stringify(payload),
           });
@@ -6869,7 +7255,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               lastMessage: content,
               lastMessageAt: new Date(),
             });
-            console.log(`📝 Conversation ${messageConversationId} updated with lastMessage`);
+            console.log(
+              `📝 Conversation ${messageConversationId} updated with lastMessage`,
+            );
           }
         }
 
@@ -7918,14 +8306,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate state with user info (domainPrefix is optional)
       const state = Buffer.from(
-        JSON.stringify({ userId, brandId, domainPrefix, timestamp: Date.now() })
+        JSON.stringify({
+          userId,
+          brandId,
+          domainPrefix,
+          timestamp: Date.now(),
+        }),
       ).toString("base64");
 
       // Store state in session for verification
       (req.session as any).lightspeedOAuthState = state;
 
       const authUrl = lightspeedService.generateAuthUrl(state, domainPrefix);
-      console.log("🔗 Lightspeed OAuth URL generated for brand:", brandId, domainPrefix ? `domain: ${domainPrefix}` : "(domain from callback)");
+      console.log(
+        "🔗 Lightspeed OAuth URL generated for brand:",
+        brandId,
+        domainPrefix ? `domain: ${domainPrefix}` : "(domain from callback)",
+      );
 
       res.json({ authUrl });
     } catch (error) {
@@ -7961,26 +8358,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Decode state
-      let stateData: { userId: string; brandId: string; domainPrefix?: string; timestamp: number };
+      let stateData: {
+        userId: string;
+        brandId: string;
+        domainPrefix?: string;
+        timestamp: number;
+      };
       try {
-        stateData = JSON.parse(Buffer.from(state as string, "base64").toString());
+        stateData = JSON.parse(
+          Buffer.from(state as string, "base64").toString(),
+        );
       } catch (e) {
         return res.status(400).send("Invalid OAuth state");
       }
 
       // Get domain_prefix from query params (Lightspeed returns it) or fall back to state
-      const domainPrefix = (queryDomainPrefix as string) || stateData.domainPrefix;
-      
+      const domainPrefix =
+        (queryDomainPrefix as string) || stateData.domainPrefix;
+
       if (!domainPrefix) {
-        return res.status(400).send("Missing domain prefix from Lightspeed callback");
+        return res
+          .status(400)
+          .send("Missing domain prefix from Lightspeed callback");
       }
 
-      console.log("📥 Using domain prefix:", domainPrefix, queryDomainPrefix ? "(from callback)" : "(from state)");
+      console.log(
+        "📥 Using domain prefix:",
+        domainPrefix,
+        queryDomainPrefix ? "(from callback)" : "(from state)",
+      );
 
       // Exchange code for tokens using domain from state
       const tokens = await lightspeedService.exchangeCodeForToken(
         code as string,
-        domainPrefix
+        domainPrefix,
       );
 
       console.log("✅ Lightspeed tokens received:", {
@@ -7992,7 +8403,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Ensure user exists in the database before creating integration
       const existingUser = await storage.getUser(stateData.userId);
       if (!existingUser) {
-        console.log("📝 Creating user for Lightspeed integration:", stateData.userId);
+        console.log(
+          "📝 Creating user for Lightspeed integration:",
+          stateData.userId,
+        );
         await storage.createUser({
           id: stateData.userId,
           email: `user-${stateData.userId.substring(0, 8)}@lightspeed.temp`,
@@ -8006,7 +8420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stateData.userId,
         stateData.brandId,
         domainPrefix,
-        tokens
+        tokens,
       );
 
       console.log("✅ Lightspeed integration created:", integrationId);
@@ -8018,20 +8432,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         if (integration) {
-          const customerCount = await lightspeedService.syncCustomers(integration);
+          const customerCount =
+            await lightspeedService.syncCustomers(integration);
           const salesCount = await lightspeedService.syncSales(integration);
-          console.log(`✅ Initial sync completed: ${customerCount} customers, ${salesCount} sales`);
+          console.log(
+            `✅ Initial sync completed: ${customerCount} customers, ${salesCount} sales`,
+          );
 
           // Register webhooks for real-time updates
           try {
-            const webhooks = await lightspeedService.registerWebhooks(integration);
+            const webhooks =
+              await lightspeedService.registerWebhooks(integration);
             console.log(`✅ Webhooks registered:`, webhooks);
           } catch (webhookError) {
-            console.error("Failed to register webhooks (sync still completed):", webhookError);
+            console.error(
+              "Failed to register webhooks (sync still completed):",
+              webhookError,
+            );
           }
         }
       } catch (syncError) {
-        console.error("Initial sync failed (integration still created):", syncError);
+        console.error(
+          "Initial sync failed (integration still created):",
+          syncError,
+        );
       }
 
       // Send success page that closes the popup
@@ -8087,7 +8511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           <head><title>Error</title></head>
           <body>
             <h1>Connection Failed</h1>
-            <p>${error instanceof Error ? error.message : 'Unknown error occurred'}</p>
+            <p>${error instanceof Error ? error.message : "Unknown error occurred"}</p>
             <script>
               setTimeout(() => window.close(), 5000);
             </script>
@@ -8101,13 +8525,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/lightspeed/status", isAuthenticated, async (req: any, res) => {
     try {
       const brandId = req.query.brandId as string;
-      
+
       if (!brandId) {
         return res.status(400).json({ message: "Brand ID is required" });
       }
 
-      const integration = await lightspeedService.getIntegrationByBrand(brandId);
-      
+      const integration =
+        await lightspeedService.getIntegrationByBrand(brandId);
+
       if (!integration) {
         return res.json({ connected: false });
       }
@@ -8142,17 +8567,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Brand ID is required" });
       }
 
-      const integration = await lightspeedService.getIntegrationByBrand(brandId);
-      
+      const integration =
+        await lightspeedService.getIntegrationByBrand(brandId);
+
       if (!integration) {
-        return res.status(404).json({ message: "Lightspeed integration not found" });
+        return res
+          .status(404)
+          .json({ message: "Lightspeed integration not found" });
       }
 
       const customerCount = await lightspeedService.syncCustomers(integration);
       const salesCount = await lightspeedService.syncSales(integration);
-      
+
       // Also re-link existing sales with customers
-      const relinkResult = await lightspeedService.relinkSalesWithCustomers(integration);
+      const relinkResult =
+        await lightspeedService.relinkSalesWithCustomers(integration);
 
       res.json({
         success: true,
@@ -8177,13 +8606,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Brand ID is required" });
       }
 
-      const integration = await lightspeedService.getIntegrationByBrand(brandId);
-      
+      const integration =
+        await lightspeedService.getIntegrationByBrand(brandId);
+
       if (!integration) {
-        return res.status(404).json({ message: "Lightspeed integration not found" });
+        return res
+          .status(404)
+          .json({ message: "Lightspeed integration not found" });
       }
 
-      const result = await lightspeedService.relinkSalesWithCustomers(integration);
+      const result =
+        await lightspeedService.relinkSalesWithCustomers(integration);
 
       res.json({
         success: true,
@@ -8191,61 +8624,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error re-linking Lightspeed sales:", error);
-      res.status(500).json({ message: "Failed to re-link sales with customers" });
+      res
+        .status(500)
+        .json({ message: "Failed to re-link sales with customers" });
     }
   });
 
   // Force re-sync: Delete all sales and re-fetch from Lightspeed (fixes missing customer_id)
-  app.post("/api/lightspeed/force-resync", isAuthenticated, async (req: any, res) => {
-    try {
-      const brandId = req.body?.brandId as string;
-      const daysBack = parseInt(req.body?.daysBack) || 90;
+  app.post(
+    "/api/lightspeed/force-resync",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const brandId = req.body?.brandId as string;
+        const daysBack = parseInt(req.body?.daysBack) || 90;
 
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        const integration =
+          await lightspeedService.getIntegrationByBrand(brandId);
+
+        if (!integration) {
+          return res
+            .status(404)
+            .json({ message: "Lightspeed integration not found" });
+        }
+
+        console.log(
+          `Force re-sync requested for brand ${brandId}, daysBack: ${daysBack}`,
+        );
+        const result = await lightspeedService.forceResyncSales(
+          integration,
+          daysBack,
+        );
+
+        res.json({
+          success: true,
+          ...result,
+        });
+      } catch (error) {
+        console.error("Error force re-syncing Lightspeed sales:", error);
+        res.status(500).json({ message: "Failed to force re-sync sales" });
       }
-
-      const integration = await lightspeedService.getIntegrationByBrand(brandId);
-      
-      if (!integration) {
-        return res.status(404).json({ message: "Lightspeed integration not found" });
-      }
-
-      console.log(`Force re-sync requested for brand ${brandId}, daysBack: ${daysBack}`);
-      const result = await lightspeedService.forceResyncSales(integration, daysBack);
-
-      res.json({
-        success: true,
-        ...result,
-      });
-    } catch (error) {
-      console.error("Error force re-syncing Lightspeed sales:", error);
-      res.status(500).json({ message: "Failed to force re-sync sales" });
-    }
-  });
+    },
+  );
 
   // Get Lightspeed customers for a brand
-  app.get("/api/lightspeed/customers", isAuthenticated, async (req: any, res) => {
-    try {
-      const brandId = req.query.brandId as string;
+  app.get(
+    "/api/lightspeed/customers",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const brandId = req.query.brandId as string;
 
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        const integration =
+          await lightspeedService.getIntegrationByBrand(brandId);
+
+        if (!integration) {
+          return res
+            .status(404)
+            .json({ message: "Lightspeed integration not found" });
+        }
+
+        const customers = await lightspeedService.getCustomers(integration.id);
+        res.json(customers);
+      } catch (error) {
+        console.error("Error fetching Lightspeed customers:", error);
+        res.status(500).json({ message: "Failed to fetch customers" });
       }
-
-      const integration = await lightspeedService.getIntegrationByBrand(brandId);
-      
-      if (!integration) {
-        return res.status(404).json({ message: "Lightspeed integration not found" });
-      }
-
-      const customers = await lightspeedService.getCustomers(integration.id);
-      res.json(customers);
-    } catch (error) {
-      console.error("Error fetching Lightspeed customers:", error);
-      res.status(500).json({ message: "Failed to fetch customers" });
-    }
-  });
+    },
+  );
 
   // Get Lightspeed sales for a brand
   app.get("/api/lightspeed/sales", isAuthenticated, async (req: any, res) => {
@@ -8257,10 +8711,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Brand ID is required" });
       }
 
-      const integration = await lightspeedService.getIntegrationByBrand(brandId);
-      
+      const integration =
+        await lightspeedService.getIntegrationByBrand(brandId);
+
       if (!integration) {
-        return res.status(404).json({ message: "Lightspeed integration not found" });
+        return res
+          .status(404)
+          .json({ message: "Lightspeed integration not found" });
       }
 
       const sales = await lightspeedService.getSales(integration.id, limit);
@@ -8272,114 +8729,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Disconnect Lightspeed integration
-  app.delete("/api/lightspeed/disconnect", isAuthenticated, async (req: any, res) => {
-    try {
-      // Accept brandId from query params (for DELETE) or body
-      const brandId = (req.query.brandId || req.body.brandId) as string;
+  app.delete(
+    "/api/lightspeed/disconnect",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        // Accept brandId from query params (for DELETE) or body
+        const brandId = (req.query.brandId || req.body.brandId) as string;
 
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        const integration =
+          await lightspeedService.getIntegrationByBrand(brandId);
+
+        if (!integration) {
+          return res
+            .status(404)
+            .json({ message: "Lightspeed integration not found" });
+        }
+
+        await lightspeedService.disconnectIntegration(integration.id);
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error disconnecting Lightspeed:", error);
+        res.status(500).json({ message: "Failed to disconnect Lightspeed" });
       }
-
-      const integration = await lightspeedService.getIntegrationByBrand(brandId);
-      
-      if (!integration) {
-        return res.status(404).json({ message: "Lightspeed integration not found" });
-      }
-
-      await lightspeedService.disconnectIntegration(integration.id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error disconnecting Lightspeed:", error);
-      res.status(500).json({ message: "Failed to disconnect Lightspeed" });
-    }
-  });
+    },
+  );
 
   // Lightspeed Webhook endpoint - receives real-time updates for sales and customers
-  app.post("/api/lightspeed/webhook", express.urlencoded({ extended: true }), async (req: any, res) => {
-    try {
-      const signatureHeader = req.headers['x-signature'] as string;
-      const rawBody = JSON.stringify(req.body);
-      
-      // Verify webhook signature (optional - some webhooks may not have signatures)
-      if (signatureHeader) {
-        const isValid = lightspeedService.verifyWebhookSignature(rawBody, signatureHeader);
-        if (!isValid) {
-          console.warn('⚠️ Lightspeed webhook signature verification failed');
-          // Continue processing anyway for now, as signature verification can be tricky
+  app.post(
+    "/api/lightspeed/webhook",
+    express.urlencoded({ extended: true }),
+    async (req: any, res) => {
+      try {
+        const signatureHeader = req.headers["x-signature"] as string;
+        const rawBody = JSON.stringify(req.body);
+
+        // Verify webhook signature (optional - some webhooks may not have signatures)
+        if (signatureHeader) {
+          const isValid = lightspeedService.verifyWebhookSignature(
+            rawBody,
+            signatureHeader,
+          );
+          if (!isValid) {
+            console.warn("⚠️ Lightspeed webhook signature verification failed");
+            // Continue processing anyway for now, as signature verification can be tricky
+          }
         }
+
+        // Parse the payload from the form data
+        const payloadString = req.body.payload;
+        if (!payloadString) {
+          console.log("📥 Lightspeed webhook received (no payload):", req.body);
+          return res.status(200).send("OK");
+        }
+
+        const payload = JSON.parse(payloadString);
+        const eventType = req.body.type || "unknown";
+
+        console.log(`📥 Lightspeed webhook received: ${eventType}`);
+
+        // Process the webhook event asynchronously
+        lightspeedService
+          .processWebhookEvent(eventType, payload)
+          .catch((err) => console.error("Error processing webhook:", err));
+
+        // Always respond quickly with 200 OK
+        res.status(200).send("OK");
+      } catch (error) {
+        console.error("Error handling Lightspeed webhook:", error);
+        // Still return 200 to prevent Lightspeed from retrying
+        res.status(200).send("OK");
       }
-
-      // Parse the payload from the form data
-      const payloadString = req.body.payload;
-      if (!payloadString) {
-        console.log('📥 Lightspeed webhook received (no payload):', req.body);
-        return res.status(200).send('OK');
-      }
-
-      const payload = JSON.parse(payloadString);
-      const eventType = req.body.type || 'unknown';
-      
-      console.log(`📥 Lightspeed webhook received: ${eventType}`);
-
-      // Process the webhook event asynchronously
-      lightspeedService.processWebhookEvent(eventType, payload)
-        .catch(err => console.error('Error processing webhook:', err));
-
-      // Always respond quickly with 200 OK
-      res.status(200).send('OK');
-    } catch (error) {
-      console.error("Error handling Lightspeed webhook:", error);
-      // Still return 200 to prevent Lightspeed from retrying
-      res.status(200).send('OK');
-    }
-  });
+    },
+  );
 
   // Register webhooks for a Lightspeed integration
-  app.post("/api/lightspeed/webhooks/register", isAuthenticated, async (req: any, res) => {
-    try {
-      const brandId = req.body.brandId as string;
+  app.post(
+    "/api/lightspeed/webhooks/register",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const brandId = req.body.brandId as string;
 
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        const integration =
+          await lightspeedService.getIntegrationByBrand(brandId);
+
+        if (!integration) {
+          return res
+            .status(404)
+            .json({ message: "Lightspeed integration not found" });
+        }
+
+        const webhooks = await lightspeedService.registerWebhooks(integration);
+        res.json({ success: true, webhooks });
+      } catch (error) {
+        console.error("Error registering Lightspeed webhooks:", error);
+        res.status(500).json({ message: "Failed to register webhooks" });
       }
-
-      const integration = await lightspeedService.getIntegrationByBrand(brandId);
-      
-      if (!integration) {
-        return res.status(404).json({ message: "Lightspeed integration not found" });
-      }
-
-      const webhooks = await lightspeedService.registerWebhooks(integration);
-      res.json({ success: true, webhooks });
-    } catch (error) {
-      console.error("Error registering Lightspeed webhooks:", error);
-      res.status(500).json({ message: "Failed to register webhooks" });
-    }
-  });
+    },
+  );
 
   // List webhooks for a Lightspeed integration
-  app.get("/api/lightspeed/webhooks", isAuthenticated, async (req: any, res) => {
-    try {
-      const brandId = req.query.brandId as string;
+  app.get(
+    "/api/lightspeed/webhooks",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const brandId = req.query.brandId as string;
 
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        const integration =
+          await lightspeedService.getIntegrationByBrand(brandId);
+
+        if (!integration) {
+          return res
+            .status(404)
+            .json({ message: "Lightspeed integration not found" });
+        }
+
+        const webhooks = await lightspeedService.listWebhooks(integration);
+        res.json(webhooks);
+      } catch (error) {
+        console.error("Error listing Lightspeed webhooks:", error);
+        res.status(500).json({ message: "Failed to list webhooks" });
       }
-
-      const integration = await lightspeedService.getIntegrationByBrand(brandId);
-      
-      if (!integration) {
-        return res.status(404).json({ message: "Lightspeed integration not found" });
-      }
-
-      const webhooks = await lightspeedService.listWebhooks(integration);
-      res.json(webhooks);
-    } catch (error) {
-      console.error("Error listing Lightspeed webhooks:", error);
-      res.status(500).json({ message: "Failed to list webhooks" });
-    }
-  });
+    },
+  );
 
   // POS Integration routes
   // Get user's POS integrations
@@ -9330,19 +9816,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId,
           message,
           conversationHistory || [],
-          language || "es"
+          language || "es",
         );
 
-        res.json({ 
+        res.json({
           response: chatResponse.text,
           image: chatResponse.image,
-          imagePrompt: chatResponse.imagePrompt
+          imagePrompt: chatResponse.imagePrompt,
         });
       } catch (error) {
         console.error("Error in Boosty chat:", error);
         res.status(500).json({ error: "Failed to process chat message" });
       }
-    }
+    },
   );
 
   app.get(
@@ -9358,7 +9844,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const suggestions = await boostyService.getQuickSuggestions(
           brandId,
           userId,
-          language as "es" | "en"
+          language as "es" | "en",
         );
 
         res.json({ suggestions });
@@ -9366,7 +9852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error getting Boosty suggestions:", error);
         res.status(500).json({ error: "Failed to get suggestions" });
       }
-    }
+    },
   );
 
   app.get(
@@ -9385,7 +9871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error getting brand context:", error);
         res.status(500).json({ error: "Failed to get brand context" });
       }
-    }
+    },
   );
 
   // Demo data population function
