@@ -1364,7 +1364,6 @@ export default function Onboarding() {
     },
   });
 
-  // File upload handlers
   function uploadFileWithProgress(
     file: File,
     onProgress: (pct: number) => void,
@@ -1372,20 +1371,37 @@ export default function Onboarding() {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       const fd = new FormData();
+
+      // Detect Cloudinary resource type
+      let resourceType = "raw";
+
+      if (file.type.startsWith("image/")) {
+        resourceType = "image";
+      } else if (file.type.startsWith("video/")) {
+        resourceType = "video";
+      }
+
+      // Correct Cloudinary endpoint
+      const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+
       fd.append("file", file);
       fd.append("upload_preset", uploadPreset);
 
-      xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/upload`);
+      xhr.open("POST", endpoint);
+
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
           onProgress(Math.round((e.loaded / e.total) * 100));
         }
       };
+
       xhr.onload = () => {
         if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
         else reject(new Error(`Upload failed: ${xhr.status}`));
       };
+
       xhr.onerror = () => reject(new Error("Upload error"));
+
       xhr.send(fd);
     });
   }
