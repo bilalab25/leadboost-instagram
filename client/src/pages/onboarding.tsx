@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -85,6 +85,8 @@ import {
   MessageCircle,
   Calendar,
   X,
+  MicOff,
+  Mic,
 } from "lucide-react";
 import {
   SiFacebook,
@@ -327,8 +329,8 @@ const INTEGRATION_CATEGORIES = {
 // Removed brandColor from the schema as per requirements
 const createBrandSchema = z.object({
   name: z.string().min(1, "Brand name is required"),
-  industry: z.string().optional(),
-  description: z.string().optional(),
+  industry: z.string().min(1, "Industry is required"),
+  description: z.string().min(1, "Description is required"),
 });
 
 const joinBrandSchema = z.object({
@@ -451,23 +453,55 @@ export default function Onboarding() {
   const [hasLoadedFromDb, setHasLoadedFromDb] = useState(false);
   const [isOtherIndustry, setIsOtherIndustry] = useState(false);
   const [customIndustry, setCustomIndustry] = useState("");
-  
+
   const INDUSTRY_OPTIONS = [
     { value: "technology", labelEn: "Technology", labelEs: "Tecnología" },
     { value: "retail", labelEn: "Retail", labelEs: "Retail" },
     { value: "healthcare", labelEn: "Healthcare", labelEs: "Salud" },
-    { value: "finance", labelEn: "Finance & Banking", labelEs: "Finanzas y Banca" },
+    {
+      value: "finance",
+      labelEn: "Finance & Banking",
+      labelEs: "Finanzas y Banca",
+    },
     { value: "education", labelEn: "Education", labelEs: "Educación" },
-    { value: "hospitality", labelEn: "Hospitality & Tourism", labelEs: "Hotelería y Turismo" },
-    { value: "food", labelEn: "Food & Beverage", labelEs: "Alimentos y Bebidas" },
-    { value: "beauty", labelEn: "Beauty & Cosmetics", labelEs: "Belleza y Cosméticos" },
+    {
+      value: "hospitality",
+      labelEn: "Hospitality & Tourism",
+      labelEs: "Hotelería y Turismo",
+    },
+    {
+      value: "food",
+      labelEn: "Food & Beverage",
+      labelEs: "Alimentos y Bebidas",
+    },
+    {
+      value: "beauty",
+      labelEn: "Beauty & Cosmetics",
+      labelEs: "Belleza y Cosméticos",
+    },
     { value: "fashion", labelEn: "Fashion & Apparel", labelEs: "Moda y Ropa" },
     { value: "automotive", labelEn: "Automotive", labelEs: "Automotriz" },
     { value: "realestate", labelEn: "Real Estate", labelEs: "Bienes Raíces" },
-    { value: "sports", labelEn: "Sports & Fitness", labelEs: "Deportes y Fitness" },
-    { value: "entertainment", labelEn: "Entertainment & Media", labelEs: "Entretenimiento y Medios" },
-    { value: "professional", labelEn: "Professional Services", labelEs: "Servicios Profesionales" },
-    { value: "nonprofit", labelEn: "Nonprofit & NGO", labelEs: "Sin Fines de Lucro / ONG" },
+    {
+      value: "sports",
+      labelEn: "Sports & Fitness",
+      labelEs: "Deportes y Fitness",
+    },
+    {
+      value: "entertainment",
+      labelEn: "Entertainment & Media",
+      labelEs: "Entretenimiento y Medios",
+    },
+    {
+      value: "professional",
+      labelEn: "Professional Services",
+      labelEs: "Servicios Profesionales",
+    },
+    {
+      value: "nonprofit",
+      labelEn: "Nonprofit & NGO",
+      labelEs: "Sin Fines de Lucro / ONG",
+    },
     { value: "other", labelEn: "Other", labelEs: "Otro" },
   ];
   const [, setLocation] = useLocation();
@@ -490,11 +524,23 @@ export default function Onboarding() {
 
   // Mutation to update onboarding step in DB
   const updateOnboardingStepMutation = useMutation({
-    mutationFn: async ({ brandId, step, completed }: { brandId: string; step?: number; completed?: boolean }) => {
-      const res = await apiRequest("PATCH", `/api/brands/${brandId}/onboarding`, {
-        onboardingStep: step,
-        onboardingCompleted: completed,
-      });
+    mutationFn: async ({
+      brandId,
+      step,
+      completed,
+    }: {
+      brandId: string;
+      step?: number;
+      completed?: boolean;
+    }) => {
+      const res = await apiRequest(
+        "PATCH",
+        `/api/brands/${brandId}/onboarding`,
+        {
+          onboardingStep: step,
+          onboardingCompleted: completed,
+        },
+      );
       if (!res.ok) throw new Error("Failed to update onboarding step");
       return res.json();
     },
@@ -505,7 +551,7 @@ export default function Onboarding() {
     if (!hasLoadedFromDb && onboardingProgress && !isLoadingProgress) {
       const urlParams = new URLSearchParams(window.location.search);
       const stepFromUrl = urlParams.get("step");
-      
+
       // If returning from OAuth with step param, use that
       if (stepFromUrl) {
         setCurrentStep(parseInt(stepFromUrl, 10));
@@ -519,7 +565,10 @@ export default function Onboarding() {
 
       if (onboardingProgress.hasIncompleteBrand && onboardingProgress.brand) {
         // Resume incomplete onboarding from DB
-        console.log("Resuming onboarding from step:", onboardingProgress.onboardingStep);
+        console.log(
+          "Resuming onboarding from step:",
+          onboardingProgress.onboardingStep,
+        );
         setCreatedBrandId(onboardingProgress.brand.id);
         setCurrentStep(onboardingProgress.onboardingStep || 1);
         setMode("create");
@@ -599,20 +648,20 @@ export default function Onboarding() {
     if (error) {
       const message = urlParams.get("message");
       let errorDescription = "";
-      
+
       if (error === "duplicate") {
         // Account already connected to another brand
-        errorDescription = message 
+        errorDescription = message
           ? decodeURIComponent(message)
-          : (isSpanish 
+          : isSpanish
             ? "Esta cuenta ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca."
-            : "This account is already connected to another brand in the platform. Please use a different account or disconnect it first from the other brand.");
+            : "This account is already connected to another brand in the platform. Please use a different account or disconnect it first from the other brand.";
       } else {
         errorDescription = isSpanish
           ? `No se pudo conectar ${provider || "la integración"}: ${message || error}`
           : `Failed to connect ${provider || "integration"}: ${message || error}`;
       }
-      
+
       toast({
         title: isSpanish ? "Error de conexión" : "Connection Error",
         description: errorDescription,
@@ -686,10 +735,12 @@ export default function Onboarding() {
   const [isBaileysConnecting, setIsBaileysConnecting] = useState(false);
   const [baileysPollingInterval, setBaileysPollingInterval] =
     useState<NodeJS.Timeout | null>(null);
-  
+
   // Instagram and WhatsApp method selection modals
-  const [isInstagramMethodDialogOpen, setIsInstagramMethodDialogOpen] = useState(false);
-  const [isWhatsAppMethodDialogOpen, setIsWhatsAppMethodDialogOpen] = useState(false);
+  const [isInstagramMethodDialogOpen, setIsInstagramMethodDialogOpen] =
+    useState(false);
+  const [isWhatsAppMethodDialogOpen, setIsWhatsAppMethodDialogOpen] =
+    useState(false);
 
   // Step 5: Posting Frequency state
   interface PlatformSchedule {
@@ -1010,12 +1061,12 @@ export default function Onboarding() {
       setIsInstagramMethodDialogOpen(true);
       return;
     }
-    
+
     if (provider === "whatsapp" || provider === "whatsapp_baileys") {
       setIsWhatsAppMethodDialogOpen(true);
       return;
     }
-    
+
     setConnectingProvider(provider);
     let url = "";
 
@@ -1035,17 +1086,20 @@ export default function Onboarding() {
     // Navigate in same window instead of opening new tab
     window.location.href = url;
   };
-  
+
   // Direct connection handlers for specific methods
   const handleInstagramConnect = (method: "facebook" | "direct") => {
     setIsInstagramMethodDialogOpen(false);
-    setConnectingProvider(method === "facebook" ? "instagram" : "instagram_direct");
-    const url = method === "facebook" 
-      ? `/api/integrations/facebook/connect?brandId=${effectiveBrandId}&origin=onboarding`
-      : `/api/integrations/instagram/connect?brandId=${effectiveBrandId}&origin=onboarding`;
+    setConnectingProvider(
+      method === "facebook" ? "instagram" : "instagram_direct",
+    );
+    const url =
+      method === "facebook"
+        ? `/api/integrations/facebook/connect?brandId=${effectiveBrandId}&origin=onboarding`
+        : `/api/integrations/instagram/connect?brandId=${effectiveBrandId}&origin=onboarding`;
     window.location.href = url;
   };
-  
+
   const handleWhatsAppConnect = (method: "business" | "baileys") => {
     if (method === "business") {
       setIsWhatsAppMethodDialogOpen(false);
@@ -1066,7 +1120,7 @@ export default function Onboarding() {
         {
           method: "DELETE",
           credentials: "include",
-        }
+        },
       );
       if (!res.ok) {
         throw new Error("Failed to disconnect");
@@ -1200,7 +1254,7 @@ export default function Onboarding() {
         setCreatedBrandId(data.brand.id);
         setActiveBrandId(data.brand.id);
         setCurrentStep(2);
-        
+
         // Save step 2 to database
         updateOnboardingStepMutation.mutate({
           brandId: String(data.brand.id),
@@ -1561,7 +1615,7 @@ export default function Onboarding() {
     }
     const nextStep = Math.min(currentStep + 1, totalSteps);
     setCurrentStep(nextStep);
-    
+
     // Save step progress to database
     if (createdBrandId) {
       updateOnboardingStepMutation.mutate({
@@ -1574,7 +1628,7 @@ export default function Onboarding() {
   const handlePrevStep = () => {
     const prevStep = Math.max(currentStep - 1, 1);
     setCurrentStep(prevStep);
-    
+
     // Save step progress to database
     if (createdBrandId) {
       updateOnboardingStepMutation.mutate({
@@ -1596,7 +1650,7 @@ export default function Onboarding() {
         console.error("Failed to mark onboarding as completed:", error);
       }
     }
-    
+
     clearOnboardingState();
     toast({
       title: isSpanish ? "¡Onboarding completado!" : "Onboarding complete!",
@@ -1989,7 +2043,7 @@ export default function Onboarding() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          {isSpanish ? "Industria" : "Industry"}
+                          {isSpanish ? "Industria" : "Industry"}*
                         </FormLabel>
                         <Select
                           value={isOtherIndustry ? "other" : field.value || ""}
@@ -2000,21 +2054,36 @@ export default function Onboarding() {
                             } else {
                               setIsOtherIndustry(false);
                               setCustomIndustry("");
-                              const option = INDUSTRY_OPTIONS.find(opt => opt.value === value);
-                              field.onChange(option ? (isSpanish ? option.labelEs : option.labelEn) : value);
+                              const option = INDUSTRY_OPTIONS.find(
+                                (opt) => opt.value === value,
+                              );
+                              field.onChange(
+                                option
+                                  ? isSpanish
+                                    ? option.labelEs
+                                    : option.labelEn
+                                  : value,
+                              );
                             }
                           }}
                         >
                           <FormControl>
                             <SelectTrigger data-testid="select-brand-industry">
-                              <SelectValue 
-                                placeholder={isSpanish ? "Selecciona una industria" : "Select an industry"} 
+                              <SelectValue
+                                placeholder={
+                                  isSpanish
+                                    ? "Selecciona una industria"
+                                    : "Select an industry"
+                                }
                               />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {INDUSTRY_OPTIONS.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
                                 {isSpanish ? option.labelEs : option.labelEn}
                               </SelectItem>
                             ))}
@@ -2044,26 +2113,88 @@ export default function Onboarding() {
                   <FormField
                     control={createForm.control}
                     name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {isSpanish ? "Descripción" : "Description"}
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder={
-                              isSpanish
-                                ? "Cuéntanos sobre tu marca..."
-                                : "Tell us about your brand..."
-                            }
-                            rows={3}
-                            data-testid="textarea-brand-description"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const [listening, setListening] = useState(false);
+                      const recognitionRef = useRef(null);
+
+                      const startListening = () => {
+                        const SpeechRecognition =
+                          window.SpeechRecognition ||
+                          window.webkitSpeechRecognition;
+
+                        if (!SpeechRecognition) {
+                          alert(
+                            "Tu navegador no soporta reconocimiento de voz.",
+                          );
+                          return;
+                        }
+
+                        const recognition = new SpeechRecognition();
+                        recognition.lang = "es-MX";
+                        recognition.continuous = true;
+                        recognition.interimResults = false;
+
+                        recognition.onresult = (event) => {
+                          const transcript =
+                            event.results[event.results.length - 1][0]
+                              .transcript;
+                          field.onChange(
+                            field.value
+                              ? field.value + " " + transcript
+                              : transcript,
+                          );
+                        };
+
+                        recognition.onend = () => setListening(false);
+
+                        recognition.start();
+                        recognitionRef.current = recognition;
+                        setListening(true);
+                      };
+
+                      const stopListening = () => {
+                        recognitionRef.current?.stop();
+                        setListening(false);
+                      };
+
+                      return (
+                        <FormItem>
+                          <FormLabel>
+                            {isSpanish ? "Descripción *" : "Description *"}
+                          </FormLabel>
+
+                          <div className="relative">
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                rows={3}
+                                placeholder={
+                                  isSpanish
+                                    ? "Cuéntanos sobre tu marca..."
+                                    : "Tell us about your brand..."
+                                }
+                              />
+                            </FormControl>
+
+                            <button
+                              type="button"
+                              onClick={
+                                listening ? stopListening : startListening
+                              }
+                              className="absolute right-2 bottom-2 p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+                            >
+                              {listening ? (
+                                <MicOff className="w-4 h-4 text-red-600" />
+                              ) : (
+                                <Mic className="w-4 h-4 text-blue-600" />
+                              )}
+                            </button>
+                          </div>
+
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
 
                   <div className="flex gap-3 pt-4">
@@ -2909,14 +3040,24 @@ export default function Onboarding() {
                                                   : "Connected as"}{" "}
                                                 {connectedIntegration.accountName ||
                                                   connectedIntegration.storeName}
-                                                {connectedIntegration.provider === "instagram_direct" && (
+                                                {connectedIntegration.provider ===
+                                                  "instagram_direct" && (
                                                   <span className="ml-1 text-gray-500">
-                                                    ({isSpanish ? "Directo" : "Direct"})
+                                                    (
+                                                    {isSpanish
+                                                      ? "Directo"
+                                                      : "Direct"}
+                                                    )
                                                   </span>
                                                 )}
-                                                {connectedIntegration.provider === "whatsapp_baileys" && (
+                                                {connectedIntegration.provider ===
+                                                  "whatsapp_baileys" && (
                                                   <span className="ml-1 text-gray-500">
-                                                    ({isSpanish ? "QR Code" : "QR Code"})
+                                                    (
+                                                    {isSpanish
+                                                      ? "QR Code"
+                                                      : "QR Code"}
+                                                    )
                                                   </span>
                                                 )}
                                               </p>
@@ -3057,15 +3198,17 @@ export default function Onboarding() {
                       </p>
                     </div>
                   )}
-                  
+
                   {/* Instagram via Facebook Option */}
                   <div
                     className={`p-4 border rounded-lg transition-all ${
-                      hasAnyInstagram 
-                        ? "opacity-50 cursor-not-allowed bg-gray-50" 
+                      hasAnyInstagram
+                        ? "opacity-50 cursor-not-allowed bg-gray-50"
                         : "cursor-pointer hover:border-pink-300 hover:bg-pink-50/50"
                     }`}
-                    onClick={() => !hasAnyInstagram && handleInstagramConnect("facebook")}
+                    onClick={() =>
+                      !hasAnyInstagram && handleInstagramConnect("facebook")
+                    }
                     data-testid="instagram-facebook-option"
                   >
                     <div className="flex items-center gap-3">
@@ -3074,7 +3217,9 @@ export default function Onboarding() {
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">
-                          {isSpanish ? "Instagram vía Facebook" : "Instagram via Facebook"}
+                          {isSpanish
+                            ? "Instagram vía Facebook"
+                            : "Instagram via Facebook"}
                         </p>
                         <p className="text-sm text-gray-500">
                           {isSpanish
@@ -3084,18 +3229,22 @@ export default function Onboarding() {
                       </div>
                     </div>
                     {hasInstagramViaFacebook && (
-                      <p className="text-xs text-green-600 mt-2">✅ {isSpanish ? "Conectado" : "Connected"}</p>
+                      <p className="text-xs text-green-600 mt-2">
+                        ✅ {isSpanish ? "Conectado" : "Connected"}
+                      </p>
                     )}
                   </div>
 
                   {/* Instagram Direct Option */}
                   <div
                     className={`p-4 border rounded-lg transition-all ${
-                      hasAnyInstagram 
-                        ? "opacity-50 cursor-not-allowed bg-gray-50" 
+                      hasAnyInstagram
+                        ? "opacity-50 cursor-not-allowed bg-gray-50"
                         : "cursor-pointer hover:border-pink-300 hover:bg-pink-50/50"
                     }`}
-                    onClick={() => !hasAnyInstagram && handleInstagramConnect("direct")}
+                    onClick={() =>
+                      !hasAnyInstagram && handleInstagramConnect("direct")
+                    }
                     data-testid="instagram-direct-option"
                   >
                     <div className="flex items-center gap-3">
@@ -3114,7 +3263,9 @@ export default function Onboarding() {
                       </div>
                     </div>
                     {hasInstagramDirect && (
-                      <p className="text-xs text-green-600 mt-2">✅ {isSpanish ? "Conectado" : "Connected"}</p>
+                      <p className="text-xs text-green-600 mt-2">
+                        ✅ {isSpanish ? "Conectado" : "Connected"}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -3159,15 +3310,17 @@ export default function Onboarding() {
                       </p>
                     </div>
                   )}
-                  
+
                   {/* WhatsApp Business (Meta) Option - Recommended */}
                   <div
                     className={`p-4 border-2 border-green-200 rounded-lg transition-all ${
-                      hasAnyWhatsApp 
-                        ? "opacity-50 cursor-not-allowed bg-gray-50" 
+                      hasAnyWhatsApp
+                        ? "opacity-50 cursor-not-allowed bg-gray-50"
                         : "cursor-pointer hover:border-green-400 hover:bg-green-50/50"
                     }`}
-                    onClick={() => !hasAnyWhatsApp && handleWhatsAppConnect("business")}
+                    onClick={() =>
+                      !hasAnyWhatsApp && handleWhatsAppConnect("business")
+                    }
                     data-testid="whatsapp-business-option"
                   >
                     <div className="flex items-center gap-3">
@@ -3177,7 +3330,9 @@ export default function Onboarding() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="font-medium">
-                            {isSpanish ? "WhatsApp Business (Meta)" : "WhatsApp Business (Meta)"}
+                            {isSpanish
+                              ? "WhatsApp Business (Meta)"
+                              : "WhatsApp Business (Meta)"}
                           </p>
                           <Badge className="bg-green-100 text-green-700 text-xs">
                             {isSpanish ? "Recomendado" : "Recommended"}
@@ -3191,18 +3346,22 @@ export default function Onboarding() {
                       </div>
                     </div>
                     {hasWhatsAppBusiness && (
-                      <p className="text-xs text-green-600 mt-2">✅ {isSpanish ? "Conectado" : "Connected"}</p>
+                      <p className="text-xs text-green-600 mt-2">
+                        ✅ {isSpanish ? "Conectado" : "Connected"}
+                      </p>
                     )}
                   </div>
 
                   {/* WhatsApp Baileys (QR Code) Option */}
                   <div
                     className={`p-4 border rounded-lg transition-all ${
-                      hasAnyWhatsApp 
-                        ? "opacity-50 cursor-not-allowed bg-gray-50" 
+                      hasAnyWhatsApp
+                        ? "opacity-50 cursor-not-allowed bg-gray-50"
                         : "cursor-pointer hover:border-orange-300 hover:bg-orange-50/50"
                     }`}
-                    onClick={() => !hasAnyWhatsApp && handleWhatsAppConnect("baileys")}
+                    onClick={() =>
+                      !hasAnyWhatsApp && handleWhatsAppConnect("baileys")
+                    }
                     data-testid="whatsapp-baileys-option"
                   >
                     <div className="flex items-center gap-3">
@@ -3212,9 +3371,14 @@ export default function Onboarding() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="font-medium">
-                            {isSpanish ? "WhatsApp (QR Code)" : "WhatsApp (QR Code)"}
+                            {isSpanish
+                              ? "WhatsApp (QR Code)"
+                              : "WhatsApp (QR Code)"}
                           </p>
-                          <Badge variant="outline" className="text-xs text-orange-600 border-orange-400">
+                          <Badge
+                            variant="outline"
+                            className="text-xs text-orange-600 border-orange-400"
+                          >
                             {isSpanish ? "Experimental" : "Experimental"}
                           </Badge>
                         </div>
@@ -3226,7 +3390,9 @@ export default function Onboarding() {
                       </div>
                     </div>
                     {hasWhatsAppBaileys && (
-                      <p className="text-xs text-green-600 mt-2">✅ {isSpanish ? "Conectado" : "Connected"}</p>
+                      <p className="text-xs text-green-600 mt-2">
+                        ✅ {isSpanish ? "Conectado" : "Connected"}
+                      </p>
                     )}
                   </div>
 
