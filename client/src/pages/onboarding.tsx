@@ -2043,32 +2043,24 @@ export default function Onboarding() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          {isSpanish ? "Industria" : "Industry"}*
+                          {isSpanish ? "Industria *" : "Industry *"}
                         </FormLabel>
+
                         <Select
-                          value={isOtherIndustry ? "other" : field.value || ""}
+                          value={field.value || ""}
                           onValueChange={(value) => {
                             if (value === "other") {
                               setIsOtherIndustry(true);
-                              field.onChange(customIndustry || "");
+                              field.onChange(""); // obligatorio para zod
                             } else {
                               setIsOtherIndustry(false);
                               setCustomIndustry("");
-                              const option = INDUSTRY_OPTIONS.find(
-                                (opt) => opt.value === value,
-                              );
-                              field.onChange(
-                                option
-                                  ? isSpanish
-                                    ? option.labelEs
-                                    : option.labelEn
-                                  : value,
-                              );
+                              field.onChange(value); // <-- value REAL, no label
                             }
                           }}
                         >
                           <FormControl>
-                            <SelectTrigger data-testid="select-brand-industry">
+                            <SelectTrigger>
                               <SelectValue
                                 placeholder={
                                   isSpanish
@@ -2078,6 +2070,7 @@ export default function Onboarding() {
                               />
                             </SelectTrigger>
                           </FormControl>
+
                           <SelectContent>
                             {INDUSTRY_OPTIONS.map((option) => (
                               <SelectItem
@@ -2089,6 +2082,7 @@ export default function Onboarding() {
                             ))}
                           </SelectContent>
                         </Select>
+
                         {isOtherIndustry && (
                           <Input
                             value={customIndustry}
@@ -2102,9 +2096,9 @@ export default function Onboarding() {
                                 : "Enter your industry"
                             }
                             className="mt-2"
-                            data-testid="input-custom-industry"
                           />
                         )}
+
                         <FormMessage />
                       </FormItem>
                     )}
@@ -2326,7 +2320,7 @@ export default function Onboarding() {
                                     </div>
                                   </div>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-3xl">
+                                <DialogContent className="max-w-3xl max-h-screen overflow-y-auto p-0">
                                   <img
                                     src={styleImages[style.id]}
                                     alt={`${style.name} Preview`}
