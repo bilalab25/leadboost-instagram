@@ -734,46 +734,91 @@ interface BrandAssetForImage {
   category?: string;
 }
 
+// 🔹 Helper para elegir 3 assets diferentes cada vez (con prioridad por categoría)
+function pickRandomAssets(assets: BrandAssetForImage[], count = 3) {
+  if (!assets || assets.length === 0) return [];
+
+  const priority: Record<string, number> = {
+    product_images: 1,
+    marketing_banners: 2,
+    logos: 3,
+    general: 4,
+    document_templates: 5,
+    videos: 5,
+  };
+
+  // Ordenar por prioridad
+  const sorted = [...assets].sort((a, b) => {
+    const pa = priority[a.category?.toLowerCase() || "general"] || 99;
+    const pb = priority[b.category?.toLowerCase() || "general"] || 99;
+    return pa - pb;
+  });
+
+  // Mezclar aleatoriamente
+  for (let i = sorted.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+  }
+
+  return sorted.slice(0, count);
+}
+
+// 🔹 FUNCIÓN PRINCIPAL (con los 2 cambios que necesitas)
 export async function generateImageWithNanoBanana(
   imagePrompt: string,
   brandDesign: BrandDesign,
   brandAssets?: BrandAssetForImage[],
 ): Promise<string | null> {
   try {
+    // ==========================================================================================
+    // ✔ Agregar resumen de TODAS las descripciones de assets para mejorar el estilo visual
+    // ==========================================================================================
+    let assetsDescriptionSummary = "";
+
+    if (brandAssets && brandAssets.length > 0) {
+      const summary = brandAssets
+        .map(
+          (a) =>
+            `• ${a.name} (${a.category || "general"}): ${(a as any).description || ""}`,
+        )
+        .join("\n");
+
+      assetsDescriptionSummary = `
+
+### Additional brand visual context:
+Below is a textual description of ALL brand assets. These describe the brand's real aesthetics, textures, lighting, colors, and visual identity. 
+Use this information to match the brand's look and feel in the final generated image:
+
+${summary}
+
+`;
+    }
+
+    // ==========================================================================================
+    // ✔ Prompt final con resúmenes incluidos (no cambia tu estructura original)
+    // ==========================================================================================
     const enhancedPrompt = `${imagePrompt}. 
-    Style: ${brandDesign.brandStyle || "modern and professional"}. 
-    Color scheme: Use these brand colors - Primary: ${brandDesign.colorPrimary || "#4F46E5"}, 
-    Accent: ${brandDesign.colorAccent1 || "#7C3AED"}. 
-    High quality, professional social media post image, clean composition, vibrant colors.`;
+Style: ${brandDesign.brandStyle || "modern and professional"}. 
+Color scheme: Use these brand colors - Primary: ${brandDesign.colorPrimary || "#4F46E5"}, 
+Accent: ${brandDesign.colorAccent1 || "#7C3AED"}. 
+High quality, professional social media post image, clean composition, vibrant colors.
+${assetsDescriptionSummary}
+`;
 
     console.log("[PostGenerator] Generating image with Nano Banana...");
 
-    // Build multimodal content parts
+    // ==========================================================================================
+    // ✔ Construcción de contenido multimodal (igual que antes)
+    // ==========================================================================================
     const contentParts: any[] = [];
 
-    // If we have brand assets, include them as visual reference (up to 3)
     if (brandAssets && brandAssets.length > 0) {
-      // Prioritize product images, then logos, then general assets
-      const sortedAssets = [...brandAssets].sort((a, b) => {
-        const priority: Record<string, number> = {
-          product_images: 1, // CORRECTO: Máxima Prioridad (Relojes)
-          marketing_banners: 2,
-          logos: 3,
-          general: 4,
-          document_templates: 5,
-          videos: 5,
-        };
-        const aPriority =
-          priority[a.category?.toLowerCase() || "general"] || 99;
-        const bPriority =
-          priority[b.category?.toLowerCase() || "general"] || 99;
-        return aPriority - bPriority;
-      });
+      // ✔ NUEVO: Usa 3 assets dinámicos, no siempre los mismos
+      const assetsToUse = pickRandomAssets(brandAssets, 3);
 
-      // Take up to 3 images for context
-      const assetsToUse = sortedAssets.slice(0, 3);
       console.log(
-        `[PostGenerator] Including ${assetsToUse.length} brand assets as visual reference`,
+        `[PostGenerator] Using rotating brand assets:`,
+        assetsToUse.map((a) => a.name),
       );
 
       for (const asset of assetsToUse) {
@@ -786,27 +831,27 @@ export async function generateImageWithNanoBanana(
             },
           });
           console.log(
-            `[PostGenerator] Added asset "${asset.name}" as visual reference`,
+            `[PostGenerator] Added asset "${asset.name}" as reference`,
           );
         }
       }
 
-      // Add instruction to use the reference images
-      if (contentParts.length > 0) {
-        contentParts.push({
-          text: `IMPORTANT: The images above are brand assets showing the visual style, logo, and potentially key products of this brand. 
-        // ... (Otras instrucciones se mantienen)
-        ***CRITICAL: The final image MUST subtly and naturally incorporate the style/shape of the logo (first reference image) or a branded icon into the scene (e.g., engraved on the product, a sign in the background, or an element's shape) as requested in the text prompt to avoid a "fake" overlay look.***
+      // Texto con instrucciones
+      contentParts.push({
+        text: `
+IMPORTANT: The images above are brand assets showing the real visual identity of this brand. 
+Use their lighting, textures, colors and composition hints.
 
-        Now create this image: ${enhancedPrompt}`,
-        });
-      } else {
-        contentParts.push({ text: enhancedPrompt });
-      }
+Now create this image: ${enhancedPrompt}
+        `,
+      });
     } else {
       contentParts.push({ text: enhancedPrompt });
     }
 
+    // ==========================================================================================
+    // ✔ Llamada a Gemini EXACTAMENTE como tú la tenías
+    // ==========================================================================================
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: contentParts,
