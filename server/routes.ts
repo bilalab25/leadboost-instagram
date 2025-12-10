@@ -4902,819 +4902,292 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/webhooks/meta", async (req, res) => {
     try {
       console.log("=================================================");
-      console.log("✅ REQUEST RECEIVED: POST /api/webhooks/meta");
-
-      const body = req.body;
-      console.log("🔴 PAYLOAD RAW (BODY):");
-      console.dir(body, { depth: null });
+      console.log("📬 META WEBHOOK RECEIVED");
+      console.dir(req.body, { depth: null });
       console.log("=================================================");
 
+      const body = req.body;
+
+      // Accept only known objects
       if (
-        body.object === "page" ||
-        body.object === "instagram" ||
-        body.object === "whatsapp_business_account"
+        !["page", "instagram", "whatsapp_business_account"].includes(
+          body.object,
+        )
       ) {
-        console.log("📩 Nuevo evento recibido desde Meta");
+        console.warn("⚠️ Unsupported object:", body.object);
+        return res.sendStatus(404);
+      }
 
-        for (const entry of body.entry || []) {
-          const events = entry.messaging || entry.changes || [];
+      for (const entry of body.entry || []) {
+        const messagingEvents = entry.messaging || [];
+        const changeEvents = entry.changes || [];
 
-          // ======================================================
-          // 🔹 WHATSAPP
-          // ======================================================
-          if (body.object === "whatsapp_business_account") {
-            for (const change of entry.changes || []) {
-              if (change.field === "messages" && change.value.messages) {
-                const metadata = change.value.metadata;
-                const phoneNumberId = metadata?.phone_number_id;
-                const displayPhoneNumber = metadata?.display_phone_number;
-                const contacts = change.value.contacts || [];
-                const contactName = contacts[0]?.profile?.name || null;
+        // ======================================================
+        // 🔵 WHATSAPP MESSAGES
+        // ======================================================
+        if (body.object === "whatsapp_business_account") {
+          for (const change of changeEvents) {
+            if (change.field !== "messages") continue;
 
-                let integration = null;
-                if (phoneNumberId) {
-                  const allIntegrations = await storage.getAllIntegrations();
-                  integration = allIntegrations.find((int) => {
-                    let meta = int.metadata;
-                    if (typeof meta === "string") {
-                      try {
-                        meta = JSON.parse(
-                          meta.replace(/(\w+):/g, '"$1":').replace(/'/g, '"'),
-                        );
-                      } catch {
-                        meta = null;
-                      }
-                    }
-                    return (
-                      meta?.phoneNumberId === phoneNumberId ||
-                      int.accountId === phoneNumberId
-                    );
-                  });
-                }
+            const waMetadata = change.value?.metadata;
+            const phoneNumberId = waMetadata?.phone_number_id;
 
-                for (const waMessage of change.value.messages) {
-                  const messageId = waMessage.id;
-                  const senderId = waMessage.from;
-                  const timestamp = waMessage.timestamp;
-                  const messageType = waMessage.type;
-                  const textContent =
-                    messageType === "text" && waMessage.text?.body
-                      ? waMessage.text.body
-                      : null;
+            if (!phoneNumberId) continue;
 
-                  if (integration) {
-                    const metaConversationId = `${phoneNumberId}_${senderId}`;
+            const allIntegrations = await storage.getAllIntegrations();
+            const integration = allIntegrations.find(
+              (i) =>
+                i.provider === "whatsapp" &&
+                (i.accountId === phoneNumberId ||
+                  i.metadata?.phoneNumberId === phoneNumberId),
+            );
 
-                    // Get or create conversation
-                    const conversation = await storage.getOrCreateConversation({
-                      integrationId: integration.id,
-                      brandId: integration.brandId,
-                      userId: integration.userId,
-                      metaConversationId,
-                      platform: "whatsapp",
-                      contactName,
-                      lastMessage: textContent || "",
-                      lastMessageAt: new Date(parseInt(timestamp) * 1000),
-                    });
-
-                    const messageData = {
-                      userId: integration.userId,
-                      integrationId: integration.id,
-                      conversationId: conversation.id,
-                      platform: "whatsapp",
-                      metaMessageId: messageId,
-                      metaConversationId,
-                      senderId,
-                      recipientId: phoneNumberId || displayPhoneNumber || "",
-                      contactName,
-                      textContent,
-                      direction: "inbound",
-                      isRead: false,
-                      timestamp: new Date(parseInt(timestamp) * 1000),
-                      rawPayload: body,
-                      brandId: integration.brandId,
-                    };
-
-                    const savedMessage =
-                      await storage.createMessage(messageData);
-                    console.log(
-                      `✅ [WhatsApp] Message saved: ${savedMessage.id}`,
-                    );
-
-                    // Increment unread count for inbound messages
-                    await storage.incrementUnreadCount(conversation.id);
-
-                    const io = app.get("io");
-                    if (io && integration.brandId) {
-                      io.to(`brand:${integration.brandId}`).emit(
-                        "new_message",
-                        {
-                          provider: "whatsapp",
-                          conversationId: metaConversationId,
-                          metaConversationId,
-                          dbConversationId: conversation.id,
-                          message: savedMessage,
-                          brandId: integration.brandId,
-                        },
-                      );
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          // ======================================================
-          // 🔹 INSTAGRAM DIRECT (via entry.changes with field: "messages")
-          // ======================================================
-          else if (body.object === "page" || body.object === "instagram") {
-            // First, check for Instagram Direct messages via entry.changes structure
-            for (const change of entry.changes || []) {
-              if (change.field === "messages" && change.value?.message) {
-                console.log(
-                  `📸 [Instagram Direct] Processing message via entry.changes structure`,
-                );
-                console.log(`   - change.field: ${change.field}`);
-                console.log(
-                  `   - change.value:`,
-                  JSON.stringify(change.value, null, 2),
-                );
-
-                const value = change.value;
-                const senderId = value.sender?.id;
-                const recipientId = value.recipient?.id;
-                const messageId = value.message?.mid;
-                const messageText = value.message?.text || "";
-                const timestamp = value.timestamp;
-
-                if (!senderId || !recipientId || !messageId) {
-                  console.warn(
-                    `⚠️ [Instagram Direct] Missing required fields in change.value`,
-                  );
-                  continue;
-                }
-
-                console.log(`📸 [Instagram Direct] Message details:`);
-                console.log(`   - senderId: ${senderId}`);
-                console.log(`   - recipientId: ${recipientId}`);
-                console.log(`   - messageId: ${messageId}`);
-                console.log(`   - messageText: ${messageText}`);
-
-                // PRIORITY 1: Check if there's an existing conversation for this metaConversationId
-                // This ensures messages go to the correct brand even if same IG account is in multiple brands
-                const potentialMetaConversationId = `ig_${senderId}_${recipientId}`;
-                const existingConversationByMeta =
-                  await storage.findConversationByMetaConversationId(
-                    potentialMetaConversationId,
-                  );
-
-                let integration;
-                if (existingConversationByMeta) {
-                  console.log(
-                    `✅ [Instagram Direct] Found existing conversation by metaConversationId, using its integration`,
-                  );
-                  integration = await storage.getIntegrationById(
-                    existingConversationByMeta.integrationId,
-                  );
-                }
-
-                // PRIORITY 2: If no existing conversation, search for integration by pageId
-                if (!integration) {
-                  const allIntegrations = await storage.getAllIntegrations();
-                  console.log(
-                    `📋 All integrations (${allIntegrations.length} total):`,
-                  );
-                  for (const int of allIntegrations) {
-                    console.log(
-                      `   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`,
-                    );
-                  }
-
-                  // Find integration by recipientId matching accountId or pageId
-                  integration = allIntegrations.find(
-                    (int) =>
-                      (int.provider === "instagram_direct" ||
-                        int.provider === "instagram") &&
-                      (int.accountId === recipientId ||
-                        int.pageId === recipientId),
-                  );
-
-                  // If not found, try to find any instagram_direct integration and update it
-                  if (!integration) {
-                    console.log(
-                      `🔧 [Instagram Direct] No exact match found, trying to auto-fix...`,
-                    );
-                    integration = allIntegrations.find(
-                      (int) =>
-                        int.provider === "instagram_direct" ||
-                        int.provider === "instagram",
-                    );
-
-                    if (integration) {
-                      console.log(
-                        `🔧 [Instagram Direct] Found integration, updating accountId/pageId...`,
-                      );
-                      console.log(
-                        `   - Old accountId: ${integration.accountId}`,
-                      );
-                      console.log(`   - New accountId: ${recipientId}`);
-
-                      integration =
-                        (await storage.updateIntegration(integration.id, {
-                          accountId: recipientId,
-                          pageId: recipientId,
-                          metadata: {
-                            ...(typeof integration.metadata === "object"
-                              ? integration.metadata
-                              : {}),
-                            igbaId: recipientId,
-                            autoFixedFromWebhook: true,
-                            autoFixedAt: new Date().toISOString(),
-                          },
-                        })) || integration;
-                    }
-                  }
-                }
-
-                if (integration) {
-                  const platform = "instagram_direct";
-                  const accessToken = integration.accessToken;
-
-                  // ✅ CRITICAL: Detect if this is an outbound "echo" message (sent BY the business account)
-                  // If senderId matches our accountId/pageId, this is a message WE sent - don't overwrite contact info
-                  const isOutbound =
-                    senderId === integration.accountId ||
-                    senderId === integration.pageId ||
-                    senderId.startsWith("1784"); // Instagram business accounts start with 1784
-
-                  // For outbound messages, the conversation ID should use the recipientId as the contact
-                  // For inbound messages, use senderId as the contact
-                  const contactId = isOutbound ? recipientId : senderId;
-                  let metaConversationId = `ig_${contactId}_${integration.accountId || integration.pageId}`;
-
-                  // Fallback metaConversationId format for legacy conversations
-                  const legacyMetaConversationId = `ig_${senderId}_${recipientId}`;
-
-                  console.log(`📊 [Instagram Direct] Direction analysis:`);
-                  console.log(`   - senderId: ${senderId}`);
-                  console.log(
-                    `   - integration.accountId: ${integration.accountId}`,
-                  );
-                  console.log(`   - isOutbound (echo): ${isOutbound}`);
-                  console.log(`   - contactId: ${contactId}`);
-                  console.log(`   - metaConversationId: ${metaConversationId}`);
-
-                  let contactName: string | null = null;
-                  let contactProfilePicture: string | null = null;
-                  let shouldFetchProfilePicture = !isOutbound; // Only fetch profile for inbound messages
-
-                  // Find existing conversation by contactId (the real contact, not the business account)
-                  let existingConversation =
-                    await storage.findConversationBySenderId(
-                      integration.id,
-                      contactId,
-                      null,
-                    );
-
-                  // Also try legacy format if not found
-                  if (!existingConversation) {
-                    existingConversation =
-                      await storage.findConversationByMetaConversationId(
-                        legacyMetaConversationId,
-                      );
-                  }
-
-                  // Check if profile picture is already cached and recent (less than 7 days old)
-                  if (
-                    existingConversation?.contactProfilePicture &&
-                    existingConversation?.contactProfilePictureFetchedAt
-                  ) {
-                    const fetchedAt = new Date(
-                      existingConversation.contactProfilePictureFetchedAt,
-                    );
-                    const sevenDaysAgo = new Date(
-                      Date.now() - 7 * 24 * 60 * 60 * 1000,
-                    );
-                    if (fetchedAt > sevenDaysAgo) {
-                      shouldFetchProfilePicture = false;
-                      contactProfilePicture =
-                        existingConversation.contactProfilePicture;
-                      contactName = existingConversation.contactName;
-                      console.log(
-                        `⏭️ [Instagram Direct] Using cached profile data (fetched ${fetchedAt.toISOString()})`,
-                      );
-                    }
-                  }
-
-                  // If outbound (echo), preserve existing contact info - DO NOT fetch profile of the business account
-                  if (isOutbound && existingConversation) {
-                    contactName = existingConversation.contactName;
-                    contactProfilePicture =
-                      existingConversation.contactProfilePicture;
-                    console.log(
-                      `📤 [Instagram Direct] Echo message - preserving existing contactName: ${contactName}`,
-                    );
-                  }
-
-                  // Only fetch profile for INBOUND messages if we don't have recent data
-                  if (shouldFetchProfilePicture && !isOutbound) {
-                    try {
-                      const igProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=username,name,profile_pic&access_token=${accessToken}`;
-                      console.log(
-                        `📱 [Instagram Direct] Fetching profile for sender: ${senderId}`,
-                      );
-
-                      const igProfileRes = await fetch(igProfileUrl);
-                      const igProfileData = await igProfileRes.json();
-
-                      if (!igProfileData.error) {
-                        if (igProfileData.username || igProfileData.name) {
-                          contactName =
-                            igProfileData.username || igProfileData.name;
-                          console.log(
-                            `✅ [Instagram Direct] Got contact name: ${contactName}`,
-                          );
-                        }
-                        if (igProfileData.profile_pic) {
-                          contactProfilePicture = igProfileData.profile_pic;
-                          console.log(
-                            `✅ [Instagram Direct] Got profile picture`,
-                          );
-                        }
-                      }
-                    } catch (profileErr) {
-                      console.warn(
-                        `⚠️ [Instagram Direct] Error fetching profile:`,
-                        profileErr,
-                      );
-                    }
-                  }
-
-                  // Re-find existing conversation by contactId (the real contact, not business account)
-                  if (!existingConversation) {
-                    existingConversation =
-                      await storage.findConversationBySenderId(
-                        integration.id,
-                        contactId,
-                        contactName,
-                      );
-                  }
-
-                  let conversation;
-                  if (existingConversation) {
-                    console.log(
-                      `🔗 [Instagram Direct] Found existing conversation: ${existingConversation.id}`,
-                    );
-                    // ✅ For outbound (echo), ONLY update lastMessage - DO NOT touch contactName
-                    const updateData: any = {
-                      lastMessage: messageText,
-                      lastMessageAt: new Date(
-                        parseInt(timestamp) * 1000 || Date.now(),
-                      ),
-                    };
-
-                    // Only update contactName for INBOUND messages (from the customer)
-                    if (!isOutbound && contactName) {
-                      updateData.contactName = contactName;
-                    }
-
-                    // Only update profile picture and timestamp if we fetched a new one (only for inbound)
-                    if (
-                      !isOutbound &&
-                      shouldFetchProfilePicture &&
-                      contactProfilePicture
-                    ) {
-                      updateData.contactProfilePicture = contactProfilePicture;
-                      updateData.contactProfilePictureFetchedAt = new Date();
-                    }
-                    conversation =
-                      (await storage.updateConversationMetadata(
-                        existingConversation.id,
-                        updateData,
-                      )) || existingConversation;
-                  } else {
-                    console.log(
-                      `🆕 [Instagram Direct] Creating new conversation`,
-                    );
-                    conversation = await storage.getOrCreateConversation({
-                      integrationId: integration.id,
-                      brandId: integration.brandId,
-                      userId: integration.userId,
-                      metaConversationId,
-                      platform,
-                      contactName,
-                      contactProfilePicture: contactProfilePicture || undefined,
-                      contactProfilePictureFetchedAt: contactProfilePicture
-                        ? new Date()
-                        : undefined,
-                      lastMessage: messageText,
-                      lastMessageAt: new Date(
-                        parseInt(timestamp) * 1000 || Date.now(),
-                      ),
-                    });
-                  }
-
-                  // Check for duplicate message before saving
-                  const existingMessage = await storage.findMessageByMetaId(
-                    integration.id,
-                    messageId,
-                  );
-                  if (existingMessage) {
-                    console.log(
-                      `⏭️ [Instagram Direct] Message already exists: ${existingMessage.id}, skipping`,
-                    );
-                    continue;
-                  }
-
-                  // Save the message with correct direction
-                  try {
-                    const savedMessage = await storage.createMessage({
-                      userId: integration.userId,
-                      brandId: integration.brandId,
-                      integrationId: integration.id,
-                      conversationId: conversation.id,
-                      platform,
-                      metaMessageId: messageId,
-                      metaConversationId,
-                      senderId,
-                      recipientId,
-                      contactName: isOutbound ? null : contactName, // Don't set contactName for outbound
-                      textContent: messageText,
-                      direction: isOutbound ? "outbound" : "inbound",
-                      isRead: isOutbound, // Outbound messages are automatically read
-                      timestamp: new Date(
-                        parseInt(timestamp) * 1000 || Date.now(),
-                      ),
-                      rawPayload: change.value,
-                    });
-                    console.log(
-                      `✅ [Instagram Direct] Message saved: ${savedMessage.id} (direction: ${isOutbound ? "outbound" : "inbound"})`,
-                    );
-
-                    // Only increment unread count for INBOUND messages
-                    if (!isOutbound) {
-                      await storage.incrementUnreadCount(conversation.id);
-                    }
-
-                    // Emit socket event to brand room only
-                    const io = app.get("io");
-                    const updatedConversation = await storage.getConversation(
-                      conversation.id,
-                    );
-
-                    if (io && integration.brandId) {
-                      io.to(`brand:${integration.brandId}`).emit(
-                        "new_message",
-                        {
-                          provider: platform,
-                          conversationId: metaConversationId,
-                          metaConversationId,
-                          dbConversationId: conversation.id,
-                          message: savedMessage,
-                          conversation: updatedConversation,
-                          brandId: integration.brandId,
-                        },
-                      );
-                      console.log(
-                        `🔔 [Instagram Direct] Socket event emitted to brand:${integration.brandId}`,
-                      );
-                    }
-                  } catch (msgErr: any) {
-                    if (msgErr.code === "23505") {
-                      console.log(
-                        `⏭️ [Instagram Direct] Duplicate message detected via constraint, skipping`,
-                      );
-                    } else {
-                      throw msgErr;
-                    }
-                  }
-                } else {
-                  console.warn(
-                    `⚠️ [Instagram Direct] No integration found for recipientId: ${recipientId}`,
-                  );
-                }
-              }
+            if (!integration) {
+              console.warn("⚠️ No WhatsApp integration matched");
+              continue;
             }
 
-            // Also handle Messenger-style messages via entry.messaging
-            for (const event of events) {
-              // Skip if this is an Instagram Direct message (already handled above)
-              if (!event.message || !event.sender || !event.recipient) continue;
+            for (const waMsg of change.value?.messages || []) {
+              const sender = waMsg.from;
+              const messageId = waMsg.id;
+              const textContent = waMsg.text?.body || null;
+              const timestamp = new Date(waMsg.timestamp * 1000);
 
-              const senderId = event.sender.id;
-              const recipientId = event.recipient.id;
-              const messageId = event.message.mid;
-              const messageText = event.message.text || "";
-              const searchPlatform =
-                body.object === "instagram" ? "instagram" : "facebook";
+              const metaConversationId = `${phoneNumberId}_${sender}`;
 
-              // Debug: Log what we're searching for
-              console.log(`🔍 Searching for integration:`);
-              console.log(`   - recipientId: ${recipientId}`);
-              console.log(`   - searchPlatform: ${searchPlatform}`);
+              // Create or get conversation
+              const conversation = await storage.getOrCreateConversation({
+                integrationId: integration.id,
+                brandId: integration.brandId,
+                userId: integration.userId,
+                metaConversationId,
+                platform: "whatsapp",
+                contactName: waMsg?.profile?.name ?? null,
+                lastMessage: textContent,
+                lastMessageAt: timestamp,
+              });
 
-              // PRIORITY 1: Check if there's an existing conversation for potential metaConversationIds
-              // This ensures messages go to the correct brand even if same account is in multiple brands
-              const potentialMetaIds = [
-                `ig_dm_${senderId}`,
-                `ig_${senderId}_${recipientId}`,
-              ];
+              // Dedup message
+              const exists = await storage.findMessageByMetaId(
+                integration.id,
+                messageId,
+              );
+              if (exists) continue;
 
-              let integration;
-              for (const metaId of potentialMetaIds) {
-                const existingConvo =
-                  await storage.findConversationByMetaConversationId(metaId);
-                if (existingConvo) {
-                  console.log(
-                    `✅ Found existing conversation by metaConversationId: ${metaId}`,
-                  );
-                  integration = await storage.getIntegrationById(
-                    existingConvo.integrationId,
-                  );
-                  if (integration) break;
-                }
-              }
+              const saved = await storage.createMessage({
+                userId: integration.userId,
+                integrationId: integration.id,
+                brandId: integration.brandId,
+                conversationId: conversation.id,
+                platform: "whatsapp",
+                metaMessageId: messageId,
+                metaConversationId,
+                senderId: sender,
+                recipientId: phoneNumberId,
+                direction: "inbound",
+                textContent,
+                isRead: false,
+                timestamp,
+                rawPayload: change,
+              });
 
-              // PRIORITY 2: If no existing conversation, search for integration by pageId
-              if (!integration) {
-                // Debug: List all integrations to see what's in DB
-                const allIntegrations = await storage.getAllIntegrations();
-                console.log(
-                  `📋 All integrations in DB (${allIntegrations.length} total):`,
+              console.log(`💾 [WhatsApp] Saved: ${saved.id}`);
+              await storage.incrementUnreadCount(conversation.id);
+
+              const io = app.get("io");
+              if (io)
+                io.to(`brand:${integration.brandId}`).emit(
+                  "new_message",
+                  saved,
                 );
-                for (const int of allIntegrations) {
-                  console.log(
-                    `   - ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`,
-                  );
-                }
-
-                integration = await storage.findIntegrationByAccount(
-                  recipientId,
-                  searchPlatform,
-                );
-
-                console.log(
-                  `🔎 findIntegrationByAccount result:`,
-                  integration ? `Found (${integration.provider})` : "NOT FOUND",
-                );
-
-                // Auto-fix: If no integration found for Instagram, try to find any instagram_direct integration
-                if (!integration && searchPlatform === "instagram") {
-                  console.log(
-                    `🔧 Attempting auto-fix for Instagram integration...`,
-                  );
-                  const igDirectIntegration = allIntegrations.find(
-                    (int) =>
-                      int.provider === "instagram_direct" ||
-                      int.provider === "instagram",
-                  );
-
-                  if (igDirectIntegration) {
-                    console.log(
-                      `🔧 Found instagram_direct integration with mismatched ID. Updating...`,
-                    );
-                    const updatedIntegration = await storage.updateIntegration(
-                      igDirectIntegration.id,
-                      {
-                        accountId: recipientId,
-                        pageId: recipientId,
-                        metadata: {
-                          ...(typeof igDirectIntegration.metadata === "object"
-                            ? igDirectIntegration.metadata
-                            : {}),
-                          igbaId: recipientId,
-                          autoFixedFromWebhook: true,
-                        },
-                      },
-                    );
-
-                    if (updatedIntegration) {
-                      console.log(`✅ Auto-fixed Instagram integration!`);
-                      integration = updatedIntegration;
-                    }
-                  }
-                }
-              }
-
-              if (integration) {
-                const platform = integration.provider;
-                const accessToken = integration.accessToken;
-                const pageId = integration.pageId || recipientId;
-                let metaConversationId: string | null = null;
-                let contactName: string | null = null;
-                let contactProfilePicture: string | null = null;
-                let shouldFetchProfilePicture = true;
-
-                try {
-                  const metaPlatformParam =
-                    platform === "facebook" ? "messenger" : "instagram";
-                  const convoRes = await fetch(
-                    `https://graph.facebook.com/v24.0/${pageId}/conversations?platform=${metaPlatformParam}&user_id=${senderId}&access_token=${accessToken}`,
-                  );
-                  const convoData = await convoRes.json();
-                  if (convoData?.data?.[0]?.id) {
-                    metaConversationId = convoData.data[0].id;
-                  } else {
-                    metaConversationId = `ig_dm_${senderId}`;
-                  }
-                } catch (err) {
-                  metaConversationId = `ig_dm_${senderId}`;
-                }
-
-                // Find existing conversation FIRST to check if we already have profile picture
-                let existingConversation =
-                  await storage.findConversationBySenderId(
-                    integration.id,
-                    senderId,
-                    null,
-                  );
-
-                // Check if profile picture is already cached and recent (less than 7 days old)
-                if (
-                  existingConversation?.contactProfilePicture &&
-                  existingConversation?.contactProfilePictureFetchedAt
-                ) {
-                  const fetchedAt = new Date(
-                    existingConversation.contactProfilePictureFetchedAt,
-                  );
-                  const sevenDaysAgo = new Date(
-                    Date.now() - 7 * 24 * 60 * 60 * 1000,
-                  );
-                  if (fetchedAt > sevenDaysAgo) {
-                    shouldFetchProfilePicture = false;
-                    contactProfilePicture =
-                      existingConversation.contactProfilePicture;
-                    contactName = existingConversation.contactName;
-                    console.log(
-                      `⏭️ [${platform}] Using cached profile picture (fetched ${fetchedAt.toISOString()})`,
-                    );
-                  }
-                }
-
-                // Only fetch profile if we don't have a recent one
-                // For Instagram Messaging, use graph.facebook.com with profile_pic field (not graph.instagram.com)
-                if (shouldFetchProfilePicture) {
-                  try {
-                    // All messaging platforms use graph.facebook.com with profile_pic
-                    const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`;
-                    console.log(
-                      `📷 [${platform}] Fetching profile for sender: ${senderId}`,
-                    );
-
-                    const profileRes = await fetch(profileUrl);
-                    const profileData = await profileRes.json();
-
-                    if (!profileData.error) {
-                      if (profileData.username || profileData.name) {
-                        contactName = profileData.username || profileData.name;
-                        console.log(
-                          `✅ [${platform}] Got contact name: ${contactName}`,
-                        );
-                      }
-                      if (profileData.profile_pic) {
-                        contactProfilePicture = profileData.profile_pic;
-                        console.log(`✅ [${platform}] Got profile picture`);
-                      }
-                    } else {
-                      console.warn(
-                        `⚠️ [${platform}] Profile API error:`,
-                        profileData.error,
-                      );
-                    }
-                  } catch (profileErr) {
-                    console.warn(
-                      `⚠️ [${platform}] Error fetching profile:`,
-                      profileErr,
-                    );
-                  }
-                }
-
-                // Re-find existing conversation with contact name (for legacy compatibility)
-                existingConversation = await storage.findConversationBySenderId(
-                  integration.id,
-                  senderId,
-                  contactName,
-                );
-
-                let conversation;
-                if (existingConversation) {
-                  const updateData: any = {
-                    metaConversationId:
-                      metaConversationId ||
-                      existingConversation.metaConversationId,
-                    lastMessage: messageText,
-                    lastMessageAt: new Date(event.timestamp || Date.now()),
-                    contactName:
-                      contactName || existingConversation.contactName,
-                  };
-                  // Only update profile picture and timestamp if we fetched a new one
-                  if (shouldFetchProfilePicture && contactProfilePicture) {
-                    updateData.contactProfilePicture = contactProfilePicture;
-                    updateData.contactProfilePictureFetchedAt = new Date();
-                  }
-                  conversation =
-                    (await storage.updateConversationMetadata(
-                      existingConversation.id,
-                      updateData,
-                    )) || existingConversation;
-                } else {
-                  conversation = await storage.getOrCreateConversation({
-                    integrationId: integration.id,
-                    brandId: integration.brandId,
-                    userId: integration.userId,
-                    metaConversationId: metaConversationId || "",
-                    platform,
-                    contactName,
-                    contactProfilePicture: contactProfilePicture || undefined,
-                    contactProfilePictureFetchedAt: contactProfilePicture
-                      ? new Date()
-                      : undefined,
-                    lastMessage: messageText,
-                    lastMessageAt: new Date(event.timestamp || Date.now()),
-                  });
-                }
-
-                // Check for duplicate message before saving
-                const existingMessage = await storage.findMessageByMetaId(
-                  integration.id,
-                  messageId,
-                );
-                if (existingMessage) {
-                  console.log(
-                    `⏭️ [${platform}] Message already exists: ${existingMessage.id}, skipping`,
-                  );
-                  continue;
-                }
-
-                try {
-                  const savedMessage = await storage.createMessage({
-                    userId: integration.userId,
-                    brandId: integration.brandId,
-                    integrationId: integration.id,
-                    conversationId: conversation.id,
-                    platform,
-                    metaMessageId: messageId,
-                    metaConversationId,
-                    senderId,
-                    recipientId,
-                    contactName,
-                    textContent: messageText,
-                    direction: "inbound",
-                    isRead: false,
-                    timestamp: new Date(event.timestamp || Date.now()),
-                    rawPayload: body,
-                  });
-                  console.log(
-                    `✅ [${platform}] Message saved: ${savedMessage.id}`,
-                  );
-
-                  await storage.incrementUnreadCount(conversation.id);
-
-                  // Emit socket event to brand room only
-                  const io = app.get("io");
-                  const updatedConversation = await storage.getConversation(
-                    conversation.id,
-                  );
-
-                  if (io && integration.brandId) {
-                    io.to(`brand:${integration.brandId}`).emit("new_message", {
-                      provider: platform,
-                      conversationId: metaConversationId,
-                      metaConversationId,
-                      dbConversationId: conversation.id,
-                      message: savedMessage,
-                      conversation: updatedConversation,
-                      brandId: integration.brandId,
-                    });
-                    console.log(
-                      `🔔 [${platform}] Socket event emitted to brand:${integration.brandId}`,
-                    );
-                  }
-                } catch (msgErr: any) {
-                  if (msgErr.code === "23505") {
-                    console.log(
-                      `⏭️ [${platform}] Duplicate message detected via constraint, skipping`,
-                    );
-                  } else {
-                    throw msgErr;
-                  }
-                }
-              } else {
-                console.warn(
-                  `⚠️ [${searchPlatform}] No integration found for recipient: ${recipientId}`,
-                );
-              }
             }
           }
         }
 
-        res.status(200).send("EVENT_RECEIVED");
-      } else {
-        res.sendStatus(404);
+        // ======================================================
+        // 🔵 FACEBOOK / INSTAGRAM MESSAGING (entry.messaging)
+        // ======================================================
+        for (const ev of messagingEvents) {
+          if (!ev.message) continue;
+
+          const senderId = ev.sender?.id;
+          const recipientId = ev.recipient?.id;
+          const messageId = ev.message.mid;
+          const textContent = ev.message.text || "";
+          const timestamp = new Date(ev.timestamp || Date.now());
+
+          console.log("💬 Messenger/IG Message:", {
+            senderId,
+            recipientId,
+            textContent,
+          });
+
+          // Determine platform type
+          const platformGuess =
+            body.object === "instagram" ? "instagram" : "facebook";
+
+          // Find correct integration by pageId
+          const integrations = await storage.getAllIntegrations();
+          const integration = integrations.find(
+            (i) =>
+              i.provider === platformGuess &&
+              (i.pageId === recipientId || i.accountId === recipientId),
+          );
+
+          if (!integration) {
+            console.warn(`⚠️ No integration found for ${platformGuess}`, {
+              recipientId,
+            });
+            continue;
+          }
+
+          // Build metaConversationId stable
+          const metaConversationId = `${integration.pageId}_${senderId}`;
+
+          let conversation =
+            await storage.findConversationByMetaConversationId(
+              metaConversationId,
+            );
+
+          if (!conversation) {
+            conversation = await storage.getOrCreateConversation({
+              integrationId: integration.id,
+              brandId: integration.brandId,
+              userId: integration.userId,
+              metaConversationId,
+              platform: platformGuess,
+              contactName: null,
+              lastMessage: textContent,
+              lastMessageAt: timestamp,
+            });
+          }
+
+          const exists = await storage.findMessageByMetaId(
+            integration.id,
+            messageId,
+          );
+          if (exists) continue;
+
+          const saved = await storage.createMessage({
+            userId: integration.userId,
+            integrationId: integration.id,
+            brandId: integration.brandId,
+            conversationId: conversation.id,
+            platform: platformGuess,
+            metaMessageId: messageId,
+            metaConversationId,
+            senderId,
+            recipientId,
+            direction: "inbound",
+            textContent,
+            isRead: false,
+            timestamp,
+            rawPayload: ev,
+          });
+
+          console.log(`💾 [${platformGuess}] Saved: ${saved.id}`);
+          await storage.incrementUnreadCount(conversation.id);
+
+          const io = app.get("io");
+          if (io)
+            io.to(`brand:${integration.brandId}`).emit("new_message", saved);
+        }
+
+        // ======================================================
+        // 🟣 INSTAGRAM DIRECT (entry.changes, field = 'messages')
+        // ======================================================
+        for (const change of changeEvents) {
+          if (change.field !== "messages") continue;
+
+          const value = change.value;
+          const senderId = value.sender?.id;
+          const recipientId = value.recipient?.id;
+          const messageId = value.message?.mid;
+          const messageText = value.message?.text || "";
+          const timestamp = new Date(value.timestamp * 1000 || Date.now());
+
+          console.log("📸 IG DIRECT message:", {
+            senderId,
+            recipientId,
+            messageText,
+          });
+
+          // IG Direct must match either:
+          // - provider = instagram_direct
+          // - provider = instagram (via FB login)
+          const integrations = await storage.getAllIntegrations();
+          const integration =
+            integrations.find((i) => i.provider === "instagram_direct") ||
+            integrations.find((i) => i.provider === "instagram");
+
+          if (!integration) {
+            console.warn("⚠️ No Instagram Direct integration found");
+            continue;
+          }
+
+          // Stable conversation id
+          const contactId =
+            senderId !== integration.accountId ? senderId : recipientId;
+
+          const metaConversationId = `ig_${contactId}_${integration.accountId}`;
+
+          let conversation =
+            await storage.findConversationByMetaConversationId(
+              metaConversationId,
+            );
+
+          if (!conversation) {
+            conversation = await storage.getOrCreateConversation({
+              integrationId: integration.id,
+              brandId: integration.brandId,
+              userId: integration.userId,
+              metaConversationId,
+              platform: "instagram_direct",
+              contactName: null,
+              lastMessage: messageText,
+              lastMessageAt: timestamp,
+            });
+          }
+
+          const exists = await storage.findMessageByMetaId(
+            integration.id,
+            messageId,
+          );
+          if (exists) continue;
+
+          const saved = await storage.createMessage({
+            userId: integration.userId,
+            integrationId: integration.id,
+            brandId: integration.brandId,
+            conversationId: conversation.id,
+            platform: "instagram_direct",
+            metaMessageId: messageId,
+            metaConversationId,
+            senderId,
+            recipientId,
+            direction:
+              senderId === integration.accountId ? "outbound" : "inbound",
+            textContent: messageText,
+            isRead: senderId === integration.accountId,
+            timestamp,
+            rawPayload: change.value,
+          });
+
+          console.log(`💾 [IG DIRECT] Saved: ${saved.id}`);
+          if (saved.direction === "inbound") {
+            await storage.incrementUnreadCount(conversation.id);
+          }
+
+          const io = app.get("io");
+          if (io)
+            io.to(`brand:${integration.brandId}`).emit("new_message", saved);
+        }
       }
+
+      return res.status(200).send("EVENT_RECEIVED");
     } catch (err) {
-      console.error("❌ Error procesando evento Meta:", err);
-      res.status(500).json({ error: "Meta webhook processing failed" });
+      console.error("❌ WEBHOOK ERROR:", err);
+      return res.status(500).json({ error: "Webhook processing failed" });
     }
   });
 
