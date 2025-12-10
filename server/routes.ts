@@ -47,6 +47,7 @@ import { z } from "zod";
 import { posIntegrationService } from "./services/posIntegrations";
 import { lightspeedService } from "./services/lightspeed";
 import { boostyService } from "./services/boosty";
+import { generateBrandEssence } from "./services/generateBrandEssence";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
 import cloudinary from "./cloudinary";
@@ -1056,6 +1057,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating brand:", error);
       res.status(500).json({ message: "Failed to create brand" });
+    }
+  });
+
+  // Generate brand essence using AI
+  app.post("/api/brands/:brandId/generate-essence", isAuthenticated, async (req: any, res) => {
+    try {
+      const { brandId } = req.params;
+      
+      if (!brandId) {
+        return res.status(400).json({ message: "Brand ID is required" });
+      }
+
+      console.log(`[API] Generating brand essence for brand: ${brandId}`);
+      const essence = await generateBrandEssence(brandId);
+      
+      res.json({ success: true, essence });
+    } catch (error: any) {
+      console.error("Error generating brand essence:", error);
+      res.status(500).json({ message: error.message || "Failed to generate brand essence" });
     }
   });
 

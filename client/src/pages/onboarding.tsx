@@ -1737,6 +1737,19 @@ export default function Onboarding() {
       const saved = await handleSaveBrandDesign();
       if (!saved) return;
     }
+    // STEP 3: Generate Brand Essence after uploading assets
+    if (currentStep === 3) {
+      if (createdBrandId) {
+        try {
+          console.log("[Onboarding] Generating Brand Essence after assets...");
+          await apiRequest("POST", `/api/brands/${createdBrandId}/generate-essence`);
+          console.log("[Onboarding] Brand Essence generated successfully");
+        } catch (err) {
+          console.error("[Onboarding] Error generating Brand Essence:", err);
+        }
+      }
+    }
+
     const nextStep = Math.min(currentStep + 1, totalSteps);
     setCurrentStep(nextStep);
 
