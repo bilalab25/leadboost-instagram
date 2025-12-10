@@ -1269,6 +1269,33 @@ export const insertBrandAssetSchema = createInsertSchema(brandAssets).omit({
   createdAt: true,
 });
 
+// Brand Essence - AI-generated brand identity summary
+export const brandEssence = pgTable("brand_essence", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .unique()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  toneOfVoice: text("tone_of_voice").notNull(),
+  personality: text("personality").notNull(),
+  emotionalFeel: text("emotional_feel").notNull(),
+  visualKeywords: text("visual_keywords").notNull(),
+  brandPromise: text("brand_promise").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertBrandEssenceSchema = createInsertSchema(brandEssence).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertBrandEssence = z.infer<typeof insertBrandEssenceSchema>;
+export type BrandEssence = typeof brandEssence.$inferSelect;
+
 export type InsertBrandDesign = z.infer<typeof insertBrandDesignSchema>;
 export type BrandDesign = typeof brandDesigns.$inferSelect;
 export type InsertCampaignDesign = z.infer<typeof insertCampaignDesignSchema>;

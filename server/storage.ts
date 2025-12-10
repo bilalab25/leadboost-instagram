@@ -24,6 +24,7 @@ import {
   campaignTriggers,
   brandDesigns,
   brandAssets,
+  brandEssence,
   campaignDesigns,
   integrations,
   socialPostingFrequency,
@@ -83,6 +84,7 @@ import {
   type CampaignDesign,
   type BrandAsset,
   type InsertBrandAsset,
+  type BrandEssence,
   type InsertIntegration,
   type Integration,
   type InsertSocialPostingFrequency,
@@ -2644,6 +2646,61 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(brandInvitations)
       .where(eq(brandInvitations.id, id))
+      .limit(1);
+    return result;
+  }
+
+  // Brand Essence operations
+  async upsertBrandEssence(
+    brandId: string,
+    essence: {
+      toneOfVoice: string;
+      personality: string;
+      emotionalFeel: string;
+      visualKeywords: string;
+      brandPromise: string;
+    },
+  ): Promise<BrandEssence> {
+    const now = new Date();
+    
+    // Check if essence already exists for this brand
+    const [existing] = await db
+      .select()
+      .from(brandEssence)
+      .where(eq(brandEssence.brandId, brandId))
+      .limit(1);
+
+    if (existing) {
+      // Update existing
+      const [updated] = await db
+        .update(brandEssence)
+        .set({
+          ...essence,
+          updatedAt: now,
+        })
+        .where(eq(brandEssence.brandId, brandId))
+        .returning();
+      return updated;
+    } else {
+      // Insert new
+      const [created] = await db
+        .insert(brandEssence)
+        .values({
+          brandId,
+          ...essence,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async getBrandEssence(brandId: string): Promise<BrandEssence | undefined> {
+    const [result] = await db
+      .select()
+      .from(brandEssence)
+      .where(eq(brandEssence.brandId, brandId))
       .limit(1);
     return result;
   }
