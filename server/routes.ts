@@ -3467,7 +3467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("🟩 OAuth COMPLETE → redirecting user…");
 
-      return res.redirect(`${redirectBase}&connected=facebook`);
+      return res.redirect(`${redirectBase}`);
     } catch (error) {
       console.error("❌ [FB Callback] Unexpected error:", error);
       return res.redirect("/integrations?error=callback_failed");
@@ -6764,15 +6764,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // For Instagram, also check instagram_direct provider (conversations may have old platform value)
         let integration = integrations.find((i) => i.provider === provider);
 
-        // If no exact match and provider is "instagram", try "instagram_direct"
         if (!integration && provider === "instagram") {
-          integration = integrations.find(
-            (i) => i.provider === "instagram_direct",
-          );
+          integration = integrations.find((i) => i.provider === "instagram");
+
           if (integration) {
-            console.log(
-              `🔄 Found instagram_direct integration for instagram request`,
-            );
+            console.log("✔️ Using Instagram Business integration");
+          } else {
+            // If not found, fallback to Facebook integration (they contain IG Business linkage)
+            integration = integrations.find((i) => i.provider === "facebook");
+            if (integration) {
+              console.log(
+                "✔️ Using Facebook integration for Instagram messaging",
+              );
+            }
           }
         }
 
@@ -6988,12 +6992,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               recipientId = inboundMsg.senderId;
               console.log(`📍 Recipient ID (fallback DB): ${recipientId}`);
             } else {
-              return res
-                .status(400)
-                .json({
-                  error:
-                    "No se pudo determinar el destinatario de Instagram Direct",
-                });
+              return res.status(400).json({
+                error:
+                  "No se pudo determinar el destinatario de Instagram Direct",
+              });
             }
           }
 
