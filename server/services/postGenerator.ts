@@ -329,6 +329,31 @@ function buildTextPrompt(context: PostGenerationContext): string {
     ? `- Brand Logo URL: ${logoUrl}\n- IMPORTANT: The brand has a logo that should be conceptually referenced in image prompts. Describe elements that complement the logo style.`
     : "- No logo uploaded";
 
+  let graphicStyleSummary = "";
+
+  // Filtramos solo los assets de imagen (Marketing y Producto) que son relevantes para el estilo visual
+  const relevantDescriptions = brandAssets
+    .filter(
+      (asset) =>
+        asset.category === "product_images" ||
+        asset.category === "marketing_banners",
+    )
+    .map((asset) => {
+      // Usamos la descripción completa del asset, la cual es la clave para la síntesis de estilo.
+      const desc =
+        (asset as any).description || "No detailed description provided.";
+      return `ASSET: ${asset.name} (Category: ${asset.category})\n  - VISUAL IDENTITY: ${desc}`;
+    })
+    .join("\n\n");
+
+  if (relevantDescriptions) {
+    graphicStyleSummary = `
+  CRITICAL VISUAL STYLE SYNTHESIS INSTRUCTIONS:
+  The following descriptions detail the unique look, feel, colors, and composition of the brand's key advertising assets. You MUST synthesize the *dominant* visual identity (specific color schemes, composition style, lighting, and mood) from these examples to generate a cohesive new image that fits the brand's overall aesthetic:
+
+  ${relevantDescriptions}
+  `;
+  }
   // Build the posting schedule instructions based on social_posting_frequency table
   let postingScheduleInstructions = "";
   let totalPosts = 0;
@@ -376,6 +401,7 @@ ${logoInfo}
 
 BRAND VISUAL ASSETS (use these as inspiration for content):
 ${assetDetails || "No assets uploaded yet"}
+${graphicStyleSummary}
 
 ASSET CATEGORIES SUMMARY:
 ${
@@ -426,17 +452,13 @@ REQUIREMENTS:
    - Relevant hashtags (5-10 per post)
    - Optimal posting time based on insights (optimalTime field)
    - A detailed image prompt for AI image generation that:
-   * CRITICAL FONT STYLE: Any text or graphical element added to the image must use or be inspired by the **style** of the primary font: ${brandDesign.fontPrimary || "a modern sans-serif font"}. **(NO REQUERIR LA REPLICA EXACTA DEL NOMBRE DE LA FUENTE)**
-      * **TEXT CLARITY:** If text is necessary, keep it extremely short (1-3 words) and simple. Avoid long phrases. If text must be included, use a simple font style for maximum readability.
-      * **NEGATIVELY PROMPT:** Avoid generating complex text overlays or long sentences.
-    * Incorporates the brand colors: ${colorPalette}
      * Follows the brand style: ${brandDesign.brandStyle || "modern"}
-     * CRITICAL FONT STYLE: Any text or graphical element added to the image must use or be inspired by the primary font: ${brandDesign.fontPrimary || "a modern sans-serif font"}. // FONT CRÍTICO
-     * CRITICAL: The prompt MUST explicitly instruct the image generator to **seamlessly integrate the brand's logo or a clear, branded symbol** (like a sign, tag, or subtle element that represents the logo) naturally into the scene to maintain high-quality branding without using a simple watermark overlay. // INTEGRACIÓN NATURAL DEL LOGO
+     * Incorporates the brand colors: ${colorPalette}
+     * **CRITICAL STYLE ADHERENCE:** Use the specific aesthetic (color composition, mood, and structural layout) synthesized from the BRAND VISUAL ASSETS descriptions provided.
+     * **CRITICAL LOGO INTEGRATION:** The prompt MUST explicitly instruct the image generator to **seamlessly integrate the brand's logo or a clear, branded symbol** naturally into the scene to maintain high-quality branding without using a simple watermark overlay. **DO NOT add extra letters or alter the logo's original shape.**
+     * **FONT/TEXT INSTRUCTIONS:** Any text or graphical element added to the image must use the style of the primary font: ${brandDesign.fontPrimary || "a modern sans-serif font"}. If text is required, keep it **extremely short (1-3 words) and simple** for readability.
      * Uses professional composition suitable for social media
      * References specific products or assets from the brand when relevant
-     * Creates visuals that would complement the brand's logo and identity
-     * Uses professional composition suitable for social media
 5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
 6. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
 7. **CRÍTICO:** When creating the imagePrompt, you MUST reference the **specific names** of the top-selling products or relevant visual assets from the BRAND VISUAL ASSETS and TOP SELLING PRODUCTS lists (e.g., "The image must feature the 'Classic Chronos' watch in a leather band, matching the visual style of the reference images provided."). This ensures the final image features the brand's actual catalog.
