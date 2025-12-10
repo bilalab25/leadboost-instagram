@@ -2400,6 +2400,7 @@ export class DatabaseStorage implements IStorage {
         brandColor: brands.primaryColor,
         brandIndustry: brands.industry,
         brandDescription: brands.description,
+        brandDomain: brands.domain,
       })
       .from(brandMemberships)
       .innerJoin(brands, eq(brandMemberships.brandId, brands.id))

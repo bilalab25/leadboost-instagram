@@ -1070,6 +1070,7 @@ export type BrandMembershipWithBrand = SelectBrandMembership & {
   brandColor: string | null;
   brandIndustry: string | null;
   brandDescription: string | null;
+  brandDomain: string | null;
 };
 
 // Brand Invitations insert/select schemas

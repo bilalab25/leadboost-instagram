@@ -331,6 +331,12 @@ const createBrandSchema = z.object({
   name: z.string().min(1, "Brand name is required"),
   industry: z.string().min(1, "Industry is required"),
   description: z.string().min(1, "Description is required"),
+  domain: z
+    .string()
+    .url("Must be a valid URL")
+    .or(z.literal(""))
+    .optional()
+    .nullable(),
 });
 
 const joinBrandSchema = z.object({
@@ -1224,6 +1230,7 @@ export default function Onboarding() {
       name: "",
       industry: "",
       description: "",
+      domain: "",
     },
   });
 
@@ -1233,17 +1240,44 @@ export default function Onboarding() {
       inviteCode: "",
     },
   });
-
   // Populate form with existing brand data when going back to step 1
   useEffect(() => {
     if (createdBrandId && currentStep === 1 && brands.length > 0) {
       const existingBrand = brands.find((b: any) => b.id === createdBrandId);
+
       if (existingBrand) {
-        createForm.reset({
-          name: existingBrand.name || "",
-          industry: existingBrand.industry || "",
-          description: existingBrand.description || "",
-        });
+        const industryValue = existingBrand.industry || "";
+        const domainValue = existingBrand.domain || "";
+
+        // Verificar si la industria guardada es una opción estándar
+        const isStandardIndustry = INDUSTRY_OPTIONS.some(
+          (option) => option.value === industryValue,
+        );
+
+        if (!isStandardIndustry && industryValue) {
+          // La industria es un valor personalizado
+          setIsOtherIndustry(true);
+          setCustomIndustry(industryValue);
+
+          // Establecer el campo 'industry' del formulario a "other" para que el <Select> se muestre como "Otro"
+          // y el campo de input personalizado esté visible.
+          createForm.reset({
+            name: existingBrand.name || "",
+            industry: "other",
+            description: existingBrand.description || "",
+            domain: domainValue,
+          });
+        } else {
+          // La industria es estándar (o vacía/null)
+          setIsOtherIndustry(false);
+          setCustomIndustry("");
+          createForm.reset({
+            name: existingBrand.name || "",
+            industry: industryValue,
+            description: existingBrand.description || "",
+            domain: domainValue,
+          });
+        }
       }
     }
   }, [createdBrandId, currentStep, brands]);
@@ -1437,7 +1471,10 @@ export default function Onboarding() {
     }
   };
 
-  const handleAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAssetUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    assetCategory: string, // <-- Nuevo argumento
+  ) => {
     if (!brandDesign?.id) return;
 
     const inputEl = e.currentTarget;
@@ -1459,7 +1496,7 @@ export default function Onboarding() {
             id,
             url: data.secure_url,
             name: file.name,
-            category: currentAssetUploadCategory,
+            category: assetCategory, // <-- Usar el nuevo argumento
             assetType: getAssetType(file.name),
             publicId: data.public_id,
           });
@@ -1474,7 +1511,6 @@ export default function Onboarding() {
       queryKey: ["/api/brand-assets", createdBrandId, brandDesign.id],
     });
   };
-
   const saveAssetToDB = async (asset: BrandAsset) => {
     const payload = {
       brandDesignId: brandDesign?.id,
@@ -1628,6 +1664,14 @@ export default function Onboarding() {
 
   // Form submission handlers
   const onCreateSubmit = (data: CreateBrandForm) => {
+    // --- SOLUCIÓN PROBLEMA 1: Ajustar el valor de la industria si es "Other" ---
+    let finalData = data;
+    if (isOtherIndustry) {
+      // Reemplaza el valor de 'industry' del formulario ("other") con el valor de customIndustry
+      finalData = { ...data, industry: customIndustry };
+    }
+    // --------------------------------------------------------------------------
+
     // Check if brand actually exists before trying to update
     const brandExists =
       createdBrandId &&
@@ -1635,7 +1679,7 @@ export default function Onboarding() {
 
     if (brandExists) {
       // Brand exists - update it
-      updateBrandMutation.mutate({ ...data, brandId: createdBrandId });
+      updateBrandMutation.mutate({ ...finalData, brandId: createdBrandId });
     } else {
       // No valid brand - create new one (also clears stale state)
       if (createdBrandId) {
@@ -1643,7 +1687,7 @@ export default function Onboarding() {
         clearOnboardingState();
         setCreatedBrandId(null);
       }
-      createBrandMutation.mutate(data);
+      createBrandMutation.mutate(finalData);
     }
   };
 
@@ -2095,7 +2139,8 @@ export default function Onboarding() {
                           onValueChange={(value) => {
                             if (value === "other") {
                               setIsOtherIndustry(true);
-                              field.onChange(""); // obligatorio para zod
+                              // SOLUCIÓN 1: Mantener "other" como valor para el Select
+                              field.onChange(value);
                             } else {
                               setIsOtherIndustry(false);
                               setCustomIndustry("");
@@ -2132,7 +2177,9 @@ export default function Onboarding() {
                             value={customIndustry}
                             onChange={(e) => {
                               setCustomIndustry(e.target.value);
-                              field.onChange(e.target.value);
+                              // SOLUCIÓN 1: ELIMINAR field.onChange(e.target.value) aquí.
+                              // El valor de la industria personalizada se inserta en onCreateSubmit.
+                              // Esto evita el conflicto de renderizado.
                             }}
                             placeholder={
                               isSpanish
@@ -2153,7 +2200,7 @@ export default function Onboarding() {
                     name="description"
                     render={({ field }) => {
                       const [listening, setListening] = useState(false);
-                      const recognitionRef = useRef(null);
+                      const recognitionRef = useRef<any>(null); // Asegurar el tipado
 
                       const startListening = () => {
                         const SpeechRecognition =
@@ -2162,13 +2209,19 @@ export default function Onboarding() {
 
                         if (!SpeechRecognition) {
                           alert(
-                            "Tu navegador no soporta reconocimiento de voz.",
+                            isSpanish
+                              ? "Tu navegador no soporta reconocimiento de voz."
+                              : "Your browser does not support speech recognition.",
                           );
                           return;
                         }
 
                         const recognition = new SpeechRecognition();
-                        recognition.lang = "es-MX";
+
+                        // --- SOLUCIÓN PROBLEMA 2: Lenguaje dinámico ---
+                        recognition.lang = isSpanish ? "es-MX" : "en-US";
+                        // ---------------------------------------------
+
                         recognition.continuous = true;
                         recognition.interimResults = false;
 
@@ -2198,7 +2251,9 @@ export default function Onboarding() {
                       return (
                         <FormItem>
                           <FormLabel>
-                            {isSpanish ? "Descripción *" : "Description *"}
+                            {isSpanish
+                              ? "Descripción (se tan específico como puedas) *"
+                              : "Description (be as specific as you can)*"}
                           </FormLabel>
 
                           <div className="relative">
@@ -2208,8 +2263,8 @@ export default function Onboarding() {
                                 rows={3}
                                 placeholder={
                                   isSpanish
-                                    ? "Cuéntanos sobre tu marca..."
-                                    : "Tell us about your brand..."
+                                    ? "Cuanto más nos cuente sobre su marca, mejor funcionará nuestra IA para usted."
+                                    : "The more you tell us about your brand, the better our AI will work for you."
                                 }
                               />
                             </FormControl>
@@ -2234,7 +2289,30 @@ export default function Onboarding() {
                       );
                     }}
                   />
-
+                  <FormField
+                    control={createForm.control}
+                    name="domain"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {isSpanish ? "Link de la Página Web" : "Website Link"}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder={
+                              isSpanish
+                                ? "e.g. https://www.ejemplo.com"
+                                : "e.g. https://www.example.com"
+                            }
+                            // Asegurarse de manejar null/undefined para el input
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <div className="flex gap-3 pt-4">
                     <Button
                       type="button"
@@ -2858,10 +2936,7 @@ export default function Onboarding() {
                                     multiple
                                     className="sr-only"
                                     onChange={(e) => {
-                                      setCurrentAssetUploadCategory(
-                                        category.value,
-                                      );
-                                      handleAssetUpload(e);
+                                      handleAssetUpload(e, category.value);
                                     }}
                                     data-testid={`input-asset-upload-${category.value}`}
                                   />

@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 interface Brand {
   id: string;
   name: string;
+  domain: string | null;
   industry: string | null;
   description: string | null;
   primaryColor: string | null;
@@ -86,6 +87,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     : memberships.map((m) => ({
         id: m.brandId,
         name: m.brandName,
+        domain: m.brandDomain,
         industry: m.brandIndustry,
         description: m.brandDescription,
         primaryColor: m.brandColor,
