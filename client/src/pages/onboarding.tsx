@@ -1413,7 +1413,7 @@ export default function Onboarding() {
       });
     },
   });
-
+  const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
   function uploadFileWithProgress(
     file: File,
     onProgress: (pct: number) => void,
@@ -1446,12 +1446,24 @@ export default function Onboarding() {
       };
 
       xhr.onload = () => {
-        if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-        else reject(new Error(`Upload failed: ${xhr.status}`));
+        if (xhr.status === 200) {
+          resolve(JSON.parse(xhr.responseText));
+        } else {
+          let errorMessage = `Upload failed: HTTP ${xhr.status}`;
+          try {
+            const response = JSON.parse(xhr.responseText);
+            if (response.error && response.error.message) {
+              errorMessage = `Cloudinary Error: ${response.error.message}`;
+            }
+          } catch (e) {
+            // Si la respuesta no es JSON, usamos el error HTTP
+          }
+          reject(new Error(errorMessage));
+          // --- FIN CAMBIO ---
+        }
       };
 
-      xhr.onerror = () => reject(new Error("Upload error"));
-
+      xhr.onerror = () => reject(new Error("Upload error (Network failure)"));
       xhr.send(fd);
     });
   }
@@ -1476,11 +1488,22 @@ export default function Onboarding() {
     assetCategory: string, // <-- Nuevo argumento
   ) => {
     if (!brandDesign?.id) return;
-
     const inputEl = e.currentTarget;
     const files = Array.from(inputEl.files || []);
 
     for (const file of files) {
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast({
+          title: isSpanish ? "Archivo Demasiado Grande" : "File Too Large",
+          description: isSpanish
+            ? `El archivo "${file.name}" excede el límite de ${MAX_FILE_SIZE_BYTES / 1024 / 1024} MB. Por favor, comprímelo o sube uno más pequeño.`
+            : `The file "${file.name}" exceeds the limit of ${MAX_FILE_SIZE_BYTES / 1024 / 1024} MB. Please compress it or upload a smaller one.`,
+          variant: "destructive",
+          duration: 5000,
+        });
+        // Si el archivo excede el límite, simplemente pasamos al siguiente archivo
+        continue;
+      }
       const id = crypto.randomUUID();
       setUploads((prev) => [...prev, { id, name: file.name, percent: 0 }]);
 
@@ -1501,6 +1524,19 @@ export default function Onboarding() {
             publicId: data.public_id,
           });
         }
+      } catch (err) {
+        // --- CAMBIO: Manejar el error de subida y mostrar Toast ---
+        const error = err as Error;
+        console.error("Asset upload failed:", error.message);
+        toast({
+          title: isSpanish ? "Error de Subida" : "Upload Error",
+          description: isSpanish
+            ? `No se pudo subir "${file.name}". Razón: ${error.message}`
+            : `Failed to upload "${file.name}". Reason: ${error.message}`,
+          variant: "destructive",
+          duration: 7000,
+        });
+        // --- FIN CAMBIO ---
       } finally {
         setUploads((prev) => prev.filter((u) => u.id !== id));
       }
