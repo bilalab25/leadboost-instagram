@@ -301,7 +301,10 @@ function buildTextPrompt(context: PostGenerationContext): string {
   // Build detailed asset list with URLs for context
   const assetDetails = brandAssets
     .map((asset) => {
-      return `  - ${asset.name} (${asset.category || "general"}): ${asset.url}`;
+      const desc = (asset as any).description
+        ? ` - DESCRIPTION: ${(asset as any).description}`
+        : "";
+      return `  - ${asset.name} (${asset.category || "general"})${desc}: ${asset.url}`;
     })
     .join("\n");
 
@@ -423,6 +426,9 @@ REQUIREMENTS:
    - Relevant hashtags (5-10 per post)
    - Optimal posting time based on insights (optimalTime field)
    - A detailed image prompt for AI image generation that:
+   * CRITICAL FONT STYLE: Any text or graphical element added to the image must use or be inspired by the **style** of the primary font: ${brandDesign.fontPrimary || "a modern sans-serif font"}. **(NO REQUERIR LA REPLICA EXACTA DEL NOMBRE DE LA FUENTE)**
+      * **TEXT CLARITY:** If text is necessary, keep it extremely short (1-3 words) and simple. Avoid long phrases. If text must be included, use a simple font style for maximum readability.
+      * **NEGATIVELY PROMPT:** Avoid generating complex text overlays or long sentences.
     * Incorporates the brand colors: ${colorPalette}
      * Follows the brand style: ${brandDesign.brandStyle || "modern"}
      * CRITICAL FONT STYLE: Any text or graphical element added to the image must use or be inspired by the primary font: ${brandDesign.fontPrimary || "a modern sans-serif font"}. // FONT CRÍTICO
