@@ -74,7 +74,7 @@ export interface PostGenerationContext {
 }
 
 async function fetchMetaInsights(
-  integration: Integration
+  integration: Integration,
 ): Promise<MetaInsights | null> {
   try {
     const accessToken = integration.accessToken;
@@ -87,13 +87,16 @@ async function fetchMetaInsights(
 
     const insights: MetaInsights = {};
 
-    if (integration.provider === "instagram_direct" || integration.provider === "instagram") {
+    if (
+      integration.provider === "instagram_direct" ||
+      integration.provider === "instagram"
+    ) {
       const metricsUrl = `https://graph.instagram.com/v24.0/${accountId}/insights?metric=reach,impressions&period=day&access_token=${accessToken}`;
-      
+
       try {
         const metricsRes = await fetch(metricsUrl);
         const metricsData = await metricsRes.json();
-        
+
         if (metricsData?.data) {
           metricsData.data.forEach((metric: any) => {
             if (metric.name === "reach") {
@@ -112,10 +115,10 @@ async function fetchMetaInsights(
         const followersUrl = `https://graph.instagram.com/v24.0/${accountId}/insights?metric=online_followers&period=lifetime&access_token=${accessToken}`;
         const followersRes = await fetch(followersUrl);
         const followersData = await followersRes.json();
-        
+
         if (followersData?.data?.[0]?.values?.[0]?.value) {
           insights.onlineFollowers = followersData.data[0].values[0].value;
-          
+
           const hourlyData = insights.onlineFollowers;
           if (hourlyData) {
             const sortedHours = Object.entries(hourlyData)
@@ -135,12 +138,12 @@ async function fetchMetaInsights(
 
     if (integration.provider === "facebook") {
       const pageId = integration.pageId || accountId;
-      
+
       try {
         const insightsUrl = `https://graph.facebook.com/v24.0/${pageId}/insights?metric=page_impressions,page_engaged_users,page_post_engagements&period=day&access_token=${accessToken}`;
         const insightsRes = await fetch(insightsUrl);
         const insightsData = await insightsRes.json();
-        
+
         if (insightsData?.data) {
           insightsData.data.forEach((metric: any) => {
             if (metric.name === "page_impressions") {
@@ -169,138 +172,178 @@ async function fetchMetaInsights(
 
 // Day name mapping from short form to day number (0 = Sunday, 6 = Saturday)
 const dayNameToNumber: Record<string, number> = {
-  'sun': 0, 'sunday': 0,
-  'mon': 1, 'monday': 1,
-  'tue': 2, 'tuesday': 2,
-  'wed': 3, 'wednesday': 3,
-  'thu': 4, 'thursday': 4,
-  'fri': 5, 'friday': 5,
-  'sat': 6, 'saturday': 6,
+  sun: 0,
+  sunday: 0,
+  mon: 1,
+  monday: 1,
+  tue: 2,
+  tuesday: 2,
+  wed: 3,
+  wednesday: 3,
+  thu: 4,
+  thursday: 4,
+  fri: 5,
+  friday: 5,
+  sat: 6,
+  saturday: 6,
 };
 
 // Calculate posting dates for a given month based on posting frequency settings
 export function calculatePostingDates(
-  month: number, 
-  year: number, 
+  month: number,
+  year: number,
   daysWeek: string[],
-  startFromToday: boolean = false
+  startFromToday: boolean = false,
 ): string[] {
   const dates: string[] = [];
   const firstDay = new Date(year, month - 1, 1);
   const lastDay = new Date(year, month, 0);
-  
+
   // Get today's date for comparison
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   // Convert day names to day numbers
   const targetDays = daysWeek
-    .map(d => dayNameToNumber[d.toLowerCase()])
-    .filter(d => d !== undefined);
-  
+    .map((d) => dayNameToNumber[d.toLowerCase()])
+    .filter((d) => d !== undefined);
+
   if (targetDays.length === 0) {
     console.warn("[PostGenerator] No valid days found in daysWeek:", daysWeek);
     return dates;
   }
-  
+
   // Iterate through all days of the month
   for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
     const dayOfWeek = d.getDay();
-    
+
     // Check if this day is one of the target posting days
     if (targetDays.includes(dayOfWeek)) {
       // Skip past dates if startFromToday is true
       if (startFromToday && d < today) {
         continue;
       }
-      
+
       // Format date as YYYY-MM-DD
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = d.toISOString().split("T")[0];
       dates.push(dateStr);
     }
   }
-  
+
   return dates;
 }
 
 function buildTextPrompt(context: PostGenerationContext): string {
-  const { brandName, brandDescription, brandDesign, brandAssets, metaInsights, salesInsights, month, year, postingSchedule, connectedPlatforms } = context;
+  const {
+    brandName,
+    brandDescription,
+    brandDesign,
+    brandAssets,
+    metaInsights,
+    salesInsights,
+    month,
+    year,
+    postingSchedule,
+    connectedPlatforms,
+  } = context;
 
-  const monthName = new Date(year, month - 1).toLocaleString('en-US', { month: 'long' });
-  
+  const monthName = new Date(year, month - 1).toLocaleString("en-US", {
+    month: "long",
+  });
+
   // Calculate the start day for content generation
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
   const currentDay = now.getDate();
-  
+
   // If generating for current month, start from today. Otherwise start from day 1
-  const startDay = (year === currentYear && month === currentMonth) ? currentDay : 1;
-  
+  const startDay =
+    year === currentYear && month === currentMonth ? currentDay : 1;
+
   // Get last day of target month
   const lastDayOfMonth = new Date(year, month, 0).getDate();
-  
-  const dateRestriction = startDay > 1 
-    ? `CRITICAL DATE RESTRICTION: Today is ${monthName} ${currentDay}, ${year}. Generate posts ONLY for dates from ${monthName} ${startDay} to ${monthName} ${lastDayOfMonth}. DO NOT generate any posts for dates before ${monthName} ${startDay}.`
-    : `Generate posts for the entire month of ${monthName} (days 1-${lastDayOfMonth}).`;
-  
+
+  const dateRestriction =
+    startDay > 1
+      ? `CRITICAL DATE RESTRICTION: Today is ${monthName} ${currentDay}, ${year}. Generate posts ONLY for dates from ${monthName} ${startDay} to ${monthName} ${lastDayOfMonth}. DO NOT generate any posts for dates before ${monthName} ${startDay}.`
+      : `Generate posts for the entire month of ${monthName} (days 1-${lastDayOfMonth}).`;
+
   // Determine which platforms to generate for (only connected ones)
-  const availablePlatforms = connectedPlatforms && connectedPlatforms.length > 0
-    ? connectedPlatforms
-    : ['instagram', 'facebook']; // Default fallback
-    
+  const availablePlatforms =
+    connectedPlatforms && connectedPlatforms.length > 0
+      ? connectedPlatforms
+      : ["instagram", "facebook"]; // Default fallback
+
   // Format platforms for prompt with variations
-  const platformInstructions = availablePlatforms.map(p => {
-    if (p === 'instagram' || p === 'instagram_direct') {
-      return 'Instagram (including feed posts, reels, and stories)';
-    }
-    if (p === 'facebook') {
-      return 'Facebook (page posts)';
-    }
-    return p;
-  }).join(', ');
-  
+  const platformInstructions = availablePlatforms
+    .map((p) => {
+      if (p === "instagram" || p === "instagram_direct") {
+        return "Instagram (including feed posts, reels, and stories)";
+      }
+      if (p === "facebook") {
+        return "Facebook (page posts)";
+      }
+      return p;
+    })
+    .join(", ");
+
   const colorPalette = [
     brandDesign.colorPrimary,
     brandDesign.colorAccent1,
     brandDesign.colorAccent2,
     brandDesign.colorAccent3,
     brandDesign.colorAccent4,
-  ].filter(Boolean).join(", ");
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   // Build detailed asset list with URLs for context
-  const assetDetails = brandAssets.map(asset => {
-    return `  - ${asset.name} (${asset.category || "general"}): ${asset.url}`;
-  }).join("\n");
+  const assetDetails = brandAssets
+    .map((asset) => {
+      return `  - ${asset.name} (${asset.category || "general"}): ${asset.url}`;
+    })
+    .join("\n");
 
   // Group assets by category for quick reference
-  const assetsByCategory = brandAssets.reduce((acc, asset) => {
-    const cat = asset.category || "general";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(asset.name);
-    return acc;
-  }, {} as Record<string, string[]>);
+  const assetsByCategory = brandAssets.reduce(
+    (acc, asset) => {
+      const cat = asset.category || "general";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(asset.name);
+      return acc;
+    },
+    {} as Record<string, string[]>,
+  );
 
-  const bestTimes = metaInsights?.bestPostingTimes?.join(", ") || "9:00 AM, 12:00 PM, 6:00 PM";
+  const bestTimes =
+    metaInsights?.bestPostingTimes?.join(", ") || "9:00 AM, 12:00 PM, 6:00 PM";
 
   // Logo information - use whiteLogoUrl, blackLogoUrl, or deprecated logoUrl
-  const logoUrl = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
-  const logoInfo = logoUrl 
+  const logoUrl =
+    brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
+  const logoInfo = logoUrl
     ? `- Brand Logo URL: ${logoUrl}\n- IMPORTANT: The brand has a logo that should be conceptually referenced in image prompts. Describe elements that complement the logo style.`
     : "- No logo uploaded";
 
   // Build the posting schedule instructions based on social_posting_frequency table
-  let postingScheduleInstructions = '';
+  let postingScheduleInstructions = "";
   let totalPosts = 0;
-  
+
   if (postingSchedule && postingSchedule.length > 0) {
-    const scheduleDetails = postingSchedule.map(schedule => {
-      const platformName = schedule.platform === 'instagram' ? 'Instagram' : 
-                          schedule.platform === 'facebook' ? 'Facebook' : schedule.platform;
-      totalPosts += schedule.postingDates.length;
-      return `- ${platformName}: Generate ${schedule.postingDates.length} posts on these EXACT dates: ${schedule.postingDates.join(', ')}`;
-    }).join('\n');
-    
+    const scheduleDetails = postingSchedule
+      .map((schedule) => {
+        const platformName =
+          schedule.platform === "instagram"
+            ? "Instagram"
+            : schedule.platform === "facebook"
+              ? "Facebook"
+              : schedule.platform;
+        totalPosts += schedule.postingDates.length;
+        return `- ${platformName}: Generate ${schedule.postingDates.length} posts on these EXACT dates: ${schedule.postingDates.join(", ")}`;
+      })
+      .join("\n");
+
     postingScheduleInstructions = `
 POSTING SCHEDULE (from brand settings - DO NOT deviate from these dates):
 ${scheduleDetails}
@@ -332,30 +375,42 @@ BRAND VISUAL ASSETS (use these as inspiration for content):
 ${assetDetails || "No assets uploaded yet"}
 
 ASSET CATEGORIES SUMMARY:
-${Object.entries(assetsByCategory).map(([cat, items]) => `- ${cat}: ${items.join(", ")}`).join("\n") || "No categorized assets"}
+${
+  Object.entries(assetsByCategory)
+    .map(([cat, items]) => `- ${cat}: ${items.join(", ")}`)
+    .join("\n") || "No categorized assets"
+}
 
 AUDIENCE INSIGHTS:
 - Best Posting Times (use these to suggest optimal posting times): ${bestTimes}
 - Reach: ${metaInsights?.reach || "Not available"}
 - Impressions: ${metaInsights?.impressions || "Not available"}
 - Engagement: ${metaInsights?.engagement || "Not available"}
-${salesInsights ? `
+${
+  salesInsights
+    ? `
 SALES DATA (use this to create content that promotes top products and drives sales):
 - Total Sales: $${(salesInsights.totalSales / 100).toFixed(2)}
 - Total Transactions: ${salesInsights.totalTransactions}
 - Average Order Value: $${(salesInsights.averageOrderValue / 100).toFixed(2)}
 - Total Customers: ${salesInsights.totalCustomers}
-${salesInsights.topProducts && salesInsights.topProducts.length > 0 ? `
+${
+  salesInsights.topProducts && salesInsights.topProducts.length > 0
+    ? `
 TOP SELLING PRODUCTS (prioritize content about these):
-${salesInsights.topProducts.map((p, i) => `  ${i + 1}. ${p.name} - ${p.quantity} sold, $${(p.revenue / 100).toFixed(2)} revenue`).join('\n')}
-` : ''}
-${salesInsights.recentSalesTrend ? `- Sales Trend: ${salesInsights.recentSalesTrend}` : ''}
+${salesInsights.topProducts.map((p, i) => `  ${i + 1}. ${p.name} - ${p.quantity} sold, $${(p.revenue / 100).toFixed(2)} revenue`).join("\n")}
+`
+    : ""
+}
+${salesInsights.recentSalesTrend ? `- Sales Trend: ${salesInsights.recentSalesTrend}` : ""}
 CONTENT STRATEGY BASED ON SALES:
 - Create promotional posts featuring the top-selling products
 - Highlight bestsellers and customer favorites
 - Use sales data to craft compelling offers and calls-to-action
 - Consider creating "limited stock" or "popular item" urgency posts for top sellers
-` : ''}
+`
+    : ""
+}
 ${postingScheduleInstructions}
 
 REQUIREMENTS:
@@ -368,14 +423,17 @@ REQUIREMENTS:
    - Relevant hashtags (5-10 per post)
    - Optimal posting time based on insights (optimalTime field)
    - A detailed image prompt for AI image generation that:
-     * Incorporates the brand colors: ${colorPalette}
+    * Incorporates the brand colors: ${colorPalette}
      * Follows the brand style: ${brandDesign.brandStyle || "modern"}
+     * CRITICAL FONT STYLE: Any text or graphical element added to the image must use or be inspired by the primary font: ${brandDesign.fontPrimary || "a modern sans-serif font"}. // FONT CRÍTICO
+     * CRITICAL: The prompt MUST explicitly instruct the image generator to **seamlessly integrate the brand's logo or a clear, branded symbol** (like a sign, tag, or subtle element that represents the logo) naturally into the scene to maintain high-quality branding without using a simple watermark overlay. // INTEGRACIÓN NATURAL DEL LOGO
+     * Uses professional composition suitable for social media
      * References specific products or assets from the brand when relevant
      * Creates visuals that would complement the brand's logo and identity
      * Uses professional composition suitable for social media
 5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
 6. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
-7. When creating image prompts, reference the actual products/services from the brand assets list
+7. **CRÍTICO:** When creating the imagePrompt, you MUST reference the **specific names** of the top-selling products or relevant visual assets from the BRAND VISUAL ASSETS and TOP SELLING PRODUCTS lists (e.g., "The image must feature the 'Classic Chronos' watch in a leather band, matching the visual style of the reference images provided."). This ensures the final image features the brand's actual catalog.
 8. PLATFORM MAPPING: Use these exact platform values in the JSON:
    - For Instagram posts: "instagram"
    - For Instagram Stories: "instagram_story"
@@ -390,9 +448,9 @@ IMPORTANT: Return ONLY valid JSON in this exact format:
       "titulo": "Eye-catching hook or title",
       "content": "Full caption with emojis and call to action...",
       "hashtags": "#brand #hashtag1 #hashtag2",
-      "dia": "${year}-${String(month).padStart(2, '0')}-01",
+      "dia": "${year}-${String(month).padStart(2, "0")}-01",
       "optimalTime": "6:00 PM",
-      "imagePrompt": "Detailed description for image generation: [describe scene with brand colors ${colorPalette}, ${brandDesign.brandStyle || 'modern'} style, referencing specific brand products/assets]..."
+      "imagePrompt": "Detailed description for image generation: [describe scene with brand colors ${colorPalette}, ${brandDesign.brandStyle || "modern"} style, referencing specific brand products/assets]..."
     }
   ]
 }`;
@@ -401,7 +459,7 @@ IMPORTANT: Return ONLY valid JSON in this exact format:
 // Helper function to clean and parse JSON from LLM response
 function cleanAndParseJson(text: string): any {
   console.log("[PostGenerator] Raw response length:", text?.length || 0);
-  
+
   // Try direct parse first
   try {
     return JSON.parse(text);
@@ -410,31 +468,34 @@ function cleanAndParseJson(text: string): any {
   }
 
   // Remove markdown code blocks
-  let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
-  
+  let cleaned = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "");
+
   // Try to extract JSON object
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     cleaned = jsonMatch[0];
   }
-  
+
   // Fix common JSON issues
   cleaned = cleaned
-    .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
-    .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
-    .replace(/[\x00-\x1F\x7F]/g, ' ')  // Remove control characters
-    .replace(/\n/g, ' ')  // Replace newlines with spaces
-    .replace(/\r/g, '')  // Remove carriage returns
-    .replace(/\t/g, ' ')  // Replace tabs with spaces
-    .replace(/\s+/g, ' ') // Collapse multiple spaces
+    .replace(/,\s*}/g, "}") // Remove trailing commas in objects
+    .replace(/,\s*]/g, "]") // Remove trailing commas in arrays
+    .replace(/[\x00-\x1F\x7F]/g, " ") // Remove control characters
+    .replace(/\n/g, " ") // Replace newlines with spaces
+    .replace(/\r/g, "") // Remove carriage returns
+    .replace(/\t/g, " ") // Replace tabs with spaces
+    .replace(/\s+/g, " ") // Collapse multiple spaces
     .trim();
-  
+
   try {
     return JSON.parse(cleaned);
   } catch (e) {
     console.log("[PostGenerator] JSON cleanup failed, trying array extraction");
-    console.log("[PostGenerator] Cleaned text sample:", cleaned.substring(0, 500));
-    
+    console.log(
+      "[PostGenerator] Cleaned text sample:",
+      cleaned.substring(0, 500),
+    );
+
     // Try to extract just the posts array with greedy matching
     const arrayMatch = cleaned.match(/"posts"\s*:\s*\[([\s\S]*)\]/);
     if (arrayMatch) {
@@ -444,13 +505,15 @@ function cleanAndParseJson(text: string): any {
         const posts = JSON.parse(`[${arrayContent}]`);
         return { posts };
       } catch (e2) {
-        console.log("[PostGenerator] Array extraction failed, trying individual posts");
+        console.log(
+          "[PostGenerator] Array extraction failed, trying individual posts",
+        );
       }
     }
-    
+
     // Last resort: try to extract individual post objects using a more flexible regex
     const posts: any[] = [];
-    
+
     // Match objects that have required fields (platform, titulo, content)
     const objectRegex = /\{\s*"[^"]+"\s*:\s*[^{}]+(?:\{[^{}]*\})*[^{}]*\}/g;
     let match;
@@ -465,12 +528,14 @@ function cleanAndParseJson(text: string): any {
         // Skip malformed objects
       }
     }
-    
+
     if (posts.length > 0) {
-      console.log(`[PostGenerator] Recovered ${posts.length} posts from fragmented response`);
+      console.log(
+        `[PostGenerator] Recovered ${posts.length} posts from fragmented response`,
+      );
       return { posts };
     }
-    
+
     // Very last resort: try splitting by platform field and reconstructing
     const platformSplits = cleaned.split(/"platform"\s*:/);
     if (platformSplits.length > 1) {
@@ -490,15 +555,19 @@ function cleanAndParseJson(text: string): any {
           // Skip malformed segments
         }
       }
-      
+
       if (posts.length > 0) {
-        console.log(`[PostGenerator] Recovered ${posts.length} posts from split response`);
+        console.log(
+          `[PostGenerator] Recovered ${posts.length} posts from split response`,
+        );
         return { posts };
       }
     }
-    
+
     console.error("[PostGenerator] All parsing attempts failed");
-    throw new Error("Could not parse JSON from Gemini response after cleanup attempts");
+    throw new Error(
+      "Could not parse JSON from Gemini response after cleanup attempts",
+    );
   }
 }
 
@@ -507,44 +576,46 @@ function findMatchingBrace(str: string, start: number): number {
   let depth = 0;
   let inString = false;
   let escape = false;
-  
+
   for (let i = start; i < str.length; i++) {
     const char = str[i];
-    
+
     if (escape) {
       escape = false;
       continue;
     }
-    
-    if (char === '\\') {
+
+    if (char === "\\") {
       escape = true;
       continue;
     }
-    
+
     if (char === '"' && !escape) {
       inString = !inString;
       continue;
     }
-    
+
     if (!inString) {
-      if (char === '{') depth++;
-      if (char === '}') {
+      if (char === "{") depth++;
+      if (char === "}") {
         depth--;
         if (depth === 0) return i;
       }
     }
   }
-  
+
   return -1;
 }
 
 export async function generatePostsWithGemini(
-  context: PostGenerationContext
+  context: PostGenerationContext,
 ): Promise<GeneratedPost[]> {
-  console.log(`[PostGenerator] Starting post generation for brand: ${context.brandName}`);
-  
+  console.log(
+    `[PostGenerator] Starting post generation for brand: ${context.brandName}`,
+  );
+
   const prompt = buildTextPrompt(context);
-  
+
   try {
     // Use structured output with JSON schema for reliable parsing
     const response = await ai.models.generateContent({
@@ -570,7 +641,15 @@ export async function generatePostsWithGemini(
                   optimalTime: { type: Type.STRING },
                   imagePrompt: { type: Type.STRING },
                 },
-                required: ["platform", "titulo", "content", "hashtags", "dia", "optimalTime", "imagePrompt"],
+                required: [
+                  "platform",
+                  "titulo",
+                  "content",
+                  "hashtags",
+                  "dia",
+                  "optimalTime",
+                  "imagePrompt",
+                ],
               },
             },
           },
@@ -594,21 +673,25 @@ export async function generatePostsWithGemini(
 }
 
 // Helper function to fetch an image from URL and convert to base64
-async function fetchImageAsBase64(url: string): Promise<{ data: string; mimeType: string } | null> {
+async function fetchImageAsBase64(
+  url: string,
+): Promise<{ data: string; mimeType: string } | null> {
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.log(`[PostGenerator] Failed to fetch image from ${url}: ${response.status}`);
+      console.log(
+        `[PostGenerator] Failed to fetch image from ${url}: ${response.status}`,
+      );
       return null;
     }
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString('base64');
-    
+    const base64 = buffer.toString("base64");
+
     // Determine mime type from URL or response
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    const mimeType = contentType.split(';')[0].trim();
-    
+    const contentType = response.headers.get("content-type") || "image/jpeg";
+    const mimeType = contentType.split(";")[0].trim();
+
     return { data: base64, mimeType };
   } catch (error) {
     console.error(`[PostGenerator] Error fetching image from ${url}:`, error);
@@ -626,34 +709,45 @@ interface BrandAssetForImage {
 export async function generateImageWithNanoBanana(
   imagePrompt: string,
   brandDesign: BrandDesign,
-  brandAssets?: BrandAssetForImage[]
+  brandAssets?: BrandAssetForImage[],
 ): Promise<string | null> {
   try {
     const enhancedPrompt = `${imagePrompt}. 
-Style: ${brandDesign.brandStyle || 'modern and professional'}. 
-Color scheme: Use these brand colors - Primary: ${brandDesign.colorPrimary || '#4F46E5'}, 
-Accent: ${brandDesign.colorAccent1 || '#7C3AED'}. 
-High quality, professional social media post image, clean composition, vibrant colors.`;
+    Style: ${brandDesign.brandStyle || "modern and professional"}. 
+    Color scheme: Use these brand colors - Primary: ${brandDesign.colorPrimary || "#4F46E5"}, 
+    Accent: ${brandDesign.colorAccent1 || "#7C3AED"}. 
+    High quality, professional social media post image, clean composition, vibrant colors.`;
 
     console.log("[PostGenerator] Generating image with Nano Banana...");
-    
+
     // Build multimodal content parts
     const contentParts: any[] = [];
-    
+
     // If we have brand assets, include them as visual reference (up to 3)
     if (brandAssets && brandAssets.length > 0) {
       // Prioritize product images, then logos, then general assets
       const sortedAssets = [...brandAssets].sort((a, b) => {
-        const priority: Record<string, number> = { 'products': 1, 'product': 1, 'logo': 2, 'logos': 2, 'general': 3 };
-        const aPriority = priority[a.category?.toLowerCase() || 'general'] || 3;
-        const bPriority = priority[b.category?.toLowerCase() || 'general'] || 3;
+        const priority: Record<string, number> = {
+          product_images: 1, // CORRECTO: Máxima Prioridad (Relojes)
+          marketing_banners: 2,
+          logos: 3,
+          general: 4,
+          document_templates: 5,
+          videos: 5,
+        };
+        const aPriority =
+          priority[a.category?.toLowerCase() || "general"] || 99;
+        const bPriority =
+          priority[b.category?.toLowerCase() || "general"] || 99;
         return aPriority - bPriority;
       });
-      
+
       // Take up to 3 images for context
       const assetsToUse = sortedAssets.slice(0, 3);
-      console.log(`[PostGenerator] Including ${assetsToUse.length} brand assets as visual reference`);
-      
+      console.log(
+        `[PostGenerator] Including ${assetsToUse.length} brand assets as visual reference`,
+      );
+
       for (const asset of assetsToUse) {
         const imageData = await fetchImageAsBase64(asset.url);
         if (imageData) {
@@ -661,22 +755,22 @@ High quality, professional social media post image, clean composition, vibrant c
             inlineData: {
               data: imageData.data,
               mimeType: imageData.mimeType,
-            }
+            },
           });
-          console.log(`[PostGenerator] Added asset "${asset.name}" as visual reference`);
+          console.log(
+            `[PostGenerator] Added asset "${asset.name}" as visual reference`,
+          );
         }
       }
-      
+
       // Add instruction to use the reference images
       if (contentParts.length > 0) {
         contentParts.push({
-          text: `IMPORTANT: The images above are brand assets showing the actual products and style of this brand. 
-Use them as visual inspiration to create a NEW image that:
-1. Matches the visual style and aesthetic of these brand images
-2. Features similar products or elements shown in the reference images
-3. Maintains brand consistency in colors, mood, and quality
+          text: `IMPORTANT: The images above are brand assets showing the visual style, logo, and potentially key products of this brand. 
+        // ... (Otras instrucciones se mantienen)
+        ***CRITICAL: The final image MUST subtly and naturally incorporate the style/shape of the logo (first reference image) or a branded icon into the scene (e.g., engraved on the product, a sign in the background, or an element's shape) as requested in the text prompt to avoid a "fake" overlay look.***
 
-Now create this image: ${enhancedPrompt}`
+        Now create this image: ${enhancedPrompt}`,
         });
       } else {
         contentParts.push({ text: enhancedPrompt });
@@ -684,7 +778,7 @@ Now create this image: ${enhancedPrompt}`
     } else {
       contentParts.push({ text: enhancedPrompt });
     }
-    
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: contentParts,
@@ -736,7 +830,7 @@ export async function addWatermarkToImage(
     opacity?: number;
     scale?: number;
     padding?: number;
-  } = {}
+  } = {},
 ): Promise<string> {
   const {
     position = "bottom-right",
@@ -763,7 +857,9 @@ export async function addWatermarkToImage(
 
     const logoBuffer = await downloadImage(logoUrl);
     if (!logoBuffer) {
-      console.log("[Watermark] Could not download logo, returning original image");
+      console.log(
+        "[Watermark] Could not download logo, returning original image",
+      );
       return imageDataUrl;
     }
 
@@ -772,7 +868,7 @@ export async function addWatermarkToImage(
     const imageHeight = imageMetadata.height || 1024;
 
     const logoSize = Math.round(Math.min(imageWidth, imageHeight) * scale);
-    
+
     const resizedLogo = await sharp(logoBuffer)
       .resize(logoSize, logoSize, {
         fit: "inside",
@@ -845,14 +941,16 @@ export async function processPostGeneration(
   brandId: string,
   jobId: string,
   month: number,
-  year: number
+  year: number,
 ): Promise<void> {
-  const { updatePostGeneratorJob } = await import("../storage/postGeneratorJobs");
+  const { updatePostGeneratorJob } = await import(
+    "../storage/postGeneratorJobs"
+  );
   const { createAiGeneratedPost } = await import("../storage/aiGeneratedPosts");
 
   try {
     console.log(`[PostGenerator] Processing job ${jobId} for brand ${brandId}`);
-    
+
     await updatePostGeneratorJob(jobId, { status: "processing" });
 
     const brand = await storage.getBrandByIdOnly(brandId);
@@ -862,144 +960,197 @@ export async function processPostGeneration(
 
     const brandDesign = await storage.getBrandDesignByBrandId(brandId);
     if (!brandDesign) {
-      throw new Error("Brand design not found. Please create your brand design first.");
+      throw new Error(
+        "Brand design not found. Please create your brand design first.",
+      );
     }
 
     const brandAssets = await storage.getAssetsByBrandId(brandId);
 
     const integrations = await storage.getIntegrationsByBrandId(brandId);
-    
+
     // Get only connected Meta platforms (Instagram and Facebook)
     const connectedPlatforms = integrations
-      .filter((int) => 
-        int.provider === "instagram_direct" || 
-        int.provider === "instagram" || 
-        int.provider === "facebook"
+      .filter(
+        (int) =>
+          int.provider === "instagram_direct" ||
+          int.provider === "instagram" ||
+          int.provider === "facebook",
       )
-      .map((int) => int.provider === "instagram_direct" ? "instagram" : int.provider);
-    
+      .map((int) =>
+        int.provider === "instagram_direct" ? "instagram" : int.provider,
+      );
+
     // Remove duplicates using Array.from for TypeScript compatibility
     const uniquePlatforms = Array.from(new Set(connectedPlatforms));
 
     if (uniquePlatforms.length === 0) {
-      throw new Error("No Instagram or Facebook integration found. Please connect your social accounts first.");
+      throw new Error(
+        "No Instagram or Facebook integration found. Please connect your social accounts first.",
+      );
     }
-    
-    console.log(`[PostGenerator] Connected platforms for brand ${brandId}:`, uniquePlatforms);
+
+    console.log(
+      `[PostGenerator] Connected platforms for brand ${brandId}:`,
+      uniquePlatforms,
+    );
 
     // Get the first available integration for insights
     const metaIntegration = integrations.find(
-      (int) => 
-        int.provider === "instagram_direct" || 
-        int.provider === "instagram" || 
-        int.provider === "facebook"
+      (int) =>
+        int.provider === "instagram_direct" ||
+        int.provider === "instagram" ||
+        int.provider === "facebook",
     );
 
-    const metaInsights = metaIntegration ? await fetchMetaInsights(metaIntegration) : null;
+    const metaInsights = metaIntegration
+      ? await fetchMetaInsights(metaIntegration)
+      : null;
 
     // Fetch posting frequency settings from social_posting_frequency table
     // THIS IS THE SOURCE OF TRUTH - only platforms in this table will get posts generated
-    const postingFrequencies = await storage.getSocialPostingFrequenciesByBrand(brandId);
-    console.log(`[PostGenerator] Found ${postingFrequencies.length} posting frequency settings for brand ${brandId}`);
-    
+    const postingFrequencies =
+      await storage.getSocialPostingFrequenciesByBrand(brandId);
+    console.log(
+      `[PostGenerator] Found ${postingFrequencies.length} posting frequency settings for brand ${brandId}`,
+    );
+
     if (postingFrequencies.length === 0) {
-      throw new Error("No posting frequency settings found. Please configure your posting schedule first in Settings > Posting Frequency.");
+      throw new Error(
+        "No posting frequency settings found. Please configure your posting schedule first in Settings > Posting Frequency.",
+      );
     }
-    
+
     // Determine if we're generating for current month (need to skip past dates)
     const now = new Date();
-    const isCurrentMonth = year === now.getFullYear() && month === (now.getMonth() + 1);
-    
+    const isCurrentMonth =
+      year === now.getFullYear() && month === now.getMonth() + 1;
+
     // Build posting schedule ONLY for platforms that are in social_posting_frequency AND have active integrations
     const postingSchedule: PlatformPostingSchedule[] = [];
-    
+
     // Start from social_posting_frequency (source of truth), then validate against integrations
     for (const frequency of postingFrequencies) {
       const rawFrequencyPlatform = frequency.platform.toLowerCase();
       // Normalize instagram_direct to instagram for matching
-      const frequencyPlatform = rawFrequencyPlatform === 'instagram_direct' ? 'instagram' : rawFrequencyPlatform;
-      
+      const frequencyPlatform =
+        rawFrequencyPlatform === "instagram_direct"
+          ? "instagram"
+          : rawFrequencyPlatform;
+
       // Check if this platform has an active integration
-      const hasIntegration = uniquePlatforms.some(p => {
-        const normalizedIntegration = p === 'instagram_direct' ? 'instagram' : p.toLowerCase();
+      const hasIntegration = uniquePlatforms.some((p) => {
+        const normalizedIntegration =
+          p === "instagram_direct" ? "instagram" : p.toLowerCase();
         return normalizedIntegration === frequencyPlatform;
       });
-      
+
       if (!hasIntegration) {
-        console.log(`[PostGenerator] Platform "${frequencyPlatform}" is in posting frequency but has no active integration - skipping`);
+        console.log(
+          `[PostGenerator] Platform "${frequencyPlatform}" is in posting frequency but has no active integration - skipping`,
+        );
         continue;
       }
-      
+
       if (!frequency.daysWeek || frequency.daysWeek.length === 0) {
-        console.log(`[PostGenerator] Platform "${frequencyPlatform}" has no posting days configured - skipping`);
+        console.log(
+          `[PostGenerator] Platform "${frequencyPlatform}" has no posting days configured - skipping`,
+        );
         continue;
       }
-      
+
       // Calculate posting dates based on frequency settings
       const postingDates = calculatePostingDates(
-        month, 
-        year, 
+        month,
+        year,
         frequency.daysWeek,
-        isCurrentMonth // Skip past dates if generating for current month
+        isCurrentMonth, // Skip past dates if generating for current month
       );
-      
+
       if (postingDates.length > 0) {
         postingSchedule.push({
           platform: frequencyPlatform,
           frequencyDays: frequency.frequencyDays,
           daysWeek: frequency.daysWeek,
-          postingDates
+          postingDates,
         });
-        
-        console.log(`[PostGenerator] Platform ${frequencyPlatform}: ${postingDates.length} posts scheduled on days ${frequency.daysWeek.join(', ')}`);
+
+        console.log(
+          `[PostGenerator] Platform ${frequencyPlatform}: ${postingDates.length} posts scheduled on days ${frequency.daysWeek.join(", ")}`,
+        );
       } else {
-        console.log(`[PostGenerator] Platform ${frequencyPlatform}: No valid posting dates found (all may be in the past)`);
+        console.log(
+          `[PostGenerator] Platform ${frequencyPlatform}: No valid posting dates found (all may be in the past)`,
+        );
       }
     }
-    
+
     // Calculate total posts
-    const totalPosts = postingSchedule.reduce((sum, s) => sum + s.postingDates.length, 0);
-    console.log(`[PostGenerator] Total posts to generate: ${totalPosts} across ${postingSchedule.length} platforms`);
-    
+    const totalPosts = postingSchedule.reduce(
+      (sum, s) => sum + s.postingDates.length,
+      0,
+    );
+    console.log(
+      `[PostGenerator] Total posts to generate: ${totalPosts} across ${postingSchedule.length} platforms`,
+    );
+
     if (postingSchedule.length === 0 || totalPosts === 0) {
-      throw new Error("No valid posting schedule found. Please ensure you have configured posting frequency for platforms that are connected, or try a future month if all dates are in the past.");
+      throw new Error(
+        "No valid posting schedule found. Please ensure you have configured posting frequency for platforms that are connected, or try a future month if all dates are in the past.",
+      );
     }
 
     // Get platforms from the schedule (source of truth)
-    const scheduledPlatforms = postingSchedule.map(s => s.platform);
-    
+    const scheduledPlatforms = postingSchedule.map((s) => s.platform);
+
     // Fetch sales insights from Lightspeed if connected
     let salesInsights: SalesInsights | undefined;
     try {
       const { lightspeedService } = await import("./lightspeed");
-      const lightspeedIntegration = await lightspeedService.getIntegrationByBrand(brandId);
-      
+      const lightspeedIntegration =
+        await lightspeedService.getIntegrationByBrand(brandId);
+
       if (lightspeedIntegration) {
-        console.log(`[PostGenerator] Fetching sales insights from Lightspeed for brand ${brandId}`);
-        const stats = await lightspeedService.getSalesStats(lightspeedIntegration.id);
-        const sales = await lightspeedService.getSales(lightspeedIntegration.id, 100);
-        
+        console.log(
+          `[PostGenerator] Fetching sales insights from Lightspeed for brand ${brandId}`,
+        );
+        const stats = await lightspeedService.getSalesStats(
+          lightspeedIntegration.id,
+        );
+        const sales = await lightspeedService.getSales(
+          lightspeedIntegration.id,
+          100,
+        );
+
         // Calculate top products from sales data
-        const productSales = new Map<string, { quantity: number; revenue: number }>();
+        const productSales = new Map<
+          string,
+          { quantity: number; revenue: number }
+        >();
         for (const sale of sales) {
           const items = sale.items as any[];
           if (items && Array.isArray(items)) {
             for (const item of items) {
-              const key = item.name || 'Unknown Product';
-              const existing = productSales.get(key) || { quantity: 0, revenue: 0 };
+              const key = item.name || "Unknown Product";
+              const existing = productSales.get(key) || {
+                quantity: 0,
+                revenue: 0,
+              };
               productSales.set(key, {
                 quantity: existing.quantity + (item.quantity || 1),
-                revenue: existing.revenue + (item.price || 0) * (item.quantity || 1) * 100,
+                revenue:
+                  existing.revenue +
+                  (item.price || 0) * (item.quantity || 1) * 100,
               });
             }
           }
         }
-        
+
         const topProducts = Array.from(productSales.entries())
           .map(([name, data]) => ({ name, ...data }))
           .sort((a, b) => b.revenue - a.revenue)
           .slice(0, 5);
-        
+
         salesInsights = {
           totalSales: stats.totalSales,
           totalTransactions: stats.totalTransactions,
@@ -1007,13 +1158,17 @@ export async function processPostGeneration(
           totalCustomers: stats.totalCustomers,
           topProducts: topProducts.length > 0 ? topProducts : undefined,
         };
-        
-        console.log(`[PostGenerator] Loaded sales insights: ${stats.totalTransactions} transactions, ${topProducts.length} top products`);
+
+        console.log(
+          `[PostGenerator] Loaded sales insights: ${stats.totalTransactions} transactions, ${topProducts.length} top products`,
+        );
       }
     } catch (error) {
-      console.log(`[PostGenerator] No Lightspeed integration found or error fetching sales: ${error}`);
+      console.log(
+        `[PostGenerator] No Lightspeed integration found or error fetching sales: ${error}`,
+      );
     }
-    
+
     const context: PostGenerationContext = {
       brandId,
       brandName: brand.name,
@@ -1038,71 +1193,90 @@ export async function processPostGeneration(
       // Add the base platform
       allowedSchedule.set(schedule.platform, dates);
       // Include Instagram variants if Instagram is in the schedule
-      if (schedule.platform === 'instagram') {
-        allowedSchedule.set('instagram_story', dates);
-        allowedSchedule.set('instagram_reel', dates);
+      if (schedule.platform === "instagram") {
+        allowedSchedule.set("instagram_story", dates);
+        allowedSchedule.set("instagram_reel", dates);
       }
     }
-    
+
     // Get today's date for filtering past dates
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    const posts = allPosts.filter(post => {
+
+    const posts = allPosts.filter((post) => {
       // Check platform is in the posting schedule
       const allowedDates = allowedSchedule.get(post.platform);
       if (!allowedDates) {
-        console.log(`[PostGenerator] Filtering out post for platform "${post.platform}" - not in posting schedule`);
+        console.log(
+          `[PostGenerator] Filtering out post for platform "${post.platform}" - not in posting schedule`,
+        );
         return false;
       }
-      
+
       // Check date is in the allowed dates for this platform
       if (post.dia) {
         const postDate = new Date(post.dia);
         postDate.setHours(0, 0, 0, 0);
-        
+
         // Check date is not in the past
         if (postDate < today) {
-          console.log(`[PostGenerator] Filtering out post for date "${post.dia}" - date is in the past`);
+          console.log(
+            `[PostGenerator] Filtering out post for date "${post.dia}" - date is in the past`,
+          );
           return false;
         }
-        
+
         // Check date is in the allowed dates for this platform
         if (!allowedDates.has(post.dia)) {
-          console.log(`[PostGenerator] Filtering out post for platform "${post.platform}" on date "${post.dia}" - not a scheduled posting day`);
+          console.log(
+            `[PostGenerator] Filtering out post for platform "${post.platform}" on date "${post.dia}" - not a scheduled posting day`,
+          );
           return false;
         }
       }
-      
+
       return true;
     });
 
     if (posts.length === 0) {
-      console.warn(`[PostGenerator] All generated posts were filtered out. Original: ${allPosts.length}, Filtered: 0`);
-      throw new Error("No posts could be generated for your connected platforms. Please try again.");
+      console.warn(
+        `[PostGenerator] All generated posts were filtered out. Original: ${allPosts.length}, Filtered: 0`,
+      );
+      throw new Error(
+        "No posts could be generated for your connected platforms. Please try again.",
+      );
     }
 
-    console.log(`[PostGenerator] Saving ${posts.length} posts to database (filtered from ${allPosts.length} generated)`);
-    
+    console.log(
+      `[PostGenerator] Saving ${posts.length} posts to database (filtered from ${allPosts.length} generated)`,
+    );
+
     // Prepare brand assets for image generation (up to 3 relevant ones)
-    const assetsForImageGen = brandAssets.map(a => ({
+    const assetsForImageGen = brandAssets.map((a) => ({
       url: a.url,
       name: a.name,
-      category: a.category || 'general'
+      category: a.category || "general",
     }));
-    
+
     for (const post of posts) {
       let imageUrl: string | null = null;
-      
+
       try {
-        const generatedImage = await generateImageWithNanoBanana(post.imagePrompt, brandDesign, assetsForImageGen);
-        
+        const generatedImage = await generateImageWithNanoBanana(
+          post.imagePrompt,
+          brandDesign,
+          assetsForImageGen,
+        );
+
         if (generatedImage) {
           // Use the generated image directly without watermark
           imageUrl = generatedImage;
         }
       } catch (imgError) {
-        console.warn(`[PostGenerator] Could not generate image for post: ${post.titulo}`, imgError);
+        console.warn(
+          `[PostGenerator] Could not generate image for post: ${post.titulo}`,
+          imgError,
+        );
       }
 
       await createAiGeneratedPost({
@@ -1127,7 +1301,7 @@ export async function processPostGeneration(
     console.log(`[PostGenerator] Job ${jobId} completed successfully`);
   } catch (error) {
     console.error(`[PostGenerator] Job ${jobId} failed:`, error);
-    
+
     await updatePostGeneratorJob(jobId, {
       status: "failed",
       error: error instanceof Error ? error.message : "Unknown error",
@@ -1136,13 +1310,14 @@ export async function processPostGeneration(
 }
 
 export async function validatePostGenerationRequirements(
-  brandId: string
+  brandId: string,
 ): Promise<{ valid: boolean; message?: string }> {
   const brandDesign = await storage.getBrandDesignByBrandId(brandId);
   if (!brandDesign) {
     return {
       valid: false,
-      message: "Please create your brand design in Brand Studio before generating posts.",
+      message:
+        "Please create your brand design in Brand Studio before generating posts.",
     };
   }
 
@@ -1151,13 +1326,14 @@ export async function validatePostGenerationRequirements(
     (int) =>
       int.provider === "instagram_direct" ||
       int.provider === "instagram" ||
-      int.provider === "facebook"
+      int.provider === "facebook",
   );
 
   if (!hasMetaIntegration) {
     return {
       valid: false,
-      message: "Please connect your Instagram or Facebook account before generating posts.",
+      message:
+        "Please connect your Instagram or Facebook account before generating posts.",
     };
   }
 
