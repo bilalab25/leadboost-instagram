@@ -399,6 +399,17 @@ BRAND IDENTITY:
 - Secondary Font: ${brandDesign.fontSecondary || "Not specified"}
 ${logoInfo}
 
+BRAND ESSENCE (use this to define all copywriting, tone, emotional feel, and conceptual direction):
+- Tone of Voice: Professional, Luxurious, Efficacious
+- Personality: Modern, Clinical, High-End Aesthetic
+- Emotional Feel: Aspirational, Trustworthy, Transformative
+- Visual Keywords: Extreme Macro Focus, Wet/Glossy Skin Finish, High-Contrast Lighting, Clean Typography, Deep Maroon/Amber Accents, Textured Backgrounds (Skin/Droplets)
+- Brand Promise: Delivers Measurable Results and Elevated Self-Care Experience
+
+IMPORTANT:
+All written content MUST follow the tone of voice and emotional feel described here.
+All image prompts MUST reflect the visual keywords and emotional feel.
+
 BRAND VISUAL ASSETS (use these as inspiration for content):
 ${assetDetails || "No assets uploaded yet"}
 ${graphicStyleSummary}
@@ -798,12 +809,24 @@ ${summary}
     // ✔ Prompt final con resúmenes incluidos (no cambia tu estructura original)
     // ==========================================================================================
     const enhancedPrompt = `${imagePrompt}. 
-Style: ${brandDesign.brandStyle || "modern and professional"}. 
-Color scheme: Use these brand colors - Primary: ${brandDesign.colorPrimary || "#4F46E5"}, 
-Accent: ${brandDesign.colorAccent1 || "#7C3AED"}. 
-High quality, professional social media post image, clean composition, vibrant colors.
-${assetsDescriptionSummary}
-`;
+    BRAND ESSENCE INSTRUCTIONS:
+    - Emotional feel: Aspirational, Trustworthy, Transformative
+    - Visual Keywords: Extreme Macro Focus, Wet/Glossy Skin Finish, High-Contrast Lighting, Clean Typography, Deep Maroon/Amber Accents, Textured Backgrounds (Skin/Droplets)
+    - Personality: Modern, Clinical, High-End Aestheti
+    - Tone of Voice (interpret visually): Professional, Luxurious, Efficacious
+    
+    These MUST influence the image atmosphere, lighting, colors, textures, and composition.
+    
+    Brand Style: ${brandDesign.brandStyle || "modern and professional"} 
+    Color Scheme: Primary ${brandDesign.colorPrimary}, Accents ${brandDesign.colorAccent1}, ${brandDesign.colorAccent2}
+    
+    REQUIREMENTS:
+    - Follow the brand essence strictly
+    - Match the real visual identity from the uploaded brand assets
+    - Produce a professional social media image
+    
+    ${assetsDescriptionSummary}
+    `;
 
     console.log("[PostGenerator] Generating image with Nano Banana...");
 
