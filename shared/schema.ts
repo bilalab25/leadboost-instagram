@@ -183,7 +183,9 @@ export const conversations = pgTable(
     platform: varchar("platform").notNull(), // whatsapp, messenger, instagram, threads
     contactName: varchar("contact_name"), // Contact/participant name
     contactProfilePicture: text("contact_profile_picture"), // Profile picture URL from Meta API
-    contactProfilePictureFetchedAt: timestamp("contact_profile_picture_fetched_at"), // When profile picture was last fetched
+    contactProfilePictureFetchedAt: timestamp(
+      "contact_profile_picture_fetched_at",
+    ), // When profile picture was last fetched
     lastMessage: text("last_message"), // Preview of last message
     lastMessageAt: timestamp("last_message_at").defaultNow(),
     unreadCount: integer("unread_count").default(0),
@@ -1059,9 +1061,7 @@ export const insertBrandMembershipSchema = createInsertSchema(
   createdAt: true,
   updatedAt: true,
 });
-export type InsertBrandMembership = z.infer<
-  typeof insertBrandMembershipSchema
->;
+export type InsertBrandMembership = z.infer<typeof insertBrandMembershipSchema>;
 export type SelectBrandMembership = typeof brandMemberships.$inferSelect;
 
 // Extended type for API response with brand metadata
@@ -1080,9 +1080,7 @@ export const insertBrandInvitationSchema = createInsertSchema(
   id: true,
   createdAt: true,
 });
-export type InsertBrandInvitation = z.infer<
-  typeof insertBrandInvitationSchema
->;
+export type InsertBrandInvitation = z.infer<typeof insertBrandInvitationSchema>;
 export type SelectBrandInvitation = typeof brandInvitations.$inferSelect;
 export type Brand = typeof brands.$inferSelect;
 
@@ -1248,6 +1246,7 @@ export const brandAssets = pgTable("brand_assets", {
   assetType: varchar("asset_type").notNull(), // image, video, document
   publicId: varchar("public_id").notNull(), // 🔹 para borrar en Cloudinary
   createdAt: timestamp("created_at").defaultNow(),
+  description: text("description"),
 });
 
 // Brand Design schemas
@@ -1503,8 +1502,9 @@ export const socialPostingFrequency = pgTable("social_posting_frequency", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  brandId: uuid("brand_id")
-    .references(() => brands.id, { onDelete: "cascade" }),
+  brandId: uuid("brand_id").references(() => brands.id, {
+    onDelete: "cascade",
+  }),
   platform: text("platform").notNull(), // facebook, instagram, etc.
   frequencyDays: integer("frequency_days").notNull(), // posts per week
   daysWeek: text("days_week").array().notNull(), // ["mon","tue","thu"]

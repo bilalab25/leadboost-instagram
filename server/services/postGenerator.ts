@@ -743,6 +743,7 @@ interface BrandAssetForImage {
   url: string;
   name: string;
   category?: string;
+  description?: string;
 }
 
 // 🔹 Helper para elegir 3 assets diferentes cada vez (con prioridad por categoría)
@@ -1352,6 +1353,7 @@ export async function processPostGeneration(
       url: a.url,
       name: a.name,
       category: a.category || "general",
+      description: (a as any).description || "",
     }));
 
     for (const post of posts) {
