@@ -1515,6 +1515,17 @@ export default function Onboarding() {
         });
 
         if (data.secure_url) {
+          // Call API to generate asset description using AI
+          let description = "";
+          try {
+            const descResponse = await apiRequest("POST", "/api/brand-assets/generate-description", {
+              imageUrl: data.secure_url,
+            });
+            const descData = await descResponse.json();
+            description = descData.description || "";
+          } catch (descErr) {
+            console.error("[Onboarding] Error generating asset description:", descErr);
+          }
           await saveAssetToDB({
             id,
             url: data.secure_url,
@@ -1522,6 +1533,7 @@ export default function Onboarding() {
             category: assetCategory, // <-- Usar el nuevo argumento
             assetType: getAssetType(file.name),
             publicId: data.public_id,
+            description, // <-- nuevo
           });
         }
       } catch (err) {
@@ -1547,7 +1559,9 @@ export default function Onboarding() {
       queryKey: ["/api/brand-assets", createdBrandId, brandDesign.id],
     });
   };
-  const saveAssetToDB = async (asset: BrandAsset) => {
+  const saveAssetToDB = async (
+    asset: BrandAsset & { description?: string },
+  ) => {
     const payload = {
       brandDesignId: brandDesign?.id,
       url: asset.url,
@@ -1555,6 +1569,7 @@ export default function Onboarding() {
       category: asset.category,
       assetType: asset.assetType,
       publicId: asset.publicId,
+      description: asset.description ?? null,
     };
 
     await apiRequest(
@@ -1742,7 +1757,10 @@ export default function Onboarding() {
       if (createdBrandId) {
         try {
           console.log("[Onboarding] Generating Brand Essence after assets...");
-          await apiRequest("POST", `/api/brands/${createdBrandId}/generate-essence`);
+          await apiRequest(
+            "POST",
+            `/api/brands/${createdBrandId}/generate-essence`,
+          );
           console.log("[Onboarding] Brand Essence generated successfully");
         } catch (err) {
           console.error("[Onboarding] Error generating Brand Essence:", err);

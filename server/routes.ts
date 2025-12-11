@@ -48,6 +48,7 @@ import { posIntegrationService } from "./services/posIntegrations";
 import { lightspeedService } from "./services/lightspeed";
 import { boostyService } from "./services/boosty";
 import { generateBrandEssence } from "./services/generateBrandEssence";
+import { generateBrandAssetDescription } from "./services/generateBrandAssetDescription";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
 import cloudinary from "./cloudinary";
@@ -1076,6 +1077,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error generating brand essence:", error);
       res.status(500).json({ message: error.message || "Failed to generate brand essence" });
+    }
+  });
+
+  // Generate description for a brand asset image using AI
+  app.post("/api/brand-assets/generate-description", isAuthenticated, async (req: any, res) => {
+    try {
+      const { imageUrl } = req.body;
+      
+      if (!imageUrl) {
+        return res.status(400).json({ message: "Image URL is required" });
+      }
+
+      console.log(`[API] Generating asset description for image`);
+      const description = await generateBrandAssetDescription(imageUrl);
+      
+      res.json({ success: true, description });
+    } catch (error: any) {
+      console.error("Error generating asset description:", error);
+      res.status(500).json({ message: error.message || "Failed to generate asset description" });
     }
   });
 
