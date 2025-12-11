@@ -49,3 +49,6 @@ POST_GENERATOR_CALLBACK_URL = "https://campAIgner-YOUR-REPLIT-URL.replit.dev/api
 
 [userenv.development]
 ENABLE_BAILEYS = "true"
+
+[userenv.production]
+ENABLE_BAILEYS = "true"
