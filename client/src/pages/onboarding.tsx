@@ -457,6 +457,7 @@ export default function Onboarding() {
   const [createdBrandId, setCreatedBrandId] = useState<string | number | null>(
     savedState?.createdBrandId || null,
   );
+  const [isGeneratingEssence, setIsGeneratingEssence] = useState(false);
   const [hasLoadedFromDb, setHasLoadedFromDb] = useState(false);
   const [isOtherIndustry, setIsOtherIndustry] = useState(false);
   const [customIndustry, setCustomIndustry] = useState("");
@@ -1760,18 +1761,26 @@ export default function Onboarding() {
       if (!saved) return;
     }
     // STEP 3: Generate Brand Essence after uploading assets
-    if (currentStep === 3) {
-      if (createdBrandId) {
-        try {
-          console.log("[Onboarding] Generating Brand Essence after assets...");
-          await apiRequest(
-            "POST",
-            `/api/brands/${createdBrandId}/generate-essence`,
-          );
-          console.log("[Onboarding] Brand Essence generated successfully");
-        } catch (err) {
-          console.error("[Onboarding] Error generating Brand Essence:", err);
-        }
+    if (currentStep === 3 && createdBrandId) {
+      setIsGeneratingEssence(true);
+      try {
+        console.log("[Onboarding] Generating Brand Essence after assets...");
+        await apiRequest(
+          "POST",
+          `/api/brands/${createdBrandId}/generate-essence`,
+        );
+        console.log("[Onboarding] Brand Essence generated successfully");
+      } catch (err) {
+        console.error("[Onboarding] Error generating Brand Essence:", err);
+        toast({
+          title: isSpanish ? "Alerta de IA" : "AI Alert",
+          description: isSpanish
+            ? "Hubo un error al generar la esencia de marca, pero puedes continuar."
+            : "There was an error generating the brand essence, but you can continue.",
+          variant: "default",
+        });
+      } finally {
+        setIsGeneratingEssence(false);
       }
     }
 
@@ -3104,7 +3113,6 @@ export default function Onboarding() {
                   </Accordion>
                 </>
               )}
-
               <div className="flex gap-3 pt-6">
                 <Button
                   type="button"
@@ -3120,10 +3128,22 @@ export default function Onboarding() {
                   type="button"
                   onClick={handleNextStep}
                   className="flex-1"
+                  disabled={isGeneratingEssence}
                   data-testid="button-next-step-3"
                 >
-                  {isSpanish ? "Siguiente" : "Next"}
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  {isGeneratingEssence ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {isSpanish
+                        ? "Generando Esencia..."
+                        : "Generating Essence..."}
+                    </>
+                  ) : (
+                    <>
+                      {isSpanish ? "Siguiente" : "Next"}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
