@@ -122,6 +122,7 @@ interface BrandAsset {
   category: string;
   assetType: "image" | "video" | "document";
   publicId: string;
+  description?: string;
 }
 
 interface BrandDesign {

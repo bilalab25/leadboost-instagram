@@ -1062,42 +1062,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Generate brand essence using AI
-  app.post("/api/brands/:brandId/generate-essence", isAuthenticated, async (req: any, res) => {
-    try {
-      const { brandId } = req.params;
-      
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
-      }
+  app.post(
+    "/api/brands/:brandId/generate-essence",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
 
-      console.log(`[API] Generating brand essence for brand: ${brandId}`);
-      const essence = await generateBrandEssence(brandId);
-      
-      res.json({ success: true, essence });
-    } catch (error: any) {
-      console.error("Error generating brand essence:", error);
-      res.status(500).json({ message: error.message || "Failed to generate brand essence" });
-    }
-  });
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        console.log(`[API] Generating brand essence for brand: ${brandId}`);
+        const essence = await generateBrandEssence(brandId);
+
+        res.json({ success: true, essence });
+      } catch (error: any) {
+        console.error("Error generating brand essence:", error);
+        res
+          .status(500)
+          .json({
+            message: error.message || "Failed to generate brand essence",
+          });
+      }
+    },
+  );
 
   // Generate description for a brand asset image using AI
-  app.post("/api/brand-assets/generate-description", isAuthenticated, async (req: any, res) => {
-    try {
-      const { imageUrl } = req.body;
-      
-      if (!imageUrl) {
-        return res.status(400).json({ message: "Image URL is required" });
-      }
+  app.post(
+    "/api/brand-assets/generate-description",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { imageUrl } = req.body;
 
-      console.log(`[API] Generating asset description for image`);
-      const description = await generateBrandAssetDescription(imageUrl);
-      
-      res.json({ success: true, description });
-    } catch (error: any) {
-      console.error("Error generating asset description:", error);
-      res.status(500).json({ message: error.message || "Failed to generate asset description" });
-    }
-  });
+        if (!imageUrl) {
+          return res.status(400).json({ message: "Image URL is required" });
+        }
+
+        console.log(`[API] Generating asset description for image`);
+        const description = await generateBrandAssetDescription(imageUrl);
+
+        res.json({ success: true, description });
+      } catch (error: any) {
+        console.error("Error generating asset description:", error);
+        res
+          .status(500)
+          .json({
+            message: error.message || "Failed to generate asset description",
+          });
+      }
+    },
+  );
 
   // Accept brand invitation endpoint
   app.post(
@@ -9681,8 +9697,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const brandId = req.brandId;
-        const { brandDesignId, url, name, category, assetType, publicId } =
-          req.body;
+        const {
+          brandDesignId,
+          url,
+          name,
+          category,
+          assetType,
+          publicId,
+          description,
+        } = req.body;
         console.log("📥 BODY recibido:", req.body);
         if (!brandDesignId || !url || !name) {
           return res.status(400).json({ error: "Missing required fields" });
@@ -9701,6 +9724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           category,
           assetType,
           publicId,
+          description,
         });
         console.log("✅ Insertado en DB:", newAsset);
         res.json(newAsset);
