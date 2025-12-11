@@ -1515,16 +1515,22 @@ export default function Onboarding() {
         });
 
         if (data.secure_url) {
-          // Call API to generate asset description using AI
           let description = "";
           try {
-            const descResponse = await apiRequest("POST", "/api/brand-assets/generate-description", {
-              imageUrl: data.secure_url,
-            });
+            const descResponse = await apiRequest(
+              "POST",
+              "/api/brand-assets/generate-description",
+              {
+                imageUrl: data.secure_url,
+              },
+            );
             const descData = await descResponse.json();
             description = descData.description || "";
           } catch (descErr) {
-            console.error("[Onboarding] Error generating asset description:", descErr);
+            console.error(
+              "[Onboarding] Error generating asset description:",
+              descErr,
+            );
           }
           await saveAssetToDB({
             id,
