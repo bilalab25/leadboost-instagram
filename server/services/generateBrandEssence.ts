@@ -61,7 +61,7 @@ Return structured JSON in this schema:
   "toneOfVoice": "string — how the brand sounds when speaking",
   "personality": "string — the brand's human-like traits",
   "emotionalFeel": "string — the feeling the brand should evoke",
-  "visualKeywords": "string — adjectives describing visual styling, lighting, mood, textures",
+  "visualKeywords": "string — a synthesis of adjectives derived from the asset descriptions (e.g., 'high-contrast', 'cinematic haze', 'polished metallic'), lighting, and textures",
   "brandPromise": "string — what the brand fundamentally promises to deliver"
 }
 -----------------------------------------

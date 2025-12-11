@@ -25,14 +25,15 @@ The goal is to extract the visual identity from this image in a way that future 
 
 Return a **single, dense paragraph** that includes:
 
-1. **Dominant Color Palette** (use specific color terms, like “deep charcoal gray”, “soft beige highlight”, “golden undertones”)
-2. **Lighting Style** (softbox, backlit, hard rim-light, diffused shadows, glossy highlights, etc.)
-3. **Texture & Material Feel** (matte, glossy, wet, velvety, metallic reflections, powdery, creamy)
-4. **Composition Type** (macro close-up, product hero shot, flat lay, editorial lifestyle, minimal centered, rule-of-thirds)
-5. **Camera / Perspective** (45-degree angle, eye-level, overhead, extreme macro, depth-of-field blur)
-6. **Mood / Emotional Tone** (premium, clinical, warm, dramatic, aspirational, energetic)
-7. **Key Visual Elements** (shape, material, background style, surrounding elements)
-8. **GENERATIVE VISUAL TOKENS** (e.g., “high-contrast glossy highlights”, “soft cinematic haze”, “gradient backdrop”, “hyper-detailed texture rendering”)
+1. **Objeto Principal (Product Subject):** **A concise description of the central product and key materials (e.g., "A bright-cut diamond and platinum solitaire ring resting inside an open jewelry box").**
+2. **Dominant Color Palette** (use specific color terms, like “deep charcoal gray”, “soft beige highlight”, “golden undertones”)
+3. **Lighting Style** (softbox, backlit, hard rim-light, diffused shadows, glossy highlights, studio flash)
+4. **Texture & Material Feel** (matte, glossy, wet, velvety, metallic reflections, powdery, creamy, high-fidelity texture rendering)
+5. **Composition Type** (macro close-up, product hero shot, flat lay, editorial lifestyle, minimal centered, rule-of-thirds, high ratio of negative space)
+6. **Camera / Perspective** (45-degree angle, eye-level, overhead, extreme macro, depth-of-field blur, shallow DoF, 85mm lens look)
+7. **Mood / Emotional Tone** (premium, clinical, warm, dramatic, aspirational, energetic, sophisticated luxury)
+8. **Key Visual Elements** (shape, material, background style, surrounding elements)
+9. **GENERATIVE VISUAL TOKENS** (photorealistic 8K render, high-contrast glossy highlights, soft cinematic haze, gradient backdrop, hyper-detailed texture rendering, masterpiece, commercially perfect)
 
 Rules:
 - DO NOT mention brand names or add any fictional text.
