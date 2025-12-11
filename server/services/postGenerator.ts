@@ -71,6 +71,13 @@ export interface PostGenerationContext {
   postsToGenerate?: number;
   connectedPlatforms?: string[]; // Platforms to generate posts for (e.g., ['instagram', 'facebook'])
   postingSchedule?: PlatformPostingSchedule[]; // Schedule per platform from social_posting_frequency
+  brandEssence?: {
+    tone: string | null;
+    personality: string | null;
+    emotion: string | null;
+    visualKeywords: string | null;
+    promise: string | null;
+  };
 }
 
 async function fetchMetaInsights(
@@ -400,11 +407,11 @@ BRAND IDENTITY:
 ${logoInfo}
 
 BRAND ESSENCE (use this to define all copywriting, tone, emotional feel, and conceptual direction):
-- Tone of Voice: Professional, Luxurious, Efficacious
-- Personality: Modern, Clinical, High-End Aesthetic
-- Emotional Feel: Aspirational, Trustworthy, Transformative
-- Visual Keywords: Extreme Macro Focus, Wet/Glossy Skin Finish, High-Contrast Lighting, Clean Typography, Deep Maroon/Amber Accents, Textured Backgrounds (Skin/Droplets)
-- Brand Promise: Delivers Measurable Results and Elevated Self-Care Experience
+- Tone of Voice: ${context.brandEssence?.tone ?? "Not specified"}
+- Personality: ${context.brandEssence?.personality ?? "Not specified"}
+- Emotional Feel: ${context.brandEssence?.emotion ?? "Not specified"}
+- Visual Keywords: ${context.brandEssence?.visualKeywords ?? "Not specified"}
+- Brand Promise: ${context.brandEssence?.promise ?? "Not specified"}
 
 IMPORTANT:
 All written content MUST follow the tone of voice and emotional feel described here.
@@ -780,6 +787,13 @@ export async function generateImageWithNanoBanana(
   imagePrompt: string,
   brandDesign: BrandDesign,
   brandAssets?: BrandAssetForImage[],
+  brandEssence?: {
+    tone: string | null;
+    personality: string | null;
+    emotion: string | null;
+    visualKeywords: string | null;
+    promise: string | null;
+  },
 ): Promise<string | null> {
   try {
     // ==========================================================================================
@@ -811,11 +825,12 @@ ${summary}
     // ==========================================================================================
     const enhancedPrompt = `${imagePrompt}. 
     BRAND ESSENCE INSTRUCTIONS:
-    - Emotional feel: Aspirational, Trustworthy, Transformative
-    - Visual Keywords: Extreme Macro Focus, Wet/Glossy Skin Finish, High-Contrast Lighting, Clean Typography, Deep Maroon/Amber Accents, Textured Backgrounds (Skin/Droplets)
-    - Personality: Modern, Clinical, High-End Aestheti
-    - Tone of Voice (interpret visually): Professional, Luxurious, Efficacious
-    
+    - Tone: ${brandEssence?.tone || "professional and engaging"}
+    - Personality: ${brandEssence?.personality || "modern and approachable"}
+    - Emotional Feel: ${brandEssence?.emotion || "inspiring and trustworthy"}
+    - Visual Keywords: ${brandEssence?.visualKeywords || "clean, vibrant, professional"}
+    - Brand Promise: ${brandEssence?.promise || "quality and reliability"}
+
     These MUST influence the image atmosphere, lighting, colors, textures, and composition.
     
     Brand Style: ${brandDesign.brandStyle || "modern and professional"} 
@@ -1064,6 +1079,9 @@ export async function processPostGeneration(
 
     const brandAssets = await storage.getAssetsByBrandId(brandId);
 
+    // Load brand essence from separate table
+    const brandEssence = await storage.getBrandEssence(brandId);
+
     const integrations = await storage.getIntegrationsByBrandId(brandId);
 
     // Get only connected Meta platforms (Instagram and Facebook)
@@ -1278,6 +1296,13 @@ export async function processPostGeneration(
       year,
       connectedPlatforms: scheduledPlatforms,
       postingSchedule,
+      brandEssence: brandEssence ? {
+        tone: brandEssence.toneOfVoice ?? null,
+        personality: brandEssence.personality ?? null,
+        emotion: brandEssence.emotionalFeel ?? null,
+        visualKeywords: brandEssence.visualKeywords ?? null,
+        promise: brandEssence.brandPromise ?? null,
+      } : undefined,
     };
 
     const allPosts = await generatePostsWithGemini(context);
@@ -1364,6 +1389,13 @@ export async function processPostGeneration(
           post.imagePrompt,
           brandDesign,
           assetsForImageGen,
+          brandEssence ? {
+            tone: brandEssence.toneOfVoice ?? null,
+            personality: brandEssence.personality ?? null,
+            emotion: brandEssence.emotionalFeel ?? null,
+            visualKeywords: brandEssence.visualKeywords ?? null,
+            promise: brandEssence.brandPromise ?? null,
+          } : undefined,
         );
 
         if (generatedImage) {
