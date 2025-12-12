@@ -41,6 +41,7 @@ interface BrandAsset {
   category: string; // New: Category for the asset
   assetType: "image" | "video" | "document"; // New: Type for rendering
   publicId: string;
+  description: string;
 }
 
 interface BrandDesign {
@@ -280,8 +281,24 @@ export default function BrandStudio() {
             prev.map((u) => (u.id === id ? { ...u, percent: pct } : u)),
           );
         });
-
         if (data.secure_url) {
+          let description = "";
+          try {
+            const descResponse = await apiRequest(
+              "POST",
+              "/api/brand-assets/generate-description",
+              {
+                imageUrl: data.secure_url,
+              },
+            );
+            const descData = await descResponse.json();
+            description = descData.description || "";
+          } catch (descErr) {
+            console.error(
+              "[Onboarding] Error generating asset description:",
+              descErr,
+            );
+          }
           await saveAssetToDB(
             {
               id,
@@ -290,6 +307,7 @@ export default function BrandStudio() {
               category: currentAssetUploadCategory,
               assetType: getAssetType(file.name),
               publicId: data.public_id,
+              description,
             },
             data,
           );
@@ -676,6 +694,7 @@ export default function BrandStudio() {
       category: asset.category,
       assetType: asset.assetType,
       publicId: cloudinaryData.public_id,
+      description: asset.description,
     };
     const res = await apiRequest(
       "POST",
