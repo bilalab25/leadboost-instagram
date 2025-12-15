@@ -17,31 +17,35 @@ export async function generateBrandAssetDescription(
     const base64 = Buffer.from(buffer).toString("base64");
 
     const prompt = `
-Your task: Generate a **highly detailed visual description** optimized specifically for **AI image generation training**.
+    You are an expert brand identity analyst and visual language classifier.
 
-The goal is to extract the visual identity from this image in a way that future generated images can imitate the same brand style.
+    Your task: Generate a **highly detailed and exhaustive visual description** optimized specifically for **AI image generation training**. The output must serve as a perfect Factual Datasheet for the asset shown.
 
-Return a **single, dense paragraph** that includes:
+    Return a **comprehensive text** structured into two mandatory sections. DO NOT include any introductory or concluding text outside of the section headers.
 
-1. **Asset Type & Subject:** **Clearly identify the asset's function (e.g., "A modern cafe interior," "A sleek marketing graphic template," "A luxury leather wallet") and describe its key materials.**
-2. **Dominant Color Palette** (use specific color terms, like “deep charcoal gray”, “soft beige highlight”, “golden undertones”)
-3. **Lighting Style** (softbox, backlit, hard rim-light, diffused shadows, glossy highlights, studio flash)
-4. **Texture & Material Feel** (matte, glossy, wet, velvety, metallic reflections, powdery, creamy, high-fidelity texture rendering)
-5. **Composition Type** (macro close-up, product hero shot, flat lay, editorial lifestyle, minimal centered, rule-of-thirds, high ratio of negative space)
-6. **Camera / Perspective** (45-degree angle, eye-level, overhead, extreme macro, depth-of-field blur, shallow DoF, 85mm lens look)
-7. **Mood / Emotional Tone** (premium, clinical, warm, dramatic, aspirational, energetic, sophisticated luxury)
-8. **Key Visual Elements** (shape, material, background style, surrounding elements)
-9. **GENERATIVE VISUAL TOKENS** (photorealistic 8K render, high-contrast glossy highlights, soft cinematic haze, gradient backdrop, hyper-detailed texture rendering, masterpiece, commercially perfect)
+    ---
+    ### SECTION A: ASSET AND SUBJECT FIDELITY (MANDATORY TECHNICAL DETAIL)
+    The goal of this section is to describe the primary subject with **absolute technical precision** so it can be replicated without error. Include:
 
-Rules:
-- DO NOT mention brand names or add any fictional text.
-- DO NOT guess text printed on labels.
-- DO NOT use opinions.
-- Focus ONLY on visual cues that an AI image model could imitate.
-- Be technical, descriptive, and specific. 
-- This description will be used to synthesize the visual style of the brand in image generation.
+    1. **Asset Type & Subject:** Clearly identify the asset's function (e.g., "Product Hero Shot," "Location Photo," "Marketing Template") and provide a **complete, technical description of the primary object or scene** (e.g., "A modern cafe interior," "A 45mm stainless steel diver's watch," "A luxury leather wallet," "A bowl of pho with basil garnish").
+    2. **Key Factual Details:** Precisely detail the **exact material, color, finish, texture, and specific physical features** of the subject. Use precise terms related to the asset type (e.g., "The dominant material is brushed aluminum," "The fabric has a linen texture," "The bowl is glossy ceramic with a green rim," "Features a single call-to-action button in a fixed position"). This description must be long and verbose.
+    3. **Geometry/Arrangement:** Describe the shape of the product/subject or the specific arrangement/composition of elements (e.g., "Oval-shaped hoop earrings," "Asymmetrical plating," "Thin, continuous band," "Rule-of-thirds composition centered on a monitor").
 
-Respond with ONLY the paragraph.
+    ---
+    ### SECTION B: VISUAL STYLING SYNTHESIS
+    The goal of this section is to describe the style, lighting, and mood for future inspiration (style, lighting, mood). Include:
+
+    1. **Dominant Color Palette** (use specific color terms, like “deep charcoal gray”, “soft beige highlight”, “vibrant teal accent”)
+    2. **Lighting Style** (softbox, high-key, hard rim-light, diffused shadows, dramatic spotlight, natural window light)
+    3. **Composition Type** (macro close-up, flat lay, minimal centered, high ratio of negative space, editorial lifestyle)
+    4. **Mood / Emotional Tone** (premium, clinical, rustic, warm, dramatic, energetic, sophisticated luxury)
+    5. **GENERATIVE VISUAL TOKENS** (photorealistic 8K render, high-contrast glossy highlights, hyper-detailed texture rendering, commercially perfect)
+    ---
+
+    Rules:
+    - DO NOT mention brand names, add fictional text, or use opinions.
+    - Focus ONLY on verifiable visual cues that an AI image model can imitate.
+    - The output MUST start with '### SECTION A:'.
     `;
 
     const result = await ai.models.generateContent({
