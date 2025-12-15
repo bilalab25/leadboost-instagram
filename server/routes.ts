@@ -3607,6 +3607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       );
       const tokenData = await tokenRes.json();
+      console.log("🔑 Instagram token response:", tokenData);
 
       if (tokenData.error_type || tokenData.error_message) {
         console.error("❌ Instagram token exchange error:", tokenData);
@@ -3634,7 +3635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }&access_token=${shortLivedToken}`,
         );
         const longLivedData = await longLivedRes.json();
-
+        console.log("🔄 Long-lived token response:", longLivedData);
         if (longLivedData.access_token) {
           longLivedToken = longLivedData.access_token;
           expiresAt = longLivedData.expires_in
