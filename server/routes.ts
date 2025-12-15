@@ -3422,7 +3422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             subscribed_fields: [
               "messages",
               "messaging_postbacks",
-              "messaging_reactions",
+              "message_reactions",
               "message_reads",
               "message_deliveries",
               "instagram_messages",
