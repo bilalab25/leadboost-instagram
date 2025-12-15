@@ -124,11 +124,8 @@ const brandStyles = [
 
 const assetCategories = [
   { value: "product_images", label: "Product Images" },
-  { value: "marketing_banners", label: "Marketing Banners" },
-  { value: "document_templates", label: "Document Templates" },
-  { value: "videos", label: "Videos" },
-  { value: "logos", label: "Other Logos/Icons" },
-  { value: "general", label: "General Assets" },
+  { value: "location_images", label: "Location Images" },
+  { value: "inspiration_templates", label: "Inspiration Templates" },
 ];
 
 // Helper to determine asset type

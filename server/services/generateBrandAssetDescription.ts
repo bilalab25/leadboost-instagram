@@ -17,15 +17,13 @@ export async function generateBrandAssetDescription(
     const base64 = Buffer.from(buffer).toString("base64");
 
     const prompt = `
-You are an expert brand identity analyst and visual language classifier.
-
 Your task: Generate a **highly detailed visual description** optimized specifically for **AI image generation training**.
 
 The goal is to extract the visual identity from this image in a way that future generated images can imitate the same brand style.
 
 Return a **single, dense paragraph** that includes:
 
-1. **Objeto Principal (Product Subject):** **A concise description of the central product and key materials (e.g., "A bright-cut diamond and platinum solitaire ring resting inside an open jewelry box").**
+1. **Asset Type & Subject:** **Clearly identify the asset's function (e.g., "A modern cafe interior," "A sleek marketing graphic template," "A luxury leather wallet") and describe its key materials.**
 2. **Dominant Color Palette** (use specific color terms, like “deep charcoal gray”, “soft beige highlight”, “golden undertones”)
 3. **Lighting Style** (softbox, backlit, hard rim-light, diffused shadows, glossy highlights, studio flash)
 4. **Texture & Material Feel** (matte, glossy, wet, velvety, metallic reflections, powdery, creamy, high-fidelity texture rendering)

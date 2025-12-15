@@ -253,7 +253,15 @@ function buildTextPrompt(context: PostGenerationContext): string {
     postingSchedule,
     connectedPlatforms,
   } = context;
-
+  const productAssets = brandAssets.filter(
+    (a) => a.category === "product_assets",
+  );
+  const locationAssets = brandAssets.filter(
+    (a) => a.category === "location_assets",
+  );
+  const inspirationAssets = brandAssets.filter(
+    (a) => a.category === "inspiration_templates",
+  );
   const monthName = new Date(year, month - 1).toLocaleString("en-US", {
     month: "long",
   });
@@ -336,22 +344,34 @@ function buildTextPrompt(context: PostGenerationContext): string {
     ? `- Brand Logo URL: ${logoUrl}\n- IMPORTANT: The brand has a logo that should be conceptually referenced in image prompts. Describe elements that complement the logo style.`
     : "- No logo uploaded";
 
+  const allAssetDescriptions = brandAssets
+    .map((asset) => {
+      const desc = (asset as any).description
+        ? ` - DESCRIPTION: ${(asset as any).description}`
+        : "";
+      return `  - ${asset.name} (${asset.category || "general"})${desc}`;
+    })
+    .join("\n");
+
+  // Reemplaza o modifica la sección graphicStyleSummary:
   let graphicStyleSummary = "";
 
-  // Filtramos solo los assets de imagen (Marketing y Producto) que son relevantes para el estilo visual
-  const relevantDescriptions = brandAssets
-    .filter(
-      (asset) =>
-        asset.category === "product_images" ||
-        asset.category === "marketing_banners",
-    )
+  const relevantDescriptions = [...locationAssets, ...inspirationAssets] // Solo Lugar e Inspiración definen el estilo visual
     .map((asset) => {
-      // Usamos la descripción completa del asset, la cual es la clave para la síntesis de estilo.
       const desc =
         (asset as any).description || "No detailed description provided.";
       return `ASSET: ${asset.name} (Category: ${asset.category})\n  - VISUAL IDENTITY: ${desc}`;
     })
     .join("\n\n");
+
+  if (relevantDescriptions) {
+    graphicStyleSummary = `
+  CRITICAL VISUAL STYLE SYNTHESIS INSTRUCTIONS:
+  The following descriptions detail the unique look, feel, colors, and composition of the brand's key visual assets (Location and Inspiration). You MUST synthesize the *dominant* visual identity (specific color schemes, composition style, lighting, and mood) from these examples to generate a cohesive new image that fits the brand's overall aesthetic:
+
+  ${relevantDescriptions}
+  `;
+  }
 
   if (relevantDescriptions) {
     graphicStyleSummary = `
@@ -417,46 +437,24 @@ IMPORTANT:
 All written content MUST follow the tone of voice and emotional feel described here.
 All image prompts MUST reflect the visual keywords and emotional feel.
 
-BRAND VISUAL ASSETS (use these as inspiration for content):
-${assetDetails || "No assets uploaded yet"}
-${graphicStyleSummary}
+BRAND VISUAL ASSETS:
+The brand has uploaded the following assets. Use this list for factual and conceptual reference:
+
+${allAssetDescriptions || "No assets uploaded yet."} 
+
+---
+
+FACTUAL PRODUCT CATALOG (CRITICAL: Reference these specific products by name in the imagePrompt and content):
+${productAssets.map((p) => `- PRODUCT: ${p.name}. Details: ${(p as any).description || "No detailed description."}`).join("\n") || "No product assets uploaded yet"}
+
+LOCATION ASSETS (CRITICAL: Use this environment as the setting for all relevant posts):
+${locationAssets.map((l) => `- LOCATION: ${l.name}. Environment: ${(l as any).description || "No detailed description."}`).join("\n") || "No location assets uploaded yet"}
 
 ASSET CATEGORIES SUMMARY:
 ${
   Object.entries(assetsByCategory)
     .map(([cat, items]) => `- ${cat}: ${items.join(", ")}`)
     .join("\n") || "No categorized assets"
-}
-
-AUDIENCE INSIGHTS:
-- Best Posting Times (use these to suggest optimal posting times): ${bestTimes}
-- Reach: ${metaInsights?.reach || "Not available"}
-- Impressions: ${metaInsights?.impressions || "Not available"}
-- Engagement: ${metaInsights?.engagement || "Not available"}
-${
-  salesInsights
-    ? `
-SALES DATA (use this to create content that promotes top products and drives sales):
-- Total Sales: $${(salesInsights.totalSales / 100).toFixed(2)}
-- Total Transactions: ${salesInsights.totalTransactions}
-- Average Order Value: $${(salesInsights.averageOrderValue / 100).toFixed(2)}
-- Total Customers: ${salesInsights.totalCustomers}
-${
-  salesInsights.topProducts && salesInsights.topProducts.length > 0
-    ? `
-TOP SELLING PRODUCTS (prioritize content about these):
-${salesInsights.topProducts.map((p, i) => `  ${i + 1}. ${p.name} - ${p.quantity} sold, $${(p.revenue / 100).toFixed(2)} revenue`).join("\n")}
-`
-    : ""
-}
-${salesInsights.recentSalesTrend ? `- Sales Trend: ${salesInsights.recentSalesTrend}` : ""}
-CONTENT STRATEGY BASED ON SALES:
-- Create promotional posts featuring the top-selling products
-- Highlight bestsellers and customer favorites
-- Use sales data to craft compelling offers and calls-to-action
-- Consider creating "limited stock" or "popular item" urgency posts for top sellers
-`
-    : ""
 }
 ${postingScheduleInstructions}
 
@@ -661,6 +659,9 @@ export async function generatePostsWithGemini(
   );
 
   const prompt = buildTextPrompt(context);
+  console.log("--- START GEMINI FULL PROMPT ---");
+  console.log(prompt);
+  console.log("--- END GEMINI FULL PROMPT ---");
 
   try {
     // Use structured output with JSON schema for reliable parsing
@@ -782,6 +783,37 @@ function pickRandomAssets(assets: BrandAssetForImage[], count = 3) {
   return sorted.slice(0, count);
 }
 
+// 🔹 NUEVO: Helper para elegir 3 assets (Lugar o Inspiración) para referencia visual
+function pickVisualReferenceAssets(
+  assets: BrandAssetForImage[],
+  count = 3,
+): BrandAssetForImage[] {
+  if (!assets || assets.length === 0) return [];
+
+  // Filtra SOLO las categorías que definen el estilo y el lugar/ambiente
+  const visualAssets = assets.filter(
+    (a) =>
+      a.category === "location_assets" ||
+      a.category === "inspiration_templates",
+  );
+
+  // Si no hay assets visuales específicos, no envía nada o usa un fallback
+  if (visualAssets.length === 0) {
+    console.warn(
+      "[PostGenerator] No specific location or inspiration assets found for image reference.",
+    );
+    return [];
+  }
+
+  // Lógica de shuffle y slice
+  for (let i = visualAssets.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [visualAssets[i], visualAssets[j]] = [visualAssets[j], visualAssets[i]];
+  }
+
+  return visualAssets.slice(0, count);
+}
+
 // 🔹 FUNCIÓN PRINCIPAL (con los 2 cambios que necesitas)
 export async function generateImageWithNanoBanana(
   imagePrompt: string,
@@ -853,7 +885,7 @@ ${summary}
 
     if (brandAssets && brandAssets.length > 0) {
       // ✔ NUEVO: Usa 3 assets dinámicos, no siempre los mismos
-      const assetsToUse = pickRandomAssets(brandAssets, 3);
+      const assetsToUse = pickVisualReferenceAssets(brandAssets, 3);
 
       console.log(
         `[PostGenerator] Using rotating brand assets:`,
@@ -1296,13 +1328,15 @@ export async function processPostGeneration(
       year,
       connectedPlatforms: scheduledPlatforms,
       postingSchedule,
-      brandEssence: brandEssence ? {
-        tone: brandEssence.toneOfVoice ?? null,
-        personality: brandEssence.personality ?? null,
-        emotion: brandEssence.emotionalFeel ?? null,
-        visualKeywords: brandEssence.visualKeywords ?? null,
-        promise: brandEssence.brandPromise ?? null,
-      } : undefined,
+      brandEssence: brandEssence
+        ? {
+            tone: brandEssence.toneOfVoice ?? null,
+            personality: brandEssence.personality ?? null,
+            emotion: brandEssence.emotionalFeel ?? null,
+            visualKeywords: brandEssence.visualKeywords ?? null,
+            promise: brandEssence.brandPromise ?? null,
+          }
+        : undefined,
     };
 
     const allPosts = await generatePostsWithGemini(context);
@@ -1389,13 +1423,15 @@ export async function processPostGeneration(
           post.imagePrompt,
           brandDesign,
           assetsForImageGen,
-          brandEssence ? {
-            tone: brandEssence.toneOfVoice ?? null,
-            personality: brandEssence.personality ?? null,
-            emotion: brandEssence.emotionalFeel ?? null,
-            visualKeywords: brandEssence.visualKeywords ?? null,
-            promise: brandEssence.brandPromise ?? null,
-          } : undefined,
+          brandEssence
+            ? {
+                tone: brandEssence.toneOfVoice ?? null,
+                personality: brandEssence.personality ?? null,
+                emotion: brandEssence.emotionalFeel ?? null,
+                visualKeywords: brandEssence.visualKeywords ?? null,
+                promise: brandEssence.brandPromise ?? null,
+              }
+            : undefined,
         );
 
         if (generatedImage) {
