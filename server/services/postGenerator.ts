@@ -372,15 +372,6 @@ function buildTextPrompt(context: PostGenerationContext): string {
   ${relevantDescriptions}
   `;
   }
-
-  if (relevantDescriptions) {
-    graphicStyleSummary = `
-  CRITICAL VISUAL STYLE SYNTHESIS INSTRUCTIONS:
-  The following descriptions detail the unique look, feel, colors, and composition of the brand's key advertising assets. You MUST synthesize the *dominant* visual identity (specific color schemes, composition style, lighting, and mood) from these examples to generate a cohesive new image that fits the brand's overall aesthetic:
-
-  ${relevantDescriptions}
-  `;
-  }
   // Build the posting schedule instructions based on social_posting_frequency table
   let postingScheduleInstructions = "";
   let totalPosts = 0;
@@ -467,12 +458,10 @@ REQUIREMENTS:
    - Full post caption/content with emojis
    - Relevant hashtags (5-10 per post)
    - Optimal posting time based on insights (optimalTime field)
-   - A detailed image prompt for AI image generation that:
-     * Follows the brand style: ${brandDesign.brandStyle || "modern"}
-     * Incorporates the brand colors: ${colorPalette}
-     * **CRITICAL STYLE ADHERENCE:** Use the specific aesthetic (color composition, mood, and structural layout) synthesized from the BRAND VISUAL ASSETS descriptions provided.
-     * **CRITICAL LOGO INTEGRATION:** The prompt MUST explicitly instruct the image generator to **seamlessly integrate the brand's logo or a clear, branded symbol** naturally into the scene to maintain high-quality branding without using a simple watermark overlay. **DO NOT add extra letters or alter the logo's original shape.**
-     * **FONT/TEXT INSTRUCTIONS:** Any text or graphical element added to the image must use the style of the primary font: ${brandDesign.fontPrimary || "a modern sans-serif font"}. If text is required, keep it **extremely short (1-3 words) and simple** for readability.
+     - A detailed image prompt for AI image generation that:
+     * **CRITICAL:** The prompt MUST ONLY describe the **scene, subject, and composition** (e.g., "The Classic Chronos watch on a mahogany desk near a coffee cup").
+     * **DO NOT** include style, color, lighting, or background details in this field. Those will be added by the system to enforce brand style.
+     * References specific products or assets from the brand when relevant (PRODUCT NAME: 'Screenshot 2025-12-15 at 1.44.40 p.m..png').
      * Uses professional composition suitable for social media
      * References specific products or assets from the brand when relevant
 5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
@@ -856,6 +845,7 @@ ${summary}
     // ✔ Prompt final con resúmenes incluidos (no cambia tu estructura original)
     // ==========================================================================================
     const enhancedPrompt = `${imagePrompt}. 
+    
     BRAND ESSENCE INSTRUCTIONS:
     - Tone: ${brandEssence?.tone || "professional and engaging"}
     - Personality: ${brandEssence?.personality || "modern and approachable"}
