@@ -333,7 +333,17 @@ function buildTextPrompt(context: PostGenerationContext): string {
     },
     {} as Record<string, string[]>,
   );
-
+  const extractSectionA = (description: string) => {
+    // Regex para buscar el inicio de la Sección A y el inicio de la Sección B
+    const matchA = description.match(
+      /### SECTION A:([\s\S]*?)(?=### SECTION B:|$)/i,
+    );
+    if (matchA && matchA[1]) {
+      // Limpiamos los encabezados de los subpuntos (1, 2, 3) para obtener solo el texto puro.
+      return matchA[1].replace(/(\d\.\s*\*\*.*?\*\*)/g, "").trim();
+    }
+    return description; // Fallback si no encuentra la estructura
+  };
   const bestTimes =
     metaInsights?.bestPostingTimes?.join(", ") || "9:00 AM, 12:00 PM, 6:00 PM";
 
@@ -434,10 +444,8 @@ The brand has uploaded the following assets. Use this list for factual and conce
 ${allAssetDescriptions || "No assets uploaded yet."} 
 
 ---
-
-FACTUAL PRODUCT CATALOG (CRITICAL: Reference these specific products by name in the imagePrompt and content):
-${productAssets.map((p) => `- PRODUCT: ${p.name}. Details: ${(p as any).description || "No detailed description."}`).join("\n") || "No product assets uploaded yet"}
-
+FACTUAL PRODUCT CATALOG (CRITICAL: Reference these products by name and details in the imagePrompt):
+${productAssets.map((p) => `- PRODUCT: ${p.name}. DETAILS: ${extractSectionA((p as any).description || "")}`).join("\n") || "No product assets uploaded yet"}
 LOCATION ASSETS (CRITICAL: Use this environment as the setting for all relevant posts):
 ${locationAssets.map((l) => `- LOCATION: ${l.name}. Environment: ${(l as any).description || "No detailed description."}`).join("\n") || "No location assets uploaded yet"}
 
@@ -822,25 +830,32 @@ export async function generateImageWithNanoBanana(
     // ==========================================================================================
     // ✔ Agregar resumen de TODAS las descripciones de assets para mejorar el estilo visual
     // ==========================================================================================
-    let assetsDescriptionSummary = "";
+
+
+    let styleSynthesisBlock = "";
 
     if (brandAssets && brandAssets.length > 0) {
-      const summary = brandAssets
-        .map(
-          (a) =>
-            `• ${a.name} (${a.category || "general"}): ${(a as any).description || ""}`,
-        )
-        .join("\n");
+        // Solo usamos los assets de 'inspiration_templates' para definir el estilo.
+        const styleAssets = brandAssets.filter((a) => a.category === 'inspiration_templates'); 
 
-      assetsDescriptionSummary = `
+        if (styleAssets.length > 0) {
+            const descriptions = styleAssets
+                .map((a) => {
+                    // Aquí usamos la descripción COMPLETA, incluyendo el estilo de la SECTION B
+                    // Esto es vital porque la Sección B de tus assets de inspiración ya dice AZUL/TEAL
+                    const fullStyleDesc = (a as any).description || "";
+                    return `• ${a.name} (${a.category}): ${fullStyleDesc}`; 
+                })
+                .join("\n\n");
 
-### Additional brand visual context:
-Below is a textual description of ALL brand assets. These describe the brand's real aesthetics, textures, lighting, colors, and visual identity. 
-Use this information to match the brand's look and feel in the final generated image:
+            styleSynthesisBlock = `
+    ### CRITICAL VISUAL STYLE ADHERENCE INSTRUCTIONS (DO NOT DEVIATE):
+    The final image MUST replicate the style, lighting, and mood found in the following style references.
+    **MANDATE:** Prioritize the **VIBRANT TEAL, DEEP BLUE, and GLOSSY HIGHLIGHTS** described below. **The background must be a vibrant color, NOT PURE WHITE.**
 
-${summary}
-
-`;
+    ${descriptions}
+    `;
+        }
     }
 
     // ==========================================================================================
@@ -867,7 +882,7 @@ ${summary}
     - Match the real visual identity from the uploaded brand assets
     - Produce a professional social media image
     
-    ${assetsDescriptionSummary}
+    ${styleSynthesisBlock}
     `;
 
     console.log("[PostGenerator] Generating image with Nano Banana...");
