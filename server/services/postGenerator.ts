@@ -458,8 +458,10 @@ REQUIREMENTS:
    - Full post caption/content with emojis
    - Relevant hashtags (5-10 per post)
    - Optimal posting time based on insights (optimalTime field)
-     - A detailed image prompt for AI image generation that:
-     * **CRITICAL:** The prompt MUST ONLY describe the **scene, subject, and composition** (e.g., "The Classic Chronos watch on a mahogany desk near a coffee cup").
+   * **CRITICAL LOGO INTEGRATION (MANDATORY):** The image MUST incorporate a **physical, non-distorted representation of the brand's logo or unique primary symbol** (e.g., if the logo is a stylized 'T', it must appear as a subtle 'T' element). It should be integrated **naturally and subtly** into the scene, appearing as **engraving, debossing, or as a small, polished metal emblem** on one of the products, packaging, or an element of the staging (e.g., a jewelry box, a marble surface, a coffee cup). **DO NOT alter the logo's original shape or add extra letters.**
+   - A detailed image prompt for AI image generation that:
+    * **CRITICAL:** The prompt MUST ONLY describe the **scene, subject, and composition** (e.g., "The Classic Chronos watch on a mahogany desk near a coffee cup").
+    * **CRÍTICO: FIDELIDAD FÁCTICA DEL PRODUCTO:** When generating the imagePrompt, you MUST describe the product (e.g., the bracelet, the ring, the necklace) with **absolute fidelity** to the material, color, and shape provided in the 'FACTUAL PRODUCT CATALOG'. **DO NOT add details, change colors (e.g., Gold must remain Gold), or modify the object's geometry.** The creative freedom is restricted ONLY to the background and staging elements (the TEAL style).
      * **DO NOT** include style, color, lighting, or background details in this field. Those will be added by the system to enforce brand style.
      * References specific products or assets from the brand when relevant (PRODUCT NAME: 'Screenshot 2025-12-15 at 1.44.40 p.m..png').
      * Uses professional composition suitable for social media
@@ -845,7 +847,9 @@ ${summary}
     // ✔ Prompt final con resúmenes incluidos (no cambia tu estructura original)
     // ==========================================================================================
     const enhancedPrompt = `${imagePrompt}. 
-    
+    **CRITICAL SCENE DESCRIPTION (The core idea and fACTUAL SUBJECT):** ${imagePrompt}.
+    **FIDELITY MANDATE (DO NOT ALTER THE SUBJECT):** The product subject described above MUST be rendered with 100% fidelity to its material, shape, and color (e.g., if it is rose-gold, it must be rose-gold; if it is oval, it must be oval). **The product is fixed.**
+    **CRITICAL LOGO INTEGRATION (FINAL MANDATE):** The final generated image MUST include the brand's unique logo or primary branded symbol. Incorporate it seamlessly as a **small, high-detail, non-distorted engraving or subtle debossing** on the jewelry box, product packaging, or a small, visible item within the scene (like a polished metallic tag or a clasp element). The logo MUST be clean, sharp, and match the style of the brand (elegant, sophisticated). DO NOT place it as a sticker or a watermark.
     BRAND ESSENCE INSTRUCTIONS:
     - Tone: ${brandEssence?.tone || "professional and engaging"}
     - Personality: ${brandEssence?.personality || "modern and approachable"}
