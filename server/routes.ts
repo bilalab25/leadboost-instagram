@@ -1079,11 +1079,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ success: true, essence });
       } catch (error: any) {
         console.error("Error generating brand essence:", error);
-        res
-          .status(500)
-          .json({
-            message: error.message || "Failed to generate brand essence",
-          });
+        res.status(500).json({
+          message: error.message || "Failed to generate brand essence",
+        });
       }
     },
   );
@@ -1106,11 +1104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ success: true, description });
       } catch (error: any) {
         console.error("Error generating asset description:", error);
-        res
-          .status(500)
-          .json({
-            message: error.message || "Failed to generate asset description",
-          });
+        res.status(500).json({
+          message: error.message || "Failed to generate asset description",
+        });
       }
     },
   );
@@ -3301,7 +3297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userId, brandId, origin;
 
       try {
-        const decoded = Buffer.from(state, "base64").toString("utf8");
+        const decoded = Buffer.from(state as string, "base64").toString("utf8");
         const parsed = JSON.parse(decoded);
 
         userId = parsed.userId;
@@ -3322,14 +3318,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔵 Exchanging code for access token…");
 
       const tokenRes = await fetch(
-        `https://graph.facebook.com/v24.0/oauth/access_token?client_id=${
-          process.env.FB_APP_ID
-        }&redirect_uri=${encodeURIComponent(
-          redirect_uri,
-        )}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`,
+        `https://graph.facebook.com/v24.0/oauth/access_token` +
+          `?client_id=${process.env.FB_APP_ID}` +
+          `&redirect_uri=${encodeURIComponent(redirect_uri)}` +
+          `&client_secret=${process.env.FB_APP_SECRET}` +
+          `&code=${code}`,
       );
-      const tokenJson = await tokenRes.json();
 
+      const tokenJson = await tokenRes.json();
       console.log("🟢 Token response:", tokenJson);
 
       if (!tokenJson.access_token) {
@@ -3339,7 +3335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userAccessToken = tokenJson.access_token;
 
       // -----------------------------------------
-      // 3️⃣ Get ALL pages the user manages
+      // 3️⃣ Get pages user manages
       // -----------------------------------------
       console.log("🔵 Fetching Facebook Pages…");
 
@@ -3351,49 +3347,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🟢 Pages found:", pagesJson);
 
       if (!pagesJson.data?.length) {
-        console.log("❌ User has no Facebook Pages.");
         return res.redirect("/integrations?error=no_pages");
       }
 
       // -----------------------------------------
-      // 4️⃣ Find a page that has an associated IG Business Account
+      // 4️⃣ Pick page (prefer one with IG)
       // -----------------------------------------
-      console.log("🔵 Searching for IG Business linked to ANY selected page…");
+      console.log("🔵 Searching for IG-linked Page…");
+
       let selectedPage = null;
       let igInfo = null;
 
       for (const p of pagesJson.data) {
-        console.log(`   🔍 Checking Page ${p.name} (${p.id})`);
-
         const detailsRes = await fetch(
-          `https://graph.facebook.com/v24.0/${p.id}?fields=connected_instagram_account,instagram_business_account&access_token=${p.access_token}`,
+          `https://graph.facebook.com/v24.0/${p.id}` +
+            `?fields=connected_instagram_account,instagram_business_account` +
+            `&access_token=${p.access_token}`,
         );
         const details = await detailsRes.json();
-
-        console.log("   → Page IG details:", details);
 
         if (
           details.connected_instagram_account ||
           details.instagram_business_account
         ) {
-          console.log(`   🟢 Page ${p.name} HAS Instagram Business attached!`);
           selectedPage = p;
           igInfo = details;
           break;
         }
       }
 
-      // Fall back to first page if none has IG
       if (!selectedPage) {
         selectedPage = pagesJson.data[0];
-        console.log(
-          `⚠️ No IG found. Using first page: ${selectedPage.name} (${selectedPage.id})`,
-        );
+        console.log(`⚠️ No IG found. Using first page: ${selectedPage.name}`);
       }
 
-      console.log("🟡 Selected Page →", selectedPage.name);
-
-      let pageAccessToken = selectedPage.access_token;
+      const pageAccessToken = selectedPage.access_token;
 
       // -----------------------------------------
       // 5️⃣ Save FACEBOOK integration
@@ -3420,14 +3408,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-      console.log("🟢 Facebook integration saved!");
-
       // -----------------------------------------
-      // 6️⃣ Subscribe Page to Webhook
+      // 6️⃣ SUBSCRIBE PAGE TO WEBHOOK  ✅ CLAVE
       // -----------------------------------------
-      console.log("🔵 Subscribing to webhook events…");
+      console.log("🔵 Subscribing Page to webhook…");
 
-      await fetch(
+      const subscribeRes = await fetch(
         `https://graph.facebook.com/v24.0/${selectedPage.id}/subscribed_apps`,
         {
           method: "POST",
@@ -3446,24 +3432,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       );
 
-      console.log("🟢 Webhook subscription OK!");
+      const subscribeJson = await subscribeRes.json();
+      console.log("🟢 Subscription response:", subscribeJson);
+
+      if (!subscribeJson.success) {
+        console.warn("⚠️ Page subscription failed (messages may not arrive)");
+      }
 
       // -----------------------------------------
-      // 7️⃣ IF PAGE HAS INSTAGRAM → Save IG integration
+      // 7️⃣ Save Instagram + Threads (if exists)
       // -----------------------------------------
       if (igInfo) {
-        console.log("🔵 Fetching Instagram account details…");
-
         const igAcc =
           igInfo.connected_instagram_account ||
           igInfo.instagram_business_account;
 
         const igDetailsRes = await fetch(
-          `https://graph.facebook.com/v24.0/${igAcc.id}?fields=username,name,profile_picture_url&access_token=${pageAccessToken}`,
+          `https://graph.facebook.com/v24.0/${igAcc.id}` +
+            `?fields=username,name,profile_picture_url` +
+            `&access_token=${pageAccessToken}`,
         );
         const igDetails = await igDetailsRes.json();
-
-        console.log("🟢 IG Details:", igDetails);
 
         await storage.createOrUpdateIntegration({
           userId,
@@ -3486,11 +3475,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         });
 
-        console.log("🟢 Instagram integration saved!");
-
-        // -----------------------------------------
-        // 8️⃣ Save Threads (auto-linked to IG)
-        // -----------------------------------------
         await storage.createOrUpdateIntegration({
           userId,
           brandId,
@@ -3511,19 +3495,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             source: "facebook_callback",
           },
         });
-
-        console.log("🟢 Threads integration saved!");
       }
 
       // -----------------------------------------
-      // 9️⃣ Redirect user
+      // 8️⃣ Redirect user
       // -----------------------------------------
       const redirectBase =
         origin === "onboarding" ? "/onboarding?step=4" : "/integrations";
 
-      console.log("🟩 OAuth COMPLETE → redirecting user…");
+      console.log("🟩 OAuth COMPLETE → redirecting user");
 
-      return res.redirect(`${redirectBase}`);
+      return res.redirect(redirectBase);
     } catch (error) {
       console.error("❌ [FB Callback] Unexpected error:", error);
       return res.redirect("/integrations?error=callback_failed");
