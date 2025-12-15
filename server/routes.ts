@@ -3425,7 +3425,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               "message_reactions",
               "message_reads",
               "message_deliveries",
-              "instagram_messages",
             ],
             access_token: pageAccessToken,
           }),
