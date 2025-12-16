@@ -3666,7 +3666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Try to get profile info - the 'id' field here is the IGBA ID used by webhooks
         const profileRes = await fetch(
-          `https://graph.instagram.com/v24.0/me?fields=id,username&access_token=${longLivedToken}`,
+          `https://graph.instagram.com/v24.0/me?fields=user_id,username&access_token=${longLivedToken}`,
         );
         const profileData = await profileRes.json();
         console.log(
@@ -3680,8 +3680,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           // CRITICAL: Use profileData.id as the IGBA ID - this matches webhook recipient.id
           // The token's user_id is app-scoped and different from the IGBA ID
-          if (profileData.id) {
-            igbaId = profileData.id.toString();
+          if (profileData.user_id) {
+            igbaId = profileData.user_id.toString();
             appScopedId = igUserId.toString(); // Keep token's user_id as app-scoped reference
           }
           console.log("✅ Profile fetched successfully:", {
