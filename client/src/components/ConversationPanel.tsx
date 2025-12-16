@@ -466,7 +466,11 @@ export default function ConversationPanel({
             <div className="relative">
               <Avatar className="h-10 w-10">
                 {contactProfilePicture && (
-                  <AvatarImage src={contactProfilePicture} alt={displayName} />
+                  <AvatarImage
+                    referrerPolicy="no-referrer"
+                    src={contactProfilePicture}
+                    alt={displayName}
+                  />
                 )}
                 <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
               </Avatar>
@@ -702,7 +706,11 @@ export default function ConversationPanel({
         <div className="p-6 border-b border-gray-200 flex flex-col items-center">
           <Avatar className="h-20 w-20 mb-3">
             {contactProfilePicture && (
-              <AvatarImage src={contactProfilePicture} alt={displayName} />
+              <AvatarImage
+                referrerPolicy="no-referrer"
+                src={contactProfilePicture}
+                alt={displayName}
+              />
             )}
             <AvatarFallback className="text-2xl">
               {displayName.charAt(0)}
