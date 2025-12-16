@@ -223,7 +223,42 @@ async function fetchWhatsappBaileysMessagesFromDB(
 // ==================================================================================
 // HYBRID SYNC HELPERS FOR MESSENGER/INSTAGRAM
 // ==================================================================================
+async function fetchContactProfilePicture(
+  provider: string,
+  contactId: string,
+  accessToken: string,
+): Promise<string | null> {
+  try {
+    let fields = "name";
 
+    if (provider === "instagram") {
+      fields = "username,profile_picture_url";
+    }
+
+    if (provider === "facebook") {
+      fields = "name,profile_pic";
+    }
+
+    const url = `https://graph.facebook.com/v24.0/${contactId}?fields=${fields}&access_token=${accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      console.warn("⚠️ Profile fetch error:", data.error);
+      return null;
+    }
+
+    return data.profile_picture_url || data.profile_pic || null;
+  } catch (err) {
+    console.error("❌ Failed to fetch profile picture:", err);
+    return null;
+  }
+}
+
+/**
+ * Perform initial historical sync for Messenger/Instagram
+ * Fetches last 50 conversations and 50 messages per conversation
+ */
 /**
  * Perform initial historical sync for Messenger/Instagram
  * Fetches last 50 conversations and 50 messages per conversation
@@ -241,48 +276,40 @@ async function performInitialSync(
     const accessToken = integration.accessToken;
     const accountId = integration.pageId;
 
-    // Basic business identifiers (simplified)
-    const businessIds = [accountId, integration.pageId].filter(Boolean);
-    console.log(`🔍 Business IDs detected:`, businessIds);
+    const contactProfileCache = new Map<string, string | null>();
 
-    // Fetch all conversations
+    // Fetch conversations
     const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&limit=50&access_token=${accessToken}`;
-    console.log(
-      `📞 Fetching conversations from: ${convoUrl.replace(accessToken, "TOKEN")}`,
-    );
 
     const convoRes = await fetch(convoUrl);
     const convoData = await convoRes.json();
 
     if (convoData.error) {
-      console.error(`❌ Initial sync error for ${provider}:`, convoData.error);
+      console.error(`❌ Initial sync error:`, convoData.error);
       return;
     }
 
     const conversations = convoData.data || [];
-    console.log(
-      `📦 Found ${conversations.length} conversations for ${provider}`,
-    );
+    console.log(`📦 Found ${conversations.length} conversations`);
 
     const messagesToInsert: any[] = [];
-    const conversationMetadata = new Map<string, any>(); // Track latest message per conversation
+    const conversationMetadata = new Map<string, any>();
 
-    // Loop through each conversation
     for (const convo of conversations) {
       const messagesUrl = `https://graph.facebook.com/v24.0/${convo.id}/messages?fields=id,message,text,from,to,created_time,attachments&limit=50&access_token=${accessToken}`;
       const msgRes = await fetch(messagesUrl);
       const msgData = await msgRes.json();
 
       if (msgData.error) {
-        console.error(
-          `⚠️ Error fetching messages for conversation ${convo.id}:`,
+        console.warn(
+          `⚠️ Error fetching messages for ${convo.id}:`,
           msgData.error,
         );
         continue;
       }
 
       const messages = msgData.data || [];
-      console.log(`  📨 Conversation ${convo.id}: ${messages.length} messages`);
+      console.log(`📨 ${convo.id}: ${messages.length} messages`);
 
       for (const m of messages) {
         const text = m.message || m.text || "";
@@ -292,19 +319,12 @@ async function performInitialSync(
         const toName =
           m.to?.data?.[0]?.name || m.to?.data?.[0]?.username || "Unknown";
 
-        // 🧠 Detect direction
+        // Detect direction
         let isOutbound = false;
+
         if (["facebook", "instagram", "threads"].includes(provider)) {
           if (fromId === accountId || fromId === integration.pageId)
             isOutbound = true;
-          if (
-            provider !== "facebook" &&
-            (fromId.startsWith("1784") ||
-              fromName?.toLowerCase() ===
-                integration.accountName?.toLowerCase())
-          ) {
-            isOutbound = true;
-          }
         }
 
         if (provider === "whatsapp") {
@@ -312,14 +332,25 @@ async function performInitialSync(
           if (fromId === wabaId || fromId === accountId) isOutbound = true;
         }
 
-        console.log(
-          `🧩 Msg ${m.id.slice(0, 10)}... | from: ${fromName} (${fromId}) → to: ${toName} (${toId}) | outbound: ${isOutbound}`,
-        );
-
+        const contactId = isOutbound ? toId : fromId;
         const contactName = isOutbound ? toName : fromName;
         const messageTimestamp = new Date(m.created_time);
 
-        // Track latest message for conversation metadata
+        // 🔥 Fetch profile picture (cached)
+        let contactProfilePicture: string | null = null;
+
+        if (contactId && !contactProfileCache.has(contactId)) {
+          contactProfilePicture = await fetchContactProfilePicture(
+            provider,
+            contactId,
+            accessToken,
+          );
+          contactProfileCache.set(contactId, contactProfilePicture);
+        } else {
+          contactProfilePicture = contactProfileCache.get(contactId) || null;
+        }
+
+        // Track conversation metadata
         const existing = conversationMetadata.get(convo.id);
         if (!existing || messageTimestamp > existing.latestTimestamp) {
           conversationMetadata.set(convo.id, {
@@ -327,10 +358,10 @@ async function performInitialSync(
             latestMessage: text,
             latestTimestamp: messageTimestamp,
             contactName,
+            contactProfilePicture,
           });
         }
 
-        // ✅ Save Meta Conversation ID here (conversationId will be added later)
         messagesToInsert.push({
           userId,
           brandId: integration.brandId,
@@ -350,14 +381,10 @@ async function performInitialSync(
       }
     }
 
-    // ✅ Batch create conversations
-    console.log(`🔄 Creating ${conversationMetadata.size} conversations...`);
-    const conversationMap = new Map<string, string>(); // metaConversationId -> conversationId
+    // Create conversations
+    const conversationMap = new Map<string, string>();
 
-    for (const [
-      metaConversationId,
-      metadata,
-    ] of conversationMetadata.entries()) {
+    for (const [metaConversationId, metadata] of conversationMetadata) {
       const conversation = await storage.getOrCreateConversation({
         integrationId: integration.id,
         brandId: integration.brandId,
@@ -365,42 +392,30 @@ async function performInitialSync(
         metaConversationId,
         platform: provider,
         contactName: metadata.contactName,
+        contactProfilePicture: metadata.contactProfilePicture,
         lastMessage: metadata.latestMessage,
         lastMessageAt: metadata.latestTimestamp,
       });
+
       conversationMap.set(metaConversationId, conversation.id);
     }
 
-    // ✅ Add conversationId to all messages
+    // Attach conversationId to messages
     messagesToInsert.forEach((msg) => {
       msg.conversationId = conversationMap.get(msg.metaConversationId);
     });
 
-    console.log(
-      `✅ Mapped ${messagesToInsert.length} messages to conversations`,
-    );
-
-    // ✅ Save messages
-    if (messagesToInsert.length > 0) {
-      console.log(
-        `💾 Saving ${messagesToInsert.length} messages to database...`,
-      );
+    if (messagesToInsert.length) {
       await storage.bulkInsertMessages(messagesToInsert);
-      console.log(`✅ Initial sync complete for ${provider}`);
-    } else {
-      console.log(
-        `📭 No new messages found for ${provider}, marking as synced anyway`,
-      );
+      console.log(`✅ Saved ${messagesToInsert.length} messages`);
     }
 
-    // ✅ Mark integration as fetched
     await storage.markIntegrationAsFetched(integration.id);
     integration.hasFetchedHistory = true;
-    console.log(
-      `🏁 [${provider.toUpperCase()}] Marked as fetched in DB and memory`,
-    );
+
+    console.log(`🏁 Initial sync completed for ${provider}`);
   } catch (err) {
-    console.error(`❌ Initial sync failed for ${provider}:`, err);
+    console.error(`❌ Initial sync failed:`, err);
   }
 }
 
@@ -983,7 +998,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Brand memberships endpoint
   app.get("/api/brand-memberships", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("─────────────────────────────────────────────");
+      console.log("──────────────────────────────────────────── v�");
       console.log("🔥 [BRAND-MEMBERSHIPS] Incoming request");
 
       // Log del req.user COMPLETO
