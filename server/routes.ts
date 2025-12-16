@@ -280,6 +280,7 @@ async function performInitialSync(
             );
             console.log(picRes);
             const picData = await picRes.json();
+            console.log(picData);
             contactProfileImage = picData.profile_pic || null;
           } catch (e) {
             console.log(
