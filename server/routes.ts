@@ -234,22 +234,15 @@ async function performInitialSync(
   provider: string,
 ): Promise<void> {
   try {
-    console.log(
-      `\n🔄 [INITIAL SYNC] Starting for ${provider.toUpperCase()}...`,
-    );
+    console.log(`\n🔄 [INITIAL SYNC] Starting for ${provider.toUpperCase()}...`);
 
     const accessToken = integration.accessToken;
     const accountId = integration.pageId;
 
-    // Basic business identifiers (simplified)
-    const businessIds = [accountId, integration.pageId].filter(Boolean);
-    console.log(`🔍 Business IDs detected:`, businessIds);
-
-    // Fetch all conversations
-    const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants,updated_time${provider !== "facebook" ? `&platform=${provider}` : ""}&limit=50&access_token=${accessToken}`;
-    console.log(
-      `📞 Fetching conversations from: ${convoUrl.replace(accessToken, "TOKEN")}`,
-    );
+    // 1. Fetch conversations con participantes
+    const convoUrl = `https://graph.facebook.com/v24.0/${accountId}/conversations?fields=id,platform,participants{id,name,picture},updated_time${
+      provider !== "facebook" ? `&platform=${provider}` : ""
+    }&limit=20&access_token=${accessToken}`;
 
     const convoRes = await fetch(convoUrl);
     const convoData = await convoRes.json();
@@ -260,66 +253,67 @@ async function performInitialSync(
     }
 
     const conversations = convoData.data || [];
-    console.log(
-      `📦 Found ${conversations.length} conversations for ${provider}`,
-    );
+    console.log(`📦 Found ${conversations.length} conversations for ${provider}`);
 
     const messagesToInsert: any[] = [];
-    const conversationMetadata = new Map<string, any>(); // Track latest message per conversation
+    const conversationMetadata = new Map<string, any>();
 
-    // Loop through each conversation
+    // Loop de conversaciones
     for (const convo of conversations) {
+      // --- LÓGICA DE FOTO DE PERFIL ---
+      let contactProfileImage = null;
+      const participants = convo.participants?.data || [];
+      const client = participants.find(p => p.id !== accountId && p.id !== integration.pageId);
+
+      if (client) {
+        if (provider === "facebook" && client.name !== "Facebook user") {
+          try {
+            // Llamada extra solo para Facebook Messenger
+            const picRes = await fetch(
+              `https://graph.facebook.com/v24.0/${client.id}?fields=profile_pic&access_token=${accessToken}`
+            );
+            const picData = await picRes.json();
+            contactProfileImage = picData.profile_pic || null;
+          } catch (e) {
+            console.log(`⚠️ No se pudo obtener foto para el PSID: ${client.id}`);
+          }
+        } else if (provider === "instagram") {
+          // Instagram lo suele incluir en el primer fetch
+          contactProfileImage = client.picture?.data?.url || null;
+        }
+      }
+
+      // 2. Fetch mensajes de la conversación
       const messagesUrl = `https://graph.facebook.com/v24.0/${convo.id}/messages?fields=id,message,text,from,to,created_time,attachments&limit=50&access_token=${accessToken}`;
       const msgRes = await fetch(messagesUrl);
       const msgData = await msgRes.json();
 
-      if (msgData.error) {
-        console.error(
-          `⚠️ Error fetching messages for conversation ${convo.id}:`,
-          msgData.error,
-        );
-        continue;
-      }
+      if (msgData.error) continue;
 
       const messages = msgData.data || [];
-      console.log(`  📨 Conversation ${convo.id}: ${messages.length} messages`);
 
       for (const m of messages) {
         const text = m.message || m.text || "";
         const fromId = m.from?.id || "";
         const fromName = m.from?.name || m.from?.username || "Unknown";
         const toId = m.to?.data?.[0]?.id || "";
-        const toName =
-          m.to?.data?.[0]?.name || m.to?.data?.[0]?.username || "Unknown";
+        const toName = m.to?.data?.[0]?.name || m.to?.data?.[0]?.username || "Unknown";
 
-        // 🧠 Detect direction
+        // Detectar dirección
         let isOutbound = false;
-        if (["facebook", "instagram", "threads"].includes(provider)) {
-          if (fromId === accountId || fromId === integration.pageId)
-            isOutbound = true;
-          if (
-            provider !== "facebook" &&
-            (fromId.startsWith("1784") ||
-              fromName?.toLowerCase() ===
-                integration.accountName?.toLowerCase())
-          ) {
-            isOutbound = true;
-          }
-        }
+        if (fromId === accountId || fromId === integration.pageId) isOutbound = true;
 
-        if (provider === "whatsapp") {
-          const wabaId = integration.metadata?.waba_id || integration.page_id;
-          if (fromId === wabaId || fromId === accountId) isOutbound = true;
+        // Especial para Instagram/Threads
+        if (!isOutbound && provider !== "facebook") {
+           if (fromId.startsWith("1784") || fromName?.toLowerCase() === integration.accountName?.toLowerCase()) {
+             isOutbound = true;
+           }
         }
-
-        console.log(
-          `🧩 Msg ${m.id.slice(0, 10)}... | from: ${fromName} (${fromId}) → to: ${toName} (${toId}) | outbound: ${isOutbound}`,
-        );
 
         const contactName = isOutbound ? toName : fromName;
         const messageTimestamp = new Date(m.created_time);
 
-        // Track latest message for conversation metadata
+        // Actualizar metadata de la conversación (para el upsert final)
         const existing = conversationMetadata.get(convo.id);
         if (!existing || messageTimestamp > existing.latestTimestamp) {
           conversationMetadata.set(convo.id, {
@@ -327,10 +321,10 @@ async function performInitialSync(
             latestMessage: text,
             latestTimestamp: messageTimestamp,
             contactName,
+            contactactProfilePicture: contactProfileImage, // <--- Tu campo de DB
           });
         }
 
-        // ✅ Save Meta Conversation ID here (conversationId will be added later)
         messagesToInsert.push({
           userId,
           brandId: integration.brandId,
@@ -350,14 +344,11 @@ async function performInitialSync(
       }
     }
 
-    // ✅ Batch create conversations
+    // 3. Crear/Actualizar conversaciones en DB
     console.log(`🔄 Creating ${conversationMetadata.size} conversations...`);
-    const conversationMap = new Map<string, string>(); // metaConversationId -> conversationId
+    const conversationMap = new Map<string, string>();
 
-    for (const [
-      metaConversationId,
-      metadata,
-    ] of conversationMetadata.entries()) {
+    for (const [metaConversationId, metadata] of conversationMetadata.entries()) {
       const conversation = await storage.getOrCreateConversation({
         integrationId: integration.id,
         brandId: integration.brandId,
@@ -367,43 +358,27 @@ async function performInitialSync(
         contactName: metadata.contactName,
         lastMessage: metadata.latestMessage,
         lastMessageAt: metadata.latestTimestamp,
+        contactProfilePicture: metadata.contactactProfilePicture, // <--- Guardado en DB
       });
       conversationMap.set(metaConversationId, conversation.id);
     }
 
-    // ✅ Add conversationId to all messages
+    // 4. Mapear IDs y Guardar mensajes
     messagesToInsert.forEach((msg) => {
       msg.conversationId = conversationMap.get(msg.metaConversationId);
     });
 
-    console.log(
-      `✅ Mapped ${messagesToInsert.length} messages to conversations`,
-    );
-
-    // ✅ Save messages
     if (messagesToInsert.length > 0) {
-      console.log(
-        `💾 Saving ${messagesToInsert.length} messages to database...`,
-      );
       await storage.bulkInsertMessages(messagesToInsert);
       console.log(`✅ Initial sync complete for ${provider}`);
-    } else {
-      console.log(
-        `📭 No new messages found for ${provider}, marking as synced anyway`,
-      );
     }
 
-    // ✅ Mark integration as fetched
     await storage.markIntegrationAsFetched(integration.id);
-    integration.hasFetchedHistory = true;
-    console.log(
-      `🏁 [${provider.toUpperCase()}] Marked as fetched in DB and memory`,
-    );
+
   } catch (err) {
     console.error(`❌ Initial sync failed for ${provider}:`, err);
   }
 }
-
 /**
  * Perform initial historical sync for Instagram Direct (via Instagram Login API)
  * Uses Instagram Graph API endpoints instead of Facebook Graph API
