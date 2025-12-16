@@ -234,7 +234,9 @@ async function performInitialSync(
   provider: string,
 ): Promise<void> {
   try {
-    console.log(`\n🔄 [INITIAL SYNC] Starting for ${provider.toUpperCase()}...`);
+    console.log(
+      `\n🔄 [INITIAL SYNC] Starting for ${provider.toUpperCase()}...`,
+    );
 
     const accessToken = integration.accessToken;
     const accountId = integration.pageId;
@@ -253,7 +255,9 @@ async function performInitialSync(
     }
 
     const conversations = convoData.data || [];
-    console.log(`📦 Found ${conversations.length} conversations for ${provider}`);
+    console.log(
+      `📦 Found ${conversations.length} conversations for ${provider}`,
+    );
 
     const messagesToInsert: any[] = [];
     const conversationMetadata = new Map<string, any>();
@@ -263,19 +267,24 @@ async function performInitialSync(
       // --- LÓGICA DE FOTO DE PERFIL ---
       let contactProfileImage = null;
       const participants = convo.participants?.data || [];
-      const client = participants.find(p => p.id !== accountId && p.id !== integration.pageId);
+      const client = participants.find(
+        (p) => p.id !== accountId && p.id !== integration.pageId,
+      );
 
       if (client) {
         if (provider === "facebook" && client.name !== "Facebook user") {
           try {
             // Llamada extra solo para Facebook Messenger
             const picRes = await fetch(
-              `https://graph.facebook.com/v24.0/${client.id}?fields=profile_pic&access_token=${accessToken}`
+              `https://graph.facebook.com/v24.0/${client.id}?fields=profile_pic&access_token=${accessToken}`,
             );
+            console.log(picRes);
             const picData = await picRes.json();
             contactProfileImage = picData.profile_pic || null;
           } catch (e) {
-            console.log(`⚠️ No se pudo obtener foto para el PSID: ${client.id}`);
+            console.log(
+              `⚠️ No se pudo obtener foto para el PSID: ${client.id}`,
+            );
           }
         } else if (provider === "instagram") {
           // Instagram lo suele incluir en el primer fetch
@@ -297,17 +306,22 @@ async function performInitialSync(
         const fromId = m.from?.id || "";
         const fromName = m.from?.name || m.from?.username || "Unknown";
         const toId = m.to?.data?.[0]?.id || "";
-        const toName = m.to?.data?.[0]?.name || m.to?.data?.[0]?.username || "Unknown";
+        const toName =
+          m.to?.data?.[0]?.name || m.to?.data?.[0]?.username || "Unknown";
 
         // Detectar dirección
         let isOutbound = false;
-        if (fromId === accountId || fromId === integration.pageId) isOutbound = true;
+        if (fromId === accountId || fromId === integration.pageId)
+          isOutbound = true;
 
         // Especial para Instagram/Threads
         if (!isOutbound && provider !== "facebook") {
-           if (fromId.startsWith("1784") || fromName?.toLowerCase() === integration.accountName?.toLowerCase()) {
-             isOutbound = true;
-           }
+          if (
+            fromId.startsWith("1784") ||
+            fromName?.toLowerCase() === integration.accountName?.toLowerCase()
+          ) {
+            isOutbound = true;
+          }
         }
 
         const contactName = isOutbound ? toName : fromName;
@@ -348,7 +362,10 @@ async function performInitialSync(
     console.log(`🔄 Creating ${conversationMetadata.size} conversations...`);
     const conversationMap = new Map<string, string>();
 
-    for (const [metaConversationId, metadata] of conversationMetadata.entries()) {
+    for (const [
+      metaConversationId,
+      metadata,
+    ] of conversationMetadata.entries()) {
       const conversation = await storage.getOrCreateConversation({
         integrationId: integration.id,
         brandId: integration.brandId,
@@ -374,7 +391,6 @@ async function performInitialSync(
     }
 
     await storage.markIntegrationAsFetched(integration.id);
-
   } catch (err) {
     console.error(`❌ Initial sync failed for ${provider}:`, err);
   }
