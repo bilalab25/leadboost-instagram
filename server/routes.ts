@@ -336,7 +336,7 @@ async function performInitialSync(
             latestMessage: text,
             latestTimestamp: messageTimestamp,
             contactName,
-            contactactProfilePicture: contactProfileImage, // <--- Tu campo de DB
+            contactProfilePicture: contactProfileImage, // <--- Tu campo de DB
           });
         }
 
@@ -376,7 +376,7 @@ async function performInitialSync(
         contactName: metadata.contactName,
         lastMessage: metadata.latestMessage,
         lastMessageAt: metadata.latestTimestamp,
-        contactProfilePicture: metadata.contactactProfilePicture, // <--- Guardado en DB
+        contactProfilePicture: metadata.contactProfilePicture, // <--- Guardado en DB
       });
       conversationMap.set(metaConversationId, conversation.id);
     }
@@ -4932,7 +4932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/webhooks/meta", async (req, res) => {
     try {
       console.log("=================================================");
-      console.log("✅ REQUEST RECEIVED: POST /api/webhooks/meta");
+      console.log(" �� REQUEST RECEIVED: POST /api/webhooks/meta");
       const body = req.body;
       console.log("🔴 PAYLOAD RAW (BODY):");
       console.dir(body, { depth: null });
