@@ -58,6 +58,7 @@ interface ConversationPanelProps {
   platform?: string;
   onClose: () => void;
   isDrawer?: boolean;
+  contactProfilePictureProp?: string | null;
 }
 
 const platformIcons = {
@@ -95,6 +96,7 @@ export default function ConversationPanel({
   conversationId,
   participantName,
   platform,
+  contactProfilePictureProp, // <-- Desestructúrala
   onClose,
   isDrawer = true,
 }: ConversationPanelProps) {
@@ -411,6 +413,10 @@ export default function ConversationPanel({
       });
     },
   });
+  useEffect(() => {
+    setContactProfilePicture(contactProfilePictureProp || null);
+    setMessages([]);
+  }, [conversationId, contactProfilePictureProp]);
 
   // 🔹 Scroll automático
   useEffect(() => {

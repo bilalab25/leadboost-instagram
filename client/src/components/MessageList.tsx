@@ -78,6 +78,7 @@ export default function MessageList({
     id: string;
     name: string;
     platform: string;
+    profilePicture: string | null;
   } | null>(null);
 
   // ✅ Fetch conversations using TanStack Query (brand-scoped)
@@ -281,6 +282,7 @@ export default function MessageList({
                       id: conversation.id,
                       name: conversation.contactName || "Contact",
                       platform: conversation.platform,
+                      profilePicture: conversation.contactProfilePicture,
                     });
 
                     // Mark as read if unread
@@ -294,9 +296,9 @@ export default function MessageList({
                     <div className="flex-shrink-0 relative">
                       <Avatar className="h-12 w-12">
                         {conversation.contactProfilePicture && (
-                          <AvatarImage 
-                            src={conversation.contactProfilePicture} 
-                            alt={conversation.contactName || "Contact"} 
+                          <AvatarImage
+                            src={conversation.contactProfilePicture}
+                            alt={conversation.contactName || "Contact"}
                           />
                         )}
                         <AvatarFallback className="bg-primary/10 text-primary">
@@ -399,6 +401,7 @@ export default function MessageList({
               platform={activeConversation.platform}
               onClose={() => setActiveConversation(null)}
               isDrawer={false}
+              contactProfilePictureProp={activeConversation.profilePicture}
             />
           </div>
         ) : (
