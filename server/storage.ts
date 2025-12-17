@@ -902,11 +902,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversationMessages(conversationId: string): Promise<Message[]> {
-    return db
-      .select()
-      .from(messages)
-      .where(eq(messages.conversationId, conversationId))
-      .orderBy(asc(messages.timestamp));
+    const result = await db.execute(sql`
+      SELECT
+        m.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', ma.id,
+              'type', ma.type,
+              'url', ma.url,
+              'mimeType', ma.mime_type,
+              'fileName', ma.file_name,
+              'fileSize', ma.file_size,
+              'createdAt', ma.created_at
+            )
+          ) FILTER (WHERE ma.id IS NOT NULL),
+          '[]'
+        ) AS attachments
+      FROM messages m
+      LEFT JOIN message_attachments ma
+        ON ma.message_id = m.id
+      WHERE m.conversation_id = ${conversationId}
+      GROUP BY m.id
+      ORDER BY m.timestamp ASC;
+    `);
+    return result.rows as Message[];
   }
 
   async updateConversationMetadata(
