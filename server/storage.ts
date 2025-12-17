@@ -926,6 +926,7 @@ export class DatabaseStorage implements IStorage {
       GROUP BY m.id
       ORDER BY m.timestamp ASC;
     `);
+
     return result.rows as Message[];
   }
 
