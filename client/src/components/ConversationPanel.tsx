@@ -46,7 +46,14 @@ interface Message {
   senderName: string;
   senderAvatar?: string;
   content: string;
-  imageUrl?: string | null;
+  attachments: {
+    id: string;
+    type: "image" | "video" | "audio" | "file";
+    url: string;
+    mimeType?: string | null;
+    fileName?: string | null;
+    fileSize?: number | null;
+  }[];
   direction: "inbound" | "outbound";
   status: "sent" | "delivered" | "read" | "failed";
   createdAt: string;
@@ -204,16 +211,16 @@ export default function ConversationPanel({
           }
         }
 
-        const formatted = msgs.map((msg: any) => ({
+        const formatted: Message[] = msgs.map((msg: any) => ({
           id: msg.id,
           conversationId,
           senderId: msg.senderId,
           senderName: msg.contactName || msg.senderId || "User",
-          content: msg.textContent || "(sin mensaje)",
-          imageUrl: null, // Will need to fetch attachments separately
-          direction: msg.direction, // Already set by backend
+          content: msg.textContent || "",
+          direction: msg.direction,
           createdAt: msg.timestamp,
           status: msg.isRead ? "read" : "delivered",
+          attachments: msg.attachments || [],
         }));
 
         // 🔹 Backend now returns messages in chronological order (oldest first)
@@ -285,7 +292,7 @@ export default function ConversationPanel({
           senderId: message.senderId,
           senderName: message.contactName || "Unknown User",
           content: message.textContent || "(sin mensaje)",
-          imageUrl: null,
+          attachments: message.attachments || [],
           direction: "inbound",
           status: "read",
           createdAt: message.timestamp || new Date().toISOString(),
@@ -616,14 +623,51 @@ export default function ConversationPanel({
                           {message.content}
                         </p>
                       )}
-                      {message.imageUrl && (
-                        <img
-                          src={message.imageUrl}
-                          alt="Imagen adjunta"
-                          className="rounded-lg max-w-xs border border-gray-200 cursor-pointer transition-transform hover:scale-[1.02]"
-                          loading="lazy"
-                          onClick={() => setPreviewImage(message.imageUrl!)}
-                        />
+                      {message.attachments?.length > 0 && (
+                        <div className="space-y-2">
+                          {message.attachments.map((att) => {
+                            if (att.type === "image") {
+                              return (
+                                <img
+                                  key={att.id}
+                                  src={att.url}
+                                  alt={att.fileName || "Imagen adjunta"}
+                                  className="rounded-lg max-w-xs border cursor-pointer hover:opacity-90"
+                                  loading="lazy"
+                                  onClick={() => setPreviewImage(att.url)}
+                                />
+                              );
+                            }
+
+                            if (att.type === "video") {
+                              return (
+                                <video
+                                  key={att.id}
+                                  controls
+                                  className="rounded-lg max-w-xs border"
+                                >
+                                  <source
+                                    src={att.url}
+                                    type={att.mimeType || "video/mp4"}
+                                  />
+                                </video>
+                              );
+                            }
+
+                            // file / audio
+                            return (
+                              <a
+                                key={att.id}
+                                href={att.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
+                              >
+                                📎 {att.fileName || "Archivo adjunto"}
+                              </a>
+                            );
+                          })}
+                        </div>
                       )}
                     </div>
                   </div>
