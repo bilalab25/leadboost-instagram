@@ -213,13 +213,13 @@ export default function ConversationPanel({
 
         const formatted: Message[] = msgs.map((msg: any) => ({
           id: msg.id,
-          conversationId,
-          senderId: msg.senderId,
-          senderName: msg.contactName || msg.senderId || "User",
-          content: msg.textContent || "",
+          conversationId: msg.conversation_id,
+          senderId: msg.sender_id,
+          senderName: msg.contact_name || msg.sender_id || "User",
+          content: msg.text_content || "",
           direction: msg.direction,
           createdAt: msg.timestamp,
-          status: msg.isRead ? "read" : "delivered",
+          status: msg.is_read ? "read" : "delivered",
           attachments: msg.attachments || [],
         }));
 
