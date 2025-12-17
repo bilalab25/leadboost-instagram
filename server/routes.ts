@@ -272,16 +272,15 @@ async function performInitialSync(
       );
 
       if (client) {
+        let metaImageUrl = null;
         if (provider === "facebook" && client.name !== "Facebook user") {
           try {
             // Llamada extra solo para Facebook Messenger
             const picRes = await fetch(
               `https://graph.facebook.com/v24.0/${client.id}?fields=profile_pic&access_token=${accessToken}`,
             );
-            console.log(picRes);
             const picData = await picRes.json();
-            console.log(picData);
-            contactProfileImage = picData.profile_pic || null;
+            metaImageUrl = picData.profile_pic || null;
           } catch (e) {
             console.log(
               `⚠️ No se pudo obtener foto para el PSID: ${client.id}`,
@@ -289,7 +288,27 @@ async function performInitialSync(
           }
         } else if (provider === "instagram") {
           // Instagram lo suele incluir en el primer fetch
-          contactProfileImage = client.picture?.data?.url || null;
+          metaImageUrl = client.picture?.data?.url;
+        }
+
+        // Si obtuvimos una URL de Meta, la subimos a Cloudinary
+        if (metaImageUrl) {
+          try {
+            const uploadRes = await cloudinary.uploader.upload(metaImageUrl, {
+              folder: "crm/profiles",
+              // Opcional: transformar a cuadrado y optimizar
+              transformation: [
+                { width: 400, height: 400, crop: "fill", gravity: "face" },
+                { quality: "auto", fetch_format: "auto" },
+              ],
+            });
+            contactProfileImage = uploadRes.secure_url; // URL persistente de Cloudinary
+            console.log(`✅ Imagen subida a Cloudinary para ${client.name}`);
+          } catch (uploadError) {
+            console.error("❌ Error subiendo a Cloudinary:", uploadError);
+            // Fallback: usar la de Meta si Cloudinary falla
+            contactProfileImage = metaImageUrl;
+          }
         }
       }
 
