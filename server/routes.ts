@@ -322,7 +322,7 @@ async function performInitialSync(
       }
 
       // 2. Fetch mensajes de la conversación
-      const messagesUrl = `https://graph.facebook.com/v24.0/${convo.id}/messages?fields=id,message,text,from,to,created_time,attachments&limit=20&access_token=${accessToken}`;
+      const messagesUrl = `https://graph.facebook.com/v24.0/${convo.id}/messages?fields=id,message,text,from,to,created_time,attachments{mime_type,name,size,image_data,video_data,audio_data,file_url}&limit=20&access_token=${accessToken}`;
       const msgRes = await fetch(messagesUrl);
       const msgData = await msgRes.json();
 
@@ -386,37 +386,32 @@ async function performInitialSync(
         });
 
         if (m.attachments?.data?.length) {
+          console.log(`📎 Found ${m.attachments.data.length} attachments`);
           for (const att of m.attachments.data) {
-            let type = att.type || "file";
-            let url: string | null = null;
-            let mimeType: string | null = null;
-            let fileName: string | null = null;
-            let fileSize: number | null = null;
+            const mimeType: string | null = att.mime_type || null;
+            const fileName: string | null = att.name || null;
+            const fileSize: number | null =
+              typeof att.size === "number" ? att.size : null;
 
-            if (att.image?.src) {
-              type = "image";
-              url = att.image.src;
-              mimeType = "image/jpeg";
-            } else if (att.video?.src) {
-              type = "video";
-              url = att.video.src;
-              mimeType = "video/mp4";
-            } else if (att.audio?.src) {
-              type = "audio";
-              url = att.audio.src;
-              mimeType = "audio/mpeg";
-            } else if (att.file?.url) {
-              type = "file";
-              url = att.file.url;
-              mimeType = att.file.mime_type || null;
-              fileName = att.file.name || null;
-              fileSize = att.file.size || null;
-            }
+            const url: string | null =
+              att.image_data?.url ||
+              att.video_data?.url ||
+              att.audio_data?.url ||
+              att.file_url ||
+              null;
 
             if (!url) continue;
 
+            const type = mimeType?.startsWith("image/")
+              ? "image"
+              : mimeType?.startsWith("video/")
+                ? "video"
+                : mimeType?.startsWith("audio/")
+                  ? "audio"
+                  : "file";
+
             attachmentsTemp.push({
-              metaMessageId: m.id,
+              metaMessageId: m.id, // 🔑 clave puente
               type,
               url,
               mimeType,
@@ -457,15 +452,15 @@ async function performInitialSync(
 
     if (messagesToInsert.length > 0) {
       await storage.bulkInsertMessages(messagesToInsert);
-      const metaMessageIds = messagesToInsert.map(m => m.metaMessageId);
+      const metaMessageIds = messagesToInsert.map((m) => m.metaMessageId);
 
       const dbMessages = await storage.getMessagesByMetaIds(metaMessageIds);
 
       const messageIdMap = new Map(
-        dbMessages.map(m => [m.metaMessageId, m.id]),
+        dbMessages.map((m) => [m.metaMessageId, m.id]),
       );
       const finalAttachments = attachmentsTemp
-        .map(att => ({
+        .map((att) => ({
           messageId: messageIdMap.get(att.metaMessageId),
           type: att.type,
           url: att.url,
@@ -473,7 +468,7 @@ async function performInitialSync(
           fileName: att.fileName,
           fileSize: att.fileSize,
         }))
-        .filter(a => a.messageId);
+        .filter((a) => a.messageId);
 
       if (finalAttachments.length) {
         await storage.bulkInsertMessageAttachments(finalAttachments);
@@ -6564,7 +6559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await new Promise((resolve) => setTimeout(resolve, 100));
           } catch (err) {
             console.error(
-              `❌ Error updating conversation ${conversation.id}:`,
+              `en� Error updating conversation ${conversation.id}:`,
               err,
             );
             results.push({
