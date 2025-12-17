@@ -259,7 +259,16 @@ async function performInitialSync(
       `📦 Found ${conversations.length} conversations for ${provider}`,
     );
 
-    const messagesToInsert: any[] = [];
+    const messagesToInsert: InsertMessage[] = [];
+    const attachmentsTemp: {
+      metaMessageId: string;
+      type: string;
+      url: string;
+      mimeType?: string | null;
+      fileName?: string | null;
+      fileSize?: number | null;
+    }[] = [];
+
     const conversationMetadata = new Map<string, any>();
 
     // Loop de conversaciones
@@ -313,7 +322,7 @@ async function performInitialSync(
       }
 
       // 2. Fetch mensajes de la conversación
-      const messagesUrl = `https://graph.facebook.com/v24.0/${convo.id}/messages?fields=id,message,text,from,to,created_time,attachments&limit=50&access_token=${accessToken}`;
+      const messagesUrl = `https://graph.facebook.com/v24.0/${convo.id}/messages?fields=id,message,text,from,to,created_time,attachments&limit=20&access_token=${accessToken}`;
       const msgRes = await fetch(messagesUrl);
       const msgData = await msgRes.json();
 
@@ -375,6 +384,47 @@ async function performInitialSync(
           contactName,
           rawPayload: { message: m, conversation: convo },
         });
+
+        if (m.attachments?.data?.length) {
+          for (const att of m.attachments.data) {
+            let type = att.type || "file";
+            let url: string | null = null;
+            let mimeType: string | null = null;
+            let fileName: string | null = null;
+            let fileSize: number | null = null;
+
+            if (att.image?.src) {
+              type = "image";
+              url = att.image.src;
+              mimeType = "image/jpeg";
+            } else if (att.video?.src) {
+              type = "video";
+              url = att.video.src;
+              mimeType = "video/mp4";
+            } else if (att.audio?.src) {
+              type = "audio";
+              url = att.audio.src;
+              mimeType = "audio/mpeg";
+            } else if (att.file?.url) {
+              type = "file";
+              url = att.file.url;
+              mimeType = att.file.mime_type || null;
+              fileName = att.file.name || null;
+              fileSize = att.file.size || null;
+            }
+
+            if (!url) continue;
+
+            attachmentsTemp.push({
+              metaMessageId: m.id,
+              type,
+              url,
+              mimeType,
+              fileName,
+              fileSize,
+            });
+          }
+        }
       }
     }
 
@@ -407,6 +457,28 @@ async function performInitialSync(
 
     if (messagesToInsert.length > 0) {
       await storage.bulkInsertMessages(messagesToInsert);
+      const metaMessageIds = messagesToInsert.map(m => m.metaMessageId);
+
+      const dbMessages = await storage.getMessagesByMetaIds(metaMessageIds);
+
+      const messageIdMap = new Map(
+        dbMessages.map(m => [m.metaMessageId, m.id]),
+      );
+      const finalAttachments = attachmentsTemp
+        .map(att => ({
+          messageId: messageIdMap.get(att.metaMessageId),
+          type: att.type,
+          url: att.url,
+          mimeType: att.mimeType,
+          fileName: att.fileName,
+          fileSize: att.fileSize,
+        }))
+        .filter(a => a.messageId);
+
+      if (finalAttachments.length) {
+        await storage.bulkInsertMessageAttachments(finalAttachments);
+        console.log(`📎 Inserted ${finalAttachments.length} attachments`);
+      }
       console.log(`✅ Initial sync complete for ${provider}`);
     }
 

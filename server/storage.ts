@@ -158,7 +158,10 @@ export interface IStorage {
   ): Promise<void>;
   updateMessagePriority(id: string, priority: string): Promise<void>;
   assignMessage(id: string, assignedTo: string): Promise<void>;
-  findMessageByMetaId(integrationId: string, metaMessageId: string): Promise<Message | undefined>;
+  findMessageByMetaId(
+    integrationId: string,
+    metaMessageId: string,
+  ): Promise<Message | undefined>;
 
   // New Conversations operations (using conversations table)
   getOrCreateConversation(params: {
@@ -191,7 +194,7 @@ export interface IStorage {
     senderId: string,
     contactName?: string | null,
   ): Promise<Conversation | undefined>;
-  
+
   // Find conversation by metaConversationId (for webhook routing)
   findConversationByMetaConversationId(
     metaConversationId: string,
@@ -439,7 +442,7 @@ export interface IStorage {
     accountId: string,
     provider: string,
   ): Promise<Integration | undefined>;
-  
+
   // Check if an account is already connected anywhere in the platform (for duplicate prevention)
   checkDuplicateIntegration(
     pageId: string,
@@ -782,7 +785,10 @@ export class DatabaseStorage implements IStorage {
     await db.update(messages).set({ priority }).where(eq(messages.id, id));
   }
 
-  async findMessageByMetaId(integrationId: string, metaMessageId: string): Promise<Message | undefined> {
+  async findMessageByMetaId(
+    integrationId: string,
+    metaMessageId: string,
+  ): Promise<Message | undefined> {
     const [message] = await db
       .select()
       .from(messages)
@@ -837,8 +843,12 @@ export class DatabaseStorage implements IStorage {
             lastMessage:
               params.lastMessage || sql`${conversations.lastMessage}`,
             lastMessageAt: params.lastMessageAt || new Date(),
-            contactProfilePicture: params.contactProfilePicture || sql`${conversations.contactProfilePicture}`,
-            contactProfilePictureFetchedAt: params.contactProfilePictureFetchedAt || sql`${conversations.contactProfilePictureFetchedAt}`,
+            contactProfilePicture:
+              params.contactProfilePicture ||
+              sql`${conversations.contactProfilePicture}`,
+            contactProfilePictureFetchedAt:
+              params.contactProfilePictureFetchedAt ||
+              sql`${conversations.contactProfilePictureFetchedAt}`,
             updatedAt: new Date(),
           },
         })
@@ -936,8 +946,10 @@ export class DatabaseStorage implements IStorage {
     senderId: string,
     contactName?: string | null,
   ): Promise<Conversation | undefined> {
-    console.log(`[Storage] findConversationBySenderId: integrationId=${integrationId}, senderId=${senderId}, contactName=${contactName}`);
-    
+    console.log(
+      `[Storage] findConversationBySenderId: integrationId=${integrationId}, senderId=${senderId}, contactName=${contactName}`,
+    );
+
     // Find conversation by looking at messages from this sender in this integration
     const messagesFromSender = await db
       .select({ conversationId: messages.conversationId })
@@ -946,8 +958,8 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(messages.integrationId, integrationId),
           eq(messages.senderId, senderId),
-          sql`${messages.conversationId} IS NOT NULL`
-        )
+          sql`${messages.conversationId} IS NOT NULL`,
+        ),
       )
       .limit(1);
 
@@ -958,7 +970,9 @@ export class DatabaseStorage implements IStorage {
         .where(eq(conversations.id, messagesFromSender[0].conversationId))
         .limit(1);
       if (conversation) {
-        console.log(`[Storage] Found conversation by senderId in messages: ${conversation.id}`);
+        console.log(
+          `[Storage] Found conversation by senderId in messages: ${conversation.id}`,
+        );
         return conversation;
       }
     }
@@ -970,13 +984,15 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(conversations.integrationId, integrationId),
-          sql`${conversations.metaConversationId} LIKE '%' || ${senderId} || '%'`
-        )
+          sql`${conversations.metaConversationId} LIKE '%' || ${senderId} || '%'`,
+        ),
       )
       .limit(1);
 
     if (conversationsWithSenderId[0]) {
-      console.log(`[Storage] Found conversation by senderId in metaConversationId: ${conversationsWithSenderId[0].id}`);
+      console.log(
+        `[Storage] Found conversation by senderId in metaConversationId: ${conversationsWithSenderId[0].id}`,
+      );
       return conversationsWithSenderId[0];
     }
 
@@ -988,38 +1004,48 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(conversations.integrationId, integrationId),
-            eq(conversations.contactName, contactName)
-          )
+            eq(conversations.contactName, contactName),
+          ),
         )
         .limit(1);
 
       if (conversationsByContactName[0]) {
-        console.log(`[Storage] Found conversation by contactName: ${conversationsByContactName[0].id}`);
+        console.log(
+          `[Storage] Found conversation by contactName: ${conversationsByContactName[0].id}`,
+        );
         return conversationsByContactName[0];
       }
     }
 
-    console.log(`[Storage] No conversation found for senderId=${senderId}, contactName=${contactName}`);
+    console.log(
+      `[Storage] No conversation found for senderId=${senderId}, contactName=${contactName}`,
+    );
     return undefined;
   }
 
   async findConversationByMetaConversationId(
     metaConversationId: string,
   ): Promise<Conversation | undefined> {
-    console.log(`[Storage] findConversationByMetaConversationId: ${metaConversationId}`);
-    
+    console.log(
+      `[Storage] findConversationByMetaConversationId: ${metaConversationId}`,
+    );
+
     const [conversation] = await db
       .select()
       .from(conversations)
       .where(eq(conversations.metaConversationId, metaConversationId))
       .limit(1);
-    
+
     if (conversation) {
-      console.log(`[Storage] Found conversation by metaConversationId: ${conversation.id}, integrationId: ${conversation.integrationId}`);
+      console.log(
+        `[Storage] Found conversation by metaConversationId: ${conversation.id}, integrationId: ${conversation.integrationId}`,
+      );
     } else {
-      console.log(`[Storage] No conversation found for metaConversationId: ${metaConversationId}`);
+      console.log(
+        `[Storage] No conversation found for metaConversationId: ${metaConversationId}`,
+      );
     }
-    
+
     return conversation;
   }
 
@@ -2180,6 +2206,39 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return result.length > 0;
   }
+  async getMessagesByMetaIds(metaMessageIds: string[]) {
+    if (!metaMessageIds.length) return [];
+
+    return await db
+      .select({
+        id: messages.id,
+        metaMessageId: messages.metaMessageId,
+      })
+      .from(messages)
+      .where(inArray(messages.metaMessageId, metaMessageIds))
+      .execute();
+  }
+
+  async bulkInsertMessageAttachments(
+    attachments: {
+      messageId: string;
+      type: string;
+      url: string;
+      mimeType?: string | null;
+      fileName?: string | null;
+      fileSize?: number | null;
+    }[],
+  ): Promise<void> {
+    if (!attachments.length) return;
+
+    await db
+      .insert(messageAttachments)
+      .values(attachments)
+      .onConflictDoNothing()
+      .execute();
+
+    console.log(`📎 Inserted ${attachments.length} message attachments`);
+  }
 
   // Meta Messenger/Instagram hybrid sync operations
   async bulkInsertMessages(messagesList: InsertMessage[]): Promise<void> {
@@ -2213,10 +2272,9 @@ export class DatabaseStorage implements IStorage {
     provider: string,
   ): Promise<Integration | undefined> {
     // For Instagram, also check instagram_direct provider
-    const providersToCheck = provider === "instagram" 
-      ? [provider, "instagram_direct"] 
-      : [provider];
-    
+    const providersToCheck =
+      provider === "instagram" ? [provider, "instagram_direct"] : [provider];
+
     // First try to find by accountId
     let [integration] = await db
       .select()
@@ -2228,7 +2286,7 @@ export class DatabaseStorage implements IStorage {
         ),
       )
       .limit(1);
-    
+
     // If not found, try to find by pageId (IGBA ID for Instagram)
     if (!integration) {
       [integration] = await db
@@ -2242,7 +2300,7 @@ export class DatabaseStorage implements IStorage {
         )
         .limit(1);
     }
-    
+
     return integration;
   }
 
@@ -2253,15 +2311,14 @@ export class DatabaseStorage implements IStorage {
     excludeBrandId?: string,
   ): Promise<Integration | undefined> {
     // For Instagram, check both instagram and instagram_direct providers
-    const providersToCheck = provider === "instagram" || provider === "instagram_direct"
-      ? ["instagram", "instagram_direct"]
-      : [provider];
-    
+    const providersToCheck =
+      provider === "instagram" || provider === "instagram_direct"
+        ? ["instagram", "instagram_direct"]
+        : [provider];
+
     // Build conditions for finding duplicates
-    const conditions = [
-      inArray(integrations.provider, providersToCheck),
-    ];
-    
+    const conditions = [inArray(integrations.provider, providersToCheck)];
+
     // Check by pageId first (primary identifier)
     if (pageId) {
       const [byPageId] = await db
@@ -2271,14 +2328,16 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(integrations.pageId, pageId),
             inArray(integrations.provider, providersToCheck),
-            excludeBrandId ? sql`${integrations.brandId} != ${excludeBrandId}` : undefined,
+            excludeBrandId
+              ? sql`${integrations.brandId} != ${excludeBrandId}`
+              : undefined,
           ),
         )
         .limit(1);
-      
+
       if (byPageId) return byPageId;
     }
-    
+
     // Also check by accountId if provided
     if (accountId) {
       const [byAccountId] = await db
@@ -2288,14 +2347,16 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(integrations.accountId, accountId),
             inArray(integrations.provider, providersToCheck),
-            excludeBrandId ? sql`${integrations.brandId} != ${excludeBrandId}` : undefined,
+            excludeBrandId
+              ? sql`${integrations.brandId} != ${excludeBrandId}`
+              : undefined,
           ),
         )
         .limit(1);
-      
+
       if (byAccountId) return byAccountId;
     }
-    
+
     return undefined;
   }
 
@@ -2662,7 +2723,7 @@ export class DatabaseStorage implements IStorage {
     },
   ): Promise<BrandEssence> {
     const now = new Date();
-    
+
     // Check if essence already exists for this brand
     const [existing] = await db
       .select()
