@@ -414,10 +414,12 @@ export default function ConversationPanel({
     },
   });
   useEffect(() => {
-    setContactProfilePicture(contactProfilePictureProp || null);
-    setMessages([]);
+    setContactProfilePicture(null);
+    if (contactProfilePictureProp) {
+      setContactProfilePicture(contactProfilePictureProp);
+    }
+    setConversationFlag("none");
   }, [conversationId, contactProfilePictureProp]);
-
   // 🔹 Scroll automático
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -471,14 +473,18 @@ export default function ConversationPanel({
           <div className="flex items-center space-x-3 flex-1">
             <div className="relative">
               <Avatar className="h-10 w-10">
-                {contactProfilePicture && (
+                {/* Solo mostramos la imagen si realmente tiene una URL válida */}
+                {contactProfilePicture && contactProfilePicture !== "" && (
                   <AvatarImage
                     referrerPolicy="no-referrer"
                     src={contactProfilePicture}
                     alt={displayName}
                   />
                 )}
-                <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+                {/* El Fallback SIEMPRE debe estar presente como respaldo */}
+                <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                  {displayName.charAt(0).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               {PlatformIcon && (
                 <div
@@ -711,15 +717,15 @@ export default function ConversationPanel({
         {/* Participant Info Header */}
         <div className="p-6 border-b border-gray-200 flex flex-col items-center">
           <Avatar className="h-20 w-20 mb-3">
-            {contactProfilePicture && (
+            {contactProfilePicture && contactProfilePicture !== "" ? (
               <AvatarImage
                 referrerPolicy="no-referrer"
                 src={contactProfilePicture}
                 alt={displayName}
               />
-            )}
-            <AvatarFallback className="text-2xl">
-              {displayName.charAt(0)}
+            ) : null}
+            <AvatarFallback className="text-2xl bg-gray-200 text-gray-600 font-bold">
+              {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <h3 className="font-semibold text-lg text-gray-900">{displayName}</h3>

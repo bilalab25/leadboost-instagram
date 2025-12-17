@@ -280,12 +280,10 @@ export default function MessageList({
                   onClick={() => {
                     setActiveConversation({
                       id: conversation.id,
-                      name: conversation.contactName || "Contact",
+                      name: conversation.contactName || "Usuario",
                       platform: conversation.platform,
                       profilePicture: conversation.contactProfilePicture,
                     });
-
-                    // Mark as read if unread
                     if (hasUnread) {
                       markAsReadMutation.mutate(conversation.id);
                     }
