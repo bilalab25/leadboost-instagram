@@ -5551,7 +5551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     let textContent = messageText;
                     if (!textContent && attachments.length > 0) {
                       const firstAtt = attachments[0];
-                      const info = getAttachmentType(firstAtt);
+                      const info = getWebhookAttachmentInfo(firstAtt);
                       textContent = info.label;
                       if (attachments.length > 1) {
                         textContent += ` +${attachments.length - 1}`;
@@ -5584,8 +5584,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         `📎 [Instagram Direct] Processing ${attachments.length} attachments`,
                       );
                       for (const att of attachments) {
-                        const info = getAttachmentType(att);
-                        if (!info.url) continue;
+                        const info = getWebhookAttachmentInfo(att);
+                        if (!info.url) {
+                          console.warn(
+                            `⚠️ [Instagram Direct] Attachment has no URL:`,
+                            att,
+                          );
+                          continue;
+                        }
 
                         let finalUrl = info.url;
                         try {
@@ -5892,7 +5898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   let textContent = messageText;
                   if (!textContent && attachments.length > 0) {
                     const firstAtt = attachments[0];
-                    const info = getAttachmentType(firstAtt);
+                    const info = getWebhookAttachmentInfo(firstAtt);
                     textContent = info.label;
                     if (attachments.length > 1) {
                       textContent += ` +${attachments.length - 1}`;
@@ -5923,8 +5929,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       `📎 [${platform}] Processing ${attachments.length} attachments`,
                     );
                     for (const att of attachments) {
-                      const info = getAttachmentType(att);
-                      if (!info.url) continue;
+                      const info = getWebhookAttachmentInfo(att);
+                      if (!info.url) {
+                        console.warn(
+                          `⚠️ [${platform}] Attachment has no URL:`,
+                          att,
+                        );
+                        continue;
+                      }
 
                       let finalUrl = info.url;
                       try {
