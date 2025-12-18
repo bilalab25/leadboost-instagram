@@ -223,6 +223,49 @@ async function fetchWhatsappBaileysMessagesFromDB(
 // ==================================================================================
 // HYBRID SYNC HELPERS FOR MESSENGER/INSTAGRAM
 // ==================================================================================
+function getAttachmentType(att: any): {
+  type: "image" | "video" | "audio" | "file";
+  label: string;
+  url: string | null;
+} {
+  if (att.image_data?.url) {
+    return {
+      type: "image",
+      label: "📷 Image",
+      url: att.image_data.url,
+    };
+  }
+
+  if (att.video_data?.url) {
+    return {
+      type: "video",
+      label: "🎥 Video",
+      url: att.video_data.url,
+    };
+  }
+
+  if (att.audio_data?.url) {
+    return {
+      type: "audio",
+      label: "🎧 Audio",
+      url: att.audio_data.url,
+    };
+  }
+
+  if (att.file_url) {
+    return {
+      type: "file",
+      label: "📎 File",
+      url: att.file_url,
+    };
+  }
+
+  return {
+    type: "file",
+    label: "📎 Attachment",
+    url: null,
+  };
+}
 
 /**
  * Perform initial historical sync for Messenger/Instagram
@@ -359,9 +402,26 @@ async function performInitialSync(
         // Actualizar metadata de la conversación (para el upsert final)
         const existing = conversationMetadata.get(convo.id);
         if (!existing || messageTimestamp > existing.latestTimestamp) {
+          let displayText = text;
+
+          if (!displayText && m.attachments?.data?.length) {
+            const first = m.attachments.data[0];
+            const info = getAttachmentType(first);
+
+            displayText = info.label;
+
+            if (m.attachments.data.length > 1) {
+              displayText += ` +${m.attachments.data.length - 1}`;
+            }
+          }
+
+          if (!displayText && !m.attachments?.data?.length) {
+            displayText = "Sticker or voice note";
+          }
+
           conversationMetadata.set(convo.id, {
             metaConversationId: convo.id,
-            latestMessage: text,
+            latestMessage: displayText,
             latestTimestamp: messageTimestamp,
             contactName,
             contactProfilePicture: contactProfileImage, // <--- Tu campo de DB
@@ -393,30 +453,30 @@ async function performInitialSync(
             const fileSize: number | null =
               typeof att.size === "number" ? att.size : null;
 
-            const url: string | null =
-              att.image_data?.url ||
-              att.video_data?.url ||
-              att.audio_data?.url ||
-              att.file_url ||
-              null;
+            const info = getAttachmentType(att);
 
-            if (!url) continue;
+            if (!info.url) continue;
 
-            const type = mimeType?.startsWith("image/")
-              ? "image"
-              : mimeType?.startsWith("video/")
-                ? "video"
-                : mimeType?.startsWith("audio/")
-                  ? "audio"
-                  : "file";
+            let finalUrl = info.url;
+
+            try {
+              const upload = await cloudinary.uploader.upload(info.url, {
+                folder: "crm/messages",
+                resource_type: info.type === "video" ? "video" : "image",
+              });
+
+              finalUrl = upload.secure_url;
+            } catch (err) {
+              console.error("❌ Cloudinary upload failed", err);
+            }
 
             attachmentsTemp.push({
-              metaMessageId: m.id, // 🔑 clave puente
-              type,
-              url,
-              mimeType,
-              fileName,
-              fileSize,
+              metaMessageId: m.id,
+              type: info.type,
+              url: finalUrl, // 👈 YA ES PUBLICA
+              mimeType: att.mime_type || null,
+              fileName: att.name || null,
+              fileSize: typeof att.size === "number" ? att.size : null,
             });
           }
         }
@@ -490,6 +550,15 @@ async function performInstagramDirectSync(
   userId: string,
   integration: any,
 ): Promise<void> {
+  const attachmentsTemp: {
+    metaMessageId: string;
+    type: string;
+    url: string;
+    mimeType?: string | null;
+    fileName?: string | null;
+    fileSize?: number | null;
+  }[] = [];
+
   try {
     console.log(`\n🔄 [INITIAL SYNC] Starting for INSTAGRAM_DIRECT...`);
 
@@ -498,7 +567,6 @@ async function performInstagramDirectSync(
 
     console.log(`🆔 IGBA ID: ${igbaId}`);
 
-    // Step 1: Fetch all conversations
     const convoUrl = `https://graph.instagram.com/v24.0/me/conversations?platform=instagram&access_token=${accessToken}`;
     console.log(
       `📞 Fetching IG Direct conversations from: ${convoUrl.replace(accessToken, "TOKEN")}`,
@@ -522,10 +590,9 @@ async function performInstagramDirectSync(
 
     const messagesToInsert: any[] = [];
     const conversationMetadata = new Map<string, any>();
+    const seenMessageIds = new Set<string>();
 
-    // Step 2: Loop through each conversation and fetch messages
     for (const convo of conversations) {
-      // Get messages list for conversation
       const messagesListUrl = `https://graph.instagram.com/v24.0/${convo.id}?fields=messages&access_token=${accessToken}`;
       const msgListRes = await fetch(messagesListUrl);
       const msgListData = await msgListRes.json();
@@ -543,11 +610,10 @@ async function performInstagramDirectSync(
         `  📨 Conversation ${convo.id}: ${messageIds.length} message IDs`,
       );
 
-      // Step 3: Fetch details for each message (limit to 50 for initial sync)
       const limitedMessageIds = messageIds.slice(0, 50);
 
       for (const msgRef of limitedMessageIds) {
-        const msgDetailUrl = `https://graph.instagram.com/v24.0/${msgRef.id}?fields=id,created_time,from,to,message&access_token=${accessToken}`;
+        const msgDetailUrl = `https://graph.instagram.com/v24.0/${msgRef.id}?fields=id,created_time,from,to,message,attachments&access_token=${accessToken}`;
         const msgDetailRes = await fetch(msgDetailUrl);
         const m = await msgDetailRes.json();
 
@@ -556,6 +622,10 @@ async function performInstagramDirectSync(
           continue;
         }
 
+        if (!m.id) continue;
+        if (seenMessageIds.has(m.id)) continue;
+        seenMessageIds.add(m.id);
+
         const text = m.message || "";
         const fromId = m.from?.id || "";
         const fromName = m.from?.username || m.from?.name || "Unknown";
@@ -563,31 +633,40 @@ async function performInstagramDirectSync(
         const toName =
           m.to?.data?.[0]?.username || m.to?.data?.[0]?.name || "Unknown";
 
-        // Detect direction - if from ID matches IGBA ID, it's outbound
         const isOutbound = fromId === igbaId || fromId.startsWith("1784");
-
-        console.log(
-          `🧩 Msg ${m.id.slice(0, 10)}... | from: ${fromName} (${fromId}) → to: ${toName} (${toId}) | outbound: ${isOutbound}`,
-        );
 
         const contactName = isOutbound ? toName : fromName;
         const messageTimestamp = new Date(m.created_time);
 
-        // Build composite conversation ID: {igbaId}_{recipientId}
         const recipientIgsid = isOutbound ? toId : fromId;
         const compositeConversationId = `${igbaId}_${recipientIgsid}`;
 
-        // Track latest message for conversation metadata
+        const attachments = m.attachments?.data || [];
+
+        // Conversation preview text
         const existing = conversationMetadata.get(compositeConversationId);
         if (!existing || messageTimestamp > existing.latestTimestamp) {
+          let preview = text;
+
+          if (!preview && attachments.length) {
+            const first = attachments[0];
+            const info = getAttachmentType(first);
+            preview = info.label || "📎 Attachment";
+            if (attachments.length > 1)
+              preview += ` +${attachments.length - 1}`;
+          }
+
+          if (!preview) preview = "Sticker or voice note";
+
           conversationMetadata.set(compositeConversationId, {
             metaConversationId: compositeConversationId,
-            latestMessage: text,
+            latestMessage: preview,
             latestTimestamp: messageTimestamp,
             contactName,
           });
         }
 
+        // 1) Insert base message
         messagesToInsert.push({
           userId,
           brandId: integration.brandId,
@@ -604,10 +683,48 @@ async function performInstagramDirectSync(
           contactName,
           rawPayload: { message: m, conversation: convo },
         });
+
+        // 2) Process attachments -> Cloudinary -> staging table
+        if (attachments.length) {
+          console.log(`📎 IG Direct: ${attachments.length} attachments`);
+
+          for (const att of attachments) {
+            const info = getAttachmentType(att);
+            if (!info.url) continue;
+
+            let finalUrl = info.url;
+
+            try {
+              const resourceType =
+                info.type === "video"
+                  ? "video"
+                  : info.type === "audio" || info.type === "file"
+                    ? "raw"
+                    : "image";
+
+              const upload = await cloudinary.uploader.upload(info.url, {
+                folder: "crm/messages",
+                resource_type: resourceType,
+              });
+
+              finalUrl = upload.secure_url;
+            } catch (err) {
+              console.error("❌ Cloudinary upload failed (IG Direct)", err);
+            }
+
+            attachmentsTemp.push({
+              metaMessageId: m.id,
+              type: info.type,
+              url: finalUrl,
+              mimeType: att.mime_type || null, // IG Direct usually null
+              fileName: att.name || null,
+              fileSize: typeof att.size === "number" ? att.size : null,
+            });
+          }
+        }
       }
     }
 
-    // Step 4: Create conversations in database
     console.log(`🔄 Creating ${conversationMetadata.size} conversations...`);
     const conversationMap = new Map<string, string>();
 
@@ -625,10 +742,10 @@ async function performInstagramDirectSync(
         lastMessage: metadata.latestMessage,
         lastMessageAt: metadata.latestTimestamp,
       });
+
       conversationMap.set(metaConversationId, conversation.id);
     }
 
-    // Step 5: Add conversationId to all messages
     messagesToInsert.forEach((msg) => {
       msg.conversationId = conversationMap.get(msg.metaConversationId);
     });
@@ -637,12 +754,37 @@ async function performInstagramDirectSync(
       `✅ Mapped ${messagesToInsert.length} messages to conversations`,
     );
 
-    // Step 6: Save messages
     if (messagesToInsert.length > 0) {
       console.log(
         `💾 Saving ${messagesToInsert.length} messages to database...`,
       );
       await storage.bulkInsertMessages(messagesToInsert);
+
+      const metaMessageIds = messagesToInsert.map((m) => m.metaMessageId);
+      const dbMessages = await storage.getMessagesByMetaIds(metaMessageIds);
+
+      const messageIdMap = new Map(
+        dbMessages.map((m) => [m.metaMessageId, m.id]),
+      );
+
+      const finalAttachments = attachmentsTemp
+        .map((att) => ({
+          messageId: messageIdMap.get(att.metaMessageId),
+          type: att.type,
+          url: att.url,
+          mimeType: att.mimeType,
+          fileName: att.fileName,
+          fileSize: att.fileSize,
+        }))
+        .filter((a) => a.messageId);
+
+      if (finalAttachments.length) {
+        await storage.bulkInsertMessageAttachments(finalAttachments);
+        console.log(
+          `📎 Inserted ${finalAttachments.length} IG Direct attachments`,
+        );
+      }
+
       console.log(`✅ Initial sync complete for instagram_direct`);
     } else {
       console.log(
@@ -650,7 +792,6 @@ async function performInstagramDirectSync(
       );
     }
 
-    // Step 7: Mark integration as fetched
     await storage.markIntegrationAsFetched(integration.id);
     integration.hasFetchedHistory = true;
     console.log(`🏁 [INSTAGRAM_DIRECT] Marked as fetched in DB and memory`);
@@ -6589,6 +6730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // ✅ NEW: Get inbox statistics (total messages, unread, urgent, avg response time)
+  // ✅ NEW: Get inbox statistics (total messages, unread, urgent, avg response time)
   app.get(
     "/api/inbox/stats",
     isAuthenticated,
@@ -6608,39 +6750,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let responseTimes: number[] = [];
 
         for (const conversation of conversationsList) {
-          // Count unread from conversation's unreadCount field
+          // Count unread
           totalUnread += conversation.unreadCount || 0;
 
-          // Count urgent (important flagged conversations)
+          // Count urgent
           if (conversation.flag === "important") {
             urgentCount++;
           }
 
-          // Get messages for this conversation to count total and calculate response times
+          // Get messages
           const conversationMessages = await storage.getConversationMessages(
             conversation.id,
           );
+
           totalMessages += conversationMessages.length;
 
-          // Calculate response times (time between inbound and next outbound message)
+          // Calculate response times
           let lastInboundTime: Date | null = null;
+
           for (const msg of conversationMessages) {
+            // 🔑 NORMALIZAR TIMESTAMP (CLAVE DEL FIX)
+            const msgTime =
+              msg.timestamp instanceof Date
+                ? msg.timestamp
+                : new Date(msg.timestamp);
+
             if (msg.direction === "inbound") {
-              lastInboundTime = msg.timestamp;
+              lastInboundTime = msgTime;
             } else if (msg.direction === "outbound" && lastInboundTime) {
               const responseTime =
-                msg.timestamp.getTime() - lastInboundTime.getTime();
-              responseTimes.push(responseTime);
-              lastInboundTime = null; // Reset for next pair
+                msgTime.getTime() - lastInboundTime.getTime();
+
+              if (responseTime > 0) {
+                responseTimes.push(responseTime);
+              }
+
+              lastInboundTime = null; // Reset after pairing
             }
           }
         }
 
         // Calculate average response time
         let avgResponseTime = "N/A";
+
         if (responseTimes.length > 0) {
           const avgMs =
             responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+
           const avgMinutes = Math.round(avgMs / 60000);
 
           if (avgMinutes < 60) {
@@ -6703,7 +6859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   await storage.markIntegrationAsFetched(integration.id);
                 }
 
-                // ✅ Step 2: Always read messages from your local database
+                // a�� Step 2: Always read messages from your local database
                 console.log(
                   `💾 [${provider.toUpperCase()}] Fetching messages from local database`,
                 );
