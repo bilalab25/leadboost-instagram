@@ -268,6 +268,42 @@ function getAttachmentType(att: any): {
 }
 
 /**
+ * Extract attachment info from webhook format (different from Graph API)
+ * Webhook attachments use payload.url or direct url property
+ */
+function getWebhookAttachmentInfo(att: any): {
+  type: "image" | "video" | "audio" | "file";
+  label: string;
+  url: string | null;
+} {
+  // Get the URL from either payload.url or direct url property
+  const url = att.payload?.url || att.url || null;
+
+  if (!url) {
+    return {
+      type: "file",
+      label: "📎 Attachment",
+      url: null,
+    };
+  }
+
+  // Determine type from attachment type field
+  const type = att.type as "image" | "video" | "audio" | "file";
+
+  const labelMap: Record<string, string> = {
+    image: "📷 Image",
+    video: "🎥 Video",
+    audio: "🎤 Audio",
+    file: "📎 File",
+  };
+
+  return {
+    type: type || "file",
+    url,
+    label: labelMap[type] || "📎 Attachment",
+  };
+}
+/**
  * Perform initial historical sync for Messenger/Instagram
  * Fetches last 50 conversations and 50 messages per conversation
  */
