@@ -5155,7 +5155,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Meta webhook verification failed" });
     }
   });
-
   app.post("/api/webhooks/meta", async (req, res) => {
     try {
       console.log("=================================================");
@@ -5303,6 +5302,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const messageText = value.message?.text || "";
                 const timestamp = value.timestamp;
 
+                // Handle attachments
+                const attachments = value.message?.attachments || [];
+
                 if (!senderId || !recipientId || !messageId) {
                   console.warn(
                     `⚠️ [Instagram Direct] Missing required fields in change.value`,
@@ -5353,52 +5355,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       (int.accountId === recipientId ||
                         int.pageId === recipientId),
                   );
-
-                  // // --- INICIO: LÓGICA ELIMINADA (AUTO-FIX PROBLEMÁTICO) ---
-                  // // If not found, try to find any instagram_direct integration and update it
-                  // if (!integration) {
-                  //     console.log(
-                  //         `🔧 [Instagram Direct] No exact match found, trying to auto-fix...`,
-                  //     );
-                  //     integration = allIntegrations.find(
-                  //         (int) =>
-                  //             int.provider === "instagram_direct" || int.provider === "instagram",
-                  //     );
-
-                  //     if (integration) {
-                  //         console.log(
-                  //             `🔧 [Instagram Direct] Found integration, updating accountId/pageId...`,
-                  //         );
-                  //         console.log(
-                  //             `- Old accountId: ${integration.accountId}`,
-                  //         );
-                  //         console.log(
-                  //             `- New accountId: ${recipientId}`,
-                  //         );
-
-                  //         integration = (await storage.updateIntegration(integration.id, {
-                  //             accountId: recipientId,
-                  //             pageId: recipientId,
-                  //             metadata: {
-                  //                 ...(typeof integration.metadata === "object" ? integration.metadata : {}),
-                  //                 igbaId: recipientId,
-                  //                 autoFixedFromWebhook: true,
-                  //                 autoFixedAt: new Date().toISOString(),
-                  //             },
-                  //         })) || integration;
-                  //     }
-                  // }
-                  // // --- FIN: LÓGICA ELIMINADA ---
                 }
 
                 if (integration) {
                   const platform = "instagram_direct";
                   const accessToken = integration.accessToken;
-
-                  // ... [Resto de la lógica de Instagram Direct (entry.changes) NO modificada] ...
-
-                  // ✅ CRITICAL: Detect if this is an outbound "echo" message (sent BY the business account)
-                  // If senderId matches our accountId/pageId, this is a message WE sent - don't overwrite contact info
                   const isOutbound =
                     senderId === integration.accountId ||
                     senderId === integration.pageId ||
@@ -5586,6 +5547,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                   // Save the message with correct direction
                   try {
+                    // Determine text content
+                    let textContent = messageText;
+                    if (!textContent && attachments.length > 0) {
+                      const firstAtt = attachments[0];
+                      const info = getAttachmentType(firstAtt);
+                      textContent = info.label;
+                      if (attachments.length > 1) {
+                        textContent += ` +${attachments.length - 1}`;
+                      }
+                    }
+
                     const savedMessage = await storage.createMessage({
                       userId: integration.userId,
                       brandId: integration.brandId,
@@ -5597,7 +5569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       senderId,
                       recipientId,
                       contactName: isOutbound ? null : contactName, // Don't set contactName for outbound
-                      textContent: messageText,
+                      textContent: textContent || "",
                       direction: isOutbound ? "outbound" : "inbound",
                       isRead: isOutbound, // Outbound messages are automatically read
                       timestamp: new Date(
@@ -5605,6 +5577,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       ),
                       rawPayload: change.value,
                     });
+
+                    // Process and save attachments
+                    if (attachments.length > 0) {
+                      console.log(
+                        `📎 [Instagram Direct] Processing ${attachments.length} attachments`,
+                      );
+                      for (const att of attachments) {
+                        const info = getAttachmentType(att);
+                        if (!info.url) continue;
+
+                        let finalUrl = info.url;
+                        try {
+                          const uploadRes = await cloudinary.uploader.upload(
+                            info.url,
+                            {
+                              folder: "crm/attachments",
+                              resource_type: "auto",
+                            },
+                          );
+                          finalUrl = uploadRes.secure_url;
+                          console.log(
+                            `✅ [Instagram Direct] Uploaded attachment to Cloudinary`,
+                          );
+                        } catch (err) {
+                          console.warn(
+                            `⚠️ [Instagram Direct] Cloudinary upload failed, using original URL`,
+                          );
+                        }
+
+                        await storage.insertMessageAttachment({
+                          messageId: savedMessage.id,
+                          type: info.type,
+                          url: finalUrl,
+                          mimeType: att.mime_type || null,
+                          fileName: att.name || null,
+                          fileSize:
+                            typeof att.size === "number" ? att.size : null,
+                        });
+                      }
+                      console.log(
+                        `✅ [Instagram Direct] Saved ${attachments.length} attachments`,
+                      );
+                    }
 
                     console.log(
                       `✅ [Instagram Direct] Message saved: ${savedMessage.id} (direction: ${isOutbound ? "outbound" : "inbound"})`,
@@ -5666,6 +5681,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const searchPlatform =
                 body.object === "instagram" ? "instagram" : "facebook";
 
+              // Handle attachments
+              const attachments = event.message.attachments || [];
+
               // Debug: Log what we're searching for
               console.log(`🔍 Searching for integration:`);
               console.log(`- recipientId: ${recipientId}`);
@@ -5714,41 +5732,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   `🔎 findIntegrationByAccount result:`,
                   integration ? `Found (${integration.provider})` : "NOT FOUND",
                 );
-
-                // // --- INICIO: LÓGICA ELIMINADA (AUTO-FIX PROBLEMÁTICO) ---
-                // // Auto-fix: If no integration found for Instagram, try to find any instagram_direct integration
-                // if (!integration && searchPlatform === "instagram") {
-                //     console.log(
-                //         `🔧 Attempting auto-fix for Instagram integration...`,
-                //     );
-                //     const igDirectIntegration = allIntegrations.find(
-                //         (int) =>
-                //             int.provider === "instagram_direct" || int.provider === "instagram",
-                //     );
-
-                //     if (igDirectIntegration) {
-                //         console.log(
-                //             `🔧 Found instagram_direct integration with mismatched ID. Updating...`,
-                //         );
-                //         const updatedIntegration = await storage.updateIntegration(
-                //             igDirectIntegration.id,
-                //             {
-                //                 accountId: recipientId,
-                //                 pageId: recipientId,
-                //                 metadata: {
-                //                     ...(typeof igDirectIntegration.metadata === "object" ? igDirectIntegration.metadata : {}),
-                //                     igbaId: recipientId,
-                //                     autoFixedFromWebhook: true,
-                //                 },
-                //             },
-                //         );
-                //         if (updatedIntegration) {
-                //             console.log(`✅ Auto-fixed Instagram integration!`);
-                //             integration = updatedIntegration;
-                //         }
-                //     }
-                // }
-                // // --- FIN: LÓGICA ELIMINADA ---
               }
 
               if (integration) {
@@ -5905,6 +5888,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
 
                 try {
+                  // Determine text content
+                  let textContent = messageText;
+                  if (!textContent && attachments.length > 0) {
+                    const firstAtt = attachments[0];
+                    const info = getAttachmentType(firstAtt);
+                    textContent = info.label;
+                    if (attachments.length > 1) {
+                      textContent += ` +${attachments.length - 1}`;
+                    }
+                  }
+
                   const savedMessage = await storage.createMessage({
                     userId: integration.userId,
                     brandId: integration.brandId,
@@ -5916,12 +5910,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     senderId,
                     recipientId,
                     contactName,
-                    textContent: messageText,
+                    textContent: textContent || "",
                     direction: "inbound",
                     isRead: false,
                     timestamp: new Date(event.timestamp || Date.now()),
                     rawPayload: body,
                   });
+
+                  // Process and save attachments
+                  if (attachments.length > 0) {
+                    console.log(
+                      `📎 [${platform}] Processing ${attachments.length} attachments`,
+                    );
+                    for (const att of attachments) {
+                      const info = getAttachmentType(att);
+                      if (!info.url) continue;
+
+                      let finalUrl = info.url;
+                      try {
+                        const uploadRes = await cloudinary.uploader.upload(
+                          info.url,
+                          {
+                            folder: "crm/attachments",
+                            resource_type: "auto",
+                          },
+                        );
+                        finalUrl = uploadRes.secure_url;
+                        console.log(
+                          `✅ [${platform}] Uploaded attachment to Cloudinary`,
+                        );
+                      } catch (err) {
+                        console.warn(
+                          `⚠️ [${platform}] Cloudinary upload failed, using original URL`,
+                        );
+                      }
+
+                      await storage.insertMessageAttachment({
+                        messageId: savedMessage.id,
+                        type: info.type,
+                        url: finalUrl,
+                        mimeType: att.mime_type || null,
+                        fileName: att.name || null,
+                        fileSize:
+                          typeof att.size === "number" ? att.size : null,
+                      });
+                    }
+                    console.log(
+                      `✅ [${platform}] Saved ${attachments.length} attachments`,
+                    );
+                  }
 
                   console.log(
                     `✅ [${platform}] Message saved: ${savedMessage.id}`,
