@@ -653,7 +653,27 @@ export default function ConversationPanel({
                                 </video>
                               );
                             }
-
+                            if (att.type === "audio") {
+                              return (
+                                <div
+                                  key={att.id}
+                                  className="flex items-center gap-2 p-3 rounded-lg bg-gray-100 max-w-xs"
+                                >
+                                  <audio
+                                    controls
+                                    className="w-full"
+                                    preload="metadata"
+                                  >
+                                    <source
+                                      src={att.url}
+                                      type={att.mimeType || "audio/mpeg"}
+                                    />
+                                    Tu navegador no soporta el elemento de
+                                    audio.
+                                  </audio>
+                                </div>
+                              );
+                            }
                             // file / audio
                             return (
                               <a
