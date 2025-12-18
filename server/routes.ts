@@ -5619,6 +5619,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       console.log(
                         `📎 [Instagram Direct] Processing ${attachments.length} attachments`,
                       );
+                      const attachmentsToInsert = [];
+
                       for (const att of attachments) {
                         const info = getWebhookAttachmentInfo(att);
                         if (!info.url) {
@@ -5648,7 +5650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                           );
                         }
 
-                        await storage.insertMessageAttachment({
+                        attachmentsToInsert.push({
                           messageId: savedMessage.id,
                           type: info.type,
                           url: finalUrl,
@@ -5658,9 +5660,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                             typeof att.size === "number" ? att.size : null,
                         });
                       }
-                      console.log(
-                        `✅ [Instagram Direct] Saved ${attachments.length} attachments`,
-                      );
+
+                      if (attachmentsToInsert.length > 0) {
+                        await storage.bulkInsertMessageAttachments(
+                          attachmentsToInsert,
+                        );
+                        console.log(
+                          `✅ [Instagram Direct] Saved ${attachmentsToInsert.length} attachments`,
+                        );
+                      }
                     }
 
                     console.log(
@@ -5964,6 +5972,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     console.log(
                       `📎 [${platform}] Processing ${attachments.length} attachments`,
                     );
+                    const attachmentsToInsert = [];
+
                     for (const att of attachments) {
                       const info = getWebhookAttachmentInfo(att);
                       if (!info.url) {
@@ -5993,7 +6003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         );
                       }
 
-                      await storage.insertMessageAttachment({
+                      attachmentsToInsert.push({
                         messageId: savedMessage.id,
                         type: info.type,
                         url: finalUrl,
@@ -6003,9 +6013,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                           typeof att.size === "number" ? att.size : null,
                       });
                     }
-                    console.log(
-                      `✅ [${platform}] Saved ${attachments.length} attachments`,
-                    );
+
+                    if (attachmentsToInsert.length > 0) {
+                      await storage.bulkInsertMessageAttachments(
+                        attachmentsToInsert,
+                      );
+                      console.log(
+                        `✅ [${platform}] Saved ${attachmentsToInsert.length} attachments`,
+                      );
+                    }
                   }
 
                   console.log(
