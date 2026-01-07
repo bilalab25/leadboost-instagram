@@ -1295,7 +1295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const { name, industry, description, brandColor, preferredLanguage } = req.body;
+      const { name, industry, description, brandColor, preferredLanguage, domain } = req.body;
 
       if (!name) {
         return res.status(400).json({ message: "Brand name is required" });
@@ -1308,6 +1308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         industry: industry || null,
         description: description || null,
         primaryColor: brandColor || null,
+        domain: domain || null,
       });
 
       // Create brand membership with owner role
