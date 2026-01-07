@@ -1,0 +1,22 @@
+}
+--- END GEMINI FULL PROMPT ---
+[PostGenerator] Error generating posts: ApiError: {"fault":{"faultstring":"ApiKey not approved","detail":{"errorcode":"oauth.v2.ApiKeyNotApproved"}}}
+    at throwErrorIfNotOK (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:826:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:487:9)
+    at async Models.Models.generateContent (/home/runner/workspace/node_modules/@google/genai/src/models.ts:69:14)
+    at async generatePostsWithGemini (/home/runner/workspace/server/services/postGenerator.ts:667:22)
+    at async processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:1290:22) {
+  status: 401
+}
+[PostGenerator] Job b5d81a85-9c7b-4f35-a020-02fdb2c8c0e8 failed: ApiError: {"fault":{"faultstring":"ApiKey not approved","detail":{"errorcode":"oauth.v2.ApiKeyNotApproved"}}}
+    at throwErrorIfNotOK (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:826:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:487:9)
+    at async Models.Models.generateContent (/home/runner/workspace/node_modules/@google/genai/src/models.ts:69:14)
+    at async generatePostsWithGemini (/home/runner/workspace/server/services/postGenerator.ts:667:22)
+    at async processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:1290:22) {
+  status: 401
+}
+9:28:02 PM [express] GET /api/post-generator/jobs/b5d81a85-9c7b-4f35-a020-02fdb2c8c0e8 200 in 451ms :: {"id":"b5d81a85-9c7b-4f35-a020-02fdb2c8c0e8","brandId":"43eb8caa-8c18-44af-aff9-6200b08f8135","status":"failed","result":null,"error":"{\"fault\":{\"faultstring\":\"ApiKey not approved\",\"detail\":{\"errorcode\":\"oauth.v2.ApiKeyNotApproved\"}}}","createdAt":"2026-01-07T21:27:58.770Z","updatedAt":"2026-01-07T21:28:00.086Z"}
+9:28:05 PM [express] GET /api/post-generator/active/43eb8caa-8c18-44af-aff9-6200b08f8135 200 in 567ms :: {"hasActiveJob":false,"job":null}
