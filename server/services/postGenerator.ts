@@ -1259,71 +1259,10 @@ export async function processPostGeneration(
     // Get platforms from the schedule (source of truth)
     const scheduledPlatforms = postingSchedule.map((s) => s.platform);
 
-    // Fetch sales insights from Lightspeed if connected
-    let salesInsights: SalesInsights | undefined;
-    try {
-      const { lightspeedService } = await import("./lightspeed");
-      const lightspeedIntegration =
-        await lightspeedService.getIntegrationByBrand(brandId);
-
-      if (lightspeedIntegration) {
-        console.log(
-          `[PostGenerator] Fetching sales insights from Lightspeed for brand ${brandId}`,
-        );
-        const stats = await lightspeedService.getSalesStats(
-          lightspeedIntegration.id,
-        );
-        const sales = await lightspeedService.getSales(
-          lightspeedIntegration.id,
-          100,
-        );
-
-        // Calculate top products from sales data
-        const productSales = new Map<
-          string,
-          { quantity: number; revenue: number }
-        >();
-        for (const sale of sales) {
-          const items = sale.items as any[];
-          if (items && Array.isArray(items)) {
-            for (const item of items) {
-              const key = item.name || "Unknown Product";
-              const existing = productSales.get(key) || {
-                quantity: 0,
-                revenue: 0,
-              };
-              productSales.set(key, {
-                quantity: existing.quantity + (item.quantity || 1),
-                revenue:
-                  existing.revenue +
-                  (item.price || 0) * (item.quantity || 1) * 100,
-              });
-            }
-          }
-        }
-
-        const topProducts = Array.from(productSales.entries())
-          .map(([name, data]) => ({ name, ...data }))
-          .sort((a, b) => b.revenue - a.revenue)
-          .slice(0, 5);
-
-        salesInsights = {
-          totalSales: stats.totalSales,
-          totalTransactions: stats.totalTransactions,
-          averageOrderValue: stats.averageOrderValue,
-          totalCustomers: stats.totalCustomers,
-          topProducts: topProducts.length > 0 ? topProducts : undefined,
-        };
-
-        console.log(
-          `[PostGenerator] Loaded sales insights: ${stats.totalTransactions} transactions, ${topProducts.length} top products`,
-        );
-      }
-    } catch (error) {
-      console.log(
-        `[PostGenerator] No Lightspeed integration found or error fetching sales: ${error}`,
-      );
-    }
+    // Skip Lightspeed data - not used in post generation
+    const salesInsights: SalesInsights | undefined = undefined;
+    console.log(`[PostGenerator] Skipping Lightspeed sales data (disabled)`);
+    
 
     const context: PostGenerationContext = {
       brandId,
