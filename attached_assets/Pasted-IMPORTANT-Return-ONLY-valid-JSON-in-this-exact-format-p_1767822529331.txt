@@ -1,0 +1,33 @@
+IMPORTANT: Return ONLY valid JSON in this exact format:
+{
+  "posts": [
+    {
+      "platform": "instagram",
+      "titulo": "Eye-catching hook or title",
+      "content": "Full caption with emojis and call to action...",
+      "hashtags": "#brand #hashtag1 #hashtag2",
+      "dia": "2026-02-01",
+      "optimalTime": "6:00 PM",
+      "imagePrompt": "Detailed description for image generation: [describe scene with brand colors #81d8d0, #fffbfd, #2b7176, luxury style, referencing specific brand products/assets]..."
+    }
+  ]
+}
+--- END GEMINI FULL PROMPT ---
+[PostGenerator] Error generating posts: ApiError: {"fault":{"faultstring":"ApiKey not approved","detail":{"errorcode":"oauth.v2.ApiKeyNotApproved"}}}
+    at throwErrorIfNotOK (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:860:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:493:9)
+    at async Models.Models.generateContent (/home/runner/workspace/node_modules/@google/genai/src/models.ts:69:14)
+    at async generatePostsWithGemini (/home/runner/workspace/server/services/postGenerator.ts:667:22)
+    at async processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:1290:22) {
+  status: 401
+}
+[PostGenerator] Job 53ecfc01-1603-481c-bb15-acb78309f5ac failed: ApiError: {"fault":{"faultstring":"ApiKey not approved","detail":{"errorcode":"oauth.v2.ApiKeyNotApproved"}}}
+    at throwErrorIfNotOK (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:860:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/@google/genai/src/_api_client.ts:493:9)
+    at async Models.Models.generateContent (/home/runner/workspace/node_modules/@google/genai/src/models.ts:69:14)
+    at async generatePostsWithGemini (/home/runner/workspace/server/services/postGenerator.ts:667:22)
+    at async processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:1290:22) {
+  status: 401
+}
