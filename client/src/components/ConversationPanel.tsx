@@ -19,6 +19,12 @@ import {
   Archive,
   Star,
   Eye,
+  Paperclip,
+  Mic,
+  StopCircle,
+  Trash2,
+  Image as ImageIcon,
+  FileIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -125,7 +131,16 @@ export default function ConversationPanel({
   const [contactProfilePicture, setContactProfilePicture] = useState<
     string | null
   >(null);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null,
+  );
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch linked customer for this conversation (brand-scoped)
   const { data: linkedCustomer } = useQuery<Customer>({
@@ -454,6 +469,85 @@ export default function ConversationPanel({
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setAttachments((prev) => [...prev, ...files]);
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(chunks, { type: "audio/webm" });
+        const audioFile = new File(
+          [audioBlob],
+          `voice-note-${Date.now()}.webm`,
+          { type: "audio/webm" },
+        );
+        setAttachments((prev) => [...prev, audioFile]);
+        setAudioChunks([]);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      toast({
+        title: "Error",
+        description: "No se pudo acceder al micrófono",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    }
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+      setIsRecording(false);
+      setRecordingTime(0);
+      setAudioChunks([]);
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    }
+  };
+
+  const formatRecordingTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
   const PlatformIcon =
     platform && platformIcons[platform as keyof typeof platformIcons];
   const platformBg =
@@ -653,6 +747,7 @@ export default function ConversationPanel({
                                 </video>
                               );
                             }
+
                             if (att.type === "audio") {
                               return (
                                 <div
@@ -674,7 +769,8 @@ export default function ConversationPanel({
                                 </div>
                               );
                             }
-                            // file / audio
+
+                            // file
                             return (
                               <a
                                 key={att.id}
@@ -725,7 +821,101 @@ export default function ConversationPanel({
             </div>
           )}
 
+          {/* Attachments Preview */}
+          {attachments.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {attachments.map((file, index) => (
+                <div
+                  key={index}
+                  className="relative group flex items-center gap-2 p-2 bg-gray-100 rounded-lg max-w-xs"
+                >
+                  {file.type.startsWith("image/") ? (
+                    <ImageIcon className="h-4 w-4 text-gray-600 flex-shrink-0" />
+                  ) : file.type.startsWith("audio/") ? (
+                    <Mic className="h-4 w-4 text-gray-600 flex-shrink-0" />
+                  ) : (
+                    <FileIcon className="h-4 w-4 text-gray-600 flex-shrink-0" />
+                  )}
+                  <span className="text-xs text-gray-700 truncate max-w-[150px]">
+                    {file.name}
+                  </span>
+                  <button
+                    onClick={() => removeAttachment(index)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3 text-gray-500 hover:text-red-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Recording UI */}
+          {isRecording && (
+            <div className="mb-3 flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center gap-2 flex-1">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                <span className="text-sm font-medium text-red-700">
+                  Grabando... {formatRecordingTime(recordingTime)}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={cancelRecording}
+                className="text-red-600 hover:text-red-700 hover:bg-red-100"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={stopRecording}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <StopCircle className="h-4 w-4 mr-1" />
+                Detener
+              </Button>
+            </div>
+          )}
+
           <div className="flex items-end space-x-2">
+            {/* File attachment button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={isMetaConversation && !canSendFacebookMessage}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={
+                isRecording || (isMetaConversation && !canSendFacebookMessage)
+              }
+              className="rounded-full flex-shrink-0"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+
+            {/* Voice recording button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isMetaConversation && !canSendFacebookMessage}
+              className={cn(
+                "rounded-full flex-shrink-0",
+                isRecording && "bg-red-100 hover:bg-red-200",
+              )}
+            >
+              <Mic className={cn("h-4 w-4", isRecording && "text-red-600")} />
+            </Button>
+
             <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
               <textarea
                 value={messageText}
@@ -743,17 +933,20 @@ export default function ConversationPanel({
                     "cursor-not-allowed text-gray-500",
                 )}
                 rows={1}
-                disabled={isMetaConversation && !canSendFacebookMessage} // Deshabilitar el input
+                disabled={
+                  isRecording || (isMetaConversation && !canSendFacebookMessage)
+                }
               />
             </div>
             <Button
               onClick={handleSendMessage}
               disabled={
-                !messageText.trim() ||
+                (!messageText.trim() && attachments.length === 0) ||
                 sendMessageMutation.isPending ||
-                (isMetaConversation && !canSendFacebookMessage) // Deshabilitar el botón
+                isRecording ||
+                (isMetaConversation && !canSendFacebookMessage)
               }
-              className="rounded-full"
+              className="rounded-full flex-shrink-0"
               size="icon"
             >
               <Send className="h-4 w-4" />
