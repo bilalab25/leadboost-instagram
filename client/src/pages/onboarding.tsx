@@ -2383,7 +2383,9 @@ export default function Onboarding() {
                       <FormItem>
                         <FormLabel>
                           <Globe className="w-4 h-4 inline mr-1" />
-                          {isSpanish ? "Idioma Preferido" : "Preferred Language"}
+                          {isSpanish
+                            ? "Idioma Preferido"
+                            : "Preferred Language"}
                         </FormLabel>
                         <Select
                           onValueChange={field.onChange}
@@ -2403,6 +2405,15 @@ export default function Onboarding() {
                           <SelectContent>
                             <SelectItem value="en">English</SelectItem>
                             <SelectItem value="es">Español</SelectItem>
+                            <SelectItem value="pt">Português</SelectItem>
+                            <SelectItem value="fr">Français</SelectItem>
+                            <SelectItem value="de">Deutsch</SelectItem>
+                            <SelectItem value="it">Italiano</SelectItem>
+                            <SelectItem value="zh">中文 (简体)</SelectItem>
+                            <SelectItem value="ja">日本語</SelectItem>
+                            <SelectItem value="ko">한국어</SelectItem>
+                            <SelectItem value="ar">العربية</SelectItem>
+                            <SelectItem value="hi">हिन्दी</SelectItem>
                           </SelectContent>
                         </Select>
                         <Alert className="mt-2 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
@@ -2417,7 +2428,7 @@ export default function Onboarding() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={createForm.control}
                     name="domain"
