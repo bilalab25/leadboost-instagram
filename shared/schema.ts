@@ -1205,6 +1205,7 @@ export const brandDesigns = pgTable("brand_designs", {
   blackFaviconUrl: varchar("black_favicon_url"),
   assets: jsonb("assets"), // list of assets with {id, url, name, category, assetType}
   isDesignStudioEnabled: boolean("is_design_studio_enabled").default(false),
+  preferredLanguage: varchar("preferred_language").default("en"), // Language for AI-generated posts (en, es, etc.)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

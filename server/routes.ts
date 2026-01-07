@@ -1087,12 +1087,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
       const brandId = req.params.id;
-      const updates = req.body;
+      const { preferredLanguage, ...updates } = req.body;
 
       const brand = await storage.updateBrand(brandId, userId, updates);
 
       if (!brand) {
         return res.status(404).json({ message: "Brand not found" });
+      }
+
+      // Update or create brand design with preferred language if provided
+      if (preferredLanguage) {
+        const existingDesign = await storage.getBrandDesignByBrandId(brandId);
+        if (existingDesign) {
+          await storage.updateBrandDesign(existingDesign.id, brandId, { preferredLanguage });
+        } else {
+          await storage.createBrandDesign({ brandId, preferredLanguage });
+        }
       }
 
       // Log activity
@@ -1285,7 +1295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const { name, industry, description, brandColor } = req.body;
+      const { name, industry, description, brandColor, preferredLanguage } = req.body;
 
       if (!name) {
         return res.status(400).json({ message: "Brand name is required" });
@@ -1308,6 +1318,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "active",
         invitedBy: null,
       });
+
+      // Create initial brand design with preferred language
+      if (preferredLanguage) {
+        await storage.createBrandDesign({
+          brandId: brand.id,
+          preferredLanguage: preferredLanguage,
+        });
+      }
 
       res.json({ brand, membership });
     } catch (error) {

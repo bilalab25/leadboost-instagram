@@ -28,7 +28,8 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
 ### Feature Specifications
 - **Multi-Tenant Brand Management**: Role-based access (owner/admin/editor/viewer), secure invitation system, and a BrandContext for managing active brand state.
 - **Unified Inbox**: Aggregates messages from multiple platforms, provides real-time updates via Socket.IO, search functionality, and platform-specific filters.
-- **AI-Powered Content Generation**: Utilizes OpenAI for content strategies and sentiment analysis. Features an "AI Posts" tab in AI Planner (/ai-planner) for generating complete social media posts with Gemini AI. Requirements: brand design + Facebook/Instagram integration. Supports async job processing with status polling, post accept/reject workflow, and custom AI-generated images.
+- **AI-Powered Content Generation**: Utilizes OpenAI for content strategies and sentiment analysis. Features an "AI Posts" tab in AI Planner (/ai-planner) for generating complete social media posts with Gemini AI. Requirements: brand design + Facebook/Instagram integration. Supports async job processing with status polling, post accept/reject workflow, and custom AI-generated images. Uses brand's preferred language (set during onboarding) for all AI-generated content.
+- **Preferred Language Selection**: Set during onboarding (Step 1) before Website Link field. Users can select English or Spanish as their preferred language for AI-generated posts. Stored in `brandDesigns.preferredLanguage` field. Includes info alert explaining that AI content will be created in the selected language.
 - **Boosty AI Assistant with Image Generation**: Located on /waterfall page in "Strategize with Boosty" tab. Features:
   - Full brand context awareness (design, colors, sales data, integrations, conversations)
   - Automatic image request detection via regex patterns in Spanish/English

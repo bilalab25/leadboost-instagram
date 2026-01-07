@@ -52,6 +52,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Building2,
   UserPlus,
@@ -68,6 +69,7 @@ import {
   CreditCard,
   ShoppingBag,
   Globe,
+  Info,
   RefreshCw,
   Instagram,
   Facebook,
@@ -329,6 +331,7 @@ const createBrandSchema = z.object({
   name: z.string().min(1, "Brand name is required"),
   industry: z.string().min(1, "Industry is required"),
   description: z.string().min(1, "Description is required"),
+  preferredLanguage: z.string().default("en"),
   domain: z
     .string()
     .url("Must be a valid URL")
@@ -1229,6 +1232,7 @@ export default function Onboarding() {
       name: "",
       industry: "",
       description: "",
+      preferredLanguage: "en",
       domain: "",
     },
   });
@@ -1264,6 +1268,7 @@ export default function Onboarding() {
             name: existingBrand.name || "",
             industry: "other",
             description: existingBrand.description || "",
+            preferredLanguage: brandDesign?.preferredLanguage || "en",
             domain: domainValue,
           });
         } else {
@@ -1274,12 +1279,13 @@ export default function Onboarding() {
             name: existingBrand.name || "",
             industry: industryValue,
             description: existingBrand.description || "",
+            preferredLanguage: brandDesign?.preferredLanguage || "en",
             domain: domainValue,
           });
         }
       }
     }
-  }, [createdBrandId, currentStep, brands]);
+  }, [createdBrandId, currentStep, brands, brandDesign]);
 
   // Mutations
   const createBrandMutation = useMutation({
@@ -2369,6 +2375,49 @@ export default function Onboarding() {
                       );
                     }}
                   />
+
+                  <FormField
+                    control={createForm.control}
+                    name="preferredLanguage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          <Globe className="w-4 h-4 inline mr-1" />
+                          {isSpanish ? "Idioma Preferido" : "Preferred Language"}
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid="select-preferred-language">
+                              <SelectValue
+                                placeholder={
+                                  isSpanish
+                                    ? "Selecciona un idioma"
+                                    : "Select a language"
+                                }
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="en">English</SelectItem>
+                            <SelectItem value="es">Español</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Alert className="mt-2 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <AlertDescription className="text-sm text-blue-800 dark:text-blue-200">
+                            {isSpanish
+                              ? "El contenido generado por IA se creará en este idioma."
+                              : "AI-generated content will be created in this language."}
+                          </AlertDescription>
+                        </Alert>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <FormField
                     control={createForm.control}
                     name="domain"
