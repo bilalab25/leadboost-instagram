@@ -3,13 +3,9 @@ import { storage } from "../storage";
 import type { BrandDesign, BrandAsset, Integration } from "@shared/schema";
 import sharp from "sharp";
 
-// Using Replit's AI Integrations service for Gemini-compatible API access
+// Using your own Gemini API key from Google AI Studio
 const ai = new GoogleGenAI({
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
-  httpOptions: {
-    apiVersion: "", // Required for Replit AI Integrations
-    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL!,
-  },
+  apiKey: process.env.GEMINI_API_KEY!,
 });
 
 export interface MetaInsights {
