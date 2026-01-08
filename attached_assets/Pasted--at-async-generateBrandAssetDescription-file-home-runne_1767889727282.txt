@@ -1,0 +1,141 @@
+ at async generateBrandAssetDescription (file:///home/runner/workspace/dist/index.js:7362:20)
+2026-01-08 10:16:24.61
+4f7696ab
+User
+at throwErrorIfNotOK (file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:12022:30)
+2026-01-08 10:16:24.61
+4f7696ab
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-08 10:17:18.61
+4f7696ab
+User
+at throwErrorIfNotOK (file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:12022:30)
+2026-01-08 10:17:18.61
+4f7696ab
+User
+at async Models.generateContent (file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:13072:24)
+2026-01-08 10:17:18.61
+4f7696ab
+User
+at async generateBrandAssetDescription (file:///home/runner/workspace/dist/index.js:7362:20)
+2026-01-08 10:17:18.61
+4f7696ab
+User
+at async file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:11742:13
+2026-01-08 10:17:18.61
+4f7696ab
+User
+status: 401
+2026-01-08 10:17:18.61
+4f7696ab
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-08 10:17:18.61
+4f7696ab
+User
+[BrandAsset] Error generating description: ApiError: {"fault":{"faultstring":"ApiKey not approved","detail":{"errorcode":"oauth.v2.ApiKeyNotApproved"}}}
+2026-01-08 10:17:18.61
+4f7696ab
+User
+}
+2026-01-08 10:17:18.61
+4f7696ab
+User
+at async file:///home/runner/workspace/dist/index.js:8642:29 {
+2026-01-08 10:17:26.61
+4f7696ab
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-08 10:17:26.61
+4f7696ab
+User
+status: 401
+2026-01-08 10:17:26.61
+4f7696ab
+User
+at async file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:11742:13
+2026-01-08 10:17:26.61
+4f7696ab
+User
+at async Models.generateContent (file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:13072:24)
+2026-01-08 10:17:26.61
+4f7696ab
+User
+[BrandAsset] Error generating description: ApiError: {"fault":{"faultstring":"ApiKey not approved","detail":{"errorcode":"oauth.v2.ApiKeyNotApproved"}}}
+2026-01-08 10:17:26.61
+4f7696ab
+User
+at throwErrorIfNotOK (file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:12022:30)
+2026-01-08 10:17:26.61
+4f7696ab
+User
+}
+2026-01-08 10:17:26.61
+4f7696ab
+User
+at async generateBrandAssetDescription (file:///home/runner/workspace/dist/index.js:7362:20)
+2026-01-08 10:17:26.61
+4f7696ab
+User
+at async file:///home/runner/workspace/dist/index.js:8642:29 {
+2026-01-08 10:18:09.00
+4f7696ab
+User
+[BrandAsset] Error generating description: ApiError: {"fault":{"faultstring":"ApiKey not approved","detail":{"errorcode":"oauth.v2.ApiKeyNotApproved"}}}
+2026-01-08 10:18:09.00
+4f7696ab
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-08 10:18:09.00
+4f7696ab
+User
+at async file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:11742:13
+2026-01-08 10:18:09.00
+4f7696ab
+User
+at async Models.generateContent (file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:13072:24)
+2026-01-08 10:18:09.00
+4f7696ab
+User
+at async generateBrandAssetDescription (file:///home/runner/workspace/dist/index.js:7362:20)
+2026-01-08 10:18:09.00
+4f7696ab
+User
+}
+2026-01-08 10:18:09.00
+4f7696ab
+User
+at throwErrorIfNotOK (file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:12022:30)
+2026-01-08 10:18:09.00
+4f7696ab
+User
+status: 401
+2026-01-08 10:18:09.00
+4f7696ab
+User
+at async file:///home/runner/workspace/dist/index.js:8642:29 {
+2026-01-08 10:18:30.31
+4f7696ab
+User
+[BrandAsset] Error generating description: ApiError: {"fault":{"faultstring":"ApiKey not approved","detail":{"errorcode":"oauth.v2.ApiKeyNotApproved"}}}
+2026-01-08 10:18:30.31
+4f7696ab
+User
+}
+2026-01-08 10:18:30.31
+4f7696ab
+User
+at async Models.generateContent (file:///home/runner/workspace/node_modules/@google/genai/dist/node/index.mjs:13072:24)
+2026-01-08 10:18:30.31
+4f7696ab
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-01-08 10:18:30.31
+4f7696ab
+User
+at async generateBrandAssetDescription (file:///home/runner/workspace/dist/index.js:7362:20)
+2026-01-08 10:18:30.31
+4f7696ab
+User
+at async file:///home/runner/workspace/dist/index.js:8642:29 {
