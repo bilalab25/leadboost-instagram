@@ -7,12 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { 
-  Send, 
-  Calendar, 
-  Zap, 
-  Sparkles, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Send,
+  Calendar,
+  Zap,
+  Sparkles,
   TrendingUp,
   Users,
   MessageSquare,
@@ -21,7 +27,7 @@ import {
   ChevronRight,
   ArrowRight,
   Loader2,
-  Image
+  Image,
 } from "lucide-react";
 import { SiInstagram, SiFacebook, SiTiktok } from "react-icons/si";
 import Sidebar from "@/components/Sidebar";
@@ -86,7 +92,7 @@ export default function Waterfall() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const isSpanish = language === "es";
-  
+
   // Welcome carousel modal state
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -95,7 +101,7 @@ export default function Waterfall() {
     const params = new URLSearchParams(window.location.search);
     return params.get("showWelcome") === "true";
   });
-  
+
   const getWelcomeMessage = () => {
     return language === "es"
       ? "¡Hola! Soy Boosty, tu estratega de marketing con IA 🚀. Estoy aquí para ayudarte a diseñar estrategias, crear contenido y lanzar publicaciones que hagan crecer tu marca. ¿En qué puedo ayudarte hoy?"
@@ -113,7 +119,7 @@ export default function Waterfall() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  
+
   // Query for AI generated posts (for welcome modal)
   const { data: aiGeneratedPosts } = useQuery<AIGeneratedPost[]>({
     queryKey: ["/api/ai-generated-posts", activeBrandId],
@@ -129,7 +135,8 @@ export default function Waterfall() {
   });
 
   // Get pending posts for the carousel
-  const pendingPosts = aiGeneratedPosts?.filter(post => post.status === "pending") || [];
+  const pendingPosts =
+    aiGeneratedPosts?.filter((post) => post.status === "pending") || [];
 
   // Check for showWelcome and show modal when posts are ready
   useEffect(() => {
@@ -152,28 +159,34 @@ export default function Waterfall() {
 
   const prevSlide = () => {
     if (pendingPosts.length > 0) {
-      setCarouselIndex((prev) => (prev - 1 + pendingPosts.length) % pendingPosts.length);
+      setCarouselIndex(
+        (prev) => (prev - 1 + pendingPosts.length) % pendingPosts.length,
+      );
     }
   };
 
   const { data: contextData } = useQuery<{ context: BrandContext }>({
     queryKey: ["/api/boosty/context", activeBrandId],
     queryFn: async () => {
-      const response = await fetch(`/api/boosty/context?brandId=${activeBrandId}`);
+      const response = await fetch(
+        `/api/boosty/context?brandId=${activeBrandId}`,
+      );
       if (!response.ok) throw new Error("Failed to fetch context");
       return response.json();
     },
-    enabled: !!activeBrandId
+    enabled: !!activeBrandId,
   });
 
   const { data: suggestionsData } = useQuery<{ suggestions: string[] }>({
     queryKey: ["/api/boosty/suggestions", activeBrandId, language],
     queryFn: async () => {
-      const response = await fetch(`/api/boosty/suggestions?brandId=${activeBrandId}&language=${language}`);
+      const response = await fetch(
+        `/api/boosty/suggestions?brandId=${activeBrandId}&language=${language}`,
+      );
       if (!response.ok) throw new Error("Failed to fetch suggestions");
       return response.json();
     },
-    enabled: !!activeBrandId
+    enabled: !!activeBrandId,
   });
 
   const chatMutation = useMutation({
@@ -181,27 +194,37 @@ export default function Waterfall() {
       const response = await apiRequest("POST", "/api/boosty/chat", {
         brandId: activeBrandId,
         message,
-        conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
-        language
+        conversationHistory: messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        language,
       });
       return response.json();
     },
     onSuccess: (data) => {
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: data.response,
-        image: data.image
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.response,
+          image: data.image,
+        },
+      ]);
     },
     onError: (error) => {
       console.error("Chat error:", error);
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: language === "es" 
-          ? "Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo."
-          : "Sorry, there was an error processing your message. Please try again."
-      }]);
-    }
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            language === "es"
+              ? "Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo."
+              : "Sorry, there was an error processing your message. Please try again.",
+        },
+      ]);
+    },
   });
 
   const handleSend = () => {
@@ -231,162 +254,202 @@ export default function Waterfall() {
   }, [messages, chatMutation.isPending]);
 
   const suggestions = suggestionsData?.suggestions || [
-    language === "es" ? "Genera una imagen para mi próximo post de Instagram" : "Generate an image for my next Instagram post",
-    language === "es" ? "Crea un diseño promocional para mi marca" : "Create a promotional design for my brand",
-    language === "es" ? "Genera una estrategia de redes sociales para Q4" : "Generate a comprehensive Q4 social media strategy",
-    language === "es" ? "Ayúdame a escribir un post para Instagram" : "Help me write an Instagram post",
+    language === "es"
+      ? "Genera una imagen para mi próximo post de Instagram"
+      : "Generate an image for my next Instagram post",
+    language === "es"
+      ? "Crea un diseño promocional para mi marca"
+      : "Create a promotional design for my brand",
+    language === "es"
+      ? "Genera una estrategia de redes sociales para Q4"
+      : "Generate a comprehensive Q4 social media strategy",
+    language === "es"
+      ? "Ayúdame a escribir un post para Instagram"
+      : "Help me write an Instagram post",
   ];
 
   const context = contextData?.context;
 
   const t = {
-    noBrand: language === "es" 
-      ? "Por favor selecciona una marca para comenzar a chatear con Boosty"
-      : "Please select a brand to start chatting with Boosty",
-    typing: language === "es" ? "Boosty está pensando..." : "Boosty is thinking...",
-    placeholder: language === "es" 
-      ? "Escribe tu mensaje a Boosty..."
-      : "Type your message to Boosty...",
+    noBrand:
+      language === "es"
+        ? "Por favor selecciona una marca para comenzar a chatear con Boosty"
+        : "Please select a brand to start chatting with Boosty",
+    typing:
+      language === "es" ? "Boosty está pensando..." : "Boosty is thinking...",
+    placeholder:
+      language === "es"
+        ? "Escribe tu mensaje a Boosty..."
+        : "Type your message to Boosty...",
     stats: {
       revenue: language === "es" ? "Ingresos" : "Revenue",
       customers: language === "es" ? "Clientes" : "Customers",
-      unread: language === "es" ? "Sin leer" : "Unread"
+      unread: language === "es" ? "Sin leer" : "Unread",
     },
-    quickActions: language === "es" ? "Acciones rápidas" : "Quick actions"
+    quickActions: language === "es" ? "Acciones rápidas" : "Quick actions",
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <TopHeader pageName="Meet CampAIgner" />
-      
+
       {/* Welcome Carousel Modal */}
       <Dialog open={showWelcomeModal} onOpenChange={setShowWelcomeModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
-          <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-6 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-2xl md:text-3xl font-bold text-center text-white flex items-center justify-center gap-3">
-                <Sparkles className="w-8 h-8" />
-                {isSpanish ? "¡Tu contenido está listo!" : "Your content is ready!"}
-              </DialogTitle>
-              <DialogDescription className="text-center text-white/90 text-lg mt-2">
-                {isSpanish 
-                  ? "Hemos creado publicaciones personalizadas para tu marca. ¡Revísalas!" 
-                  : "We've created personalized posts for your brand. Take a look!"}
-              </DialogDescription>
-            </DialogHeader>
-          </div>
-          
-          {pendingPosts.length > 0 && (
-            <div className="p-6">
-              {/* Carousel */}
-              <div className="relative">
-                {/* Main Image */}
-                <div className="relative aspect-square max-h-[400px] mx-auto rounded-xl overflow-hidden bg-gray-100 mb-4">
-                  {pendingPosts[carouselIndex]?.imageUrl ? (
-                    <img
-                      src={pendingPosts[carouselIndex].imageUrl}
-                      alt={pendingPosts[carouselIndex].titulo}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Image className="w-16 h-16 text-gray-400" />
+        <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden p-0 border-0 bg-transparent">
+          {/* HERO HEADER */}
+          <div className="relative overflow-hidden rounded-2xl">
+            {/* Animated gradient background */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_#6366f1,_#8b5cf6,_#ec4899)] animate-gradient opacity-90" />
+
+            {/* Glow */}
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-xl" />
+
+            <div className="relative p-8 md:p-12 text-white">
+              <DialogHeader>
+                <div className="flex justify-center mb-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 blur-xl bg-white/30 rounded-full" />
+                    <div className="relative bg-white/10 p-4 rounded-full backdrop-blur">
+                      <Sparkles className="w-10 h-10 text-white animate-pulse" />
                     </div>
-                  )}
-                  
-                  {/* Platform badge */}
-                  <div className="absolute top-3 left-3">
-                    <Badge className={cn("text-sm font-semibold", platformColors[pendingPosts[carouselIndex]?.platform as keyof typeof platformColors] || "bg-gray-100 text-gray-800")}>
-                      {pendingPosts[carouselIndex]?.platform === "instagram" && <SiInstagram className="w-3 h-3 mr-1" />}
-                      {pendingPosts[carouselIndex]?.platform === "facebook" && <SiFacebook className="w-3 h-3 mr-1" />}
-                      {pendingPosts[carouselIndex]?.platform === "tiktok" && <SiTiktok className="w-3 h-3 mr-1" />}
-                      {pendingPosts[carouselIndex]?.platform}
-                    </Badge>
                   </div>
                 </div>
 
-                {/* Navigation Arrows */}
-                {pendingPosts.length > 1 && (
-                  <>
-                    <button
-                      onClick={prevSlide}
-                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition-colors"
-                      data-testid="carousel-prev"
-                    >
-                      <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={nextSlide}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition-colors"
-                      data-testid="carousel-next"
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
-                  </>
-                )}
+                <DialogTitle className="text-3xl md:text-4xl font-extrabold text-center tracking-tight">
+                  {isSpanish
+                    ? "Tu marca acaba de crear contenido increíble"
+                    : "Your brand just created amazing content"}
+                </DialogTitle>
 
-                {/* Post Content */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-bold text-gray-900">
+                <DialogDescription className="text-center text-white/90 text-lg md:text-xl mt-4 max-w-2xl mx-auto">
+                  {isSpanish
+                    ? "Nuestra IA diseñó publicaciones listas para captar atención y generar engagement."
+                    : "Our AI designed posts ready to grab attention and drive engagement."}
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+          </div>
+
+          {/* BODY */}
+          {pendingPosts.length > 0 && (
+            <div className="bg-white rounded-b-2xl p-6 md:p-8">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                {/* IMAGE PREVIEW */}
+                <div className="relative">
+                  <div className="relative aspect-square rounded-2xl overflow-hidden shadow-2xl bg-gray-100">
+                    {pendingPosts[carouselIndex]?.imageUrl ? (
+                      <img
+                        src={pendingPosts[carouselIndex].imageUrl}
+                        alt={pendingPosts[carouselIndex].titulo}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Image className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+
+                    {/* AI badge */}
+                    <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-3 py-1 rounded-full backdrop-blur">
+                      ✨ AI Generated
+                    </div>
+
+                    {/* Platform badge */}
+                    <div className="absolute top-4 left-4">
+                      <Badge
+                        className={cn(
+                          "flex items-center gap-1 px-3 py-1 backdrop-blur-md",
+                          platformColors[
+                            pendingPosts[carouselIndex]
+                              ?.platform as keyof typeof platformColors
+                          ],
+                        )}
+                      >
+                        {pendingPosts[carouselIndex]?.platform ===
+                          "instagram" && <SiInstagram />}
+                        {pendingPosts[carouselIndex]?.platform ===
+                          "facebook" && <SiFacebook />}
+                        {pendingPosts[carouselIndex]?.platform === "tiktok" && (
+                          <SiTiktok />
+                        )}
+                        {pendingPosts[carouselIndex]?.platform}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Navigation */}
+                  {pendingPosts.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevSlide}
+                        className="absolute -left-5 top-1/2 -translate-y-1/2 bg-white shadow-xl rounded-full p-3 hover:scale-110 transition"
+                      >
+                        <ChevronLeft />
+                      </button>
+                      <button
+                        onClick={nextSlide}
+                        className="absolute -right-5 top-1/2 -translate-y-1/2 bg-white shadow-xl rounded-full p-3 hover:scale-110 transition"
+                      >
+                        <ChevronRight />
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* CONTENT */}
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold text-gray-900">
                     {pendingPosts[carouselIndex]?.titulo}
                   </h3>
-                  {pendingPosts[carouselIndex]?.content && (
-                    <p className="text-gray-600 line-clamp-3">
-                      {pendingPosts[carouselIndex].content}
-                    </p>
-                  )}
+
+                  <p className="text-gray-600 leading-relaxed">
+                    {pendingPosts[carouselIndex]?.content}
+                  </p>
+
                   {pendingPosts[carouselIndex]?.hashtags && (
                     <p className="text-indigo-600 text-sm">
                       {pendingPosts[carouselIndex].hashtags}
                     </p>
                   )}
-                </div>
 
-                {/* Dots indicator */}
-                {pendingPosts.length > 1 && (
-                  <div className="flex justify-center gap-2 mt-4">
-                    {pendingPosts.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setCarouselIndex(idx)}
-                        className={cn(
-                          "w-2.5 h-2.5 rounded-full transition-all",
-                          idx === carouselIndex 
-                            ? "bg-indigo-600 w-6" 
-                            : "bg-gray-300 hover:bg-gray-400"
-                        )}
-                        data-testid={`carousel-dot-${idx}`}
-                      />
-                    ))}
-                  </div>
-                )}
+                  {/* Dots */}
+                  {pendingPosts.length > 1 && (
+                    <div className="flex gap-2 pt-4">
+                      {pendingPosts.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCarouselIndex(idx)}
+                          className={cn(
+                            "h-2 rounded-full transition-all",
+                            idx === carouselIndex
+                              ? "bg-indigo-600 w-8"
+                              : "bg-gray-300 w-3",
+                          )}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-sm text-gray-500 pt-2">
+                    {carouselIndex + 1} / {pendingPosts.length}{" "}
+                    {isSpanish ? "publicaciones creadas" : "posts created"}
+                  </p>
+                </div>
               </div>
 
-              {/* Counter */}
-              <p className="text-center text-gray-500 mt-4">
-                {carouselIndex + 1} / {pendingPosts.length} {isSpanish ? "publicaciones" : "posts"}
-              </p>
-
-              {/* Action Button */}
-              <div className="mt-6 text-center">
-                <Button 
+              {/* CTA */}
+              <div className="mt-10 text-center">
+                <Button
                   onClick={() => setShowWelcomeModal(false)}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
-                  data-testid="button-view-calendar"
+                  size="lg"
+                  className="text-lg px-10 py-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105 transition-transform shadow-xl"
                 >
-                  {isSpanish ? "Ver Calendario de Contenido" : "View Content Calendar"}
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  {isSpanish
+                    ? "Ir a mi Calendario 🚀"
+                    : "Go to My Content Calendar 🚀"}
+                  <ArrowRight className="ml-2" />
                 </Button>
               </div>
-            </div>
-          )}
-
-          {pendingPosts.length === 0 && (
-            <div className="p-6 text-center">
-              <Loader2 className="w-12 h-12 mx-auto animate-spin text-indigo-600 mb-4" />
-              <p className="text-gray-600">
-                {isSpanish ? "Cargando publicaciones..." : "Loading posts..."}
-              </p>
             </div>
           )}
         </DialogContent>
@@ -407,7 +470,8 @@ export default function Waterfall() {
                   data-testid="tab-campaigns"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span className="hidden sm:inline">Strategize with</span> Boosty
+                  <span className="hidden sm:inline">Strategize with</span>{" "}
+                  Boosty
                 </TabsTrigger>
                 <TabsTrigger
                   value="planner"
@@ -436,7 +500,9 @@ export default function Waterfall() {
                       <h2 className="text-2xl font-bold bg-gradient-to-r from-brand-600 to-cyan-500 bg-clip-text text-transparent">
                         Boosty AI
                       </h2>
-                      <p className="text-muted-foreground max-w-md">{t.noBrand}</p>
+                      <p className="text-muted-foreground max-w-md">
+                        {t.noBrand}
+                      </p>
                     </motion.div>
                   </div>
                 ) : (
@@ -446,13 +512,13 @@ export default function Waterfall() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <motion.div
-                            animate={{ 
+                            animate={{
                               scale: [1, 1.05, 1],
                             }}
-                            transition={{ 
-                              duration: 2, 
+                            transition={{
+                              duration: 2,
                               repeat: Infinity,
-                              repeatDelay: 3
+                              repeatDelay: 3,
                             }}
                             className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-600 to-cyan-500 flex items-center justify-center shadow-lg"
                           >
@@ -464,12 +530,17 @@ export default function Waterfall() {
                             </h2>
                             {context && (
                               <p className="text-sm text-muted-foreground">
-                                {language === "es" ? "Asistente de" : "Assistant for"} <span className="font-medium text-brand-600">{context.brand.name}</span>
+                                {language === "es"
+                                  ? "Asistente de"
+                                  : "Assistant for"}{" "}
+                                <span className="font-medium text-brand-600">
+                                  {context.brand.name}
+                                </span>
                               </p>
                             )}
                           </div>
                         </div>
-                        
+
                         {context && (
                           <div className="hidden md:flex items-center gap-3">
                             {context.sales && (
@@ -477,7 +548,8 @@ export default function Waterfall() {
                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 rounded-full">
                                   <TrendingUp className="w-4 h-4 text-green-600" />
                                   <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                    ${context.sales.last30Days.totalRevenue.toLocaleString()}
+                                    $
+                                    {context.sales.last30Days.totalRevenue.toLocaleString()}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full">
@@ -489,7 +561,10 @@ export default function Waterfall() {
                               </>
                             )}
                             {context.conversations.unreadCount > 0 && (
-                              <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                              <Badge
+                                variant="secondary"
+                                className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                              >
                                 <MessageSquare className="w-3 h-3 mr-1" />
                                 {context.conversations.unreadCount}
                               </Badge>
@@ -509,7 +584,9 @@ export default function Waterfall() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               className={`flex items-start gap-3 ${
-                                msg.role === "user" ? "justify-end" : "justify-start"
+                                msg.role === "user"
+                                  ? "justify-end"
+                                  : "justify-start"
                               }`}
                               data-testid={`message-${msg.role}-${i}`}
                             >
@@ -542,12 +619,16 @@ export default function Waterfall() {
                                             className="w-full max-w-md rounded-xl shadow-lg object-cover cursor-pointer hover:shadow-xl transition-shadow"
                                             style={{ maxHeight: "400px" }}
                                             data-testid="generated-image"
-                                            onClick={() => window.open(msg.image, '_blank')}
+                                            onClick={() =>
+                                              window.open(msg.image, "_blank")
+                                            }
                                           />
                                           <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Badge className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white text-xs">
                                               <Sparkles className="w-3 h-3 mr-1" />
-                                              {language === "es" ? "IA Generada" : "AI Generated"}
+                                              {language === "es"
+                                                ? "IA Generada"
+                                                : "AI Generated"}
                                             </Badge>
                                           </div>
                                         </div>
@@ -557,21 +638,35 @@ export default function Waterfall() {
                                       remarkPlugins={[remarkGfm]}
                                       components={{
                                         p: (props) => (
-                                          <p className="mb-2 last:mb-0" {...props} />
+                                          <p
+                                            className="mb-2 last:mb-0"
+                                            {...props}
+                                          />
                                         ),
                                         strong: (props) => (
-                                          <strong className="font-semibold" {...props} />
+                                          <strong
+                                            className="font-semibold"
+                                            {...props}
+                                          />
                                         ),
                                         em: (props) => (
                                           <em className="italic" {...props} />
                                         ),
                                         ul: (props) => (
-                                          <ul className="list-disc ml-5 my-2" {...props} />
+                                          <ul
+                                            className="list-disc ml-5 my-2"
+                                            {...props}
+                                          />
                                         ),
                                         ol: (props) => (
-                                          <ol className="list-decimal ml-5 my-2" {...props} />
+                                          <ol
+                                            className="list-decimal ml-5 my-2"
+                                            {...props}
+                                          />
                                         ),
-                                        li: (props) => <li className="my-1" {...props} />,
+                                        li: (props) => (
+                                          <li className="my-1" {...props} />
+                                        ),
                                         a: (props) => (
                                           <a
                                             className="text-brand-600 dark:text-cyan-400 underline"
@@ -581,10 +676,16 @@ export default function Waterfall() {
                                           />
                                         ),
                                         code: (props) => (
-                                          <code className="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm" {...props} />
+                                          <code
+                                            className="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm"
+                                            {...props}
+                                          />
                                         ),
                                         hr: (props) => (
-                                          <hr className="my-3 border-t border-gray-300 dark:border-gray-600" {...props} />
+                                          <hr
+                                            className="my-3 border-t border-gray-300 dark:border-gray-600"
+                                            {...props}
+                                          />
                                         ),
                                         img: ({ src, alt }) => (
                                           <img
@@ -601,7 +702,9 @@ export default function Waterfall() {
                                     </ReactMarkdown>
                                   </>
                                 ) : (
-                                  <span className="whitespace-pre-wrap">{msg.content}</span>
+                                  <span className="whitespace-pre-wrap">
+                                    {msg.content}
+                                  </span>
                                 )}
                               </div>
                               {msg.role === "user" && (
@@ -628,11 +731,22 @@ export default function Waterfall() {
                             />
                             <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-2">
                               <div className="flex gap-1">
-                                <div className="w-2 h-2 bg-brand-600 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                                <div className="w-2 h-2 bg-brand-600 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                                <div className="w-2 h-2 bg-brand-600 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                                <div
+                                  className="w-2 h-2 bg-brand-600 rounded-full animate-bounce"
+                                  style={{ animationDelay: "0ms" }}
+                                />
+                                <div
+                                  className="w-2 h-2 bg-brand-600 rounded-full animate-bounce"
+                                  style={{ animationDelay: "150ms" }}
+                                />
+                                <div
+                                  className="w-2 h-2 bg-brand-600 rounded-full animate-bounce"
+                                  style={{ animationDelay: "300ms" }}
+                                />
                               </div>
-                              <span className="text-sm text-muted-foreground ml-2">{t.typing}</span>
+                              <span className="text-sm text-muted-foreground ml-2">
+                                {t.typing}
+                              </span>
                             </div>
                           </motion.div>
                         )}
