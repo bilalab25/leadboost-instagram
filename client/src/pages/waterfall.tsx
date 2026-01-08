@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation, useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   Send, 
   Calendar, 
@@ -14,8 +16,14 @@ import {
   TrendingUp,
   Users,
   MessageSquare,
-  Bot
+  Bot,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Loader2,
+  Image
 } from "lucide-react";
+import { SiInstagram, SiFacebook, SiTiktok } from "react-icons/si";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import ContentCalendar from "@/pages/calendar";
@@ -24,7 +32,20 @@ import remarkGfm from "remark-gfm";
 import { apiRequest } from "@/lib/queryClient";
 import { useBrand } from "@/contexts/BrandContext";
 import { useLanguage } from "@/hooks/useLanguage";
+import { cn } from "@/lib/utils";
 import boosty_face from "./boosty_face.png";
+
+interface AIGeneratedPost {
+  id: string;
+  brandId: string;
+  platform: string;
+  titulo: string;
+  content: string;
+  hashtags: string;
+  imageUrl: string | null;
+  scheduledDate: string;
+  status: string;
+}
 
 interface BrandContext {
   brand: {
@@ -52,9 +73,28 @@ interface BrandContext {
   };
 }
 
+const platformColors = {
+  instagram: "bg-gradient-to-r from-purple-500 to-pink-500 text-white",
+  facebook: "bg-blue-600 text-white",
+  tiktok: "bg-black text-white",
+  twitter: "bg-sky-500 text-white",
+};
+
 export default function Waterfall() {
   const { activeBrandId } = useBrand();
   const { language } = useLanguage();
+  const [, setLocation] = useLocation();
+  const searchString = useSearch();
+  const isSpanish = language === "es";
+  
+  // Welcome carousel modal state
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [pendingWelcome, setPendingWelcome] = useState(() => {
+    // Check if we arrived with showWelcome param
+    const params = new URLSearchParams(window.location.search);
+    return params.get("showWelcome") === "true";
+  });
   
   const getWelcomeMessage = () => {
     return language === "es"
@@ -73,6 +113,48 @@ export default function Waterfall() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  
+  // Query for AI generated posts (for welcome modal)
+  const { data: aiGeneratedPosts } = useQuery<AIGeneratedPost[]>({
+    queryKey: ["/api/ai-generated-posts", activeBrandId],
+    queryFn: async () => {
+      if (!activeBrandId) return [];
+      const response = await fetch(`/api/ai-generated-posts/${activeBrandId}`, {
+        credentials: "include",
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!activeBrandId,
+  });
+
+  // Get pending posts for the carousel
+  const pendingPosts = aiGeneratedPosts?.filter(post => post.status === "pending") || [];
+
+  // Check for showWelcome and show modal when posts are ready
+  useEffect(() => {
+    // If we have a pending welcome request and posts have loaded
+    if (pendingWelcome && aiGeneratedPosts && aiGeneratedPosts.length > 0) {
+      setShowWelcomeModal(true);
+      setCarouselIndex(0);
+      setPendingWelcome(false);
+      // Clean up URL after showing modal
+      setLocation("/waterfall", { replace: true });
+    }
+  }, [pendingWelcome, aiGeneratedPosts, setLocation]);
+
+  // Carousel navigation
+  const nextSlide = () => {
+    if (pendingPosts.length > 0) {
+      setCarouselIndex((prev) => (prev + 1) % pendingPosts.length);
+    }
+  };
+
+  const prevSlide = () => {
+    if (pendingPosts.length > 0) {
+      setCarouselIndex((prev) => (prev - 1 + pendingPosts.length) % pendingPosts.length);
+    }
+  };
 
   const { data: contextData } = useQuery<{ context: BrandContext }>({
     queryKey: ["/api/boosty/context", activeBrandId],
@@ -176,6 +258,139 @@ export default function Waterfall() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <TopHeader pageName="Meet CampAIgner" />
+      
+      {/* Welcome Carousel Modal */}
+      <Dialog open={showWelcomeModal} onOpenChange={setShowWelcomeModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+          <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-6 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-2xl md:text-3xl font-bold text-center text-white flex items-center justify-center gap-3">
+                <Sparkles className="w-8 h-8" />
+                {isSpanish ? "¡Tu contenido está listo!" : "Your content is ready!"}
+              </DialogTitle>
+              <DialogDescription className="text-center text-white/90 text-lg mt-2">
+                {isSpanish 
+                  ? "Hemos creado publicaciones personalizadas para tu marca. ¡Revísalas!" 
+                  : "We've created personalized posts for your brand. Take a look!"}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          {pendingPosts.length > 0 && (
+            <div className="p-6">
+              {/* Carousel */}
+              <div className="relative">
+                {/* Main Image */}
+                <div className="relative aspect-square max-h-[400px] mx-auto rounded-xl overflow-hidden bg-gray-100 mb-4">
+                  {pendingPosts[carouselIndex]?.imageUrl ? (
+                    <img
+                      src={pendingPosts[carouselIndex].imageUrl}
+                      alt={pendingPosts[carouselIndex].titulo}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Image className="w-16 h-16 text-gray-400" />
+                    </div>
+                  )}
+                  
+                  {/* Platform badge */}
+                  <div className="absolute top-3 left-3">
+                    <Badge className={cn("text-sm font-semibold", platformColors[pendingPosts[carouselIndex]?.platform as keyof typeof platformColors] || "bg-gray-100 text-gray-800")}>
+                      {pendingPosts[carouselIndex]?.platform === "instagram" && <SiInstagram className="w-3 h-3 mr-1" />}
+                      {pendingPosts[carouselIndex]?.platform === "facebook" && <SiFacebook className="w-3 h-3 mr-1" />}
+                      {pendingPosts[carouselIndex]?.platform === "tiktok" && <SiTiktok className="w-3 h-3 mr-1" />}
+                      {pendingPosts[carouselIndex]?.platform}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Navigation Arrows */}
+                {pendingPosts.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevSlide}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition-colors"
+                      data-testid="carousel-prev"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={nextSlide}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white shadow-lg rounded-full p-2 hover:bg-gray-100 transition-colors"
+                      data-testid="carousel-next"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
+
+                {/* Post Content */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {pendingPosts[carouselIndex]?.titulo}
+                  </h3>
+                  {pendingPosts[carouselIndex]?.content && (
+                    <p className="text-gray-600 line-clamp-3">
+                      {pendingPosts[carouselIndex].content}
+                    </p>
+                  )}
+                  {pendingPosts[carouselIndex]?.hashtags && (
+                    <p className="text-indigo-600 text-sm">
+                      {pendingPosts[carouselIndex].hashtags}
+                    </p>
+                  )}
+                </div>
+
+                {/* Dots indicator */}
+                {pendingPosts.length > 1 && (
+                  <div className="flex justify-center gap-2 mt-4">
+                    {pendingPosts.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCarouselIndex(idx)}
+                        className={cn(
+                          "w-2.5 h-2.5 rounded-full transition-all",
+                          idx === carouselIndex 
+                            ? "bg-indigo-600 w-6" 
+                            : "bg-gray-300 hover:bg-gray-400"
+                        )}
+                        data-testid={`carousel-dot-${idx}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Counter */}
+              <p className="text-center text-gray-500 mt-4">
+                {carouselIndex + 1} / {pendingPosts.length} {isSpanish ? "publicaciones" : "posts"}
+              </p>
+
+              {/* Action Button */}
+              <div className="mt-6 text-center">
+                <Button 
+                  onClick={() => setShowWelcomeModal(false)}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
+                  data-testid="button-view-calendar"
+                >
+                  {isSpanish ? "Ver Calendario de Contenido" : "View Content Calendar"}
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {pendingPosts.length === 0 && (
+            <div className="p-6 text-center">
+              <Loader2 className="w-12 h-12 mx-auto animate-spin text-indigo-600 mb-4" />
+              <p className="text-gray-600">
+                {isSpanish ? "Cargando publicaciones..." : "Loading posts..."}
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="flex bg-gray-50 dark:bg-gray-900 h-[calc(100vh-64px)]">
         <Sidebar />

@@ -2027,10 +2027,10 @@ export default function Onboarding() {
             );
             await new Promise((resolve) => setTimeout(resolve, 1000));
             
-            // Clear state and redirect to AI planner with showWelcome flag
+            // Clear state and redirect to waterfall with showWelcome flag
             clearOnboardingState();
             setIsGeneratingAIPosts(false);
-            setLocation("/ai-planner?showWelcome=true");
+            setLocation("/waterfall?showWelcome=true");
             return;
           }
         }
