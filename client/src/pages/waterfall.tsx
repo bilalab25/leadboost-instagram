@@ -101,7 +101,9 @@ export default function Waterfall() {
     const params = new URLSearchParams(window.location.search);
     return params.get("showWelcome") === "true";
   });
-
+  const [activeTab, setActiveTab] = useState<"campaigns" | "planner">(
+    "campaigns",
+  );
   const getWelcomeMessage = () => {
     return language === "es"
       ? "¡Hola! Soy Boosty, tu estratega de marketing con IA 🚀. Estoy aquí para ayudarte a diseñar estrategias, crear contenido y lanzar publicaciones que hagan crecer tu marca. ¿En qué puedo ayudarte hoy?"
@@ -440,7 +442,10 @@ export default function Waterfall() {
               {/* CTA */}
               <div className="mt-10 text-center">
                 <Button
-                  onClick={() => setShowWelcomeModal(false)}
+                  onClick={() => {
+                    setShowWelcomeModal(false);
+                    setTimeout(() => setActiveTab("planner"), 150);
+                  }}
                   size="lg"
                   className="text-lg px-10 py-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105 transition-transform shadow-xl"
                 >
@@ -460,7 +465,10 @@ export default function Waterfall() {
         <div className="flex-1 overflow-hidden">
           <main className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <Tabs
-              defaultValue="campaigns"
+              value={activeTab}
+              onValueChange={(value) =>
+                setActiveTab(value as "campaigns" | "planner")
+              }
               className="w-full h-full flex flex-col"
             >
               <TabsList className="grid w-full grid-cols-2 mb-4 p-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
