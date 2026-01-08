@@ -461,6 +461,8 @@ export default function Onboarding() {
   const [hasLoadedFromDb, setHasLoadedFromDb] = useState(false);
   const [isOtherIndustry, setIsOtherIndustry] = useState(false);
   const [customIndustry, setCustomIndustry] = useState("");
+  const [isGeneratingAIPosts, setIsGeneratingAIPosts] = useState(false);
+  const [aiGenerationMessage, setAiGenerationMessage] = useState("");
 
   const INDUSTRY_OPTIONS = [
     { value: "technology", labelEn: "Technology", labelEs: "Tecnología" },
@@ -1903,7 +1905,7 @@ export default function Onboarding() {
     }
   }, [currentStep, connectedSocialPlatforms, postingSchedules.length]);
 
-  // Step 5: Save posting frequency
+  // Step 5: Save posting frequency and trigger AI post generation
   const handleSavePostingFrequency = async () => {
     if (!effectiveBrandId) return;
 
@@ -1921,16 +1923,135 @@ export default function Onboarding() {
         throw new Error("Failed to save posting frequency");
       }
 
-      toast({
-        title: isSpanish ? "¡Guardado!" : "Saved!",
-        description: isSpanish
-          ? "Tu frecuencia de publicación ha sido guardada."
-          : "Your posting frequency has been saved.",
-      });
+      // Show AI generation loading overlay
+      setIsGeneratingAIPosts(true);
+      setAiGenerationMessage(
+        isSpanish
+          ? "Estamos construyendo algo increíble para ti..."
+          : "We're building something amazing for you..."
+      );
 
-      handleFinishOnboarding();
+      // Mark onboarding as completed first
+      if (createdBrandId) {
+        try {
+          await updateOnboardingStepMutation.mutateAsync({
+            brandId: String(createdBrandId),
+            completed: true,
+          });
+        } catch (error) {
+          console.error("Failed to mark onboarding as completed:", error);
+        }
+      }
+
+      // Trigger AI post generation
+      try {
+        const aiResponse = await apiRequest(
+          "POST",
+          `/api/post-generator/${effectiveBrandId}`,
+          {
+            month: new Date().getMonth() + 1,
+            year: new Date().getFullYear(),
+          },
+        );
+
+        if (aiResponse.ok) {
+          const jobData = await aiResponse.json();
+          const jobId = jobData.jobId;
+
+          // Update message
+          setAiGenerationMessage(
+            isSpanish
+              ? "Creando contenido personalizado con IA..."
+              : "Creating personalized AI content..."
+          );
+
+          // Poll for job completion
+          let attempts = 0;
+          const maxAttempts = 60; // 5 minutes max (60 * 5 seconds)
+          
+          const pollJobStatus = async (): Promise<boolean> => {
+            while (attempts < maxAttempts) {
+              attempts++;
+              await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second intervals
+
+              try {
+                const statusResponse = await apiRequest(
+                  "GET",
+                  `/api/post-generator/jobs/${jobId}`,
+                );
+
+                if (statusResponse.ok) {
+                  const statusData = await statusResponse.json();
+                  
+                  if (statusData.status === "completed") {
+                    return true;
+                  } else if (statusData.status === "failed") {
+                    console.error("AI post generation failed:", statusData.error);
+                    return false;
+                  }
+
+                  // Update progress message
+                  if (attempts % 3 === 0) {
+                    const messages = isSpanish
+                      ? [
+                          "Analizando tu marca...",
+                          "Generando ideas creativas...",
+                          "Diseñando imágenes únicas...",
+                          "Puliendo el contenido...",
+                          "¡Casi listo!",
+                        ]
+                      : [
+                          "Analyzing your brand...",
+                          "Generating creative ideas...",
+                          "Designing unique images...",
+                          "Polishing the content...",
+                          "Almost ready!",
+                        ];
+                    setAiGenerationMessage(
+                      messages[Math.min(Math.floor(attempts / 3), messages.length - 1)]
+                    );
+                  }
+                }
+              } catch (pollError) {
+                console.error("Error polling job status:", pollError);
+              }
+            }
+            return false;
+          };
+
+          const success = await pollJobStatus();
+
+          if (success) {
+            setAiGenerationMessage(
+              isSpanish ? "¡Listo! Redirigiendo..." : "Done! Redirecting..."
+            );
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            
+            // Clear state and redirect to AI planner with showWelcome flag
+            clearOnboardingState();
+            setIsGeneratingAIPosts(false);
+            setLocation("/ai-planner?showWelcome=true");
+            return;
+          }
+        }
+      } catch (aiError) {
+        console.error("AI post generation error:", aiError);
+      }
+
+      // If AI generation fails or times out, still complete onboarding
+      setIsGeneratingAIPosts(false);
+      clearOnboardingState();
+      toast({
+        title: isSpanish ? "¡Onboarding completado!" : "Onboarding complete!",
+        description: isSpanish
+          ? "Tu marca está lista. La generación de contenido IA puede tardar unos minutos."
+          : "Your brand is ready. AI content generation may take a few minutes.",
+      });
+      setLocation("/dashboard");
+
     } catch (error) {
       console.error("Error saving posting frequency:", error);
+      setIsGeneratingAIPosts(false);
       toast({
         title: isSpanish ? "Error" : "Error",
         description: isSpanish
@@ -1947,6 +2068,43 @@ export default function Onboarding() {
   const handleSkipFrequency = () => {
     handleFinishOnboarding();
   };
+
+  // =====================================================
+  // RENDER: AI GENERATION LOADING OVERLAY
+  // =====================================================
+  if (isGeneratingAIPosts) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600">
+        <div className="text-center text-white px-8 max-w-lg">
+          <div className="relative mb-8">
+            <div className="w-24 h-24 mx-auto relative">
+              <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-t-white border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+              <div className="absolute inset-4 rounded-full border-4 border-white/20"></div>
+              <div className="absolute inset-4 rounded-full border-4 border-t-transparent border-r-white border-b-transparent border-l-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+              <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-white animate-pulse" />
+            </div>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 animate-pulse">
+            {isSpanish ? "✨ Magia en proceso..." : "✨ Magic in progress..."}
+          </h1>
+          <p className="text-xl md:text-2xl text-white/90 mb-6">
+            {aiGenerationMessage}
+          </p>
+          <div className="flex justify-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-3 h-3 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-3 h-3 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
+          <p className="text-sm text-white/60 mt-8">
+            {isSpanish
+              ? "Esto puede tomar unos minutos. No cierres esta página."
+              : "This may take a few minutes. Please don't close this page."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading while checking authentication
   if (authLoading || (isLoadingProgress && !hasLoadedFromDb)) {
