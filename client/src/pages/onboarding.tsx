@@ -1270,7 +1270,7 @@ export default function Onboarding() {
             name: existingBrand.name || "",
             industry: "other",
             description: existingBrand.description || "",
-            preferredLanguage: brandDesign?.preferredLanguage || "en",
+            preferredLanguage: existingBrand.preferredLanguage || brandDesign?.preferredLanguage || "en",
             domain: domainValue,
           });
         } else {
@@ -1281,7 +1281,7 @@ export default function Onboarding() {
             name: existingBrand.name || "",
             industry: industryValue,
             description: existingBrand.description || "",
-            preferredLanguage: brandDesign?.preferredLanguage || "en",
+            preferredLanguage: existingBrand.preferredLanguage || brandDesign?.preferredLanguage || "en",
             domain: domainValue,
           });
         }
