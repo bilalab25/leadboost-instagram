@@ -5407,10 +5407,10 @@ once@^1.4.0:
   dependencies:
     wrappy "1"
 
-openai@^5.20.0:
-  version "5.20.0"
-  resolved "https://registry.npmjs.org/openai/-/openai-5.20.0.tgz"
-  integrity sha512-Bmc2zLM/YWgFrDpXr9hwXqGGDdMmMpE9+qoZPsaHpn0Y/Qk1Vu26hNqXo7+nHdli+sLsXINvS1f8kR3NKhGKmA==
+openai@^5.23.2:
+  version "5.23.2"
+  resolved "https://registry.npmjs.org/openai/-/openai-5.23.2.tgz"
+  integrity sha512-MQBzmTulj+MM5O8SKEk/gL8a7s5mktS9zUtAkU257WjvobGc9nKcBuVwjyEEcb9SI8a8Y2G/mzn3vm9n1Jlleg==
 
 openid-client@^6.7.1:
   version "6.7.1"

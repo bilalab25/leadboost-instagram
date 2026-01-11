@@ -2,6 +2,8 @@ import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { storage } from "../storage";
 import type { BrandDesign, BrandAsset, Integration } from "@shared/schema";
 import sharp from "sharp";
+import OpenAI from "openai";
+
 function enforceLanguage(
   posts: GeneratedPost[],
   lang: string,
@@ -55,6 +57,10 @@ export function languageInstruction(lang: string): string {
       return "English (US)";
   }
 }
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
 
 // Using your own Gemini API key from Google AI Studio
 const ai = new GoogleGenAI({
@@ -128,6 +134,20 @@ export interface PostGenerationContext {
     visualKeywords: string | null;
     promise: string | null;
   };
+}
+type VisualMode = "product_showcase" | "campaign_template" | "lifestyle";
+function selectVisualMode(assets: BrandAssetForImage[]): VisualMode {
+  const hasProduct = assets.some((a) => a.category === "product_images");
+  const hasTemplate = assets.some(
+    (a) => a.category === "inspiration_templates",
+  );
+  const hasLocation = assets.some((a) => a.category === "location_assets");
+
+  if (hasProduct && hasTemplate) return "campaign_template";
+  if (hasProduct && hasLocation) return "lifestyle";
+  if (hasProduct) return "product_showcase";
+
+  throw new Error("No product assets available for image generation");
 }
 
 async function fetchMetaInsights(
@@ -353,7 +373,8 @@ function buildTextPrompt(context: PostGenerationContext): string {
     })
     .join(", ");
   // Use preferredLanguage from brand (context) first, then fallback to brandDesign
-  const preferredLanguage = context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
+  const preferredLanguage =
+    context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
 
   const languageLabel = languageInstruction(preferredLanguage);
 
@@ -732,7 +753,8 @@ export async function generatePostsWithGemini(
     `[PostGenerator] Starting post generation for brand: ${context.brandName}`,
   );
   // Use preferredLanguage from brand (context) first, then fallback to brandDesign
-  const preferredLanguage = context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
+  const preferredLanguage =
+    context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
 
   const languageLabel = languageInstruction(preferredLanguage);
 
@@ -874,6 +896,59 @@ function pickRandomAssets(assets: BrandAssetForImage[], count = 3) {
 
   return sorted.slice(0, count);
 }
+function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
+  const product = assets.find((a) => a.category === "product_assets")!;
+  const templates = assets.filter(
+    (a) => a.category === "inspiration_templates",
+  );
+  const locations = assets.filter((a) => a.category === "location_assets");
+  const logos = assets.filter((a) => a.category === "logos");
+
+  return {
+    product,
+    template:
+      mode === "campaign_template" && templates.length
+        ? templates[Math.floor(Math.random() * templates.length)]
+        : null,
+    location:
+      mode === "lifestyle" && locations.length
+        ? locations[Math.floor(Math.random() * locations.length)]
+        : null,
+    logo: logos[0] ?? null,
+  };
+}
+function promptProductShowcase() {
+  return `
+VISUAL MODE: PRODUCT SHOWCASE (SOCIAL MEDIA)
+
+- Abstract or minimal scene
+- NO white background
+- Studio lighting
+- Premium, editorial look
+- Product is the absolute focal point
+`;
+}
+function promptCampaign() {
+  return `
+VISUAL MODE: CAMPAIGN / TEMPLATE
+
+- Use template for layout inspiration ONLY
+- Adapt composition to product
+- Marketing-ready
+- Social-first framing
+`;
+}
+function promptLifestyle() {
+  return `
+VISUAL MODE: LIFESTYLE
+
+- Real human presence
+- Natural light
+- Emotional, aspirational
+- Space must feel authentic
+- NOT a graphic ad
+`;
+}
 
 // 🔹 NUEVO: Helper para elegir 3 assets (Lugar o Inspiración) para referencia visual
 function pickVisualReferenceAssets(
@@ -904,6 +979,89 @@ function pickVisualReferenceAssets(
   }
 
   return visualAssets.slice(0, count);
+}
+export async function generateImageWithOpenAI({
+  imagePrompt,
+  brandDesign,
+  brandAssets,
+  brandEssence,
+}: {
+  imagePrompt: string;
+  brandDesign: BrandDesign;
+  brandAssets: BrandAssetForImage[];
+  brandEssence?: {
+    tone?: string | null;
+    personality?: string | null;
+    emotion?: string | null;
+    visualKeywords?: string | null;
+    promise?: string | null;
+  };
+}): Promise<string | null> {
+  const mode = selectVisualMode(brandAssets);
+  const { product, template, location, logo } = pickAssetsForMode(
+    mode,
+    brandAssets,
+  );
+
+  const referenceImages = [
+    product.url,
+    ...(template ? [template.url] : []),
+    ...(location ? [location.url] : []),
+    ...(logo ? [logo.url] : []),
+  ];
+
+  let modePrompt = "";
+  if (mode === "product_showcase") modePrompt = promptProductShowcase();
+  if (mode === "campaign_template") modePrompt = promptCampaign();
+  if (mode === "lifestyle") modePrompt = promptLifestyle();
+
+  const finalPrompt = `
+ ${modePrompt}
+
+ PRODUCT FIDELITY (ABSOLUTE):
+ - The product reference image is the single source of truth
+ - Do NOT change shape, color, material, or proportions
+
+ BRAND ESSENCE:
+ - Tone: ${brandEssence?.tone || "professional"}
+ - Emotion: ${brandEssence?.emotion || "aspirational"}
+ - Visual Keywords: ${brandEssence?.visualKeywords || "clean, premium"}
+
+ SCENE DESCRIPTION:
+ ${imagePrompt}
+ `;
+
+  const response = await openai.responses.create({
+    model: "gpt-image-1",
+    input: [
+      {
+        role: "user",
+        content: [
+          { type: "input_text", text: finalPrompt },
+          ...referenceImages.map(
+            (url) =>
+              ({
+                type: "input_image",
+                image_url: url,
+                detail: "high",
+              }) as const,
+          ),
+        ],
+      },
+    ],
+  });
+
+  const outputImage = response.output
+    .filter((o) => o.type === "message")
+    .flatMap((o) => (o as any).content || [])
+    .find((c: any) => c.type === "output_image");
+
+  if (!outputImage || !("image_base64" in outputImage)) {
+    console.warn("[ImageGen] No image returned by OpenAI");
+    return null;
+  }
+
+  return `data:image/png;base64,${outputImage.image_base64}`;
 }
 
 // 🔹 FUNCIÓN PRINCIPAL (con los 2 cambios que necesitas)
@@ -1509,20 +1667,12 @@ export async function processPostGeneration(
       let imageUrl: string | null = null;
 
       try {
-        const generatedImage = await generateImageWithNanoBanana(
-          post.imagePrompt,
+        const generatedImage = await generateImageWithOpenAI({
+          imagePrompt: post.imagePrompt,
           brandDesign,
-          assetsForImageGen,
-          brandEssence
-            ? {
-                tone: brandEssence.toneOfVoice ?? null,
-                personality: brandEssence.personality ?? null,
-                emotion: brandEssence.emotionalFeel ?? null,
-                visualKeywords: brandEssence.visualKeywords ?? null,
-                promise: brandEssence.brandPromise ?? null,
-              }
-            : undefined,
-        );
+          brandAssets: assetsForImageGen,
+          brandEssence,
+        });
 
         if (generatedImage) {
           // Use the generated image directly without watermark
