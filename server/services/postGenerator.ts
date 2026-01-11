@@ -289,6 +289,220 @@ export function calculatePostingDates(
   return dates;
 }
 
+function buildSystemRules(context: PostGenerationContext): string {
+  const languageLabel = languageInstruction(
+    context.brandDesign.preferredLanguage || "en",
+  );
+
+  return `
+### ABSOLUTE RULES (DO NOT VIOLATE)
+
+1. ALL textual content MUST be written exclusively in ${languageLabel}.
+2. DO NOT mix languages under any circumstance.
+3. DO NOT invent products, prices, claims, or locations.
+4. DO NOT generate posts for dates or platforms not explicitly provided.
+5. The logo is a FIXED graphic mark. DO NOT redraw, translate, stylize, or reinterpret it.
+6. If there is a conflict between creativity and rules, the RULES ALWAYS WIN.
+
+Respond ONLY with valid JSON that matches the provided schema.
+`;
+}
+function buildBrandContext(context: PostGenerationContext): string {
+  const brand = context.brandDesign;
+
+  return `
+### BRAND FACTS (REFERENCE ONLY)
+
+Brand Name: ${context.brandName}
+Brand Description: ${context.brandDescription || "Not specified"}
+Brand Style: ${brand.brandStyle || "modern"}
+Primary Color: ${brand.colorPrimary}
+Accent Colors: ${[brand.colorAccent1, brand.colorAccent2, brand.colorAccent3]
+    .filter(Boolean)
+    .join(", ")}
+
+Fonts:
+- Primary: ${brand.fontPrimary || "Not specified"}
+- Secondary: ${brand.fontSecondary || "Not specified"}
+
+Brand Essence:
+- Tone: ${context.brandEssence?.tone || "neutral"}
+- Personality: ${context.brandEssence?.personality || "professional"}
+- Emotion: ${context.brandEssence?.emotion || "trustworthy"}
+- Promise: ${context.brandEssence?.promise || "quality"}
+`;
+}
+
+function buildTaskInstructions(context: PostGenerationContext): string {
+  const {
+    brandAssets,
+    metaInsights,
+    month,
+    year,
+    postingSchedule,
+    connectedPlatforms,
+  } = context;
+
+  const productAssets = brandAssets.filter(
+    (a) => a.category === "product_assets",
+  );
+  const locationAssets = brandAssets.filter(
+    (a) => a.category === "location_assets",
+  );
+  const inspirationAssets = brandAssets.filter(
+    (a) => a.category === "inspiration_templates",
+  );
+
+  const monthName = new Date(year, month - 1).toLocaleString("en-US", {
+    month: "long",
+  });
+
+  // ===== DATE LOGIC (KEEP – this is operational, not a rule) =====
+  const now = new Date();
+  const isCurrentMonth =
+    year === now.getFullYear() && month === now.getMonth() + 1;
+
+  const startDay = isCurrentMonth ? now.getDate() : 1;
+  const lastDayOfMonth = new Date(year, month, 0).getDate();
+
+  const dateRestriction =
+    startDay > 1
+      ? `Generate posts ONLY for dates between ${monthName} ${startDay} and ${monthName} ${lastDayOfMonth}.`
+      : `Generate posts for the entire month of ${monthName} (days 1–${lastDayOfMonth}).`;
+
+  // ===== POSTING SCHEDULE =====
+  let postingScheduleInstructions = "";
+  let totalPosts = 0;
+
+  if (postingSchedule && postingSchedule.length > 0) {
+    postingScheduleInstructions = postingSchedule
+      .map((schedule) => {
+        totalPosts += schedule.postingDates.length;
+        return `- ${schedule.platform}: ${schedule.postingDates.join(", ")}`;
+      })
+      .join("\n");
+  }
+
+  // ===== PRODUCT FACTS (VERY IMPORTANT, KEEP) =====
+  const extractSectionA = (description: string) => {
+    const matchA = description.match(
+      /### SECTION A:([\s\S]*?)(?=### SECTION B:|$)/i,
+    );
+    return matchA?.[1]?.trim() || description;
+  };
+
+  return `
+### TASK INSTRUCTIONS
+
+You are generating a structured social media content calendar for ${monthName} ${year}.
+
+${dateRestriction}
+
+PLATFORMS TO GENERATE POSTS FOR:
+${connectedPlatforms?.join(", ") || "instagram, facebook"}
+
+POSTING SCHEDULE (STRICT — DO NOT DEVIATE):
+${postingScheduleInstructions}
+
+TOTAL POSTS TO GENERATE: ${totalPosts}
+
+---
+
+### FACTUAL PRODUCT CATALOG (REFERENCE ONLY — DO NOT ALTER FACTS)
+${
+  productAssets.length > 0
+    ? productAssets
+        .map(
+          (p) =>
+            `- PRODUCT: ${p.name}. DETAILS: ${extractSectionA(
+              (p as any).description || "",
+            )}`,
+        )
+        .join("\n")
+    : "No product assets available."
+}
+
+---
+
+### LOCATION ASSETS (USE AS ENVIRONMENT CONTEXT)
+${
+  locationAssets.length > 0
+    ? locationAssets
+        .map(
+          (l) =>
+            `- LOCATION: ${l.name}. ENVIRONMENT: ${
+              (l as any).description || "No description"
+            }`,
+        )
+        .join("\n")
+    : "No location assets available."
+}
+
+---
+
+### VISUAL STYLE REFERENCES (INSPIRATION ONLY)
+${
+  inspirationAssets.length > 0
+    ? inspirationAssets
+        .map(
+          (i) =>
+            `- STYLE REFERENCE: ${i.name}. DESCRIPTION: ${
+              (i as any).description || "No description"
+            }`,
+        )
+        .join("\n")
+    : "No inspiration templates available."
+}
+
+---
+
+### POST REQUIREMENTS
+
+For EACH post, generate:
+- platform
+- titulo
+- content (caption with emojis)
+- hashtags (5–10)
+- dia (YYYY-MM-DD)
+- optimalTime (based on audience behavior)
+- imagePrompt
+
+IMAGE PROMPT RULES:
+- Describe ONLY the subject, scene, and composition
+- Do NOT include colors, lighting, or stylistic adjectives
+- Reference specific product or asset NAMES when relevant
+- Maintain absolute factual fidelity to the product catalog
+
+CONTENT VARIETY REQUIREMENT:
+Ensure posts are varied across:
+- Product highlights
+- Educational or tip-based content
+- Behind-the-scenes
+- Engagement prompts
+- Trend-aware content
+
+---
+
+### OUTPUT FORMAT (STRICT)
+
+Return ONLY valid JSON in the following structure:
+
+{
+  "posts": [
+    {
+      "platform": "instagram",
+      "titulo": "Hook or title",
+      "content": "Full caption text",
+      "hashtags": "#hashtag1 #hashtag2",
+      "dia": "${year}-${String(month).padStart(2, "0")}-01",
+      "optimalTime": "6:00 PM",
+      "imagePrompt": "Scene description referencing real brand products"
+    }
+  ]
+}
+`;
+}
+
 function buildTextPrompt(context: PostGenerationContext): string {
   const {
     brandName,
@@ -733,7 +947,11 @@ export async function generatePostsWithGemini(
 
   const languageLabel = languageInstruction(preferredLanguage);
 
-  const prompt = buildTextPrompt(context);
+  const prompt = [
+    buildSystemRules(context), // 🔴 reglas absolutas
+    buildBrandContext(context), // 🟦 facts de marca
+    buildTaskInstructions(context), // 🟩 tarea concreta
+  ].join("\n\n");
   console.log("--- START GEMINI FULL PROMPT ---");
   console.log(prompt);
   console.log("--- END GEMINI FULL PROMPT ---");
