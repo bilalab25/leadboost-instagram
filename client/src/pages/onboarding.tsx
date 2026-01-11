@@ -1728,6 +1728,9 @@ export default function Onboarding() {
 
   // Form submission handlers
   const onCreateSubmit = (data: CreateBrandForm) => {
+    console.log("[Onboarding] Form submitted with data:", data);
+    console.log("[Onboarding] preferredLanguage value:", data.preferredLanguage);
+    
     // --- SOLUCIÓN PROBLEMA 1: Ajustar el valor de la industria si es "Other" ---
     let finalData = data;
     if (isOtherIndustry) {
@@ -2565,8 +2568,11 @@ export default function Onboarding() {
                             : "Preferred Language"}
                         </FormLabel>
                         <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
+                          value={field.value || "en"}
+                          onValueChange={(value) => {
+                            console.log("[preferredLanguage] User selected:", value);
+                            field.onChange(value);
+                          }}
                         >
                           <FormControl>
                             <SelectTrigger data-testid="select-preferred-language">

@@ -1297,6 +1297,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
       const { name, industry, description, brandColor, preferredLanguage, domain } = req.body;
 
+      console.log("[API /api/brands/create] Request body:", JSON.stringify(req.body, null, 2));
+      console.log("[API /api/brands/create] preferredLanguage received:", preferredLanguage);
+
       if (!name) {
         return res.status(400).json({ message: "Brand name is required" });
       }
