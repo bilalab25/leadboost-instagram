@@ -1304,7 +1304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Brand name is required" });
       }
 
-      // Create brand
+      // Create brand with preferredLanguage stored directly on brand
       const brand = await storage.createBrand({
         userId,
         name,
@@ -1312,7 +1312,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: description || null,
         primaryColor: brandColor || null,
         domain: domain || null,
+        preferredLanguage: preferredLanguage || "en",
       });
+
+      console.log("[API /api/brands/create] Brand created with preferredLanguage:", brand.preferredLanguage);
 
       // Create brand membership with owner role
       const membership = await storage.createBrandMembership({
@@ -1322,14 +1325,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "active",
         invitedBy: null,
       });
-
-      // Create initial brand design with preferred language
-      if (preferredLanguage) {
-        await storage.createBrandDesign({
-          brandId: brand.id,
-          preferredLanguage: preferredLanguage,
-        });
-      }
 
       res.json({ brand, membership });
     } catch (error) {

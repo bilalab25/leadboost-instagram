@@ -111,6 +111,7 @@ export interface PostGenerationContext {
   brandId: string;
   brandName: string;
   brandDescription?: string;
+  preferredLanguage?: string; // Language from brand table (primary source)
   brandDesign: BrandDesign;
   brandAssets: BrandAsset[];
   metaInsights?: MetaInsights;
@@ -351,7 +352,8 @@ function buildTextPrompt(context: PostGenerationContext): string {
       return p;
     })
     .join(", ");
-  const preferredLanguage = context.brandDesign.preferredLanguage || "en";
+  // Use preferredLanguage from brand (context) first, then fallback to brandDesign
+  const preferredLanguage = context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
 
   const languageLabel = languageInstruction(preferredLanguage);
 
@@ -729,7 +731,8 @@ export async function generatePostsWithGemini(
   console.log(
     `[PostGenerator] Starting post generation for brand: ${context.brandName}`,
   );
-  const preferredLanguage = context.brandDesign.preferredLanguage || "en";
+  // Use preferredLanguage from brand (context) first, then fallback to brandDesign
+  const preferredLanguage = context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
 
   const languageLabel = languageInstruction(preferredLanguage);
 
@@ -1406,6 +1409,7 @@ export async function processPostGeneration(
       brandId,
       brandName: brand.name,
       brandDescription: brand.description || undefined,
+      preferredLanguage: brand.preferredLanguage || undefined, // From brand table (primary source)
       brandDesign,
       brandAssets,
       metaInsights: metaInsights || undefined,

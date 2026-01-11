@@ -85,6 +85,7 @@ export const brands = pgTable("brands", {
   isActive: boolean("is_active").default(true),
   onboardingStep: integer("onboarding_step").default(1), // Current step in onboarding (1-5)
   onboardingCompleted: boolean("onboarding_completed").default(false), // Whether onboarding is finished
+  preferredLanguage: varchar("preferred_language").default("en"), // User's preferred language for AI content (en/es)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
