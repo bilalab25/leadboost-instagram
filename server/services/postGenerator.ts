@@ -897,11 +897,25 @@ function pickRandomAssets(assets: BrandAssetForImage[], count = 3) {
   return sorted.slice(0, count);
 }
 function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
-  const product = assets.find((a) => a.category === "product_assets")!;
+  const product = assets.find(
+    (a) =>
+      a.category === "product_images" ||
+      a.category === "products" ||
+      a.category === "product",
+  );
+
+  if (!product) {
+    throw new Error(
+      "[ImageGen] No product image found. Cannot generate image without a product.",
+    );
+  }
+
   const templates = assets.filter(
     (a) => a.category === "inspiration_templates",
   );
+
   const locations = assets.filter((a) => a.category === "location_assets");
+
   const logos = assets.filter((a) => a.category === "logos");
 
   return {
@@ -917,6 +931,7 @@ function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
     logo: logos[0] ?? null,
   };
 }
+
 function promptProductShowcase() {
   return `
 VISUAL MODE: PRODUCT SHOWCASE (SOCIAL MEDIA)
@@ -997,71 +1012,90 @@ export async function generateImageWithOpenAI({
     promise?: string | null;
   };
 }): Promise<string | null> {
-  const mode = selectVisualMode(brandAssets);
-  const { product, template, location, logo } = pickAssetsForMode(
-    mode,
-    brandAssets,
+  // 1️⃣ Validar que exista al menos UN producto
+  const product = brandAssets.find(
+    (a) =>
+      a.category === "product_images" ||
+      a.category === "product" ||
+      a.category === "products",
   );
 
-  const referenceImages = [
-    product.url,
-    ...(template ? [template.url] : []),
-    ...(location ? [location.url] : []),
-    ...(logo ? [logo.url] : []),
-  ];
+  if (!product) {
+    console.warn(
+      "[ImageGen] Skipping image generation: no product image available",
+    );
+    return null;
+  }
+
+  // 2️⃣ Determinar modo visual
+  const mode = selectVisualMode(brandAssets);
 
   let modePrompt = "";
   if (mode === "product_showcase") modePrompt = promptProductShowcase();
   if (mode === "campaign_template") modePrompt = promptCampaign();
   if (mode === "lifestyle") modePrompt = promptLifestyle();
 
+  // 3️⃣ Bloque DURO de diseño de marca (ESTO ERA CLAVE)
+  const brandDesignBlock = `
+BRAND DESIGN SYSTEM (SOURCE OF TRUTH):
+- Brand Style: ${brandDesign.brandStyle || "modern"}
+- Primary Color: ${brandDesign.colorPrimary}
+- Accent Colors: ${[
+    brandDesign.colorAccent1,
+    brandDesign.colorAccent2,
+    brandDesign.colorAccent3,
+  ]
+    .filter(Boolean)
+    .join(", ")}
+
+DESIGN RULES:
+- Use the primary color as dominant
+- Accent colors ONLY as secondary
+- Do NOT introduce new colors
+- Visual language must match the brand style
+`;
+
+  // 4️⃣ Prompt final (quirúrgico, sin referencias visuales)
   const finalPrompt = `
- ${modePrompt}
+${modePrompt}
 
- PRODUCT FIDELITY (ABSOLUTE):
- - The product reference image is the single source of truth
- - Do NOT change shape, color, material, or proportions
+${brandDesignBlock}
 
- BRAND ESSENCE:
- - Tone: ${brandEssence?.tone || "professional"}
- - Emotion: ${brandEssence?.emotion || "aspirational"}
- - Visual Keywords: ${brandEssence?.visualKeywords || "clean, premium"}
+PRODUCT FIDELITY (ABSOLUTE):
+- The product MUST remain exactly as described
+- Do NOT change material, color, or proportions
 
- SCENE DESCRIPTION:
- ${imagePrompt}
- `;
+BRAND ESSENCE:
+- Tone: ${brandEssence?.tone || "professional"}
+- Emotion: ${brandEssence?.emotion || "aspirational"}
+- Visual Keywords: ${brandEssence?.visualKeywords || "clean, premium"}
 
-  const response = await openai.responses.create({
+SCENE DESCRIPTION:
+${imagePrompt}
+
+SOCIAL MEDIA REQUIREMENTS:
+- Square format
+- High visual impact
+- Editorial photography style
+- Realistic lighting
+- No text overlays unless absolutely necessary
+`;
+
+  // 5️⃣ OpenAI Images API (USO CORRECTO)
+  const response = await openai.images.generate({
     model: "gpt-image-1",
-    input: [
-      {
-        role: "user",
-        content: [
-          { type: "input_text", text: finalPrompt },
-          ...referenceImages.map(
-            (url) =>
-              ({
-                type: "input_image",
-                image_url: url,
-                detail: "high",
-              }) as const,
-          ),
-        ],
-      },
-    ],
+    prompt: finalPrompt,
+    size: "1024x1024",
   });
 
-  const outputImage = response.output
-    .filter((o) => o.type === "message")
-    .flatMap((o) => (o as any).content || [])
-    .find((c: any) => c.type === "output_image");
+  const base64Image = response.data?.[0]?.b64_json;
 
-  if (!outputImage || !("image_base64" in outputImage)) {
-    console.warn("[ImageGen] No image returned by OpenAI");
+  if (!base64Image) {
+    console.warn("[ImageGen] OpenAI returned no image");
     return null;
   }
 
-  return `data:image/png;base64,${outputImage.image_base64}`;
+  return `data:image/png;base64,${base64Image}`;
 }
 
 // 🔹 FUNCIÓN PRINCIPAL (con los 2 cambios que necesitas)
@@ -1182,7 +1216,7 @@ ${logoPlacementBlock}
     }
 
     if (brandAssets && brandAssets.length > 0) {
-      // ✔ NUEVO: Usa 3 assets dinámicos, no siempre los mismos
+      // ✔ NUEVO: Usa 3 assets din �micos, no siempre los mismos
       const assetsToUse = pickVisualReferenceAssets(brandAssets, 3);
 
       console.log(
