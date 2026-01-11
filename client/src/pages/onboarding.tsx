@@ -1928,7 +1928,7 @@ export default function Onboarding() {
       setAiGenerationMessage(
         isSpanish
           ? "Estamos construyendo algo increíble para ti..."
-          : "We're building something amazing for you..."
+          : "We're building something amazing for you...",
       );
 
       // Mark onboarding as completed first
@@ -1962,13 +1962,13 @@ export default function Onboarding() {
           setAiGenerationMessage(
             isSpanish
               ? "Creando contenido personalizado con IA..."
-              : "Creating personalized AI content..."
+              : "Creating personalized AI content...",
           );
 
           // Poll for job completion
           let attempts = 0;
           const maxAttempts = 60; // 5 minutes max (60 * 5 seconds)
-          
+
           const pollJobStatus = async (): Promise<boolean> => {
             while (attempts < maxAttempts) {
               attempts++;
@@ -1982,11 +1982,14 @@ export default function Onboarding() {
 
                 if (statusResponse.ok) {
                   const statusData = await statusResponse.json();
-                  
+
                   if (statusData.status === "completed") {
                     return true;
                   } else if (statusData.status === "failed") {
-                    console.error("AI post generation failed:", statusData.error);
+                    console.error(
+                      "AI post generation failed:",
+                      statusData.error,
+                    );
                     return false;
                   }
 
@@ -2008,7 +2011,9 @@ export default function Onboarding() {
                           "Almost ready!",
                         ];
                     setAiGenerationMessage(
-                      messages[Math.min(Math.floor(attempts / 3), messages.length - 1)]
+                      messages[
+                        Math.min(Math.floor(attempts / 3), messages.length - 1)
+                      ],
                     );
                   }
                 }
@@ -2023,10 +2028,10 @@ export default function Onboarding() {
 
           if (success) {
             setAiGenerationMessage(
-              isSpanish ? "¡Listo! Redirigiendo..." : "Done! Redirecting..."
+              isSpanish ? "¡Listo! Redirigiendo..." : "Done! Redirecting...",
             );
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            
+
             // Clear state and redirect to waterfall with showWelcome flag
             clearOnboardingState();
             setIsGeneratingAIPosts(false);
@@ -2048,7 +2053,6 @@ export default function Onboarding() {
           : "Your brand is ready. AI content generation may take a few minutes.",
       });
       setLocation("/dashboard");
-
     } catch (error) {
       console.error("Error saving posting frequency:", error);
       setIsGeneratingAIPosts(false);
@@ -2081,7 +2085,13 @@ export default function Onboarding() {
               <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
               <div className="absolute inset-0 rounded-full border-4 border-t-white border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
               <div className="absolute inset-4 rounded-full border-4 border-white/20"></div>
-              <div className="absolute inset-4 rounded-full border-4 border-t-transparent border-r-white border-b-transparent border-l-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+              <div
+                className="absolute inset-4 rounded-full border-4 border-t-transparent border-r-white border-b-transparent border-l-transparent animate-spin"
+                style={{
+                  animationDirection: "reverse",
+                  animationDuration: "1.5s",
+                }}
+              ></div>
               <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-white animate-pulse" />
             </div>
           </div>
@@ -2092,9 +2102,18 @@ export default function Onboarding() {
             {aiGenerationMessage}
           </p>
           <div className="flex justify-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-3 h-3 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-3 h-3 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            <div
+              className="w-3 h-3 rounded-full bg-white/60 animate-bounce"
+              style={{ animationDelay: "0ms" }}
+            ></div>
+            <div
+              className="w-3 h-3 rounded-full bg-white/60 animate-bounce"
+              style={{ animationDelay: "150ms" }}
+            ></div>
+            <div
+              className="w-3 h-3 rounded-full bg-white/60 animate-bounce"
+              style={{ animationDelay: "300ms" }}
+            ></div>
           </div>
           <p className="text-sm text-white/60 mt-8">
             {isSpanish
@@ -2547,7 +2566,7 @@ export default function Onboarding() {
                         </FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger data-testid="select-preferred-language">
