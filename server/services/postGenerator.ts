@@ -917,9 +917,6 @@ export async function generateImageWithNanoBanana(
   },
 ): Promise<string | null> {
   try {
-    // ==========================================================================================
-    // ✔ Agregar resumen de TODAS las descripciones de assets para mejorar el estilo visual
-    // ==========================================================================================
     const preferredLanguage = brandDesign.preferredLanguage || "en";
 
     const languageLabel = languageInstruction(preferredLanguage);
@@ -956,7 +953,7 @@ export async function generateImageWithNanoBanana(
     // ✔ Prompt final con resúmenes incluidos (no cambia tu estructura original)
     // ==========================================================================================
     const enhancedPrompt = `${imagePrompt}. 
-    **CRITICAL SCENE DESCRIPTION (The core idea and fACTUAL SUBJECT):** ${imagePrompt}.
+    **CRITICAL SCENE DESCRIPTION (The core idea and fACTUAL SUBJECT):** ${imagePrompt}.generateImageWithNanoBanana
     **FIDELITY MANDATE (DO NOT ALTER THE SUBJECT):** The product subject described above MUST be rendered with 100% fidelity to its material, shape, and color (e.g., if it is rose-gold, it must be rose-gold; if it is oval, it must be oval). **The product is fixed.**
     **CRITICAL LOGO INTEGRATION (FINAL MANDATE):** The final generated image MUST include the brand's unique logo or primary branded symbol.The logo must appear as a small, subtle, high-fidelity graphic imprint
 (e.g. laser engraving, embossed metal stamp, or printed mark),
@@ -997,11 +994,22 @@ but its geometry, typography, and proportions MUST remain untouched.
     `;
 
     console.log("[PostGenerator] Generating image with Nano Banana...");
-
-    // ==========================================================================================
-    // ✔ Construcción de contenido multimodal (igual que antes)
-    // ==========================================================================================
     const contentParts: any[] = [];
+
+    if (brandDesign.logoUrl) {
+      const logoImage = await fetchImageAsBase64(brandDesign.logoUrl);
+      if (logoImage) {
+        contentParts.push({
+          inlineData: {
+            data: logoImage.data,
+            mimeType: logoImage.mimeType,
+          },
+        });
+        console.log(
+          "[PostGenerator] Added brand logo as visual source of truth",
+        );
+      }
+    }
 
     if (brandAssets && brandAssets.length > 0) {
       // ✔ NUEVO: Usa 3 assets dinámicos, no siempre los mismos
@@ -1027,24 +1035,33 @@ but its geometry, typography, and proportions MUST remain untouched.
         }
       }
 
-      // Texto con instrucciones
       contentParts.push({
         text: `
-IMPORTANT: The images above are brand assets showing the real visual identity of this brand. 
-Use their lighting, textures, colors and composition hints.
-- ALL visible text in the generated image MUST be written in ${languageLabel}.
-- Do NOT introduce any other language.
+      🚨 VISUAL REFERENCE INSTRUCTIONS (CRITICAL):
+      - The FIRST image provided above is the OFFICIAL brand logo.
+      - This logo is a FIXED graphic mark and MUST be reproduced EXACTLY as shown.
+      - Do NOT simplify it into a letter, monogram, or symbol.
+      - Do NOT translate, reinterpret, redraw, stylize, abstract, or distort it.
+      - Preserve ALL characters, spacing, and typography exactly.
+      - Treat the logo as a graphic image, NOT as translatable text.
 
-Now create this image: ${enhancedPrompt}
+      - The remaining images above are brand visual references (locations / inspiration).
+      - Use them ONLY for lighting, textures, color mood, and composition.
+      - Do NOT copy their content literally.
+
+      LANGUAGE CONSTRAINT (MANDATORY):
+      - ALL visible text in the generated image (signage, labels, packaging text, UI elements, cards, etc.)
+        MUST be written exclusively in ${languageLabel}.
+      - This rule DOES NOT apply to the brand logo shown above.
+
+      Now create this image:
+      ${enhancedPrompt}
         `,
       });
     } else {
       contentParts.push({ text: enhancedPrompt });
     }
 
-    // ==========================================================================================
-    // ✔ Llamada a Gemini EXACTAMENTE como tú la tenías
-    // ==========================================================================================
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: contentParts,
