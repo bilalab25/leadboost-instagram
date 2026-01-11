@@ -958,12 +958,23 @@ export async function generateImageWithNanoBanana(
     const enhancedPrompt = `${imagePrompt}. 
     **CRITICAL SCENE DESCRIPTION (The core idea and fACTUAL SUBJECT):** ${imagePrompt}.
     **FIDELITY MANDATE (DO NOT ALTER THE SUBJECT):** The product subject described above MUST be rendered with 100% fidelity to its material, shape, and color (e.g., if it is rose-gold, it must be rose-gold; if it is oval, it must be oval). **The product is fixed.**
-    **CRITICAL LOGO INTEGRATION (FINAL MANDATE):** The final generated image MUST include the brand's unique logo or primary branded symbol. Incorporate it seamlessly as a **small, high-detail, non-distorted engraving or subtle debossing** on the jewelry box, product packaging, or a small, visible item within the scene (like a polished metallic tag or a clasp element). The logo MUST be clean, sharp, and match the style of the brand (elegant, sophisticated). DO NOT place it as a sticker or a watermark.
-    **LANGUAGE CONSTRAINT FOR IMAGE TEXT (MANDATORY):**
-    - Any visible text inside the image (signs, labels, packaging text, menus, cards, UI elements, posters, engravings, etc.)
-      MUST be written exclusively in ${languageLabel}.
-    - DO NOT include English text unless the language is English.
-    - If text is unnecessary, MINIMIZE visible text rather than using the wrong language.
+    **CRITICAL LOGO INTEGRATION (FINAL MANDATE):** The final generated image MUST include the brand's unique logo or primary branded symbol.The logo must appear as a small, subtle, high-fidelity graphic imprint
+(e.g. laser engraving, embossed metal stamp, or printed mark),
+but its geometry, typography, and proportions MUST remain untouched.
+ The logo MUST be clean, sharp, and match the style of the brand (elegant, sophisticated). DO NOT place it as a sticker or a watermark.
+ LANGUAGE CONSTRAINT FOR IMAGE TEXT (MANDATORY):
+- Any visible text inside the image (signs, labels, packaging text, menus, cards, UI elements, posters, captions, etc.)
+  MUST be written exclusively in ${languageLabel}.
+- DO NOT include English text unless the language is English.
+
+🚨 CRITICAL EXCEPTION – BRAND LOGO (ABSOLUTE RULE):
+- The brand logo or primary brand symbol is a FIXED GRAPHIC MARK.
+- The logo MUST appear EXACTLY as provided, without translation, transliteration, reinterpretation, abstraction, or stylistic alteration.
+- The logo is NOT considered translatable text.
+- DO NOT modify, distort, redraw, stylize, replace letters, or convert the logo into symbols.
+- If the logo contains Latin characters, they MUST remain EXACTLY as-is, regardless of the selected language.
+- Treat the logo as a photographic or vector graphic element, NOT as text.
+
 
     BRAND ESSENCE INSTRUCTIONS:
     - Tone: ${brandEssence?.tone || "professional and engaging"}
