@@ -2,6 +2,59 @@ import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { storage } from "../storage";
 import type { BrandDesign, BrandAsset, Integration } from "@shared/schema";
 import sharp from "sharp";
+function enforceLanguage(
+  posts: GeneratedPost[],
+  lang: string,
+): GeneratedPost[] {
+  if (lang === "en") return posts;
+
+  const forbiddenEnglish =
+    /\b(the|and|with|for|your|you|new|best|now|shop|sale)\b/i;
+
+  const filtered = posts.filter((p) => {
+    const combined = `${p.titulo} ${p.content} ${p.hashtags}`.toLowerCase();
+    return !forbiddenEnglish.test(combined);
+  });
+
+  // 🔥 FALLBACK DE PRODUCCIÓN
+  if (filtered.length === 0) {
+    console.warn(
+      `[PostGenerator] Language enforcement removed all posts. Returning original posts.`,
+    );
+    return posts;
+  }
+
+  return filtered;
+}
+
+export function languageInstruction(lang: string): string {
+  switch (lang) {
+    case "en":
+      return "English (US)";
+    case "es":
+      return "Spanish (neutral Latin American Spanish)";
+    case "pt":
+      return "Portuguese (Brazil)";
+    case "fr":
+      return "French";
+    case "de":
+      return "German";
+    case "it":
+      return "Italian";
+    case "zh":
+      return "Simplified Chinese (Mandarin)";
+    case "ja":
+      return "Japanese";
+    case "ko":
+      return "Korean";
+    case "ar":
+      return "Modern Standard Arabic";
+    case "hi":
+      return "Hindi";
+    default:
+      return "English (US)";
+  }
+}
 
 // Using your own Gemini API key from Google AI Studio
 const ai = new GoogleGenAI({
@@ -298,6 +351,9 @@ function buildTextPrompt(context: PostGenerationContext): string {
       return p;
     })
     .join(", ");
+  const preferredLanguage = context.brandDesign.preferredLanguage || "en";
+
+  const languageLabel = languageInstruction(preferredLanguage);
 
   const colorPalette = [
     brandDesign.colorPrimary,
@@ -429,10 +485,26 @@ BRAND ESSENCE (use this to define all copywriting, tone, emotional feel, and con
 - Emotional Feel: ${context.brandEssence?.emotion ?? "Not specified"}
 - Visual Keywords: ${context.brandEssence?.visualKeywords ?? "Not specified"}
 - Brand Promise: ${context.brandEssence?.promise ?? "Not specified"}
+LANGUAGE REQUIREMENTS (ABSOLUTE – NO EXCEPTIONS):
+- ALL generated text MUST be written exclusively in ${languageLabel}.
+- This includes:
+  • Titles (titulo)
+  • Captions/content
+  • Hashtags
+  • Calls to action
+- DO NOT mix languages.
+- DO NOT include English words unless the language is English.
+- Hashtags MUST also be written in ${languageLabel}.
 
 IMPORTANT:
 All written content MUST follow the tone of voice and emotional feel described here.
 All image prompts MUST reflect the visual keywords and emotional feel.
+SPECIAL LANGUAGE RULES:
+- If the language is Chinese, Japanese, Korean, Arabic or Hindi:
+  • DO NOT use English hashtags
+  • Use native script ONLY
+  • Emojis are allowed
+  • Do NOT transliterate unless explicitly required
 
 BRAND VISUAL ASSETS:
 The brand has uploaded the following assets. Use this list for factual and conceptual reference:
@@ -473,7 +545,12 @@ REQUIREMENTS:
 5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
 6. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
 7. **CRÍTICO:** When creating the imagePrompt, you MUST reference the **specific names** of the top-selling products or relevant visual assets from the BRAND VISUAL ASSETS and TOP SELLING PRODUCTS lists (e.g., "The image must feature the 'Classic Chronos' watch in a leather band, matching the visual style of the reference images provided."). This ensures the final image features the brand's actual catalog.
-8. PLATFORM MAPPING: Use these exact platform values in the JSON:
+8. **LANGUAGE ENFORCEMENT (CRITICAL):**
+ - All textual content (titulo, content, hashtags) MUST be written in ${languageLabel}.
+ - Emojis are allowed.
+ - No bilingual output.
+
+9. PLATFORM MAPPING: Use these exact platform values in the JSON:
    - For Instagram posts: "instagram"
    - For Instagram Stories: "instagram_story"
    - For Instagram Reels: "instagram_reel"
@@ -652,6 +729,9 @@ export async function generatePostsWithGemini(
   console.log(
     `[PostGenerator] Starting post generation for brand: ${context.brandName}`,
   );
+  const preferredLanguage = context.brandDesign.preferredLanguage || "en";
+
+  const languageLabel = languageInstruction(preferredLanguage);
 
   const prompt = buildTextPrompt(context);
   console.log("--- START GEMINI FULL PROMPT ---");
@@ -676,9 +756,18 @@ export async function generatePostsWithGemini(
                 type: Type.OBJECT,
                 properties: {
                   platform: { type: Type.STRING },
-                  titulo: { type: Type.STRING },
-                  content: { type: Type.STRING },
-                  hashtags: { type: Type.STRING },
+                  titulo: {
+                    type: Type.STRING,
+                    description: `Must be written in ${languageLabel}`,
+                  },
+                  content: {
+                    type: Type.STRING,
+                    description: `Must be written in ${languageLabel}`,
+                  },
+                  hashtags: {
+                    type: Type.STRING,
+                    description: `Hashtags written in ${languageLabel}`,
+                  },
                   dia: { type: Type.STRING },
                   optimalTime: { type: Type.STRING },
                   imagePrompt: { type: Type.STRING },
@@ -702,11 +791,16 @@ export async function generatePostsWithGemini(
 
     const text = response.text || "";
     console.log("[PostGenerator] Received response from Gemini");
-
     const parsed = cleanAndParseJson(text);
-    const posts: GeneratedPost[] = parsed.posts || [];
+    const posts: GeneratedPost[] = enforceLanguage(
+      parsed.posts || [],
+      preferredLanguage,
+    );
 
-    console.log(`[PostGenerator] Generated ${posts.length} posts`);
+    console.log(
+      `[PostGenerator] Generated ${posts.length} posts after language enforcement`,
+    );
+
     return posts;
   } catch (error) {
     console.error("[PostGenerator] Error generating posts:", error);
@@ -826,32 +920,36 @@ export async function generateImageWithNanoBanana(
     // ==========================================================================================
     // ✔ Agregar resumen de TODAS las descripciones de assets para mejorar el estilo visual
     // ==========================================================================================
+    const preferredLanguage = brandDesign.preferredLanguage || "en";
 
+    const languageLabel = languageInstruction(preferredLanguage);
 
     let styleSynthesisBlock = "";
 
     if (brandAssets && brandAssets.length > 0) {
-        // Solo usamos los assets de 'inspiration_templates' para definir el estilo.
-        const styleAssets = brandAssets.filter((a) => a.category === 'inspiration_templates'); 
+      // Solo usamos los assets de 'inspiration_templates' para definir el estilo.
+      const styleAssets = brandAssets.filter(
+        (a) => a.category === "inspiration_templates",
+      );
 
-        if (styleAssets.length > 0) {
-            const descriptions = styleAssets
-                .map((a) => {
-                    // Aquí usamos la descripción COMPLETA, incluyendo el estilo de la SECTION B
-                    // Esto es vital porque la Sección B de tus assets de inspiración ya dice AZUL/TEAL
-                    const fullStyleDesc = (a as any).description || "";
-                    return `• ${a.name} (${a.category}): ${fullStyleDesc}`; 
-                })
-                .join("\n\n");
+      if (styleAssets.length > 0) {
+        const descriptions = styleAssets
+          .map((a) => {
+            // Aquí usamos la descripción COMPLETA, incluyendo el estilo de la SECTION B
+            // Esto es vital porque la Sección B de tus assets de inspiración ya dice AZUL/TEAL
+            const fullStyleDesc = (a as any).description || "";
+            return `• ${a.name} (${a.category}): ${fullStyleDesc}`;
+          })
+          .join("\n\n");
 
-            styleSynthesisBlock = `
+        styleSynthesisBlock = `
     ### CRITICAL VISUAL STYLE ADHERENCE INSTRUCTIONS (DO NOT DEVIATE):
     The final image MUST replicate the style, lighting, and mood found in the following style references.
     **MANDATE:** Prioritize the **VIBRANT TEAL, DEEP BLUE, and GLOSSY HIGHLIGHTS** described below. **The background must be a vibrant color, NOT PURE WHITE.**
 
     ${descriptions}
     `;
-        }
+      }
     }
 
     // ==========================================================================================
@@ -861,6 +959,12 @@ export async function generateImageWithNanoBanana(
     **CRITICAL SCENE DESCRIPTION (The core idea and fACTUAL SUBJECT):** ${imagePrompt}.
     **FIDELITY MANDATE (DO NOT ALTER THE SUBJECT):** The product subject described above MUST be rendered with 100% fidelity to its material, shape, and color (e.g., if it is rose-gold, it must be rose-gold; if it is oval, it must be oval). **The product is fixed.**
     **CRITICAL LOGO INTEGRATION (FINAL MANDATE):** The final generated image MUST include the brand's unique logo or primary branded symbol. Incorporate it seamlessly as a **small, high-detail, non-distorted engraving or subtle debossing** on the jewelry box, product packaging, or a small, visible item within the scene (like a polished metallic tag or a clasp element). The logo MUST be clean, sharp, and match the style of the brand (elegant, sophisticated). DO NOT place it as a sticker or a watermark.
+    **LANGUAGE CONSTRAINT FOR IMAGE TEXT (MANDATORY):**
+    - Any visible text inside the image (signs, labels, packaging text, menus, cards, UI elements, posters, engravings, etc.)
+      MUST be written exclusively in ${languageLabel}.
+    - DO NOT include English text unless the language is English.
+    - If text is unnecessary, MINIMIZE visible text rather than using the wrong language.
+
     BRAND ESSENCE INSTRUCTIONS:
     - Tone: ${brandEssence?.tone || "professional and engaging"}
     - Personality: ${brandEssence?.personality || "modern and approachable"}
@@ -917,6 +1021,8 @@ export async function generateImageWithNanoBanana(
         text: `
 IMPORTANT: The images above are brand assets showing the real visual identity of this brand. 
 Use their lighting, textures, colors and composition hints.
+- ALL visible text in the generated image MUST be written in ${languageLabel}.
+- Do NOT introduce any other language.
 
 Now create this image: ${enhancedPrompt}
         `,
@@ -1258,7 +1364,6 @@ export async function processPostGeneration(
     // Skip Lightspeed data - not used in post generation
     const salesInsights: SalesInsights | undefined = undefined;
     console.log(`[PostGenerator] Skipping Lightspeed sales data (disabled)`);
-    
 
     const context: PostGenerationContext = {
       brandId,
