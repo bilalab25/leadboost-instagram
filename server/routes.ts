@@ -9824,10 +9824,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existingDesign = await storage.getBrandDesignByBrandId(brandId);
 
         if (existingDesign) {
+          // Preserve existing preferredLanguage if not provided in update
+          const updateData = {
+            ...designData,
+            // Only override preferredLanguage if explicitly provided in request
+            preferredLanguage: designData.preferredLanguage || existingDesign.preferredLanguage,
+          };
+          console.log("[API /api/brand-design] Preserving preferredLanguage:", updateData.preferredLanguage);
+          
           const updated = await storage.updateBrandDesign(
             existingDesign.id,
             brandId,
-            designData,
+            updateData,
           );
           res.json(updated);
         } else {
