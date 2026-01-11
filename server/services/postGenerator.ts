@@ -920,39 +920,44 @@ export async function generateImageWithNanoBanana(
     const preferredLanguage = brandDesign.preferredLanguage || "en";
 
     const languageLabel = languageInstruction(preferredLanguage);
+    const visualResetBlock = `
+    IMPORTANT BRAND ISOLATION RULE (ABSOLUTE):
+    - This image generation belongs ONLY to the current brand.
+    - Ignore any visual identity, color palette, logo style, typography, or aesthetics
+      from any previous generations, brands, or examples.
+    - Do NOT reuse styles, colors, or moods from earlier prompts.
+    - Use ONLY the information, assets, and palette explicitly provided below.
+    `;
 
     let styleSynthesisBlock = "";
 
-    if (brandAssets && brandAssets.length > 0) {
-      // Solo usamos los assets de 'inspiration_templates' para definir el estilo.
-      const styleAssets = brandAssets.filter(
-        (a) => a.category === "inspiration_templates",
-      );
+    const styleAssets =
+      brandAssets?.filter(
+        (a) =>
+          a.category === "inspiration_templates" &&
+          a.description &&
+          a.description.length > 30,
+      ) ?? [];
 
-      if (styleAssets.length > 0) {
-        const descriptions = styleAssets
-          .map((a) => {
-            // Aquí usamos la descripción COMPLETA, incluyendo el estilo de la SECTION B
-            // Esto es vital porque la Sección B de tus assets de inspiración ya dice AZUL/TEAL
-            const fullStyleDesc = (a as any).description || "";
-            return `• ${a.name} (${a.category}): ${fullStyleDesc}`;
-          })
-          .join("\n\n");
+    if (styleAssets.length > 0) {
+      styleSynthesisBlock = `
+    ### VISUAL STYLE REFERENCE (STRICT BUT BRAND-SPECIFIC):
+    Synthesize the visual style ONLY from the following brand-owned inspiration assets.
+    DO NOT reuse styles from other brands.
+    If a color is NOT explicitly present here, DO NOT introduce it.
 
-        styleSynthesisBlock = `
-    ### CRITICAL VISUAL STYLE ADHERENCE INSTRUCTIONS (DO NOT DEVIATE):
-    The final image MUST replicate the style, lighting, and mood found in the following style references.
-    **MANDATE:** Prioritize the **VIBRANT TEAL, DEEP BLUE, and GLOSSY HIGHLIGHTS** described below. **The background must be a vibrant color, NOT PURE WHITE.**
+    Brand Color Palette (SOURCE OF TRUTH):
+    - Primary: ${brandDesign.colorPrimary}
+    - Accents: ${brandDesign.colorAccent1}, ${brandDesign.colorAccent2}, ${brandDesign.colorAccent3}
 
-    ${descriptions}
+    ${styleAssets.map((a) => `• ${a.name}: ${a.description}`).join("\n")}
     `;
-      }
     }
 
     // ==========================================================================================
     // ✔ Prompt final con resúmenes incluidos (no cambia tu estructura original)
     // ==========================================================================================
-    const enhancedPrompt = `${imagePrompt}. 
+    const enhancedPrompt = `${visualResetBlock}${imagePrompt}. 
     **CRITICAL SCENE DESCRIPTION (The core idea and fACTUAL SUBJECT):** ${imagePrompt}.generateImageWithNanoBanana
     **FIDELITY MANDATE (DO NOT ALTER THE SUBJECT):** The product subject described above MUST be rendered with 100% fidelity to its material, shape, and color (e.g., if it is rose-gold, it must be rose-gold; if it is oval, it must be oval). **The product is fixed.**
     **CRITICAL LOGO INTEGRATION (FINAL MANDATE):** The final generated image MUST include the brand's unique logo or primary branded symbol.The logo must appear as a small, subtle, high-fidelity graphic imprint
