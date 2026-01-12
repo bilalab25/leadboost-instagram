@@ -125,6 +125,7 @@ export default function ContentCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedPost, setSelectedPost] = useState<ContentPost | null>(null);
   const [editPost, setEditPost] = useState<ContentPost | null>(null);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isFrequencyModalOpen, setIsFrequencyModalOpen] = useState(false);
   const [postingSchedule, setPostingSchedule] = useState<Array<{
@@ -1499,8 +1500,14 @@ export default function ContentCalendar() {
                         <img
                           src={editPost.imageUrl}
                           alt={editPost.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => editPost.imageUrl && setFullscreenImage(editPost.imageUrl)}
+                          title="Click to view full size"
                         />
+                        <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1 pointer-events-none">
+                          <Eye className="w-3 h-3" />
+                          Click to enlarge
+                        </div>
                       </div>
                       {/* Content */}
                       <div className="p-4">
@@ -1734,6 +1741,25 @@ export default function ContentCalendar() {
               >
                 Close and continue working
               </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Fullscreen Image Viewer */}
+        <Dialog open={!!fullscreenImage} onOpenChange={() => setFullscreenImage(null)}>
+          <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none">
+            <div className="relative">
+              <img
+                src={fullscreenImage || ""}
+                alt="Full size preview"
+                className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+              />
+              <button
+                onClick={() => setFullscreenImage(null)}
+                className="absolute top-2 right-2 bg-black/70 hover:bg-black/90 text-white rounded-full p-2 transition-colors"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
             </div>
           </DialogContent>
         </Dialog>

@@ -145,7 +145,6 @@ function selectVisualMode(assets: BrandAssetForImage[]): VisualMode {
 
   if (hasProduct && hasTemplate) return "campaign_template";
   if (hasProduct && hasLocation) return "lifestyle";
-  if (hasProduct) return "product_showcase";
 
   throw new Error("No product assets available for image generation");
 }
@@ -897,18 +896,19 @@ function pickRandomAssets(assets: BrandAssetForImage[], count = 3) {
   return sorted.slice(0, count);
 }
 function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
-  const product = assets.find(
+  const allProducts = assets.filter(
     (a) =>
       a.category === "product_images" ||
       a.category === "products" ||
       a.category === "product",
   );
 
-  if (!product) {
+  if (allProducts.length === 0) {
     throw new Error(
       "[ImageGen] No product image found. Cannot generate image without a product.",
     );
   }
+  const product = allProducts[Math.floor(Math.random() * allProducts.length)];
 
   const templates = assets.filter(
     (a) => a.category === "inspiration_templates",
@@ -1067,6 +1067,25 @@ export async function generateImageWithOpenAI({
         : "- Product must dominate the frame with minimal staging"
   }
   `;
+  const productLockBlock = `
+  PRODUCT LOCK (ABSOLUTE – DO NOT MODIFY):
+
+  The product described below is a REAL, MANUFACTURED object.
+
+  RULES:
+  - Geometry is FIXED
+  - Proportions are FIXED
+  - Materials are FIXED
+  - Orientation is FIXED
+
+  FORBIDDEN:
+  - Stylization
+  - Artistic reinterpretation
+  - Shape exaggeration
+  - Merging product with environment
+  - Altering thickness, curvature, or scale
+  `;
+
   const logoContractBlock = brandDesign.logoUrl
     ? `
   WORDMARK LOGO CONTRACT (ABSOLUTE – NON-NEGOTIABLE):
@@ -1137,7 +1156,7 @@ LOGO–TEMPLATE COMPATIBILITY RULE:
 - The template layout must remain intact.
 
 ${brandDesignBlock}
-
+${productLockBlock}
 PRODUCT FIDELITY (ABSOLUTE):
 - The product MUST remain exactly as described
 - Do NOT change material, color, or proportions
@@ -1173,6 +1192,401 @@ SOCIAL MEDIA REQUIREMENTS:
   }
 
   return `data:image/png;base64,${base64Image}`;
+}
+
+export async function generateImageWithGeminiV2({
+  imagePrompt,
+  brandDesign,
+  brandAssets,
+  brandEssence,
+}: {
+  imagePrompt: string;
+  brandDesign: BrandDesign;
+  brandAssets: BrandAssetForImage[];
+  brandEssence?: {
+    tone?: string | null;
+    personality?: string | null;
+    emotion?: string | null;
+    visualKeywords?: string | null;
+    promise?: string | null;
+  };
+}): Promise<string | null> {
+  try {
+    // 1️⃣ Validar producto (obligatorio)
+    const product = brandAssets.find(
+      (a) =>
+        a.category === "product_images" ||
+        a.category === "product" ||
+        a.category === "products",
+    );
+
+    if (!product) {
+      console.warn("[GeminiImage] No product asset found");
+      return null;
+    }
+
+    // 2️⃣ Determinar modo visual (REUTILIZA TU LÓGICA)
+    const mode = selectVisualMode(brandAssets);
+    const modeAssets = pickAssetsForMode(mode, brandAssets);
+
+    // 3️⃣ Construir contentParts (ORDEN CRÍTICO)
+    const contentParts: any[] = [];
+
+    // 🟥 1. LOGO — autoridad absoluta
+    if (brandDesign.logoUrl) {
+      const logoImg = await fetchImageAsBase64(brandDesign.logoUrl);
+      if (logoImg) {
+        contentParts.push({
+          inlineData: {
+            data: logoImg.data,
+            mimeType: logoImg.mimeType,
+          },
+        });
+      }
+    }
+
+    // 🟦 2. PRODUCTO — geometría fija
+    const productImg = await fetchImageAsBase64(product.url);
+    if (productImg) {
+      contentParts.push({
+        inlineData: {
+          data: productImg.data,
+          mimeType: productImg.mimeType,
+        },
+      });
+    }
+
+    // 🟨 3. TEMPLATE o LOCATION según modo
+    if (mode === "campaign_template" && modeAssets.template) {
+      const templateImg = await fetchImageAsBase64(modeAssets.template.url);
+      if (templateImg) {
+        contentParts.push({
+          inlineData: {
+            data: templateImg.data,
+            mimeType: templateImg.mimeType,
+          },
+        });
+      }
+    }
+
+    if (mode === "lifestyle" && modeAssets.location) {
+      const locationImg = await fetchImageAsBase64(modeAssets.location.url);
+      if (locationImg) {
+        contentParts.push({
+          inlineData: {
+            data: locationImg.data,
+            mimeType: locationImg.mimeType,
+          },
+        });
+      }
+    }
+
+    // 4️⃣ Prompt corto, quirúrgico (Gemini VE las imágenes)
+    const modeText =
+      mode === "product_showcase"
+        ? `
+You are photographing a REAL manufactured product.
+
+RULES:
+- Match the product EXACTLY as shown.
+- Studio lighting, minimal environment.
+- Product dominates the frame.
+`
+        : mode === "campaign_template"
+          ? `
+You are placing a REAL product into an EXISTING marketing template.
+
+RULES:
+- The template image defines camera angle and layout.
+- The product must fit WITHOUT distortion.
+- Do NOT alter proportions or geometry.
+`
+          : `
+You are photographing a REAL product in a REAL environment.
+
+RULES:
+- The environment defines mood and framing.
+- The product remains the focal point.
+- Do NOT stylize or redesign the product.
+`;
+
+    const logoRules = brandDesign.logoUrl
+      ? `
+LOGO RULES (ABSOLUTE):
+- The FIRST image is the OFFICIAL brand logo.
+- Reproduce it EXACTLY (no simplification, no distortion).
+- The logo must appear physically integrated:
+  engraving, embossing, debossing, label, or metal plate.
+- NEVER replace the logo with a letter or symbol.
+`
+      : "";
+
+    const essenceBlock = `
+BRAND ESSENCE:
+- Tone: ${brandEssence?.tone || "professional"}
+- Emotion: ${brandEssence?.emotion || "aspirational"}
+- Visual keywords: ${brandEssence?.visualKeywords || "clean, premium"}
+`;
+
+    const finalPrompt = `
+${modeText}
+${logoRules}
+${essenceBlock}
+
+SCENE DESCRIPTION:
+${imagePrompt}
+
+CRITICAL:
+- Do NOT change product geometry.
+- Do NOT modify the logo.
+- Do NOT redesign the product.
+`;
+
+    contentParts.push({ text: finalPrompt });
+
+    // 5️⃣ Llamada a Gemini Image
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-image",
+      contents: contentParts,
+      config: {
+        responseModalities: [Modality.IMAGE],
+      },
+    });
+
+    // 6️⃣ Extraer imagen
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    for (const part of parts) {
+      if (part.inlineData?.data) {
+        const mimeType = part.inlineData.mimeType || "image/png";
+        return `data:${mimeType};base64,${part.inlineData.data}`;
+      }
+    }
+
+    console.warn("[GeminiImage] No image returned");
+    return null;
+  } catch (err) {
+    console.error("[GeminiImage] Error generating image:", err);
+    return null;
+  }
+}
+export async function generateImageWithGeminiNanoBanana({
+  imagePrompt,
+  brandDesign,
+  brandAssets,
+  brandEssence,
+}: {
+  imagePrompt: string;
+  brandDesign: BrandDesign;
+  brandAssets: BrandAssetForImage[];
+  brandEssence?: {
+    tone?: string | null;
+    personality?: string | null;
+    emotion?: string | null;
+    visualKeywords?: string | null;
+    promise?: string | null;
+  };
+}): Promise<string | null> {
+  try {
+    console.log("🚀 [NanoBanana] Iniciando generación...");
+    console.log("📦 [Assets recibidos]:", brandAssets.length);
+
+    const product = brandAssets.find((a) =>
+      ["product_images", "product", "products"].includes(a.category),
+    );
+
+    if (!product) {
+      console.error(
+        "❌ [NanoBanana] Error: No se encontró imagen del producto en brandAssets",
+      );
+      return null;
+    }
+
+    const mode = selectVisualMode(brandAssets);
+    const modeAssets = pickAssetsForMode(mode, brandAssets);
+
+    // 🔍 LOG: Debug de Lógica de Selección
+    console.log("🛠️ [Modo Seleccionado]:", mode);
+    console.log("🖼️ [Mode Assets]:", {
+      hasTemplate: !!modeAssets.template,
+      hasLocation: !!modeAssets.location,
+      templateUrl: modeAssets.template?.url || "N/A",
+      locationUrl: modeAssets.location?.url || "N/A",
+    });
+
+    const contentParts: any[] = [];
+
+    // 1️⃣ TEMPLATE/LOCATION (Base)
+    if (mode === "campaign_template" && modeAssets.template) {
+      console.log("🎨 [Cargando Template]:", modeAssets.template.url);
+      const templateImg = await fetchImageAsBase64(modeAssets.template.url);
+      if (templateImg) {
+        contentParts.push({
+          inlineData: {
+            data: templateImg.data,
+            mimeType: templateImg.mimeType,
+          },
+        });
+      }
+    } else if (mode === "lifestyle" && modeAssets.location) {
+      console.log("🏠 [Cargando Location]:", modeAssets.location.url);
+      const locationImg = await fetchImageAsBase64(modeAssets.location.url);
+      if (locationImg) {
+        contentParts.push({
+          inlineData: {
+            data: locationImg.data,
+            mimeType: locationImg.mimeType,
+          },
+        });
+      }
+    }
+
+    // 2️⃣ PRODUCTO (Sujeto)
+    console.log("🍎 [Cargando Producto]:", modeAssets.product.url);
+    const productImg = await fetchImageAsBase64(modeAssets.product.url);
+    if (productImg) {
+      contentParts.push({
+        inlineData: { data: productImg.data, mimeType: productImg.mimeType },
+      });
+    }
+
+    // 3️⃣ LOGO (Branding)
+    if (brandDesign.logoUrl) {
+      console.log("🏷️ [Cargando Logo]:", brandDesign.logoUrl);
+      const logoImg = await fetchImageAsBase64(brandDesign.logoUrl);
+      if (logoImg) {
+        contentParts.push({
+          inlineData: { data: logoImg.data, mimeType: logoImg.mimeType },
+        });
+      }
+    }
+
+    const finalPrompt = `Eres un generador de imágenes AI experto en crear imágenes de productos para redes sociales que reflejan fielmente la identidad de la marca.
+
+Tu objetivo es crear UNA NUEVA IMAGEN desde cero, integrando un producto real dentro de una composición inspirada en un template visual existente.
+
+────────────────────────────────
+IMAGEN 1 – TEMPLATE (REFERENCIA DE COMPOSICIÓN)
+────────────────────────────────
+La primera imagen corresponde al template seleccionado y actúa como REFERENCIA DE COMPOSICIÓN Y ESTILO, NO como escena final.
+
+A partir de esta imagen debes inspirarte únicamente en:
+- la composición general
+- la distribución de elementos
+- el balance visual y el uso de espacio negativo
+- el encuadre y ángulo de cámara
+- el estilo visual y la paleta de color
+
+REGLA CRÍTICA DE REINTERPRETACIÓN DEL TEMPLATE:
+- El template NO debe ser copiado literalmente.
+- NO debes reutilizar, replicar ni conservar objetos, productos, joyas, props o elementos visibles en el template.
+- El template existe SOLO para guiar la estructura visual y el estilo.
+- Debes reconstruir una NUEVA escena desde cero usando el producto proporcionado.
+
+El resultado debe sentirse como una imagen nueva, no como una copia o un montaje del template original.
+
+────────────────────────────────
+IMAGEN 2 – PRODUCTO (FIDELIDAD ABSOLUTA)
+────────────────────────────────
+La segunda imagen es el producto real que debe presentarse en la nueva imagen.
+Este producto debe ser el elemento principal, central y más destacado de la composición final.
+
+REGLAS OBLIGATORIAS DEL PRODUCTO:
+- No modificar forma, color, proporciones ni materiales
+- No rediseñar, estilizar ni reinterpretar el producto
+- No añadir ni eliminar partes
+- El producto debe coincidir exactamente con la imagen proporcionada
+
+ÚNICOS AJUSTES PERMITIDOS:
+- escala dentro de la composición
+- orientación
+- iluminación coherente con la escena
+
+────────────────────────────────
+INTEGRACIÓN FÍSICA Y REALISMO (OBLIGATORIO)
+────────────────────────────────
+El producto debe verse FÍSICAMENTE PRESENTE en la escena, no insertado digitalmente.
+
+REGLAS DE REALISMO FÍSICO:
+- El producto debe descansar de forma natural sobre la superficie.
+- Deben existir sombras de contacto suaves donde el producto toca la superficie.
+- Los materiales blandos (terciopelo, tela, cuero) deben mostrar ligera compresión o adaptación al producto.
+- El producto debe seguir la gravedad (no flotar, no suspenderse).
+- La colocación debe presentar ligera asimetría natural, evitando alineaciones perfectas.
+- La escena debe sentirse fotografiada, no renderizada ni compuesta artificialmente.
+
+DETALLE ESPECÍFICO PARA JOYERÍA (SI APLICA):
+- Las piezas no deben ser perfectamente paralelas.
+- Puede haber una mínima variación de profundidad entre piezas.
+- Las reflexiones deben variar sutilmente entre elementos.
+- Evitar simetría perfecta tipo catálogo CGI.
+
+────────────────────────────────
+IMAGEN 3 – LOGO (IDENTIDAD DE MARCA)
+────────────────────────────────
+La tercera imagen es el logo oficial de la marca.
+
+Debes integrar el logo de forma:
+- sutil
+- realista
+- física
+y coherente con la escena.
+
+Ejemplos de integración permitida:
+- grabado
+- relieve
+- emblema metálico
+- etiqueta o placa discreta
+- detalle sobre empaque o superficie cercana al producto
+
+REGLAS ESTRICTAS DEL LOGO:
+- No alterar la forma original del logo
+- No simplificarlo ni reemplazarlo por letras o símbolos
+- No añadir texto adicional
+- No estilizar, reinterpretar ni deformar el logo
+
+────────────────────────────────
+CONDICIONES FINALES (OBLIGATORIAS)
+────────────────────────────────
+- El producto debe ser el protagonista absoluto de la imagen
+- El template define la composición y estética, pero NO los objetos
+- El producto debe integrarse físicamente en la escena con realismo
+- El logo debe estar presente de forma física y claramente reconocible
+- La escena debe sentirse coherente, natural y visualmente integrada
+- Cualquier imagen que modifique el producto, copie objetos del template o altere el logo es inválida
+
+`;
+
+    // 🔍 LOG: Verificar orden de imágenes y prompt
+    console.log("📝 [Total Content Parts]:", contentParts.length);
+    console.log("📝 [Prompt Final]:", finalPrompt);
+
+    contentParts.push({ text: finalPrompt });
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-image-preview",
+      contents: contentParts,
+      config: {
+        responseModalities: ["IMAGE"],
+        imageConfig: { aspectRatio: "1:1", imageSize: "2K" },
+      },
+    });
+
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    for (const part of parts) {
+      if (part.inlineData?.data) {
+        console.log("✅ [NanoBanana] Imagen generada con éxito");
+        return `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
+      }
+    }
+
+    console.warn(
+      "⚠️ [NanoBanana] El modelo no devolvió ninguna imagen en los parts",
+    );
+    return null;
+  } catch (error) {
+    console.error("🔥 [NanoBanana] Error crítico:", error);
+    return null;
+  }
 }
 
 // 🔹 FUNCIÓN PRINCIPAL (con los 2 cambios que necesitas)
@@ -1778,12 +2192,11 @@ export async function processPostGeneration(
       let imageUrl: string | null = null;
 
       try {
-        const generatedImage = await generateImageWithOpenAI({
+        const generatedImage = await generateImageWithGeminiNanoBanana({
           imagePrompt: post.imagePrompt,
           brandDesign,
           brandAssets: assetsForImageGen,
           brandEssence,
-          brand,
         });
 
         if (generatedImage) {
