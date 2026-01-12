@@ -1000,6 +1000,7 @@ export async function generateImageWithOpenAI({
   brandDesign,
   brandAssets,
   brandEssence,
+  brand,
 }: {
   imagePrompt: string;
   brandDesign: BrandDesign;
@@ -1011,6 +1012,7 @@ export async function generateImageWithOpenAI({
     visualKeywords?: string | null;
     promise?: string | null;
   };
+  brand?: { name: string };
 }): Promise<string | null> {
   // 1️⃣ Validar que exista al menos UN producto
   const product = brandAssets.find(
@@ -1034,6 +1036,74 @@ export async function generateImageWithOpenAI({
   if (mode === "product_showcase") modePrompt = promptProductShowcase();
   if (mode === "campaign_template") modePrompt = promptCampaign();
   if (mode === "lifestyle") modePrompt = promptLifestyle();
+  const modeAssets = pickAssetsForMode(mode, brandAssets);
+  const templateContract =
+    modeAssets.template?.description &&
+    modeAssets.template.description.length > 200
+      ? `
+  TEMPLATE RECONSTRUCTION CONTRACT (ABSOLUTE):
+
+  The following description defines a REAL, EXISTING visual template.
+  This is NOT inspiration.
+
+  MANDATORY:
+  - Reproduce layout exactly
+  - Preserve camera angle
+  - Preserve subject scale
+  - Preserve negative space
+  - Preserve composition hierarchy
+
+  ${modeAssets.template.description}
+  `
+      : "";
+  const modeGovernanceBlock = `
+  VISUAL MODE GOVERNANCE:
+  - Mode: ${mode}
+  ${
+    mode === "campaign_template"
+      ? "- The template layout is the primary authority"
+      : mode === "lifestyle"
+        ? "- The environment governs framing, but product remains central"
+        : "- Product must dominate the frame with minimal staging"
+  }
+  `;
+  const logoContractBlock = brandDesign.logoUrl
+    ? `
+  WORDMARK LOGO CONTRACT (ABSOLUTE – NON-NEGOTIABLE):
+
+  The brand uses a TEXT-BASED WORDMARK logo.
+
+  THE WORDMARK TEXT MUST APPEAR EXACTLY AS:
+  "${brand?.name || "Brand"}"
+
+  STRICT REQUIREMENTS:
+  - ALL characters MUST be present.
+  - Letter order MUST be preserved.
+  - Spacing MUST be natural and realistic.
+  - If the brand name includes symbols (e.g. "&", ".", "-"), they MUST be included.
+  - The wordmark MUST NOT be abbreviated.
+  - The wordmark MUST NOT be reduced to initials.
+  - A single letter or monogram (e.g. "T") is STRICTLY FORBIDDEN.
+
+  MATERIAL & PLACEMENT (MANDATORY):
+  - The wordmark MUST appear as REAL manufacturing:
+    • engraved metal plate
+    • embossed metal plaque
+    • debossed packaging text
+    • printed product packaging
+  - The wordmark MUST look physically produced, not graphic or UI-based.
+
+  FORBIDDEN OUTPUTS (INVALID IMAGE):
+  - Single-letter logos
+  - Initials only
+  - Stylized typography replacing the wordmark
+  - Floating or glowing text
+  - Missing brand name
+
+  FAILURE CONDITION:
+  - If the full wordmark "${brand?.name || "Brand"}" is NOT visible, the image is INVALID.
+  `
+    : "";
 
   // 3️⃣ Bloque DURO de diseño de marca (ESTO ERA CLAVE)
   const brandDesignBlock = `
@@ -1058,6 +1128,13 @@ DESIGN RULES:
   // 4️⃣ Prompt final (quirúrgico, sin referencias visuales)
   const finalPrompt = `
 ${modePrompt}
+${modeGovernanceBlock}
+${templateContract}
+${logoContractBlock}
+LOGO–TEMPLATE COMPATIBILITY RULE:
+- The logo MUST be placed in a location that does NOT alter the template’s geometry.
+- The logo is secondary to layout, but NOT optional.
+- The template layout must remain intact.
 
 ${brandDesignBlock}
 
@@ -1706,6 +1783,7 @@ export async function processPostGeneration(
           brandDesign,
           brandAssets: assetsForImageGen,
           brandEssence,
+          brand,
         });
 
         if (generatedImage) {
