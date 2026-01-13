@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import type { BrandDesign, BrandAsset, Integration } from "@shared/schema";
 import sharp from "sharp";
 import OpenAI from "openai";
+import cloudinary from "../cloudinary";
 
 function enforceLanguage(
   posts: GeneratedPost[],
@@ -1790,7 +1791,7 @@ DETALLE ESPECÍFICO PARA JOYERÍA (SI APLICA):
 - Las reflexiones deben variar sutilmente entre elementos.
 - Evitar simetría perfecta tipo catálogo CGI.
 
-────────────────────────────────
+───────────────────────────────L��
 IMAGEN 3 – LOGO (IDENTIDAD DE MARCA)
 ────────────────────────────────
 La tercera imagen es el logo oficial de la marca.
@@ -2644,8 +2645,8 @@ export async function processPostGeneration(
     }));
 
     for (const post of posts) {
-      let imageUrl: string | null = null;
-
+      let finalUrl = "";
+      let cloudinaryPublicId = null;
       try {
         const generatedImage = await generateImageWithGeminiNanoBanana({
           imagePrompt: post.imagePrompt,
@@ -2657,8 +2658,6 @@ export async function processPostGeneration(
         let finalTitulo = post.titulo;
         let finalContent = post.content;
         let finalHashtags = post.hashtags;
-        const preferredLanguage = brandDesign.preferredLanguage || "en";
-
         if (generatedImage) {
           try {
             const imageBase64 = await fetchImageAsBase64(generatedImage);
@@ -2672,6 +2671,18 @@ export async function processPostGeneration(
             finalTitulo = refinedText.titulo;
             finalContent = refinedText.content;
             finalHashtags = refinedText.hashtags;
+
+            const dataUri = imageBase64 ? `data:${imageBase64.mimeType};base64,${imageBase64.data}` : null;
+            if (!dataUri) throw new Error("Failed to convert image to data URI");
+            
+            const upload = await cloudinary.uploader.upload(dataUri, {
+              folder: `brands/posts/${brand.id}`,
+              public_id: `${jobId}_${post.platform}_${post.dia}`,
+              resource_type: "image",
+            });
+
+            finalUrl = upload.secure_url;
+            cloudinaryPublicId = upload.public_id;
           } catch (err) {
             console.warn(
               "[PostGenerator] Refinement failed, using original copy",
@@ -2686,8 +2697,8 @@ export async function processPostGeneration(
           titulo: finalTitulo,
           content: finalContent,
           hashtags: finalHashtags,
-          imageUrl: generatedImage,
-          cloudinaryPublicId: null,
+          imageUrl: finalUrl,
+          cloudinaryPublicId,
           dia: post.dia,
           status: "pending",
         });
