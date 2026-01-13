@@ -114,6 +114,7 @@ export interface PlatformPostingSchedule {
 }
 
 export interface PostGenerationContext {
+  generationMode?: "full" | "skeleton" | "vision";
   brandId: string;
   brandName: string;
   brandDescription?: string;
@@ -134,7 +135,83 @@ export interface PostGenerationContext {
     visualKeywords: string | null;
     promise: string | null;
   };
+  imageDataUrl?: string;
 }
+
+function fullPostsSchema(languageLabel: string) {
+  return {
+    type: Type.OBJECT,
+    properties: {
+      posts: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            platform: { type: Type.STRING },
+            titulo: { type: Type.STRING },
+            content: { type: Type.STRING },
+            hashtags: { type: Type.STRING },
+            dia: { type: Type.STRING },
+            optimalTime: { type: Type.STRING },
+            imagePrompt: { type: Type.STRING },
+          },
+          required: [
+            "platform",
+            "titulo",
+            "content",
+            "hashtags",
+            "dia",
+            "optimalTime",
+            "imagePrompt",
+          ],
+        },
+      },
+    },
+    required: ["posts"],
+  };
+}
+function skeletonPostsSchema() {
+  return {
+    type: Type.OBJECT,
+    properties: {
+      posts: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            platform: { type: Type.STRING },
+            titulo: { type: Type.STRING },
+            content: { type: Type.STRING },
+            hashtags: { type: Type.STRING },
+            dia: { type: Type.STRING },
+            optimalTime: { type: Type.STRING },
+          },
+          required: [
+            "platform",
+            "titulo",
+            "content",
+            "hashtags",
+            "dia",
+            "optimalTime",
+          ],
+        },
+      },
+    },
+    required: ["posts"],
+  };
+}
+function visionTextSchema(languageLabel: string) {
+  return {
+    type: Type.OBJECT,
+    properties: {
+      titulo: { type: Type.STRING },
+      content: { type: Type.STRING },
+      hashtags: { type: Type.STRING },
+    },
+    required: ["titulo", "content", "hashtags"],
+  };
+}
+
 type VisualMode = "product_showcase" | "campaign_template" | "lifestyle";
 function selectVisualMode(assets: BrandAssetForImage[]): VisualMode {
   const hasProduct = assets.some((a) => a.category === "product_images");
@@ -594,6 +671,170 @@ IMPORTANT: Return ONLY valid JSON in this exact format:
 }`;
 }
 
+export function buildPostsSkeletonPrompt(
+  context: PostGenerationContext,
+): string {
+  const {
+    brandName,
+    brandDescription,
+    brandDesign,
+    metaInsights,
+    month,
+    year,
+    postingSchedule,
+    connectedPlatforms,
+  } = context;
+
+  const preferredLanguage =
+    context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
+
+  const languageLabel = languageInstruction(preferredLanguage);
+
+  const monthName = new Date(year, month - 1).toLocaleString("en-US", {
+    month: "long",
+  });
+
+  // Fecha actual
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentDay = now.getDate();
+
+  const startDay =
+    year === currentYear && month === currentMonth ? currentDay : 1;
+
+  const lastDayOfMonth = new Date(year, month, 0).getDate();
+
+  const dateRestriction =
+    startDay > 1
+      ? `Generate posts ONLY from ${monthName} ${startDay} to ${monthName} ${lastDayOfMonth}.`
+      : `Generate posts for the entire month of ${monthName}.`;
+
+  const availablePlatforms =
+    connectedPlatforms && connectedPlatforms.length > 0
+      ? connectedPlatforms
+      : ["instagram", "facebook"];
+
+  let postingScheduleInstructions = "";
+  let totalPosts = 0;
+
+  if (postingSchedule && postingSchedule.length > 0) {
+    postingScheduleInstructions = postingSchedule
+      .map((schedule) => {
+        totalPosts += schedule.postingDates.length;
+        return `- ${schedule.platform}: ${schedule.postingDates.join(", ")}`;
+      })
+      .join("\n");
+  } else {
+    totalPosts = 15;
+  }
+
+  const bestTimes =
+    metaInsights?.bestPostingTimes?.join(", ") || "9:00 AM, 12:00 PM, 6:00 PM";
+
+  return `
+You are an expert social media planner.
+
+Your ONLY task is to generate a POSTS SKELETON for ${monthName} ${year}.
+
+LANGUAGE (ABSOLUTE):
+- ALL output MUST be in ${languageLabel}.
+- Do NOT generate any copy text.
+- Do NOT include captions, titles, or hashtags.
+
+BRAND:
+- Name: ${brandName}
+- Description: ${brandDescription || "Not specified"}
+- Style: ${brandDesign.brandStyle || "modern"}
+
+DATE RULES:
+${dateRestriction}
+
+POSTING SCHEDULE:
+${postingScheduleInstructions}
+
+TOTAL POSTS: ${totalPosts}
+
+FOR EACH POST:
+- platform (exact value)
+- dia (YYYY-MM-DD)
+- optimalTime (choose from: ${bestTimes})
+
+TEXT FIELDS MUST BE EMPTY STRINGS:
+- titulo: ""
+- content: ""
+- hashtags: ""
+
+IMPORTANT:
+- DO NOT generate imagePrompt
+- DO NOT generate any text content
+- DO NOT invent extra fields
+
+Return ONLY valid JSON in this format:
+
+{
+  "posts": [
+    {
+      "platform": "instagram",
+      "titulo": "",
+      "content": "",
+      "hashtags": "",
+      "dia": "${year}-${String(month).padStart(2, "0")}-01",
+      "optimalTime": "6:00 PM"
+    }
+  ]
+}
+`;
+}
+export function buildTextFromImageVisionPrompt(
+  context: PostGenerationContext,
+): string {
+  const preferredLanguage =
+    context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
+
+  const languageLabel = languageInstruction(preferredLanguage);
+
+  return `
+You are an expert social media copywriter.
+
+You are provided with an IMAGE.
+
+BRAND ESSENCE (MANDATORY):
+- Tone of Voice: ${context.brandEssence?.tone ?? "Not specified"}
+- Personality: ${context.brandEssence?.personality ?? "Not specified"}
+- Emotional Feel: ${context.brandEssence?.emotion ?? "Not specified"}
+- Brand Promise: ${context.brandEssence?.promise ?? "Not specified"}
+
+LANGUAGE RULES (ABSOLUTE – NO EXCEPTIONS):
+- ALL generated text MUST be written exclusively in ${languageLabel}
+- This includes title, caption, hashtags
+- DO NOT mix languages
+- DO NOT use English words unless the language is English
+- Hashtags MUST be written in ${languageLabel}
+
+TASK:
+Based ONLY on the visual content of the image and the brand essence:
+1. Generate a catchy title (titulo)
+2. Generate a full caption with emojis (content)
+3. Generate 5–10 relevant hashtags (hashtags)
+
+IMPORTANT:
+- Do NOT describe the image explicitly
+- Do NOT mention AI
+- Do NOT mention image generation
+- Emojis are allowed
+- The text must feel native and natural in ${languageLabel}
+
+Return ONLY valid JSON:
+
+{
+  "titulo": "…",
+  "content": "…",
+  "hashtags": "#hashtag1 #hashtag2 #hashtag3"
+}
+`;
+}
+
 // Helper function to clean and parse JSON from LLM response
 function cleanAndParseJson(text: string): any {
   console.log("[PostGenerator] Raw response length:", text?.length || 0);
@@ -747,87 +988,115 @@ function findMatchingBrace(str: string, start: number): number {
 
 export async function generatePostsWithGemini(
   context: PostGenerationContext,
-): Promise<GeneratedPost[]> {
+): Promise<any> {
   console.log(
-    `[PostGenerator] Starting post generation for brand: ${context.brandName}`,
+    `[PostGenerator] Gemini generation mode: ${context.generationMode ?? "full"}`,
   );
-  // Use preferredLanguage from brand (context) first, then fallback to brandDesign
+
   const preferredLanguage =
     context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
 
   const languageLabel = languageInstruction(preferredLanguage);
 
-  const prompt = buildTextPrompt(context);
-  console.log("--- START GEMINI FULL PROMPT ---");
-  console.log(prompt);
-  console.log("--- END GEMINI FULL PROMPT ---");
+  const generationMode = context.generationMode ?? "full";
 
   try {
-    // Use structured output with JSON schema for reliable parsing
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        temperature: 0.7,
-        maxOutputTokens: 8192,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            posts: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  platform: { type: Type.STRING },
-                  titulo: {
-                    type: Type.STRING,
-                    description: `Must be written in ${languageLabel}`,
-                  },
-                  content: {
-                    type: Type.STRING,
-                    description: `Must be written in ${languageLabel}`,
-                  },
-                  hashtags: {
-                    type: Type.STRING,
-                    description: `Hashtags written in ${languageLabel}`,
-                  },
-                  dia: { type: Type.STRING },
-                  optimalTime: { type: Type.STRING },
-                  imagePrompt: { type: Type.STRING },
-                },
-                required: [
-                  "platform",
-                  "titulo",
-                  "content",
-                  "hashtags",
-                  "dia",
-                  "optimalTime",
-                  "imagePrompt",
-                ],
-              },
-            },
-          },
-          required: ["posts"],
+    // ─────────────────────────────────────────────
+    // MODE: FULL (LEGACY – NO TOCAR)
+    // ─────────────────────────────────────────────
+    if (generationMode === "full") {
+      const prompt = buildTextPrompt(context);
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+          responseMimeType: "application/json",
+          responseSchema: fullPostsSchema(languageLabel),
         },
-      },
-    });
+      });
 
-    const text = response.text || "";
-    console.log("[PostGenerator] Received response from Gemini");
-    const parsed = cleanAndParseJson(text);
-    const posts: GeneratedPost[] = enforceLanguage(
-      parsed.posts || [],
-      preferredLanguage,
-    );
+      const parsed = cleanAndParseJson(response.text || "");
+      return enforceLanguage(parsed.posts || [], preferredLanguage);
+    }
 
-    console.log(
-      `[PostGenerator] Generated ${posts.length} posts after language enforcement`,
-    );
+    // ─────────────────────────────────────────────
+    // MODE: SKELETON (estructura vacía)
+    // ─────────────────────────────────────────────
+    if (generationMode === "skeleton") {
+      const prompt = buildPostsSkeletonPrompt(context);
 
-    return posts;
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+          temperature: 0.3,
+          maxOutputTokens: 4096,
+          responseMimeType: "application/json",
+          responseSchema: skeletonPostsSchema(),
+        },
+      });
+
+      const parsed = cleanAndParseJson(response.text || "");
+      return parsed.posts || [];
+    }
+
+    // ─────────────────────────────────────────────
+    // MODE: VISION (imagen → texto)
+    // ─────────────────────────────────────────────
+    if (generationMode === "vision") {
+      if (!context.imageDataUrl) {
+        throw new Error("Vision mode requires imageDataUrl in context");
+      }
+
+      const prompt = buildTextFromImageVisionPrompt(context);
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                inlineData: {
+                  mimeType: "image/png",
+                  data: context.imageDataUrl,
+                },
+              },
+              { text: prompt },
+            ],
+          },
+        ],
+        config: {
+          temperature: 0.7,
+          responseMimeType: "application/json",
+          responseSchema: visionTextSchema(languageLabel),
+        },
+      });
+
+      const parsed = cleanAndParseJson(response.text || "");
+
+      return enforceLanguage(
+        [
+          {
+            titulo: parsed.titulo,
+            content: parsed.content,
+            hashtags: parsed.hashtags,
+            platform: "",
+            dia: "",
+            optimalTime: "",
+            imagePrompt: "",
+          },
+        ],
+        preferredLanguage,
+      )[0];
+    }
+
+    throw new Error(`Unknown generationMode: ${generationMode}`);
   } catch (error) {
-    console.error("[PostGenerator] Error generating posts:", error);
+    console.error("[PostGenerator] Gemini generation failed:", error);
     throw error;
   }
 }
@@ -1390,8 +1659,10 @@ export async function generateImageWithGeminiNanoBanana({
     console.log("🚀 [NanoBanana] Iniciando generación...");
     console.log("📦 [Assets recibidos]:", brandAssets.length);
 
-    const product = brandAssets.find((a) =>
-      a.category && ["product_images", "product", "products"].includes(a.category),
+    const product = brandAssets.find(
+      (a) =>
+        a.category &&
+        ["product_images", "product", "products"].includes(a.category),
     );
 
     if (!product) {
@@ -1503,7 +1774,6 @@ REGLAS OBLIGATORIAS DEL PRODUCTO:
 
 ────────────────────────────────
 INTEGRACIÓN FÍSICA Y REALISMO (OBLIGATORIO)
-────────────────────────────────
 El producto debe verse FÍSICAMENTE PRESENTE en la escena, no insertado digitalmente.
 
 REGLAS DE REALISMO FÍSICO:
@@ -1914,6 +2184,61 @@ export async function addWatermarkToImage(
     return imageDataUrl;
   }
 }
+function containsForbiddenEnglish(text: string): boolean {
+  // Palabras comunes que delatan salida en inglés
+  const forbidden =
+    /\b(the|and|with|for|your|you|new|best|now|shop|sale|discover|explore|crafted|timeless)\b/i;
+  return forbidden.test(text);
+}
+
+async function forceTranslateToLanguage(
+  content: { titulo: string; content: string; hashtags: string },
+  languageLabel: string,
+): Promise<{ titulo: string; content: string; hashtags: string }> {
+  const prompt = `
+Translate the following JSON content to ${languageLabel}.
+
+RULES:
+- Preserve tone, emotion, and emojis
+- Preserve meaning of hashtags
+- Do NOT add new content
+- Output MUST be valid JSON
+- Output MUST be written ONLY in ${languageLabel}
+
+CONTENT:
+${JSON.stringify(content)}
+`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: prompt,
+    config: {
+      temperature: 0.3,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          titulo: {
+            type: Type.STRING,
+            description: `Must be written in ${languageLabel}`,
+          },
+          content: {
+            type: Type.STRING,
+            description: `Must be written in ${languageLabel}`,
+          },
+          hashtags: {
+            type: Type.STRING,
+            description: `Must be written in ${languageLabel}`,
+          },
+        },
+        required: ["titulo", "content", "hashtags"],
+      },
+    },
+  });
+
+  return JSON.parse(response.text || "{}");
+}
+
 export async function refinePostWithGeminiUsingImage({
   imageDataUrl,
   brandName,
@@ -1934,61 +2259,112 @@ export async function refinePostWithGeminiUsingImage({
   hashtags: string;
 }> {
   const match = imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
-  if (!match) throw new Error("Invalid image data URL");
+  if (!match) {
+    throw new Error("[RefineCopy] Invalid image data URL");
+  }
 
   const [, mimeType, base64] = match;
   const languageLabel = languageInstruction(preferredLanguage);
 
-  const prompt = `
+  const basePrompt = `
 You are an expert social media copywriter.
 
 You are given a FINAL GENERATED IMAGE.
-Write copy that matches THIS image.
+Write social media copy that matches THIS image.
 
-RULES:
-- Write ONLY in ${languageLabel}
+LANGUAGE CONSTRAINT (ABSOLUTE — NO EXCEPTIONS):
+- ALL output MUST be written exclusively in ${languageLabel}
+- ANY word in another language is FORBIDDEN
+- If you violate this, the output is INVALID
+
+STYLE RULES:
 - Do NOT describe the image literally
 - Write aspirational, premium, emotional copy
 - Adapt tone to the visual mood of the image
 
-BRAND: ${brandName}
+BRAND NAME: ${brandName}
 
 BRAND ESSENCE:
 - Tone: ${brandEssence?.tone ?? "professional"}
 - Emotion: ${brandEssence?.emotion ?? "aspirational"}
 - Visual keywords: ${brandEssence?.visualKeywords ?? "clean, premium"}
 
-RETURN JSON WITH:
+RETURN VALID JSON WITH:
 - titulo
 - content
 - hashtags (5–10)
 `;
 
-  const response = await ai.models.generateContent({
+  // 🔁 Hasta 2 intentos “naturales”
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          inlineData: {
+            data: base64,
+            mimeType,
+          },
+        },
+        { text: basePrompt },
+      ],
+      config: {
+        temperature: 0.8,
+        maxOutputTokens: 1024,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            titulo: { type: Type.STRING },
+            content: { type: Type.STRING },
+            hashtags: { type: Type.STRING },
+          },
+          required: ["titulo", "content", "hashtags"],
+        },
+      },
+    });
+
+    const result = JSON.parse(response.text || "{}");
+    const combined = `${result.titulo} ${result.content} ${result.hashtags}`;
+
+    if (!containsForbiddenEnglish(combined)) {
+      return result; // ✅ Idioma correcto
+    }
+
+    console.warn(
+      `[RefineCopy] Language violation detected (attempt ${attempt}). Retrying...`,
+    );
+  }
+
+  // 🔥 FALLBACK DURO: traducir sí o sí
+  console.warn(
+    "[RefineCopy] Forcing translation to target language as fallback",
+  );
+
+  const fallback = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: [
       {
-        inlineData: { data: base64, mimeType },
-      },
-      { text: prompt },
-    ],
-    config: {
-      temperature: 0.8,
-      maxOutputTokens: 1024,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          titulo: { type: Type.STRING },
-          content: { type: Type.STRING },
-          hashtags: { type: Type.STRING },
+        inlineData: {
+          data: base64,
+          mimeType,
         },
-        required: ["titulo", "content", "hashtags"],
       },
-    },
+      {
+        text: `
+Generate the copy FIRST in ANY language you prefer.
+Then TRANSLATE it to ${languageLabel}.
+
+FINAL OUTPUT MUST be ONLY in ${languageLabel}.
+Return valid JSON with titulo, content, hashtags.
+`,
+      },
+    ],
   });
 
-  return JSON.parse(response.text || "{}");
+  const fallbackParsed = JSON.parse(fallback.text || "{}");
+
+  return forceTranslateToLanguage(fallbackParsed, languageLabel);
 }
 
 export async function processPostGeneration(
@@ -1997,7 +2373,6 @@ export async function processPostGeneration(
   month: number,
   year: number,
 ): Promise<void> {
-  
   const { updatePostGeneratorJob } = await import(
     "../storage/postGeneratorJobs"
   );
@@ -2189,7 +2564,10 @@ export async function processPostGeneration(
         : undefined,
     };
 
-    const allPosts = await generatePostsWithGemini(context);
+    const allPosts = await generatePostsWithGemini({
+      ...context,
+      generationMode: "skeleton",
+    });
 
     // Server-side filtering: Only keep posts for platforms in the posting schedule
     // Build a map of allowed platform -> allowed dates
@@ -2209,7 +2587,7 @@ export async function processPostGeneration(
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const posts = allPosts.filter((post) => {
+    const posts = allPosts.filter((post: GeneratedPost) => {
       // Check platform is in the posting schedule
       const allowedDates = allowedSchedule.get(post.platform);
       if (!allowedDates) {
@@ -2283,18 +2661,21 @@ export async function processPostGeneration(
 
         if (generatedImage) {
           try {
-            const refined = await refinePostWithGeminiUsingImage({
-              imageDataUrl: generatedImage,
-              brandName: brand.name,
-              brandEssence: context.brandEssence,
-              preferredLanguage,
+            const imageBase64 = await fetchImageAsBase64(generatedImage);
+
+            const refinedText = await generatePostsWithGemini({
+              ...context,
+              generationMode: "vision",
+              imageDataUrl: imageBase64?.data,
             });
 
-            finalTitulo = refined.titulo;
-            finalContent = refined.content;
-            finalHashtags = refined.hashtags;
+            finalTitulo = refinedText.titulo;
+            finalContent = refinedText.content;
+            finalHashtags = refinedText.hashtags;
           } catch (err) {
-            console.warn("[PostGenerator] Refinement failed, using original copy");
+            console.warn(
+              "[PostGenerator] Refinement failed, using original copy",
+            );
           }
         }
 
@@ -2311,7 +2692,10 @@ export async function processPostGeneration(
           status: "pending",
         });
       } catch (postError) {
-        console.error(`[PostGenerator] Failed to generate post for ${post.platform}:`, postError);
+        console.error(
+          `[PostGenerator] Failed to generate post for ${post.platform}:`,
+          postError,
+        );
       }
     }
 
