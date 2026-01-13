@@ -2661,6 +2661,11 @@ export async function processPostGeneration(
         if (generatedImage) {
           try {
             const imageBase64 = await fetchImageAsBase64(generatedImage);
+            const dataUri = imageBase64
+              ? `data:${imageBase64.mimeType};base64,${imageBase64.data}`
+              : null;
+            if (!dataUri)
+              throw new Error("Failed to convert image to data URI");
 
             const refinedText = await generatePostsWithGemini({
               ...context,
@@ -2672,9 +2677,6 @@ export async function processPostGeneration(
             finalContent = refinedText.content;
             finalHashtags = refinedText.hashtags;
 
-            const dataUri = imageBase64 ? `data:${imageBase64.mimeType};base64,${imageBase64.data}` : null;
-            if (!dataUri) throw new Error("Failed to convert image to data URI");
-            
             const upload = await cloudinary.uploader.upload(dataUri, {
               folder: `brands/posts/${brand.id}`,
               public_id: `${jobId}_${post.platform}_${post.dia}`,

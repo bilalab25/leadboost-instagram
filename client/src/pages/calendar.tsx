@@ -78,6 +78,7 @@ interface ContentPost {
   content: string;
   imageUrl?: string;
   source?: "manual" | "ai";
+  hashtags?: string;
 }
 
 const platformIcons: Record<string, any> = {
@@ -307,6 +308,7 @@ export default function ContentCalendar() {
         content: post.content,
         imageUrl: post.imageUrl,
         source: "ai",
+        hashtags: post.hashtags,
       });
     });
 
@@ -1576,6 +1578,26 @@ export default function ContentCalendar() {
                         data-testid="input-post-content"
                       />
                     </div>
+
+                    {/* Hashtags */}
+                    {editPost.hashtags && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">
+                          Hashtags
+                        </label>
+                        <Textarea
+                          value={editPost.hashtags}
+                          onChange={(e) =>
+                            setEditPost((prev) =>
+                              prev ? { ...prev, hashtags: e.target.value } : prev,
+                            )
+                          }
+                          placeholder="#hashtag1 #hashtag2..."
+                          className="min-h-[60px] resize-none text-sm text-blue-600"
+                          data-testid="input-post-hashtags"
+                        />
+                      </div>
+                    )}
 
                     {/* Date & Time */}
                     <div className="space-y-2">
