@@ -1391,7 +1391,7 @@ export async function generateImageWithGeminiNanoBanana({
     console.log("📦 [Assets recibidos]:", brandAssets.length);
 
     const product = brandAssets.find((a) =>
-      ["product_images", "product", "products"].includes(a.category),
+      a.category && ["product_images", "product", "products"].includes(a.category),
     );
 
     if (!product) {
@@ -1914,6 +1914,82 @@ export async function addWatermarkToImage(
     return imageDataUrl;
   }
 }
+export async function refinePostWithGeminiUsingImage({
+  imageDataUrl,
+  brandName,
+  brandEssence,
+  preferredLanguage,
+}: {
+  imageDataUrl: string;
+  brandName: string;
+  brandEssence?: {
+    tone?: string | null;
+    emotion?: string | null;
+    visualKeywords?: string | null;
+  };
+  preferredLanguage: string;
+}): Promise<{
+  titulo: string;
+  content: string;
+  hashtags: string;
+}> {
+  const match = imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error("Invalid image data URL");
+
+  const [, mimeType, base64] = match;
+  const languageLabel = languageInstruction(preferredLanguage);
+
+  const prompt = `
+You are an expert social media copywriter.
+
+You are given a FINAL GENERATED IMAGE.
+Write copy that matches THIS image.
+
+RULES:
+- Write ONLY in ${languageLabel}
+- Do NOT describe the image literally
+- Write aspirational, premium, emotional copy
+- Adapt tone to the visual mood of the image
+
+BRAND: ${brandName}
+
+BRAND ESSENCE:
+- Tone: ${brandEssence?.tone ?? "professional"}
+- Emotion: ${brandEssence?.emotion ?? "aspirational"}
+- Visual keywords: ${brandEssence?.visualKeywords ?? "clean, premium"}
+
+RETURN JSON WITH:
+- titulo
+- content
+- hashtags (5–10)
+`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        inlineData: { data: base64, mimeType },
+      },
+      { text: prompt },
+    ],
+    config: {
+      temperature: 0.8,
+      maxOutputTokens: 1024,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          titulo: { type: Type.STRING },
+          content: { type: Type.STRING },
+          hashtags: { type: Type.STRING },
+        },
+        required: ["titulo", "content", "hashtags"],
+      },
+    },
+  });
+
+  return JSON.parse(response.text || "{}");
+}
 
 export async function processPostGeneration(
   brandId: string,
@@ -1921,6 +1997,7 @@ export async function processPostGeneration(
   month: number,
   year: number,
 ): Promise<void> {
+  
   const { updatePostGeneratorJob } = await import(
     "../storage/postGeneratorJobs"
   );
@@ -2199,29 +2276,43 @@ export async function processPostGeneration(
           brandEssence,
         });
 
-        if (generatedImage) {
-          // Use the generated image directly without watermark
-          imageUrl = generatedImage;
-        }
-      } catch (imgError) {
-        console.warn(
-          `[PostGenerator] Could not generate image for post: ${post.titulo}`,
-          imgError,
-        );
-      }
+        let finalTitulo = post.titulo;
+        let finalContent = post.content;
+        let finalHashtags = post.hashtags;
+        const preferredLanguage = brandDesign.preferredLanguage || "en";
 
-      await createAiGeneratedPost({
-        jobId,
-        brandId,
-        platform: post.platform,
-        titulo: post.titulo,
-        content: post.content,
-        imageUrl,
-        cloudinaryPublicId: null,
-        dia: post.dia,
-        hashtags: post.hashtags,
-        status: "pending",
-      });
+        if (generatedImage) {
+          try {
+            const refined = await refinePostWithGeminiUsingImage({
+              imageDataUrl: generatedImage,
+              brandName: brand.name,
+              brandEssence: context.brandEssence,
+              preferredLanguage,
+            });
+
+            finalTitulo = refined.titulo;
+            finalContent = refined.content;
+            finalHashtags = refined.hashtags;
+          } catch (err) {
+            console.warn("[PostGenerator] Refinement failed, using original copy");
+          }
+        }
+
+        await createAiGeneratedPost({
+          jobId,
+          brandId,
+          platform: post.platform,
+          titulo: finalTitulo,
+          content: finalContent,
+          hashtags: finalHashtags,
+          imageUrl: generatedImage,
+          cloudinaryPublicId: null,
+          dia: post.dia,
+          status: "pending",
+        });
+      } catch (postError) {
+        console.error(`[PostGenerator] Failed to generate post for ${post.platform}:`, postError);
+      }
     }
 
     await updatePostGeneratorJob(jobId, {
