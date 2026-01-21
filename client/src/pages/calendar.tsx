@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBrand } from "@/contexts/BrandContext";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,7 +17,6 @@ import {
   Wand2,
   Settings,
   Sparkles,
-  AlertCircle,
   Link2,
   Palette,
   CalendarDays,
@@ -28,6 +27,7 @@ import {
   CalendarCheck,
   Facebook,
   Instagram,
+  RssIcon,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
@@ -48,18 +48,9 @@ import {
   isToday,
   isSameMonth,
 } from "date-fns";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PauseCircle, PlayCircle } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Pause, Play } from "lucide-react";
 import { Link } from "wouter";
 import PostingFrequencyModal from "@/components/PostingFrequencyModal";
 
@@ -92,10 +83,14 @@ const platformIcons: Record<string, any> = {
 };
 
 const platformColors: Record<string, string> = {
-  instagram: "bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-100",
-  instagram_story: "bg-gradient-to-r from-pink-50 to-orange-50 border border-pink-100",
-  instagram_reel: "bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100",
-  whatsapp: "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100",
+  instagram:
+    "bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-100",
+  instagram_story:
+    "bg-gradient-to-r from-pink-50 to-orange-50 border border-pink-100",
+  instagram_reel:
+    "bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100",
+  whatsapp:
+    "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100",
   facebook: "bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100",
   tiktok: "bg-gradient-to-r from-gray-50 to-slate-100 border border-gray-200",
   linkedin: "bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-100",
@@ -386,7 +381,8 @@ export default function ContentCalendar() {
     activeJobQuery.data?.hasActiveJob || showGeneratingLoader || !!currentJobId;
 
   // Check if AI posts are still loading
-  const isLoadingAiPosts = existingAiPostsQuery.isLoading || existingAiPostsQuery.isFetching;
+  const isLoadingAiPosts =
+    existingAiPostsQuery.isLoading || existingAiPostsQuery.isFetching;
 
   // Determine if AI generation is available
   const canGenerateAiPosts =
@@ -484,7 +480,11 @@ export default function ContentCalendar() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ status, brandId: activeBrandId, scheduledPublishTime }),
+        body: JSON.stringify({
+          status,
+          brandId: activeBrandId,
+          scheduledPublishTime,
+        }),
       });
       if (!response.ok) throw new Error("Failed to update post status");
       return response.json();
@@ -495,14 +495,14 @@ export default function ContentCalendar() {
         prev.map((post) =>
           post.id === variables.postId
             ? { ...post, status: variables.status }
-            : post
-        )
+            : post,
+        ),
       );
       // Also update editPost if it's the same post
       setEditPost((prev) =>
         prev && prev.id === variables.postId
           ? { ...prev, status: variables.status }
-          : prev
+          : prev,
       );
       // Invalidate queries for consistency
       queryClient.invalidateQueries({ queryKey: ["/api/ai-posts"] });
@@ -536,8 +536,8 @@ export default function ContentCalendar() {
         prev.map((post) =>
           variables.postIds.includes(post.id)
             ? { ...post, status: variables.status }
-            : post
-        )
+            : post,
+        ),
       );
       // Invalidate queries for consistency
       queryClient.invalidateQueries({ queryKey: ["/api/ai-posts"] });
@@ -991,7 +991,7 @@ export default function ContentCalendar() {
                                             Loading...
                                           </>
                                         ) : hasActiveJob ||
-                                        generatePostsMutation.isPending ? (
+                                          generatePostsMutation.isPending ? (
                                           <>
                                             <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                             Generating...
@@ -1005,9 +1005,15 @@ export default function ContentCalendar() {
                                       </Button>
                                     </span>
                                   </TooltipTrigger>
-                                  {(!canGenerateAiPosts || hasActiveJob || isLoadingAiPosts) && (
+                                  {(!canGenerateAiPosts ||
+                                    hasActiveJob ||
+                                    isLoadingAiPosts) && (
                                     <TooltipContent>
-                                      <p>{isLoadingAiPosts ? "Loading existing posts..." : getDisabledReason()}</p>
+                                      <p>
+                                        {isLoadingAiPosts
+                                          ? "Loading existing posts..."
+                                          : getDisabledReason()}
+                                      </p>
                                     </TooltipContent>
                                   )}
                                 </Tooltip>
@@ -1050,7 +1056,11 @@ export default function ContentCalendar() {
                                     </TooltipTrigger>
                                     {(isPastMonth || isLoadingAiPosts) && (
                                       <TooltipContent>
-                                        <p>{isLoadingAiPosts ? "Loading posts..." : "Cannot approve past months"}</p>
+                                        <p>
+                                          {isLoadingAiPosts
+                                            ? "Loading posts..."
+                                            : "Cannot approve past months"}
+                                        </p>
                                       </TooltipContent>
                                     )}
                                   </Tooltip>
@@ -1140,9 +1150,13 @@ export default function ContentCalendar() {
                                       const postStatus = post.status as
                                         | "pending"
                                         | "accepted"
-                                        | "rejected";
+                                        | "rejected"
+                                        | "published";
 
-                                      const iconColor = platformIconColors[post.platform as keyof typeof platformIconColors] || "text-gray-600";
+                                      const iconColor =
+                                        platformIconColors[
+                                          post.platform as keyof typeof platformIconColors
+                                        ] || "text-gray-600";
 
                                       return (
                                         <div
@@ -1154,13 +1168,20 @@ export default function ContentCalendar() {
                                             handleOpenPost(post);
                                           }}
                                         >
-                                          <PlatformIcon className={`inline w-3 h-3 flex-shrink-0 ${iconColor}`} />
+                                          <PlatformIcon
+                                            className={`inline w-3 h-3 flex-shrink-0 ${iconColor}`}
+                                          />
                                           <span className="truncate font-medium text-gray-700">
                                             {post.title}
                                           </span>
                                           {isAiPost &&
                                             postStatus === "accepted" && (
                                               <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                            )}
+
+                                          {isAiPost &&
+                                            postStatus === "published" && (
+                                              <RssIcon className="w-3 h-3 text-green-500 flex-shrink-0" />
                                             )}
                                           {isAiPost &&
                                             postStatus === "pending" && (
@@ -1190,19 +1211,24 @@ export default function ContentCalendar() {
                             </CardTitle>
                           </div>
                           {/* ✅ Approve all posts for the day - only show if there are pending posts */}
-                          {selectedDate && selectedDatePosts.length > 0 && 
-                            selectedDatePosts.some((post) => post.status === "pending") && (
-                            <Button
-                              size="sm"
-                              className="w-full bg-gray-800 hover:bg-gray-900 text-white"
-                              onClick={() => handleApproveDay("accepted")}
-                              disabled={bulkUpdatePostStatusMutation.isPending}
-                              data-testid="button-approve-day"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" /> Approve
-                              Day
-                            </Button>
-                          )}
+                          {selectedDate &&
+                            selectedDatePosts.length > 0 &&
+                            selectedDatePosts.some(
+                              (post) => post.status === "pending",
+                            ) && (
+                              <Button
+                                size="sm"
+                                className="w-full bg-gray-800 hover:bg-gray-900 text-white"
+                                onClick={() => handleApproveDay("accepted")}
+                                disabled={
+                                  bulkUpdatePostStatusMutation.isPending
+                                }
+                                data-testid="button-approve-day"
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" /> Approve
+                                Day
+                              </Button>
+                            )}
                         </CardHeader>
                         <CardContent>
                           {selectedDatePosts.length > 0 ? (
@@ -1218,7 +1244,8 @@ export default function ContentCalendar() {
                                 const postStatus = post.status as
                                   | "pending"
                                   | "accepted"
-                                  | "rejected";
+                                  | "rejected"
+                                  | "published";
 
                                 const statusConfig = {
                                   pending: {
@@ -1241,6 +1268,13 @@ export default function ContentCalendar() {
                                     border: "border-red-200",
                                     icon: XCircle,
                                     label: "Rejected",
+                                  },
+                                  published: {
+                                    bg: "bg-green-100",
+                                    text: "text-green-800",
+                                    border: "border-green-200",
+                                    icon: RssIcon,
+                                    label: "Published",
                                   },
                                 };
 
@@ -1461,7 +1495,7 @@ export default function ContentCalendar() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mr-4">
                       {editPost.platform === "instagram" ||
                       editPost.platform === "instagram_direct" ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-sm font-medium">
@@ -1480,6 +1514,11 @@ export default function ContentCalendar() {
                       {editPost.status === "accepted" && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium border border-green-200">
                           <CheckCircle className="w-4 h-4" /> Approved
+                        </span>
+                      )}
+                      {editPost.status === "published" && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium border border-green-200">
+                          <RssIcon className="w-4 h-4" /> Published
                         </span>
                       )}
                       {editPost.status === "rejected" && (
@@ -1505,7 +1544,10 @@ export default function ContentCalendar() {
                           src={editPost.imageUrl}
                           alt={editPost.title}
                           className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => editPost.imageUrl && setFullscreenImage(editPost.imageUrl)}
+                          onClick={() =>
+                            editPost.imageUrl &&
+                            setFullscreenImage(editPost.imageUrl)
+                          }
                           title="Click to view full size"
                         />
                         <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1 pointer-events-none">
@@ -1553,7 +1595,10 @@ export default function ContentCalendar() {
                         }
                         placeholder="Enter a catchy title..."
                         className="h-11"
-                        disabled={editPost.status === "rejected" || editPost.status === "published"}
+                        disabled={
+                          editPost.status === "rejected" ||
+                          editPost.status === "published"
+                        }
                         data-testid="input-post-title"
                       />
                     </div>
@@ -1578,7 +1623,10 @@ export default function ContentCalendar() {
                         style={{ fontSize: ".6rem" }}
                         placeholder="Write your caption..."
                         className="min-h-[120px] resize-none"
-                        disabled={editPost.status === "rejected" || editPost.status === "published"}
+                        disabled={
+                          editPost.status === "rejected" ||
+                          editPost.status === "published"
+                        }
                         data-testid="input-post-content"
                       />
                     </div>
@@ -1593,12 +1641,17 @@ export default function ContentCalendar() {
                           value={editPost.hashtags}
                           onChange={(e) =>
                             setEditPost((prev) =>
-                              prev ? { ...prev, hashtags: e.target.value } : prev,
+                              prev
+                                ? { ...prev, hashtags: e.target.value }
+                                : prev,
                             )
                           }
                           placeholder="#hashtag1 #hashtag2..."
                           className="min-h-[60px] resize-none text-sm text-blue-600"
-                          disabled={editPost.status === "rejected" || editPost.status === "published"}
+                          disabled={
+                            editPost.status === "rejected" ||
+                            editPost.status === "published"
+                          }
                           data-testid="input-post-hashtags"
                         />
                       </div>
@@ -1623,28 +1676,57 @@ export default function ContentCalendar() {
                           )
                         }
                         className="h-11"
-                        disabled={editPost.status === "rejected" || editPost.status === "published"}
+                        disabled={
+                          editPost.status === "rejected" ||
+                          editPost.status === "published"
+                        }
                         data-testid="input-post-schedule"
                       />
                     </div>
 
                     {/* Image Controls */}
-                    <div className="space-y-2">
+                    {/*<div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">
                         Post Image
                       </label>
                       <div className="flex gap-2">
-                        <label className="flex-1 cursor-pointer">
-                          <div className="flex items-center justify-center gap-2 h-11 px-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-gray-50 transition-colors">
-                            <Upload className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600">
-                              Upload new image
-                            </span>
+                        <label
+                          className={`flex-1 ${
+                            editPost.status === "published" ||
+                            editPost.status === "rejected"
+                              ? "pointer-events-none cursor-not-allowed"
+                              : "cursor-pointer"
+                          }`}
+                        >
+                          <div
+                            className={`flex items-center justify-center gap-2 h-11 px-4 border-2 border-dashed rounded-lg transition-colors
+                              ${
+                                editPost.status === "published" ||
+                                editPost.status === "rejected"
+                                  ? "border-gray-200 bg-gray-100 text-gray-400"
+                                  : "border-gray-300 hover:border-primary hover:bg-gray-50"
+                              }
+                            `}
+                          >
+                            <Upload
+                              className={`w-4 h-4 ${
+                                editPost.status === "published" ||
+                                editPost.status === "rejected"
+                                  ? "text-gray-400"
+                                  : "text-gray-500"
+                              }`}
+                            />
+                            <span className="text-sm">Upload new image</span>
                           </div>
+
                           <input
                             type="file"
                             accept="image/*"
                             onChange={handleImageChange}
+                            disabled={
+                              editPost.status === "published" ||
+                              editPost.status === "rejected"
+                            }
                             className="hidden"
                             data-testid="input-post-image"
                           />
@@ -1653,11 +1735,15 @@ export default function ContentCalendar() {
                           variant="outline"
                           className="h-11 gap-2"
                           data-testid="button-edit-image"
+                          disabled={
+                            editPost.status === "published" ||
+                            editPost.status === "rejected"
+                          }
                         >
                           <Wand2 className="w-4 h-4" /> Edit with AI
                         </Button>
                       </div>
-                    </div>
+                    </div>*/}
                   </div>
                 </div>
 
@@ -1776,7 +1862,10 @@ export default function ContentCalendar() {
         </Dialog>
 
         {/* Fullscreen Image Viewer */}
-        <Dialog open={!!fullscreenImage} onOpenChange={() => setFullscreenImage(null)}>
+        <Dialog
+          open={!!fullscreenImage}
+          onOpenChange={() => setFullscreenImage(null)}
+        >
           <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none">
             <div className="relative">
               <img
