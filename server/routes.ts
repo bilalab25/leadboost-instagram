@@ -1153,6 +1153,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle auto-post enabled for a brand
+  app.patch("/api/brands/:id/auto-post", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+      const brandId = req.params.id;
+      const { enabled } = req.body;
+
+      if (typeof enabled !== "boolean") {
+        return res.status(400).json({ message: "enabled must be a boolean" });
+      }
+
+      const brand = await storage.updateBrand(brandId, userId, { autoPostEnabled: enabled });
+
+      if (!brand) {
+        return res.status(404).json({ message: "Brand not found" });
+      }
+
+      await storage.createActivityLog({
+        userId,
+        brandId: brand.id,
+        action: enabled ? "enable_auto_post" : "disable_auto_post",
+        description: `${enabled ? "Enabled" : "Disabled"} automatic posting for brand: ${brand.name}`,
+        entityType: "brand",
+        entityId: brand.id,
+      });
+
+      res.json({ autoPostEnabled: brand.autoPostEnabled });
+    } catch (error) {
+      console.error("Error updating auto-post setting:", error);
+      res.status(500).json({ message: "Failed to update auto-post setting" });
+    }
+  });
+
   // Get user's onboarding progress (returns brand with onboarding info if exists)
   app.get(
     "/api/onboarding/progress",
