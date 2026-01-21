@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import { db } from "../db";
-import { aiGeneratedPosts } from "@shared/schema";
+import { aiGeneratedPosts, brands } from "@shared/schema";
 import { eq, lte, isNull, and } from "drizzle-orm";
 
 class PostSchedulerService {
@@ -43,6 +43,18 @@ class PostSchedulerService {
       console.log(`[PostScheduler] Found ${postsToPublish.length} posts ready to publish`);
 
       for (const post of postsToPublish) {
+        // Check if brand has auto-post enabled
+        const brand = await db
+          .select()
+          .from(brands)
+          .where(eq(brands.id, post.brandId))
+          .limit(1);
+
+        if (!brand[0] || brand[0].autoPostEnabled === false) {
+          console.log(`[PostScheduler] Skipping post ${post.id} - auto-post disabled for brand ${post.brandId}`);
+          continue;
+        }
+
         await this.publishPost(post);
       }
     } catch (error) {
