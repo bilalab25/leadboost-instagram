@@ -13,21 +13,30 @@ export interface AiGeneratedPost {
   cloudinaryPublicId: string | null;
   dia: string;
   hashtags: string | null;
-  status: "pending" | "accepted" | "rejected";
+  status: "pending" | "accepted" | "rejected" | "published";
+  scheduledPublishTime: string | null;
+  publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export async function createAiGeneratedPost(
-  data: Omit<AiGeneratedPost, "id" | "createdAt" | "updatedAt">
+  data: Omit<AiGeneratedPost, "id" | "createdAt" | "updatedAt" | "scheduledPublishTime" | "publishedAt">
 ): Promise<AiGeneratedPost> {
   const now = new Date();
   const result = await db
     .insert(aiGeneratedPosts)
     .values({
-      ...data,
-      createdAt: now,
-      updatedAt: now,
+      jobId: data.jobId,
+      brandId: data.brandId,
+      platform: data.platform,
+      titulo: data.titulo,
+      content: data.content,
+      imageUrl: data.imageUrl,
+      cloudinaryPublicId: data.cloudinaryPublicId,
+      dia: data.dia,
+      hashtags: data.hashtags,
+      status: data.status,
     })
     .returning();
 
@@ -45,6 +54,8 @@ export async function createAiGeneratedPost(
     dia: result[0].dia,
     hashtags: result[0].hashtags,
     status: result[0].status as any,
+    scheduledPublishTime: result[0].scheduledPublishTime?.toISOString() || null,
+    publishedAt: result[0].publishedAt?.toISOString() || null,
     createdAt: result[0].createdAt?.toISOString() || now.toISOString(),
     updatedAt: result[0].updatedAt?.toISOString() || now.toISOString(),
   };
@@ -68,6 +79,8 @@ export async function getAiGeneratedPostsByJob(jobId: string): Promise<AiGenerat
     dia: r.dia,
     hashtags: r.hashtags,
     status: r.status as any,
+    scheduledPublishTime: r.scheduledPublishTime?.toISOString() || null,
+    publishedAt: r.publishedAt?.toISOString() || null,
     createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
     updatedAt: r.updatedAt?.toISOString() || new Date().toISOString(),
   }));
@@ -97,6 +110,8 @@ export async function getAiGeneratedPostsByBrand(brandId: string, status?: strin
     dia: r.dia,
     hashtags: r.hashtags,
     status: r.status as any,
+    scheduledPublishTime: r.scheduledPublishTime?.toISOString() || null,
+    publishedAt: r.publishedAt?.toISOString() || null,
     createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
     updatedAt: r.updatedAt?.toISOString() || new Date().toISOString(),
   }));
@@ -104,12 +119,19 @@ export async function getAiGeneratedPostsByBrand(brandId: string, status?: strin
 
 export async function updateAiGeneratedPostStatus(
   postId: string,
-  status: "pending" | "accepted" | "rejected"
+  status: "pending" | "accepted" | "rejected" | "published",
+  scheduledPublishTime?: string
 ): Promise<AiGeneratedPost | null> {
   const now = new Date();
+  const updateData: any = { status, updatedAt: now };
+  
+  if (scheduledPublishTime) {
+    updateData.scheduledPublishTime = new Date(scheduledPublishTime);
+  }
+  
   const result = await db
     .update(aiGeneratedPosts)
-    .set({ status, updatedAt: now })
+    .set(updateData)
     .where(eq(aiGeneratedPosts.id, postId))
     .returning();
 
@@ -127,6 +149,8 @@ export async function updateAiGeneratedPostStatus(
     dia: result[0].dia,
     hashtags: result[0].hashtags,
     status: result[0].status as any,
+    scheduledPublishTime: result[0].scheduledPublishTime?.toISOString() || null,
+    publishedAt: result[0].publishedAt?.toISOString() || null,
     createdAt: result[0].createdAt?.toISOString() || new Date().toISOString(),
     updatedAt: result[0].updatedAt?.toISOString() || now.toISOString(),
   };

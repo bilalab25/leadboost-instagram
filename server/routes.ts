@@ -1099,7 +1099,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (preferredLanguage) {
         const existingDesign = await storage.getBrandDesignByBrandId(brandId);
         if (existingDesign) {
-          await storage.updateBrandDesign(existingDesign.id, brandId, { preferredLanguage });
+          await storage.updateBrandDesign(existingDesign.id, brandId, {
+            preferredLanguage,
+          });
         } else {
           await storage.createBrandDesign({ brandId, preferredLanguage });
         }
@@ -1295,10 +1297,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const { name, industry, description, brandColor, preferredLanguage, domain } = req.body;
+      const {
+        name,
+        industry,
+        description,
+        brandColor,
+        preferredLanguage,
+        domain,
+      } = req.body;
 
-      console.log("[API /api/brands/create] Request body:", JSON.stringify(req.body, null, 2));
-      console.log("[API /api/brands/create] preferredLanguage received:", preferredLanguage);
+      console.log(
+        "[API /api/brands/create] Request body:",
+        JSON.stringify(req.body, null, 2),
+      );
+      console.log(
+        "[API /api/brands/create] preferredLanguage received:",
+        preferredLanguage,
+      );
 
       if (!name) {
         return res.status(400).json({ message: "Brand name is required" });
@@ -1315,7 +1330,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         preferredLanguage: preferredLanguage || "en",
       });
 
-      console.log("[API /api/brands/create] Brand created with preferredLanguage:", brand.preferredLanguage);
+      console.log(
+        "[API /api/brands/create] Brand created with preferredLanguage:",
+        brand.preferredLanguage,
+      );
 
       // Create brand membership with owner role
       const membership = await storage.createBrandMembership({
@@ -2815,7 +2833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const { postId } = req.params;
-        const { status } = req.body;
+        const { status, scheduledPublishTime } = req.body;
         const brandId = req.brandId;
 
         if (!status || !["accepted", "rejected", "pending"].includes(status)) {
@@ -2826,7 +2844,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "./storage/aiGeneratedPosts"
         );
 
-        const updated = await updateAiGeneratedPostStatus(postId, status);
+        const updated = await updateAiGeneratedPostStatus(postId, status, scheduledPublishTime);
         if (!updated || updated.brandId !== brandId) {
           return res.status(404).json({ message: "Post not found" });
         }
@@ -2952,7 +2970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const { postId } = req.params;
-        const { status } = req.body;
+        const { status, scheduledPublishTime } = req.body;
 
         if (!status || !["accepted", "rejected"].includes(status)) {
           return res.status(400).json({ message: "Invalid status" });
@@ -2962,7 +2980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "./storage/aiGeneratedPosts"
         );
 
-        const updated = await updateAiGeneratedPostStatus(postId, status);
+        const updated = await updateAiGeneratedPostStatus(postId, status, scheduledPublishTime);
         if (!updated) {
           return res.status(404).json({ message: "Post not found" });
         }
@@ -3514,6 +3532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "pages_messaging",
         "instagram_basic",
         "instagram_manage_messages",
+        "instagram_content_publish",
         "read_insights",
         "instagram_manage_insights",
         "pages_read_user_content",
@@ -3605,7 +3624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userAccessToken = tokenJson.access_token;
-
+    
       // -----------------------------------------
       // 3️⃣ Get pages user manages
       // -----------------------------------------
@@ -3629,7 +3648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let selectedPage = null;
       let igInfo = null;
-
+      console.log(pagesJson.data);
       for (const p of pagesJson.data) {
         const detailsRes = await fetch(
           `https://graph.facebook.com/v24.0/${p.id}` +
@@ -3637,7 +3656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             `&access_token=${p.access_token}`,
         );
         const details = await detailsRes.json();
-
+        console.log(details);
         if (
           details.connected_instagram_account ||
           details.instagram_business_account
@@ -9823,10 +9842,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const updateData = {
             ...designData,
             // Only override preferredLanguage if explicitly provided in request
-            preferredLanguage: designData.preferredLanguage || existingDesign.preferredLanguage,
+            preferredLanguage:
+              designData.preferredLanguage || existingDesign.preferredLanguage,
           };
-          console.log("[API /api/brand-design] Preserving preferredLanguage:", updateData.preferredLanguage);
-          
+          console.log(
+            "[API /api/brand-design] Preserving preferredLanguage:",
+            updateData.preferredLanguage,
+          );
+
           const updated = await storage.updateBrandDesign(
             existingDesign.id,
             brandId,

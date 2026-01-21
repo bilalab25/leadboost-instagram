@@ -474,15 +474,17 @@ export default function ContentCalendar() {
     mutationFn: async ({
       postId,
       status,
+      scheduledPublishTime,
     }: {
       postId: string;
       status: "accepted" | "rejected" | "pending";
+      scheduledPublishTime?: string;
     }) => {
       const response = await fetch(`/api/ai-posts/${postId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ status, brandId: activeBrandId }),
+        body: JSON.stringify({ status, brandId: activeBrandId, scheduledPublishTime }),
       });
       if (!response.ok) throw new Error("Failed to update post status");
       return response.json();
@@ -1691,10 +1693,11 @@ export default function ContentCalendar() {
                       <Button
                         className="bg-gray-800 hover:bg-gray-900 text-white"
                         onClick={() => {
-                          if (selectedPost) {
+                          if (selectedPost && editPost) {
                             updatePostStatusMutation.mutate({
                               postId: selectedPost.id,
                               status: "accepted",
+                              scheduledPublishTime: editPost.scheduledFor,
                             });
                           }
                           setSelectedPost(null);

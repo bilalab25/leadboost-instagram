@@ -1791,7 +1791,7 @@ DETALLE ESPECÍFICO PARA JOYERÍA (SI APLICA):
 - Las reflexiones deben variar sutilmente entre elementos.
 - Evitar simetría perfecta tipo catálogo CGI.
 
-───────────────────────────────L��
+───────────────────────────────
 IMAGEN 3 – LOGO (IDENTIDAD DE MARCA)
 ────────────────────────────────
 La tercera imagen es el logo oficial de la marca.

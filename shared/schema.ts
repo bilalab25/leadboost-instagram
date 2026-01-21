@@ -1579,6 +1579,8 @@ export const aiGeneratedPosts = pgTable("ai_generated_posts", {
   dia: text("dia").notNull(), // day of week: sunday, monday, etc.
   hashtags: text("hashtags"),
   status: text("status").notNull().default("pending"), // pending | accepted | rejected
+  scheduledPublishTime: timestamp("scheduled_publish_time"),
+  publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -1,8 +1,8 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { db } from "../db";
-import { 
-  brands, 
-  brandDesigns, 
+import {
+  brands,
+  brandDesigns,
   brandAssets,
   integrations,
   posIntegrations,
@@ -10,16 +10,12 @@ import {
   salesTransactions,
   contentPlans,
   campaigns,
-  conversations
+  conversations,
 } from "@shared/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY!,
-  httpOptions: {
-    apiVersion: "",
-    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL!,
-  },
+  apiKey: process.env.GEMINI_API_KEY!,
 });
 
 interface BrandContext {
@@ -99,11 +95,14 @@ const IMAGE_REQUEST_PATTERNS = {
     /please\s+generate/i,
     /can\s+you\s+generate/i,
     /generate\s+(it|that|this)/i,
-  ]
+  ],
 };
 
 export class BoostyService {
-  async getBrandContext(brandId: string, userId: string): Promise<BrandContext> {
+  async getBrandContext(
+    brandId: string,
+    userId: string,
+  ): Promise<BrandContext> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -114,7 +113,7 @@ export class BoostyService {
       posIntegration,
       activePlans,
       activeCampaigns,
-      recentConversations
+      recentConversations,
     ] = await Promise.all([
       db.query.brands.findFirst({
         where: eq(brands.id, brandId),
@@ -125,52 +124,52 @@ export class BoostyService {
       db.query.integrations.findMany({
         where: and(
           eq(integrations.brandId, brandId),
-          eq(integrations.isActive, true)
+          eq(integrations.isActive, true),
         ),
       }),
       db.query.posIntegrations.findFirst({
         where: and(
           eq(posIntegrations.brandId, brandId),
-          eq(posIntegrations.isActive, true)
+          eq(posIntegrations.isActive, true),
         ),
       }),
       db.query.contentPlans.findMany({
         where: and(
           eq(contentPlans.brandId, brandId),
-          eq(contentPlans.status, "active")
+          eq(contentPlans.status, "active"),
         ),
       }),
       db.query.campaigns.findMany({
         where: and(
           eq(campaigns.brandId, brandId),
-          eq(campaigns.status, "active")
+          eq(campaigns.status, "active"),
         ),
       }),
       db.query.conversations.findMany({
         where: eq(conversations.brandId, brandId),
         orderBy: [desc(conversations.lastMessageAt)],
-        limit: 50
+        limit: 50,
       }),
     ]);
 
-    const assets = design 
+    const assets = design
       ? await db.query.brandAssets.findMany({
           where: eq(brandAssets.brandDesignId, design.id),
         })
       : [];
 
-    let salesData: typeof salesTransactions.$inferSelect[] = [];
-    let customers: typeof posCustomers.$inferSelect[] = [];
-    
+    let salesData: (typeof salesTransactions.$inferSelect)[] = [];
+    let customers: (typeof posCustomers.$inferSelect)[] = [];
+
     if (posIntegration) {
       [salesData, customers] = await Promise.all([
         db.query.salesTransactions.findMany({
           where: and(
             eq(salesTransactions.posIntegrationId, posIntegration.id),
-            gte(salesTransactions.transactionDate, thirtyDaysAgo)
+            gte(salesTransactions.transactionDate, thirtyDaysAgo),
           ),
           orderBy: [desc(salesTransactions.totalAmount)],
-          limit: 100
+          limit: 100,
         }),
         db.query.posCustomers.findMany({
           where: eq(posCustomers.posIntegrationId, posIntegration.id),
@@ -178,27 +177,40 @@ export class BoostyService {
       ]);
     }
 
-    const assetCategories = Array.from(new Set(assets.map(a => a.category).filter(Boolean))) as string[];
-    const connectedPlatforms = platformIntegrations.map(i => i.provider);
-    
-    const totalRevenue = salesData.reduce((sum, s) => sum + (s.totalAmount || 0), 0) / 100;
+    const assetCategories = Array.from(
+      new Set(assets.map((a) => a.category).filter(Boolean)),
+    ) as string[];
+    const connectedPlatforms = platformIntegrations.map((i) => i.provider);
+
+    const totalRevenue =
+      salesData.reduce((sum, s) => sum + (s.totalAmount || 0), 0) / 100;
     const topProducts: string[] = [];
-    
+
     if (salesData.length > 0) {
       const productCounts = new Map<string, number>();
       for (const sale of salesData) {
-        const items = sale.items as any[] || [];
+        const items = (sale.items as any[]) || [];
         for (const item of items) {
           const name = item.name || item.product_id || "Unknown";
-          productCounts.set(name, (productCounts.get(name) || 0) + (item.quantity || 1));
+          productCounts.set(
+            name,
+            (productCounts.get(name) || 0) + (item.quantity || 1),
+          );
         }
       }
-      const sorted = Array.from(productCounts.entries()).sort((a, b) => b[1] - a[1]);
+      const sorted = Array.from(productCounts.entries()).sort(
+        (a, b) => b[1] - a[1],
+      );
       topProducts.push(...sorted.slice(0, 5).map(([name]) => name));
     }
 
-    const unreadCount = recentConversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
-    const recentPlatforms = Array.from(new Set(recentConversations.map(c => c.platform)));
+    const unreadCount = recentConversations.reduce(
+      (sum, c) => sum + (c.unreadCount || 0),
+      0,
+    );
+    const recentPlatforms = Array.from(
+      new Set(recentConversations.map((c) => c.platform)),
+    );
 
     return {
       brand: {
@@ -206,20 +218,26 @@ export class BoostyService {
         industry: brand?.industry || undefined,
         description: brand?.description || undefined,
       },
-      design: design ? {
-        brandStyle: design.brandStyle || undefined,
-        colors: {
-          primary: design.colorPrimary || undefined,
-          accent1: design.colorAccent1 || undefined,
-          accent2: design.colorAccent2 || undefined,
-          text1: design.colorText1 || undefined,
-        },
-        fonts: {
-          primary: design.fontPrimary || undefined,
-          secondary: design.fontSecondary || undefined,
-        },
-        hasLogo: !!(design.whiteLogoUrl || design.blackLogoUrl || design.logoUrl),
-      } : null,
+      design: design
+        ? {
+            brandStyle: design.brandStyle || undefined,
+            colors: {
+              primary: design.colorPrimary || undefined,
+              accent1: design.colorAccent1 || undefined,
+              accent2: design.colorAccent2 || undefined,
+              text1: design.colorText1 || undefined,
+            },
+            fonts: {
+              primary: design.fontPrimary || undefined,
+              secondary: design.fontSecondary || undefined,
+            },
+            hasLogo: !!(
+              design.whiteLogoUrl ||
+              design.blackLogoUrl ||
+              design.logoUrl
+            ),
+          }
+        : null,
       assets: {
         totalCount: assets.length,
         categories: assetCategories,
@@ -227,14 +245,16 @@ export class BoostyService {
       integrations: {
         connected: connectedPlatforms,
       },
-      sales: posIntegration ? {
-        last30Days: {
-          totalRevenue,
-          transactionCount: salesData.length,
-          topProducts,
-        },
-        customerCount: customers.length,
-      } : null,
+      sales: posIntegration
+        ? {
+            last30Days: {
+              totalRevenue,
+              transactionCount: salesData.length,
+              topProducts,
+            },
+            customerCount: customers.length,
+          }
+        : null,
       contentPlans: {
         activeCount: activePlans.length,
       },
@@ -248,9 +268,12 @@ export class BoostyService {
     };
   }
 
-  private buildSystemPrompt(context: BrandContext, language: "es" | "en"): string {
+  private buildSystemPrompt(
+    context: BrandContext,
+    language: "es" | "en",
+  ): string {
     const isSpanish = language === "es";
-    
+
     const intro = isSpanish
       ? `Eres Boosty, el asistente de IA amigable y experto en marketing de Lead Boost. Tu personalidad es entusiasta, útil y creativa. Siempre respondes en español.`
       : `You are Boosty, the friendly and expert marketing AI assistant for Lead Boost. Your personality is enthusiastic, helpful, and creative. Always respond in English.`;
@@ -303,11 +326,11 @@ BRAND ASSETS:
     const integrationsInfo = isSpanish
       ? `
 INTEGRACIONES CONECTADAS:
-${context.integrations.connected.length > 0 ? context.integrations.connected.map(p => `- ${p}`).join("\n") : "- Ninguna integración conectada"}
+${context.integrations.connected.length > 0 ? context.integrations.connected.map((p) => `- ${p}`).join("\n") : "- Ninguna integración conectada"}
 `
       : `
 CONNECTED INTEGRATIONS:
-${context.integrations.connected.length > 0 ? context.integrations.connected.map(p => `- ${p}`).join("\n") : "- No integrations connected"}
+${context.integrations.connected.length > 0 ? context.integrations.connected.map((p) => `- ${p}`).join("\n") : "- No integrations connected"}
 `;
 
     let salesInfo = "";
@@ -393,24 +416,28 @@ ${capabilities}`;
 
   private isImageRequest(message: string, language: "es" | "en"): boolean {
     const patterns = IMAGE_REQUEST_PATTERNS[language];
-    return patterns.some(pattern => pattern.test(message));
+    return patterns.some((pattern) => pattern.test(message));
   }
 
   // Helper function to fetch an image from URL and convert to base64
-  private async fetchImageAsBase64(url: string): Promise<{ data: string; mimeType: string } | null> {
+  private async fetchImageAsBase64(
+    url: string,
+  ): Promise<{ data: string; mimeType: string } | null> {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        console.log(`[Boosty] Failed to fetch image from ${url}: ${response.status}`);
+        console.log(
+          `[Boosty] Failed to fetch image from ${url}: ${response.status}`,
+        );
         return null;
       }
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      const base64 = buffer.toString('base64');
-      
-      const contentType = response.headers.get('content-type') || 'image/jpeg';
-      const mimeType = contentType.split(';')[0].trim();
-      
+      const base64 = buffer.toString("base64");
+
+      const contentType = response.headers.get("content-type") || "image/jpeg";
+      const mimeType = contentType.split(";")[0].trim();
+
       return { data: base64, mimeType };
     } catch (error) {
       console.error(`[Boosty] Error fetching image from ${url}:`, error);
@@ -420,41 +447,55 @@ ${capabilities}`;
 
   private async generateImage(
     imagePrompt: string,
-    context: BrandContext
+    context: BrandContext,
   ): Promise<string | null> {
     try {
-      const primaryColor = context.design?.colors?.primary || '#4F46E5';
-      const accentColor = context.design?.colors?.accent1 || '#7C3AED';
-      const brandStyle = context.design?.brandStyle || 'modern and professional';
-      const brandName = context.brand?.name || 'Brand';
-      const industry = context.brand?.industry || '';
-      
+      const primaryColor = context.design?.colors?.primary || "#4F46E5";
+      const accentColor = context.design?.colors?.accent1 || "#7C3AED";
+      const brandStyle =
+        context.design?.brandStyle || "modern and professional";
+      const brandName = context.brand?.name || "Brand";
+      const industry = context.brand?.industry || "";
+
       const enhancedPrompt = `${imagePrompt}. 
 Style: ${brandStyle}. 
 Color scheme: Use these brand colors - Primary: ${primaryColor}, 
 Accent: ${accentColor}. 
-Brand: ${brandName}${industry ? `, ${industry} industry` : ''}.
+Brand: ${brandName}${industry ? `, ${industry} industry` : ""}.
 High quality, professional social media post image, clean composition, vibrant colors, no text overlay.`;
 
-      console.log("[Boosty] Generating image with prompt:", enhancedPrompt.substring(0, 100) + "...");
-      
+      console.log(
+        "[Boosty] Generating image with prompt:",
+        enhancedPrompt.substring(0, 100) + "...",
+      );
+
       // Build multimodal content parts
       const contentParts: any[] = [];
-      
+
       // If we have brand assets, include them as visual reference (up to 3)
       if (context.assets && context.assets.length > 0) {
         // Prioritize product images, then logos, then general assets
         const sortedAssets = [...context.assets].sort((a, b) => {
-          const priority: Record<string, number> = { 'products': 1, 'product': 1, 'logo': 2, 'logos': 2, 'general': 3 };
-          const aPriority = priority[a.category?.toLowerCase() || 'general'] || 3;
-          const bPriority = priority[b.category?.toLowerCase() || 'general'] || 3;
+          const priority: Record<string, number> = {
+            products: 1,
+            product: 1,
+            logo: 2,
+            logos: 2,
+            general: 3,
+          };
+          const aPriority =
+            priority[a.category?.toLowerCase() || "general"] || 3;
+          const bPriority =
+            priority[b.category?.toLowerCase() || "general"] || 3;
           return aPriority - bPriority;
         });
-        
+
         // Take up to 3 images for context
         const assetsToUse = sortedAssets.slice(0, 3);
-        console.log(`[Boosty] Including ${assetsToUse.length} brand assets as visual reference`);
-        
+        console.log(
+          `[Boosty] Including ${assetsToUse.length} brand assets as visual reference`,
+        );
+
         for (const asset of assetsToUse) {
           const imageData = await this.fetchImageAsBase64(asset.url);
           if (imageData) {
@@ -462,12 +503,14 @@ High quality, professional social media post image, clean composition, vibrant c
               inlineData: {
                 data: imageData.data,
                 mimeType: imageData.mimeType,
-              }
+              },
             });
-            console.log(`[Boosty] Added asset "${asset.name}" as visual reference`);
+            console.log(
+              `[Boosty] Added asset "${asset.name}" as visual reference`,
+            );
           }
         }
-        
+
         // Add instruction to use the reference images
         if (contentParts.length > 0) {
           contentParts.push({
@@ -477,7 +520,7 @@ Use them as visual inspiration to create a NEW image that:
 2. Features similar products or elements shown in the reference images
 3. Maintains brand consistency in colors, mood, and quality
 
-Now create this image: ${enhancedPrompt}`
+Now create this image: ${enhancedPrompt}`,
           });
         } else {
           contentParts.push({ text: enhancedPrompt });
@@ -485,7 +528,7 @@ Now create this image: ${enhancedPrompt}`
       } else {
         contentParts.push({ text: enhancedPrompt });
       }
-      
+
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-image",
         contents: contentParts,
@@ -517,11 +560,12 @@ Now create this image: ${enhancedPrompt}`
   private async generateImagePrompt(
     userMessage: string,
     context: BrandContext,
-    language: "es" | "en"
+    language: "es" | "en",
   ): Promise<{ imagePrompt: string; caption: string; hashtags: string }> {
-    const prompt = language === "es"
-      ? `Eres un experto en marketing visual. Basándote en esta solicitud del usuario: "${userMessage}"
-         Y el contexto de la marca: ${context.brand.name} (${context.brand.industry || 'general'})
+    const prompt =
+      language === "es"
+        ? `Eres un experto en marketing visual. Basándote en esta solicitud del usuario: "${userMessage}"
+         Y el contexto de la marca: ${context.brand.name} (${context.brand.industry || "general"})
          
          Genera un JSON con:
          1. "imagePrompt": Una descripción detallada en inglés para generar una imagen de marketing (máximo 100 palabras). Describe la escena, colores, estilo, composición. NO incluyas texto en la imagen.
@@ -529,8 +573,8 @@ Now create this image: ${enhancedPrompt}`
          3. "hashtags": 5-7 hashtags relevantes en español.
          
          Responde SOLO con el JSON, sin explicaciones adicionales.`
-      : `You are a visual marketing expert. Based on this user request: "${userMessage}"
-         And the brand context: ${context.brand.name} (${context.brand.industry || 'general'})
+        : `You are a visual marketing expert. Based on this user request: "${userMessage}"
+         And the brand context: ${context.brand.name} (${context.brand.industry || "general"})
          
          Generate a JSON with:
          1. "imagePrompt": A detailed description in English to generate a marketing image (max 100 words). Describe the scene, colors, style, composition. Do NOT include text in the image.
@@ -564,7 +608,8 @@ Now create this image: ${enhancedPrompt}`
     }
 
     return {
-      imagePrompt: "Professional marketing image for social media, modern and clean design",
+      imagePrompt:
+        "Professional marketing image for social media, modern and clean design",
       caption: "",
       hashtags: "",
     };
@@ -575,7 +620,7 @@ Now create this image: ${enhancedPrompt}`
     userId: string,
     message: string,
     conversationHistory: ChatMessage[] = [],
-    language: "es" | "en" = "es"
+    language: "es" | "en" = "es",
   ): Promise<ChatResponse> {
     const context = await this.getBrandContext(brandId, userId);
     const systemPrompt = this.buildSystemPrompt(context, language);
@@ -583,14 +628,19 @@ Now create this image: ${enhancedPrompt}`
 
     if (wantsImage) {
       console.log("[Boosty] Image request detected, generating image...");
-      
-      const { imagePrompt, caption, hashtags } = await this.generateImagePrompt(message, context, language);
+
+      const { imagePrompt, caption, hashtags } = await this.generateImagePrompt(
+        message,
+        context,
+        language,
+      );
       const generatedImage = await this.generateImage(imagePrompt, context);
 
       if (generatedImage) {
-        const textResponse = language === "es"
-          ? `¡Aquí está tu imagen! 🎨\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
-          : `Here's your image! 🎨\n\n**Suggested caption:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\nWould you like me to make any adjustments or generate another version?`;
+        const textResponse =
+          language === "es"
+            ? `¡Aquí está tu imagen! 🎨\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
+            : `Here's your image! 🎨\n\n**Suggested caption:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\nWould you like me to make any adjustments or generate another version?`;
 
         return {
           text: textResponse,
@@ -598,25 +648,33 @@ Now create this image: ${enhancedPrompt}`
           imagePrompt,
         };
       } else {
-        const errorResponse = language === "es"
-          ? "Lo siento, no pude generar la imagen en este momento. ¿Podrías intentarlo de nuevo o ser más específico con lo que necesitas?"
-          : "Sorry, I couldn't generate the image right now. Could you try again or be more specific about what you need?";
-        
+        const errorResponse =
+          language === "es"
+            ? "Lo siento, no pude generar la imagen en este momento. ¿Podrías intentarlo de nuevo o ser más específico con lo que necesitas?"
+            : "Sorry, I couldn't generate the image right now. Could you try again or be more specific about what you need?";
+
         return { text: errorResponse };
       }
     }
 
     const messages = [
       { role: "user" as const, parts: [{ text: systemPrompt }] },
-      { role: "model" as const, parts: [{ text: language === "es" 
-        ? "¡Hola! Soy Boosty, tu asistente de marketing. 🚀 Conozco todo sobre tu marca y estoy listo para ayudarte. ¿En qué puedo asistirte hoy?"
-        : "Hello! I'm Boosty, your marketing assistant. 🚀 I know everything about your brand and I'm ready to help. How can I assist you today?"
-      }] },
+      {
+        role: "model" as const,
+        parts: [
+          {
+            text:
+              language === "es"
+                ? "¡Hola! Soy Boosty, tu asistente de marketing. 🚀 Conozco todo sobre tu marca y estoy listo para ayudarte. ¿En qué puedo asistirte hoy?"
+                : "Hello! I'm Boosty, your marketing assistant. 🚀 I know everything about your brand and I'm ready to help. How can I assist you today?",
+          },
+        ],
+      },
     ];
 
     for (const msg of conversationHistory) {
       messages.push({
-        role: msg.role === "user" ? "user" as const : "model" as const,
+        role: msg.role === "user" ? ("user" as const) : ("model" as const),
         parts: [{ text: msg.content }],
       });
     }
@@ -637,9 +695,11 @@ Now create this image: ${enhancedPrompt}`
       });
 
       return {
-        text: response.text || (language === "es" 
-          ? "Lo siento, no pude procesar tu mensaje. ¿Podrías intentar de nuevo?"
-          : "Sorry, I couldn't process your message. Could you try again?")
+        text:
+          response.text ||
+          (language === "es"
+            ? "Lo siento, no pude procesar tu mensaje. ¿Podrías intentar de nuevo?"
+            : "Sorry, I couldn't process your message. Could you try again?"),
       };
     } catch (error) {
       console.error("[Boosty] Error generating response:", error);
@@ -647,32 +707,41 @@ Now create this image: ${enhancedPrompt}`
     }
   }
 
-  async getQuickSuggestions(brandId: string, userId: string, language: "es" | "en" = "es"): Promise<string[]> {
+  async getQuickSuggestions(
+    brandId: string,
+    userId: string,
+    language: "es" | "en" = "es",
+  ): Promise<string[]> {
     const context = await this.getBrandContext(brandId, userId);
-    
-    const suggestions = language === "es" ? [
-      "¿Cuáles son mis productos más vendidos?",
-      "Sugiere ideas de contenido para esta semana",
-      "¿Cómo están mis ventas este mes?",
-      "Ayúdame a escribir un post para Instagram",
-    ] : [
-      "What are my best-selling products?",
-      "Suggest content ideas for this week",
-      "How are my sales this month?",
-      "Help me write an Instagram post",
-    ];
+
+    const suggestions =
+      language === "es"
+        ? [
+            "¿Cuáles son mis productos más vendidos?",
+            "Sugiere ideas de contenido para esta semana",
+            "¿Cómo están mis ventas este mes?",
+            "Ayúdame a escribir un post para Instagram",
+          ]
+        : [
+            "What are my best-selling products?",
+            "Suggest content ideas for this week",
+            "How are my sales this month?",
+            "Help me write an Instagram post",
+          ];
 
     if (context.sales && context.sales.last30Days.transactionCount > 0) {
-      suggestions.push(language === "es" 
-        ? "Analiza las tendencias de ventas recientes"
-        : "Analyze recent sales trends"
+      suggestions.push(
+        language === "es"
+          ? "Analiza las tendencias de ventas recientes"
+          : "Analyze recent sales trends",
       );
     }
 
     if (context.conversations.unreadCount > 0) {
-      suggestions.push(language === "es"
-        ? `Tengo ${context.conversations.unreadCount} mensajes sin leer, ¿qué debo priorizar?`
-        : `I have ${context.conversations.unreadCount} unread messages, what should I prioritize?`
+      suggestions.push(
+        language === "es"
+          ? `Tengo ${context.conversations.unreadCount} mensajes sin leer, ¿qué debo priorizar?`
+          : `I have ${context.conversations.unreadCount} unread messages, what should I prioritize?`,
       );
     }
 

@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { logStartup } from "./diagnostic";
+import { postScheduler } from "./services/postScheduler";
 
 const app = express();
 
@@ -77,6 +78,7 @@ app.use((req, res, next) => {
     () => {
       log(`serving on port ${port}`);
       logStartup();
+      postScheduler.start();
     },
   );
 })();
