@@ -52,10 +52,21 @@ import {
   isWithinInterval,
 } from "date-fns";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import PostingFrequencyModal from "@/components/PostingFrequencyModal";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ContentPost {
   id: string;
@@ -130,6 +141,7 @@ export default function ContentCalendar() {
   const [editPost, setEditPost] = useState<ContentPost | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [showAutoPostConfirm, setShowAutoPostConfirm] = useState(false);
   const [isFrequencyModalOpen, setIsFrequencyModalOpen] = useState(false);
   const [postingSchedule, setPostingSchedule] = useState<Array<{
     platform: string;
@@ -195,6 +207,54 @@ export default function ContentCalendar() {
       enabled: !!activeBrandId,
       staleTime: 60000,
     });
+
+  // Query to fetch brand data (for autoPostEnabled)
+  const { data: brandData } = useQuery<any>({
+    queryKey: ["/api/brands", activeBrandId],
+    queryFn: async () => {
+      if (!activeBrandId) return null;
+      const res = await fetch(`/api/brands/${activeBrandId}`, {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeBrandId,
+    staleTime: 60000,
+  });
+
+  // Initialize isPaused from brand data
+  useEffect(() => {
+    if (brandData?.autoPostEnabled !== undefined) {
+      setIsPaused(!brandData.autoPostEnabled);
+    }
+  }, [brandData?.autoPostEnabled]);
+
+  // Mutation to update auto-post setting
+  const autoPostMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const res = await apiRequest("PATCH", `/api/brands/${activeBrandId}/auto-post`, { enabled });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/brands", activeBrandId] });
+      const newIsPaused = !data.autoPostEnabled;
+      setIsPaused(newIsPaused);
+      toast({
+        title: newIsPaused ? "Posting Paused" : "Posting Enabled",
+        description: newIsPaused
+          ? "Automatic posting has been paused. Scheduled posts will not be published."
+          : "Automatic posting has been enabled. Scheduled posts will be published automatically.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update auto-post setting",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Computed validation states
   const hasSocialIntegrations = useMemo(() => {
@@ -620,16 +680,13 @@ export default function ContentCalendar() {
   });
 
   const handleToggle = () => {
-    setIsPaused((prev) => {
-      const newState = !prev;
-      toast({
-        title: newState ? "Posting Paused" : "Posting Resumed",
-        description: newState
-          ? "Automatic posting has been paused."
-          : "Automatic posting has been resumed.",
-      });
-      return newState;
-    });
+    setShowAutoPostConfirm(true);
+  };
+
+  const confirmAutoPostToggle = () => {
+    const newEnabled = isPaused; // If paused, we're enabling; if not paused, we're disabling
+    autoPostMutation.mutate(newEnabled);
+    setShowAutoPostConfirm(false);
   };
 
   // Convert AI posts to ContentPost format
@@ -1889,6 +1946,32 @@ export default function ContentCalendar() {
           currentSchedule={postingSchedule}
           onSaveSchedule={handleSavePostingSchedule}
         />
+
+        {/* Auto-Post Confirmation Dialog */}
+        <AlertDialog open={showAutoPostConfirm} onOpenChange={setShowAutoPostConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {isPaused ? "Enable Automatic Posting?" : "Disable Automatic Posting?"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {isPaused
+                  ? "When enabled, your approved posts will be automatically published at their scheduled times."
+                  : "When disabled, scheduled posts will NOT be published automatically. You can still manually publish them."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmAutoPostToggle}
+                disabled={autoPostMutation.isPending}
+                className={isPaused ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+              >
+                {autoPostMutation.isPending ? "Saving..." : isPaused ? "Enable" : "Disable"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* AI Generation Loading Modal */}
         <Dialog
