@@ -678,7 +678,11 @@ export default function ContentCalendar() {
   const handleOpenPost = (post: ContentPost) => {
     setSelectedPost(post);
     // Use scheduledPublishTime for scheduledFor if available
-    const scheduledFor = post.scheduledPublishTime || post.scheduledFor || post.createdAt || new Date().toISOString();
+    const scheduledFor =
+      post.scheduledPublishTime ||
+      post.scheduledFor ||
+      post.createdAt ||
+      new Date().toISOString();
     setEditPost({ ...post, scheduledFor }); // clone to edit
   };
 
@@ -1088,33 +1092,48 @@ export default function ContentCalendar() {
                               </div>
 
                               {/* Pause/Autopost toggle */}
-                              <div
-                                onClick={handleToggle}
-                                className={`relative flex w-36 h-9 rounded-full cursor-pointer select-none transition-all duration-300 border ${
-                                  isPaused
-                                    ? "bg-gray-100 border-gray-300"
-                                    : "bg-gray-100 border-gray-300"
-                                }`}
-                              >
-                                <span
-                                  className={`absolute top-1 left-1 h-7 w-[calc(50%-4px)] rounded-full shadow-sm transform transition-all duration-300 ${
-                                    isPaused
-                                      ? "translate-x-0 bg-white border border-gray-300"
-                                      : "translate-x-full bg-white border border-gray-300"
-                                  }`}
-                                ></span>
-                                <div className="absolute inset-0 flex items-center justify-between px-3 text-xs font-medium">
+                              <div className="flex items-center gap-4">
+                                {/* Toggle */}
+                                <div
+                                  onClick={handleToggle}
+                                  role="switch"
+                                  aria-checked={!isPaused}
+                                  className={`relative flex w-20 h-9 rounded-full cursor-pointer
+                                    border transition-all duration-300 ease-out
+                                    ${
+                                      isPaused
+                                        ? "bg-gray-100 border-gray-300"
+                                        : "bg-green-50 border-green-300"
+                                    }
+                                  `}
+                                >
                                   <span
-                                    className={`transition-colors ${isPaused ? "text-gray-800" : "text-gray-400"}`}
-                                  >
-                                    Pause
-                                  </span>
-                                  <span
-                                    className={`transition-colors ${!isPaused ? "text-gray-800" : "text-gray-400"}`}
-                                  >
-                                    Auto
-                                  </span>
+                                    className={`absolute top-1 left-1 h-7 w-7 rounded-full
+                                      bg-white shadow-md border
+                                      transform transition-all duration-300 ease-out
+                                      ${
+                                        isPaused
+                                          ? "translate-x-0 border-gray-300"
+                                          : "translate-x-11 border-green-300"
+                                      }
+                                    `}
+                                  />
                                 </div>
+
+                                {/* Legend */}
+                                <span
+                                  className={`text-sm transition-colors duration-200
+                                    ${
+                                      isPaused
+                                        ? "text-gray-500"
+                                        : "text-green-700 font-medium"
+                                    }
+                                  `}
+                                >
+                                  {isPaused
+                                    ? "Automatic posting is paused"
+                                    : "Automatic posting enabled"}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -1710,19 +1729,23 @@ export default function ContentCalendar() {
                     </div>
 
                     {/* Published At - Show when post is published */}
-                    {editPost.status === "published" && editPost.publishedAt && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">
-                          Published At
-                        </label>
-                        <div className="flex items-center gap-2 h-11 px-3 bg-green-50 border border-green-200 rounded-lg">
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                          <span className="text-sm text-green-700">
-                            {format(new Date(editPost.publishedAt), "PPP 'at' p")}
-                          </span>
+                    {editPost.status === "published" &&
+                      editPost.publishedAt && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700">
+                            Published At
+                          </label>
+                          <div className="flex items-center gap-2 h-11 px-3 bg-green-50 border border-green-200 rounded-lg">
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="text-sm text-green-700">
+                              {format(
+                                new Date(editPost.publishedAt),
+                                "PPP 'at' p",
+                              )}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Image Controls */}
                     {/*<div className="space-y-2">
