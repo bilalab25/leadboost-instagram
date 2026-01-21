@@ -12,8 +12,10 @@ class PostSchedulerService {
       return;
     }
 
-    console.log("[PostScheduler] Starting scheduler - checking every minute for posts to publish");
-    
+    console.log(
+      "[PostScheduler] Starting scheduler - checking every minute for posts to publish",
+    );
+
     cron.schedule("* * * * *", async () => {
       await this.checkAndPublishPosts();
     });
@@ -23,7 +25,7 @@ class PostSchedulerService {
 
   private async checkAndPublishPosts() {
     const now = new Date();
-    
+
     try {
       const postsToPublish = await db
         .select()
@@ -32,15 +34,17 @@ class PostSchedulerService {
           and(
             eq(aiGeneratedPosts.status, "accepted"),
             lte(aiGeneratedPosts.scheduledPublishTime, now),
-            isNull(aiGeneratedPosts.publishedAt)
-          )
+            isNull(aiGeneratedPosts.publishedAt),
+          ),
         );
 
       if (postsToPublish.length === 0) {
         return;
       }
 
-      console.log(`[PostScheduler] Found ${postsToPublish.length} posts ready to publish`);
+      console.log(
+        `[PostScheduler] Found ${postsToPublish.length} posts ready to publish`,
+      );
 
       for (const post of postsToPublish) {
         // Check if brand has auto-post enabled
@@ -51,7 +55,16 @@ class PostSchedulerService {
           .limit(1);
 
         if (!brand[0] || brand[0].autoPostEnabled === false) {
-          console.log(`[PostScheduler] Skipping post ${post.id} - auto-post disabled for brand ${post.brandId}`);
+          console.log(
+            `[PostScheduler] Skipping post ${post.id} - auto-post disabled for brand ${post.brandId}`,
+          );
+          await db
+            .update(aiGeneratedPosts)
+            .set({
+              status: "skipped_auto_post_disabled",
+              updatedAt: new Date(),
+            })
+            .where(eq(aiGeneratedPosts.id, post.id));
           continue;
         }
 
@@ -73,7 +86,7 @@ class PostSchedulerService {
     try {
       // TODO: Call your publishing endpoint here
       // Example: await fetch('YOUR_PUBLISH_ENDPOINT', { method: 'POST', body: JSON.stringify(post) });
-      
+
       await db
         .update(aiGeneratedPosts)
         .set({
@@ -83,9 +96,14 @@ class PostSchedulerService {
         })
         .where(eq(aiGeneratedPosts.id, post.id));
 
-      console.log(`[PostScheduler] Successfully marked post ${post.id} as published`);
+      console.log(
+        `[PostScheduler] Successfully marked post ${post.id} as published`,
+      );
     } catch (error) {
-      console.error(`[PostScheduler] Failed to publish post ${post.id}:`, error);
+      console.error(
+        `[PostScheduler] Failed to publish post ${post.id}:`,
+        error,
+      );
     }
   }
 }

@@ -79,7 +79,8 @@ interface ContentPost {
     | "published"
     | "pending"
     | "accepted"
-    | "rejected";
+    | "rejected"
+    | "skipped_auto_post_disabled";
   content: string;
   imageUrl?: string;
   source?: "manual" | "ai";
@@ -233,11 +234,17 @@ export default function ContentCalendar() {
   // Mutation to update auto-post setting
   const autoPostMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
-      const res = await apiRequest("PATCH", `/api/brands/${activeBrandId}/auto-post`, { enabled });
+      const res = await apiRequest(
+        "PATCH",
+        `/api/brands/${activeBrandId}/auto-post`,
+        { enabled },
+      );
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/brands", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/brands", activeBrandId],
+      });
       const newIsPaused = !data.autoPostEnabled;
       setIsPaused(newIsPaused);
       toast({
@@ -712,9 +719,15 @@ export default function ContentCalendar() {
     });
 
     const pending = thisWeekPosts.filter((p) => p.status === "pending").length;
-    const accepted = thisWeekPosts.filter((p) => p.status === "accepted").length;
-    const published = thisWeekPosts.filter((p) => p.status === "published").length;
-    const rejected = thisWeekPosts.filter((p) => p.status === "rejected").length;
+    const accepted = thisWeekPosts.filter(
+      (p) => p.status === "accepted",
+    ).length;
+    const published = thisWeekPosts.filter(
+      (p) => p.status === "published",
+    ).length;
+    const rejected = thisWeekPosts.filter(
+      (p) => p.status === "rejected",
+    ).length;
     const total = thisWeekPosts.length;
 
     return { pending, accepted, published, rejected, total };
@@ -987,7 +1000,9 @@ export default function ContentCalendar() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <CalendarDays className="h-5 w-5 text-gray-500" />
-                            <span className="font-semibold text-gray-800">This Week</span>
+                            <span className="font-semibold text-gray-800">
+                              This Week
+                            </span>
                             <Badge variant="secondary" className="ml-2">
                               {thisWeekStats.total} posts
                             </Badge>
@@ -995,15 +1010,21 @@ export default function ContentCalendar() {
                           <div className="flex flex-wrap gap-3 text-sm">
                             <span className="flex items-center gap-1.5">
                               <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
-                              <span className="text-gray-600">{thisWeekStats.pending} pending</span>
+                              <span className="text-gray-600">
+                                {thisWeekStats.pending} pending
+                              </span>
                             </span>
                             <span className="flex items-center gap-1.5">
                               <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                              <span className="text-gray-600">{thisWeekStats.accepted} accepted</span>
+                              <span className="text-gray-600">
+                                {thisWeekStats.accepted} accepted
+                              </span>
                             </span>
                             <span className="flex items-center gap-1.5">
                               <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                              <span className="text-gray-600">{thisWeekStats.published} published</span>
+                              <span className="text-gray-600">
+                                {thisWeekStats.published} published
+                              </span>
                             </span>
                           </div>
                         </div>
@@ -1023,7 +1044,9 @@ export default function ContentCalendar() {
                             data-testid="button-set-posting-frequency-panel"
                           >
                             <Settings className="w-4 h-4 mr-1" />
-                            {hasPostingFrequency ? "Edit Frequency" : "Set Frequency"}
+                            {hasPostingFrequency
+                              ? "Edit Frequency"
+                              : "Set Frequency"}
                           </Button>
 
                           {/* Auto-posting Toggle */}
@@ -1123,116 +1146,116 @@ export default function ContentCalendar() {
                             {/* Action buttons row */}
                             <div className="flex flex-wrap items-center gap-2">
                               <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <Button
+                                      size="sm"
+                                      variant={
+                                        hasActiveJob || isLoadingAiPosts
+                                          ? "outline"
+                                          : canGenerateAiPosts
+                                            ? "default"
+                                            : "outline"
+                                      }
+                                      onClick={() =>
+                                        generatePostsMutation.mutate()
+                                      }
+                                      disabled={
+                                        generatePostsMutation.isPending ||
+                                        !activeBrandId ||
+                                        !canGenerateAiPosts ||
+                                        hasActiveJob ||
+                                        isLoadingAiPosts
+                                      }
+                                      className={
+                                        hasActiveJob || isLoadingAiPosts
+                                          ? "bg-purple-100 border-purple-300 text-purple-700"
+                                          : canGenerateAiPosts
+                                            ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                            : "opacity-60 cursor-not-allowed"
+                                      }
+                                      data-testid="button-generate-ai-posts"
+                                    >
+                                      {isLoadingAiPosts ? (
+                                        <>
+                                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                          Loading...
+                                        </>
+                                      ) : hasActiveJob ||
+                                        generatePostsMutation.isPending ? (
+                                        <>
+                                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                          Generating...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Sparkles className="w-4 h-4 mr-1" />
+                                          AI Suggestions
+                                        </>
+                                      )}
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                {(!canGenerateAiPosts ||
+                                  hasActiveJob ||
+                                  isLoadingAiPosts) && (
+                                  <TooltipContent>
+                                    <p>
+                                      {isLoadingAiPosts
+                                        ? "Loading existing posts..."
+                                        : getDisabledReason()}
+                                    </p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+
+                              {/* Only show Approve Month button if there are pending posts */}
+                              {hasPendingPostsForMonth && (
+                                <Tooltip>
                                   <TooltipTrigger asChild>
                                     <span>
                                       <Button
                                         size="sm"
-                                        variant={
-                                          hasActiveJob || isLoadingAiPosts
-                                            ? "outline"
-                                            : canGenerateAiPosts
-                                              ? "default"
-                                              : "outline"
-                                        }
                                         onClick={() =>
-                                          generatePostsMutation.mutate()
+                                          handleApproveMonth("accepted")
                                         }
                                         disabled={
-                                          generatePostsMutation.isPending ||
-                                          !activeBrandId ||
-                                          !canGenerateAiPosts ||
-                                          hasActiveJob ||
+                                          isPastMonth ||
+                                          bulkUpdatePostStatusMutation.isPending ||
                                           isLoadingAiPosts
                                         }
                                         className={
-                                          hasActiveJob || isLoadingAiPosts
-                                            ? "bg-purple-100 border-purple-300 text-purple-700"
-                                            : canGenerateAiPosts
-                                              ? "bg-purple-600 hover:bg-purple-700 text-white"
-                                              : "opacity-60 cursor-not-allowed"
+                                          isPastMonth || isLoadingAiPosts
+                                            ? "opacity-60 cursor-not-allowed bg-gray-200"
+                                            : "bg-gray-800 hover:bg-gray-900 text-white"
                                         }
-                                        data-testid="button-generate-ai-posts"
+                                        data-testid="button-approve-month"
                                       >
                                         {isLoadingAiPosts ? (
                                           <>
                                             <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                             Loading...
                                           </>
-                                        ) : hasActiveJob ||
-                                          generatePostsMutation.isPending ? (
-                                          <>
-                                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                            Generating...
-                                          </>
                                         ) : (
                                           <>
-                                            <Sparkles className="w-4 h-4 mr-1" />
-                                            AI Suggestions
+                                            <CheckCircle className="w-4 h-4 mr-1" />
+                                            Approve Month
                                           </>
                                         )}
                                       </Button>
                                     </span>
                                   </TooltipTrigger>
-                                  {(!canGenerateAiPosts ||
-                                    hasActiveJob ||
-                                    isLoadingAiPosts) && (
+                                  {(isPastMonth || isLoadingAiPosts) && (
                                     <TooltipContent>
                                       <p>
                                         {isLoadingAiPosts
-                                          ? "Loading existing posts..."
-                                          : getDisabledReason()}
+                                          ? "Loading posts..."
+                                          : "Cannot approve past months"}
                                       </p>
                                     </TooltipContent>
                                   )}
                                 </Tooltip>
-
-                                {/* Only show Approve Month button if there are pending posts */}
-                                {hasPendingPostsForMonth && (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span>
-                                        <Button
-                                          size="sm"
-                                          onClick={() =>
-                                            handleApproveMonth("accepted")
-                                          }
-                                          disabled={
-                                            isPastMonth ||
-                                            bulkUpdatePostStatusMutation.isPending ||
-                                            isLoadingAiPosts
-                                          }
-                                          className={
-                                            isPastMonth || isLoadingAiPosts
-                                              ? "opacity-60 cursor-not-allowed bg-gray-200"
-                                              : "bg-gray-800 hover:bg-gray-900 text-white"
-                                          }
-                                          data-testid="button-approve-month"
-                                        >
-                                          {isLoadingAiPosts ? (
-                                            <>
-                                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                              Loading...
-                                            </>
-                                          ) : (
-                                            <>
-                                              <CheckCircle className="w-4 h-4 mr-1" />
-                                              Approve Month
-                                            </>
-                                          )}
-                                        </Button>
-                                      </span>
-                                    </TooltipTrigger>
-                                    {(isPastMonth || isLoadingAiPosts) && (
-                                      <TooltipContent>
-                                        <p>
-                                          {isLoadingAiPosts
-                                            ? "Loading posts..."
-                                            : "Cannot approve past months"}
-                                        </p>
-                                      </TooltipContent>
-                                    )}
-                                  </Tooltip>
-                                )}
+                              )}
                             </div>
                           </div>
                         </CardHeader>
@@ -1288,7 +1311,8 @@ export default function ContentCalendar() {
                                         | "pending"
                                         | "accepted"
                                         | "rejected"
-                                        | "published";
+                                        | "published"
+                                        | "skipped_auto_post_disabled";
 
                                       const iconColor =
                                         platformIconColors[
@@ -1323,6 +1347,11 @@ export default function ContentCalendar() {
                                           {isAiPost &&
                                             postStatus === "pending" && (
                                               <Clock className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                                            )}
+                                          {isAiPost &&
+                                            postStatus ===
+                                              "skipped_auto_post_disabled" && (
+                                              <XCircle className="w-3 h-3 text-red-400 flex-shrink-0" />
                                             )}
                                         </div>
                                       );
@@ -1382,7 +1411,8 @@ export default function ContentCalendar() {
                                   | "pending"
                                   | "accepted"
                                   | "rejected"
-                                  | "published";
+                                  | "published"
+                                  | "skipped_auto_post_disabled";
 
                                 const statusConfig = {
                                   pending: {
@@ -1413,6 +1443,13 @@ export default function ContentCalendar() {
                                     icon: RssIcon,
                                     label: "Published",
                                   },
+                                  skipped_auto_post_disabled: {
+                                    bg: "bg-red-100",
+                                    text: "text-red-800",
+                                    border: "border-red-200",
+                                    icon: XCircle,
+                                    label: "Skipped",
+                                  },
                                 };
 
                                 const currentStatus =
@@ -1427,7 +1464,9 @@ export default function ContentCalendar() {
                                       isAiPost
                                         ? postStatus === "accepted"
                                           ? "border-green-300 bg-gradient-to-br from-green-50/50 to-white"
-                                          : postStatus === "rejected"
+                                          : postStatus === "rejected" ||
+                                              postStatus ===
+                                                "skipped_auto_post_disabled"
                                             ? "border-red-300 bg-gradient-to-br from-red-50/50 to-white opacity-60"
                                             : "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white"
                                         : ""
@@ -1635,6 +1674,11 @@ export default function ContentCalendar() {
                           <RssIcon className="w-4 h-4" /> Published
                         </span>
                       )}
+                      {editPost.status === "skipped_auto_post_disabled" && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium border border-red-200">
+                          <XCircle className="w-4 h-4" /> Skipped (Auto-post disabled)
+                        </span>
+                      )}
                       {editPost.status === "rejected" && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium border border-red-200">
                           <XCircle className="w-4 h-4" /> Rejected
@@ -1711,7 +1755,7 @@ export default function ContentCalendar() {
                         className="h-11"
                         disabled={
                           editPost.status === "rejected" ||
-                          editPost.status === "published"
+                          editPost.status === "published" || editPost.status === "skipped_auto_post_disabled"
                         }
                         data-testid="input-post-title"
                       />
@@ -1739,7 +1783,7 @@ export default function ContentCalendar() {
                         className="min-h-[120px] resize-none"
                         disabled={
                           editPost.status === "rejected" ||
-                          editPost.status === "published"
+                          editPost.status === "published" || editPost.status === "skipped_auto_post_disabled"
                         }
                         data-testid="input-post-content"
                       />
@@ -1948,11 +1992,16 @@ export default function ContentCalendar() {
         />
 
         {/* Auto-Post Confirmation Dialog */}
-        <AlertDialog open={showAutoPostConfirm} onOpenChange={setShowAutoPostConfirm}>
+        <AlertDialog
+          open={showAutoPostConfirm}
+          onOpenChange={setShowAutoPostConfirm}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {isPaused ? "Enable Automatic Posting?" : "Disable Automatic Posting?"}
+                {isPaused
+                  ? "Enable Automatic Posting?"
+                  : "Disable Automatic Posting?"}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {isPaused
@@ -1965,9 +2014,17 @@ export default function ContentCalendar() {
               <AlertDialogAction
                 onClick={confirmAutoPostToggle}
                 disabled={autoPostMutation.isPending}
-                className={isPaused ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+                className={
+                  isPaused
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }
               >
-                {autoPostMutation.isPending ? "Saving..." : isPaused ? "Enable" : "Disable"}
+                {autoPostMutation.isPending
+                  ? "Saving..."
+                  : isPaused
+                    ? "Enable"
+                    : "Disable"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
