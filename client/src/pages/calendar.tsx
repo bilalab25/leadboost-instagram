@@ -1553,6 +1553,7 @@ export default function ContentCalendar() {
                         }
                         placeholder="Enter a catchy title..."
                         className="h-11"
+                        disabled={editPost.status === "rejected" || editPost.status === "published"}
                         data-testid="input-post-title"
                       />
                     </div>
@@ -1577,6 +1578,7 @@ export default function ContentCalendar() {
                         style={{ fontSize: ".6rem" }}
                         placeholder="Write your caption..."
                         className="min-h-[120px] resize-none"
+                        disabled={editPost.status === "rejected" || editPost.status === "published"}
                         data-testid="input-post-content"
                       />
                     </div>
@@ -1596,6 +1598,7 @@ export default function ContentCalendar() {
                           }
                           placeholder="#hashtag1 #hashtag2..."
                           className="min-h-[60px] resize-none text-sm text-blue-600"
+                          disabled={editPost.status === "rejected" || editPost.status === "published"}
                           data-testid="input-post-hashtags"
                         />
                       </div>
@@ -1620,6 +1623,7 @@ export default function ContentCalendar() {
                           )
                         }
                         className="h-11"
+                        disabled={editPost.status === "rejected" || editPost.status === "published"}
                         data-testid="input-post-schedule"
                       />
                     </div>
@@ -1694,10 +1698,11 @@ export default function ContentCalendar() {
                         className="bg-gray-800 hover:bg-gray-900 text-white"
                         onClick={() => {
                           if (selectedPost && editPost) {
+                            const localDate = new Date(editPost.scheduledFor);
                             updatePostStatusMutation.mutate({
                               postId: selectedPost.id,
                               status: "accepted",
-                              scheduledPublishTime: editPost.scheduledFor,
+                              scheduledPublishTime: localDate.toISOString(),
                             });
                           }
                           setSelectedPost(null);
