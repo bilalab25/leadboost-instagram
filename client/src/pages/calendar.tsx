@@ -70,6 +70,10 @@ interface ContentPost {
   imageUrl?: string;
   source?: "manual" | "ai";
   hashtags?: string;
+  scheduledPublishTime?: string;
+  publishedAt?: string;
+  createdAt?: string;
+  dia?: string;
 }
 
 const platformIcons: Record<string, any> = {
@@ -666,7 +670,9 @@ export default function ContentCalendar() {
 
   const handleOpenPost = (post: ContentPost) => {
     setSelectedPost(post);
-    setEditPost({ ...post }); // clone to edit
+    // Use scheduledPublishTime for scheduledFor if available
+    const scheduledFor = post.scheduledPublishTime || post.scheduledFor || post.createdAt || new Date().toISOString();
+    setEditPost({ ...post, scheduledFor }); // clone to edit
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -681,7 +687,8 @@ export default function ContentCalendar() {
   // Get AI posts for the current month
   const getAiPostsForMonth = () => {
     return aiPendingPosts.filter((post) => {
-      const postDate = new Date(post.createdAt);
+      // Use scheduledPublishTime if available, otherwise fall back to createdAt
+      const postDate = new Date(post.scheduledPublishTime || post.createdAt);
       return isSameMonth(postDate, currentDate);
     });
   };
@@ -694,8 +701,14 @@ export default function ContentCalendar() {
 
   // Get AI posts for the selected day
   const getAiPostsForDay = (date: Date) => {
-    const dayName = format(date, "EEEE").toLowerCase();
     return aiPendingPosts.filter((post) => {
+      // If post has scheduledPublishTime, use that for exact date matching
+      if (post.scheduledPublishTime) {
+        const scheduledDate = new Date(post.scheduledPublishTime);
+        return isSameDay(scheduledDate, date);
+      }
+      // Otherwise fall back to matching by day name within the month
+      const dayName = format(date, "EEEE").toLowerCase();
       return (
         post.dia?.toLowerCase() === dayName &&
         isSameMonth(new Date(post.createdAt), currentDate)
@@ -1389,7 +1402,7 @@ export default function ContentCalendar() {
                                       >
                                         <Eye className="w-3 h-3 mr-1" /> View
                                       </Button>
-                                      <Button
+                                      {/*  <Button
                                         size="sm"
                                         variant="outline"
                                         className="flex-1"
@@ -1397,7 +1410,7 @@ export default function ContentCalendar() {
                                         data-testid={`button-edit-post-${post.id}`}
                                       >
                                         <Edit className="w-3 h-3 mr-1" /> Edit
-                                      </Button>
+                                      </Button> */}
                                     </div>
 
                                     {/* Individual Approve button for AI posts */}
@@ -1511,6 +1524,11 @@ export default function ContentCalendar() {
                         </span>
                       )}
                       {/* Status badge next to platform */}
+                      {editPost.status === "pending" && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-sm font-medium border border-purple-200">
+                          <Clock className="w-4 h-4" /> Pending
+                        </span>
+                      )}
                       {editPost.status === "accepted" && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium border border-green-200">
                           <CheckCircle className="w-4 h-4" /> Approved
@@ -1683,6 +1701,21 @@ export default function ContentCalendar() {
                         data-testid="input-post-schedule"
                       />
                     </div>
+
+                    {/* Published At - Show when post is published */}
+                    {editPost.status === "published" && editPost.publishedAt && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">
+                          Published At
+                        </label>
+                        <div className="flex items-center gap-2 h-11 px-3 bg-green-50 border border-green-200 rounded-lg">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-green-700">
+                            {format(new Date(editPost.publishedAt), "PPP 'at' p")}
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Image Controls */}
                     {/*<div className="space-y-2">
