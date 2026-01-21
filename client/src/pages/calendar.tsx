@@ -1676,7 +1676,8 @@ export default function ContentCalendar() {
                       )}
                       {editPost.status === "skipped_auto_post_disabled" && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium border border-red-200">
-                          <XCircle className="w-4 h-4" /> Skipped (Auto-post disabled)
+                          <XCircle className="w-4 h-4" /> Skipped (Auto-post
+                          disabled)
                         </span>
                       )}
                       {editPost.status === "rejected" && (
@@ -1755,7 +1756,8 @@ export default function ContentCalendar() {
                         className="h-11"
                         disabled={
                           editPost.status === "rejected" ||
-                          editPost.status === "published" || editPost.status === "skipped_auto_post_disabled"
+                          editPost.status === "published" ||
+                          editPost.status === "skipped_auto_post_disabled"
                         }
                         data-testid="input-post-title"
                       />
@@ -1783,7 +1785,8 @@ export default function ContentCalendar() {
                         className="min-h-[120px] resize-none"
                         disabled={
                           editPost.status === "rejected" ||
-                          editPost.status === "published" || editPost.status === "skipped_auto_post_disabled"
+                          editPost.status === "published" ||
+                          editPost.status === "skipped_auto_post_disabled"
                         }
                         data-testid="input-post-content"
                       />
@@ -1808,7 +1811,8 @@ export default function ContentCalendar() {
                           className="min-h-[60px] resize-none text-sm text-blue-600"
                           disabled={
                             editPost.status === "rejected" ||
-                            editPost.status === "published"
+                            editPost.status === "published" ||
+                            editPost.status === "skipped_auto_post_disabled"
                           }
                           data-testid="input-post-hashtags"
                         />
@@ -1836,7 +1840,8 @@ export default function ContentCalendar() {
                         className="h-11"
                         disabled={
                           editPost.status === "rejected" ||
-                          editPost.status === "published"
+                          editPost.status === "published" ||
+                          editPost.status === "skipped_auto_post_disabled"
                         }
                         data-testid="input-post-schedule"
                       />
