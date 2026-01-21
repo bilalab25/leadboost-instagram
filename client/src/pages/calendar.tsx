@@ -43,10 +43,13 @@ import {
   format,
   startOfMonth,
   endOfMonth,
+  startOfWeek,
+  endOfWeek,
   eachDayOfInterval,
   isSameDay,
   isToday,
   isSameMonth,
+  isWithinInterval,
 } from "date-fns";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -640,6 +643,26 @@ export default function ContentCalendar() {
     return aiContentPosts;
   }, [aiContentPosts]);
 
+  // Calculate this week's stats from real data
+  const thisWeekStats = useMemo(() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 0 }); // Sunday
+    const weekEnd = endOfWeek(now, { weekStartsOn: 0 }); // Saturday
+
+    const thisWeekPosts = allPosts.filter((post) => {
+      const postDate = new Date(post.scheduledFor);
+      return isWithinInterval(postDate, { start: weekStart, end: weekEnd });
+    });
+
+    const pending = thisWeekPosts.filter((p) => p.status === "pending").length;
+    const accepted = thisWeekPosts.filter((p) => p.status === "accepted").length;
+    const published = thisWeekPosts.filter((p) => p.status === "published").length;
+    const rejected = thisWeekPosts.filter((p) => p.status === "rejected").length;
+    const total = thisWeekPosts.length;
+
+    return { pending, accepted, published, rejected, total };
+  }, [allPosts]);
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
@@ -899,6 +922,88 @@ export default function ContentCalendar() {
                     )}
                   </div>
 
+                  {/* Consolidated Control Panel */}
+                  <Card className="shadow-sm border mb-6">
+                    <CardContent className="py-4">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        {/* This Week Summary */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CalendarDays className="h-5 w-5 text-gray-500" />
+                            <span className="font-semibold text-gray-800">This Week</span>
+                            <Badge variant="secondary" className="ml-2">
+                              {thisWeekStats.total} posts
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-3 text-sm">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
+                              <span className="text-gray-600">{thisWeekStats.pending} pending</span>
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                              <span className="text-gray-600">{thisWeekStats.accepted} accepted</span>
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                              <span className="text-gray-600">{thisWeekStats.published} published</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex flex-wrap items-center gap-4">
+                          {/* Edit Frequency */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setIsFrequencyModalOpen(true)}
+                            className={
+                              !hasPostingFrequency
+                                ? "border-blue-300 text-blue-700 hover:bg-blue-50"
+                                : ""
+                            }
+                            data-testid="button-set-posting-frequency-panel"
+                          >
+                            <Settings className="w-4 h-4 mr-1" />
+                            {hasPostingFrequency ? "Edit Frequency" : "Set Frequency"}
+                          </Button>
+
+                          {/* Auto-posting Toggle */}
+                          <div className="flex items-center gap-3">
+                            <div
+                              onClick={handleToggle}
+                              role="switch"
+                              aria-checked={!isPaused}
+                              className={`relative flex w-14 h-7 rounded-full cursor-pointer border transition-all duration-300 ease-out ${
+                                isPaused
+                                  ? "bg-gray-100 border-gray-300"
+                                  : "bg-green-50 border-green-300"
+                              }`}
+                            >
+                              <span
+                                className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow-md border transform transition-all duration-300 ease-out ${
+                                  isPaused
+                                    ? "translate-x-0 border-gray-300"
+                                    : "translate-x-7 border-green-300"
+                                }`}
+                              />
+                            </div>
+                            <span
+                              className={`text-sm transition-colors duration-200 ${
+                                isPaused
+                                  ? "text-gray-500"
+                                  : "text-green-700 font-medium"
+                              }`}
+                            >
+                              {isPaused ? "Auto-post OFF" : "Auto-post ON"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* 📅 Calendar */}
                     <div className="lg:col-span-2">
@@ -959,26 +1064,8 @@ export default function ContentCalendar() {
                             </div>
 
                             {/* Action buttons row */}
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                              <div className="flex flex-wrap gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setIsFrequencyModalOpen(true)}
-                                  className={
-                                    !hasPostingFrequency
-                                      ? "border-blue-300 text-blue-700 hover:bg-blue-50"
-                                      : ""
-                                  }
-                                  data-testid="button-set-posting-frequency"
-                                >
-                                  <Settings className="w-4 h-4 mr-1" />
-                                  {hasPostingFrequency
-                                    ? "Edit Frequency"
-                                    : "Set Frequency"}
-                                </Button>
-
-                                <Tooltip>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Tooltip>
                                   <TooltipTrigger asChild>
                                     <span>
                                       <Button
@@ -1089,52 +1176,6 @@ export default function ContentCalendar() {
                                     )}
                                   </Tooltip>
                                 )}
-                              </div>
-
-                              {/* Pause/Autopost toggle */}
-                              <div className="flex items-center gap-4">
-                                {/* Toggle */}
-                                <div
-                                  onClick={handleToggle}
-                                  role="switch"
-                                  aria-checked={!isPaused}
-                                  className={`relative flex w-20 h-9 rounded-full cursor-pointer
-                                    border transition-all duration-300 ease-out
-                                    ${
-                                      isPaused
-                                        ? "bg-gray-100 border-gray-300"
-                                        : "bg-green-50 border-green-300"
-                                    }
-                                  `}
-                                >
-                                  <span
-                                    className={`absolute top-1 left-1 h-7 w-7 rounded-full
-                                      bg-white shadow-md border
-                                      transform transition-all duration-300 ease-out
-                                      ${
-                                        isPaused
-                                          ? "translate-x-0 border-gray-300"
-                                          : "translate-x-11 border-green-300"
-                                      }
-                                    `}
-                                  />
-                                </div>
-
-                                {/* Legend */}
-                                <span
-                                  className={`text-sm transition-colors duration-200
-                                    ${
-                                      isPaused
-                                        ? "text-gray-500"
-                                        : "text-green-700 font-medium"
-                                    }
-                                  `}
-                                >
-                                  {isPaused
-                                    ? "Automatic posting is paused"
-                                    : "Automatic posting enabled"}
-                                </span>
-                              </div>
                             </div>
                           </div>
                         </CardHeader>
@@ -1472,34 +1513,6 @@ export default function ContentCalendar() {
                                 : "Click on a day to view posts"}
                             </p>
                           )}
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">This Week</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">
-                                Scheduled
-                              </span>
-                              <span className="font-medium">3</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">
-                                Published
-                              </span>
-                              <span className="font-medium">1</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">
-                                Drafts
-                              </span>
-                              <span className="font-medium">1</span>
-                            </div>
-                          </div>
                         </CardContent>
                       </Card>
                     </div>
