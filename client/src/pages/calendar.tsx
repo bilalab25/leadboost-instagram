@@ -285,10 +285,13 @@ export default function ContentCalendar() {
     const posts: ContentPost[] = [];
 
     aiPosts.forEach((post) => {
-      // Parse the date from dia field (could be "monday" or "2025-01-15")
+      // Use scheduledPublishTime if available, otherwise parse from dia field
       let scheduledDate: Date;
 
-      if (post.dia && post.dia.includes("-")) {
+      if (post.scheduledPublishTime) {
+        // Use the exact scheduled publish time
+        scheduledDate = new Date(post.scheduledPublishTime);
+      } else if (post.dia && post.dia.includes("-")) {
         // ISO date format
         scheduledDate = new Date(post.dia + "T10:00:00");
       } else {
@@ -308,6 +311,10 @@ export default function ContentCalendar() {
         imageUrl: post.imageUrl,
         source: "ai",
         hashtags: post.hashtags,
+        scheduledPublishTime: post.scheduledPublishTime || undefined,
+        publishedAt: post.publishedAt || undefined,
+        createdAt: post.createdAt || undefined,
+        dia: post.dia || undefined,
       });
     });
 
