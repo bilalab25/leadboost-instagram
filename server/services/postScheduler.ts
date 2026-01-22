@@ -23,10 +23,42 @@ class PostSchedulerService {
     this.isRunning = true;
   }
 
+  /**
+   * Attempts to acquire an exclusive lock on a post using atomic UPDATE.
+   * Returns true if lock acquired, false if already locked by another process.
+   * Uses UPDATE ... WHERE lockedAt IS NULL to ensure only one process can claim.
+   */
+  private async lockPost(postId: string): Promise<boolean> {
+    const result = await db
+      .update(aiGeneratedPosts)
+      .set({ lockedAt: new Date() })
+      .where(
+        and(
+          eq(aiGeneratedPosts.id, postId),
+          isNull(aiGeneratedPosts.lockedAt),
+        ),
+      )
+      .returning({ id: aiGeneratedPosts.id });
+
+    return result.length > 0;
+  }
+
+  /**
+   * Releases the lock on a post (sets lockedAt to null).
+   * Called when publish fails to allow retry.
+   */
+  private async unlockPost(postId: string): Promise<void> {
+    await db
+      .update(aiGeneratedPosts)
+      .set({ lockedAt: null, updatedAt: new Date() })
+      .where(eq(aiGeneratedPosts.id, postId));
+  }
+
   private async checkAndPublishPosts() {
     const now = new Date();
 
     try {
+      // Find posts ready to publish (accepted, due, not yet published, not locked)
       const postsToPublish = await db
         .select()
         .from(aiGeneratedPosts)
@@ -35,6 +67,7 @@ class PostSchedulerService {
             eq(aiGeneratedPosts.status, "accepted"),
             lte(aiGeneratedPosts.scheduledPublishTime, now),
             isNull(aiGeneratedPosts.publishedAt),
+            isNull(aiGeneratedPosts.lockedAt), // Exclude already locked posts
           ),
         );
 
@@ -68,6 +101,16 @@ class PostSchedulerService {
           continue;
         }
 
+        // Try to acquire lock before publishing
+        const locked = await this.lockPost(post.id);
+        if (!locked) {
+          // Another process already claimed this post, skip silently
+          console.log(
+            `[PostScheduler] Post ${post.id} already locked by another process, skipping`,
+          );
+          continue;
+        }
+
         await this.publishPost(post);
       }
     } catch (error) {
@@ -91,23 +134,28 @@ class PostSchedulerService {
 
       const integration = integrationsList[0];
 
-      if (!integration) {
+      if (!integration || !integration.accessToken) {
+        // No integration or access token found - release lock and mark status
         await db
           .update(aiGeneratedPosts)
           .set({
             status: "no_integration",
+            lockedAt: null,
             updatedAt: new Date(),
           })
           .where(eq(aiGeneratedPosts.id, post.id));
         return;
       }
 
+      const accessToken = integration.accessToken;
+
+      // Publish to Facebook
       if (post.platform === "facebook") {
         const params = new URLSearchParams({
-          url: post.imageUrl,
+          url: post.imageUrl!,
           caption: post.content ?? "",
           published: "true",
-          access_token: integration.accessToken,
+          access_token: accessToken,
         });
 
         const response = await fetch(
@@ -125,11 +173,13 @@ class PostSchedulerService {
           `[PostScheduler] Facebook post published with id ${data.post_id || data.id}`,
         );
       }
+
+      // Publish to Instagram (two-step: create container, then publish)
       if (post.platform === "instagram") {
         const params = new URLSearchParams({
-          image_url: post.imageUrl,
+          image_url: post.imageUrl!,
           caption: post.content ?? "",
-          access_token: integration.accessToken,
+          access_token: accessToken,
         });
 
         const containerResponse = await fetch(
@@ -145,6 +195,7 @@ class PostSchedulerService {
           );
         }
 
+        // Wait for container to be ready
         await new Promise((res) => setTimeout(res, 2000));
 
         const publishResponse = await fetch(
@@ -153,7 +204,7 @@ class PostSchedulerService {
             method: "POST",
             body: new URLSearchParams({
               creation_id: containerData.id,
-              access_token: integration.accessToken,
+              access_token: accessToken,
             }),
           },
         );
@@ -167,24 +218,30 @@ class PostSchedulerService {
         }
       }
 
+      // Success: mark as published, keep lock cleared implicitly via status change
       await db
         .update(aiGeneratedPosts)
         .set({
           status: "published",
           publishedAt: new Date(),
+          lockedAt: null, // Clear lock on success
           updatedAt: new Date(),
         })
         .where(eq(aiGeneratedPosts.id, post.id));
+
+      console.log(`[PostScheduler] Post ${post.id} published successfully`);
     } catch (error) {
       console.error(
         `[PostScheduler] Failed to publish post ${post.id}:`,
         error,
       );
 
+      // Failure: release lock and mark status as failed
       await db
         .update(aiGeneratedPosts)
         .set({
           status: "publish_failed",
+          lockedAt: null, // Release lock so it can be retried
           updatedAt: new Date(),
         })
         .where(eq(aiGeneratedPosts.id, post.id));

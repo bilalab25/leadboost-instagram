@@ -1579,9 +1579,10 @@ export const aiGeneratedPosts = pgTable("ai_generated_posts", {
   cloudinaryPublicId: text("cloudinary_public_id"),
   dia: text("dia").notNull(), // day of week: sunday, monday, etc.
   hashtags: text("hashtags"),
-  status: text("status").notNull().default("pending"), // pending | accepted | rejected | published | skipped_auto_post_disabled
+  status: text("status").notNull().default("pending"), // pending | accepted | rejected | published | skipped_auto_post_disabled | publish_failed | no_integration
   scheduledPublishTime: timestamp("scheduled_publish_time"),
   publishedAt: timestamp("published_at"),
+  lockedAt: timestamp("locked_at"), // Lock timestamp for concurrent publish prevention
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
