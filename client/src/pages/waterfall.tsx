@@ -462,8 +462,8 @@ export default function Waterfall() {
 
       <div className="flex bg-gray-50 dark:bg-gray-900 h-[calc(100vh-64px)]">
         <Sidebar />
-        <div className="flex-1 overflow-hidden">
-          <main className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex-1 overflow-y-auto">
+          <main className="min-h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <Tabs
               value={activeTab}
               onValueChange={(value) =>
