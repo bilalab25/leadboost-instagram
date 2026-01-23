@@ -145,7 +145,9 @@ export default function ContentCalendar() {
   const [isPaused, setIsPaused] = useState(false);
   const [showAutoPostConfirm, setShowAutoPostConfirm] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
-  const [imageEditorPost, setImageEditorPost] = useState<ContentPost | null>(null);
+  const [imageEditorPost, setImageEditorPost] = useState<ContentPost | null>(
+    null,
+  );
   const [isFrequencyModalOpen, setIsFrequencyModalOpen] = useState(false);
   const [postingSchedule, setPostingSchedule] = useState<Array<{
     platform: string;
@@ -698,7 +700,15 @@ export default function ContentCalendar() {
 
   // Mutation to upload edited image and accept post
   const uploadEditedImageMutation = useMutation({
-    mutationFn: async ({ postId, imageDataUrl, scheduledFor }: { postId: string; imageDataUrl: string; scheduledFor: string }) => {
+    mutationFn: async ({
+      postId,
+      imageDataUrl,
+      scheduledFor,
+    }: {
+      postId: string;
+      imageDataUrl: string;
+      scheduledFor: string;
+    }) => {
       // First upload the image to server (which will upload to Cloudinary)
       const uploadRes = await apiRequest("POST", "/api/upload-edited-image", {
         postId,
@@ -714,11 +724,15 @@ export default function ContentCalendar() {
       const scheduledPublishTime = localDate.toISOString();
 
       // Then update the post status to accepted with scheduling
-      const statusRes = await apiRequest("PATCH", `/api/ai-generated-posts/${postId}`, {
-        status: "accepted",
-        imageUrl: uploadData.imageUrl,
-        scheduledPublishTime,
-      });
+      const statusRes = await apiRequest(
+        "PATCH",
+        `/api/ai-generated-posts/${postId}`,
+        {
+          status: "accepted",
+          imageUrl: uploadData.imageUrl,
+          scheduledPublishTime,
+        },
+      );
       if (!statusRes.ok) {
         throw new Error("Failed to update post status");
       }
