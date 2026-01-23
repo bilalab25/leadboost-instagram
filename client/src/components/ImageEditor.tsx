@@ -404,6 +404,21 @@ export default function ImageEditor({
     setElements(next);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "z") {
+        e.preventDefault();
+        undo();
+      }
+      if (e.ctrlKey && e.key === "y") {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, redo]);
+
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full max-h-[80vh]">
       {/* Tools Panel */}
@@ -417,6 +432,27 @@ export default function ImageEditor({
           </TabsList>
 
           <TabsContent value="tools" className="space-y-4 mt-4">
+            <div className="flex gap-2 mb-3">
+              <Button
+                onClick={undo}
+                disabled={history.length === 0}
+                size="sm"
+                variant="outline"
+                title="Undo (Ctrl+Z)"
+              >
+                Undo
+              </Button>
+              <Button
+                onClick={redo}
+                disabled={redoStack.length === 0}
+                size="sm"
+                variant="outline"
+                title="Redo (Ctrl+Y)"
+              >
+                Redo
+              </Button>
+            </div>
+
             {/* Tool buttons */}
             <div className="grid grid-cols-4 gap-2">
               <Button
