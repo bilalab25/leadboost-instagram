@@ -2176,11 +2176,6 @@ export default function ContentCalendar() {
           onSave={handleSaveEditedImage}
           onAcceptWithoutEdit={handleAcceptWithoutEdit}
           isUploading={uploadEditedImageMutation.isPending}
-          undo={imageEditorDialog.undo}
-          redo={imageEditorDialog.redo}
-          canUndo={imageEditorDialog.canUndo}
-          canRedo={imageEditorDialog.canRedo}
-          currentImage={imageEditorDialog.currentImage}
         />
 
         {/* AI Generation Loading Modal */}

@@ -16,11 +16,6 @@ interface Props {
   onSave: (image: string) => Promise<void>;
   onAcceptWithoutEdit: () => void;
   isUploading?: boolean;
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  currentImage: string;
 }
 
 export default function ImageEditorDialog({
@@ -31,11 +26,6 @@ export default function ImageEditorDialog({
   onSave,
   onAcceptWithoutEdit,
   isUploading = false,
-  undo,
-  redo,
-  canUndo,
-  canRedo,
-  currentImage,
 }: Props) {
   return (
     <Dialog open={show} onOpenChange={(open) => !open && onClose()}>
@@ -46,7 +36,7 @@ export default function ImageEditorDialog({
 
         {post?.imageUrl && (
           <ImageEditor
-            imageUrl={currentImage}
+            imageUrl={post.imageUrl}
             brandAssets={brandAssets}
             onSave={onSave}
             onCancel={onClose}
@@ -54,7 +44,11 @@ export default function ImageEditorDialog({
         )}
 
         <div className="flex justify-center gap-4 mt-6 pt-4 border-t border-gray-200 relative">
-          <Button onClick={onAcceptWithoutEdit} disabled={isUploading} variant="outline">
+          <Button
+            onClick={onAcceptWithoutEdit}
+            disabled={isUploading}
+            variant="outline"
+          >
             Accept Without Editing
           </Button>
 

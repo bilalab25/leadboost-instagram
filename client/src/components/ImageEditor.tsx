@@ -1,5 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Stage, Layer, Image, Text, Rect, Circle, Line, Transformer } from "react-konva";
+import {
+  Stage,
+  Layer,
+  Image,
+  Text,
+  Rect,
+  Circle,
+  Line,
+  Transformer,
+} from "react-konva";
 import useImage from "use-image";
 import Konva from "konva";
 import { Button } from "@/components/ui/button";
@@ -32,9 +41,21 @@ import {
 
 // Platform presets
 const PLATFORM_PRESETS = {
-  "instagram-feed": { width: 1080, height: 1080, label: "Instagram Feed (1:1)" },
-  "instagram-story": { width: 1080, height: 1920, label: "Instagram Story (9:16)" },
-  "facebook-post": { width: 1200, height: 630, label: "Facebook Post (1.91:1)" },
+  "instagram-feed": {
+    width: 1080,
+    height: 1080,
+    label: "Instagram Feed (1:1)",
+  },
+  "instagram-story": {
+    width: 1080,
+    height: 1920,
+    label: "Instagram Story (9:16)",
+  },
+  "facebook-post": {
+    width: 1200,
+    height: 630,
+    label: "Facebook Post (1.91:1)",
+  },
   "facebook-cover": { width: 820, height: 312, label: "Facebook Cover" },
   custom: { width: 1080, height: 1080, label: "Custom" },
 };
@@ -105,7 +126,7 @@ function URLImage({
 }) {
   const [image] = useImage(src, "anonymous");
   const imageRef = useRef<Konva.Image>(null);
-
+  // Historial para undo/redo
   return (
     <Image
       ref={imageRef}
@@ -132,18 +153,31 @@ export default function ImageEditor({
   const [backgroundImage] = useImage(imageUrl, "anonymous");
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  const [history, setHistory] = useState<EditorElement[][]>([]);
+  const [redoStack, setRedoStack] = useState<EditorElement[][]>([]);
 
   // Canvas dimensions
   const [canvasSize, setCanvasSize] = useState({ width: 600, height: 600 });
-  const [originalSize, setOriginalSize] = useState({ width: 1080, height: 1080 });
-  const [selectedPreset, setSelectedPreset] = useState<string>("instagram-feed");
+  const [originalSize, setOriginalSize] = useState({
+    width: 1080,
+    height: 1080,
+  });
+  const [selectedPreset, setSelectedPreset] =
+    useState<string>("instagram-feed");
 
   // Elements on canvas
   const [elements, setElements] = useState<EditorElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const pushToHistory = (newElements: EditorElement[]) => {
+    setHistory((prev) => [...prev, elements]); // guardamos el estado actual
+    setRedoStack([]); // limpiar redo al hacer un cambio nuevo
+    setElements(newElements);
+  };
   // Tool state
-  const [activeTool, setActiveTool] = useState<"select" | "text" | "shape" | "sticker">("select");
+  const [activeTool, setActiveTool] = useState<
+    "select" | "text" | "shape" | "sticker"
+  >("select");
   const [currentShape, setCurrentShape] = useState<ShapeType>("rect");
   const [currentColor, setCurrentColor] = useState("#ffffff");
   const [currentStrokeColor, setCurrentStrokeColor] = useState("#000000");
@@ -159,7 +193,8 @@ export default function ImageEditor({
 
   // Calculate display size based on container
   useEffect(() => {
-    const preset = PLATFORM_PRESETS[selectedPreset as keyof typeof PLATFORM_PRESETS];
+    const preset =
+      PLATFORM_PRESETS[selectedPreset as keyof typeof PLATFORM_PRESETS];
     if (preset) {
       setOriginalSize({ width: preset.width, height: preset.height });
       // Scale to fit in view (max 600px)
@@ -185,7 +220,8 @@ export default function ImageEditor({
     }
   }, [selectedId]);
 
-  const generateId = () => `element-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const generateId = () =>
+    `element-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     // Click on empty area - deselect
@@ -218,7 +254,7 @@ export default function ImageEditor({
         fill: currentColor,
         draggable: true,
       };
-      setElements([...elements, newElement]);
+      pushToHistory([...elements, newElement]);
       setActiveTool("select");
     } else if (activeTool === "shape") {
       let newElement: EditorElement;
@@ -259,7 +295,7 @@ export default function ImageEditor({
           draggable: true,
         };
       }
-      setElements([...elements, newElement]);
+      pushToHistory([...elements, newElement]);
       setActiveTool("select");
     }
   };
@@ -275,17 +311,21 @@ export default function ImageEditor({
       src: assetUrl,
       draggable: true,
     };
-    setElements([...elements, newElement]);
+    pushToHistory([...elements, newElement]);
     setActiveTool("select");
   };
 
   const updateElement = (id: string, updates: Partial<EditorElement>) => {
-    setElements(elements.map((el) => (el.id === id ? { ...el, ...updates } : el)));
+    const newElements = elements.map((el) =>
+      el.id === id ? { ...el, ...updates } : el,
+    );
+    pushToHistory(newElements);
   };
 
   const deleteSelected = () => {
     if (selectedId) {
-      setElements(elements.filter((el) => el.id !== selectedId));
+      const newElements = elements.filter((el) => el.id !== selectedId);
+      pushToHistory(newElements);
       setSelectedId(null);
     }
   };
@@ -303,7 +343,7 @@ export default function ImageEditor({
     const node = e.target;
     const scaleX = originalSize.width / canvasSize.width;
     const scaleY = originalSize.height / canvasSize.height;
-    
+
     updateElement(id, {
       x: node.x() * scaleX,
       y: node.y() * scaleY,
@@ -311,7 +351,7 @@ export default function ImageEditor({
       height: Math.max(5, node.height() * node.scaleY()),
       rotation: node.rotation(),
     });
-    
+
     node.scaleX(1);
     node.scaleY(1);
   };
@@ -347,6 +387,22 @@ export default function ImageEditor({
   };
 
   const selectedElement = elements.find((el) => el.id === selectedId);
+
+  const undo = () => {
+    if (history.length === 0) return;
+    const previous = history[history.length - 1];
+    setHistory(history.slice(0, -1));
+    setRedoStack((prev) => [...prev, elements]);
+    setElements(previous);
+  };
+
+  const redo = () => {
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setRedoStack(redoStack.slice(0, -1));
+    setHistory((prev) => [...prev, elements]);
+    setElements(next);
+  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full max-h-[80vh]">
@@ -413,7 +469,11 @@ export default function ImageEditor({
                   </SelectTrigger>
                   <SelectContent>
                     {FONTS.map((font) => (
-                      <SelectItem key={font} value={font} style={{ fontFamily: font }}>
+                      <SelectItem
+                        key={font}
+                        value={font}
+                        style={{ fontFamily: font }}
+                      >
                         {font}
                       </SelectItem>
                     ))}
@@ -440,7 +500,9 @@ export default function ImageEditor({
                     className="w-10 h-8 rounded cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Click on canvas to add text</p>
+                <p className="text-xs text-muted-foreground">
+                  Click on canvas to add text
+                </p>
               </div>
             )}
 
@@ -500,7 +562,9 @@ export default function ImageEditor({
                     className="flex-1"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Click on canvas to add shape</p>
+                <p className="text-xs text-muted-foreground">
+                  Click on canvas to add shape
+                </p>
               </div>
             )}
 
@@ -510,18 +574,26 @@ export default function ImageEditor({
                 <Label className="text-sm font-medium">Edit Text</Label>
                 <Input
                   value={selectedElement.text || ""}
-                  onChange={(e) => updateElement(selectedId!, { text: e.target.value })}
+                  onChange={(e) =>
+                    updateElement(selectedId!, { text: e.target.value })
+                  }
                 />
                 <Select
                   value={selectedElement.fontFamily || "Arial"}
-                  onValueChange={(v) => updateElement(selectedId!, { fontFamily: v })}
+                  onValueChange={(v) =>
+                    updateElement(selectedId!, { fontFamily: v })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {FONTS.map((font) => (
-                      <SelectItem key={font} value={font} style={{ fontFamily: font }}>
+                      <SelectItem
+                        key={font}
+                        value={font}
+                        style={{ fontFamily: font }}
+                      >
                         {font}
                       </SelectItem>
                     ))}
@@ -531,7 +603,9 @@ export default function ImageEditor({
                   <Label className="text-xs w-12">Size</Label>
                   <Slider
                     value={[selectedElement.fontSize || 32]}
-                    onValueChange={([v]) => updateElement(selectedId!, { fontSize: v })}
+                    onValueChange={([v]) =>
+                      updateElement(selectedId!, { fontSize: v })
+                    }
                     min={12}
                     max={120}
                     step={2}
@@ -543,7 +617,9 @@ export default function ImageEditor({
                   <input
                     type="color"
                     value={selectedElement.fill || "#ffffff"}
-                    onChange={(e) => updateElement(selectedId!, { fill: e.target.value })}
+                    onChange={(e) =>
+                      updateElement(selectedId!, { fill: e.target.value })
+                    }
                     className="w-10 h-8 rounded cursor-pointer"
                   />
                 </div>
