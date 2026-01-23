@@ -840,14 +840,39 @@ export default function ImageEditor({
             onTap={handleStageClick}
           >
             <Layer>
-              {/* Background image */}
-              {backgroundImage && (
-                <Image
-                  image={backgroundImage}
-                  width={canvasSize.width}
-                  height={canvasSize.height}
-                />
-              )}
+              {/* Background image - maintain aspect ratio with cover behavior */}
+              {backgroundImage && (() => {
+                const imgWidth = backgroundImage.width;
+                const imgHeight = backgroundImage.height;
+                const canvasRatio = canvasSize.width / canvasSize.height;
+                const imgRatio = imgWidth / imgHeight;
+                
+                let renderWidth, renderHeight, offsetX, offsetY;
+                
+                if (imgRatio > canvasRatio) {
+                  // Image is wider - fit by height, crop sides
+                  renderHeight = canvasSize.height;
+                  renderWidth = imgRatio * canvasSize.height;
+                  offsetX = (canvasSize.width - renderWidth) / 2;
+                  offsetY = 0;
+                } else {
+                  // Image is taller - fit by width, crop top/bottom
+                  renderWidth = canvasSize.width;
+                  renderHeight = canvasSize.width / imgRatio;
+                  offsetX = 0;
+                  offsetY = (canvasSize.height - renderHeight) / 2;
+                }
+                
+                return (
+                  <Image
+                    image={backgroundImage}
+                    x={offsetX}
+                    y={offsetY}
+                    width={renderWidth}
+                    height={renderHeight}
+                  />
+                );
+              })()}
 
               {/* Render elements */}
               {elements.map((el) => {
