@@ -414,10 +414,18 @@ export default function ImageEditor({
         e.preventDefault();
         redo();
       }
+
+      if (selectedId && (e.key === "Delete" || e.key === "Backspace")) {
+        e.preventDefault();
+        const newElements = elements.filter((el) => el.id !== selectedId);
+        pushToHistory(newElements);
+        setSelectedId(null);
+      }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo]);
+  }, [selectedId, elements, undo, redo]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full max-h-[80vh]">
