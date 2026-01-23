@@ -1,4 +1,3 @@
-// hooks/useImageEditorDialog.ts
 import { useState } from "react";
 
 export interface ImageEditorPost {
@@ -9,7 +8,7 @@ export interface ImageEditorPost {
 export interface EditHistory {
   original: string;
   edits: string[];
-  index: number; // índice actual en el historial
+  index: number;
 }
 
 export function useImageEditorDialog() {
@@ -54,7 +53,9 @@ export function useImageEditorDialog() {
     }
   };
 
+  const canUndo = history ? history.index > 0 : false;
+  const canRedo = history ? history.index < history.edits.length - 1 : false;
   const currentImage = history?.edits[history?.index] || post?.imageUrl || "";
 
-  return { show, post, open, close, saveEdit, undo, redo, currentImage };
+  return { show, post, open, close, saveEdit, undo, redo, canUndo, canRedo, currentImage };
 }

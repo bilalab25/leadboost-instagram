@@ -1,15 +1,12 @@
-// components/ImageEditorDialog.tsx
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  Box,
-  CircularProgress,
-  Typography,
-} from "@mui/material";
-import AdvancedImageEditor from "./AdvancedImageEditor";
-import { BrandButton } from "./BrandButton";
-import type { BrandAsset } from "../types";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import ImageEditor from "./ImageEditor";
+export interface BrandAsset {
+  id: string;
+  url: string;
+  name: string;
+}
 
 interface Props {
   show: boolean;
@@ -41,38 +38,33 @@ export default function ImageEditorDialog({
   currentImage,
 }: Props) {
   return (
-    <Dialog open={show} onClose={onClose} fullWidth maxWidth="xl">
-      <DialogContent className="p-6 relative">
-        <DialogTitle className="text-xl font-semibold mb-4 font-['Inter']">
+    <Dialog open={show} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-6">
+        <DialogTitle className="text-xl font-semibold mb-4">
           Edit Image Before Accepting
         </DialogTitle>
 
         {post?.imageUrl && (
-          <AdvancedImageEditor
+          <ImageEditor
             imageUrl={currentImage}
             brandAssets={brandAssets}
             onSave={onSave}
             onCancel={onClose}
-            undo={undo}
-            redo={redo}
-            canUndo={canUndo}
-            canRedo={canRedo}
           />
         )}
 
-        {/* Accept without editing */}
-        <Box className="flex justify-center gap-4 mt-6 pt-4 border-t border-gray-200 relative">
-          <BrandButton onClick={onAcceptWithoutEdit} disabled={isUploading}>
+        <div className="flex justify-center gap-4 mt-6 pt-4 border-t border-gray-200 relative">
+          <Button onClick={onAcceptWithoutEdit} disabled={isUploading} variant="outline">
             Accept Without Editing
-          </BrandButton>
+          </Button>
 
           {isUploading && (
-            <Box className="flex items-center gap-2 absolute right-0 top-6 text-gray-500">
-              <CircularProgress size={20} />
-              <Typography variant="body2">Uploading...</Typography>
-            </Box>
+            <div className="flex items-center gap-2 absolute right-0 top-6 text-gray-500">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-sm">Uploading...</span>
+            </div>
           )}
-        </Box>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -66,7 +66,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import PostingFrequencyModal from "@/components/PostingFrequencyModal";
-import ImageEditor from "@/components/ImageEditor";
+import ImageEditorDialog from "@/components/ImageEditorDialog";
+import { useImageEditorDialog } from "@/hooks/useImageEditorDialog";
 import { apiRequest } from "@/lib/queryClient";
 
 interface ContentPost {
@@ -144,10 +145,9 @@ export default function ContentCalendar() {
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [showAutoPostConfirm, setShowAutoPostConfirm] = useState(false);
-  const [showImageEditor, setShowImageEditor] = useState(false);
-  const [imageEditorPost, setImageEditorPost] = useState<ContentPost | null>(
-    null,
-  );
+  const [imageEditorScheduledFor, setImageEditorScheduledFor] = useState<string | null>(null);
+
+  const imageEditorDialog = useImageEditorDialog();
   const [isFrequencyModalOpen, setIsFrequencyModalOpen] = useState(false);
   const [postingSchedule, setPostingSchedule] = useState<Array<{
     platform: string;
@@ -742,8 +742,6 @@ export default function ContentCalendar() {
       queryClient.invalidateQueries({
         queryKey: ["/api/ai-generated-posts", activeBrandId],
       });
-      setShowImageEditor(false);
-      setImageEditorPost(null);
       toast({
         title: "Post Approved",
         description: "The post has been edited and approved.",
@@ -761,8 +759,8 @@ export default function ContentCalendar() {
   // Open image editor before accepting a post
   const handleEditBeforeAccept = (post: ContentPost) => {
     if (post.imageUrl) {
-      setImageEditorPost(post);
-      setShowImageEditor(true);
+      setImageEditorScheduledFor(post.scheduledFor);
+      imageEditorDialog.open({ id: post.id, imageUrl: post.imageUrl });
     } else {
       // No image, just accept directly
       handleUpdatePostStatus(post.id, "accepted");
@@ -770,26 +768,33 @@ export default function ContentCalendar() {
   };
 
   // Save edited image and accept post
-  const handleSaveEditedImage = (dataUrl: string) => {
-    if (!imageEditorPost) return;
-    uploadEditedImageMutation.mutate({
-      postId: imageEditorPost.id,
-      imageDataUrl: dataUrl,
-      scheduledFor: imageEditorPost.scheduledFor,
-    });
+  const handleSaveEditedImage = async (dataUrl: string) => {
+    if (!imageEditorDialog.post || !imageEditorScheduledFor) return;
+    try {
+      await uploadEditedImageMutation.mutateAsync({
+        postId: imageEditorDialog.post.id,
+        imageDataUrl: dataUrl,
+        scheduledFor: imageEditorScheduledFor,
+      });
+      imageEditorDialog.saveEdit(dataUrl);
+      imageEditorDialog.close();
+      setImageEditorScheduledFor(null);
+    } catch (error) {
+      // Error is handled by mutation onError, don't close dialog
+    }
   };
 
   // Skip editing and accept as-is
   const handleAcceptWithoutEdit = () => {
-    if (!imageEditorPost) return;
-    const localDate = new Date(imageEditorPost.scheduledFor);
+    if (!imageEditorDialog.post || !imageEditorScheduledFor) return;
+    const localDate = new Date(imageEditorScheduledFor);
     updatePostStatusMutation.mutate({
-      postId: imageEditorPost.id,
+      postId: imageEditorDialog.post.id,
       status: "accepted",
       scheduledPublishTime: localDate.toISOString(),
     });
-    setShowImageEditor(false);
-    setImageEditorPost(null);
+    imageEditorDialog.close();
+    setImageEditorScheduledFor(null);
   };
 
   const handleToggle = () => {
@@ -2156,51 +2161,27 @@ export default function ContentCalendar() {
         </AlertDialog>
 
         {/* Image Editor Modal */}
-        <Dialog
-          open={showImageEditor}
-          onOpenChange={(open) => {
-            if (!open) {
-              setShowImageEditor(false);
-              setImageEditorPost(null);
-            }
+        <ImageEditorDialog
+          show={imageEditorDialog.show}
+          post={imageEditorDialog.post}
+          brandAssets={(brandAssets || []).map((asset: any) => ({
+            id: asset.id,
+            url: asset.url,
+            name: asset.filename || asset.name || "Asset",
+          }))}
+          onClose={() => {
+            imageEditorDialog.close();
+            setImageEditorScheduledFor(null);
           }}
-        >
-          <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
-            <DialogTitle className="text-lg font-semibold mb-4">
-              Edit Image Before Accepting
-            </DialogTitle>
-            {imageEditorPost?.imageUrl && (
-              <ImageEditor
-                imageUrl={imageEditorPost.imageUrl}
-                brandAssets={(brandAssets || []).map((asset: any) => ({
-                  id: asset.id,
-                  url: asset.url,
-                  name: asset.filename || asset.name || "Asset",
-                }))}
-                onSave={handleSaveEditedImage}
-                onCancel={() => {
-                  setShowImageEditor(false);
-                  setImageEditorPost(null);
-                }}
-              />
-            )}
-            <div className="flex justify-center gap-3 mt-4 pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={handleAcceptWithoutEdit}
-                disabled={uploadEditedImageMutation.isPending}
-              >
-                Accept Without Editing
-              </Button>
-              {uploadEditedImageMutation.isPending && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Uploading...
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+          onSave={handleSaveEditedImage}
+          onAcceptWithoutEdit={handleAcceptWithoutEdit}
+          isUploading={uploadEditedImageMutation.isPending}
+          undo={imageEditorDialog.undo}
+          redo={imageEditorDialog.redo}
+          canUndo={imageEditorDialog.canUndo}
+          canRedo={imageEditorDialog.canRedo}
+          currentImage={imageEditorDialog.currentImage}
+        />
 
         {/* AI Generation Loading Modal */}
         <Dialog
