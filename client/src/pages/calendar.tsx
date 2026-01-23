@@ -66,6 +66,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import PostingFrequencyModal from "@/components/PostingFrequencyModal";
+import ImageEditor from "@/components/ImageEditor";
 import { apiRequest } from "@/lib/queryClient";
 
 interface ContentPost {
@@ -143,6 +144,8 @@ export default function ContentCalendar() {
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [showAutoPostConfirm, setShowAutoPostConfirm] = useState(false);
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  const [imageEditorPost, setImageEditorPost] = useState<ContentPost | null>(null);
   const [isFrequencyModalOpen, setIsFrequencyModalOpen] = useState(false);
   const [postingSchedule, setPostingSchedule] = useState<Array<{
     platform: string;
@@ -221,6 +224,13 @@ export default function ContentCalendar() {
       return res.json();
     },
     enabled: !!activeBrandId,
+    staleTime: 60000,
+  });
+
+  // Query to fetch brand assets for image editor
+  const { data: brandAssets } = useQuery<any[]>({
+    queryKey: [`/api/brand-assets?brandDesignId=${brandDesign?.id}`],
+    enabled: !!brandDesign?.id,
     staleTime: 60000,
   });
 
@@ -685,6 +695,88 @@ export default function ContentCalendar() {
       });
     },
   });
+
+  // Mutation to upload edited image and accept post
+  const uploadEditedImageMutation = useMutation({
+    mutationFn: async ({ postId, imageDataUrl, scheduledFor }: { postId: string; imageDataUrl: string; scheduledFor: string }) => {
+      // First upload the image to server (which will upload to Cloudinary)
+      const uploadRes = await apiRequest("POST", "/api/upload-edited-image", {
+        postId,
+        imageDataUrl,
+      });
+      if (!uploadRes.ok) {
+        throw new Error("Failed to upload edited image");
+      }
+      const uploadData = await uploadRes.json();
+
+      // Convert local time to UTC ISO string for scheduling
+      const localDate = new Date(scheduledFor);
+      const scheduledPublishTime = localDate.toISOString();
+
+      // Then update the post status to accepted with scheduling
+      const statusRes = await apiRequest("PATCH", `/api/ai-generated-posts/${postId}`, {
+        status: "accepted",
+        imageUrl: uploadData.imageUrl,
+        scheduledPublishTime,
+      });
+      if (!statusRes.ok) {
+        throw new Error("Failed to update post status");
+      }
+      return statusRes.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/ai-generated-posts", activeBrandId],
+      });
+      setShowImageEditor(false);
+      setImageEditorPost(null);
+      toast({
+        title: "Post Approved",
+        description: "The post has been edited and approved.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save edited image",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Open image editor before accepting a post
+  const handleEditBeforeAccept = (post: ContentPost) => {
+    if (post.imageUrl) {
+      setImageEditorPost(post);
+      setShowImageEditor(true);
+    } else {
+      // No image, just accept directly
+      handleUpdatePostStatus(post.id, "accepted");
+    }
+  };
+
+  // Save edited image and accept post
+  const handleSaveEditedImage = (dataUrl: string) => {
+    if (!imageEditorPost) return;
+    uploadEditedImageMutation.mutate({
+      postId: imageEditorPost.id,
+      imageDataUrl: dataUrl,
+      scheduledFor: imageEditorPost.scheduledFor,
+    });
+  };
+
+  // Skip editing and accept as-is
+  const handleAcceptWithoutEdit = () => {
+    if (!imageEditorPost) return;
+    const localDate = new Date(imageEditorPost.scheduledFor);
+    updatePostStatusMutation.mutate({
+      postId: imageEditorPost.id,
+      status: "accepted",
+      scheduledPublishTime: localDate.toISOString(),
+    });
+    setShowImageEditor(false);
+    setImageEditorPost(null);
+  };
 
   const handleToggle = () => {
     setShowAutoPostConfirm(true);
@@ -1962,24 +2054,38 @@ export default function ContentCalendar() {
                       {editPost.status === "pending" ? "Cancel" : "Close"}
                     </Button>
                     {editPost.status === "pending" && (
-                      <Button
-                        className="bg-gray-800 hover:bg-gray-900 text-white"
-                        onClick={() => {
-                          if (selectedPost && editPost) {
-                            const localDate = new Date(editPost.scheduledFor);
-                            updatePostStatusMutation.mutate({
-                              postId: selectedPost.id,
-                              status: "accepted",
-                              scheduledPublishTime: localDate.toISOString(),
-                            });
-                          }
-                          setSelectedPost(null);
-                        }}
-                        data-testid="button-approve-post"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" /> Approve &
-                        Schedule
-                      </Button>
+                      <>
+                        <Button
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => {
+                            if (selectedPost && editPost) {
+                              setSelectedPost(null);
+                              handleEditBeforeAccept(editPost);
+                            }
+                          }}
+                          data-testid="button-edit-image"
+                        >
+                          <Edit className="w-4 h-4" /> Edit Image
+                        </Button>
+                        <Button
+                          className="bg-gray-800 hover:bg-gray-900 text-white"
+                          onClick={() => {
+                            if (selectedPost && editPost) {
+                              const localDate = new Date(editPost.scheduledFor);
+                              updatePostStatusMutation.mutate({
+                                postId: selectedPost.id,
+                                status: "accepted",
+                                scheduledPublishTime: localDate.toISOString(),
+                              });
+                            }
+                            setSelectedPost(null);
+                          }}
+                          data-testid="button-approve-post"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" /> Approve
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -2034,6 +2140,53 @@ export default function ContentCalendar() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Image Editor Modal */}
+        <Dialog
+          open={showImageEditor}
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowImageEditor(false);
+              setImageEditorPost(null);
+            }
+          }}
+        >
+          <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+            <DialogTitle className="text-lg font-semibold mb-4">
+              Edit Image Before Accepting
+            </DialogTitle>
+            {imageEditorPost?.imageUrl && (
+              <ImageEditor
+                imageUrl={imageEditorPost.imageUrl}
+                brandAssets={(brandAssets || []).map((asset: any) => ({
+                  id: asset.id,
+                  url: asset.url,
+                  name: asset.filename || asset.name || "Asset",
+                }))}
+                onSave={handleSaveEditedImage}
+                onCancel={() => {
+                  setShowImageEditor(false);
+                  setImageEditorPost(null);
+                }}
+              />
+            )}
+            <div className="flex justify-center gap-3 mt-4 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={handleAcceptWithoutEdit}
+                disabled={uploadEditedImageMutation.isPending}
+              >
+                Accept Without Editing
+              </Button>
+              {uploadEditedImageMutation.isPending && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Uploading...
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* AI Generation Loading Modal */}
         <Dialog

@@ -8222,6 +8222,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload edited image (from image editor) and update AI post
+  app.post(
+    "/api/upload-edited-image",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { postId, imageDataUrl } = req.body;
+
+        if (!postId || !imageDataUrl) {
+          return res.status(400).json({ message: "postId and imageDataUrl are required" });
+        }
+
+        // Upload base64 image to Cloudinary
+        const uploadResult = await cloudinary.uploader.upload(imageDataUrl, {
+          folder: "campaigner/edited-posts",
+          resource_type: "image",
+        });
+
+        res.json({
+          imageUrl: uploadResult.secure_url,
+          publicId: uploadResult.public_id,
+        });
+      } catch (error) {
+        console.error("Error uploading edited image:", error);
+        res.status(500).json({ message: "Failed to upload edited image" });
+      }
+    },
+  );
+
   // Customer management routes
   app.get(
     "/api/customers",
