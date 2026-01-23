@@ -8,6 +8,7 @@ import {
   Circle,
   Line,
   Transformer,
+  Group,
 } from "react-konva";
 import useImage from "use-image";
 import Konva from "konva";
@@ -157,6 +158,10 @@ export default function ImageEditor({
   const transformerRef = useRef<Konva.Transformer>(null);
   const [history, setHistory] = useState<EditorElement[][]>([]);
   const [redoStack, setRedoStack] = useState<EditorElement[][]>([]);
+  
+  // Background image position and zoom
+  const [bgZoom, setBgZoom] = useState(1);
+  const [bgPosition, setBgPosition] = useState({ x: 0, y: 0 });
 
   // Canvas dimensions
   const [canvasSize, setCanvasSize] = useState({ width: 600, height: 600 });
@@ -338,8 +343,12 @@ export default function ImageEditor({
   };
 
   const handleDragEnd = (id: string, e: Konva.KonvaEventObject<DragEvent>) => {
+    const element = elements.find((el) => el.id === id);
+    if (!element) return;
+
     const scaleX = originalSize.width / canvasSize.width;
     const scaleY = originalSize.height / canvasSize.height;
+
     updateElement(id, {
       x: e.target.x() * scaleX,
       y: e.target.y() * scaleY,
@@ -383,7 +392,7 @@ export default function ImageEditor({
       const aspectRatio = originalHeight / originalWidth;
       const newWidth = Math.max(20, originalWidth * scale);
       const newHeight = newWidth * aspectRatio;
-      
+
       updateElement(id, {
         x: node.x() / renderScale,
         y: node.y() / renderScale,
@@ -806,7 +815,11 @@ export default function ImageEditor({
           <TabsContent value="resize" className="space-y-4 mt-4">
             <div className="space-y-3 p-3 border rounded-lg">
               <Label className="text-sm font-medium">Platform Presets</Label>
-              <Select value={selectedPreset} onValueChange={setSelectedPreset}>
+              <Select value={selectedPreset} onValueChange={(value) => {
+                setSelectedPreset(value);
+                // Reset position when changing preset
+                setBgPosition({ x: 0, y: 0 });
+              }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -821,6 +834,35 @@ export default function ImageEditor({
               <div className="text-xs text-muted-foreground">
                 Output: {originalSize.width} x {originalSize.height}px
               </div>
+            </div>
+            
+            <div className="space-y-3 p-3 border rounded-lg">
+              <Label className="text-sm font-medium">Background Image</Label>
+              <div className="flex gap-2 items-center">
+                <Label className="text-xs w-12">Zoom</Label>
+                <Slider
+                  value={[bgZoom * 100]}
+                  onValueChange={([v]) => setBgZoom(v / 100)}
+                  min={50}
+                  max={200}
+                  step={5}
+                  className="flex-1"
+                />
+                <span className="text-xs w-10">{Math.round(bgZoom * 100)}%</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Drag the background image to reposition it
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setBgZoom(1);
+                  setBgPosition({ x: 0, y: 0 });
+                }}
+              >
+                Reset Position
+              </Button>
             </div>
           </TabsContent>
         </Tabs>
@@ -840,39 +882,50 @@ export default function ImageEditor({
             onTap={handleStageClick}
           >
             <Layer>
-              {/* Background image - maintain aspect ratio with cover behavior */}
-              {backgroundImage && (() => {
-                const imgWidth = backgroundImage.width;
-                const imgHeight = backgroundImage.height;
-                const canvasRatio = canvasSize.width / canvasSize.height;
-                const imgRatio = imgWidth / imgHeight;
-                
-                let renderWidth, renderHeight, offsetX, offsetY;
-                
-                if (imgRatio > canvasRatio) {
-                  // Image is wider - fit by height, crop sides
-                  renderHeight = canvasSize.height;
-                  renderWidth = imgRatio * canvasSize.height;
-                  offsetX = (canvasSize.width - renderWidth) / 2;
-                  offsetY = 0;
-                } else {
-                  // Image is taller - fit by width, crop top/bottom
-                  renderWidth = canvasSize.width;
-                  renderHeight = canvasSize.width / imgRatio;
-                  offsetX = 0;
-                  offsetY = (canvasSize.height - renderHeight) / 2;
-                }
-                
-                return (
-                  <Image
-                    image={backgroundImage}
-                    x={offsetX}
-                    y={offsetY}
-                    width={renderWidth}
-                    height={renderHeight}
-                  />
-                );
-              })()}
+              {/* Background image - draggable with zoom */}
+              {backgroundImage &&
+                (() => {
+                  const imgWidth = backgroundImage.width;
+                  const imgHeight = backgroundImage.height;
+                  const canvasRatio = canvasSize.width / canvasSize.height;
+                  const imgRatio = imgWidth / imgHeight;
+
+                  let baseWidth, baseHeight;
+
+                  if (imgRatio > canvasRatio) {
+                    // Image is wider - fit by height
+                    baseHeight = canvasSize.height;
+                    baseWidth = imgRatio * canvasSize.height;
+                  } else {
+                    // Image is taller - fit by width
+                    baseWidth = canvasSize.width;
+                    baseHeight = canvasSize.width / imgRatio;
+                  }
+                  
+                  // Apply zoom
+                  const renderWidth = baseWidth * bgZoom;
+                  const renderHeight = baseHeight * bgZoom;
+                  
+                  // Center offset + user position
+                  const centerOffsetX = (canvasSize.width - renderWidth) / 2;
+                  const centerOffsetY = (canvasSize.height - renderHeight) / 2;
+
+                  return (
+                    <Image
+                      image={backgroundImage}
+                      x={centerOffsetX + bgPosition.x}
+                      y={centerOffsetY + bgPosition.y}
+                      width={renderWidth}
+                      height={renderHeight}
+                      draggable={true}
+                      onDragEnd={(e) => {
+                        const newX = e.target.x() - centerOffsetX;
+                        const newY = e.target.y() - centerOffsetY;
+                        setBgPosition({ x: newX, y: newY });
+                      }}
+                    />
+                  );
+                })()}
 
               {/* Render elements */}
               {elements.map((el) => {
