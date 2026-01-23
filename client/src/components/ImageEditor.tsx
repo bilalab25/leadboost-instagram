@@ -224,79 +224,84 @@ export default function ImageEditor({
     `element-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    // Click on empty area - deselect
-    if (e.target === e.target.getStage()) {
-      setSelectedId(null);
-      return;
-    }
-
-    // If in select mode, let elements handle their own clicks
-    if (activeTool === "select") return;
-
-    const pos = e.target.getStage()?.getPointerPosition();
+    const stage = e.target.getStage();
+    const pos = stage?.getPointerPosition();
     if (!pos) return;
 
-    // Scale position to original size
     const scaleX = originalSize.width / canvasSize.width;
     const scaleY = originalSize.height / canvasSize.height;
     const x = pos.x * scaleX;
     const y = pos.y * scaleY;
 
-    if (activeTool === "text") {
-      const newElement: EditorElement = {
-        id: generateId(),
-        type: "text",
-        x,
-        y,
-        text: newText,
-        fontSize: currentFontSize,
-        fontFamily: currentFont,
-        fill: currentColor,
-        draggable: true,
-      };
-      pushToHistory([...elements, newElement]);
-      setActiveTool("select");
-    } else if (activeTool === "shape") {
-      let newElement: EditorElement;
-      if (currentShape === "rect") {
-        newElement = {
+    // Click en Stage vacío (fondo)
+    if (e.target === stage || e.target.className === "Image") {
+      if (activeTool === "text") {
+        const newElement: EditorElement = {
           id: generateId(),
-          type: "rect",
+          type: "text",
           x,
           y,
-          width: 100,
-          height: 100,
+          text: newText,
+          fontSize: currentFontSize,
+          fontFamily: currentFont,
           fill: currentColor,
-          stroke: currentStrokeColor,
-          strokeWidth: currentStrokeWidth,
           draggable: true,
         };
-      } else if (currentShape === "circle") {
-        newElement = {
-          id: generateId(),
-          type: "circle",
-          x,
-          y,
-          radius: 50,
-          fill: currentColor,
-          stroke: currentStrokeColor,
-          strokeWidth: currentStrokeWidth,
-          draggable: true,
-        };
+        pushToHistory([...elements, newElement]);
+        setActiveTool("select");
+      } else if (activeTool === "shape") {
+        let newElement: EditorElement;
+        if (currentShape === "rect") {
+          newElement = {
+            id: generateId(),
+            type: "rect",
+            x,
+            y,
+            width: 100,
+            height: 100,
+            fill: currentColor,
+            stroke: currentStrokeColor,
+            strokeWidth: currentStrokeWidth,
+            draggable: true,
+          };
+        } else if (currentShape === "circle") {
+          newElement = {
+            id: generateId(),
+            type: "circle",
+            x,
+            y,
+            radius: 50,
+            fill: currentColor,
+            stroke: currentStrokeColor,
+            strokeWidth: currentStrokeWidth,
+            draggable: true,
+          };
+        } else {
+          newElement = {
+            id: generateId(),
+            type: "line",
+            x: 0,
+            y: 0,
+            points: [x, y, x + 100, y],
+            stroke: currentStrokeColor,
+            strokeWidth: currentStrokeWidth,
+            draggable: true,
+          };
+        }
+        pushToHistory([...elements, newElement]);
+        setActiveTool("select");
       } else {
-        newElement = {
-          id: generateId(),
-          type: "line",
-          x: 0,
-          y: 0,
-          points: [x, y, x + 100, y],
-          stroke: currentStrokeColor,
-          strokeWidth: currentStrokeWidth,
-          draggable: true,
-        };
+        // Si no estamos agregando nada → deseleccionar
+        setSelectedId(null);
       }
-      pushToHistory([...elements, newElement]);
-      setActiveTool("select");
+      return;
+    }
+
+    // Click en otro nodo → seleccionar ese nodo
+    const clickedId = (e.target as Konva.Node).id();
+    if (clickedId) {
+      setSelectedId(clickedId);
+      return;
     }
   };
 
@@ -340,18 +345,52 @@ export default function ImageEditor({
   };
 
   const handleTransformEnd = (id: string, e: Konva.KonvaEventObject<Event>) => {
-    const node = e.target;
-    const scaleX = originalSize.width / canvasSize.width;
-    const scaleY = originalSize.height / canvasSize.height;
+    const node = e.target as Konva.Node & {
+      width?: number;
+      height?: number;
+      radius?: number;
+      fontSize?: number;
+    };
 
-    updateElement(id, {
-      x: node.x() * scaleX,
-      y: node.y() * scaleY,
-      width: Math.max(5, node.width() * node.scaleX()),
-      height: Math.max(5, node.height() * node.scaleY()),
-      rotation: node.rotation(),
-    });
+    const scaleX = node.scaleX();
+    const scaleY = node.scaleY();
 
+    const element = elements.find((el) => el.id === id);
+    if (!element) return;
+
+    if (element.type === "text") {
+      updateElement(id, {
+        x: node.x() / renderScale,
+        y: node.y() / renderScale,
+        fontSize: Math.max(8, (element.fontSize || 32) * scaleX),
+        rotation: node.rotation(),
+      });
+    } else if (element.type === "circle") {
+      updateElement(id, {
+        x: node.x() / renderScale,
+        y: node.y() / renderScale,
+        radius: Math.max(5, (element.radius || 50) * scaleX),
+        rotation: node.rotation(),
+      });
+    } else if (element.type === "line") {
+      // Para líneas solo mover
+      updateElement(id, {
+        x: node.x() / renderScale,
+        y: node.y() / renderScale,
+        rotation: node.rotation(),
+      });
+    } else {
+      const scale = scaleX; // usamos solo scaleX para mantener proporción
+      updateElement(id, {
+        x: node.x() / renderScale,
+        y: node.y() / renderScale,
+        width: Math.max(5, (element.width || 100) * scale),
+        height: Math.max(5, (element.height || 100) * scale), // misma escala
+        rotation: node.rotation(),
+      });
+    }
+
+    // Reset scale para evitar distorsión en siguiente transform
     node.scaleX(1);
     node.scaleY(1);
   };
@@ -828,8 +867,8 @@ export default function ImageEditor({
                     <Rect
                       key={el.id}
                       id={el.id}
-                      x={scaledX}
-                      y={scaledY}
+                      x={el.x * renderScale}
+                      y={el.y * renderScale}
                       width={(el.width || 100) * renderScale}
                       height={(el.height || 100) * renderScale}
                       fill={el.fill}
@@ -837,7 +876,6 @@ export default function ImageEditor({
                       strokeWidth={(el.strokeWidth || 2) * renderScale}
                       draggable={el.draggable}
                       onClick={() => setSelectedId(el.id)}
-                      onTap={() => setSelectedId(el.id)}
                       onDragEnd={(e) => handleDragEnd(el.id, e)}
                       onTransformEnd={(e) => handleTransformEnd(el.id, e)}
                     />
@@ -849,15 +887,14 @@ export default function ImageEditor({
                     <Circle
                       key={el.id}
                       id={el.id}
-                      x={scaledX}
-                      y={scaledY}
+                      x={el.x * renderScale}
+                      y={el.y * renderScale}
                       radius={(el.radius || 50) * renderScale}
                       fill={el.fill}
                       stroke={el.stroke}
                       strokeWidth={(el.strokeWidth || 2) * renderScale}
                       draggable={el.draggable}
                       onClick={() => setSelectedId(el.id)}
-                      onTap={() => setSelectedId(el.id)}
                       onDragEnd={(e) => handleDragEnd(el.id, e)}
                       onTransformEnd={(e) => handleTransformEnd(el.id, e)}
                     />
@@ -903,8 +940,15 @@ export default function ImageEditor({
               {/* Transformer for selected element */}
               <Transformer
                 ref={transformerRef}
+                keepRatio={true}
+                enabledAnchors={[
+                  "top-left",
+                  "top-right",
+                  "bottom-left",
+                  "bottom-right",
+                ]}
                 boundBoxFunc={(oldBox, newBox) => {
-                  if (newBox.width < 5 || newBox.height < 5) {
+                  if (newBox.width < 50 || newBox.height < 50) {
                     return oldBox;
                   }
                   return newBox;
