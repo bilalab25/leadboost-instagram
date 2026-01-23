@@ -145,7 +145,9 @@ export default function ContentCalendar() {
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [showAutoPostConfirm, setShowAutoPostConfirm] = useState(false);
-  const [imageEditorScheduledFor, setImageEditorScheduledFor] = useState<string | null>(null);
+  const [imageEditorScheduledFor, setImageEditorScheduledFor] = useState<
+    string | null
+  >(null);
 
   const imageEditorDialog = useImageEditorDialog();
   const [isFrequencyModalOpen, setIsFrequencyModalOpen] = useState(false);
@@ -231,7 +233,9 @@ export default function ContentCalendar() {
 
   // Query to fetch brand assets for image editor
   const { data: brandAssets } = useQuery<any[]>({
-    queryKey: [`/api/brand-assets?brandDesignId=${brandDesign?.id}`],
+    queryKey: [
+      `/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`,
+    ],
     enabled: !!brandDesign?.id,
     staleTime: 60000,
   });
