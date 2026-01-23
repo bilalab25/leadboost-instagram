@@ -80,9 +80,7 @@ interface ContentPost {
     | "pending"
     | "accepted"
     | "rejected"
-    | "skipped_auto_post_disabled"
-    | "publish_failed"
-    | "no_integration";
+    | "skipped_auto_post_disabled";
   content: string;
   imageUrl?: string;
   source?: "manual" | "ai";
