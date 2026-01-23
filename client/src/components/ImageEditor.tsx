@@ -104,6 +104,7 @@ interface ImageEditorProps {
 
 // Konva Image component for elements
 function URLImage({
+  id,
   src,
   x,
   y,
@@ -114,6 +115,7 @@ function URLImage({
   onDragEnd,
   onTransformEnd,
 }: {
+  id: string;
   src: string;
   x: number;
   y: number;
@@ -126,10 +128,10 @@ function URLImage({
 }) {
   const [image] = useImage(src, "anonymous");
   const imageRef = useRef<Konva.Image>(null);
-  // Historial para undo/redo
   return (
     <Image
       ref={imageRef}
+      id={id}
       image={image}
       x={x}
       y={y}
@@ -345,12 +347,7 @@ export default function ImageEditor({
   };
 
   const handleTransformEnd = (id: string, e: Konva.KonvaEventObject<Event>) => {
-    const node = e.target as Konva.Node & {
-      width?: number;
-      height?: number;
-      radius?: number;
-      fontSize?: number;
-    };
+    const node = e.target;
 
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
@@ -373,19 +370,35 @@ export default function ImageEditor({
         rotation: node.rotation(),
       });
     } else if (element.type === "line") {
-      // Para líneas solo mover
       updateElement(id, {
         x: node.x() / renderScale,
         y: node.y() / renderScale,
         rotation: node.rotation(),
       });
+    } else if (element.type === "image") {
+      // Para imágenes, usar la misma escala para width y height para mantener proporción
+      const scale = scaleX;
+      const originalWidth = element.width || 100;
+      const originalHeight = element.height || 100;
+      const aspectRatio = originalHeight / originalWidth;
+      const newWidth = Math.max(20, originalWidth * scale);
+      const newHeight = newWidth * aspectRatio;
+      
+      updateElement(id, {
+        x: node.x() / renderScale,
+        y: node.y() / renderScale,
+        width: newWidth,
+        height: newHeight,
+        rotation: node.rotation(),
+      });
     } else {
-      const scale = scaleX; // usamos solo scaleX para mantener proporción
+      // rect y otros
+      const scale = scaleX;
       updateElement(id, {
         x: node.x() / renderScale,
         y: node.y() / renderScale,
         width: Math.max(5, (element.width || 100) * scale),
-        height: Math.max(5, (element.height || 100) * scale), // misma escala
+        height: Math.max(5, (element.height || 100) * scale),
         rotation: node.rotation(),
       });
     }
@@ -921,6 +934,7 @@ export default function ImageEditor({
                   return (
                     <URLImage
                       key={el.id}
+                      id={el.id}
                       src={el.src}
                       x={scaledX}
                       y={scaledY}
