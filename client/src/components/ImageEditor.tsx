@@ -8,7 +8,6 @@ import {
   Circle,
   Line,
   Transformer,
-  Group,
 } from "react-konva";
 import useImage from "use-image";
 import Konva from "konva";
@@ -16,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -32,13 +30,18 @@ import {
   Minus,
   Image as ImageIcon,
   Download,
-  RotateCcw,
   Trash2,
   Sun,
   Contrast,
   Palette,
-  Crop,
+  MousePointer2,
+  Undo2,
+  Redo2,
+  Sticker,
+  Settings2,
+  Move,
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 // Platform presets
 const PLATFORM_PRESETS = {
@@ -61,8 +64,8 @@ const PLATFORM_PRESETS = {
   custom: { width: 1080, height: 1080, label: "Custom" },
 };
 
-// Available fonts
-const FONTS = [
+// System fonts
+const SYSTEM_FONTS = [
   "Arial",
   "Helvetica",
   "Times New Roman",
@@ -70,7 +73,30 @@ const FONTS = [
   "Verdana",
   "Courier New",
   "Impact",
-  "Comic Sans MS",
+];
+
+// Popular Google Fonts
+const GOOGLE_FONTS = [
+  "Roboto",
+  "Open Sans",
+  "Lato",
+  "Montserrat",
+  "Oswald",
+  "Raleway",
+  "Poppins",
+  "Playfair Display",
+  "Merriweather",
+  "Nunito",
+  "Ubuntu",
+  "Quicksand",
+  "Dancing Script",
+  "Pacifico",
+  "Lobster",
+  "Bebas Neue",
+  "Comfortaa",
+  "Righteous",
+  "Permanent Marker",
+  "Caveat",
 ];
 
 // Shape types
@@ -99,9 +125,22 @@ interface EditorElement {
 interface ImageEditorProps {
   imageUrl: string;
   brandAssets?: { id: string; url: string; name: string }[];
+  brandColors?: string[];
   onSave: (dataUrl: string) => void;
   onCancel: () => void;
 }
+
+// Load Google Font dynamically
+const loadGoogleFont = (fontFamily: string) => {
+  const linkId = `google-font-${fontFamily.replace(/\s+/g, "-")}`;
+  if (document.getElementById(linkId)) return;
+
+  const link = document.createElement("link");
+  link.id = linkId;
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;700&display=swap`;
+  document.head.appendChild(link);
+};
 
 // Konva Image component for elements
 function URLImage({
@@ -147,9 +186,56 @@ function URLImage({
   );
 }
 
+// Color Palette Component
+function ColorPalette({
+  brandColors,
+  currentColor,
+  onChange,
+  label,
+}: {
+  brandColors: string[];
+  currentColor: string;
+  onChange: (color: string) => void;
+  label?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      {label && <Label className="text-xs">{label}</Label>}
+      <div className="flex flex-wrap gap-1">
+        {brandColors.map((color, idx) => (
+          <button
+            key={idx}
+            className={`w-6 h-6 rounded border-2 transition-all ${
+              currentColor === color ? "border-primary ring-2 ring-primary/50" : "border-gray-300"
+            }`}
+            style={{ backgroundColor: color }}
+            onClick={() => onChange(color)}
+            title={color}
+          />
+        ))}
+        <div className="relative">
+          <input
+            type="color"
+            value={currentColor}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-6 h-6 rounded cursor-pointer opacity-0 absolute inset-0"
+          />
+          <div
+            className="w-6 h-6 rounded border-2 border-dashed border-gray-400 flex items-center justify-center text-gray-400 text-xs"
+            title="Custom color"
+          >
+            +
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ImageEditor({
   imageUrl,
   brandAssets = [],
+  brandColors = ["#000000", "#ffffff", "#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"],
   onSave,
   onCancel,
 }: ImageEditorProps) {
@@ -158,33 +244,39 @@ export default function ImageEditor({
   const transformerRef = useRef<Konva.Transformer>(null);
   const [history, setHistory] = useState<EditorElement[][]>([]);
   const [redoStack, setRedoStack] = useState<EditorElement[][]>([]);
-  
+
   // Background image position and zoom
   const [bgZoom, setBgZoom] = useState(1);
   const [bgPosition, setBgPosition] = useState({ x: 0, y: 0 });
 
   // Canvas dimensions
-  const [canvasSize, setCanvasSize] = useState({ width: 600, height: 600 });
+  const [canvasSize, setCanvasSize] = useState({ width: 500, height: 500 });
   const [originalSize, setOriginalSize] = useState({
     width: 1080,
     height: 1080,
   });
-  const [selectedPreset, setSelectedPreset] =
-    useState<string>("instagram-feed");
+  const [selectedPreset, setSelectedPreset] = useState<string>("instagram-feed");
 
   // Elements on canvas
   const [elements, setElements] = useState<EditorElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // Inline text editing
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingTextValue, setEditingTextValue] = useState("");
+  const textInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Loaded fonts
+  const [loadedFonts, setLoadedFonts] = useState<Set<string>>(new Set(SYSTEM_FONTS));
+
   const pushToHistory = (newElements: EditorElement[]) => {
-    setHistory((prev) => [...prev, elements]); // guardamos el estado actual
-    setRedoStack([]); // limpiar redo al hacer un cambio nuevo
+    setHistory((prev) => [...prev, elements]);
+    setRedoStack([]);
     setElements(newElements);
   };
+
   // Tool state
-  const [activeTool, setActiveTool] = useState<
-    "select" | "text" | "shape" | "sticker"
-  >("select");
+  const [activeTool, setActiveTool] = useState<"select" | "text" | "shape" | "sticker">("select");
   const [currentShape, setCurrentShape] = useState<ShapeType>("rect");
   const [currentColor, setCurrentColor] = useState("#ffffff");
   const [currentStrokeColor, setCurrentStrokeColor] = useState("#000000");
@@ -198,14 +290,32 @@ export default function ImageEditor({
   const [contrast, setContrast] = useState(0);
   const [saturation, setSaturation] = useState(0);
 
+  // All available fonts
+  const allFonts = [...SYSTEM_FONTS, ...GOOGLE_FONTS];
+
+  // Load font when selected
+  const handleFontChange = (font: string) => {
+    if (GOOGLE_FONTS.includes(font) && !loadedFonts.has(font)) {
+      loadGoogleFont(font);
+      setLoadedFonts((prev) => new Set(Array.from(prev).concat(font)));
+    }
+    setCurrentFont(font);
+  };
+
+  // Load font for element
+  const ensureFontLoaded = (font: string) => {
+    if (GOOGLE_FONTS.includes(font) && !loadedFonts.has(font)) {
+      loadGoogleFont(font);
+      setLoadedFonts((prev) => new Set(Array.from(prev).concat(font)));
+    }
+  };
+
   // Calculate display size based on container
   useEffect(() => {
-    const preset =
-      PLATFORM_PRESETS[selectedPreset as keyof typeof PLATFORM_PRESETS];
+    const preset = PLATFORM_PRESETS[selectedPreset as keyof typeof PLATFORM_PRESETS];
     if (preset) {
       setOriginalSize({ width: preset.width, height: preset.height });
-      // Scale to fit in view (max 600px)
-      const maxSize = 500;
+      const maxSize = 400;
       const scale = Math.min(maxSize / preset.width, maxSize / preset.height);
       setCanvasSize({
         width: preset.width * scale,
@@ -216,7 +326,7 @@ export default function ImageEditor({
 
   // Update transformer when selection changes
   useEffect(() => {
-    if (selectedId && transformerRef.current && stageRef.current) {
+    if (selectedId && transformerRef.current && stageRef.current && !editingTextId) {
       const node = stageRef.current.findOne(`#${selectedId}`);
       if (node) {
         transformerRef.current.nodes([node]);
@@ -225,12 +335,27 @@ export default function ImageEditor({
     } else if (transformerRef.current) {
       transformerRef.current.nodes([]);
     }
-  }, [selectedId]);
+  }, [selectedId, editingTextId]);
+
+  // Load fonts for existing elements
+  useEffect(() => {
+    elements.forEach((el) => {
+      if (el.type === "text" && el.fontFamily) {
+        ensureFontLoaded(el.fontFamily);
+      }
+    });
+  }, [elements]);
 
   const generateId = () =>
     `element-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // If editing text, finish editing first
+    if (editingTextId) {
+      finishTextEditing();
+      return;
+    }
+
     const stage = e.target.getStage();
     const pos = stage?.getPointerPosition();
     if (!pos) return;
@@ -240,9 +365,14 @@ export default function ImageEditor({
     const x = pos.x * scaleX;
     const y = pos.y * scaleY;
 
-    // Click en Stage vacío (fondo)
-    if (e.target === stage || e.target.className === "Image") {
+    // Check if clicked on stage or background image (not sticker images which have IDs)
+    const clickedNode = e.target as Konva.Node;
+    const isBackground = e.target === stage || 
+      (clickedNode.className === "Image" && clickedNode.name() === "background");
+    
+    if (isBackground) {
       if (activeTool === "text") {
+        ensureFontLoaded(currentFont);
         const newElement: EditorElement = {
           id: generateId(),
           type: "text",
@@ -298,18 +428,41 @@ export default function ImageEditor({
         pushToHistory([...elements, newElement]);
         setActiveTool("select");
       } else {
-        // Si no estamos agregando nada → deseleccionar
         setSelectedId(null);
       }
       return;
     }
 
-    // Click en otro nodo → seleccionar ese nodo
     const clickedId = (e.target as Konva.Node).id();
     if (clickedId) {
       setSelectedId(clickedId);
       return;
     }
+  };
+
+  // Double click to edit text inline
+  const handleTextDblClick = (el: EditorElement) => {
+    if (el.type !== "text") return;
+    setEditingTextId(el.id);
+    setEditingTextValue(el.text || "");
+    setSelectedId(null);
+    setTimeout(() => textInputRef.current?.focus(), 50);
+  };
+
+  const finishTextEditing = () => {
+    if (editingTextId) {
+      if (editingTextValue.trim()) {
+        const newElements = elements.map((el) =>
+          el.id === editingTextId ? { ...el, text: editingTextValue } : el
+        );
+        pushToHistory(newElements);
+      } else {
+        const newElements = elements.filter((el) => el.id !== editingTextId);
+        pushToHistory(newElements);
+      }
+    }
+    setEditingTextId(null);
+    setEditingTextValue("");
   };
 
   const addSticker = (assetUrl: string) => {
@@ -329,7 +482,7 @@ export default function ImageEditor({
 
   const updateElement = (id: string, updates: Partial<EditorElement>) => {
     const newElements = elements.map((el) =>
-      el.id === id ? { ...el, ...updates } : el,
+      el.id === id ? { ...el, ...updates } : el
     );
     pushToHistory(newElements);
   };
@@ -343,12 +496,8 @@ export default function ImageEditor({
   };
 
   const handleDragEnd = (id: string, e: Konva.KonvaEventObject<DragEvent>) => {
-    const element = elements.find((el) => el.id === id);
-    if (!element) return;
-
     const scaleX = originalSize.width / canvasSize.width;
     const scaleY = originalSize.height / canvasSize.height;
-
     updateElement(id, {
       x: e.target.x() * scaleX,
       y: e.target.y() * scaleY,
@@ -357,10 +506,8 @@ export default function ImageEditor({
 
   const handleTransformEnd = (id: string, e: Konva.KonvaEventObject<Event>) => {
     const node = e.target;
-
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
-
     const element = elements.find((el) => el.id === id);
     if (!element) return;
 
@@ -385,14 +532,12 @@ export default function ImageEditor({
         rotation: node.rotation(),
       });
     } else if (element.type === "image") {
-      // Para imágenes, usar la misma escala para width y height para mantener proporción
       const scale = scaleX;
       const originalWidth = element.width || 100;
       const originalHeight = element.height || 100;
       const aspectRatio = originalHeight / originalWidth;
       const newWidth = Math.max(20, originalWidth * scale);
       const newHeight = newWidth * aspectRatio;
-
       updateElement(id, {
         x: node.x() / renderScale,
         y: node.y() / renderScale,
@@ -401,7 +546,6 @@ export default function ImageEditor({
         rotation: node.rotation(),
       });
     } else {
-      // rect y otros
       const scale = scaleX;
       updateElement(id, {
         x: node.x() / renderScale,
@@ -411,8 +555,6 @@ export default function ImageEditor({
         rotation: node.rotation(),
       });
     }
-
-    // Reset scale para evitar distorsión en siguiente transform
     node.scaleX(1);
     node.scaleY(1);
   };
@@ -425,8 +567,6 @@ export default function ImageEditor({
 
   const handleSave = useCallback(() => {
     if (!stageRef.current) return;
-
-    // Export at original resolution
     const scale = originalSize.width / canvasSize.width;
     const dataUrl = stageRef.current.toDataURL({
       pixelRatio: scale,
@@ -435,10 +575,8 @@ export default function ImageEditor({
     onSave(dataUrl);
   }, [canvasSize.width, originalSize.width, onSave]);
 
-  // Calculate scale for rendering
   const renderScale = canvasSize.width / originalSize.width;
 
-  // Get filter CSS
   const getFilterStyle = () => {
     const filters = [];
     if (brightness !== 0) filters.push(`brightness(${100 + brightness}%)`);
@@ -449,24 +587,40 @@ export default function ImageEditor({
 
   const selectedElement = elements.find((el) => el.id === selectedId);
 
-  const undo = () => {
+  const undo = useCallback(() => {
     if (history.length === 0) return;
     const previous = history[history.length - 1];
     setHistory(history.slice(0, -1));
     setRedoStack((prev) => [...prev, elements]);
     setElements(previous);
-  };
+  }, [history, elements]);
 
-  const redo = () => {
+  const redo = useCallback(() => {
     if (redoStack.length === 0) return;
     const next = redoStack[redoStack.length - 1];
     setRedoStack(redoStack.slice(0, -1));
     setHistory((prev) => [...prev, elements]);
     setElements(next);
-  };
+  }, [redoStack, elements]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isTyping =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable;
+
+      // Allow typing in inputs
+      if (isTyping) {
+        // Only handle Enter for finishing text edit
+        if (editingTextId && e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          finishTextEditing();
+        }
+        return;
+      }
+
       if (e.ctrlKey && e.key === "z") {
         e.preventDefault();
         undo();
@@ -478,587 +632,639 @@ export default function ImageEditor({
 
       if (selectedId && (e.key === "Delete" || e.key === "Backspace")) {
         e.preventDefault();
-        const newElements = elements.filter((el) => el.id !== selectedId);
-        pushToHistory(newElements);
-        setSelectedId(null);
+        deleteSelected();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedId, elements, undo, redo]);
+  }, [selectedId, elements, undo, redo, editingTextId]);
+
+  // Get position for inline text editor
+  const getEditingTextPosition = () => {
+    const el = elements.find((e) => e.id === editingTextId);
+    if (!el) return { left: 0, top: 0, fontSize: 16, fontFamily: "Arial", color: "#ffffff" };
+    return {
+      left: el.x * renderScale,
+      top: el.y * renderScale,
+      fontSize: (el.fontSize || 32) * renderScale,
+      fontFamily: el.fontFamily || "Arial",
+      color: el.fill || "#ffffff",
+    };
+  };
+
+  const editPos = getEditingTextPosition();
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 h-full max-h-[80vh]">
-      {/* Tools Panel */}
-      <div className="w-full lg:w-72 flex-shrink-0 order-2 lg:order-1">
-        <Tabs defaultValue="tools" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="tools">Tools</TabsTrigger>
-            <TabsTrigger value="stickers">Assets</TabsTrigger>
-            <TabsTrigger value="filters">Filters</TabsTrigger>
-            <TabsTrigger value="resize">Resize</TabsTrigger>
-          </TabsList>
+    <div className="flex flex-col h-full max-h-[85vh] bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 border-b">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={undo}
+            disabled={history.length === 0}
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo2 className="h-4 w-4" />
+            <span className="ml-1 text-xs hidden sm:inline">Undo</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={redo}
+            disabled={redoStack.length === 0}
+            title="Redo (Ctrl+Y)"
+          >
+            <Redo2 className="h-4 w-4" />
+            <span className="ml-1 text-xs hidden sm:inline">Redo</span>
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={handleSave} className="gap-1">
+            <Download className="h-4 w-4" />
+            Save
+          </Button>
+        </div>
+      </div>
 
-          <TabsContent value="tools" className="space-y-4 mt-4">
-            <div className="flex gap-2 mb-3">
-              <Button
-                onClick={undo}
-                disabled={history.length === 0}
-                size="sm"
-                variant="outline"
-                title="Undo (Ctrl+Z)"
-              >
-                Undo
-              </Button>
-              <Button
-                onClick={redo}
-                disabled={redoStack.length === 0}
-                size="sm"
-                variant="outline"
-                title="Redo (Ctrl+Y)"
-              >
-                Redo
-              </Button>
-            </div>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Toolbar */}
+        <div className="w-16 bg-white dark:bg-gray-800 border-r flex flex-col items-center py-4 gap-1">
+          <Button
+            variant={activeTool === "select" ? "secondary" : "ghost"}
+            size="sm"
+            className="w-12 h-12 flex flex-col gap-1"
+            onClick={() => setActiveTool("select")}
+            title="Select"
+          >
+            <MousePointer2 className="h-5 w-5" />
+            <span className="text-[10px]">Select</span>
+          </Button>
+          <Button
+            variant={activeTool === "text" ? "secondary" : "ghost"}
+            size="sm"
+            className="w-12 h-12 flex flex-col gap-1"
+            onClick={() => setActiveTool("text")}
+            title="Text"
+          >
+            <Type className="h-5 w-5" />
+            <span className="text-[10px]">Text</span>
+          </Button>
+          <Button
+            variant={activeTool === "shape" ? "secondary" : "ghost"}
+            size="sm"
+            className="w-12 h-12 flex flex-col gap-1"
+            onClick={() => setActiveTool("shape")}
+            title="Shapes"
+          >
+            <Square className="h-5 w-5" />
+            <span className="text-[10px]">Shapes</span>
+          </Button>
+          <Button
+            variant={activeTool === "sticker" ? "secondary" : "ghost"}
+            size="sm"
+            className="w-12 h-12 flex flex-col gap-1"
+            onClick={() => setActiveTool("sticker")}
+            title="Assets"
+          >
+            <Sticker className="h-5 w-5" />
+            <span className="text-[10px]">Assets</span>
+          </Button>
+          <Separator className="my-2 w-10" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-12 h-12 flex flex-col gap-1"
+            onClick={deleteSelected}
+            disabled={!selectedId}
+            title="Delete"
+          >
+            <Trash2 className="h-5 w-5" />
+            <span className="text-[10px]">Delete</span>
+          </Button>
+        </div>
 
-            {/* Tool buttons */}
-            <div className="grid grid-cols-4 gap-2">
-              <Button
-                variant={activeTool === "select" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveTool("select")}
-                title="Select"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={activeTool === "text" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveTool("text")}
-                title="Add Text"
-              >
-                <Type className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={activeTool === "shape" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveTool("shape")}
-                title="Add Shape"
-              >
-                <Square className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={deleteSelected}
-                disabled={!selectedId}
-                title="Delete"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+        {/* Center Canvas */}
+        <div className="flex-1 flex items-center justify-center p-4 overflow-auto bg-gray-100 dark:bg-gray-900">
+          <div
+            className="relative border rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 shadow-xl"
+            style={{
+              filter: getFilterStyle(),
+            }}
+          >
+            <Stage
+              ref={stageRef}
+              width={canvasSize.width}
+              height={canvasSize.height}
+              onClick={handleStageClick}
+              onTap={handleStageClick}
+            >
+              <Layer>
+                {/* Background image */}
+                {backgroundImage &&
+                  (() => {
+                    const imgWidth = backgroundImage.width;
+                    const imgHeight = backgroundImage.height;
+                    const canvasRatio = canvasSize.width / canvasSize.height;
+                    const imgRatio = imgWidth / imgHeight;
 
-            {/* Text options */}
-            {activeTool === "text" && (
-              <div className="space-y-3 p-3 border rounded-lg">
-                <Label className="text-sm font-medium">Text Options</Label>
-                <Input
-                  value={newText}
-                  onChange={(e) => setNewText(e.target.value)}
-                  placeholder="Enter text..."
+                    let baseWidth, baseHeight;
+                    if (imgRatio > canvasRatio) {
+                      baseHeight = canvasSize.height;
+                      baseWidth = imgRatio * canvasSize.height;
+                    } else {
+                      baseWidth = canvasSize.width;
+                      baseHeight = canvasSize.width / imgRatio;
+                    }
+
+                    const renderWidth = baseWidth * bgZoom;
+                    const renderHeight = baseHeight * bgZoom;
+                    const centerOffsetX = (canvasSize.width - renderWidth) / 2;
+                    const centerOffsetY = (canvasSize.height - renderHeight) / 2;
+
+                    return (
+                      <Image
+                        name="background"
+                        image={backgroundImage}
+                        x={centerOffsetX + bgPosition.x}
+                        y={centerOffsetY + bgPosition.y}
+                        width={renderWidth}
+                        height={renderHeight}
+                        draggable={true}
+                        onDragEnd={(e) => {
+                          const newX = e.target.x() - centerOffsetX;
+                          const newY = e.target.y() - centerOffsetY;
+                          setBgPosition({ x: newX, y: newY });
+                        }}
+                      />
+                    );
+                  })()}
+
+                {/* Render elements */}
+                {elements.map((el) => {
+                  const scaledX = el.x * renderScale;
+                  const scaledY = el.y * renderScale;
+
+                  if (el.type === "text") {
+                    if (el.id === editingTextId) return null;
+                    return (
+                      <Text
+                        key={el.id}
+                        id={el.id}
+                        x={scaledX}
+                        y={scaledY}
+                        text={el.text}
+                        fontSize={(el.fontSize || 32) * renderScale}
+                        fontFamily={el.fontFamily || "Arial"}
+                        fill={el.fill || "#ffffff"}
+                        draggable={el.draggable}
+                        onClick={() => setSelectedId(el.id)}
+                        onTap={() => setSelectedId(el.id)}
+                        onDblClick={() => handleTextDblClick(el)}
+                        onDblTap={() => handleTextDblClick(el)}
+                        onDragEnd={(e) => handleDragEnd(el.id, e)}
+                        onTransformEnd={(e) => handleTransformEnd(el.id, e)}
+                      />
+                    );
+                  }
+
+                  if (el.type === "rect") {
+                    return (
+                      <Rect
+                        key={el.id}
+                        id={el.id}
+                        x={scaledX}
+                        y={scaledY}
+                        width={(el.width || 100) * renderScale}
+                        height={(el.height || 100) * renderScale}
+                        fill={el.fill}
+                        stroke={el.stroke}
+                        strokeWidth={(el.strokeWidth || 2) * renderScale}
+                        draggable={el.draggable}
+                        onClick={() => setSelectedId(el.id)}
+                        onDragEnd={(e) => handleDragEnd(el.id, e)}
+                        onTransformEnd={(e) => handleTransformEnd(el.id, e)}
+                      />
+                    );
+                  }
+
+                  if (el.type === "circle") {
+                    return (
+                      <Circle
+                        key={el.id}
+                        id={el.id}
+                        x={scaledX}
+                        y={scaledY}
+                        radius={(el.radius || 50) * renderScale}
+                        fill={el.fill}
+                        stroke={el.stroke}
+                        strokeWidth={(el.strokeWidth || 2) * renderScale}
+                        draggable={el.draggable}
+                        onClick={() => setSelectedId(el.id)}
+                        onDragEnd={(e) => handleDragEnd(el.id, e)}
+                        onTransformEnd={(e) => handleTransformEnd(el.id, e)}
+                      />
+                    );
+                  }
+
+                  if (el.type === "line" && el.points) {
+                    return (
+                      <Line
+                        key={el.id}
+                        id={el.id}
+                        points={el.points.map((p) => p * renderScale)}
+                        stroke={el.stroke}
+                        strokeWidth={(el.strokeWidth || 2) * renderScale}
+                        draggable={el.draggable}
+                        onClick={() => setSelectedId(el.id)}
+                        onTap={() => setSelectedId(el.id)}
+                        onDragEnd={(e) => handleDragEnd(el.id, e)}
+                      />
+                    );
+                  }
+
+                  if (el.type === "image" && el.src) {
+                    return (
+                      <URLImage
+                        key={el.id}
+                        id={el.id}
+                        src={el.src}
+                        x={scaledX}
+                        y={scaledY}
+                        width={(el.width || 100) * renderScale}
+                        height={(el.height || 100) * renderScale}
+                        draggable={el.draggable}
+                        onClick={() => setSelectedId(el.id)}
+                        onDragEnd={(e) => handleDragEnd(el.id, e)}
+                        onTransformEnd={(e) => handleTransformEnd(el.id, e)}
+                      />
+                    );
+                  }
+
+                  return null;
+                })}
+
+                <Transformer
+                  ref={transformerRef}
+                  keepRatio={true}
+                  enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+                  boundBoxFunc={(oldBox, newBox) => {
+                    if (newBox.width < 30 || newBox.height < 30) return oldBox;
+                    return newBox;
+                  }}
                 />
-                <Select value={currentFont} onValueChange={setCurrentFont}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FONTS.map((font) => (
-                      <SelectItem
-                        key={font}
-                        value={font}
-                        style={{ fontFamily: font }}
+              </Layer>
+            </Stage>
+
+            {/* Inline text editor */}
+            {editingTextId && (
+              <textarea
+                ref={textInputRef}
+                value={editingTextValue}
+                onChange={(e) => setEditingTextValue(e.target.value)}
+                onBlur={finishTextEditing}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    finishTextEditing();
+                  }
+                  e.stopPropagation();
+                }}
+                className="absolute bg-transparent border-2 border-blue-500 outline-none resize-none"
+                style={{
+                  left: editPos.left,
+                  top: editPos.top,
+                  fontSize: editPos.fontSize,
+                  fontFamily: editPos.fontFamily,
+                  color: editPos.color,
+                  minWidth: 100,
+                  minHeight: editPos.fontSize * 1.5,
+                }}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Right Properties Panel */}
+        <div className="w-72 bg-white dark:bg-gray-800 border-l overflow-y-auto">
+          <ScrollArea className="h-full">
+            <div className="p-4 space-y-4">
+              {/* Tool-specific options */}
+              {activeTool === "text" && (
+                <div className="space-y-3 p-3 border rounded-lg">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Type className="h-4 w-4" /> Text Options
+                  </Label>
+                  <Input
+                    value={newText}
+                    onChange={(e) => setNewText(e.target.value)}
+                    placeholder="Enter text..."
+                  />
+                  <Select value={currentFont} onValueChange={handleFontChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      <div className="px-2 py-1 text-xs text-muted-foreground">System Fonts</div>
+                      {SYSTEM_FONTS.map((font) => (
+                        <SelectItem key={font} value={font} style={{ fontFamily: font }}>
+                          {font}
+                        </SelectItem>
+                      ))}
+                      <Separator className="my-1" />
+                      <div className="px-2 py-1 text-xs text-muted-foreground">Google Fonts</div>
+                      {GOOGLE_FONTS.map((font) => (
+                        <SelectItem key={font} value={font} style={{ fontFamily: loadedFonts.has(font) ? font : "inherit" }}>
+                          {font}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-2 items-center">
+                    <Label className="text-xs w-12">Size</Label>
+                    <Slider
+                      value={[currentFontSize]}
+                      onValueChange={([v]) => setCurrentFontSize(v)}
+                      min={12}
+                      max={120}
+                      step={2}
+                      className="flex-1"
+                    />
+                    <span className="text-xs w-8">{currentFontSize}</span>
+                  </div>
+                  <ColorPalette
+                    brandColors={brandColors}
+                    currentColor={currentColor}
+                    onChange={setCurrentColor}
+                    label="Color"
+                  />
+                  <p className="text-xs text-muted-foreground">Click canvas to add text</p>
+                </div>
+              )}
+
+              {activeTool === "shape" && (
+                <div className="space-y-3 p-3 border rounded-lg">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Square className="h-4 w-4" /> Shape Options
+                  </Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={currentShape === "rect" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentShape("rect")}
+                    >
+                      <Square className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={currentShape === "circle" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentShape("circle")}
+                    >
+                      <CircleIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={currentShape === "line" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentShape("line")}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <ColorPalette
+                    brandColors={brandColors}
+                    currentColor={currentColor}
+                    onChange={setCurrentColor}
+                    label="Fill"
+                  />
+                  <ColorPalette
+                    brandColors={brandColors}
+                    currentColor={currentStrokeColor}
+                    onChange={setCurrentStrokeColor}
+                    label="Stroke"
+                  />
+                  <div className="flex gap-2 items-center">
+                    <Label className="text-xs w-16">Stroke Width</Label>
+                    <Slider
+                      value={[currentStrokeWidth]}
+                      onValueChange={([v]) => setCurrentStrokeWidth(v)}
+                      min={0}
+                      max={20}
+                      step={1}
+                      className="flex-1"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Click canvas to add shape</p>
+                </div>
+              )}
+
+              {activeTool === "sticker" && (
+                <div className="space-y-3 p-3 border rounded-lg">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Sticker className="h-4 w-4" /> Brand Assets
+                  </Label>
+                  {brandAssets.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {brandAssets.map((asset) => (
+                        <button
+                          key={asset.id}
+                          onClick={() => addSticker(asset.url)}
+                          className="aspect-square rounded-lg border overflow-hidden hover:ring-2 ring-primary transition-all"
+                        >
+                          <img
+                            src={asset.url}
+                            alt={asset.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No brand assets</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Selected element properties */}
+              {selectedElement && (
+                <div className="space-y-3 p-3 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Settings2 className="h-4 w-4" /> Selected: {selectedElement.type}
+                  </Label>
+
+                  {selectedElement.type === "text" && (
+                    <>
+                      <Input
+                        value={selectedElement.text || ""}
+                        onChange={(e) => updateElement(selectedId!, { text: e.target.value })}
+                        placeholder="Edit text..."
+                      />
+                      <Select
+                        value={selectedElement.fontFamily || "Arial"}
+                        onValueChange={(v) => {
+                          ensureFontLoaded(v);
+                          updateElement(selectedId!, { fontFamily: v });
+                        }}
                       >
-                        {font}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex gap-2 items-center">
-                  <Label className="text-xs w-12">Size</Label>
-                  <Slider
-                    value={[currentFontSize]}
-                    onValueChange={([v]) => setCurrentFontSize(v)}
-                    min={12}
-                    max={120}
-                    step={2}
-                    className="flex-1"
-                  />
-                  <span className="text-xs w-8">{currentFontSize}</span>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <Label className="text-xs w-12">Color</Label>
-                  <input
-                    type="color"
-                    value={currentColor}
-                    onChange={(e) => setCurrentColor(e.target.value)}
-                    className="w-10 h-8 rounded cursor-pointer"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Click on canvas to add text
-                </p>
-              </div>
-            )}
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          <div className="px-2 py-1 text-xs text-muted-foreground">System Fonts</div>
+                          {SYSTEM_FONTS.map((font) => (
+                            <SelectItem key={font} value={font} style={{ fontFamily: font }}>
+                              {font}
+                            </SelectItem>
+                          ))}
+                          <Separator className="my-1" />
+                          <div className="px-2 py-1 text-xs text-muted-foreground">Google Fonts</div>
+                          {GOOGLE_FONTS.map((font) => (
+                            <SelectItem key={font} value={font} style={{ fontFamily: loadedFonts.has(font) ? font : "inherit" }}>
+                              {font}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex gap-2 items-center">
+                        <Label className="text-xs w-12">Size</Label>
+                        <Slider
+                          value={[selectedElement.fontSize || 32]}
+                          onValueChange={([v]) => updateElement(selectedId!, { fontSize: v })}
+                          min={12}
+                          max={120}
+                          step={2}
+                          className="flex-1"
+                        />
+                      </div>
+                      <ColorPalette
+                        brandColors={brandColors}
+                        currentColor={selectedElement.fill || "#ffffff"}
+                        onChange={(c) => updateElement(selectedId!, { fill: c })}
+                        label="Color"
+                      />
+                    </>
+                  )}
 
-            {/* Shape options */}
-            {activeTool === "shape" && (
+                  {(selectedElement.type === "rect" || selectedElement.type === "circle") && (
+                    <>
+                      <ColorPalette
+                        brandColors={brandColors}
+                        currentColor={selectedElement.fill || "#ffffff"}
+                        onChange={(c) => updateElement(selectedId!, { fill: c })}
+                        label="Fill"
+                      />
+                      <ColorPalette
+                        brandColors={brandColors}
+                        currentColor={selectedElement.stroke || "#000000"}
+                        onChange={(c) => updateElement(selectedId!, { stroke: c })}
+                        label="Stroke"
+                      />
+                    </>
+                  )}
+
+                  <p className="text-xs text-muted-foreground">Double-click text to edit inline</p>
+                </div>
+              )}
+
+              <Separator />
+
+              {/* Filters */}
               <div className="space-y-3 p-3 border rounded-lg">
-                <Label className="text-sm font-medium">Shape Options</Label>
-                <div className="flex gap-2">
-                  <Button
-                    variant={currentShape === "rect" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentShape("rect")}
-                  >
-                    <Square className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={currentShape === "circle" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentShape("circle")}
-                  >
-                    <CircleIcon className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={currentShape === "line" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentShape("line")}
-                  >
-                    <Minus className="h-4 w-4" />
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Palette className="h-4 w-4" /> Filters
+                  </Label>
+                  <Button variant="ghost" size="sm" onClick={resetFilters}>
+                    Reset
                   </Button>
                 </div>
-                <div className="flex gap-2 items-center">
-                  <Label className="text-xs w-12">Fill</Label>
-                  <input
-                    type="color"
-                    value={currentColor}
-                    onChange={(e) => setCurrentColor(e.target.value)}
-                    className="w-10 h-8 rounded cursor-pointer"
-                  />
+                <div className="space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <Sun className="h-4 w-4 text-muted-foreground" />
+                    <Slider
+                      value={[brightness]}
+                      onValueChange={([v]) => setBrightness(v)}
+                      min={-50}
+                      max={50}
+                      step={5}
+                      className="flex-1"
+                    />
+                    <span className="text-xs w-8">{brightness}</span>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <Contrast className="h-4 w-4 text-muted-foreground" />
+                    <Slider
+                      value={[contrast]}
+                      onValueChange={([v]) => setContrast(v)}
+                      min={-50}
+                      max={50}
+                      step={5}
+                      className="flex-1"
+                    />
+                    <span className="text-xs w-8">{contrast}</span>
+                  </div>
                 </div>
-                <div className="flex gap-2 items-center">
-                  <Label className="text-xs w-12">Stroke</Label>
-                  <input
-                    type="color"
-                    value={currentStrokeColor}
-                    onChange={(e) => setCurrentStrokeColor(e.target.value)}
-                    className="w-10 h-8 rounded cursor-pointer"
-                  />
-                </div>
-                <div className="flex gap-2 items-center">
-                  <Label className="text-xs w-12">Width</Label>
-                  <Slider
-                    value={[currentStrokeWidth]}
-                    onValueChange={([v]) => setCurrentStrokeWidth(v)}
-                    min={0}
-                    max={20}
-                    step={1}
-                    className="flex-1"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Click on canvas to add shape
-                </p>
               </div>
-            )}
 
-            {/* Selected element properties */}
-            {selectedElement && selectedElement.type === "text" && (
-              <div className="space-y-3 p-3 border rounded-lg bg-muted/50">
-                <Label className="text-sm font-medium">Edit Text</Label>
-                <Input
-                  value={selectedElement.text || ""}
-                  onChange={(e) =>
-                    updateElement(selectedId!, { text: e.target.value })
-                  }
-                />
+              {/* Canvas Settings */}
+              <div className="space-y-3 p-3 border rounded-lg">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Move className="h-4 w-4" /> Canvas Settings
+                </Label>
                 <Select
-                  value={selectedElement.fontFamily || "Arial"}
-                  onValueChange={(v) =>
-                    updateElement(selectedId!, { fontFamily: v })
-                  }
+                  value={selectedPreset}
+                  onValueChange={(value) => {
+                    setSelectedPreset(value);
+                    setBgPosition({ x: 0, y: 0 });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {FONTS.map((font) => (
-                      <SelectItem
-                        key={font}
-                        value={font}
-                        style={{ fontFamily: font }}
-                      >
-                        {font}
+                    {Object.entries(PLATFORM_PRESETS).map(([key, preset]) => (
+                      <SelectItem key={key} value={key}>
+                        {preset.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="text-xs text-muted-foreground">
+                  Output: {originalSize.width} x {originalSize.height}px
+                </div>
                 <div className="flex gap-2 items-center">
-                  <Label className="text-xs w-12">Size</Label>
+                  <Label className="text-xs w-16">Bg Zoom</Label>
                   <Slider
-                    value={[selectedElement.fontSize || 32]}
-                    onValueChange={([v]) =>
-                      updateElement(selectedId!, { fontSize: v })
-                    }
-                    min={12}
-                    max={120}
-                    step={2}
+                    value={[bgZoom * 100]}
+                    onValueChange={([v]) => setBgZoom(v / 100)}
+                    min={50}
+                    max={200}
+                    step={5}
                     className="flex-1"
                   />
+                  <span className="text-xs w-10">{Math.round(bgZoom * 100)}%</span>
                 </div>
-                <div className="flex gap-2 items-center">
-                  <Label className="text-xs w-12">Color</Label>
-                  <input
-                    type="color"
-                    value={selectedElement.fill || "#ffffff"}
-                    onChange={(e) =>
-                      updateElement(selectedId!, { fill: e.target.value })
-                    }
-                    className="w-10 h-8 rounded cursor-pointer"
-                  />
-                </div>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="stickers" className="mt-4">
-            <ScrollArea className="h-64">
-              {brandAssets.length > 0 ? (
-                <div className="grid grid-cols-3 gap-2">
-                  {brandAssets.map((asset) => (
-                    <button
-                      key={asset.id}
-                      onClick={() => addSticker(asset.url)}
-                      className="aspect-square rounded-lg border overflow-hidden hover:ring-2 ring-primary transition-all"
-                    >
-                      <img
-                        src={asset.url}
-                        alt={asset.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No brand assets available</p>
-                  <p className="text-xs">Add assets in Brand Studio</p>
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-
-          <TabsContent value="filters" className="space-y-4 mt-4">
-            <div className="space-y-4 p-3 border rounded-lg">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Image Filters</Label>
-                <Button variant="ghost" size="sm" onClick={resetFilters}>
-                  Reset
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    setBgZoom(1);
+                    setBgPosition({ x: 0, y: 0 });
+                  }}
+                >
+                  Reset Background
                 </Button>
               </div>
-              <div className="space-y-3">
-                <div className="flex gap-2 items-center">
-                  <Sun className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-xs w-16">Brightness</Label>
-                  <Slider
-                    value={[brightness]}
-                    onValueChange={([v]) => setBrightness(v)}
-                    min={-50}
-                    max={50}
-                    step={5}
-                    className="flex-1"
-                  />
-                  <span className="text-xs w-8">{brightness}</span>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <Contrast className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-xs w-16">Contrast</Label>
-                  <Slider
-                    value={[contrast]}
-                    onValueChange={([v]) => setContrast(v)}
-                    min={-50}
-                    max={50}
-                    step={5}
-                    className="flex-1"
-                  />
-                  <span className="text-xs w-8">{contrast}</span>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <Palette className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-xs w-16">Saturation</Label>
-                  <Slider
-                    value={[saturation]}
-                    onValueChange={([v]) => setSaturation(v)}
-                    min={-50}
-                    max={50}
-                    step={5}
-                    className="flex-1"
-                  />
-                  <span className="text-xs w-8">{saturation}</span>
-                </div>
-              </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="resize" className="space-y-4 mt-4">
-            <div className="space-y-3 p-3 border rounded-lg">
-              <Label className="text-sm font-medium">Platform Presets</Label>
-              <Select value={selectedPreset} onValueChange={(value) => {
-                setSelectedPreset(value);
-                // Reset position when changing preset
-                setBgPosition({ x: 0, y: 0 });
-              }}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(PLATFORM_PRESETS).map(([key, preset]) => (
-                    <SelectItem key={key} value={key}>
-                      {preset.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="text-xs text-muted-foreground">
-                Output: {originalSize.width} x {originalSize.height}px
-              </div>
-            </div>
-            
-            <div className="space-y-3 p-3 border rounded-lg">
-              <Label className="text-sm font-medium">Background Image</Label>
-              <div className="flex gap-2 items-center">
-                <Label className="text-xs w-12">Zoom</Label>
-                <Slider
-                  value={[bgZoom * 100]}
-                  onValueChange={([v]) => setBgZoom(v / 100)}
-                  min={50}
-                  max={200}
-                  step={5}
-                  className="flex-1"
-                />
-                <span className="text-xs w-10">{Math.round(bgZoom * 100)}%</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Drag the background image to reposition it
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setBgZoom(1);
-                  setBgPosition({ x: 0, y: 0 });
-                }}
-              >
-                Reset Position
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Canvas Area */}
-      <div className="flex-1 flex flex-col items-center order-1 lg:order-2">
-        <div
-          className="border rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-lg"
-          style={{ filter: getFilterStyle() }}
-        >
-          <Stage
-            ref={stageRef}
-            width={canvasSize.width}
-            height={canvasSize.height}
-            onClick={handleStageClick}
-            onTap={handleStageClick}
-          >
-            <Layer>
-              {/* Background image - draggable with zoom */}
-              {backgroundImage &&
-                (() => {
-                  const imgWidth = backgroundImage.width;
-                  const imgHeight = backgroundImage.height;
-                  const canvasRatio = canvasSize.width / canvasSize.height;
-                  const imgRatio = imgWidth / imgHeight;
-
-                  let baseWidth, baseHeight;
-
-                  if (imgRatio > canvasRatio) {
-                    // Image is wider - fit by height
-                    baseHeight = canvasSize.height;
-                    baseWidth = imgRatio * canvasSize.height;
-                  } else {
-                    // Image is taller - fit by width
-                    baseWidth = canvasSize.width;
-                    baseHeight = canvasSize.width / imgRatio;
-                  }
-                  
-                  // Apply zoom
-                  const renderWidth = baseWidth * bgZoom;
-                  const renderHeight = baseHeight * bgZoom;
-                  
-                  // Center offset + user position
-                  const centerOffsetX = (canvasSize.width - renderWidth) / 2;
-                  const centerOffsetY = (canvasSize.height - renderHeight) / 2;
-
-                  return (
-                    <Image
-                      image={backgroundImage}
-                      x={centerOffsetX + bgPosition.x}
-                      y={centerOffsetY + bgPosition.y}
-                      width={renderWidth}
-                      height={renderHeight}
-                      draggable={true}
-                      onDragEnd={(e) => {
-                        const newX = e.target.x() - centerOffsetX;
-                        const newY = e.target.y() - centerOffsetY;
-                        setBgPosition({ x: newX, y: newY });
-                      }}
-                    />
-                  );
-                })()}
-
-              {/* Render elements */}
-              {elements.map((el) => {
-                const scaledX = el.x * renderScale;
-                const scaledY = el.y * renderScale;
-                const isSelected = el.id === selectedId;
-
-                if (el.type === "text") {
-                  return (
-                    <Text
-                      key={el.id}
-                      id={el.id}
-                      x={scaledX}
-                      y={scaledY}
-                      text={el.text}
-                      fontSize={(el.fontSize || 32) * renderScale}
-                      fontFamily={el.fontFamily || "Arial"}
-                      fill={el.fill || "#ffffff"}
-                      draggable={el.draggable}
-                      onClick={() => setSelectedId(el.id)}
-                      onTap={() => setSelectedId(el.id)}
-                      onDragEnd={(e) => handleDragEnd(el.id, e)}
-                      onTransformEnd={(e) => handleTransformEnd(el.id, e)}
-                    />
-                  );
-                }
-
-                if (el.type === "rect") {
-                  return (
-                    <Rect
-                      key={el.id}
-                      id={el.id}
-                      x={el.x * renderScale}
-                      y={el.y * renderScale}
-                      width={(el.width || 100) * renderScale}
-                      height={(el.height || 100) * renderScale}
-                      fill={el.fill}
-                      stroke={el.stroke}
-                      strokeWidth={(el.strokeWidth || 2) * renderScale}
-                      draggable={el.draggable}
-                      onClick={() => setSelectedId(el.id)}
-                      onDragEnd={(e) => handleDragEnd(el.id, e)}
-                      onTransformEnd={(e) => handleTransformEnd(el.id, e)}
-                    />
-                  );
-                }
-
-                if (el.type === "circle") {
-                  return (
-                    <Circle
-                      key={el.id}
-                      id={el.id}
-                      x={el.x * renderScale}
-                      y={el.y * renderScale}
-                      radius={(el.radius || 50) * renderScale}
-                      fill={el.fill}
-                      stroke={el.stroke}
-                      strokeWidth={(el.strokeWidth || 2) * renderScale}
-                      draggable={el.draggable}
-                      onClick={() => setSelectedId(el.id)}
-                      onDragEnd={(e) => handleDragEnd(el.id, e)}
-                      onTransformEnd={(e) => handleTransformEnd(el.id, e)}
-                    />
-                  );
-                }
-
-                if (el.type === "line" && el.points) {
-                  return (
-                    <Line
-                      key={el.id}
-                      id={el.id}
-                      points={el.points.map((p) => p * renderScale)}
-                      stroke={el.stroke}
-                      strokeWidth={(el.strokeWidth || 2) * renderScale}
-                      draggable={el.draggable}
-                      onClick={() => setSelectedId(el.id)}
-                      onTap={() => setSelectedId(el.id)}
-                      onDragEnd={(e) => handleDragEnd(el.id, e)}
-                    />
-                  );
-                }
-
-                if (el.type === "image" && el.src) {
-                  return (
-                    <URLImage
-                      key={el.id}
-                      id={el.id}
-                      src={el.src}
-                      x={scaledX}
-                      y={scaledY}
-                      width={(el.width || 100) * renderScale}
-                      height={(el.height || 100) * renderScale}
-                      draggable={el.draggable}
-                      onClick={() => setSelectedId(el.id)}
-                      onDragEnd={(e) => handleDragEnd(el.id, e)}
-                      onTransformEnd={(e) => handleTransformEnd(el.id, e)}
-                    />
-                  );
-                }
-
-                return null;
-              })}
-
-              {/* Transformer for selected element */}
-              <Transformer
-                ref={transformerRef}
-                keepRatio={true}
-                enabledAnchors={[
-                  "top-left",
-                  "top-right",
-                  "bottom-left",
-                  "bottom-right",
-                ]}
-                boundBoxFunc={(oldBox, newBox) => {
-                  if (newBox.width < 50 || newBox.height < 50) {
-                    return oldBox;
-                  }
-                  return newBox;
-                }}
-              />
-            </Layer>
-          </Stage>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex gap-3 mt-4">
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} className="gap-2">
-            <Download className="h-4 w-4" />
-            Save Image
-          </Button>
+          </ScrollArea>
         </div>
       </div>
     </div>
