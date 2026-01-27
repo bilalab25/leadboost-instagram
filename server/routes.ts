@@ -2822,6 +2822,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  app.get(
+    "/api/logo-generator/status/:jobId",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { jobId } = req.params;
+        const job = getLogoJob(jobId);
+
+        if (!job) {
+          return res.status(404).json({ message: "Job not found" });
+        }
+
+        res.json({
+          id: job.id,
+          status: job.status,
+          logoUri: job.logoUri,
+          error: job.error,
+        });
+      } catch (error) {
+        console.error("[Logo Generator Status] Error:", error);
+        res.status(500).json({
+          message: "Failed to get job status",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
   // Post Generator - Create async job and process with Gemini AI (fire-and-forget)
   app.post(
     "/api/post-generator/:brandId",
