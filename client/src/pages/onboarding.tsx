@@ -1614,7 +1614,7 @@ export default function Onboarding() {
         });
 
         if (data.secure_url) {
-          let description = "";
+          /* let description = "";
           try {
             const descResponse = await apiRequest(
               "POST",
@@ -1630,7 +1630,7 @@ export default function Onboarding() {
               "[Onboarding] Error generating asset description:",
               descErr,
             );
-          }
+          } */
           await saveAssetToDB({
             id,
             url: data.secure_url,
@@ -1638,7 +1638,7 @@ export default function Onboarding() {
             category: assetCategory, // <-- Usar el nuevo argumento
             assetType: getAssetType(file.name),
             publicId: data.public_id,
-            description, // <-- nuevo
+            description: "", // <-- nuevo
           });
         }
       } catch (err) {
@@ -4510,23 +4510,25 @@ export default function Onboarding() {
           try {
             const response = await fetch(logoDataUrl);
             const blob = await response.blob();
-            const file = new File([blob], `ai-logo-${Date.now()}.png`, { type: "image/png" });
-            
+            const file = new File([blob], `ai-logo-${Date.now()}.png`, {
+              type: "image/png",
+            });
+
             setWhiteLogoFile(file);
             setWhiteLogoPreviewUrl(logoDataUrl);
 
             toast({
               title: isSpanish ? "Logo agregado" : "Logo added",
-              description: isSpanish 
-                ? "Tu logo generado por IA aparece en Logo Claro. Se guardará cuando completes el paso." 
+              description: isSpanish
+                ? "Tu logo generado por IA aparece en Logo Claro. Se guardará cuando completes el paso."
                 : "Your AI-generated logo is shown in Light Logo. It will be saved when you complete this step.",
             });
           } catch (error) {
             console.error("Error setting AI logo:", error);
             toast({
               title: isSpanish ? "Error" : "Error",
-              description: isSpanish 
-                ? "No se pudo agregar el logo" 
+              description: isSpanish
+                ? "No se pudo agregar el logo"
                 : "Could not add the logo",
               variant: "destructive",
             });

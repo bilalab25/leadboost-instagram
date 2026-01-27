@@ -88,6 +88,7 @@ import {
   Shield,
   Zap,
   AlertTriangle,
+  Clock,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useBrand } from "@/contexts/BrandContext";
@@ -126,6 +127,7 @@ interface ProviderInfo {
   category: "pos" | "ecommerce" | "social_media" | "crm";
   fields: IntegrationField[];
   oauth?: boolean;
+  comingSoon?: boolean;
 }
 
 // =====================================================
@@ -193,6 +195,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: CreditCard,
     description: "Point of sale and payment processing",
     category: "pos",
+    comingSoon: true,
     fields: [
       {
         name: "accessToken",
@@ -214,6 +217,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: CreditCard,
     description: "Online payment processing",
     category: "pos",
+    comingSoon: true,
     fields: [
       {
         name: "secretKey",
@@ -246,6 +250,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: ShoppingBag,
     description: "E-commerce platform for online stores",
     category: "ecommerce",
+    comingSoon: true,
     fields: [
       {
         name: "storeUrl",
@@ -267,6 +272,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: Globe,
     description: "WordPress e-commerce plugin",
     category: "ecommerce",
+    comingSoon: true,
     fields: [
       {
         name: "siteUrl",
@@ -294,6 +300,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: LayoutGrid,
     description: "Website builder and e-commerce platform",
     category: "ecommerce",
+    comingSoon: true,
     fields: [
       {
         name: "siteUrl",
@@ -310,6 +317,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: Link,
     description: "Integrate with a custom website via API",
     category: "ecommerce",
+    comingSoon: true,
     fields: [
       {
         name: "siteUrl",
@@ -328,6 +336,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: BriefcaseBusiness,
     description: "Connect your HubSpot CRM to manage leads and customers",
     category: "crm",
+    comingSoon: true,
     fields: [
       { name: "apiKey", label: "API Key", type: "password", required: true },
     ],
@@ -338,6 +347,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description:
       "Connect your Salesforce CRM for comprehensive customer management",
     category: "crm",
+    comingSoon: true,
     fields: [
       { name: "clientId", label: "Client ID", type: "text", required: true },
       {
@@ -353,6 +363,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: BriefcaseBusiness,
     description: "Integrate with Zoho CRM to streamline sales and marketing",
     category: "crm",
+    comingSoon: true,
     fields: [
       { name: "clientId", label: "Client ID", type: "text", required: true },
       {
@@ -1730,6 +1741,19 @@ export default function IntegrationsPage() {
                                               {isSpanish
                                                 ? "No disponible"
                                                 : "Unavailable"}
+                                            </Button>
+                                          ) : providerInfo.comingSoon ? (
+                                            <Button
+                                              size="sm"
+                                              className="w-full h-8 text-xs bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                                              variant="outline"
+                                              disabled
+                                              data-testid={`connect-${providerKey}-coming-soon`}
+                                            >
+                                              <Clock className="h-3 w-3 mr-1" />
+                                              {isSpanish
+                                                ? "Próximamente"
+                                                : "Coming Soon"}
                                             </Button>
                                           ) : (
                                             <Button
