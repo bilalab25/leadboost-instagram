@@ -86,6 +86,7 @@ export const brands = pgTable("brands", {
   onboardingStep: integer("onboarding_step").default(1), // Current step in onboarding (1-5)
   onboardingCompleted: boolean("onboarding_completed").default(false), // Whether onboarding is finished
   preferredLanguage: varchar("preferred_language").default("en"), // User's preferred language for AI content (en/es)
+  brandCategory: varchar("brand_category"), // What the brand sells (physical_product, digital_product, etc.)
   autoPostEnabled: boolean("auto_post_enabled").default(true), // Whether automatic posting is enabled for this brand
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

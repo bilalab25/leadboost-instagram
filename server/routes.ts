@@ -1087,9 +1087,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId =
         (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
       const brandId = req.params.id;
-      const { preferredLanguage, ...updates } = req.body;
+      const { preferredLanguage, brandCategory, ...updates } = req.body;
 
-      const brand = await storage.updateBrand(brandId, userId, updates);
+      // Include brandCategory in the updates if provided
+      const fullUpdates = {
+        ...updates,
+        ...(brandCategory !== undefined && { brandCategory }),
+      };
+
+      const brand = await storage.updateBrand(brandId, userId, fullUpdates);
 
       if (!brand) {
         return res.status(404).json({ message: "Brand not found" });
@@ -1336,6 +1342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description,
         brandColor,
         preferredLanguage,
+        brandCategory,
         domain,
       } = req.body;
 
@@ -1352,7 +1359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Brand name is required" });
       }
 
-      // Create brand with preferredLanguage stored directly on brand
+      // Create brand with preferredLanguage and brandCategory stored directly on brand
       const brand = await storage.createBrand({
         userId,
         name,
@@ -1361,6 +1368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         primaryColor: brandColor || null,
         domain: domain || null,
         preferredLanguage: preferredLanguage || "en",
+        brandCategory: brandCategory || null,
       });
 
       console.log(

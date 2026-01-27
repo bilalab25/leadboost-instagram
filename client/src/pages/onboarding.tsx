@@ -326,12 +326,41 @@ const INTEGRATION_CATEGORIES = {
 // SCHEMAS
 // =====================================================
 
-// Removed brandColor from the schema as per requirements
+// Brand category options in English and Spanish
+const brandCategoryOptions = [
+  { value: "physical_product", en: "Physical Product", es: "Producto físico" },
+  { value: "digital_product", en: "Digital Product", es: "Producto digital" },
+  { value: "professional_service", en: "Professional Service", es: "Servicio profesional" },
+  { value: "personal_service", en: "Personal Service", es: "Servicio personal" },
+  { value: "subscription", en: "Subscription or Membership", es: "Suscripción o membresía" },
+  { value: "combined", en: "Combined (Products + Services)", es: "Combinado" },
+  { value: "experiences", en: "Experiences", es: "Experiencias" },
+  { value: "digital_content", en: "Digital Content", es: "Contenido digital" },
+  { value: "licenses", en: "Licenses / Intellectual Property", es: "Licencias / propiedad intelectual" },
+  { value: "ngo", en: "NGO / Social Causes", es: "ONG / causas sociales" },
+  { value: "food_beverage", en: "Food & Beverage", es: "Alimentos y bebidas" },
+  { value: "fashion", en: "Fashion & Accessories", es: "Moda y accesorios" },
+  { value: "electronics", en: "Electronics & Gadgets", es: "Electrónica y gadgets" },
+  { value: "home_decor", en: "Home & Decor", es: "Hogar y decoración" },
+  { value: "transportation", en: "Transportation & Mobility", es: "Transporte y movilidad" },
+  { value: "art_entertainment", en: "Art & Entertainment", es: "Arte y entretenimiento" },
+  { value: "education", en: "Education & Training", es: "Educación y formación" },
+  { value: "real_estate", en: "Real Estate", es: "Bienes raíces" },
+  { value: "health_wellness", en: "Health & Wellness", es: "Salud y bienestar" },
+  { value: "b2b_tech", en: "B2B Technology & Software", es: "Tecnología y software empresarial" },
+  { value: "hobbies", en: "Hobbies & Crafts", es: "Hobbies y manualidades" },
+  { value: "financial_services", en: "Financial Services", es: "Servicios financieros" },
+  { value: "legal_accounting", en: "Legal & Accounting Services", es: "Servicios legales y contables" },
+  { value: "eco_friendly", en: "Eco-friendly / Sustainable Products", es: "Productos ecológicos / sostenibles" },
+  { value: "pets", en: "Pets & Animals", es: "Mascotas y animales" },
+];
+
 const createBrandSchema = z.object({
   name: z.string().min(1, "Brand name is required"),
   industry: z.string().min(1, "Industry is required"),
   description: z.string().min(1, "Description is required"),
-  preferredLanguage: z.string().default("en"),
+  preferredLanguage: z.string().min(1, "Preferred language is required"),
+  brandCategory: z.string().min(1, "Brand category is required"),
   domain: z
     .string()
     .url("Must be a valid URL")
@@ -1234,7 +1263,8 @@ export default function Onboarding() {
       name: "",
       industry: "",
       description: "",
-      preferredLanguage: "en",
+      preferredLanguage: "",
+      brandCategory: "",
       domain: "",
     },
   });
@@ -1270,7 +1300,11 @@ export default function Onboarding() {
             name: existingBrand.name || "",
             industry: "other",
             description: existingBrand.description || "",
-            preferredLanguage: existingBrand.preferredLanguage || brandDesign?.preferredLanguage || "en",
+            preferredLanguage:
+              existingBrand.preferredLanguage ||
+              brandDesign?.preferredLanguage ||
+              "",
+            brandCategory: existingBrand.brandCategory || "",
             domain: domainValue,
           });
         } else {
@@ -1281,7 +1315,11 @@ export default function Onboarding() {
             name: existingBrand.name || "",
             industry: industryValue,
             description: existingBrand.description || "",
-            preferredLanguage: existingBrand.preferredLanguage || brandDesign?.preferredLanguage || "en",
+            preferredLanguage:
+              existingBrand.preferredLanguage ||
+              brandDesign?.preferredLanguage ||
+              "",
+            brandCategory: existingBrand.brandCategory || "",
             domain: domainValue,
           });
         }
@@ -1729,8 +1767,11 @@ export default function Onboarding() {
   // Form submission handlers
   const onCreateSubmit = (data: CreateBrandForm) => {
     console.log("[Onboarding] Form submitted with data:", data);
-    console.log("[Onboarding] preferredLanguage value:", data.preferredLanguage);
-    
+    console.log(
+      "[Onboarding] preferredLanguage value:",
+      data.preferredLanguage,
+    );
+
     // --- SOLUCIÓN PROBLEMA 1: Ajustar el valor de la industria si es "Other" ---
     let finalData = data;
     if (isOtherIndustry) {
@@ -2566,11 +2607,15 @@ export default function Onboarding() {
                           {isSpanish
                             ? "Idioma Preferido"
                             : "Preferred Language"}
+                          <span className="text-red-500 ml-1">*</span>
                         </FormLabel>
                         <Select
-                          value={field.value || "en"}
+                          value={field.value || ""}
                           onValueChange={(value) => {
-                            console.log("[preferredLanguage] User selected:", value);
+                            console.log(
+                              "[preferredLanguage] User selected:",
+                              value,
+                            );
                             field.onChange(value);
                           }}
                         >
@@ -2607,6 +2652,48 @@ export default function Onboarding() {
                               : "AI-generated content will be created in this language."}
                           </AlertDescription>
                         </Alert>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={createForm.control}
+                    name="brandCategory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          <ShoppingBag className="w-4 h-4 inline mr-1" />
+                          {isSpanish
+                            ? "¿Qué vende tu marca?"
+                            : "What does your brand sell?"}
+                          <span className="text-red-500 ml-1">*</span>
+                        </FormLabel>
+                        <Select
+                          value={field.value || ""}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid="select-brand-category">
+                              <SelectValue
+                                placeholder={
+                                  isSpanish
+                                    ? "Selecciona una categoría"
+                                    : "Select a category"
+                                }
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-[300px]">
+                            {brandCategoryOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {isSpanish ? option.es : option.en}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
