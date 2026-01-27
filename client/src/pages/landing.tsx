@@ -60,6 +60,7 @@ import boostyWavingVideo from "@assets/Boosty_Mascot_Waving_Video_Generation_176
 import boostyNewVideo from "@assets/202512011048_1764608229868.mp4";
 import boostyLoopVideo2 from "@assets/Boosty_Mascot_Looping_Animation_1764608756145.mp4";
 import boostyWavingVideo2 from "@assets/Video_de_Boosty_Saludando_1764609155806.mp4";
+import { TrustpilotWidget } from "@/components/TrustpilotWidget";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
@@ -482,29 +483,28 @@ export default function Landing() {
           />
         </div>
 
-        {/* Customer rating below video */}
-        <div className="flex justify-center items-center gap-3 px-6">
-          <div className="flex -space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-              A
+        {/* Trustpilot Rating */}
+        <div className="flex flex-col items-center gap-4 px-6 pb-8">
+          <div className="flex items-center gap-3">
+            <div className="flex -space-x-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
+                A
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
+                M
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
+                J
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
+                S
+              </div>
             </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-              M
-            </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-              J
-            </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-              S
-            </div>
+            <span className="text-sm text-gray-600">
+              {isSpanish ? "Calificación excelente en" : "Rated excellent on"}
+            </span>
           </div>
-          <span className="text-sm text-gray-700 font-medium">
-            <span className="font-bold text-gray-900">4.9/5</span>{" "}
-            {isSpanish ? "de" : "from"}{" "}
-            <span className="font-bold text-gray-900">4,268</span>{" "}
-            {isSpanish ? "clientes" : "customers"}{" "}
-            <Star className="w-4 h-4 text-yellow-500 inline-block" />
-          </span>
+          <TrustpilotWidget height="24px" width="200px" />
         </div>
       </section>
 
