@@ -4557,6 +4557,9 @@ export default function Onboarding() {
                 description,
               });
 
+              setWhiteLogoPreviewUrl(data.secure_url);
+              setWhiteLogoFile(null);
+
               await queryClientInstance.invalidateQueries({
                 queryKey: ["/api/brand-assets", createdBrandId, brandDesign.id],
               });
@@ -4564,8 +4567,8 @@ export default function Onboarding() {
               toast({
                 title: isSpanish ? "Logo guardado" : "Logo saved",
                 description: isSpanish 
-                  ? "Tu logo generado por IA ha sido guardado en tus assets" 
-                  : "Your AI-generated logo has been saved to your assets",
+                  ? "Tu logo generado por IA ha sido guardado como Logo Claro" 
+                  : "Your AI-generated logo has been saved as Light Logo",
               });
             }
 
