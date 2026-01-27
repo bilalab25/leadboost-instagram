@@ -210,7 +210,7 @@ export function HelpDropdown({ isSpanish = false }: HelpDropdownProps) {
       </DropdownMenu>
 
       <Dialog open={showChatbot} onOpenChange={setShowChatbot}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-blue-600" />
@@ -220,7 +220,7 @@ export function HelpDropdown({ isSpanish = false }: HelpDropdownProps) {
             </DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="chat" className="h-full">
+          <Tabs defaultValue="chat" className="flex-1 flex flex-col">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="chat" className="flex items-center gap-2">
                 <Bot className="h-4 w-4" />
@@ -306,8 +306,8 @@ export function HelpDropdown({ isSpanish = false }: HelpDropdownProps) {
               </form>
             </TabsContent>
 
-            <TabsContent value="faqs" className="h-[500px] mt-0">
-              <ScrollArea className="h-full">
+            <TabsContent value="faqs" className="h-[500px] flex flex-col mt-0">
+              <ScrollArea className="flex-1">
                 <div className="space-y-4 p-1">
                   {currentFaqs.map((faq, index) => (
                     <Card
