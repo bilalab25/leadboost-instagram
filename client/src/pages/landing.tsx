@@ -234,9 +234,9 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Hero Section - Mobile Optimized */}
+      {/* Hero Section - Unified */}
       <section
-        className="relative py-8 sm:py-12 lg:py-20 pb-0 overflow-hidden"
+        className="relative py-8 sm:py-12 lg:py-20 overflow-hidden"
         style={{ backgroundColor: "#F8F8FA" }}
       >
         {/* Floating Social Media Cards - Hidden on small mobile for performance */}
@@ -248,7 +248,7 @@ export default function Landing() {
               width: "80px",
               height: "80px",
               left: "8%",
-              top: "20%",
+              top: "10%",
               animation: "float 8s ease-in-out infinite",
             }}
           >
@@ -262,7 +262,7 @@ export default function Landing() {
               width: "50px",
               height: "90px",
               right: "12%",
-              top: "25%",
+              top: "15%",
               animation: "float 9s ease-in-out infinite 1s",
             }}
           >
@@ -276,7 +276,7 @@ export default function Landing() {
               width: "100px",
               height: "50px",
               left: "6%",
-              top: "65%",
+              top: "45%",
               animation: "float 10s ease-in-out infinite 2s",
             }}
           >
@@ -290,7 +290,7 @@ export default function Landing() {
               width: "50px",
               height: "90px",
               right: "10%",
-              top: "70%",
+              top: "50%",
               animation: "float 7s ease-in-out infinite 0.5s",
             }}
           >
@@ -304,7 +304,7 @@ export default function Landing() {
               width: "100px",
               height: "50px",
               left: "78%",
-              top: "15%",
+              top: "8%",
               animation: "float 11s ease-in-out infinite 1.5s",
             }}
           >
@@ -318,7 +318,7 @@ export default function Landing() {
               width: "90px",
               height: "50px",
               left: "15%",
-              top: "40%",
+              top: "25%",
               animation: "float 12s ease-in-out infinite 3s",
             }}
           >
@@ -332,7 +332,7 @@ export default function Landing() {
               width: "110px",
               height: "60px",
               right: "22%",
-              top: "50%",
+              top: "35%",
               animation: "float 13s ease-in-out infinite 2.5s",
             }}
           >
@@ -346,7 +346,7 @@ export default function Landing() {
               width: "65px",
               height: "100px",
               left: "88%",
-              top: "60%",
+              top: "40%",
               animation: "float 8.5s ease-in-out infinite 1.8s",
             }}
           >
@@ -360,7 +360,7 @@ export default function Landing() {
               width: "120px",
               height: "40px",
               left: "65%",
-              top: "85%",
+              top: "70%",
               animation: "float 9.5s ease-in-out infinite 0.8s",
             }}
           >
@@ -374,7 +374,7 @@ export default function Landing() {
               width: "75px",
               height: "75px",
               left: "30%",
-              top: "80%",
+              top: "65%",
               animation: "float 10.5s ease-in-out infinite 2.2s",
             }}
           >
@@ -386,7 +386,7 @@ export default function Landing() {
           {/* Trust Badge - Mobile Optimized */}
           <div
             className={`inline-flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8 px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-gray-200 shadow-lg transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-            style={{ backgroundColor: "#F8F8FA" }}
+            style={{ backgroundColor: "#FFFFFF" }}
           >
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0"></div>
             <span className="text-xs sm:text-sm md:text-base font-medium text-gray-700">
@@ -398,7 +398,7 @@ export default function Landing() {
 
           {/* Main Headline - Mobile-first responsive typography */}
           <h1
-            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[0.95] sm:leading-[0.9] tracking-tight mb-6 sm:mb-8 lg:mb-12 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-700 bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[0.95] sm:leading-[0.9] tracking-tight mb-6 sm:mb-8 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-700 bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             {isSpanish ? (
               <>
@@ -421,7 +421,7 @@ export default function Landing() {
 
           {/* Subtitle - Mobile Optimized */}
           <p
-            className={`text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-12 lg:mb-16 max-w-4xl mx-auto leading-relaxed font-light transition-all duration-1000 delay-400 px-2 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-10 max-w-4xl mx-auto leading-relaxed font-light transition-all duration-1000 delay-400 px-2 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             {isSpanish
               ? "La única plataforma que recopila tus datos, crea campañas inteligentes y cierra ventas—todo automáticamente."
@@ -430,7 +430,7 @@ export default function Landing() {
 
           {/* Primary CTA - Mobile-friendly touch targets */}
           <div
-            className={`flex flex-col items-center gap-4 sm:gap-6 mb-12 sm:mb-16 lg:mb-20 transition-all duration-1000 delay-800 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`flex flex-col items-center gap-3 sm:gap-4 mb-10 sm:mb-12 transition-all duration-1000 delay-800 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             <Button
               className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 sm:px-12 lg:px-16 py-4 sm:py-5 lg:py-6 text-base sm:text-lg lg:text-xl rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-blue-500/30 transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1 min-h-[52px] w-full sm:w-auto max-w-xs sm:max-w-none"
@@ -444,67 +444,61 @@ export default function Landing() {
               {isSpanish ? "Sin tarjeta de crédito" : "No credit card required"}
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* Boosty Video Hero Section - Full Width */}
-      <section
-        className="relative py-12 lg:py-20 overflow-hidden"
-        style={{ backgroundColor: "#FFFFFF" }}
-      >
-        {/* Slogan above video */}
-        <div className="flex justify-center items-center mb-8 px-6">
-          <div
-            className="inline-flex items-center gap-2.5 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-gray-200 shadow-lg"
-            style={{ backgroundColor: "#F8F8FA" }}
-          >
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+          {/* Marketing Agent Badge */}
+          <div className="flex justify-center items-center mb-8">
+            <div
+              className="inline-flex items-center gap-2.5 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-gray-200 shadow-lg"
+              style={{ backgroundColor: "#FFFFFF" }}
+            >
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+              </div>
+              <span className="text-sm sm:text-base font-medium text-gray-700">
+                {isSpanish
+                  ? "Tu Agente de Marketing Todo-en-Uno"
+                  : "Your All-in-One Marketing Agent"}
+              </span>
             </div>
-            <span className="text-sm sm:text-base font-medium text-gray-700">
-              {isSpanish
-                ? "Tu Agente de Marketing Todo-en-Uno"
-                : "Your All-in-One Marketing Agent"}
+          </div>
+
+          {/* Boosty Video */}
+          <div className="w-full flex justify-center mb-8">
+            <video
+              src={boostyLoopVideo2}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full max-w-4xl h-auto rounded-2xl shadow-xl"
+              data-testid="boosty-loop-video"
+            />
+          </div>
+
+          {/* Customer rating below video */}
+          <div className="flex justify-center items-center gap-3 pb-8">
+            <div className="flex -space-x-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
+                A
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
+                M
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
+                J
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
+                S
+              </div>
+            </div>
+            <span className="text-sm text-gray-700 font-medium">
+              <span className="font-bold text-gray-900">4.9/5</span>{" "}
+              {isSpanish ? "de" : "from"}{" "}
+              <span className="font-bold text-gray-900">4,268</span>{" "}
+              {isSpanish ? "clientes" : "customers"}{" "}
+              <Star className="w-4 h-4 text-yellow-500 inline-block" />
             </span>
           </div>
-        </div>
-
-        {/* Boosty Video - Full Width */}
-        <div className="w-full flex justify-center mb-8">
-          <video
-            src={boostyLoopVideo2}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full max-w-4xl h-auto"
-            data-testid="boosty-loop-video"
-          />
-        </div>
-
-        {/* Customer rating below video */}
-        <div className="flex justify-center items-center gap-3 px-6">
-          <div className="flex -space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-              A
-            </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-              M
-            </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-              J
-            </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-              S
-            </div>
-          </div>
-          <span className="text-sm text-gray-700 font-medium">
-            <span className="font-bold text-gray-900">4.9/5</span>{" "}
-            {isSpanish ? "de" : "from"}{" "}
-            <span className="font-bold text-gray-900">4,268</span>{" "}
-            {isSpanish ? "clientes" : "customers"}{" "}
-            <Star className="w-4 h-4 text-yellow-500 inline-block" />
-          </span>
         </div>
       </section>
 
@@ -1205,9 +1199,8 @@ export default function Landing() {
       </section>
 
       {/* Interactive Demo Section - Mobile Optimized */}
-      <section className="relative py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-blue-50/30 via-white to-slate-50/30">
+      {/*  <section className="relative py-16 sm:py-24 lg:py-32 bg-gradient-to-b from-blue-50/30 via-white to-slate-50/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Demo Container with Premium Styling */}
           <div
             className="backdrop-blur-sm border border-white/50 rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-12"
             style={{ backgroundColor: "rgba(248, 248, 250, 0.8)" }}
@@ -1215,7 +1208,7 @@ export default function Landing() {
             <InteractiveDemo isSpanish={isSpanish} />
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Features Section - Mobile Optimized */}
       <section
