@@ -200,11 +200,13 @@ export function HelpDropdown({ isSpanish = false }: HelpDropdownProps) {
             {isSpanish ? "Preguntas Frecuentes" : "FAQs"}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          {/*  <DropdownMenuItem>
             {isSpanish ? "Documentación" : "Documentation"}
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            {isSpanish ? "Contactar Soporte" : "Contact Support"}
+          </DropdownMenuItem> */}
+          <DropdownMenuItem asChild>
+            <a href="mailto:info@leadboostinc.com">
+              {isSpanish ? "Contactar Soporte" : "Contact Support"}
+            </a>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -308,10 +310,7 @@ export function HelpDropdown({ isSpanish = false }: HelpDropdownProps) {
           <ScrollArea className="h-[450px] pr-4">
             <div className="space-y-4">
               {currentFaqs.map((faq, index) => (
-                <Card
-                  key={index}
-                  className="hover:shadow-md transition-shadow"
-                >
+                <Card key={index} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-semibold text-gray-900">
                       {faq.question}
