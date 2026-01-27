@@ -78,7 +78,7 @@ export default function Landing() {
             </div>
 
             <nav className="hidden md:flex items-center space-x-8">
-              <DropdownMenu>
+              {/*   <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
@@ -181,7 +181,7 @@ export default function Landing() {
                 asChild
               >
                 <a href="#pricing">{isSpanish ? "Precios" : "Pricing"}</a>
-              </Button>
+              </Button> */}
             </nav>
 
             {/* Mobile-optimized header buttons with proper touch targets */}
