@@ -330,28 +330,80 @@ const INTEGRATION_CATEGORIES = {
 const brandCategoryOptions = [
   { value: "physical_product", en: "Physical Product", es: "Producto físico" },
   { value: "digital_product", en: "Digital Product", es: "Producto digital" },
-  { value: "professional_service", en: "Professional Service", es: "Servicio profesional" },
-  { value: "personal_service", en: "Personal Service", es: "Servicio personal" },
-  { value: "subscription", en: "Subscription or Membership", es: "Suscripción o membresía" },
+  {
+    value: "professional_service",
+    en: "Professional Service",
+    es: "Servicio profesional",
+  },
+  {
+    value: "personal_service",
+    en: "Personal Service",
+    es: "Servicio personal",
+  },
+  {
+    value: "subscription",
+    en: "Subscription or Membership",
+    es: "Suscripción o membresía",
+  },
   { value: "combined", en: "Combined (Products + Services)", es: "Combinado" },
   { value: "experiences", en: "Experiences", es: "Experiencias" },
   { value: "digital_content", en: "Digital Content", es: "Contenido digital" },
-  { value: "licenses", en: "Licenses / Intellectual Property", es: "Licencias / propiedad intelectual" },
+  {
+    value: "licenses",
+    en: "Licenses / Intellectual Property",
+    es: "Licencias / propiedad intelectual",
+  },
   { value: "ngo", en: "NGO / Social Causes", es: "ONG / causas sociales" },
   { value: "food_beverage", en: "Food & Beverage", es: "Alimentos y bebidas" },
   { value: "fashion", en: "Fashion & Accessories", es: "Moda y accesorios" },
-  { value: "electronics", en: "Electronics & Gadgets", es: "Electrónica y gadgets" },
+  {
+    value: "electronics",
+    en: "Electronics & Gadgets",
+    es: "Electrónica y gadgets",
+  },
   { value: "home_decor", en: "Home & Decor", es: "Hogar y decoración" },
-  { value: "transportation", en: "Transportation & Mobility", es: "Transporte y movilidad" },
-  { value: "art_entertainment", en: "Art & Entertainment", es: "Arte y entretenimiento" },
-  { value: "education", en: "Education & Training", es: "Educación y formación" },
+  {
+    value: "transportation",
+    en: "Transportation & Mobility",
+    es: "Transporte y movilidad",
+  },
+  {
+    value: "art_entertainment",
+    en: "Art & Entertainment",
+    es: "Arte y entretenimiento",
+  },
+  {
+    value: "education",
+    en: "Education & Training",
+    es: "Educación y formación",
+  },
   { value: "real_estate", en: "Real Estate", es: "Bienes raíces" },
-  { value: "health_wellness", en: "Health & Wellness", es: "Salud y bienestar" },
-  { value: "b2b_tech", en: "B2B Technology & Software", es: "Tecnología y software empresarial" },
+  {
+    value: "health_wellness",
+    en: "Health & Wellness",
+    es: "Salud y bienestar",
+  },
+  {
+    value: "b2b_tech",
+    en: "B2B Technology & Software",
+    es: "Tecnología y software empresarial",
+  },
   { value: "hobbies", en: "Hobbies & Crafts", es: "Hobbies y manualidades" },
-  { value: "financial_services", en: "Financial Services", es: "Servicios financieros" },
-  { value: "legal_accounting", en: "Legal & Accounting Services", es: "Servicios legales y contables" },
-  { value: "eco_friendly", en: "Eco-friendly / Sustainable Products", es: "Productos ecológicos / sostenibles" },
+  {
+    value: "financial_services",
+    en: "Financial Services",
+    es: "Servicios financieros",
+  },
+  {
+    value: "legal_accounting",
+    en: "Legal & Accounting Services",
+    es: "Servicios legales y contables",
+  },
+  {
+    value: "eco_friendly",
+    en: "Eco-friendly / Sustainable Products",
+    es: "Productos ecológicos / sostenibles",
+  },
   { value: "pets", en: "Pets & Animals", es: "Mascotas y animales" },
 ];
 
@@ -2688,7 +2740,10 @@ export default function Onboarding() {
                           </FormControl>
                           <SelectContent className="max-h-[300px]">
                             {brandCategoryOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
                                 {isSpanish ? option.es : option.en}
                               </SelectItem>
                             ))}
@@ -2924,6 +2979,12 @@ export default function Onboarding() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
+                      <p>Dont have logo? Dont worry, we do it for you</p>
+                      <button>
+                        {isSpanish
+                          ? "Crear logo con IA"
+                          : "Create logo with AI"}
+                      </button>
                       <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 rounded-r-lg p-3 mb-4">
                         <div className="flex items-center gap-2">
                           <div className="bg-blue-100 dark:bg-blue-800 rounded-full p-1.5">

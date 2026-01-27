@@ -17,6 +17,8 @@ interface Brand {
   industry: string | null;
   description: string | null;
   primaryColor: string | null;
+  preferredLanguage: string | null;
+  brandCategory: string | null;
 }
 
 interface BrandContextType {
@@ -91,6 +93,8 @@ export function BrandProvider({ children }: { children: ReactNode }) {
         industry: m.brandIndustry,
         description: m.brandDescription,
         primaryColor: m.brandColor,
+        preferredLanguage: m.brandPreferredLanguage,
+        brandCategory: m.brandCategory,
       }));
 
   const activeMembership = noUser

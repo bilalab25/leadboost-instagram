@@ -2485,6 +2485,8 @@ export class DatabaseStorage implements IStorage {
         brandIndustry: brands.industry,
         brandDescription: brands.description,
         brandDomain: brands.domain,
+        brandPreferredLanguage: brands.preferredLanguage,
+        brandCategory: brands.brandCategory,
       })
       .from(brandMemberships)
       .innerJoin(brands, eq(brandMemberships.brandId, brands.id))

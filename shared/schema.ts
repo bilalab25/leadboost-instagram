@@ -1074,6 +1074,8 @@ export type BrandMembershipWithBrand = SelectBrandMembership & {
   brandIndustry: string | null;
   brandDescription: string | null;
   brandDomain: string | null;
+  brandPreferredLanguage: string | null;
+  brandCategory: string | null;
 };
 
 // Brand Invitations insert/select schemas
