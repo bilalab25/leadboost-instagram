@@ -57,6 +57,47 @@ import { brandDesigns, posIntegrations } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import dayjs from "dayjs";
 import { nanoid } from "nanoid";
+import { generateAILogo } from "./services/generateLogo";
+
+interface LogoJob {
+  id: string;
+  brandId: string;
+  userId: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  logoUri?: { base64?: string; mimeType?: string };
+  error?: string;
+  createdAt: Date;
+}
+
+const logoJobs = new Map<string, LogoJob>();
+
+async function createLogoJob(brandId: string, userId: string): Promise<LogoJob> {
+  const job: LogoJob = {
+    id: nanoid(),
+    brandId,
+    userId,
+    status: "pending",
+    createdAt: new Date(),
+  };
+  logoJobs.set(job.id, job);
+  return job;
+}
+
+async function updateLogoJobResult(
+  jobId: string,
+  update: { status: "completed" | "failed"; logoUri?: { base64?: string; mimeType?: string }; error?: string }
+): Promise<void> {
+  const job = logoJobs.get(jobId);
+  if (job) {
+    job.status = update.status;
+    if (update.logoUri) job.logoUri = update.logoUri;
+    if (update.error) job.error = update.error;
+  }
+}
+
+function getLogoJob(jobId: string): LogoJob | undefined {
+  return logoJobs.get(jobId);
+}
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -1160,37 +1201,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Toggle auto-post enabled for a brand
-  app.patch("/api/brands/:id/auto-post", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandId = req.params.id;
-      const { enabled } = req.body;
+  app.patch(
+    "/api/brands/:id/auto-post",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId =
+          (req.user as any)?.claims?.sub ||
+          (req.user as any)?.id ||
+          "demo-user";
+        const brandId = req.params.id;
+        const { enabled } = req.body;
 
-      if (typeof enabled !== "boolean") {
-        return res.status(400).json({ message: "enabled must be a boolean" });
+        if (typeof enabled !== "boolean") {
+          return res.status(400).json({ message: "enabled must be a boolean" });
+        }
+
+        const brand = await storage.updateBrand(brandId, userId, {
+          autoPostEnabled: enabled,
+        });
+
+        if (!brand) {
+          return res.status(404).json({ message: "Brand not found" });
+        }
+
+        await storage.createActivityLog({
+          userId,
+          brandId: brand.id,
+          action: enabled ? "enable_auto_post" : "disable_auto_post",
+          description: `${enabled ? "Enabled" : "Disabled"} automatic posting for brand: ${brand.name}`,
+          entityType: "brand",
+          entityId: brand.id,
+        });
+
+        res.json({ autoPostEnabled: brand.autoPostEnabled });
+      } catch (error) {
+        console.error("Error updating auto-post setting:", error);
+        res.status(500).json({ message: "Failed to update auto-post setting" });
       }
-
-      const brand = await storage.updateBrand(brandId, userId, { autoPostEnabled: enabled });
-
-      if (!brand) {
-        return res.status(404).json({ message: "Brand not found" });
-      }
-
-      await storage.createActivityLog({
-        userId,
-        brandId: brand.id,
-        action: enabled ? "enable_auto_post" : "disable_auto_post",
-        description: `${enabled ? "Enabled" : "Disabled"} automatic posting for brand: ${brand.name}`,
-        entityType: "brand",
-        entityId: brand.id,
-      });
-
-      res.json({ autoPostEnabled: brand.autoPostEnabled });
-    } catch (error) {
-      console.error("Error updating auto-post setting:", error);
-      res.status(500).json({ message: "Failed to update auto-post setting" });
-    }
-  });
+    },
+  );
 
   // Get user's onboarding progress (returns brand with onboarding info if exists)
   app.get(
@@ -2722,6 +2772,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  app.post(
+    "/api/logo-generator/:brandId",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.params.brandId || req.brandId;
+        const userId = req.user.id;
+
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        // Create a new logo job in storage
+        const job = await createLogoJob(brandId, userId);
+
+        // Return immediately to client
+        res.json({
+          success: true,
+          message: "Logo generation job started",
+          jobId: job.id,
+          status: job.status,
+        });
+
+        // Fire-and-forget: generate logo in background
+        generateAILogo(brandId, userId)
+          .then(async (logoUri) => {
+            // Save the generated logo URL or base64 to storage
+            await updateLogoJobResult(job.id, {
+              status: "completed",
+              logoUri,
+            });
+          })
+          .catch(async (error) => {
+            console.error("[Logo Generator] Background error:", error);
+            await updateLogoJobResult(job.id, {
+              status: "failed",
+              error: error instanceof Error ? error.message : "Unknown error",
+            });
+          });
+      } catch (error) {
+        console.error("[Logo Generator] Error:", error);
+        res.status(500).json({
+          message: "Failed to create logo generator job",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
   // Post Generator - Create async job and process with Gemini AI (fire-and-forget)
   app.post(
     "/api/post-generator/:brandId",
@@ -2885,7 +2985,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "./storage/aiGeneratedPosts"
         );
 
-        const updated = await updateAiGeneratedPostStatus(postId, status, scheduledPublishTime);
+        const updated = await updateAiGeneratedPostStatus(
+          postId,
+          status,
+          scheduledPublishTime,
+        );
         if (!updated || updated.brandId !== brandId) {
           return res.status(404).json({ message: "Post not found" });
         }
@@ -3021,7 +3125,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "./storage/aiGeneratedPosts"
         );
 
-        const updated = await updateAiGeneratedPostStatus(postId, status, scheduledPublishTime);
+        const updated = await updateAiGeneratedPostStatus(
+          postId,
+          status,
+          scheduledPublishTime,
+        );
         if (!updated) {
           return res.status(404).json({ message: "Post not found" });
         }
@@ -3665,7 +3773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userAccessToken = tokenJson.access_token;
-    
+
       // -----------------------------------------
       // 3️⃣ Get pages user manages
       // -----------------------------------------
@@ -8239,7 +8347,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { postId, imageDataUrl } = req.body;
 
         if (!postId || !imageDataUrl) {
-          return res.status(400).json({ message: "postId and imageDataUrl are required" });
+          return res
+            .status(400)
+            .json({ message: "postId and imageDataUrl are required" });
         }
 
         // Upload base64 image to Cloudinary
