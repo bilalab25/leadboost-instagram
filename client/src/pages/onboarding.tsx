@@ -4507,79 +4507,27 @@ export default function Onboarding() {
         isOpen={isLogoGeneratorOpen}
         onClose={() => setIsLogoGeneratorOpen(false)}
         onAccept={async (logoDataUrl) => {
-          if (!brandDesign?.id) {
-            toast({
-              title: isSpanish ? "Error" : "Error",
-              description: isSpanish 
-                ? "Primero debes completar el diseño de marca" 
-                : "You must complete brand design first",
-              variant: "destructive",
-            });
-            return;
-          }
-
           try {
             const response = await fetch(logoDataUrl);
             const blob = await response.blob();
             const file = new File([blob], `ai-logo-${Date.now()}.png`, { type: "image/png" });
             
-            const id = crypto.randomUUID();
-            setUploads((prev) => [...prev, { id, name: file.name, percent: 0 }]);
+            setWhiteLogoFile(file);
+            setWhiteLogoPreviewUrl(logoDataUrl);
 
-            const data = await uploadFileWithProgress(file, (pct) => {
-              setUploads((prev) =>
-                prev.map((u) => (u.id === id ? { ...u, percent: pct } : u)),
-              );
+            toast({
+              title: isSpanish ? "Logo agregado" : "Logo added",
+              description: isSpanish 
+                ? "Tu logo generado por IA aparece en Logo Claro. Se guardará cuando completes el paso." 
+                : "Your AI-generated logo is shown in Light Logo. It will be saved when you complete this step.",
             });
-
-            if (data.secure_url) {
-              let description = "";
-              try {
-                const descResponse = await apiRequest(
-                  "POST",
-                  "/api/brand-assets/generate-description",
-                  { imageUrl: data.secure_url },
-                );
-                const descData = await descResponse.json();
-                description = descData.description || (isSpanish ? "Logo generado por IA" : "AI generated logo");
-              } catch (descErr) {
-                console.error("[Logo Generator] Error generating description:", descErr);
-                description = isSpanish ? "Logo generado por IA" : "AI generated logo";
-              }
-
-              await saveAssetToDB({
-                id,
-                url: data.secure_url,
-                name: isSpanish ? "Logo IA" : "AI Logo",
-                category: "logos",
-                assetType: "image",
-                publicId: data.public_id,
-                description,
-              });
-
-              setWhiteLogoPreviewUrl(data.secure_url);
-              setWhiteLogoFile(null);
-
-              await queryClientInstance.invalidateQueries({
-                queryKey: ["/api/brand-assets", createdBrandId, brandDesign.id],
-              });
-
-              toast({
-                title: isSpanish ? "Logo guardado" : "Logo saved",
-                description: isSpanish 
-                  ? "Tu logo generado por IA ha sido guardado como Logo Claro" 
-                  : "Your AI-generated logo has been saved as Light Logo",
-              });
-            }
-
-            setUploads((prev) => prev.filter((u) => u.id !== id));
           } catch (error) {
-            console.error("Error saving AI logo:", error);
+            console.error("Error setting AI logo:", error);
             toast({
               title: isSpanish ? "Error" : "Error",
               description: isSpanish 
-                ? "No se pudo guardar el logo" 
-                : "Could not save the logo",
+                ? "No se pudo agregar el logo" 
+                : "Could not add the logo",
               variant: "destructive",
             });
           }
