@@ -1,15 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,11 +44,6 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { HelpDropdown } from "@/components/HelpDropdown";
 import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756873932398.png";
-import boostyImage from "@assets/Gemini_Generated_Image_vxt1kgvxt1kgvxt1_1764170274959.png";
-import boostyVideo from "@assets/Video_de_Boosty_Saludando_1764171160244.mp4";
-import boostyLoopVideo from "@assets/Boosty_Mascot_Looping_Animation_1764605997237.mp4";
-import boostyWavingVideo from "@assets/Boosty_Mascot_Waving_Video_Generation_1764607325012.mp4";
-import boostyNewVideo from "@assets/202512011048_1764608229868.mp4";
 import boostyLoopVideo2 from "@assets/Boosty_Mascot_Looping_Animation_1764608756145.mp4";
 import boostyWavingVideo2 from "@assets/Video_de_Boosty_Saludando_1764609155806.mp4";
 import TrustpilotWidget from "@/components/TrustpilotWidget";
@@ -238,7 +224,7 @@ export default function Landing() {
       {/* Hero Section - Mobile Optimized */}
       <section
         className="relative py-8 sm:py-12 lg:py-20 pb-0 overflow-hidden"
-        style={{ backgroundColor: "#F8F8FA" }}
+        style={{ backgroundColor: "#FFFFFF" }}
       >
         {/* Floating Social Media Cards - Hidden on small mobile for performance */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.04] blur-lg hidden sm:block">
@@ -431,7 +417,7 @@ export default function Landing() {
 
           {/* Primary CTA - Mobile-friendly touch targets */}
           <div
-            className={`flex flex-col items-center gap-4 sm:gap-6 mb-12 sm:mb-16 lg:mb-20 transition-all duration-1000 delay-800 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`flex flex-col items-center gap-4 sm:gap-6 mb-1 sm:mb-1 lg:mb-2 transition-all duration-1000 delay-800 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             <Button
               className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 sm:px-12 lg:px-16 py-4 sm:py-5 lg:py-6 text-base sm:text-lg lg:text-xl rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-blue-500/30 transition-all duration-500 transform hover:scale-[1.02] hover:-translate-y-1 min-h-[52px] w-full sm:w-auto max-w-xs sm:max-w-none"
@@ -446,13 +432,20 @@ export default function Landing() {
             </p>
           </div>
         </div>
-      </section>
 
-      {/* Boosty Video Hero Section - Full Width */}
-      <section
-        className="relative py-12 lg:py-20 overflow-hidden"
-        style={{ backgroundColor: "#FFFFFF" }}
-      >
+        {/* Boosty Video - Full Width */}
+        <div className="w-full flex justify-center mb-8">
+          <video
+            src={boostyLoopVideo2}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full max-w-4xl h-auto"
+            data-testid="boosty-loop-video"
+          />
+        </div>
+
         {/* Slogan above video */}
         <div className="flex justify-center items-center mb-8 px-6">
           <div
@@ -470,21 +463,8 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Boosty Video - Full Width */}
-        <div className="w-full flex justify-center mb-8">
-          <video
-            src={boostyLoopVideo2}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full max-w-4xl h-auto"
-            data-testid="boosty-loop-video"
-          />
-        </div>
-
         {/* Trustpilot Rating */}
-        <div className="flex flex-col items-center gap-4 px-6 pb-8">
+        <div className="flex flex-col items-center gap-4 px-6 pb-3">
           <div className="flex items-center gap-3">
             <div className="flex -space-x-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
