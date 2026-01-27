@@ -46,6 +46,7 @@ integrations = ["javascript_log_in_with_replit:1.0.0", "javascript_database:1.0.
 [userenv.shared]
 N8N_POST_GENERATOR_WEBHOOK_URL = "https://leadboostinc.app.n8n.cloud/webhook-test/Post-Generator"
 POST_GENERATOR_CALLBACK_URL = "https://campAIgner-YOUR-REPLIT-URL.replit.dev/api/post-generator/callback"
+VITE_TRUSTPILOT_BUSINESS_ID = "WBNxhT4illY9GnZA"
 
 [userenv.development]
 ENABLE_BAILEYS = "true"
