@@ -71,7 +71,10 @@ interface LogoJob {
 
 const logoJobs = new Map<string, LogoJob>();
 
-async function createLogoJob(brandId: string, userId: string): Promise<LogoJob> {
+async function createLogoJob(
+  brandId: string,
+  userId: string,
+): Promise<LogoJob> {
   const job: LogoJob = {
     id: nanoid(),
     brandId,
@@ -85,7 +88,11 @@ async function createLogoJob(brandId: string, userId: string): Promise<LogoJob> 
 
 async function updateLogoJobResult(
   jobId: string,
-  update: { status: "completed" | "failed"; logoUri?: { base64?: string; mimeType?: string }; error?: string }
+  update: {
+    status: "completed" | "failed";
+    logoUri?: { base64?: string; mimeType?: string };
+    error?: string;
+  },
 ): Promise<void> {
   const job = logoJobs.get(jobId);
   if (job) {

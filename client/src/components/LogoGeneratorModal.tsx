@@ -31,44 +31,54 @@ const LogoGeneratorModal = ({
   const [statusMessage, setStatusMessage] = useState<string>("");
   const maxGenerations = 3;
 
-  const pollJobStatus = useCallback(async (jobId: string): Promise<JobStatus | null> => {
-    const maxAttempts = 60;
-    const pollInterval = 2000;
+  const pollJobStatus = useCallback(
+    async (jobId: string): Promise<JobStatus | null> => {
+      const maxAttempts = 60;
+      const pollInterval = 2000;
 
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        const response = await fetch(`/api/logo-generator/status/${jobId}`);
-        if (!response.ok) throw new Error("Failed to get job status");
-        
-        const job: JobStatus = await response.json();
-        
-        if (job.status === "completed") {
-          return job;
-        } else if (job.status === "failed") {
-          throw new Error(job.error || (isSpanish ? "Error al generar logo" : "Failed to generate logo"));
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          const response = await fetch(`/api/logo-generator/status/${jobId}`);
+          if (!response.ok) throw new Error("Failed to get job status");
+
+          const job: JobStatus = await response.json();
+
+          if (job.status === "completed") {
+            return job;
+          } else if (job.status === "failed") {
+            throw new Error(
+              job.error ||
+                (isSpanish
+                  ? "Error al generar logo"
+                  : "Failed to generate logo"),
+            );
+          }
+
+          setStatusMessage(
+            isSpanish
+              ? `Generando logo... (${attempt + 1}s)`
+              : `Generating logo... (${attempt + 1}s)`,
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        } catch (err) {
+          throw err;
         }
-        
-        setStatusMessage(
-          isSpanish 
-            ? `Generando logo... (${attempt + 1}s)` 
-            : `Generating logo... (${attempt + 1}s)`
-        );
-        
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-      } catch (err) {
-        throw err;
       }
-    }
-    
-    throw new Error(isSpanish ? "Tiempo de espera agotado" : "Generation timed out");
-  }, [isSpanish]);
+
+      throw new Error(
+        isSpanish ? "Tiempo de espera agotado" : "Generation timed out",
+      );
+    },
+    [isSpanish],
+  );
 
   const generateLogo = useCallback(async () => {
     if (generationCount >= maxGenerations) {
       setError(
-        isSpanish 
-          ? "Has alcanzado el límite de 3 generaciones" 
-          : "You've reached the limit of 3 generations"
+        isSpanish
+          ? "Has alcanzado el límite de 3 generaciones"
+          : "You've reached the limit of 3 generations",
       );
       return;
     }
@@ -76,7 +86,9 @@ const LogoGeneratorModal = ({
     setLoading(true);
     setError(null);
     setLogoDataUrl(null);
-    setStatusMessage(isSpanish ? "Iniciando generación..." : "Starting generation...");
+    setStatusMessage(
+      isSpanish ? "Iniciando generación..." : "Starting generation...",
+    );
 
     try {
       const response = await fetch(`/api/logo-generator/${brandId}`, {
@@ -85,29 +97,43 @@ const LogoGeneratorModal = ({
       });
 
       if (!response.ok) {
-        throw new Error(isSpanish ? "Error al iniciar generación" : "Failed to start generation");
+        throw new Error(
+          isSpanish
+            ? "Error al iniciar generación"
+            : "Failed to start generation",
+        );
       }
 
       const data = await response.json();
       const jobId = data.jobId;
 
       if (!jobId) {
-        throw new Error(isSpanish ? "No se recibió ID del trabajo" : "No job ID received");
+        throw new Error(
+          isSpanish ? "No se recibió ID del trabajo" : "No job ID received",
+        );
       }
 
       const completedJob = await pollJobStatus(jobId);
-      
+
       if (completedJob?.logoUri?.base64 && completedJob?.logoUri?.mimeType) {
         const dataUrl = `data:${completedJob.logoUri.mimeType};base64,${completedJob.logoUri.base64}`;
         setLogoDataUrl(dataUrl);
-        setGenerationCount(prev => prev + 1);
+        setGenerationCount((prev) => prev + 1);
         setStatusMessage("");
       } else {
-        throw new Error(isSpanish ? "Logo generado sin datos" : "Logo generated without data");
+        throw new Error(
+          isSpanish ? "Logo generado sin datos" : "Logo generated without data",
+        );
       }
     } catch (err) {
       console.error("Error generating logo:", err);
-      setError(err instanceof Error ? err.message : (isSpanish ? "Error desconocido" : "Unknown error"));
+      setError(
+        err instanceof Error
+          ? err.message
+          : isSpanish
+            ? "Error desconocido"
+            : "Unknown error",
+      );
     } finally {
       setLoading(false);
       setStatusMessage("");
@@ -161,11 +187,12 @@ const LogoGeneratorModal = ({
                 <div className="absolute inset-0 w-20 h-20 rounded-full border-4 border-blue-600 border-t-transparent animate-spin" />
               </div>
               <p className="mt-4 text-gray-600 dark:text-gray-400 text-center animate-pulse">
-                {statusMessage || (isSpanish ? "Generando logo..." : "Generating logo...")}
+                {statusMessage ||
+                  (isSpanish ? "Generando logo..." : "Generating logo...")}
               </p>
               <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">
-                {isSpanish 
-                  ? "Esto puede tomar hasta 2 minutos" 
+                {isSpanish
+                  ? "Esto puede tomar hasta 2 minutos"
                   : "This may take up to 2 minutes"}
               </p>
             </div>
@@ -173,7 +200,9 @@ const LogoGeneratorModal = ({
 
           {error && !loading && (
             <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-              <p className="text-red-600 dark:text-red-400 text-center">{error}</p>
+              <p className="text-red-600 dark:text-red-400 text-center">
+                {error}
+              </p>
             </div>
           )}
 
@@ -190,7 +219,8 @@ const LogoGeneratorModal = ({
                 </div>
               </div>
               <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                {isSpanish ? "Generación" : "Generation"} {generationCount} / {maxGenerations}
+                {isSpanish ? "Generación" : "Generation"} {generationCount} /{" "}
+                {maxGenerations}
               </p>
             </div>
           )}
@@ -201,8 +231,8 @@ const LogoGeneratorModal = ({
                 <Sparkles className="h-10 w-10 text-gray-400" />
               </div>
               <p className="text-gray-500 dark:text-gray-400 text-center">
-                {isSpanish 
-                  ? "Haz clic en generar para crear tu logo" 
+                {isSpanish
+                  ? "Haz clic en generar para crear tu logo"
                   : "Click generate to create your logo"}
               </p>
             </div>
@@ -222,9 +252,13 @@ const LogoGeneratorModal = ({
               ) : (
                 <RefreshCw className="h-4 w-4 mr-2" />
               )}
-              {generationCount >= maxGenerations 
-                ? (isSpanish ? "Límite alcanzado" : "Limit reached")
-                : (isSpanish ? "Regenerar" : "Regenerate")}
+              {generationCount >= maxGenerations
+                ? isSpanish
+                  ? "Límite alcanzado"
+                  : "Limit reached"
+                : isSpanish
+                  ? "Regenerar"
+                  : "Regenerate"}
             </Button>
 
             <Button
