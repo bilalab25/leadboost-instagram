@@ -60,7 +60,7 @@ import boostyWavingVideo from "@assets/Boosty_Mascot_Waving_Video_Generation_176
 import boostyNewVideo from "@assets/202512011048_1764608229868.mp4";
 import boostyLoopVideo2 from "@assets/Boosty_Mascot_Looping_Animation_1764608756145.mp4";
 import boostyWavingVideo2 from "@assets/Video_de_Boosty_Saludando_1764609155806.mp4";
-import { TrustpilotWidget } from "@/components/TrustpilotWidget";
+import TrustpilotWidget from "@/components/TrustpilotWidget";
 
 export default function Landing() {
   const { language, toggleLanguage, isSpanish } = useLanguage();
@@ -1524,25 +1524,10 @@ export default function Landing() {
 
             {/* Trustpilot Reviews - Mobile optimized */}
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-white/60">
-              <div className="flex items-center gap-0.5 sm:gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-3 h-3 sm:w-4 sm:h-4 text-green-400 fill-current"
-                  />
-                ))}
-              </div>
               <span className="text-xs sm:text-sm">
-                {isSpanish
-                  ? "4.8/5 · 2,500+ reseñas"
-                  : "4.8/5 · 2,500+ reviews"}
+                {isSpanish ? "Calificación excelente en" : "Rated excellent on"}
               </span>
-              <Button
-                variant="ghost"
-                className="text-white/60 hover:text-white text-xs p-0 underline h-auto"
-              >
-                Trustpilot
-              </Button>
+              <TrustpilotWidget height="24px" width="180px" />
             </div>
 
             {/* Links - Mobile optimized */}
