@@ -2979,12 +2979,32 @@ export default function Onboarding() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <p>Dont have logo? Dont worry, we do it for you</p>
-                      <button>
-                        {isSpanish
-                          ? "Crear logo con IA"
-                          : "Create logo with AI"}
-                      </button>
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border border-blue-100 dark:border-blue-800 rounded-xl p-5 mb-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                          <div className="flex-shrink-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-3 shadow-lg">
+                            <Sparkles className="h-6 w-6 text-white" />
+                          </div>
+                          <div className="flex-1 text-center sm:text-left">
+                            <p className="text-base sm:text-lg font-medium text-gray-700 dark:text-gray-200">
+                              {isSpanish
+                                ? "¿No tienes logo? ¡No te preocupes!"
+                                : "Don't have a logo? No worries!"}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              {isSpanish
+                                ? "Nuestra IA puede crear uno personalizado para tu marca"
+                                : "Our AI can create a custom one for your brand"}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            {isSpanish ? "Crear con IA" : "Create with AI"}
+                          </Button>
+                        </div>
+                      </div>
                       <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 rounded-r-lg p-3 mb-4">
                         <div className="flex items-center gap-2">
                           <div className="bg-blue-100 dark:bg-blue-800 rounded-full p-1.5">
