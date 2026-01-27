@@ -1518,8 +1518,8 @@ export default function Landing() {
               />
               <span className="text-white/60 text-xs sm:text-sm text-center">
                 {isSpanish
-                  ? "© 2025 Lead Boost"
-                  : "© 2025 Lead Boost. All rights reserved."}
+                  ? "© 2026 Lead Boost"
+                  : "© 2026 Lead Boost. All rights reserved."}
               </span>
             </div>
 
