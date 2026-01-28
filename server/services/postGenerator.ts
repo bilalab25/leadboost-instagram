@@ -407,17 +407,21 @@ function buildTextPrompt(context: PostGenerationContext): string {
   const inspirationAssets = brandAssets.filter(
     (a) => a.category === "inspiration_templates",
   );
-  
+
   // Detect if brand has product images available
   const hasProducts = brandAssets.some(
-    (a) => a.category && ["product_images", "product", "products", "product_assets"].includes(a.category)
+    (a) =>
+      a.category &&
+      ["product_images", "product", "products", "product_assets"].includes(
+        a.category,
+      ),
   );
-  
+
   // Product context for content strategy
   const productContext = hasProducts
     ? "The brand has product images available. Focus on showcasing products, benefits, and use cases."
     : "The brand has no product images yet. Focus on brand awareness, lifestyle, and engagement content.";
-  
+
   const monthName = new Date(year, month - 1).toLocaleString("en-US", {
     month: "long",
   });
@@ -1193,39 +1197,6 @@ function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
     logo: logos[0] ?? null,
   };
 }
-
-function promptProductShowcase() {
-  return `
-VISUAL MODE: PRODUCT SHOWCASE (SOCIAL MEDIA)
-
-- Abstract or minimal scene
-- NO white background
-- Studio lighting
-- Premium, editorial look
-- Product is the absolute focal point
-`;
-}
-function promptCampaign() {
-  return `
-VISUAL MODE: CAMPAIGN / TEMPLATE
-
-- Use template for layout inspiration ONLY
-- Adapt composition to product
-- Marketing-ready
-- Social-first framing
-`;
-}
-function promptLifestyle() {
-  return `
-VISUAL MODE: LIFESTYLE
-
-- Real human presence
-- Natural light
-- Emotional, aspirational
-- Space must feel authentic
-- NOT a graphic ad
-`;
-}
 function pickVisualReferenceAssets(
   assets: BrandAssetForImage[],
   count = 3,
@@ -1255,380 +1226,7 @@ function pickVisualReferenceAssets(
 
   return visualAssets.slice(0, count);
 }
-export async function generateImageWithOpenAI({
-  imagePrompt,
-  brandDesign,
-  brandAssets,
-  brandEssence,
-  brand,
-}: {
-  imagePrompt: string;
-  brandDesign: BrandDesign;
-  brandAssets: BrandAssetForImage[];
-  brandEssence?: {
-    tone?: string | null;
-    personality?: string | null;
-    emotion?: string | null;
-    visualKeywords?: string | null;
-    promise?: string | null;
-  };
-  brand?: { name: string };
-}): Promise<string | null> {
-  // 1️⃣ Validar que exista al menos UN producto
-  const product = brandAssets.find(
-    (a) =>
-      a.category === "product_images" ||
-      a.category === "product" ||
-      a.category === "products",
-  );
 
-  if (!product) {
-    console.warn(
-      "[ImageGen] Skipping image generation: no product image available",
-    );
-    return null;
-  }
-
-  // 2️⃣ Determinar modo visual
-  const mode = selectVisualMode(brandAssets);
-
-  let modePrompt = "";
-  if (mode === "product_showcase") modePrompt = promptProductShowcase();
-  if (mode === "campaign_template") modePrompt = promptCampaign();
-  if (mode === "lifestyle") modePrompt = promptLifestyle();
-  const modeAssets = pickAssetsForMode(mode, brandAssets);
-  const templateContract =
-    modeAssets.template?.description &&
-    modeAssets.template.description.length > 200
-      ? `
-  TEMPLATE RECONSTRUCTION CONTRACT (ABSOLUTE):
-
-  The following description defines a REAL, EXISTING visual template.
-  This is NOT inspiration.
-
-  MANDATORY:
-  - Reproduce layout exactly
-  - Preserve camera angle
-  - Preserve subject scale
-  - Preserve negative space
-  - Preserve composition hierarchy
-
-  ${modeAssets.template.description}
-  `
-      : "";
-  const modeGovernanceBlock = `
-  VISUAL MODE GOVERNANCE:
-  - Mode: ${mode}
-  ${
-    mode === "campaign_template"
-      ? "- The template layout is the primary authority"
-      : mode === "lifestyle"
-        ? "- The environment governs framing, but product remains central"
-        : "- Product must dominate the frame with minimal staging"
-  }
-  `;
-  const productLockBlock = `
-  PRODUCT LOCK (ABSOLUTE – DO NOT MODIFY):
-
-  The product described below is a REAL, MANUFACTURED object.
-
-  RULES:
-  - Geometry is FIXED
-  - Proportions are FIXED
-  - Materials are FIXED
-  - Orientation is FIXED
-
-  FORBIDDEN:
-  - Stylization
-  - Artistic reinterpretation
-  - Shape exaggeration
-  - Merging product with environment
-  - Altering thickness, curvature, or scale
-  `;
-
-  const logoContractBlock = brandDesign.logoUrl
-    ? `
-  WORDMARK LOGO CONTRACT (ABSOLUTE – NON-NEGOTIABLE):
-
-  The brand uses a TEXT-BASED WORDMARK logo.
-
-  THE WORDMARK TEXT MUST APPEAR EXACTLY AS:
-  "${brand?.name || "Brand"}"
-
-  STRICT REQUIREMENTS:
-  - ALL characters MUST be present.
-  - Letter order MUST be preserved.
-  - Spacing MUST be natural and realistic.
-  - If the brand name includes symbols (e.g. "&", ".", "-"), they MUST be included.
-  - The wordmark MUST NOT be abbreviated.
-  - The wordmark MUST NOT be reduced to initials.
-  - A single letter or monogram (e.g. "T") is STRICTLY FORBIDDEN.
-
-  MATERIAL & PLACEMENT (MANDATORY):
-  - The wordmark MUST appear as REAL manufacturing:
-    • engraved metal plate
-    • embossed metal plaque
-    • debossed packaging text
-    • printed product packaging
-  - The wordmark MUST look physically produced, not graphic or UI-based.
-
-  FORBIDDEN OUTPUTS (INVALID IMAGE):
-  - Single-letter logos
-  - Initials only
-  - Stylized typography replacing the wordmark
-  - Floating or glowing text
-  - Missing brand name
-
-  FAILURE CONDITION:
-  - If the full wordmark "${brand?.name || "Brand"}" is NOT visible, the image is INVALID.
-  `
-    : "";
-
-  // 3️⃣ Bloque DURO de diseño de marca (ESTO ERA CLAVE)
-  const brandDesignBlock = `
-BRAND DESIGN SYSTEM (SOURCE OF TRUTH):
-- Brand Style: ${brandDesign.brandStyle || "modern"}
-- Primary Color: ${brandDesign.colorPrimary}
-- Accent Colors: ${[
-    brandDesign.colorAccent1,
-    brandDesign.colorAccent2,
-    brandDesign.colorAccent3,
-  ]
-    .filter(Boolean)
-    .join(", ")}
-
-DESIGN RULES:
-- Use the primary color as dominant
-- Accent colors ONLY as secondary
-- Do NOT introduce new colors
-- Visual language must match the brand style
-`;
-
-  // 4️⃣ Prompt final (quirúrgico, sin referencias visuales)
-  const finalPrompt = `
-${modePrompt}
-${modeGovernanceBlock}
-${templateContract}
-${logoContractBlock}
-LOGO–TEMPLATE COMPATIBILITY RULE:
-- The logo MUST be placed in a location that does NOT alter the template’s geometry.
-- The logo is secondary to layout, but NOT optional.
-- The template layout must remain intact.
-
-${brandDesignBlock}
-${productLockBlock}
-PRODUCT FIDELITY (ABSOLUTE):
-- The product MUST remain exactly as described
-- Do NOT change material, color, or proportions
-
-BRAND ESSENCE:
-- Tone: ${brandEssence?.tone || "professional"}
-- Emotion: ${brandEssence?.emotion || "aspirational"}
-- Visual Keywords: ${brandEssence?.visualKeywords || "clean, premium"}
-
-SCENE DESCRIPTION:
-${imagePrompt}
-
-SOCIAL MEDIA REQUIREMENTS:
-- Square format
-- High visual impact
-- Editorial photography style
-- Realistic lighting
-- No text overlays unless absolutely necessary
-`;
-
-  // 5️⃣ OpenAI Images API (USO CORRECTO)
-  const response = await openai.images.generate({
-    model: "gpt-image-1",
-    prompt: finalPrompt,
-    size: "1024x1024",
-  });
-
-  const base64Image = response.data?.[0]?.b64_json;
-
-  if (!base64Image) {
-    console.warn("[ImageGen] OpenAI returned no image");
-    return null;
-  }
-
-  return `data:image/png;base64,${base64Image}`;
-}
-
-export async function generateImageWithGeminiV2({
-  imagePrompt,
-  brandDesign,
-  brandAssets,
-  brandEssence,
-}: {
-  imagePrompt: string;
-  brandDesign: BrandDesign;
-  brandAssets: BrandAssetForImage[];
-  brandEssence?: {
-    tone?: string | null;
-    personality?: string | null;
-    emotion?: string | null;
-    visualKeywords?: string | null;
-    promise?: string | null;
-  };
-}): Promise<string | null> {
-  try {
-    // 1️⃣ Validar producto (obligatorio)
-    const product = brandAssets.find(
-      (a) =>
-        a.category === "product_images" ||
-        a.category === "product" ||
-        a.category === "products",
-    );
-
-    if (!product) {
-      console.warn("[GeminiImage] No product asset found");
-      return null;
-    }
-
-    // 2️⃣ Determinar modo visual (REUTILIZA TU LÓGICA)
-    const mode = selectVisualMode(brandAssets);
-    const modeAssets = pickAssetsForMode(mode, brandAssets);
-
-    // 3️⃣ Construir contentParts (ORDEN CRÍTICO)
-    const contentParts: any[] = [];
-
-    // 🟥 1. LOGO — autoridad absoluta
-    if (brandDesign.logoUrl) {
-      const logoImg = await fetchImageAsBase64(brandDesign.logoUrl);
-      if (logoImg) {
-        contentParts.push({
-          inlineData: {
-            data: logoImg.data,
-            mimeType: logoImg.mimeType,
-          },
-        });
-      }
-    }
-
-    // 🟦 2. PRODUCTO — geometría fija
-    const productImg = await fetchImageAsBase64(product.url);
-    if (productImg) {
-      contentParts.push({
-        inlineData: {
-          data: productImg.data,
-          mimeType: productImg.mimeType,
-        },
-      });
-    }
-
-    // 🟨 3. TEMPLATE o LOCATION según modo
-    if (mode === "campaign_template" && modeAssets.template) {
-      const templateImg = await fetchImageAsBase64(modeAssets.template.url);
-      if (templateImg) {
-        contentParts.push({
-          inlineData: {
-            data: templateImg.data,
-            mimeType: templateImg.mimeType,
-          },
-        });
-      }
-    }
-
-    if (mode === "lifestyle" && modeAssets.location) {
-      const locationImg = await fetchImageAsBase64(modeAssets.location.url);
-      if (locationImg) {
-        contentParts.push({
-          inlineData: {
-            data: locationImg.data,
-            mimeType: locationImg.mimeType,
-          },
-        });
-      }
-    }
-
-    // 4️⃣ Prompt corto, quirúrgico (Gemini VE las imágenes)
-    const modeText =
-      mode === "product_showcase"
-        ? `
-You are photographing a REAL manufactured product.
-
-RULES:
-- Match the product EXACTLY as shown.
-- Studio lighting, minimal environment.
-- Product dominates the frame.
-`
-        : mode === "campaign_template"
-          ? `
-You are placing a REAL product into an EXISTING marketing template.
-
-RULES:
-- The template image defines camera angle and layout.
-- The product must fit WITHOUT distortion.
-- Do NOT alter proportions or geometry.
-`
-          : `
-You are photographing a REAL product in a REAL environment.
-
-RULES:
-- The environment defines mood and framing.
-- The product remains the focal point.
-- Do NOT stylize or redesign the product.
-`;
-
-    const logoRules = brandDesign.logoUrl
-      ? `
-LOGO RULES (ABSOLUTE):
-- The FIRST image is the OFFICIAL brand logo.
-- Reproduce it EXACTLY (no simplification, no distortion).
-- The logo must appear physically integrated:
-  engraving, embossing, debossing, label, or metal plate.
-- NEVER replace the logo with a letter or symbol.
-`
-      : "";
-
-    const essenceBlock = `
-BRAND ESSENCE:
-- Tone: ${brandEssence?.tone || "professional"}
-- Emotion: ${brandEssence?.emotion || "aspirational"}
-- Visual keywords: ${brandEssence?.visualKeywords || "clean, premium"}
-`;
-
-    const finalPrompt = `
-${modeText}
-${logoRules}
-${essenceBlock}
-
-SCENE DESCRIPTION:
-${imagePrompt}
-
-CRITICAL:
-- Do NOT change product geometry.
-- Do NOT modify the logo.
-- Do NOT redesign the product.
-`;
-
-    contentParts.push({ text: finalPrompt });
-
-    // 5️⃣ Llamada a Gemini Image
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: contentParts,
-      config: {
-        responseModalities: [Modality.IMAGE],
-      },
-    });
-
-    // 6️⃣ Extraer imagen
-    const parts = response.candidates?.[0]?.content?.parts || [];
-    for (const part of parts) {
-      if (part.inlineData?.data) {
-        const mimeType = part.inlineData.mimeType || "image/png";
-        return `data:${mimeType};base64,${part.inlineData.data}`;
-      }
-    }
-
-    console.warn("[GeminiImage] No image returned");
-    return null;
-  } catch (err) {
-    console.error("[GeminiImage] Error generating image:", err);
-    return null;
-  }
-}
 export async function generateImageWithGeminiNanoBanana({
   imagePrompt,
   brandDesign,
@@ -1722,9 +1320,35 @@ export async function generateImageWithGeminiNanoBanana({
       }
     }
 
-    const finalPrompt = `Eres un generador de imágenes AI experto en crear imágenes de productos para redes sociales que reflejan fielmente la identidad de la marca.
+    // Build color palette string for the prompt
+    const colorPalette = [
+      brandDesign.colorPrimary,
+      brandDesign.colorAccent1,
+      brandDesign.colorAccent2,
+      brandDesign.colorAccent3,
+      brandDesign.colorAccent4,
+    ].filter(Boolean).join(", ");
 
-Tu objetivo es crear UNA NUEVA IMAGEN desde cero, integrando un producto real dentro de una composición inspirada en un template visual existente.
+    const finalPrompt = `Eres un generador de imágenes AI experto en crear imágenes PROFESIONALES DE MARKETING para redes sociales que reflejan fielmente la identidad de la marca.
+
+Tu objetivo es crear UNA NUEVA IMAGEN LISTA PARA PUBLICAR, integrando un producto real dentro de una composición inspirada en un template visual existente.
+
+────────────────────────────────
+OBJETIVO: IMAGEN PUBLISH-READY
+────────────────────────────────
+La imagen final debe ser:
+- Profesional y fotorealista, apta para marketing digital
+- Alineada con los colores de marca: ${colorPalette || "usar colores profesionales"}
+- Estilo visual: ${brandDesign.brandStyle || "moderno y profesional"}
+- Lista para publicar en redes sociales sin edición adicional
+
+────────────────────────────────
+REGLA DE TEXTO EN IMÁGENES (CRÍTICA)
+────────────────────────────────
+- EVITAR bloques grandes de texto en la imagen
+- Si se necesita texto, LIMITAR a 1-3 palabras sutiles únicamente (nombre de marca o tagline corto)
+- El texto debe ser discreto y bien integrado, NO dominante
+- Preferir imágenes limpias donde el producto sea el protagonista
 
 ────────────────────────────────
 IMAGEN 1 – TEMPLATE (REFERENCIA DE COMPOSICIÓN)
@@ -1917,14 +1541,44 @@ export async function generateImageWithNanoBanana(
     // ==========================================================================================
     // ✔ Prompt final con resúmenes incluidos (no cambia tu estructura original)
     // ==========================================================================================
+    
+    // Detect if brand has product images available
+    const hasProducts = brandAssets?.some(
+      (a) => a.category && ["product_images", "product", "products", "product_assets"].includes(a.category)
+    ) ?? false;
+    
+    // Product context for image strategy
+    const productImageContext = hasProducts
+      ? "The brand has product images. Feature products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn."
+      : "The brand has no product images yet. Focus on lifestyle imagery, brand mood, atmosphere, and aspirational scenes that represent the brand's essence.";
+    
     const enhancedPrompt = `${visualResetBlock}${imagePrompt}. 
-    **CRITICAL SCENE DESCRIPTION (The core idea and fACTUAL SUBJECT):** ${imagePrompt}.generateImageWithNanoBanana
+
+────────────────────────────────
+OBJETIVO: IMAGEN PROFESIONAL PUBLISH-READY
+────────────────────────────────
+La imagen final debe ser:
+- Profesional y fotorealista, apta para marketing digital en redes sociales
+- Lista para publicar sin edición adicional
+- Composición limpia con buena iluminación y fondo profesional
+
+PRODUCT AWARENESS:
+${productImageContext}
+
+TEXT IN IMAGES (CRITICAL RULE):
+- AVOID large blocks of text in the image
+- If text is needed, LIMIT to 1-3 subtle words only (brand name or short tagline)
+- Text must be discreet and well-integrated, NOT dominant
+- Prefer clean images where the visual subject is the protagonist
+
+    **CRITICAL SCENE DESCRIPTION (The core idea and FACTUAL SUBJECT):** ${imagePrompt}
     **FIDELITY MANDATE (DO NOT ALTER THE SUBJECT):** The product subject described above MUST be rendered with 100% fidelity to its material, shape, and color (e.g., if it is rose-gold, it must be rose-gold; if it is oval, it must be oval). **The product is fixed.**
    
- LANGUAGE CONSTRAINT FOR IMAGE TEXT (MANDATORY):
+LANGUAGE CONSTRAINT FOR IMAGE TEXT (MANDATORY):
 - Any visible text inside the image (signs, labels, packaging text, menus, cards, UI elements, posters, captions, etc.)
   MUST be written exclusively in ${languageLabel}.
 - DO NOT include English text unless the language is English.
+
 LOGO REQUIREMENT (ABSOLUTE):
 The brand logo MUST appear in the image.
 ${logoPlacementBlock}
@@ -1944,7 +1598,7 @@ ${logoPlacementBlock}
     REQUIREMENTS:
     - Follow the brand essence strictly
     - Match the real visual identity from the uploaded brand assets
-    - Produce a professional social media image
+    - Produce a professional social media image ready for publishing
     
     ${styleSynthesisBlock}
     `;
