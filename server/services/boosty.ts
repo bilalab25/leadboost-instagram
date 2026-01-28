@@ -470,7 +470,7 @@ ${capabilities}`;
   Ensure consistency with the brand's mood, products, and colors.
   `;
 
-      const allParts: any[] = [];
+      const contentParts: any[] = [];
 
       // Seleccionar hasta 3 assets para usar como referencia visual
       if (
@@ -483,23 +483,29 @@ ${capabilities}`;
         for (const asset of assetsToUse) {
           const imageData = await this.fetchImageAsBase64(asset.url);
           if (imageData) {
-            allParts.push({
-              inlineData: {
-                data: imageData.data,
-                mimeType: imageData.mimeType,
-              },
-            });
-            allParts.push({
-              text: `Use this asset as visual inspiration to generate a new marketing image that matches the brand style, colors, and aesthetic.`,
+            contentParts.push({
+              role: "input",
+              parts: [
+                {
+                  inlineData: {
+                    data: imageData.data,
+                    mimeType: imageData.mimeType,
+                  },
+                },
+                {
+                  text: `Use this asset as visual inspiration to generate a new marketing image that matches the brand style, colors, and aesthetic.`,
+                },
+              ],
             });
           }
         }
       }
 
       // Agregar el prompt principal
-      allParts.push({ text: enhancedPrompt });
-      
-      const contentParts = [{ role: "user", parts: allParts }];
+      contentParts.push({
+        role: "input",
+        parts: [{ text: enhancedPrompt }],
+      });
 
       // Llamada a Gemini
       const response = await ai.models.generateContent({

@@ -4023,62 +4023,6 @@ export default function Onboarding() {
                       </p>
                     )}
                   </div>
-
-                  {/* WhatsApp Baileys (QR Code) Option */}
-                  <div
-                    className={`p-4 border rounded-lg transition-all ${
-                      hasAnyWhatsApp
-                        ? "opacity-50 cursor-not-allowed bg-gray-50"
-                        : "cursor-pointer hover:border-orange-300 hover:bg-orange-50/50"
-                    }`}
-                    onClick={() =>
-                      !hasAnyWhatsApp && handleWhatsAppConnect("baileys")
-                    }
-                    data-testid="whatsapp-baileys-option"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <MessageCircle className="h-5 w-5 text-orange-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">
-                            {isSpanish
-                              ? "WhatsApp (QR Code)"
-                              : "WhatsApp (QR Code)"}
-                          </p>
-                          <Badge
-                            variant="outline"
-                            className="text-xs text-orange-600 border-orange-400"
-                          >
-                            {isSpanish ? "Experimental" : "Experimental"}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          {isSpanish
-                            ? "Conexión via código QR - solo desarrollo"
-                            : "Connection via QR code - development only"}
-                        </p>
-                      </div>
-                    </div>
-                    {hasWhatsAppBaileys && (
-                      <p className="text-xs text-green-600 mt-2">
-                        ✅ {isSpanish ? "Conectado" : "Connected"}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Warning for Baileys */}
-                  {!hasAnyWhatsApp && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm">
-                      <p className="text-orange-800">
-                        <strong>⚠️</strong>{" "}
-                        {isSpanish
-                          ? "El método QR Code es experimental y puede ser inestable. Se recomienda usar WhatsApp Business para producción."
-                          : "The QR Code method is experimental and may be unstable. WhatsApp Business is recommended for production."}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </DialogContent>
             </Dialog>
