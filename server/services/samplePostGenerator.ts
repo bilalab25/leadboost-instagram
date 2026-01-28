@@ -11,57 +11,134 @@ const ai = new GoogleGenAI({
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// IMAGE INTENT SYSTEM - Determines visual focus based on industry & assets
+// IMAGE INTENT SYSTEM - AI-based semantic classification
 // ═══════════════════════════════════════════════════════════════════════════
 
 type ImageIntent = 
   | "food_focused"      // Restaurants, cafes, bakeries → show dishes/food
   | "product_in_use"    // Brands with products → show products being used
   | "venue_atmosphere"  // Locations/venues → show the space/ambiance
+  | "pet_service"       // Pet-related businesses → show pets/animals
   | "lifestyle_scene"   // Service brands → lifestyle/people/moments
   | "brand_aesthetic";  // Fallback → abstract/aesthetic brand imagery
 
-// Industries that should prioritize FOOD imagery
-const FOOD_INDUSTRIES = [
-  "restaurant", "cafe", "bakery", "food", "catering", "bar", "brewery",
-  "winery", "food_truck", "pizzeria", "sushi", "mexican", "italian",
-  "fast_food", "fine_dining", "coffee_shop", "ice_cream", "desserts",
-  "food_delivery", "meal_prep", "nutrition", "healthy_food"
-];
-
-// Industries that typically have PHYSICAL PRODUCTS
-const PRODUCT_INDUSTRIES = [
-  "retail", "ecommerce", "fashion", "clothing", "jewelry", "accessories",
-  "cosmetics", "beauty", "skincare", "electronics", "furniture", "home_decor",
-  "art", "crafts", "handmade", "toys", "sports_equipment", "automotive",
-  "pet_products", "baby_products", "outdoor_gear"
-];
-
-// Industries that focus on VENUE/LOCATION
-const VENUE_INDUSTRIES = [
-  "hotel", "resort", "spa", "gym", "fitness_center", "yoga_studio",
-  "salon", "barbershop", "real_estate", "event_venue", "coworking",
-  "nightclub", "entertainment", "theater", "museum", "gallery"
-];
-
-// Industries that are SERVICE-based (lifestyle imagery)
-const SERVICE_INDUSTRIES = [
-  "consulting", "marketing", "agency", "legal", "financial", "insurance",
-  "healthcare", "wellness", "coaching", "education", "tech", "saas",
-  "photography", "videography", "design", "architecture"
+// Valid intents for classification (used for validation)
+const VALID_INTENTS: ImageIntent[] = [
+  "food_focused",
+  "product_in_use", 
+  "venue_atmosphere",
+  "pet_service",
+  "lifestyle_scene",
+  "brand_aesthetic"
 ];
 
 // Asset category detection
 const PRODUCT_CATEGORIES = ["product_images", "product", "products", "product_assets"];
 const LOCATION_CATEGORIES = ["location", "location_images", "location_assets", "place", "venue"];
 
-function detectImageIntent(
+// AI-based semantic intent classification
+async function classifyImageIntentWithAI(
+  industry: string | null,
+  brandCategory: string | null,
+  description: string | null
+): Promise<{ intent: ImageIntent; reasoning: string }> {
+  const inputText = [
+    industry && `Industry: ${industry}`,
+    brandCategory && `Category: ${brandCategory}`,
+    description && `Description: ${description}`
+  ].filter(Boolean).join("\n");
+  
+  if (!inputText.trim()) {
+    return {
+      intent: "lifestyle_scene",
+      reasoning: "No brand information provided. Defaulting to lifestyle imagery."
+    };
+  }
+  
+  const prompt = `You are a visual content strategist. Classify this brand into ONE visual intent for social media images.
+
+BRAND INFORMATION:
+${inputText}
+
+AVAILABLE INTENTS (choose exactly one):
+- food_focused: For restaurants, cafes, bakeries, food delivery, catering, bars, breweries, any food/beverage business. Images should show appetizing dishes, drinks, ingredients.
+- product_in_use: For retail, ecommerce, fashion, jewelry, cosmetics, electronics, furniture, any business selling physical products. Images should show products being used in real life.
+- venue_atmosphere: For hotels, spas, gyms, salons, real estate, event venues, coworking spaces, any business with a physical location as its main offering. Images should showcase the space/ambiance.
+- pet_service: For veterinarians, pet stores, dog groomers, pet hotels, pet training, any pet-related business. Images should feature animals/pets.
+- lifestyle_scene: For consulting, marketing agencies, coaching, education, tech services, healthcare, any service-based business. Images should show people, moments, aspirational lifestyle.
+- brand_aesthetic: ONLY use when none of the above clearly apply. Abstract, artistic brand imagery.
+
+RULES:
+1. Be flexible with interpretation - "comida casera" means food_focused, "tienda de ropa" means product_in_use
+2. Consider the PRIMARY business activity, not secondary aspects
+3. When uncertain between options, prefer lifestyle_scene over brand_aesthetic
+4. brand_aesthetic is the LAST resort, not the default
+
+Return JSON with: intent (one of the 6 options), reasoning (1 sentence explaining why)`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: {
+        temperature: 0.1,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            intent: { 
+              type: Type.STRING,
+              description: "One of: food_focused, product_in_use, venue_atmosphere, pet_service, lifestyle_scene, brand_aesthetic"
+            },
+            reasoning: { 
+              type: Type.STRING,
+              description: "Brief explanation of classification"
+            }
+          },
+          required: ["intent", "reasoning"]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) {
+      console.warn("[IntentClassifier] No response from AI, using fallback");
+      return { intent: "lifestyle_scene", reasoning: "AI classification unavailable. Using safe fallback." };
+    }
+
+    const parsed = JSON.parse(text);
+    const classifiedIntent = parsed.intent?.toLowerCase() as ImageIntent;
+    
+    // Validate the intent is in our allowed list
+    if (!VALID_INTENTS.includes(classifiedIntent)) {
+      console.warn(`[IntentClassifier] Invalid intent "${classifiedIntent}", using fallback`);
+      return { 
+        intent: "lifestyle_scene", 
+        reasoning: `AI returned invalid intent. Using lifestyle fallback. Original: ${parsed.reasoning || "unknown"}`
+      };
+    }
+    
+    console.log(`🧠 [IntentClassifier] AI classified as: ${classifiedIntent}`);
+    return {
+      intent: classifiedIntent,
+      reasoning: parsed.reasoning || `Classified as ${classifiedIntent}`
+    };
+    
+  } catch (error) {
+    console.error("[IntentClassifier] AI classification error:", error);
+    return { 
+      intent: "lifestyle_scene", 
+      reasoning: "Classification error. Using safe lifestyle fallback."
+    };
+  }
+}
+
+// Main intent detection function (combines AI + asset detection)
+async function detectImageIntent(
   brand: Brand,
   brandAssets: BrandAsset[]
-): { intent: ImageIntent; reasoning: string } {
-  const category = (brand.brandCategory || brand.industry || "").toLowerCase().replace(/[_\s-]/g, "_");
-  
-  // Check what assets the brand has
+): Promise<{ intent: ImageIntent; reasoning: string }> {
+  // Check what assets the brand has (this can override AI classification)
   const hasProductAssets = brandAssets.some(a => 
     a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase())
   );
@@ -69,59 +146,34 @@ function detectImageIntent(
     a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase())
   );
   
-  // 1. Food industry → always food_focused
-  if (FOOD_INDUSTRIES.some(f => category.includes(f))) {
-    return { 
-      intent: "food_focused", 
-      reasoning: `Food industry detected (${category}). Will generate appetizing food/dish imagery.`
+  // Step 1: Get AI classification based on brand info
+  const aiClassification = await classifyImageIntentWithAI(
+    brand.industry || null,
+    brand.brandCategory || null,
+    brand.description || null
+  );
+  
+  console.log(`🧠 [IntentDetector] AI base classification: ${aiClassification.intent}`);
+  
+  // Step 2: Override with asset-based logic if applicable
+  // If brand has product assets, ensure we use product_in_use regardless of AI classification
+  if (hasProductAssets && aiClassification.intent !== "product_in_use") {
+    return {
+      intent: "product_in_use",
+      reasoning: `Brand has product assets uploaded. Overriding AI classification (${aiClassification.intent}) to show products.`
     };
   }
   
-  // 2. Has product assets → product_in_use
-  if (hasProductAssets) {
-    return { 
-      intent: "product_in_use", 
-      reasoning: `Brand has product assets. Will show products in natural use contexts.`
-    };
-  }
-  
-  // 3. Product industry without assets → still product_in_use (generate generic products)
-  if (PRODUCT_INDUSTRIES.some(p => category.includes(p))) {
-    return { 
-      intent: "product_in_use", 
-      reasoning: `Product industry (${category}) but no assets. Will generate industry-relevant product scenes.`
-    };
-  }
-  
-  // 4. Has location assets → venue_atmosphere
-  if (hasLocationAssets) {
-    return { 
+  // If brand has location assets and AI didn't pick venue, consider overriding
+  if (hasLocationAssets && aiClassification.intent !== "venue_atmosphere" && aiClassification.intent !== "food_focused") {
+    return {
       intent: "venue_atmosphere", 
-      reasoning: `Brand has location/venue assets. Will showcase the space with brand atmosphere.`
+      reasoning: `Brand has venue/location assets. Overriding to showcase the space.`
     };
   }
   
-  // 5. Venue industry → venue_atmosphere
-  if (VENUE_INDUSTRIES.some(v => category.includes(v))) {
-    return { 
-      intent: "venue_atmosphere", 
-      reasoning: `Venue industry (${category}). Will generate atmospheric space imagery.`
-    };
-  }
-  
-  // 6. Service industry → lifestyle_scene
-  if (SERVICE_INDUSTRIES.some(s => category.includes(s))) {
-    return { 
-      intent: "lifestyle_scene", 
-      reasoning: `Service industry (${category}). Will generate lifestyle/people-focused imagery.`
-    };
-  }
-  
-  // 7. Fallback → brand_aesthetic
-  return { 
-    intent: "brand_aesthetic", 
-    reasoning: `No specific industry match. Will generate brand-aesthetic abstract imagery.`
-  };
+  // Return AI classification
+  return aiClassification;
 }
 
 function getIntentPromptGuidance(intent: ImageIntent, brand: Brand): string {
@@ -194,6 +246,28 @@ DO NOT:
 - Make it about the logo
 - Create flat, generic room shots
 - Add text or promotional elements`;
+
+    case "pet_service":
+      return `
+VISUAL FOCUS: PETS & ANIMALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create an adorable, heartwarming image featuring pets that looks like real pet-focused social media content.
+
+MUST INCLUDE:
+- A cute, happy pet (dog, cat, or relevant animal) as the MAIN SUBJECT
+- Natural, candid pet moments (playing, relaxing, being groomed, etc.)
+- Clean, well-lit environment (home, outdoors, or professional setting)
+- Warm, inviting atmosphere that pet owners love
+
+STYLE REFERENCE:
+- Think: @dogsofinstagram, pet influencer accounts, veterinary clinic social
+- Authentic pet photography with personality
+- Focus on the animal's expression and character
+
+DO NOT:
+- Make the logo the main subject
+- Use clinical or sterile imagery
+- Create generic stock-like pet photos`;
 
     case "lifestyle_scene":
       return `
@@ -622,8 +696,8 @@ export async function generateSamplePosts(
 
   const preferredLanguage = brandDesign.preferredLanguage || "en";
   
-  // Detect image intent based on industry and assets
-  const imageIntent = detectImageIntent(brand, brandAssets);
+  // Detect image intent based on industry and assets (AI-based semantic classification)
+  const imageIntent = await detectImageIntent(brand, brandAssets);
   console.log(`[SamplePostGenerator] Image Intent: ${imageIntent.intent}`);
   console.log(`[SamplePostGenerator] Reasoning: ${imageIntent.reasoning}`);
   
