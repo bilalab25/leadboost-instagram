@@ -18,8 +18,6 @@ function enforceLanguage(
     const combined = `${p.titulo} ${p.content} ${p.hashtags}`.toLowerCase();
     return !forbiddenEnglish.test(combined);
   });
-
-  // 🔥 FALLBACK DE PRODUCCIÓN
   if (filtered.length === 0) {
     console.warn(
       `[PostGenerator] Language enforcement removed all posts. Returning original posts.`,
@@ -1137,34 +1135,6 @@ interface BrandAssetForImage {
   description?: string;
 }
 
-// 🔹 Helper para elegir 3 assets diferentes cada vez (con prioridad por categoría)
-function pickRandomAssets(assets: BrandAssetForImage[], count = 3) {
-  if (!assets || assets.length === 0) return [];
-
-  const priority: Record<string, number> = {
-    product_images: 1,
-    marketing_banners: 2,
-    logos: 3,
-    general: 4,
-    document_templates: 5,
-    videos: 5,
-  };
-
-  // Ordenar por prioridad
-  const sorted = [...assets].sort((a, b) => {
-    const pa = priority[a.category?.toLowerCase() || "general"] || 99;
-    const pb = priority[b.category?.toLowerCase() || "general"] || 99;
-    return pa - pb;
-  });
-
-  // Mezclar aleatoriamente
-  for (let i = sorted.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
-  }
-
-  return sorted.slice(0, count);
-}
 function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
   const allProducts = assets.filter(
     (a) =>
@@ -1234,8 +1204,6 @@ VISUAL MODE: LIFESTYLE
 - NOT a graphic ad
 `;
 }
-
-// 🔹 NUEVO: Helper para elegir 3 assets (Lugar o Inspiración) para referencia visual
 function pickVisualReferenceAssets(
   assets: BrandAssetForImage[],
   count = 3,
