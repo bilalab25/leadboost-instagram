@@ -457,78 +457,51 @@ ${capabilities}`;
       const brandName = context.brand?.name || "Brand";
       const industry = context.brand?.industry || "";
 
-      const enhancedPrompt = `${imagePrompt}. 
-Style: ${brandStyle}. 
-Color scheme: Use these brand colors - Primary: ${primaryColor}, 
-Accent: ${accentColor}. 
-Brand: ${brandName}${industry ? `, ${industry} industry` : ""}.
-High quality, professional social media post image, clean composition, vibrant colors, no text overlay.`;
+      // Prompt principal para generar la imagen
+      const enhancedPrompt = `
+  Generate a professional, high-quality marketing image for the brand "${brandName}" 
+  in the ${industry || "general"} industry. 
 
-      console.log(
-        "[Boosty] Generating image with prompt:",
-        enhancedPrompt.substring(0, 100) + "...",
-      );
+  Use the brand's visual style: ${brandStyle}.
+  Primary color: ${primaryColor}, Accent color: ${accentColor}.
+  Use up to 3 reference images provided (brand assets) to inspire the composition. 
+  Focus on clean composition, vibrant colors, and a modern, professional look. 
+  Do NOT include any text on the image. 
+  Ensure consistency with the brand's mood, products, and colors.
+  `;
 
-      // Build multimodal content parts
-      const contentParts: any[] = [];
+      const allParts: any[] = [];
 
-      // If we have brand assets, include them as visual reference (up to 3)
-      if (context.assets && context.assets.length > 0) {
-        // Prioritize product images, then logos, then general assets
-        const sortedAssets = [...context.assets].sort((a, b) => {
-          const priority: Record<string, number> = {
-            products: 1,
-            product: 1,
-            logo: 2,
-            logos: 2,
-            general: 3,
-          };
-          const aPriority =
-            priority[a.category?.toLowerCase() || "general"] || 3;
-          const bPriority =
-            priority[b.category?.toLowerCase() || "general"] || 3;
-          return aPriority - bPriority;
-        });
-
-        // Take up to 3 images for context
-        const assetsToUse = sortedAssets.slice(0, 3);
-        console.log(
-          `[Boosty] Including ${assetsToUse.length} brand assets as visual reference`,
-        );
+      // Seleccionar hasta 3 assets para usar como referencia visual
+      if (
+        context.assets &&
+        Array.isArray(context.assets) &&
+        context.assets.length > 0
+      ) {
+        const assetsToUse = context.assets.slice(0, 3);
 
         for (const asset of assetsToUse) {
           const imageData = await this.fetchImageAsBase64(asset.url);
           if (imageData) {
-            contentParts.push({
+            allParts.push({
               inlineData: {
                 data: imageData.data,
                 mimeType: imageData.mimeType,
               },
             });
-            console.log(
-              `[Boosty] Added asset "${asset.name}" as visual reference`,
-            );
+            allParts.push({
+              text: `Use this asset as visual inspiration to generate a new marketing image that matches the brand style, colors, and aesthetic.`,
+            });
           }
         }
-
-        // Add instruction to use the reference images
-        if (contentParts.length > 0) {
-          contentParts.push({
-            text: `IMPORTANT: The images above are brand assets showing the actual products and style of this brand. 
-Use them as visual inspiration to create a NEW image that:
-1. Matches the visual style and aesthetic of these brand images
-2. Features similar products or elements shown in the reference images
-3. Maintains brand consistency in colors, mood, and quality
-
-Now create this image: ${enhancedPrompt}`,
-          });
-        } else {
-          contentParts.push({ text: enhancedPrompt });
-        }
-      } else {
-        contentParts.push({ text: enhancedPrompt });
       }
 
+      // Agregar el prompt principal
+      allParts.push({ text: enhancedPrompt });
+      
+      const contentParts = [{ role: "user", parts: allParts }];
+
+      // Llamada a Gemini
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-image",
         contents: contentParts,
@@ -537,6 +510,7 @@ Now create this image: ${enhancedPrompt}`,
         },
       });
 
+      // Buscar la imagen en la respuesta
       if (response.candidates?.[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
           if (part.inlineData?.data) {
