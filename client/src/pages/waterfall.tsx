@@ -97,9 +97,9 @@ export default function Waterfall() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [pendingWelcome, setPendingWelcome] = useState(() => {
-    // Check if we arrived with showWelcome param
+    // Check if we arrived with showWelcome or showSamples param
     const params = new URLSearchParams(window.location.search);
-    return params.get("showWelcome") === "true";
+    return params.get("showWelcome") === "true" || params.get("showSamples") === "true";
   });
   const [activeTab, setActiveTab] = useState<"campaigns" | "planner">(
     "campaigns",

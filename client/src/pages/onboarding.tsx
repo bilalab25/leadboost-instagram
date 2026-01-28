@@ -1955,7 +1955,7 @@ export default function Onboarding() {
               console.log("[Onboarding] Sample posts already exist, skipping generation");
               clearOnboardingState();
               setIsGeneratingAIPosts(false);
-              setLocation("/ai-planner?showSamples=true");
+              setLocation("/waterfall?showSamples=true");
               return;
             }
             
@@ -2028,7 +2028,7 @@ export default function Onboarding() {
                 
                 clearOnboardingState();
                 setIsGeneratingAIPosts(false);
-                setLocation("/ai-planner?showSamples=true");
+                setLocation("/waterfall?showSamples=true");
                 return;
               }
             }
