@@ -279,7 +279,7 @@ export default function BrandStudio() {
           );
         });
         if (data.secure_url) {
-          let description = "";
+          /* let description = "";
           try {
             const descResponse = await apiRequest(
               "POST",
@@ -295,7 +295,7 @@ export default function BrandStudio() {
               "[Onboarding] Error generating asset description:",
               descErr,
             );
-          }
+          } */
           await saveAssetToDB(
             {
               id,
@@ -304,7 +304,7 @@ export default function BrandStudio() {
               category: currentAssetUploadCategory,
               assetType: getAssetType(file.name),
               publicId: data.public_id,
-              description,
+              description: "",
             },
             data,
           );

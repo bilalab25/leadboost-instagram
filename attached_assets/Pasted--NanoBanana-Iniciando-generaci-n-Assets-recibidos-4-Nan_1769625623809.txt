@@ -1,0 +1,28 @@
+🚀 [NanoBanana] Iniciando generación...
+📦 [Assets recibidos]: 4
+🔥 [NanoBanana] Error crítico: Error: No product assets available for image generation
+    at selectVisualMode (/home/runner/workspace/server/services/postGenerator.ts:225:9)
+    at generateImageWithGeminiNanoBanana (/home/runner/workspace/server/services/postGenerator.ts:1274:18)
+    at processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:2350:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+🚀 [NanoBanana] Iniciando generación...
+📦 [Assets recibidos]: 4
+🔥 [NanoBanana] Error crítico: Error: No product assets available for image generation
+    at selectVisualMode (/home/runner/workspace/server/services/postGenerator.ts:225:9)
+    at generateImageWithGeminiNanoBanana (/home/runner/workspace/server/services/postGenerator.ts:1274:18)
+    at processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:2350:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+🚀 [NanoBanana] Iniciando generación...
+📦 [Assets recibidos]: 4
+🔥 [NanoBanana] Error crítico: Error: No product assets available for image generation
+    at selectVisualMode (/home/runner/workspace/server/services/postGenerator.ts:225:9)
+    at generateImageWithGeminiNanoBanana (/home/runner/workspace/server/services/postGenerator.ts:1274:18)
+    at processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:2350:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+🚀 [NanoBanana] Iniciando generación...
+📦 [Assets recibidos]: 4
+🔥 [NanoBanana] Error crítico: Error: No product assets available for image generation
+    at selectVisualMode (/home/runner/workspace/server/services/postGenerator.ts:225:9)
+    at generateImageWithGeminiNanoBanana (/home/runner/workspace/server/services/postGenerator.ts:1274:18)
+    at processPostGeneration (/home/runner/workspace/server/services/postGenerator.ts:2350:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
