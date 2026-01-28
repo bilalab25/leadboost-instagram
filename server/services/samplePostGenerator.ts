@@ -43,8 +43,8 @@ async function classifyImageIntentWithAI(
   description: string | null
 ): Promise<{ intent: ImageIntent; reasoning: string }> {
   const inputText = [
-    industry && `Industry: ${industry}`,
-    brandCategory && `Category: ${brandCategory}`,
+    industry && `Industry (sector empresarial): ${industry}`,
+    brandCategory && `Brand Category (producto/servicio que vende): ${brandCategory}`,
     description && `Description: ${description}`
   ].filter(Boolean).join("\n");
   
@@ -57,24 +57,59 @@ async function classifyImageIntentWithAI(
   
   const prompt = `You are a visual content strategist. Classify this brand into ONE visual intent for social media images.
 
-BRAND INFORMATION:
+═══════════════════════════════════════════════════════════════════════════
+BRAND INFORMATION
+═══════════════════════════════════════════════════════════════════════════
 ${inputText}
 
-AVAILABLE INTENTS (choose exactly one):
-- food_focused: For restaurants, cafes, bakeries, food delivery, catering, bars, breweries, any food/beverage business. Images should show appetizing dishes, drinks, ingredients.
-- product_in_use: For retail, ecommerce, fashion, jewelry, cosmetics, electronics, furniture, any business selling physical products. Images should show products being used in real life.
-- venue_atmosphere: For hotels, spas, gyms, salons, real estate, event venues, coworking spaces, any business with a physical location as its main offering. Images should showcase the space/ambiance.
-- pet_service: For veterinarians, pet stores, dog groomers, pet hotels, pet training, any pet-related business. Images should feature animals/pets.
-- lifestyle_scene: For consulting, marketing agencies, coaching, education, tech services, healthcare, any service-based business. Images should show people, moments, aspirational lifestyle.
-- brand_aesthetic: ONLY use when none of the above clearly apply. Abstract, artistic brand imagery.
+IMPORTANT: 
+- "Industry" = The business sector (e.g., "Food & Beverage", "Retail", "Technology")
+- "Brand Category" = What the company actually sells (e.g., "pizzas", "jewelry", "consulting services")
+- PRIORITIZE "Brand Category" when deciding what to show visually, as it defines the actual product/service
+- Use "Industry" to understand the broader context
 
-RULES:
-1. Be flexible with interpretation - "comida casera" means food_focused, "tienda de ropa" means product_in_use
-2. Consider the PRIMARY business activity, not secondary aspects
-3. When uncertain between options, prefer lifestyle_scene over brand_aesthetic
-4. brand_aesthetic is the LAST resort, not the default
+═══════════════════════════════════════════════════════════════════════════
+VISUAL INTENTS (choose exactly ONE)
+═══════════════════════════════════════════════════════════════════════════
+1. food_focused: 
+   - When: Brand sells FOOD or DRINKS (restaurants, cafes, bakeries, bars, catering, food trucks)
+   - Visual: Appetizing dishes, drinks, ingredients, food preparation
+   - Examples: "pizzeria", "café", "comida casera", "postres", "sushi"
 
-Return JSON with: intent (one of the 6 options), reasoning (1 sentence explaining why)`;
+2. product_in_use: 
+   - When: Brand sells PHYSICAL PRODUCTS (retail, ecommerce, fashion, jewelry, cosmetics, electronics)
+   - Visual: Products being used in real-life lifestyle contexts
+   - Examples: "tienda de ropa", "joyería", "muebles", "cosméticos", "accesorios"
+
+3. venue_atmosphere: 
+   - When: Brand's main offering IS the PHYSICAL SPACE (hotels, spas, gyms, salons, event venues)
+   - Visual: Interior/exterior spaces with inviting atmosphere
+   - Examples: "hotel", "spa", "gimnasio", "salón de belleza", "coworking"
+
+4. pet_service: 
+   - When: Brand works with ANIMALS (veterinarians, pet stores, groomers, pet hotels)
+   - Visual: Happy pets, animals being cared for
+   - Examples: "veterinaria", "grooming", "tienda de mascotas", "guardería canina"
+
+5. lifestyle_scene: 
+   - When: Brand sells SERVICES or EXPERIENCES (consulting, coaching, education, healthcare, tech)
+   - Visual: People, moments, aspirational lifestyle scenes
+   - Examples: "consultoría", "coaching", "agencia de marketing", "educación"
+
+6. brand_aesthetic: 
+   - When: NONE of the above clearly apply (LAST RESORT)
+   - Visual: Abstract, artistic brand imagery with brand colors
+   - Use sparingly - prefer lifestyle_scene when uncertain
+
+═══════════════════════════════════════════════════════════════════════════
+CLASSIFICATION RULES
+═══════════════════════════════════════════════════════════════════════════
+1. Brand Category > Industry when deciding visuals
+2. Be flexible with language (Spanish, English, informal text all valid)
+3. When uncertain, prefer lifestyle_scene over brand_aesthetic
+4. brand_aesthetic is the ABSOLUTE last resort
+
+Return JSON: { intent: string, reasoning: string }`;
 
   try {
     const response = await ai.models.generateContent({
