@@ -3,8 +3,14 @@ import { storage } from "../storage";
 import type { BrandDesign, Brand, BrandAsset } from "@shared/schema";
 import cloudinary from "../cloudinary";
 import { languageInstruction } from "./postGenerator";
-import { createPostGeneratorJob, updatePostGeneratorJob } from "../storage/postGeneratorJobs";
-import { createAiGeneratedPost, getSamplePostsByBrand } from "../storage/aiGeneratedPosts";
+import {
+  createPostGeneratorJob,
+  updatePostGeneratorJob,
+} from "../storage/postGeneratorJobs";
+import {
+  createAiGeneratedPost,
+  getSamplePostsByBrand,
+} from "../storage/aiGeneratedPosts";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
@@ -14,40 +20,54 @@ const ai = new GoogleGenAI({
 // IMAGE INTENT SYSTEM - AI-based semantic classification
 // ═══════════════════════════════════════════════════════════════════════════
 
-type ImageIntent = 
-  | "food_focused"      // Restaurants, cafes, bakeries → show dishes/food
-  | "product_in_use"    // Brands with products → show products being used
-  | "venue_atmosphere"  // Locations/venues → show the space/ambiance
-  | "pet_service"       // Pet-related businesses → show pets/animals
-  | "lifestyle_scene"   // Service brands → lifestyle/people/moments
-  | "brand_aesthetic";  // Fallback → abstract/aesthetic brand imagery
+type ImageIntent =
+  | "food_focused" // Restaurants, cafes, bakeries → show dishes/food
+  | "product_in_use" // Brands with products → show products being used
+  | "venue_atmosphere" // Locations/venues → show the space/ambiance
+  | "pet_service" // Pet-related businesses → show pets/animals
+  | "lifestyle_scene" // Service brands → lifestyle/people/moments
+  | "brand_aesthetic"; // Fallback → abstract/aesthetic brand imagery
 
 // Valid intents for classification (used for validation)
 const VALID_INTENTS: ImageIntent[] = [
   "food_focused",
-  "product_in_use", 
+  "product_in_use",
   "venue_atmosphere",
   "pet_service",
   "lifestyle_scene",
-  "brand_aesthetic"
+  "brand_aesthetic",
 ];
 
 // Asset category detection
-const PRODUCT_CATEGORIES = ["product_images", "product", "products", "product_assets"];
-const LOCATION_CATEGORIES = ["location", "location_images", "location_assets", "place", "venue"];
+const PRODUCT_CATEGORIES = [
+  "product_images",
+  "product",
+  "products",
+  "product_assets",
+];
+const LOCATION_CATEGORIES = [
+  "location",
+  "location_images",
+  "location_assets",
+  "place",
+  "venue",
+];
 
 /**
  * Check if brand has any usable visual assets (products, locations, or usable logos)
  */
-function hasVisualAssets(brandAssets: BrandAsset[], brandDesign: BrandDesign): boolean {
-  const hasProducts = brandAssets.some(a => 
-    a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase())
+function hasVisualAssets(
+  brandAssets: BrandAsset[],
+  brandDesign: BrandDesign,
+): boolean {
+  const hasProducts = brandAssets.some(
+    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
   );
-  const hasLocations = brandAssets.some(a => 
-    a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase())
+  const hasLocations = brandAssets.some(
+    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
   );
-  const hasUsableLogo = !!(brandDesign.logoUrl || brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl);
-  
+  const hasUsableLogo = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl;
+
   return hasProducts || hasLocations || hasUsableLogo;
 }
 
@@ -55,21 +75,25 @@ function hasVisualAssets(brandAssets: BrandAsset[], brandDesign: BrandDesign): b
 async function classifyImageIntentWithAI(
   industry: string | null,
   brandCategory: string | null,
-  description: string | null
+  description: string | null,
 ): Promise<{ intent: ImageIntent; reasoning: string }> {
   const inputText = [
     industry && `Industry (sector empresarial): ${industry}`,
-    brandCategory && `Brand Category (producto/servicio que vende): ${brandCategory}`,
-    description && `Description: ${description}`
-  ].filter(Boolean).join("\n");
-  
+    brandCategory &&
+      `Brand Category (producto/servicio que vende): ${brandCategory}`,
+    description && `Description: ${description}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
   if (!inputText.trim()) {
     return {
       intent: "lifestyle_scene",
-      reasoning: "No brand information provided. Defaulting to lifestyle imagery."
+      reasoning:
+        "No brand information provided. Defaulting to lifestyle imagery.",
     };
   }
-  
+
   const prompt = `You are a visual content strategist. Classify this brand into ONE visual intent for social media images.
 
 ═══════════════════════════════════════════════════════════════════════════
@@ -136,49 +160,54 @@ Return JSON: { intent: string, reasoning: string }`;
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            intent: { 
+            intent: {
               type: Type.STRING,
-              description: "One of: food_focused, product_in_use, venue_atmosphere, pet_service, lifestyle_scene, brand_aesthetic"
+              description:
+                "One of: food_focused, product_in_use, venue_atmosphere, pet_service, lifestyle_scene, brand_aesthetic",
             },
-            reasoning: { 
+            reasoning: {
               type: Type.STRING,
-              description: "Brief explanation of classification"
-            }
+              description: "Brief explanation of classification",
+            },
           },
-          required: ["intent", "reasoning"]
-        }
-      }
+          required: ["intent", "reasoning"],
+        },
+      },
     });
 
     const text = response.text;
     if (!text) {
       console.warn("[IntentClassifier] No response from AI, using fallback");
-      return { intent: "lifestyle_scene", reasoning: "AI classification unavailable. Using safe fallback." };
+      return {
+        intent: "lifestyle_scene",
+        reasoning: "AI classification unavailable. Using safe fallback.",
+      };
     }
 
     const parsed = JSON.parse(text);
     const classifiedIntent = parsed.intent?.toLowerCase() as ImageIntent;
-    
+
     // Validate the intent is in our allowed list
     if (!VALID_INTENTS.includes(classifiedIntent)) {
-      console.warn(`[IntentClassifier] Invalid intent "${classifiedIntent}", using fallback`);
-      return { 
-        intent: "lifestyle_scene", 
-        reasoning: `AI returned invalid intent. Using lifestyle fallback. Original: ${parsed.reasoning || "unknown"}`
+      console.warn(
+        `[IntentClassifier] Invalid intent "${classifiedIntent}", using fallback`,
+      );
+      return {
+        intent: "lifestyle_scene",
+        reasoning: `AI returned invalid intent. Using lifestyle fallback. Original: ${parsed.reasoning || "unknown"}`,
       };
     }
-    
+
     console.log(`🧠 [IntentClassifier] AI classified as: ${classifiedIntent}`);
     return {
       intent: classifiedIntent,
-      reasoning: parsed.reasoning || `Classified as ${classifiedIntent}`
+      reasoning: parsed.reasoning || `Classified as ${classifiedIntent}`,
     };
-    
   } catch (error) {
     console.error("[IntentClassifier] AI classification error:", error);
-    return { 
-      intent: "lifestyle_scene", 
-      reasoning: "Classification error. Using safe lifestyle fallback."
+    return {
+      intent: "lifestyle_scene",
+      reasoning: "Classification error. Using safe lifestyle fallback.",
     };
   }
 }
@@ -186,42 +215,48 @@ Return JSON: { intent: string, reasoning: string }`;
 // Main intent detection function (combines AI + asset detection)
 async function detectImageIntent(
   brand: Brand,
-  brandAssets: BrandAsset[]
+  brandAssets: BrandAsset[],
 ): Promise<{ intent: ImageIntent; reasoning: string }> {
   // Check what assets the brand has (this can override AI classification)
-  const hasProductAssets = brandAssets.some(a => 
-    a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase())
+  const hasProductAssets = brandAssets.some(
+    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
   );
-  const hasLocationAssets = brandAssets.some(a => 
-    a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase())
+  const hasLocationAssets = brandAssets.some(
+    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
   );
-  
+
   // Step 1: Get AI classification based on brand info
   const aiClassification = await classifyImageIntentWithAI(
     brand.industry || null,
     brand.brandCategory || null,
-    brand.description || null
+    brand.description || null,
   );
-  
-  console.log(`🧠 [IntentDetector] AI base classification: ${aiClassification.intent}`);
-  
+
+  console.log(
+    `🧠 [IntentDetector] AI base classification: ${aiClassification.intent}`,
+  );
+
   // Step 2: Override with asset-based logic if applicable
   // If brand has product assets, ensure we use product_in_use regardless of AI classification
   if (hasProductAssets && aiClassification.intent !== "product_in_use") {
     return {
       intent: "product_in_use",
-      reasoning: `Brand has product assets uploaded. Overriding AI classification (${aiClassification.intent}) to show products.`
+      reasoning: `Brand has product assets uploaded. Overriding AI classification (${aiClassification.intent}) to show products.`,
     };
   }
-  
+
   // If brand has location assets and AI didn't pick venue, consider overriding
-  if (hasLocationAssets && aiClassification.intent !== "venue_atmosphere" && aiClassification.intent !== "food_focused") {
+  if (
+    hasLocationAssets &&
+    aiClassification.intent !== "venue_atmosphere" &&
+    aiClassification.intent !== "food_focused"
+  ) {
     return {
-      intent: "venue_atmosphere", 
-      reasoning: `Brand has venue/location assets. Overriding to showcase the space.`
+      intent: "venue_atmosphere",
+      reasoning: `Brand has venue/location assets. Overriding to showcase the space.`,
     };
   }
-  
+
   // Return AI classification
   return aiClassification;
 }
@@ -229,7 +264,7 @@ async function detectImageIntent(
 function getIntentPromptGuidance(intent: ImageIntent, brand: Brand): string {
   const brandName = brand.name || "the brand";
   const category = brand.brandCategory || brand.industry || "business";
-  
+
   switch (intent) {
     case "food_focused":
       return `
@@ -390,7 +425,7 @@ FORBIDDEN:
 - Logo taking more than 5% of the frame
 - Logo with glowing effects or emphasis
 `;
-  
+
   return baseRule;
 }
 
@@ -411,7 +446,9 @@ interface GeneratedSamplePost {
   cloudinaryPublicId?: string;
 }
 
-async function fetchImageAsBase64(url: string): Promise<{ data: string; mimeType: string } | null> {
+async function fetchImageAsBase64(
+  url: string,
+): Promise<{ data: string; mimeType: string } | null> {
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
@@ -432,15 +469,17 @@ async function generateSamplePostContent(
   brandAssets: BrandAsset[],
 ): Promise<SamplePostContent[]> {
   const languageLabel = languageInstruction(preferredLanguage);
-  
-  const hasProducts = brandAssets.some(a => 
-    a.category && ["product_images", "product", "products"].includes(a.category)
+
+  const hasProducts = brandAssets.some(
+    (a) =>
+      a.category &&
+      ["product_images", "product", "products"].includes(a.category),
   );
-  
-  const productContext = hasProducts 
+
+  const productContext = hasProducts
     ? "The brand has uploaded product images that should be featured in the posts."
     : "The brand doesn't have product images yet, so focus on brand awareness and engagement content.";
-  
+
   const prompt = `You are a social media expert creating sample posts for a new brand.
   
 Brand Information:
@@ -489,7 +528,13 @@ Return a JSON object with posts array containing objects with these fields:
                   hashtags: { type: Type.STRING },
                   imagePrompt: { type: Type.STRING },
                 },
-                required: ["platform", "titulo", "content", "hashtags", "imagePrompt"],
+                required: [
+                  "platform",
+                  "titulo",
+                  "content",
+                  "hashtags",
+                  "imagePrompt",
+                ],
               },
             },
           },
@@ -523,7 +568,7 @@ async function generateSampleImage(
   try {
     console.log(`🎯 [SampleImage] Intent: ${imageIntent.intent}`);
     console.log(`📝 [SampleImage] Reasoning: ${imageIntent.reasoning}`);
-    
+
     const aspectRatios: Record<string, string> = {
       instagram: "1:1 (square, 1080x1080px)",
       facebook: "16:9 (landscape, 1200x628px)",
@@ -531,16 +576,25 @@ async function generateSampleImage(
     };
 
     // Only use product assets if brand has them
-    const productAssets = brandAssets.filter(a => 
-      a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase())
-    ).slice(0, 2);
-    
+    const productAssets = brandAssets
+      .filter(
+        (a) =>
+          a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
+      )
+      .slice(0, 2);
+
     // Only use location assets if brand has them
-    const locationAssets = brandAssets.filter(a => 
-      a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase())
-    ).slice(0, 1);
-    
-    const logoUrl = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
+    const locationAssets = brandAssets
+      .filter(
+        (a) =>
+          a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
+      )
+      .slice(0, 1);
+
+    const logoUrl =
+      brandDesign.whiteLogoUrl ||
+      brandDesign.blackLogoUrl ||
+      brandDesign.logoUrl;
 
     // Get intent-specific prompt guidance
     const intentGuidance = getIntentPromptGuidance(imageIntent.intent, brand);
@@ -586,7 +640,9 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
 
     // Add product assets ONLY if brand has them
     if (productAssets.length > 0) {
-      console.log(`🛍️ [SampleImage] Loading ${productAssets.length} product assets`);
+      console.log(
+        `🛍️ [SampleImage] Loading ${productAssets.length} product assets`,
+      );
       for (const asset of productAssets) {
         if (asset.url) {
           const imageData = await fetchImageAsBase64(asset.url);
@@ -604,10 +660,12 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
         }
       }
     }
-    
+
     // Add location assets ONLY if brand has them
     if (locationAssets.length > 0) {
-      console.log(`📍 [SampleImage] Loading ${locationAssets.length} location assets`);
+      console.log(
+        `📍 [SampleImage] Loading ${locationAssets.length} location assets`,
+      );
       for (const asset of locationAssets) {
         if (asset.url) {
           const imageData = await fetchImageAsBase64(asset.url);
@@ -647,12 +705,13 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
 
     // Retry logic with exponential backoff
     const MAX_RETRIES = 3;
-    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    
+    const delay = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         console.log(`🔄 [SampleImage] Attempt ${attempt}/${MAX_RETRIES}...`);
-        
+
         const response = await ai.models.generateContent({
           model: "gemini-2.5-flash-image",
           contents: [{ role: "user", parts: contentParts }],
@@ -671,12 +730,16 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
             }
           }
         }
-        
-        console.warn(`⚠️ [SampleImage] No image in response for attempt ${attempt}`);
-        
+
+        console.warn(
+          `⚠️ [SampleImage] No image in response for attempt ${attempt}`,
+        );
       } catch (retryError: any) {
-        console.error(`🔥 [SampleImage] Error on attempt ${attempt}:`, retryError?.message || retryError);
-        
+        console.error(
+          `🔥 [SampleImage] Error on attempt ${attempt}:`,
+          retryError?.message || retryError,
+        );
+
         // Only retry on 500 errors
         if (retryError?.status !== 500 || attempt === MAX_RETRIES) {
           if (attempt === MAX_RETRIES) {
@@ -685,7 +748,7 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
           break;
         }
       }
-      
+
       // Exponential backoff: 2s, 4s, 8s
       const backoffMs = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
       console.log(`⏳ [SampleImage] Waiting ${backoffMs}ms before retry...`);
@@ -711,17 +774,20 @@ async function generateSimpleOrganicImage(
   brand: Brand,
 ): Promise<string | null> {
   try {
-    console.log(`🌿 [SimpleOrganic] Generating organic lifestyle image (no assets path)`);
-    
+    console.log(
+      `🌿 [SimpleOrganic] Generating organic lifestyle image (no assets path)`,
+    );
+
     const aspectRatios: Record<string, string> = {
       instagram: "1:1 (square, 1080x1080px)",
       facebook: "16:9 (landscape, 1200x628px)",
       whatsapp: "1:1 (square, 1080x1080px)",
     };
-    
-    const industryContext = brand.brandCategory || brand.industry || "general business";
+
+    const industryContext =
+      brand.brandCategory || brand.industry || "general business";
     const brandDescription = brand.description || "";
-    
+
     const simplePrompt = `Create a beautiful, natural social media photo for a ${industryContext} business.
 
 SCENE CONTEXT:
@@ -752,12 +818,13 @@ Think: What would a ${industryContext} business authentically share on their Ins
 Create THAT kind of image - organic, engaging, real.`;
 
     const MAX_RETRIES = 3;
-    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    
+    const delay = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         console.log(`🔄 [SimpleOrganic] Attempt ${attempt}/${MAX_RETRIES}...`);
-        
+
         const response = await ai.models.generateContent({
           model: "gemini-2.5-flash-image",
           contents: [{ role: "user", parts: [{ text: simplePrompt }] }],
@@ -776,12 +843,16 @@ Create THAT kind of image - organic, engaging, real.`;
             }
           }
         }
-        
-        console.warn(`⚠️ [SimpleOrganic] No image in response for attempt ${attempt}`);
-        
+
+        console.warn(
+          `⚠️ [SimpleOrganic] No image in response for attempt ${attempt}`,
+        );
       } catch (retryError: any) {
-        console.error(`🔥 [SimpleOrganic] Error on attempt ${attempt}:`, retryError?.message || retryError);
-        
+        console.error(
+          `🔥 [SimpleOrganic] Error on attempt ${attempt}:`,
+          retryError?.message || retryError,
+        );
+
         if (retryError?.status !== 500 || attempt === MAX_RETRIES) {
           if (attempt === MAX_RETRIES) {
             console.error("❌ [SimpleOrganic] All retries failed");
@@ -789,7 +860,7 @@ Create THAT kind of image - organic, engaging, real.`;
           break;
         }
       }
-      
+
       const backoffMs = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
       console.log(`⏳ [SimpleOrganic] Waiting ${backoffMs}ms before retry...`);
       await delay(backoffMs);
@@ -826,7 +897,9 @@ async function uploadToCloudinary(
 export async function generateSamplePosts(
   brandId: string,
 ): Promise<GeneratedSamplePost[]> {
-  console.log(`[SamplePostGenerator] Starting sample post generation for brand ${brandId}`);
+  console.log(
+    `[SamplePostGenerator] Starting sample post generation for brand ${brandId}`,
+  );
 
   const brand = await storage.getBrandByIdOnly(brandId);
   if (!brand) {
@@ -836,7 +909,9 @@ export async function generateSamplePosts(
 
   const brandDesign = await storage.getBrandDesignByBrandId(brandId);
   if (!brandDesign) {
-    console.error(`[SamplePostGenerator] Brand design not found for ${brandId}`);
+    console.error(
+      `[SamplePostGenerator] Brand design not found for ${brandId}`,
+    );
     return [];
   }
 
@@ -848,13 +923,15 @@ export async function generateSamplePosts(
   }
 
   const preferredLanguage = brandDesign.preferredLanguage || "en";
-  
+
   // Check if brand has any visual assets
   const brandHasVisualAssets = hasVisualAssets(brandAssets, brandDesign);
-  
+  console.log(
+    `📊 [SamplePostGenerator] Brand has visual assets: ${brandHasVisualAssets}`,
+  );
   // Only run intent detection if brand has visual assets
   let imageIntent: { intent: ImageIntent; reasoning: string } | null = null;
-  
+
   if (brandHasVisualAssets) {
     // Full intent detection path for brands WITH assets
     imageIntent = await detectImageIntent(brand, brandAssets);
@@ -862,11 +939,20 @@ export async function generateSamplePosts(
     console.log(`[SamplePostGenerator] Reasoning: ${imageIntent.reasoning}`);
   } else {
     // Simplified path for brands WITHOUT assets
-    console.log(`🌿 [SamplePostGenerator] NO VISUAL ASSETS - using simplified organic path`);
-    console.log(`[SamplePostGenerator] Skipping intent detection, will generate organic lifestyle imagery`);
+    console.log(
+      `🌿 [SamplePostGenerator] NO VISUAL ASSETS - using simplified organic path`,
+    );
+    console.log(
+      `[SamplePostGenerator] Skipping intent detection, will generate organic lifestyle imagery`,
+    );
   }
-  
-  const postContents = await generateSamplePostContent(brand, brandDesign, preferredLanguage, brandAssets);
+
+  const postContents = await generateSamplePostContent(
+    brand,
+    brandDesign,
+    preferredLanguage,
+    brandAssets,
+  );
   if (postContents.length === 0) {
     console.error(`[SamplePostGenerator] No post content generated`);
     return [];
@@ -875,19 +961,21 @@ export async function generateSamplePosts(
   const generatedPosts: GeneratedSamplePost[] = [];
 
   for (const post of postContents) {
-    console.log(`[SamplePostGenerator] Generating image for ${post.platform}...`);
-    
+    console.log(
+      `[SamplePostGenerator] Generating image for ${post.platform}...`,
+    );
+
     let imageDataUrl: string | null = null;
-    
+
     if (brandHasVisualAssets && imageIntent) {
       // Full path with intent-based generation
       imageDataUrl = await generateSampleImage(
-        post.imagePrompt, 
-        brandDesign, 
-        post.platform, 
+        post.imagePrompt,
+        brandDesign,
+        post.platform,
         brandAssets,
         brand,
-        imageIntent
+        imageIntent,
       );
     } else {
       // Simplified path: organic lifestyle imagery, no branding
@@ -895,19 +983,27 @@ export async function generateSamplePosts(
         post.imagePrompt,
         brandDesign,
         post.platform,
-        brand
+        brand,
       );
     }
-    
+
     if (!imageDataUrl) {
-      console.warn(`[SamplePostGenerator] Could not generate image for ${post.platform}`);
+      console.warn(
+        `[SamplePostGenerator] Could not generate image for ${post.platform}`,
+      );
       continue;
     }
 
-    const cloudinaryResult = await uploadToCloudinary(imageDataUrl, brandId, post.platform);
-    
+    const cloudinaryResult = await uploadToCloudinary(
+      imageDataUrl,
+      brandId,
+      post.platform,
+    );
+
     if (!cloudinaryResult) {
-      console.warn(`[SamplePostGenerator] Could not upload image for ${post.platform}`);
+      console.warn(
+        `[SamplePostGenerator] Could not upload image for ${post.platform}`,
+      );
       continue;
     }
 
@@ -920,23 +1016,31 @@ export async function generateSamplePosts(
       cloudinaryPublicId: cloudinaryResult.publicId,
     });
 
-    console.log(`[SamplePostGenerator] Generated sample post for ${post.platform}`);
+    console.log(
+      `[SamplePostGenerator] Generated sample post for ${post.platform}`,
+    );
   }
 
   return generatedPosts;
 }
 
-export async function startSamplePostGeneration(brandId: string): Promise<{ jobId: string } | null> {
+export async function startSamplePostGeneration(
+  brandId: string,
+): Promise<{ jobId: string } | null> {
   try {
     const existingSamples = await getSamplePostsByBrand(brandId);
     if (existingSamples && existingSamples.length > 0) {
-      console.log(`[SamplePostGenerator] Brand ${brandId} already has sample posts, skipping`);
+      console.log(
+        `[SamplePostGenerator] Brand ${brandId} already has sample posts, skipping`,
+      );
       return null;
     }
 
     const job = await createPostGeneratorJob(brandId);
     if (!job) {
-      console.error(`[SamplePostGenerator] Could not create job for brand ${brandId}`);
+      console.error(
+        `[SamplePostGenerator] Could not create job for brand ${brandId}`,
+      );
       return null;
     }
 
@@ -944,23 +1048,34 @@ export async function startSamplePostGeneration(brandId: string): Promise<{ jobI
 
     return { jobId: job.id };
   } catch (error) {
-    console.error(`[SamplePostGenerator] Error starting sample post generation:`, error);
+    console.error(
+      `[SamplePostGenerator] Error starting sample post generation:`,
+      error,
+    );
     return null;
   }
 }
 
-async function processSamplePostsAsync(brandId: string, jobId: string): Promise<void> {
+async function processSamplePostsAsync(
+  brandId: string,
+  jobId: string,
+): Promise<void> {
   try {
     const generatedPosts = await generateSamplePosts(brandId);
-    
+
     if (generatedPosts.length === 0) {
-      console.error(`[SamplePostGenerator] No posts were generated for brand ${brandId}`);
-      await updatePostGeneratorJob(jobId, { status: "failed", error: "No posts generated" });
+      console.error(
+        `[SamplePostGenerator] No posts were generated for brand ${brandId}`,
+      );
+      await updatePostGeneratorJob(jobId, {
+        status: "failed",
+        error: "No posts generated",
+      });
       return;
     }
 
     const days = ["monday", "tuesday", "wednesday"];
-    
+
     for (let i = 0; i < generatedPosts.length; i++) {
       const post = generatedPosts[i];
       await createAiGeneratedPost({
@@ -979,15 +1094,25 @@ async function processSamplePostsAsync(brandId: string, jobId: string): Promise<
     }
 
     await updatePostGeneratorJob(jobId, { status: "completed" });
-    
-    console.log(`[SamplePostGenerator] Successfully created ${generatedPosts.length} sample posts for brand ${brandId}`);
+
+    console.log(
+      `[SamplePostGenerator] Successfully created ${generatedPosts.length} sample posts for brand ${brandId}`,
+    );
   } catch (error) {
-    console.error(`[SamplePostGenerator] Error processing sample posts:`, error);
-    await updatePostGeneratorJob(jobId, { status: "failed", error: error instanceof Error ? error.message : "Unknown error" });
+    console.error(
+      `[SamplePostGenerator] Error processing sample posts:`,
+      error,
+    );
+    await updatePostGeneratorJob(jobId, {
+      status: "failed",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }
 
-export async function createAndStoreSamplePosts(brandId: string): Promise<boolean> {
+export async function createAndStoreSamplePosts(
+  brandId: string,
+): Promise<boolean> {
   const result = await startSamplePostGeneration(brandId);
   return result !== null;
 }
