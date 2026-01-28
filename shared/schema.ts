@@ -1583,6 +1583,7 @@ export const aiGeneratedPosts = pgTable("ai_generated_posts", {
   dia: text("dia").notNull(), // day of week: sunday, monday, etc.
   hashtags: text("hashtags"),
   status: text("status").notNull().default("pending"), // pending | accepted | rejected | published | skipped_auto_post_disabled | publish_failed | no_integration
+  isSample: boolean("is_sample").default(false), // true for demo/sample posts generated during onboarding
   scheduledPublishTime: timestamp("scheduled_publish_time"),
   publishedAt: timestamp("published_at"),
   lockedAt: timestamp("locked_at"), // Lock timestamp for concurrent publish prevention
