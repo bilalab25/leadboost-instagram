@@ -12,12 +12,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Wallet,
-  User,
-  Bell,
-  Building2,
-} from "lucide-react";
+import { Wallet, User, Bell, Building2 } from "lucide-react";
 import AccountTab from "@/components/settings/AccountTab";
 import PaymentMethodTab from "@/components/settings/PaymentMethodsTab";
 import HelpChatbot from "@/components/HelpChatbot";
@@ -489,7 +484,7 @@ export default function Settings() {
               </div>
 
               <Tabs defaultValue="account-information" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger
                     value="account-information"
                     data-testid="tab-account-information"
@@ -508,13 +503,13 @@ export default function Settings() {
                     <Wallet className="mr-2 h-4 w-4" />
                     {isSpanish ? "Pagos" : "Payment Methods"}
                   </TabsTrigger>
-                  <TabsTrigger
+                  {/*  <TabsTrigger
                     value="notifications"
                     data-testid="tab-notifications"
                   >
                     <Bell className="mr-2 h-4 w-4" />
                     {isSpanish ? "Notificaciones" : "Notifications"}
-                  </TabsTrigger>
+                  </TabsTrigger> */}
                 </TabsList>
 
                 {/* Account Information Tab */}

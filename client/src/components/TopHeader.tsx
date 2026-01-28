@@ -74,7 +74,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
               {/* Secondary Actions */}
               <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
                 {/* Load Demo Data Button */}
-                <Button
+                {/* <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
@@ -88,7 +88,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
                   <span className="hidden md:inline">
                     {t.common.loadDemoData}
                   </span>
-                </Button>
+                </Button> */}
 
                 {/* Help Dropdown */}
                 <HelpDropdown isSpanish={isSpanish} />

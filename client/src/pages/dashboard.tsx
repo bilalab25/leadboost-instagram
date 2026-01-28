@@ -331,10 +331,7 @@ export default function Dashboard() {
                 className="max-w-7xl mx-auto space-y-6"
               >
                 {/* Hero Section - Clean Style */}
-                <motion.div
-                  variants={fadeInUp}
-                  className="relative p-8"
-                >
+                <motion.div variants={fadeInUp} className="relative p-8">
                   <div className="relative">
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
@@ -510,9 +507,13 @@ export default function Dashboard() {
                               : "See your sales in real-time and measure campaign impact"}
                           </p>
                           <Link href="/integrations">
-                            <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg">
+                            <Button
+                              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg"
+                              disabled
+                            >
                               <Plug className="w-4 h-4 mr-2" />
-                              {isSpanish ? "Conectar" : "Connect"}
+                              {/* {isSpanish ? "Conectar" : "Connect"} */}{" "}
+                              {isSpanish ? "Proximamente" : "Coming Soon"}
                             </Button>
                           </Link>
                         </CardContent>
@@ -904,7 +905,7 @@ export default function Dashboard() {
                               desc: isSpanish
                                 ? "Basado en tendencias actuales"
                                 : "Based on current trends",
-                              action: "/content-planner",
+                              action: "/waterfall",
                               color: "from-orange-500 to-red-500",
                             },
                             {
@@ -915,10 +916,10 @@ export default function Dashboard() {
                               desc: isSpanish
                                 ? "Optimiza tu calendario"
                                 : "Optimize your calendar",
-                              action: "/content-planner",
+                              action: "/waterfall",
                               color: "from-blue-500 to-indigo-500",
                             },
-                            {
+                            /* {
                               icon: BarChart3,
                               title: isSpanish
                                 ? "Ver analytics"
@@ -928,7 +929,7 @@ export default function Dashboard() {
                                 : "Engagement metrics",
                               action: "/analytics",
                               color: "from-green-500 to-emerald-500",
-                            },
+                            }, */
                           ].map((item, i) => (
                             <Link key={i} href={item.action}>
                               <motion.div
