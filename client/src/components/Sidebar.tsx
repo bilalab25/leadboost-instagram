@@ -81,7 +81,7 @@ export default function Sidebar() {
       icon: Sparkles,
       special: true,
     },
-    { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, badge: "12" },
+    { name: t.sidebar.inbox, href: "/inbox", icon: Inbox },
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
     /* { name: "Automation Flows", href: "/flows-dashboard", icon: GitBranch }, */
     /*  {
