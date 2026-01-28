@@ -36,6 +36,21 @@ const VALID_INTENTS: ImageIntent[] = [
 const PRODUCT_CATEGORIES = ["product_images", "product", "products", "product_assets"];
 const LOCATION_CATEGORIES = ["location", "location_images", "location_assets", "place", "venue"];
 
+/**
+ * Check if brand has any usable visual assets (products, locations, or usable logos)
+ */
+function hasVisualAssets(brandAssets: BrandAsset[], brandDesign: BrandDesign): boolean {
+  const hasProducts = brandAssets.some(a => 
+    a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase())
+  );
+  const hasLocations = brandAssets.some(a => 
+    a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase())
+  );
+  const hasUsableLogo = !!(brandDesign.logoUrl || brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl);
+  
+  return hasProducts || hasLocations || hasUsableLogo;
+}
+
 // AI-based semantic intent classification
 async function classifyImageIntentWithAI(
   industry: string | null,
@@ -684,6 +699,109 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
   }
 }
 
+/**
+ * SIMPLIFIED IMAGE GENERATION FOR BRANDS WITH NO VISUAL ASSETS
+ * When a brand has no products, locations, or usable logos,
+ * skip all advanced logic and generate organic lifestyle imagery.
+ */
+async function generateSimpleOrganicImage(
+  imagePrompt: string,
+  brandDesign: BrandDesign,
+  platform: string,
+  brand: Brand,
+): Promise<string | null> {
+  try {
+    console.log(`🌿 [SimpleOrganic] Generating organic lifestyle image (no assets path)`);
+    
+    const aspectRatios: Record<string, string> = {
+      instagram: "1:1 (square, 1080x1080px)",
+      facebook: "16:9 (landscape, 1200x628px)",
+      whatsapp: "1:1 (square, 1080x1080px)",
+    };
+    
+    const industryContext = brand.brandCategory || brand.industry || "general business";
+    const brandDescription = brand.description || "";
+    
+    const simplePrompt = `Create a beautiful, natural social media photo for a ${industryContext} business.
+
+SCENE CONTEXT:
+${brandDescription ? `Business description: ${brandDescription}` : ""}
+Original idea: ${imagePrompt}
+
+IMAGE REQUIREMENTS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Platform: ${platform.toUpperCase()}
+- Aspect ratio: ${aspectRatios[platform] || "1:1 (square)"}
+- Style: Natural, authentic, lifestyle photography
+- Color mood: Warm and inviting, subtle use of ${brandDesign.colorPrimary || "brand colors"}
+
+MUST FOLLOW:
+1. Create an ORGANIC, REALISTIC scene that represents this type of business
+2. Show a moment that feels natural and unstaged
+3. Professional photography quality with beautiful natural lighting
+4. People, environments, or objects that feel authentic to the industry
+
+ABSOLUTELY DO NOT:
+1. Include ANY logos, brand names, or text
+2. Create promotional graphics or poster-style layouts
+3. Use artificial or stock-photo-like compositions
+4. Add watermarks, badges, or brand elements
+5. Make it look like an advertisement
+
+Think: What would a ${industryContext} business authentically share on their Instagram?
+Create THAT kind of image - organic, engaging, real.`;
+
+    const MAX_RETRIES = 3;
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`🔄 [SimpleOrganic] Attempt ${attempt}/${MAX_RETRIES}...`);
+        
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash-image",
+          contents: [{ role: "user", parts: [{ text: simplePrompt }] }],
+          config: {
+            responseModalities: [Modality.TEXT, Modality.IMAGE],
+          },
+        });
+
+        if (response.candidates?.[0]?.content?.parts) {
+          for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData?.data) {
+              console.log(`✅ [SimpleOrganic] Image generated successfully`);
+              const base64Data = part.inlineData.data;
+              const dataUrl = `data:image/png;base64,${base64Data}`;
+              return dataUrl;
+            }
+          }
+        }
+        
+        console.warn(`⚠️ [SimpleOrganic] No image in response for attempt ${attempt}`);
+        
+      } catch (retryError: any) {
+        console.error(`🔥 [SimpleOrganic] Error on attempt ${attempt}:`, retryError?.message || retryError);
+        
+        if (retryError?.status !== 500 || attempt === MAX_RETRIES) {
+          if (attempt === MAX_RETRIES) {
+            console.error("❌ [SimpleOrganic] All retries failed");
+          }
+          break;
+        }
+      }
+      
+      const backoffMs = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+      console.log(`⏳ [SimpleOrganic] Waiting ${backoffMs}ms before retry...`);
+      await delay(backoffMs);
+    }
+
+    return null;
+  } catch (error) {
+    console.error("[SimpleOrganic] Error generating image:", error);
+    return null;
+  }
+}
+
 async function uploadToCloudinary(
   base64DataUrl: string,
   brandId: string,
@@ -731,10 +849,22 @@ export async function generateSamplePosts(
 
   const preferredLanguage = brandDesign.preferredLanguage || "en";
   
-  // Detect image intent based on industry and assets (AI-based semantic classification)
-  const imageIntent = await detectImageIntent(brand, brandAssets);
-  console.log(`[SamplePostGenerator] Image Intent: ${imageIntent.intent}`);
-  console.log(`[SamplePostGenerator] Reasoning: ${imageIntent.reasoning}`);
+  // Check if brand has any visual assets
+  const brandHasVisualAssets = hasVisualAssets(brandAssets, brandDesign);
+  
+  // Only run intent detection if brand has visual assets
+  let imageIntent: { intent: ImageIntent; reasoning: string } | null = null;
+  
+  if (brandHasVisualAssets) {
+    // Full intent detection path for brands WITH assets
+    imageIntent = await detectImageIntent(brand, brandAssets);
+    console.log(`[SamplePostGenerator] Image Intent: ${imageIntent.intent}`);
+    console.log(`[SamplePostGenerator] Reasoning: ${imageIntent.reasoning}`);
+  } else {
+    // Simplified path for brands WITHOUT assets
+    console.log(`🌿 [SamplePostGenerator] NO VISUAL ASSETS - using simplified organic path`);
+    console.log(`[SamplePostGenerator] Skipping intent detection, will generate organic lifestyle imagery`);
+  }
   
   const postContents = await generateSamplePostContent(brand, brandDesign, preferredLanguage, brandAssets);
   if (postContents.length === 0) {
@@ -747,14 +877,27 @@ export async function generateSamplePosts(
   for (const post of postContents) {
     console.log(`[SamplePostGenerator] Generating image for ${post.platform}...`);
     
-    const imageDataUrl = await generateSampleImage(
-      post.imagePrompt, 
-      brandDesign, 
-      post.platform, 
-      brandAssets,
-      brand,
-      imageIntent
-    );
+    let imageDataUrl: string | null = null;
+    
+    if (brandHasVisualAssets && imageIntent) {
+      // Full path with intent-based generation
+      imageDataUrl = await generateSampleImage(
+        post.imagePrompt, 
+        brandDesign, 
+        post.platform, 
+        brandAssets,
+        brand,
+        imageIntent
+      );
+    } else {
+      // Simplified path: organic lifestyle imagery, no branding
+      imageDataUrl = await generateSimpleOrganicImage(
+        post.imagePrompt,
+        brandDesign,
+        post.platform,
+        brand
+      );
+    }
     
     if (!imageDataUrl) {
       console.warn(`[SamplePostGenerator] Could not generate image for ${post.platform}`);
