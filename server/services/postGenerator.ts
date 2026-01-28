@@ -211,18 +211,38 @@ function visionTextSchema(languageLabel: string) {
   };
 }
 
-type VisualMode = "product_showcase" | "campaign_template" | "lifestyle";
-function selectVisualMode(assets: BrandAssetForImage[]): VisualMode {
-  const hasProduct = assets.some((a) => a.category === "product_images");
-  const hasTemplate = assets.some(
-    (a) => a.category === "inspiration_templates",
-  );
-  const hasLocation = assets.some((a) => a.category === "location_assets");
+type VisualMode = 
+  | "campaign_template"    // Products + Templates
+  | "lifestyle"            // Products + Location
+  | "product_showcase"     // Products only
+  | "venue_showcase"       // Location only
+  | "inspiration_based"    // Templates only
+  | "brand_only";          // No assets, use brand design
 
+const PRODUCT_CATEGORIES = ["product_images", "products", "product", "product_assets"];
+const LOCATION_CATEGORIES = ["location", "location_images", "location_assets", "place", "venue"];
+const TEMPLATE_CATEGORIES = ["inspiration_templates", "templates", "inspiration"];
+
+function selectVisualMode(assets: BrandAssetForImage[]): VisualMode {
+  const hasProduct = assets.some(
+    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase())
+  );
+  const hasTemplate = assets.some(
+    (a) => a.category && TEMPLATE_CATEGORIES.includes(a.category.toLowerCase())
+  );
+  const hasLocation = assets.some(
+    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase())
+  );
+
+  // Priority: Combined modes first, then single-asset modes, then fallback
   if (hasProduct && hasTemplate) return "campaign_template";
   if (hasProduct && hasLocation) return "lifestyle";
-
-  throw new Error("No product assets available for image generation");
+  if (hasProduct) return "product_showcase";
+  if (hasLocation) return "venue_showcase";
+  if (hasTemplate) return "inspiration_based";
+  
+  // No assets at all - generate based on brand design only
+  return "brand_only";
 }
 
 async function fetchMetaInsights(
@@ -1169,38 +1189,33 @@ interface BrandAssetForImage {
 
 function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
   const allProducts = assets.filter(
-    (a) =>
-      a.category === "product_images" ||
-      a.category === "products" ||
-      a.category === "product",
+    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase())
   );
 
-  if (allProducts.length === 0) {
-    throw new Error(
-      "[ImageGen] No product image found. Cannot generate image without a product.",
-    );
-  }
-  const product = allProducts[Math.floor(Math.random() * allProducts.length)];
-
-  const templates = assets.filter(
-    (a) => a.category === "inspiration_templates",
+  const allTemplates = assets.filter(
+    (a) => a.category && TEMPLATE_CATEGORIES.includes(a.category.toLowerCase())
   );
 
-  const locations = assets.filter((a) => a.category === "location_assets");
+  const allLocations = assets.filter(
+    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase())
+  );
 
   const logos = assets.filter((a) => a.category === "logos");
 
+  // Random selection helpers
+  const randomItem = <T>(arr: T[]): T | null => 
+    arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
+
   return {
-    product,
-    template:
-      mode === "campaign_template" && templates.length
-        ? templates[Math.floor(Math.random() * templates.length)]
-        : null,
-    location:
-      mode === "lifestyle" && locations.length
-        ? locations[Math.floor(Math.random() * locations.length)]
-        : null,
+    product: randomItem(allProducts),
+    template: (mode === "campaign_template" || mode === "inspiration_based") 
+      ? randomItem(allTemplates) 
+      : null,
+    location: (mode === "lifestyle" || mode === "venue_showcase") 
+      ? randomItem(allLocations) 
+      : null,
     logo: logos[0] ?? null,
+    mode,
   };
 }
 function pickVisualReferenceAssets(
@@ -1258,35 +1273,24 @@ export async function generateImageWithGeminiNanoBanana({
     console.log("🚀 [NanoBanana] Iniciando generación...");
     console.log("📦 [Assets recibidos]:", brandAssets.length);
 
-    const product = brandAssets.find(
-      (a) =>
-        a.category &&
-        ["product_images", "product", "products"].includes(a.category),
-    );
-
-    if (!product) {
-      console.error(
-        "❌ [NanoBanana] Error: No se encontró imagen del producto en brandAssets",
-      );
-      return null;
-    }
-
     const mode = selectVisualMode(brandAssets);
     const modeAssets = pickAssetsForMode(mode, brandAssets);
 
     // 🔍 LOG: Debug de Lógica de Selección
     console.log("🛠️ [Modo Seleccionado]:", mode);
     console.log("🖼️ [Mode Assets]:", {
+      hasProduct: !!modeAssets.product,
       hasTemplate: !!modeAssets.template,
       hasLocation: !!modeAssets.location,
+      productUrl: modeAssets.product?.url || "N/A",
       templateUrl: modeAssets.template?.url || "N/A",
       locationUrl: modeAssets.location?.url || "N/A",
     });
 
     const contentParts: any[] = [];
 
-    // 1️⃣ TEMPLATE/LOCATION (Base)
-    if (mode === "campaign_template" && modeAssets.template) {
+    // 1️⃣ TEMPLATE (for campaign_template or inspiration_based modes)
+    if ((mode === "campaign_template" || mode === "inspiration_based") && modeAssets.template) {
       console.log("🎨 [Cargando Template]:", modeAssets.template.url);
       const templateImg = await fetchImageAsBase64(modeAssets.template.url);
       if (templateImg) {
@@ -1297,7 +1301,10 @@ export async function generateImageWithGeminiNanoBanana({
           },
         });
       }
-    } else if (mode === "lifestyle" && modeAssets.location) {
+    }
+    
+    // 2️⃣ LOCATION (for lifestyle or venue_showcase modes)
+    if ((mode === "lifestyle" || mode === "venue_showcase") && modeAssets.location) {
       console.log("🏠 [Cargando Location]:", modeAssets.location.url);
       const locationImg = await fetchImageAsBase64(modeAssets.location.url);
       if (locationImg) {
@@ -1310,13 +1317,15 @@ export async function generateImageWithGeminiNanoBanana({
       }
     }
 
-    // 2️⃣ PRODUCTO (Sujeto)
-    console.log("🍎 [Cargando Producto]:", modeAssets.product.url);
-    const productImg = await fetchImageAsBase64(modeAssets.product.url);
-    if (productImg) {
-      contentParts.push({
-        inlineData: { data: productImg.data, mimeType: productImg.mimeType },
-      });
+    // 3️⃣ PRODUCTO (if available - for product_showcase, campaign_template, lifestyle modes)
+    if (modeAssets.product) {
+      console.log("🍎 [Cargando Producto]:", modeAssets.product.url);
+      const productImg = await fetchImageAsBase64(modeAssets.product.url);
+      if (productImg) {
+        contentParts.push({
+          inlineData: { data: productImg.data, mimeType: productImg.mimeType },
+        });
+      }
     }
 
     // 3️⃣ LOGO (Branding)
@@ -1339,102 +1348,142 @@ export async function generateImageWithGeminiNanoBanana({
       brandDesign.colorAccent4,
     ].filter(Boolean).join(", ");
 
-    // Classify brand assets into product and location categories
-    const hasProductAssets = brandAssets?.some(
-      (a) => a.category && ["product_images", "product", "products", "product_assets"].includes(a.category)
-    ) ?? false;
-    
-    const hasLocationAssets = brandAssets?.some(
-      (a) => a.category && ["location", "location_images", "location_assets", "place"].includes(a.category)
-    ) ?? false;
+    // Mode-specific instructions
+    const getModeInstructions = (visualMode: VisualMode): string => {
+      switch (visualMode) {
+        case "campaign_template":
+          return `MODO: CAMPAIGN_TEMPLATE (Producto + Template de Inspiración)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMAGEN 1 – TEMPLATE: Referencia de composición y estilo. NO copiar literalmente.
+IMAGEN 2 – PRODUCTO: Elemento principal que debe presentarse con fidelidad absoluta.
 
-    // Visual context based on asset type
-    const assetTypeContext = hasProductAssets
-      ? "TIPO DE ASSET: PRODUCTO - Las imágenes de producto pueden integrarse creativamente en diferentes escenas y contextos."
-      : hasLocationAssets
-      ? `TIPO DE ASSET: UBICACIÓN (CRÍTICO)
-- Las imágenes de ubicación representan un ESPACIO FÍSICO REAL (clínica, restaurante, tienda, oficina).
-- ESTÁ PROHIBIDO modificar, rediseñar o alterar el espacio.
-- NO cambiar: arquitectura, muebles, layout, paredes, colores, elementos estructurales.
-- SOLO permitido: ajustes de iluminación, encuadre, atmósfera y composición.
-- NO inventar ni agregar elementos que no existan en la ubicación real.
-- Preservar el aspecto auténtico del espacio exactamente como fue fotografiado.`
-      : "TIPO DE ASSET: NINGUNO - Crear visuales de estilo de vida o enfocados en la marca desde cero.";
+INSTRUCCIONES:
+- Inspirarte en la composición, balance y estilo del template
+- Reconstruir una NUEVA escena usando el producto proporcionado
+- El template guía la estructura visual, pero el producto es el protagonista
+- NO reutilizar objetos del template, crear escena nueva`;
+
+        case "lifestyle":
+          return `MODO: LIFESTYLE (Producto en Ubicación Real)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMAGEN 1 – UBICACIÓN: Espacio físico real que NO debe ser alterado.
+IMAGEN 2 – PRODUCTO: Debe integrarse naturalmente en el espacio.
+
+INSTRUCCIONES:
+- PRESERVAR la ubicación exactamente como fue fotografiada
+- NO modificar arquitectura, muebles, paredes, colores, layout
+- SOLO ajustar: iluminación, encuadre, atmósfera
+- Integrar el producto de forma natural en el espacio existente
+- El producto debe verse físicamente presente, con sombras de contacto`;
+
+        case "product_showcase":
+          return `MODO: PRODUCT_SHOWCASE (Solo Producto)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMAGEN 1 – PRODUCTO: Único elemento visual proporcionado.
+
+INSTRUCCIONES:
+- Crear un fondo y contexto atractivo basado en la identidad de marca
+- Usar los colores de marca para el entorno
+- El producto debe ser el protagonista absoluto
+- Crear una escena de estilo de vida o fondo minimalista según el estilo de marca
+- Añadir props complementarios sutiles si es apropiado para la industria`;
+
+        case "venue_showcase":
+          return `MODO: VENUE_SHOWCASE (Solo Ubicación/Venue)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMAGEN 1 – UBICACIÓN: Espacio físico real que es el protagonista.
+
+REGLAS CRÍTICAS:
+- PRESERVAR la ubicación EXACTAMENTE como fue fotografiada
+- NO modificar arquitectura, muebles, paredes, colores, elementos estructurales
+- NO inventar ni agregar elementos que no existan en la ubicación real
+
+ÚNICOS AJUSTES PERMITIDOS:
+- Iluminación profesional (cálida, acogedora, dramática según marca)
+- Encuadre y composición
+- Atmósfera y mood (sin alterar elementos físicos)
+- Aplicar sutilmente los colores de marca en la iluminación/tonalidad`;
+
+        case "inspiration_based":
+          return `MODO: INSPIRATION_BASED (Solo Templates de Inspiración)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMAGEN(ES) – TEMPLATES: Referencias de estilo y composición.
+
+INSTRUCCIONES:
+- Analizar el estilo, composición y mood de los templates
+- Crear una imagen NUEVA inspirada en ese estilo visual
+- Usar los colores y estilo de la marca
+- Generar contenido visual que capture la esencia de los templates
+- NO copiar elementos específicos, solo inspirarse en el estilo general`;
+
+        case "brand_only":
+          return `MODO: BRAND_ONLY (Sin Assets - Solo Identidad de Marca)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+No hay imágenes de referencia proporcionadas.
+
+INSTRUCCIONES:
+- Crear una imagen basada ÚNICAMENTE en la identidad de marca
+- Usar prominentemente los colores de marca
+- Seguir el estilo visual de la marca
+- Generar contenido visual abstracto o de estilo de vida que represente la marca
+- Evitar elementos genéricos, crear algo distintivo para esta marca`;
+      }
+    };
+
+    const modeInstructions = getModeInstructions(mode);
 
     const finalPrompt = `Eres un generador de imágenes AI experto en crear imágenes PROFESIONALES DE MARKETING para redes sociales que reflejan fielmente la identidad de la marca.
 
-Tu objetivo es crear UNA NUEVA IMAGEN LISTA PARA PUBLICAR, integrando un producto real dentro de una composición inspirada en un template visual existente.
+Tu objetivo es crear UNA NUEVA IMAGEN LISTA PARA PUBLICAR según el modo de generación indicado.
 
-────────────────────────────────
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IDENTIDAD DE MARCA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Estilo: ${brandDesign.brandStyle || "moderno y profesional"}
+- Colores: ${colorPalette || "usar colores profesionales"}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${modeInstructions}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OBJETIVO: IMAGEN PUBLISH-READY
-────────────────────────────────
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 La imagen final debe ser:
 - Profesional y fotorealista, apta para marketing digital
-- Alineada con los colores de marca: ${colorPalette || "usar colores profesionales"}
-- Estilo visual: ${brandDesign.brandStyle || "moderno y profesional"}
+- Alineada con los colores de marca
+- Estilo visual coherente con la marca
 - Lista para publicar en redes sociales sin edición adicional
 
-────────────────────────────────
-CONTEXTO VISUAL Y TIPO DE ASSET
-────────────────────────────────
-${assetTypeContext}
-
-────────────────────────────────
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 REGLA DE TEXTO EN IMÁGENES (CRÍTICA)
-────────────────────────────────
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - EVITAR bloques grandes de texto en la imagen
-- Si se necesita texto, LIMITAR a 1-3 palabras sutiles únicamente (nombre de marca o tagline corto)
+- Si se necesita texto, LIMITAR a 1-3 palabras sutiles únicamente
 - El texto debe ser discreto y bien integrado, NO dominante
-- Preferir imágenes limpias donde el producto sea el protagonista
+- Preferir imágenes limpias y visuales
 
-────────────────────────────────
-IMAGEN 1 – TEMPLATE (REFERENCIA DE COMPOSICIÓN)
-────────────────────────────────
-La primera imagen corresponde al template seleccionado y actúa como REFERENCIA DE COMPOSICIÓN Y ESTILO, NO como escena final.
-
-A partir de esta imagen debes inspirarte únicamente en:
-- la composición general
-- la distribución de elementos
-- el balance visual y el uso de espacio negativo
-- el encuadre y ángulo de cámara
-- el estilo visual y la paleta de color
-
-REGLA CRÍTICA DE REINTERPRETACIÓN DEL TEMPLATE:
-- El template NO debe ser copiado literalmente.
-- NO debes reutilizar, replicar ni conservar objetos, productos, joyas, props o elementos visibles en el template.
-- El template existe SOLO para guiar la estructura visual y el estilo.
-- Debes reconstruir una NUEVA escena desde cero usando el producto proporcionado.
-
-El resultado debe sentirse como una imagen nueva, no como una copia o un montaje del template original.
-
-────────────────────────────────
-IMAGEN 2 – PRODUCTO (FIDELIDAD ABSOLUTA)
-────────────────────────────────
-La segunda imagen es el producto real que debe presentarse en la nueva imagen.
-Este producto debe ser el elemento principal, central y más destacado de la composición final.
-
-REGLAS OBLIGATORIAS DEL PRODUCTO:
+${mode === "campaign_template" || mode === "lifestyle" || mode === "product_showcase" ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REGLAS DE PRODUCTO (SI APLICA)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Si hay un producto en las imágenes proporcionadas:
 - No modificar forma, color, proporciones ni materiales
 - No rediseñar, estilizar ni reinterpretar el producto
-- No añadir ni eliminar partes
 - El producto debe coincidir exactamente con la imagen proporcionada
+- El producto debe verse FÍSICAMENTE PRESENTE, no insertado digitalmente
+- Deben existir sombras de contacto suaves y naturales
+` : ""}
 
-ÚNICOS AJUSTES PERMITIDOS:
-- escala dentro de la composición
-- orientación
-- iluminación coherente con la escena
-
-────────────────────────────────
-INTEGRACIÓN FÍSICA Y REALISMO (OBLIGATORIO)
-El producto debe verse FÍSICAMENTE PRESENTE en la escena, no insertado digitalmente.
-
-REGLAS DE REALISMO FÍSICO:
-- El producto debe descansar de forma natural sobre la superficie.
-- Deben existir sombras de contacto suaves donde el producto toca la superficie.
-- Los materiales blandos (terciopelo, tela, cuero) deben mostrar ligera compresión o adaptación al producto.
-- El producto debe seguir la gravedad (no flotar, no suspenderse).
-- La colocación debe presentar ligera asimetría natural, evitando alineaciones perfectas.
-- La escena debe sentirse fotografiada, no renderizada ni compuesta artificialmente.
+${mode === "lifestyle" || mode === "venue_showcase" ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REGLAS DE UBICACIÓN (CRÍTICAS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+La ubicación representa un ESPACIO FÍSICO REAL:
+- PRESERVAR exactamente como fue fotografiado
+- NO modificar: arquitectura, muebles, paredes, colores, layout
+- NO inventar ni agregar elementos que no existan
+- SOLO permitido: iluminación, encuadre, atmósfera
+` : ""}
 
 DETALLE ESPECÍFICO PARA JOYERÍA (SI APLICA):
 - Las piezas no deben ser perfectamente paralelas.
@@ -2402,6 +2451,7 @@ export async function processPostGeneration(
           cloudinaryPublicId,
           dia: post.dia,
           status: "pending",
+          isSample: false,
         });
       } catch (postError) {
         console.error(
