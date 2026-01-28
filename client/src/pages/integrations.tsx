@@ -173,6 +173,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Manage messages and posts on Threads (linked to Instagram)",
     category: "social_media",
     fields: [],
+    comingSoon: true,
   },
   tiktok: {
     name: "TikTok",
@@ -180,6 +181,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Connect your TikTok account for content scheduling",
     category: "social_media",
     fields: [],
+    comingSoon: true,
   },
   youtube: {
     name: "YouTube",
@@ -187,6 +189,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Connect your YouTube channel for video management",
     category: "social_media",
     fields: [],
+    comingSoon: true,
   },
 
   // POS Integrations
@@ -242,6 +245,7 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     category: "pos",
     fields: [],
     oauth: true,
+    comingSoon: true,
   },
 
   // E-commerce Integrations
@@ -545,10 +549,10 @@ export default function IntegrationsPage() {
         threads: "Threads",
       };
       const providerName = providerNames[connected] || connected;
-      
+
       toast({
         title: isSpanish ? "¡Conexión exitosa!" : "Connection Successful!",
-        description: isSpanish 
+        description: isSpanish
           ? `${providerName} se ha conectado correctamente.`
           : `${providerName} has been connected successfully.`,
       });
@@ -588,23 +592,36 @@ export default function IntegrationsPage() {
         },
         token_failed: {
           en: message || "Failed to authenticate. Please try again.",
-          es: message || "Error de autenticación. Por favor, inténtalo de nuevo.",
+          es:
+            message || "Error de autenticación. Por favor, inténtalo de nuevo.",
         },
         pages_fetch_failed: {
           en: message || "Failed to fetch your pages. Please try again.",
-          es: message || "Error al obtener tus páginas. Por favor, inténtalo de nuevo.",
+          es:
+            message ||
+            "Error al obtener tus páginas. Por favor, inténtalo de nuevo.",
         },
         no_pages: {
-          en: message || "No Facebook Pages found. Please create a Facebook Page first.",
-          es: message || "No se encontraron páginas de Facebook. Por favor, crea una primero.",
+          en:
+            message ||
+            "No Facebook Pages found. Please create a Facebook Page first.",
+          es:
+            message ||
+            "No se encontraron páginas de Facebook. Por favor, crea una primero.",
         },
         save_failed: {
           en: message || "Failed to save the integration. Please try again.",
-          es: message || "Error al guardar la integración. Por favor, inténtalo de nuevo.",
+          es:
+            message ||
+            "Error al guardar la integración. Por favor, inténtalo de nuevo.",
         },
         duplicate: {
-          en: message ? decodeURIComponent(message) : "This account is already connected to another brand in the platform. Please use a different account or disconnect it first from the other brand.",
-          es: message ? decodeURIComponent(message) : "Esta cuenta ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.",
+          en: message
+            ? decodeURIComponent(message)
+            : "This account is already connected to another brand in the platform. Please use a different account or disconnect it first from the other brand.",
+          es: message
+            ? decodeURIComponent(message)
+            : "Esta cuenta ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.",
         },
       };
 
@@ -632,7 +649,11 @@ export default function IntegrationsPage() {
       const integrationCategory = i.category as string;
       // For social_media, also include messaging category (WhatsApp is stored as messaging)
       if (category === "social_media") {
-        return integrationCategory === "social_media" || integrationCategory === "messaging" || integrationCategory === "social";
+        return (
+          integrationCategory === "social_media" ||
+          integrationCategory === "messaging" ||
+          integrationCategory === "social"
+        );
       }
       return integrationCategory === category;
     }).length;
@@ -654,7 +675,9 @@ export default function IntegrationsPage() {
     // Special handling for WhatsApp - also check whatsapp_baileys
     if (providerKey === "whatsapp") {
       return integrations.some(
-        (i) => (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") && i.isActive
+        (i) =>
+          (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") &&
+          i.isActive,
       );
     }
     return integrations.some((i) => i.provider === providerKey && i.isActive);
@@ -663,7 +686,9 @@ export default function IntegrationsPage() {
     // Special handling for WhatsApp - also check whatsapp_baileys
     if (providerKey === "whatsapp") {
       return integrations.find(
-        (i) => (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") && i.isActive
+        (i) =>
+          (i.provider === "whatsapp" || i.provider === "whatsapp_baileys") &&
+          i.isActive,
       );
     }
     return integrations.find((i) => i.provider === providerKey && i.isActive);
@@ -1124,7 +1149,7 @@ export default function IntegrationsPage() {
 
     try {
       setIsDeleting(true);
-      
+
       // Special handling for WhatsApp Baileys - disconnect the session first
       if (integrationToDelete.provider === "whatsapp_baileys") {
         await fetch("/api/whatsapp-baileys/disconnect", {
@@ -1134,7 +1159,7 @@ export default function IntegrationsPage() {
           body: JSON.stringify({ brandId: activeBrandId }),
         });
       }
-      
+
       const response = await fetch(
         `/api/integrations/${integrationToDelete.id}?brandId=${activeBrandId}`,
         {
@@ -1218,10 +1243,10 @@ export default function IntegrationsPage() {
 
   // Handle Lightspeed sync
   const [isSyncing, setIsSyncing] = useState(false);
-  
+
   const handleSyncLightspeed = async () => {
     if (!activeBrandId) return;
-    
+
     try {
       setIsSyncing(true);
       const response = await fetch("/api/lightspeed/sync", {
@@ -1230,12 +1255,12 @@ export default function IntegrationsPage() {
         credentials: "include",
         body: JSON.stringify({ brandId: activeBrandId }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         toast({
           title: isSpanish ? "Sincronización Completa" : "Sync Complete",
-          description: isSpanish 
+          description: isSpanish
             ? `${data.customers || 0} clientes y ${data.sales || 0} ventas sincronizados.`
             : `${data.customers || 0} customers and ${data.sales || 0} sales synced.`,
         });
@@ -1248,7 +1273,10 @@ export default function IntegrationsPage() {
     } catch (error) {
       toast({
         title: isSpanish ? "Error de Sincronización" : "Sync Error",
-        description: error instanceof Error ? error.message : "Failed to sync with Lightspeed.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to sync with Lightspeed.",
         variant: "destructive",
       });
     } finally {
@@ -1521,7 +1549,7 @@ export default function IntegrationsPage() {
                                       : "Link your CRM")}
                                 </p>
                               </div>
-                              {category.key !== "social_media" && (
+                              {/*    {category.key !== "social_media" && (
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -1534,7 +1562,7 @@ export default function IntegrationsPage() {
                                   <Plus className="h-4 w-4 mr-1" />
                                   {isSpanish ? "Añadir" : "Add"}
                                 </Button>
-                              )}
+                              )} */}
                             </div>
 
                             {/* Instagram Conflict Alert Banner */}
@@ -1683,14 +1711,23 @@ export default function IntegrationsPage() {
                                                   className="flex-1 h-8 text-xs"
                                                   disabled={isSyncing}
                                                   onClick={() => {
-                                                    if (providerKey === "lightspeed") {
+                                                    if (
+                                                      providerKey ===
+                                                      "lightspeed"
+                                                    ) {
                                                       handleSyncLightspeed();
                                                     }
                                                   }}
                                                   data-testid={`sync-${providerKey}`}
                                                 >
-                                                  <RefreshCw className={`h-3 w-3 mr-1 ${isSyncing ? 'animate-spin' : ''}`} />
-                                                  {isSyncing ? (isSpanish ? "Sincronizando..." : "Syncing...") : "Sync"}
+                                                  <RefreshCw
+                                                    className={`h-3 w-3 mr-1 ${isSyncing ? "animate-spin" : ""}`}
+                                                  />
+                                                  {isSyncing
+                                                    ? isSpanish
+                                                      ? "Sincronizando..."
+                                                      : "Syncing..."
+                                                    : "Sync"}
                                                 </Button>
                                               )}
                                               <Button
@@ -2074,7 +2111,7 @@ export default function IntegrationsPage() {
                           </div>
                         </div>
 
-                        <div className="relative py-2">
+                        {/* <div className="relative py-2">
                           <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-gray-200"></div>
                           </div>
@@ -2083,10 +2120,10 @@ export default function IntegrationsPage() {
                               {isSpanish ? "Alternativa" : "Alternative"}
                             </span>
                           </div>
-                        </div>
+                        </div> */}
 
                         {/* Baileys QR Code Option (Experimental) */}
-                        <div
+                        {/*     <div
                           className="group cursor-pointer rounded-xl border border-dashed border-gray-200 p-4 hover:border-orange-300 hover:bg-orange-50/30 transition-all duration-200 opacity-75 hover:opacity-100"
                           onClick={() => setWhatsAppMethod("baileys")}
                           data-testid="whatsapp-baileys-option"
@@ -2117,7 +2154,7 @@ export default function IntegrationsPage() {
                             </div>
                             <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-orange-500 transition-colors" />
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     ) : whatsAppMethod === "embedded" ? (
                       <div className="space-y-4 pt-2">
