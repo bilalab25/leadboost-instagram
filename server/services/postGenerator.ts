@@ -211,36 +211,51 @@ function visionTextSchema(languageLabel: string) {
   };
 }
 
-type VisualMode = 
-  | "campaign_template"    // Products + Templates
-  | "lifestyle"            // Products + Location
-  | "product_showcase"     // Products only
-  | "venue_showcase"       // Location only
-  | "inspiration_based"    // Templates only
-  | "brand_only";          // No assets, use brand design
+type VisualMode =
+  | "campaign_template" // Products + Templates
+  | "lifestyle" // Products + Location
+  | "product_showcase" // Products only
+  | "venue_showcase" // Location only
+  | "inspiration_based" // Templates only
+  | "brand_only"; // No assets, use brand design
 
-const PRODUCT_CATEGORIES = ["product_images", "products", "product", "product_assets"];
-const LOCATION_CATEGORIES = ["location", "location_images", "location_assets", "place", "venue"];
-const TEMPLATE_CATEGORIES = ["inspiration_templates", "templates", "inspiration"];
+const PRODUCT_CATEGORIES = [
+  "product_images",
+  "products",
+  "product",
+  "product_assets",
+];
+const LOCATION_CATEGORIES = [
+  "location",
+  "location_images",
+  "location_assets",
+  "place",
+  "venue",
+];
+const TEMPLATE_CATEGORIES = [
+  "inspiration_templates",
+  "templates",
+  "inspiration",
+];
 
 function selectVisualMode(assets: BrandAssetForImage[]): VisualMode {
   const hasProduct = assets.some(
-    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase())
+    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
   );
   const hasTemplate = assets.some(
-    (a) => a.category && TEMPLATE_CATEGORIES.includes(a.category.toLowerCase())
+    (a) => a.category && TEMPLATE_CATEGORIES.includes(a.category.toLowerCase()),
   );
   const hasLocation = assets.some(
-    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase())
+    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
   );
 
   // Priority: Combined modes first, then single-asset modes, then fallback
   if (hasProduct && hasTemplate) return "campaign_template";
   if (hasProduct && hasLocation) return "lifestyle";
-  if (hasProduct) return "product_showcase";
   if (hasLocation) return "venue_showcase";
+  if (hasProduct) return "product_showcase";
   if (hasTemplate) return "inspiration_based";
-  
+
   // No assets at all - generate based on brand design only
   return "brand_only";
 }
@@ -419,10 +434,18 @@ function buildTextPrompt(context: PostGenerationContext): string {
     connectedPlatforms,
   } = context;
   const productAssets = brandAssets.filter(
-    (a) => a.category && ["product_images", "product", "products", "product_assets"].includes(a.category),
+    (a) =>
+      a.category &&
+      ["product_images", "product", "products", "product_assets"].includes(
+        a.category,
+      ),
   );
   const locationAssets = brandAssets.filter(
-    (a) => a.category && ["location", "location_images", "location_assets", "place"].includes(a.category),
+    (a) =>
+      a.category &&
+      ["location", "location_images", "location_assets", "place"].includes(
+        a.category,
+      ),
   );
   const inspirationAssets = brandAssets.filter(
     (a) => a.category === "inspiration_templates",
@@ -430,7 +453,7 @@ function buildTextPrompt(context: PostGenerationContext): string {
 
   // Detect if brand has product images available
   const hasProducts = productAssets.length > 0;
-  
+
   // Detect if brand has location images available
   const hasLocation = locationAssets.length > 0;
 
@@ -438,8 +461,8 @@ function buildTextPrompt(context: PostGenerationContext): string {
   const visualContext = hasProducts
     ? "The brand has real product images available. These should be featured naturally in the posts - on elegant surfaces, in lifestyle contexts, or being used/worn."
     : hasLocation
-    ? "The brand has real location images (e.g. clinic, restaurant, store, office). These represent a real physical space and MUST NOT be altered. Use them as-is and build marketing content around them."
-    : "The brand has no real product or location images available. Create lifestyle or brand-focused visuals from scratch that represent the brand's essence.";
+      ? "The brand has real location images (e.g. clinic, restaurant, store, office). These represent a real physical space and MUST NOT be altered. Use them as-is and build marketing content around them."
+      : "The brand has no real product or location images available. Create lifestyle or brand-focused visuals from scratch that represent the brand's essence.";
 
   // Product context for content strategy (legacy compatibility)
   const productContext = hasProducts
@@ -1189,31 +1212,33 @@ interface BrandAssetForImage {
 
 function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
   const allProducts = assets.filter(
-    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase())
+    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
   );
 
   const allTemplates = assets.filter(
-    (a) => a.category && TEMPLATE_CATEGORIES.includes(a.category.toLowerCase())
+    (a) => a.category && TEMPLATE_CATEGORIES.includes(a.category.toLowerCase()),
   );
 
   const allLocations = assets.filter(
-    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase())
+    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
   );
 
   const logos = assets.filter((a) => a.category === "logos");
 
   // Random selection helpers
-  const randomItem = <T>(arr: T[]): T | null => 
+  const randomItem = <T>(arr: T[]): T | null =>
     arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
 
   return {
     product: randomItem(allProducts),
-    template: (mode === "campaign_template" || mode === "inspiration_based") 
-      ? randomItem(allTemplates) 
-      : null,
-    location: (mode === "lifestyle" || mode === "venue_showcase") 
-      ? randomItem(allLocations) 
-      : null,
+    template:
+      mode === "campaign_template" || mode === "inspiration_based"
+        ? randomItem(allTemplates)
+        : null,
+    location:
+      mode === "lifestyle" || mode === "venue_showcase"
+        ? randomItem(allLocations)
+        : null,
     logo: logos[0] ?? null,
     mode,
   };
@@ -1226,13 +1251,17 @@ function pickVisualReferenceAssets(
 
   // Filtra SOLO las categorías que definen el estilo y el lugar/ambiente
   // Incluye todas las variantes de categorías de ubicación
-  const locationCategories = ["location", "location_images", "location_assets", "place"];
+  const locationCategories = [
+    "location",
+    "location_images",
+    "location_assets",
+    "place",
+  ];
   const visualAssets = assets.filter(
     (a) =>
-      a.category && (
-        locationCategories.includes(a.category) ||
-        a.category === "inspiration_templates"
-      ),
+      a.category &&
+      (locationCategories.includes(a.category) ||
+        a.category === "inspiration_templates"),
   );
 
   // Si no hay assets visuales específicos, no envía nada o usa un fallback
@@ -1290,7 +1319,10 @@ export async function generateImageWithGeminiNanoBanana({
     const contentParts: any[] = [];
 
     // 1️⃣ TEMPLATE (for campaign_template or inspiration_based modes)
-    if ((mode === "campaign_template" || mode === "inspiration_based") && modeAssets.template) {
+    if (
+      (mode === "campaign_template" || mode === "inspiration_based") &&
+      modeAssets.template
+    ) {
       console.log("🎨 [Cargando Template]:", modeAssets.template.url);
       const templateImg = await fetchImageAsBase64(modeAssets.template.url);
       if (templateImg) {
@@ -1302,9 +1334,12 @@ export async function generateImageWithGeminiNanoBanana({
         });
       }
     }
-    
+
     // 2️⃣ LOCATION (for lifestyle or venue_showcase modes)
-    if ((mode === "lifestyle" || mode === "venue_showcase") && modeAssets.location) {
+    if (
+      (mode === "lifestyle" || mode === "venue_showcase") &&
+      modeAssets.location
+    ) {
       console.log("🏠 [Cargando Location]:", modeAssets.location.url);
       const locationImg = await fetchImageAsBase64(modeAssets.location.url);
       if (locationImg) {
@@ -1346,7 +1381,9 @@ export async function generateImageWithGeminiNanoBanana({
       brandDesign.colorAccent2,
       brandDesign.colorAccent3,
       brandDesign.colorAccent4,
-    ].filter(Boolean).join(", ");
+    ]
+      .filter(Boolean)
+      .join(", ");
 
     // Mode-specific instructions
     const getModeInstructions = (visualMode: VisualMode): string => {
@@ -1462,7 +1499,11 @@ REGLA DE TEXTO EN IMÁGENES (CRÍTICA)
 - El texto debe ser discreto y bien integrado, NO dominante
 - Preferir imágenes limpias y visuales
 
-${mode === "campaign_template" || mode === "lifestyle" || mode === "product_showcase" ? `
+${
+  mode === "campaign_template" ||
+  mode === "lifestyle" ||
+  mode === "product_showcase"
+    ? `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 REGLAS DE PRODUCTO (SI APLICA)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1472,9 +1513,13 @@ Si hay un producto en las imágenes proporcionadas:
 - El producto debe coincidir exactamente con la imagen proporcionada
 - El producto debe verse FÍSICAMENTE PRESENTE, no insertado digitalmente
 - Deben existir sombras de contacto suaves y naturales
-` : ""}
+`
+    : ""
+}
 
-${mode === "lifestyle" || mode === "venue_showcase" ? `
+${
+  mode === "lifestyle" || mode === "venue_showcase"
+    ? `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 REGLAS DE UBICACIÓN (CRÍTICAS)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1483,7 +1528,9 @@ La ubicación representa un ESPACIO FÍSICO REAL:
 - NO modificar: arquitectura, muebles, paredes, colores, layout
 - NO inventar ni agregar elementos que no existan
 - SOLO permitido: iluminación, encuadre, atmósfera
-` : ""}
+`
+    : ""
+}
 
 DETALLE ESPECÍFICO PARA JOYERÍA (SI APLICA):
 - Las piezas no deben ser perfectamente paralelas.
@@ -1533,26 +1580,51 @@ CONDICIONES FINALES (OBLIGATORIAS)
 
     contentParts.push({ text: finalPrompt });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-image-preview",
-      contents: contentParts,
-      config: {
-        responseModalities: ["IMAGE"],
-        imageConfig: { aspectRatio: "1:1", imageSize: "2K" },
-      },
-    });
+    // Retry logic with exponential backoff
+    const MAX_RETRIES = 3;
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`🔄 [NanoBanana] Intento ${attempt}/${MAX_RETRIES}...`);
+        
+        const response = await ai.models.generateContent({
+          model: "gemini-3-pro-image-preview",
+          contents: contentParts,
+          config: {
+            responseModalities: ["IMAGE"],
+            imageConfig: { aspectRatio: "1:1", imageSize: "2K" },
+          },
+        });
 
-    const parts = response.candidates?.[0]?.content?.parts || [];
-    for (const part of parts) {
-      if (part.inlineData?.data) {
-        console.log("✅ [NanoBanana] Imagen generada con éxito");
-        return `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
+        const parts = response.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            console.log("✅ [NanoBanana] Imagen generada con éxito");
+            return `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
+          }
+        }
+
+        console.warn("⚠️ [NanoBanana] El modelo no devolvió imagen en este intento");
+        
+      } catch (retryError: any) {
+        console.error(`🔥 [NanoBanana] Error en intento ${attempt}:`, retryError?.message || retryError);
+        
+        // Only retry on 500 errors (internal server errors)
+        if (retryError?.status !== 500 || attempt === MAX_RETRIES) {
+          if (attempt === MAX_RETRIES) {
+            console.error("❌ [NanoBanana] Todos los intentos fallaron");
+          }
+          break;
+        }
       }
+      
+      // Exponential backoff: 2s, 4s, 8s
+      const backoffMs = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+      console.log(`⏳ [NanoBanana] Esperando ${backoffMs}ms antes de reintentar...`);
+      await delay(backoffMs);
     }
 
-    console.warn(
-      "⚠️ [NanoBanana] El modelo no devolvió ninguna imagen en los parts",
-    );
     return null;
   } catch (error) {
     console.error("🔥 [NanoBanana] Error crítico:", error);
@@ -1627,23 +1699,33 @@ export async function generateImageWithNanoBanana(
     // ==========================================================================================
     // ✔ Prompt final con resúmenes incluidos (no cambia tu estructura original)
     // ==========================================================================================
-    
+
     // Classify brand assets into product and location categories
-    const hasProducts = brandAssets?.some(
-      (a) => a.category && ["product_images", "product", "products", "product_assets"].includes(a.category)
-    ) ?? false;
-    
-    const hasLocation = brandAssets?.some(
-      (a) => a.category && ["location", "location_images", "location_assets", "place"].includes(a.category)
-    ) ?? false;
-    
+    const hasProducts =
+      brandAssets?.some(
+        (a) =>
+          a.category &&
+          ["product_images", "product", "products", "product_assets"].includes(
+            a.category,
+          ),
+      ) ?? false;
+
+    const hasLocation =
+      brandAssets?.some(
+        (a) =>
+          a.category &&
+          ["location", "location_images", "location_assets", "place"].includes(
+            a.category,
+          ),
+      ) ?? false;
+
     // Visual context for image strategy based on available assets
     const productImageContext = hasProducts
       ? "The brand has real product images. Feature products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn. Products may be creatively integrated."
       : hasLocation
-      ? "The brand has real location images (e.g. clinic, restaurant, store, office). These represent a REAL PHYSICAL SPACE and MUST NOT be altered. Use them as-is and build marketing content around them."
-      : "The brand has no real product or location images. Focus on lifestyle imagery, brand mood, atmosphere, and aspirational scenes that represent the brand's essence.";
-    
+        ? "The brand has real location images (e.g. clinic, restaurant, store, office). These represent a REAL PHYSICAL SPACE and MUST NOT be altered. Use them as-is and build marketing content around them."
+        : "The brand has no real product or location images. Focus on lifestyle imagery, brand mood, atmosphere, and aspirational scenes that represent the brand's essence.";
+
     // Location-specific constraints
     const locationConstraints = hasLocation
       ? `
@@ -1654,7 +1736,7 @@ LOCATION IMAGE CONSTRAINTS (CRITICAL):
 - Do NOT hallucinate or add elements that don't exist in the real location.
 - Preserve the authentic look of the space exactly as photographed.`
       : "";
-    
+
     const enhancedPrompt = `${visualResetBlock}${imagePrompt}. 
 
 ────────────────────────────────
