@@ -1210,10 +1210,14 @@ function pickVisualReferenceAssets(
   if (!assets || assets.length === 0) return [];
 
   // Filtra SOLO las categorías que definen el estilo y el lugar/ambiente
+  // Incluye todas las variantes de categorías de ubicación
+  const locationCategories = ["location", "location_images", "location_assets", "place"];
   const visualAssets = assets.filter(
     (a) =>
-      a.category === "location_assets" ||
-      a.category === "inspiration_templates",
+      a.category && (
+        locationCategories.includes(a.category) ||
+        a.category === "inspiration_templates"
+      ),
   );
 
   // Si no hay assets visuales específicos, no envía nada o usa un fallback
