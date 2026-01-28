@@ -1335,6 +1335,28 @@ export async function generateImageWithGeminiNanoBanana({
       brandDesign.colorAccent4,
     ].filter(Boolean).join(", ");
 
+    // Classify brand assets into product and location categories
+    const hasProductAssets = brandAssets?.some(
+      (a) => a.category && ["product_images", "product", "products", "product_assets"].includes(a.category)
+    ) ?? false;
+    
+    const hasLocationAssets = brandAssets?.some(
+      (a) => a.category && ["location", "location_images", "location_assets", "place"].includes(a.category)
+    ) ?? false;
+
+    // Visual context based on asset type
+    const assetTypeContext = hasProductAssets
+      ? "TIPO DE ASSET: PRODUCTO - Las imágenes de producto pueden integrarse creativamente en diferentes escenas y contextos."
+      : hasLocationAssets
+      ? `TIPO DE ASSET: UBICACIÓN (CRÍTICO)
+- Las imágenes de ubicación representan un ESPACIO FÍSICO REAL (clínica, restaurante, tienda, oficina).
+- ESTÁ PROHIBIDO modificar, rediseñar o alterar el espacio.
+- NO cambiar: arquitectura, muebles, layout, paredes, colores, elementos estructurales.
+- SOLO permitido: ajustes de iluminación, encuadre, atmósfera y composición.
+- NO inventar ni agregar elementos que no existan en la ubicación real.
+- Preservar el aspecto auténtico del espacio exactamente como fue fotografiado.`
+      : "TIPO DE ASSET: NINGUNO - Crear visuales de estilo de vida o enfocados en la marca desde cero.";
+
     const finalPrompt = `Eres un generador de imágenes AI experto en crear imágenes PROFESIONALES DE MARKETING para redes sociales que reflejan fielmente la identidad de la marca.
 
 Tu objetivo es crear UNA NUEVA IMAGEN LISTA PARA PUBLICAR, integrando un producto real dentro de una composición inspirada en un template visual existente.
@@ -1347,6 +1369,11 @@ La imagen final debe ser:
 - Alineada con los colores de marca: ${colorPalette || "usar colores profesionales"}
 - Estilo visual: ${brandDesign.brandStyle || "moderno y profesional"}
 - Lista para publicar en redes sociales sin edición adicional
+
+────────────────────────────────
+CONTEXTO VISUAL Y TIPO DE ASSET
+────────────────────────────────
+${assetTypeContext}
 
 ────────────────────────────────
 REGLA DE TEXTO EN IMÁGENES (CRÍTICA)
