@@ -90,6 +90,7 @@ import {
   X,
   MicOff,
   Mic,
+  Clock,
 } from "lucide-react";
 import {
   SiFacebook,
@@ -231,30 +232,35 @@ const INTEGRATION_PROVIDERS = {
     icon: CreditCard,
     description: "Point of sale and payment processing",
     category: "pos",
+    comingSoon: true,
   },
   stripe: {
     name: "Stripe",
     icon: CreditCard,
     description: "Online payment processing",
     category: "pos",
+    comingSoon: true,
   },
   shopify: {
     name: "Shopify",
     icon: ShoppingBag,
     description: "E-commerce platform",
     category: "ecommerce",
+    comingSoon: true,
   },
   woocommerce: {
     name: "WooCommerce",
     icon: Globe,
     description: "WordPress e-commerce plugin",
     category: "ecommerce",
+    comingSoon: true,
   },
   wix: {
     name: "Wix",
     icon: LayoutGrid,
     description: "Website builder and e-commerce platform",
     category: "ecommerce",
+    comingSoon: true,
   },
   instagram: {
     name: "Instagram",
@@ -283,6 +289,7 @@ const INTEGRATION_PROVIDERS = {
     description: "Connect your TikTok account for content scheduling",
     category: "social_media",
     isOAuthSupported: false,
+    comingSoon: true,
   },
   youtube: {
     name: "YouTube",
@@ -290,12 +297,14 @@ const INTEGRATION_PROVIDERS = {
     description: "Connect your YouTube channel for video management",
     category: "social_media",
     isOAuthSupported: false,
+    comingSoon: true,
   },
   hubspot: {
     name: "HubSpot",
     icon: BriefcaseBusiness,
     description: "Connect your HubSpot CRM to manage leads and customers",
     category: "crm",
+    comingSoon: true,
   },
 };
 
@@ -3737,6 +3746,19 @@ export default function Onboarding() {
                                             ) : (
                                               "Disconnect"
                                             )}
+                                          </Button>
+                                        ) : (provider as any).comingSoon ? (
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            disabled
+                                            className="bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                                            data-testid={`connect-${providerKey}-coming-soon`}
+                                          >
+                                            <Clock className="h-4 w-4 mr-2" />
+                                            {isSpanish
+                                              ? "Próximamente"
+                                              : "Coming Soon"}
                                           </Button>
                                         ) : (
                                           <Button
