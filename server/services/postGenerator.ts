@@ -407,6 +407,17 @@ function buildTextPrompt(context: PostGenerationContext): string {
   const inspirationAssets = brandAssets.filter(
     (a) => a.category === "inspiration_templates",
   );
+  
+  // Detect if brand has product images available
+  const hasProducts = brandAssets.some(
+    (a) => a.category && ["product_images", "product", "products", "product_assets"].includes(a.category)
+  );
+  
+  // Product context for content strategy
+  const productContext = hasProducts
+    ? "The brand has product images available. Focus on showcasing products, benefits, and use cases."
+    : "The brand has no product images yet. Focus on brand awareness, lifestyle, and engagement content.";
+  
   const monthName = new Date(year, month - 1).toLocaleString("en-US", {
     month: "long",
   });
@@ -583,6 +594,15 @@ BRAND ESSENCE (use this to define all copywriting, tone, emotional feel, and con
 - Emotional Feel: ${context.brandEssence?.emotion ?? "Not specified"}
 - Visual Keywords: ${context.brandEssence?.visualKeywords ?? "Not specified"}
 - Brand Promise: ${context.brandEssence?.promise ?? "Not specified"}
+
+PRODUCT AWARENESS:
+${productContext}
+
+PLATFORM-SPECIFIC WRITING RULES (follow these for each platform):
+- Instagram: Visual-first, emotional or aspirational tone, short to medium caption (2-4 sentences), engaging hooks, relevant hashtags
+- Facebook: More informative and conversational, encourages discussion and comments, can be longer form, community-focused
+- WhatsApp: Direct and promotional, clear call-to-action, no hashtags, concise message suitable for broadcast
+
 LANGUAGE REQUIREMENTS (ABSOLUTE – NO EXCEPTIONS):
 - ALL generated text MUST be written exclusively in ${languageLabel}.
 - This includes:
@@ -633,13 +653,15 @@ REQUIREMENTS:
    - Relevant hashtags (5-10 per post)
    - Optimal posting time based on insights (optimalTime field)
    * **CRITICAL LOGO INTEGRATION (MANDATORY):** The image MUST incorporate a **physical, non-distorted representation of the brand's logo or unique primary symbol** (e.g., if the logo is a stylized 'T', it must appear as a subtle 'T' element). It should be integrated **naturally and subtly** into the scene, appearing as **engraving, debossing, or as a small, polished metal emblem** on one of the products, packaging, or an element of the staging (e.g., a jewelry box, a marble surface, a coffee cup). **DO NOT alter the logo's original shape or add extra letters.**
-   - A detailed image prompt for AI image generation that:
-    * **CRITICAL:** The prompt MUST ONLY describe the **scene, subject, and composition** (e.g., "The Classic Chronos watch on a mahogany desk near a coffee cup").
-    * **CRÍTICO: FIDELIDAD FÁCTICA DEL PRODUCTO:** When generating the imagePrompt, you MUST describe the product (e.g., the bracelet, the ring, the necklace) with **absolute fidelity** to the material, color, and shape provided in the 'FACTUAL PRODUCT CATALOG'. **DO NOT add details, change colors (e.g., Gold must remain Gold), or modify the object's geometry.** The creative freedom is restricted ONLY to the background and staging elements (the TEAL style).
-     * **DO NOT** include style, color, lighting, or background details in this field. Those will be added by the system to enforce brand style.
-     * References specific products or assets from the brand when relevant (PRODUCT NAME: 'Screenshot 2025-12-15 at 1.44.40 p.m..png').
-     * Uses professional composition suitable for social media
-     * References specific products or assets from the brand when relevant
+   - A detailed imagePrompt field (REQUIRED for every post) following IMAGE-FIRST THINKING:
+    * **THINK IMAGE FIRST:** Before writing the caption, visualize what image would best represent this post. The imagePrompt drives the content.
+    * **CRITICAL:** The prompt MUST describe a **professional, photorealistic marketing image** suitable for social media.
+    * **BRAND ALIGNMENT:** Use brand colors (${colorPalette}) and ${brandDesign.brandStyle || "modern"} style as visual foundation.
+    * ${hasProducts ? "**WITH PRODUCTS:** Feature brand products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn." : "**WITHOUT PRODUCTS:** Focus on lifestyle imagery, brand mood, atmosphere, and aspirational scenes that represent the brand's essence."}
+    * **CRÍTICO: FIDELIDAD FÁCTICA DEL PRODUCTO:** When generating the imagePrompt, you MUST describe the product (e.g., the bracelet, the ring, the necklace) with **absolute fidelity** to the material, color, and shape provided in the 'FACTUAL PRODUCT CATALOG'. **DO NOT add details, change colors (e.g., Gold must remain Gold), or modify the object's geometry.** The creative freedom is restricted ONLY to the background and staging elements.
+    * **TEXT IN IMAGES:** Avoid large blocks of text in images. If text is needed, limit to 1-3 subtle words only (brand name or short tagline).
+    * **COMPOSITION:** Use professional composition suitable for social media - clean backgrounds, good lighting, visually appealing arrangement.
+    * References specific products or assets from the brand when relevant (PRODUCT NAME from catalog).
 5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
 6. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
 7. **CRÍTICO:** When creating the imagePrompt, you MUST reference the **specific names** of the top-selling products or relevant visual assets from the BRAND VISUAL ASSETS and TOP SELLING PRODUCTS lists (e.g., "The image must feature the 'Classic Chronos' watch in a leather band, matching the visual style of the reference images provided."). This ensures the final image features the brand's actual catalog.
