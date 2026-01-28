@@ -64,6 +64,7 @@ interface AiGeneratedPost {
   dia: string;
   hashtags: string | null;
   status: "pending" | "accepted" | "rejected";
+  isSample?: boolean;
   createdAt: string;
 }
 
@@ -404,6 +405,16 @@ export default function AIPlanner() {
                       {pendingPosts[carouselIndex]?.platform}
                     </Badge>
                   </div>
+                  
+                  {/* Sample Post Badge */}
+                  {pendingPosts[carouselIndex]?.isSample && (
+                    <div className="absolute top-3 right-3">
+                      <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md">
+                        <Star className="mr-1 h-3 w-3" />
+                        {isSpanish ? "Muestra" : "Sample"}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
 
                 {/* Navigation Arrows */}
@@ -751,6 +762,16 @@ export default function AIPlanner() {
                                 AI
                               </Badge>
                             </div>
+                            
+                            {/* Sample Post Badge */}
+                            {post.isSample && (
+                              <div className="absolute bottom-3 left-3">
+                                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md">
+                                  <Star className="mr-1 h-3 w-3" />
+                                  {isSpanish ? "Muestra" : "Sample"}
+                                </Badge>
+                              </div>
+                            )}
                           </div>
                           
                           {/* Content Section */}

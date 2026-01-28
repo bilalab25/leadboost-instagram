@@ -1,10 +1,10 @@
 import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { storage } from "../storage";
-import type { BrandDesign, Brand } from "@shared/schema";
+import type { BrandDesign, Brand, BrandAsset } from "@shared/schema";
 import cloudinary from "../cloudinary";
 import { languageInstruction } from "./postGenerator";
 import { createPostGeneratorJob, updatePostGeneratorJob } from "../storage/postGeneratorJobs";
-import { createAiGeneratedPost, getAiGeneratedPostsByBrand } from "../storage/aiGeneratedPosts";
+import { createAiGeneratedPost, getSamplePostsByBrand } from "../storage/aiGeneratedPosts";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
@@ -27,12 +27,35 @@ interface GeneratedSamplePost {
   cloudinaryPublicId?: string;
 }
 
+async function fetchImageAsBase64(url: string): Promise<{ data: string; mimeType: string } | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const buffer = await response.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
+    const contentType = response.headers.get("content-type") || "image/jpeg";
+    return { data: base64, mimeType: contentType };
+  } catch (error) {
+    console.error("[SamplePostGenerator] Error fetching image:", error);
+    return null;
+  }
+}
+
 async function generateSamplePostContent(
   brand: Brand,
   brandDesign: BrandDesign,
   preferredLanguage: string,
+  brandAssets: BrandAsset[],
 ): Promise<SamplePostContent[]> {
   const languageLabel = languageInstruction(preferredLanguage);
+  
+  const hasProducts = brandAssets.some(a => 
+    a.category && ["product_images", "product", "products"].includes(a.category)
+  );
+  
+  const productContext = hasProducts 
+    ? "The brand has uploaded product images that should be featured in the posts."
+    : "The brand doesn't have product images yet, so focus on brand awareness and engagement content.";
   
   const prompt = `You are a social media expert creating sample posts for a new brand.
   
@@ -40,9 +63,10 @@ Brand Information:
 - Name: ${brand.name}
 - Industry/Category: ${brand.brandCategory || brand.industry || "general business"}
 - Description: ${brand.description || "A modern brand connecting with customers"}
-- Website: ${brand.website || ""}
 - Style: ${brandDesign.brandStyle || "modern and professional"}
 - Colors: Primary ${brandDesign.colorPrimary || "#4F46E5"}, Accent ${brandDesign.colorAccent1 || "#7C3AED"}
+
+${productContext}
 
 Create 3 sample posts (one for Instagram, one for Facebook, one for WhatsApp) that showcase what kind of content this brand could share. These are DEMO posts to show the user how the platform works.
 
@@ -59,7 +83,7 @@ Return a JSON object with posts array containing objects with these fields:
 - titulo: Short engaging title for the post
 - content: The main post content/caption
 - hashtags: Relevant hashtags (for Instagram/Facebook only, leave empty for WhatsApp)
-- imagePrompt: A detailed description for generating a professional marketing image that matches this post`;
+- imagePrompt: A detailed description for generating a professional marketing image that matches this post. ${hasProducts ? "Include the brand products in the scene." : "Focus on brand lifestyle and atmosphere."}`;
 
   try {
     const response = await ai.models.generateContent({
@@ -108,6 +132,7 @@ async function generateSampleImage(
   imagePrompt: string,
   brandDesign: BrandDesign,
   platform: string,
+  brandAssets: BrandAsset[],
 ): Promise<string | null> {
   try {
     const aspectRatios: Record<string, string> = {
@@ -115,6 +140,12 @@ async function generateSampleImage(
       facebook: "16:9 (landscape, 1200x628px)",
       whatsapp: "1:1 (square, 1080x1080px)",
     };
+
+    const productAssets = brandAssets.filter(a => 
+      a.category && ["product_images", "product", "products"].includes(a.category)
+    ).slice(0, 2);
+    
+    const logoUrl = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
 
     const enhancedPrompt = `Create a professional marketing image for social media.
 
@@ -131,12 +162,49 @@ CRITICAL RULES:
 - DO NOT include any text, words, or typography in the image
 - Focus on vibrant colors, professional lighting, and appealing composition
 - The image should feel premium and brand-appropriate
-- No logos or watermarks
-- Photorealistic style with professional photography quality`;
+- Photorealistic style with professional photography quality
+${productAssets.length > 0 ? "- Feature the provided product images naturally in the scene" : ""}
+${logoUrl ? "- Subtly incorporate the brand logo if possible" : ""}`;
+
+    const contentParts: any[] = [];
+
+    for (const asset of productAssets) {
+      if (asset.url) {
+        const imageData = await fetchImageAsBase64(asset.url);
+        if (imageData) {
+          contentParts.push({
+            inlineData: {
+              data: imageData.data,
+              mimeType: imageData.mimeType,
+            },
+          });
+          contentParts.push({
+            text: `This is a product image from the brand. Use it as reference for creating the marketing image.`,
+          });
+        }
+      }
+    }
+
+    if (logoUrl) {
+      const logoData = await fetchImageAsBase64(logoUrl);
+      if (logoData) {
+        contentParts.push({
+          inlineData: {
+            data: logoData.data,
+            mimeType: logoData.mimeType,
+          },
+        });
+        contentParts.push({
+          text: `This is the brand logo. You may subtly incorporate it into the scene.`,
+        });
+      }
+    }
+
+    contentParts.push({ text: enhancedPrompt });
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
-      contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
+      contents: [{ role: "user", parts: contentParts }],
       config: {
         responseModalities: [Modality.TEXT, Modality.IMAGE],
       },
@@ -188,21 +256,28 @@ export async function generateSamplePosts(
 ): Promise<GeneratedSamplePost[]> {
   console.log(`[SamplePostGenerator] Starting sample post generation for brand ${brandId}`);
 
-  const brand = await storage.getBrandById(brandId);
+  const brand = await storage.getBrandByIdOnly(brandId);
   if (!brand) {
     console.error(`[SamplePostGenerator] Brand ${brandId} not found`);
     return [];
   }
 
-  const brandDesign = await storage.getBrandDesign(brandId);
+  const brandDesign = await storage.getBrandDesignByBrandId(brandId);
   if (!brandDesign) {
     console.error(`[SamplePostGenerator] Brand design not found for ${brandId}`);
     return [];
   }
 
+  let brandAssets: BrandAsset[] = [];
+  try {
+    brandAssets = await storage.getAssetsByBrandId(brandId);
+  } catch (e) {
+    console.log(`[SamplePostGenerator] No assets found for brand ${brandId}`);
+  }
+
   const preferredLanguage = brandDesign.preferredLanguage || "en";
   
-  const postContents = await generateSamplePostContent(brand, brandDesign, preferredLanguage);
+  const postContents = await generateSamplePostContent(brand, brandDesign, preferredLanguage, brandAssets);
   if (postContents.length === 0) {
     console.error(`[SamplePostGenerator] No post content generated`);
     return [];
@@ -213,7 +288,7 @@ export async function generateSamplePosts(
   for (const post of postContents) {
     console.log(`[SamplePostGenerator] Generating image for ${post.platform}...`);
     
-    const imageDataUrl = await generateSampleImage(post.imagePrompt, brandDesign, post.platform);
+    const imageDataUrl = await generateSampleImage(post.imagePrompt, brandDesign, post.platform, brandAssets);
     
     if (!imageDataUrl) {
       console.warn(`[SamplePostGenerator] Could not generate image for ${post.platform}`);
@@ -244,7 +319,7 @@ export async function generateSamplePosts(
 
 export async function createAndStoreSamplePosts(brandId: string): Promise<boolean> {
   try {
-    const existingSamples = await storage.getSamplePostsForBrand(brandId);
+    const existingSamples = await getSamplePostsByBrand(brandId);
     if (existingSamples && existingSamples.length > 0) {
       console.log(`[SamplePostGenerator] Brand ${brandId} already has sample posts, skipping`);
       return true;
@@ -257,7 +332,7 @@ export async function createAndStoreSamplePosts(brandId: string): Promise<boolea
       return false;
     }
 
-    const job = await storage.createPostGeneratorJob(brandId);
+    const job = await createPostGeneratorJob(brandId);
     if (!job) {
       console.error(`[SamplePostGenerator] Could not create job for brand ${brandId}`);
       return false;
@@ -267,14 +342,14 @@ export async function createAndStoreSamplePosts(brandId: string): Promise<boolea
     
     for (let i = 0; i < generatedPosts.length; i++) {
       const post = generatedPosts[i];
-      await storage.createAiGeneratedPost({
+      await createAiGeneratedPost({
         jobId: job.id,
         brandId,
         platform: post.platform,
         titulo: post.titulo,
         content: post.content,
         imageUrl: post.imageUrl,
-        cloudinaryPublicId: post.cloudinaryPublicId,
+        cloudinaryPublicId: post.cloudinaryPublicId || null,
         dia: days[i] || "monday",
         hashtags: post.hashtags,
         status: "pending",
@@ -282,7 +357,7 @@ export async function createAndStoreSamplePosts(brandId: string): Promise<boolea
       });
     }
 
-    await storage.updatePostGeneratorJob(job.id, { status: "completed" });
+    await updatePostGeneratorJob(job.id, { status: "completed" });
     
     console.log(`[SamplePostGenerator] Successfully created ${generatedPosts.length} sample posts for brand ${brandId}`);
     return true;

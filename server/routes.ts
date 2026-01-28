@@ -2977,6 +2977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               dia: pub.dia || "monday",
               hashtags: pub.hashtags,
               status: "pending",
+              isSample: false,
             });
           }
         }
@@ -3234,6 +3235,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[Post Generator Active Check] Error:", error);
         res.status(500).json({
           message: "Failed to check active job status",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
+  // Generate sample posts for brands that complete onboarding without integrations
+  app.post(
+    "/api/brands/:brandId/generate-sample-posts",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        // Use brandId from requireBrand middleware for security (validates ownership)
+        const brandId = req.brandId || req.brandMembership?.brandId;
+        if (!brandId) {
+          return res.status(400).json({ message: "Brand ID is required" });
+        }
+
+        // Verify param matches authenticated brand
+        if (req.params.brandId && req.params.brandId !== brandId) {
+          return res.status(403).json({ message: "Unauthorized: Brand mismatch" });
+        }
+
+        const { createAndStoreSamplePosts } = await import(
+          "./services/samplePostGenerator"
+        );
+
+        res.json({ 
+          message: "Sample post generation started", 
+          status: "processing" 
+        });
+
+        createAndStoreSamplePosts(brandId).then((success) => {
+          if (success) {
+            console.log(`[Sample Posts] Successfully generated sample posts for brand ${brandId}`);
+          } else {
+            console.error(`[Sample Posts] Failed to generate sample posts for brand ${brandId}`);
+          }
+        }).catch((error) => {
+          console.error(`[Sample Posts] Error generating sample posts:`, error);
+        });
+      } catch (error) {
+        console.error("[Sample Posts] Error:", error);
+        res.status(500).json({
+          message: "Failed to start sample post generation",
           error: error instanceof Error ? error.message : "Unknown error",
         });
       }

@@ -1929,17 +1929,37 @@ export default function Onboarding() {
           brandId: String(createdBrandId),
           completed: true,
         });
+
+        // If no integrations connected, generate sample posts to showcase the platform
+        const hasConnectedIntegrations = integrations && integrations.length > 0;
+        if (!hasConnectedIntegrations) {
+          console.log("[Onboarding] No integrations connected, generating sample posts...");
+          try {
+            await fetch(`/api/brands/${createdBrandId}/generate-sample-posts`, {
+              method: "POST",
+              credentials: "include",
+            });
+            console.log("[Onboarding] Sample posts generation started");
+          } catch (sampleError) {
+            console.error("Failed to trigger sample post generation:", sampleError);
+          }
+        }
       } catch (error) {
         console.error("Failed to mark onboarding as completed:", error);
       }
     }
 
     clearOnboardingState();
+    const hasIntegrations = integrations && integrations.length > 0;
     toast({
       title: isSpanish ? "¡Onboarding completado!" : "Onboarding complete!",
       description: isSpanish
-        ? "Tu marca está lista para usar."
-        : "Your brand is ready to use.",
+        ? hasIntegrations 
+          ? "Tu marca está lista para usar."
+          : "Tu marca está lista. ¡Generamos algunas publicaciones de muestra para ti!"
+        : hasIntegrations 
+          ? "Your brand is ready to use."
+          : "Your brand is ready. We're generating some sample posts for you!",
     });
     setLocation("/dashboard");
   };

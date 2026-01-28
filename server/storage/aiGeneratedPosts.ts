@@ -14,6 +14,7 @@ export interface AiGeneratedPost {
   dia: string;
   hashtags: string | null;
   status: "pending" | "accepted" | "rejected" | "published";
+  isSample: boolean | null;
   scheduledPublishTime: string | null;
   publishedAt: string | null;
   createdAt: string;
@@ -37,6 +38,7 @@ export async function createAiGeneratedPost(
       dia: data.dia,
       hashtags: data.hashtags,
       status: data.status,
+      isSample: data.isSample || false,
     })
     .returning();
 
@@ -54,6 +56,7 @@ export async function createAiGeneratedPost(
     dia: result[0].dia,
     hashtags: result[0].hashtags,
     status: result[0].status as any,
+    isSample: result[0].isSample || false,
     scheduledPublishTime: result[0].scheduledPublishTime?.toISOString() || null,
     publishedAt: result[0].publishedAt?.toISOString() || null,
     createdAt: result[0].createdAt?.toISOString() || now.toISOString(),
@@ -79,6 +82,33 @@ export async function getAiGeneratedPostsByJob(jobId: string): Promise<AiGenerat
     dia: r.dia,
     hashtags: r.hashtags,
     status: r.status as any,
+    isSample: r.isSample || false,
+    scheduledPublishTime: r.scheduledPublishTime?.toISOString() || null,
+    publishedAt: r.publishedAt?.toISOString() || null,
+    createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
+    updatedAt: r.updatedAt?.toISOString() || new Date().toISOString(),
+  }));
+}
+
+export async function getSamplePostsByBrand(brandId: string): Promise<AiGeneratedPost[]> {
+  const results = await db
+    .select()
+    .from(aiGeneratedPosts)
+    .where(and(eq(aiGeneratedPosts.brandId, brandId), eq(aiGeneratedPosts.isSample, true)));
+
+  return results.map((r) => ({
+    id: r.id,
+    jobId: r.jobId,
+    brandId: r.brandId,
+    platform: r.platform,
+    titulo: r.titulo,
+    content: r.content,
+    imageUrl: r.imageUrl,
+    cloudinaryPublicId: r.cloudinaryPublicId,
+    dia: r.dia,
+    hashtags: r.hashtags,
+    status: r.status as any,
+    isSample: r.isSample || false,
     scheduledPublishTime: r.scheduledPublishTime?.toISOString() || null,
     publishedAt: r.publishedAt?.toISOString() || null,
     createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
@@ -110,6 +140,7 @@ export async function getAiGeneratedPostsByBrand(brandId: string, status?: strin
     dia: r.dia,
     hashtags: r.hashtags,
     status: r.status as any,
+    isSample: r.isSample || false,
     scheduledPublishTime: r.scheduledPublishTime?.toISOString() || null,
     publishedAt: r.publishedAt?.toISOString() || null,
     createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
@@ -149,6 +180,7 @@ export async function updateAiGeneratedPostStatus(
     dia: result[0].dia,
     hashtags: result[0].hashtags,
     status: result[0].status as any,
+    isSample: result[0].isSample || false,
     scheduledPublishTime: result[0].scheduledPublishTime?.toISOString() || null,
     publishedAt: result[0].publishedAt?.toISOString() || null,
     createdAt: result[0].createdAt?.toISOString() || new Date().toISOString(),
