@@ -1580,51 +1580,26 @@ CONDICIONES FINALES (OBLIGATORIAS)
 
     contentParts.push({ text: finalPrompt });
 
-    // Retry logic with exponential backoff
-    const MAX_RETRIES = 3;
-    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        console.log(`🔄 [NanoBanana] Intento ${attempt}/${MAX_RETRIES}...`);
-        
-        const response = await ai.models.generateContent({
-          model: "gemini-3-pro-image-preview",
-          contents: contentParts,
-          config: {
-            responseModalities: ["IMAGE"],
-            imageConfig: { aspectRatio: "1:1", imageSize: "2K" },
-          },
-        });
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-image-preview",
+      contents: contentParts,
+      config: {
+        responseModalities: ["IMAGE"],
+        imageConfig: { aspectRatio: "1:1", imageSize: "2K" },
+      },
+    });
 
-        const parts = response.candidates?.[0]?.content?.parts || [];
-        for (const part of parts) {
-          if (part.inlineData?.data) {
-            console.log("✅ [NanoBanana] Imagen generada con éxito");
-            return `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
-          }
-        }
-
-        console.warn("⚠️ [NanoBanana] El modelo no devolvió imagen en este intento");
-        
-      } catch (retryError: any) {
-        console.error(`🔥 [NanoBanana] Error en intento ${attempt}:`, retryError?.message || retryError);
-        
-        // Only retry on 500 errors (internal server errors)
-        if (retryError?.status !== 500 || attempt === MAX_RETRIES) {
-          if (attempt === MAX_RETRIES) {
-            console.error("❌ [NanoBanana] Todos los intentos fallaron");
-          }
-          break;
-        }
+    const parts = response.candidates?.[0]?.content?.parts || [];
+    for (const part of parts) {
+      if (part.inlineData?.data) {
+        console.log("✅ [NanoBanana] Imagen generada con éxito");
+        return `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
       }
-      
-      // Exponential backoff: 2s, 4s, 8s
-      const backoffMs = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-      console.log(`⏳ [NanoBanana] Esperando ${backoffMs}ms antes de reintentar...`);
-      await delay(backoffMs);
     }
 
+    console.warn(
+      "⚠️ [NanoBanana] El modelo no devolvió ninguna imagen en los parts",
+    );
     return null;
   } catch (error) {
     console.error("🔥 [NanoBanana] Error crítico:", error);
