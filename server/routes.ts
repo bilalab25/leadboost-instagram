@@ -3248,35 +3248,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     async (req: any, res) => {
       try {
-        // Use brandId from requireBrand middleware for security (validates ownership)
         const brandId = req.brandId || req.brandMembership?.brandId;
         if (!brandId) {
           return res.status(400).json({ message: "Brand ID is required" });
         }
 
-        // Verify param matches authenticated brand
         if (req.params.brandId && req.params.brandId !== brandId) {
           return res.status(403).json({ message: "Unauthorized: Brand mismatch" });
         }
 
-        const { createAndStoreSamplePosts } = await import(
+        const { startSamplePostGeneration } = await import(
           "./services/samplePostGenerator"
         );
 
-        res.json({ 
-          message: "Sample post generation started", 
-          status: "processing" 
-        });
-
-        createAndStoreSamplePosts(brandId).then((success) => {
-          if (success) {
-            console.log(`[Sample Posts] Successfully generated sample posts for brand ${brandId}`);
-          } else {
-            console.error(`[Sample Posts] Failed to generate sample posts for brand ${brandId}`);
-          }
-        }).catch((error) => {
-          console.error(`[Sample Posts] Error generating sample posts:`, error);
-        });
+        const result = await startSamplePostGeneration(brandId);
+        
+        if (result) {
+          res.json({ 
+            message: "Sample post generation started", 
+            status: "processing",
+            jobId: result.jobId
+          });
+        } else {
+          res.json({ 
+            message: "Sample posts already exist or could not start generation", 
+            status: "skipped" 
+          });
+        }
       } catch (error) {
         console.error("[Sample Posts] Error:", error);
         res.status(500).json({

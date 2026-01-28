@@ -1930,19 +1930,113 @@ export default function Onboarding() {
           completed: true,
         });
 
-        // If no integrations connected, generate sample posts to showcase the platform
+        // If no integrations connected, generate sample posts with loading overlay
         const hasConnectedIntegrations = integrations && integrations.length > 0;
         if (!hasConnectedIntegrations) {
           console.log("[Onboarding] No integrations connected, generating sample posts...");
+          
+          setIsGeneratingAIPosts(true);
+          setAiGenerationMessage(
+            isSpanish
+              ? "Estamos preparando algo especial para ti..."
+              : "We're preparing something special for you...",
+          );
+          
           try {
-            await fetch(`/api/brands/${createdBrandId}/generate-sample-posts`, {
+            const response = await fetch(`/api/brands/${createdBrandId}/generate-sample-posts`, {
               method: "POST",
               credentials: "include",
             });
-            console.log("[Onboarding] Sample posts generation started");
+            
+            const data = await response.json();
+            
+            // Handle case where sample posts already exist
+            if (data.status === "skipped") {
+              console.log("[Onboarding] Sample posts already exist, skipping generation");
+              clearOnboardingState();
+              setIsGeneratingAIPosts(false);
+              setLocation("/ai-planner?showSamples=true");
+              return;
+            }
+            
+            if (data.jobId) {
+              setAiGenerationMessage(
+                isSpanish
+                  ? "Creando publicaciones de muestra con IA..."
+                  : "Creating sample posts with AI...",
+              );
+              
+              let attempts = 0;
+              const maxAttempts = 60;
+              
+              const pollJobStatus = async (): Promise<boolean> => {
+                while (attempts < maxAttempts) {
+                  attempts++;
+                  await new Promise((resolve) => setTimeout(resolve, 5000));
+                  
+                  try {
+                    const statusResponse = await apiRequest(
+                      "GET",
+                      `/api/post-generator/jobs/${data.jobId}`,
+                    );
+                    
+                    if (statusResponse.ok) {
+                      const statusData = await statusResponse.json();
+                      
+                      if (statusData.status === "completed") {
+                        return true;
+                      } else if (statusData.status === "failed") {
+                        console.error("Sample post generation failed:", statusData.error);
+                        return false;
+                      }
+                      
+                      if (attempts % 3 === 0) {
+                        const messages = isSpanish
+                          ? [
+                              "Analizando tu marca...",
+                              "Generando ideas creativas...",
+                              "Diseñando imágenes únicas...",
+                              "Puliendo el contenido...",
+                              "¡Casi listo!",
+                            ]
+                          : [
+                              "Analyzing your brand...",
+                              "Generating creative ideas...",
+                              "Designing unique images...",
+                              "Polishing the content...",
+                              "Almost ready!",
+                            ];
+                        setAiGenerationMessage(
+                          messages[Math.min(Math.floor(attempts / 3), messages.length - 1)],
+                        );
+                      }
+                    }
+                  } catch (pollError) {
+                    console.error("Error polling job status:", pollError);
+                  }
+                }
+                return false;
+              };
+              
+              const success = await pollJobStatus();
+              
+              if (success) {
+                setAiGenerationMessage(
+                  isSpanish ? "¡Listo! Redirigiendo..." : "Done! Redirecting...",
+                );
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                
+                clearOnboardingState();
+                setIsGeneratingAIPosts(false);
+                setLocation("/ai-planner?showSamples=true");
+                return;
+              }
+            }
           } catch (sampleError) {
             console.error("Failed to trigger sample post generation:", sampleError);
           }
+          
+          setIsGeneratingAIPosts(false);
         }
       } catch (error) {
         console.error("Failed to mark onboarding as completed:", error);
@@ -1956,10 +2050,10 @@ export default function Onboarding() {
       description: isSpanish
         ? hasIntegrations 
           ? "Tu marca está lista para usar."
-          : "Tu marca está lista. ¡Generamos algunas publicaciones de muestra para ti!"
+          : "Tu marca está lista."
         : hasIntegrations 
           ? "Your brand is ready to use."
-          : "Your brand is ready. We're generating some sample posts for you!",
+          : "Your brand is ready.",
     });
     setLocation("/dashboard");
   };

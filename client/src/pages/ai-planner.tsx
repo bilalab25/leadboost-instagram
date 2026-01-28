@@ -244,30 +244,53 @@ export default function AIPlanner() {
     }
   }, [jobStatus?.status, isSpanish, refetchPosts, toast]);
 
-  // Check for showWelcome query parameter from onboarding completion
+  // Check for showWelcome or showSamples query parameter from onboarding completion
+  const [isShowingSamples, setIsShowingSamples] = useState(false);
+  const [pendingShowSamples, setPendingShowSamples] = useState(false);
+  const [pendingShowWelcome, setPendingShowWelcome] = useState(false);
+  
+  // Detect query params and store intent
   useEffect(() => {
     const params = new URLSearchParams(searchString);
-    if (params.get("showWelcome") === "true" && aiGeneratedPosts && aiGeneratedPosts.length > 0) {
+    const showWelcome = params.get("showWelcome") === "true";
+    const showSamples = params.get("showSamples") === "true";
+    
+    if (showWelcome || showSamples) {
+      setPendingShowWelcome(showWelcome);
+      setPendingShowSamples(showSamples);
+      // Remove the query param from URL immediately
+      setLocation("/ai-planner", { replace: true });
+      // Force refetch to get latest posts
+      refetchPosts();
+    }
+  }, [searchString, setLocation, refetchPosts]);
+  
+  // Open modal once posts are loaded and we have pending request
+  useEffect(() => {
+    if ((pendingShowWelcome || pendingShowSamples) && aiGeneratedPosts && aiGeneratedPosts.length > 0 && !postsLoading) {
+      setIsShowingSamples(pendingShowSamples);
       setShowWelcomeModal(true);
       setCarouselIndex(0);
-      // Remove the query param from URL without reload
-      setLocation("/ai-planner", { replace: true });
+      setPendingShowWelcome(false);
+      setPendingShowSamples(false);
     }
-  }, [searchString, aiGeneratedPosts, setLocation]);
+  }, [pendingShowWelcome, pendingShowSamples, aiGeneratedPosts, postsLoading]);
 
-  // Get pending posts for the carousel
+  // Get posts for the carousel - for sample posts, show all samples; otherwise show pending posts
+  const samplePosts = aiGeneratedPosts?.filter(post => post.isSample) || [];
   const pendingPosts = aiGeneratedPosts?.filter(post => post.status === "pending") || [];
+  const carouselPosts = isShowingSamples && samplePosts.length > 0 ? samplePosts : pendingPosts;
 
   // Carousel navigation
   const nextSlide = () => {
-    if (pendingPosts.length > 0) {
-      setCarouselIndex((prev) => (prev + 1) % pendingPosts.length);
+    if (carouselPosts.length > 0) {
+      setCarouselIndex((prev) => (prev + 1) % carouselPosts.length);
     }
   };
 
   const prevSlide = () => {
-    if (pendingPosts.length > 0) {
-      setCarouselIndex((prev) => (prev - 1 + pendingPosts.length) % pendingPosts.length);
+    if (carouselPosts.length > 0) {
+      setCarouselIndex((prev) => (prev - 1 + carouselPosts.length) % carouselPosts.length);
     }
   };
 
@@ -378,16 +401,16 @@ export default function AIPlanner() {
             </DialogHeader>
           </div>
           
-          {pendingPosts.length > 0 && (
+          {carouselPosts.length > 0 && (
             <div className="p-6">
               {/* Carousel */}
               <div className="relative">
                 {/* Main Image */}
                 <div className="relative aspect-square max-h-[400px] mx-auto rounded-xl overflow-hidden bg-gray-100 mb-4">
-                  {pendingPosts[carouselIndex]?.imageUrl ? (
+                  {carouselPosts[carouselIndex]?.imageUrl ? (
                     <img
-                      src={pendingPosts[carouselIndex].imageUrl}
-                      alt={pendingPosts[carouselIndex].titulo}
+                      src={carouselPosts[carouselIndex].imageUrl}
+                      alt={carouselPosts[carouselIndex].titulo}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -398,16 +421,16 @@ export default function AIPlanner() {
                   
                   {/* Platform badge */}
                   <div className="absolute top-3 left-3">
-                    <Badge className={cn("text-sm font-semibold", platformColors[pendingPosts[carouselIndex]?.platform as keyof typeof platformColors] || "bg-gray-100 text-gray-800")}>
-                      {pendingPosts[carouselIndex]?.platform === "instagram" && <SiInstagram className="w-3 h-3 mr-1" />}
-                      {pendingPosts[carouselIndex]?.platform === "facebook" && <SiFacebook className="w-3 h-3 mr-1" />}
-                      {pendingPosts[carouselIndex]?.platform === "tiktok" && <SiTiktok className="w-3 h-3 mr-1" />}
-                      {pendingPosts[carouselIndex]?.platform}
+                    <Badge className={cn("text-sm font-semibold", platformColors[carouselPosts[carouselIndex]?.platform as keyof typeof platformColors] || "bg-gray-100 text-gray-800")}>
+                      {carouselPosts[carouselIndex]?.platform === "instagram" && <SiInstagram className="w-3 h-3 mr-1" />}
+                      {carouselPosts[carouselIndex]?.platform === "facebook" && <SiFacebook className="w-3 h-3 mr-1" />}
+                      {carouselPosts[carouselIndex]?.platform === "tiktok" && <SiTiktok className="w-3 h-3 mr-1" />}
+                      {carouselPosts[carouselIndex]?.platform}
                     </Badge>
                   </div>
                   
                   {/* Sample Post Badge */}
-                  {pendingPosts[carouselIndex]?.isSample && (
+                  {carouselPosts[carouselIndex]?.isSample && (
                     <div className="absolute top-3 right-3">
                       <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md">
                         <Star className="mr-1 h-3 w-3" />
@@ -418,7 +441,7 @@ export default function AIPlanner() {
                 </div>
 
                 {/* Navigation Arrows */}
-                {pendingPosts.length > 1 && (
+                {carouselPosts.length > 1 && (
                   <>
                     <button
                       onClick={prevSlide}
@@ -440,24 +463,24 @@ export default function AIPlanner() {
                 {/* Post Content */}
                 <div className="space-y-3">
                   <h3 className="text-lg font-bold text-gray-900">
-                    {pendingPosts[carouselIndex]?.titulo}
+                    {carouselPosts[carouselIndex]?.titulo}
                   </h3>
-                  {pendingPosts[carouselIndex]?.content && (
+                  {carouselPosts[carouselIndex]?.content && (
                     <p className="text-gray-600 line-clamp-3">
-                      {pendingPosts[carouselIndex].content}
+                      {carouselPosts[carouselIndex].content}
                     </p>
                   )}
-                  {pendingPosts[carouselIndex]?.hashtags && (
+                  {carouselPosts[carouselIndex]?.hashtags && (
                     <p className="text-indigo-600 text-sm">
-                      {pendingPosts[carouselIndex].hashtags}
+                      {carouselPosts[carouselIndex].hashtags}
                     </p>
                   )}
                 </div>
 
                 {/* Dots indicator */}
-                {pendingPosts.length > 1 && (
+                {carouselPosts.length > 1 && (
                   <div className="flex justify-center gap-2 mt-4">
-                    {pendingPosts.map((_, idx) => (
+                    {carouselPosts.map((_, idx) => (
                       <button
                         key={idx}
                         onClick={() => setCarouselIndex(idx)}
@@ -476,13 +499,13 @@ export default function AIPlanner() {
 
               {/* Counter */}
               <p className="text-center text-gray-500 mt-4">
-                {carouselIndex + 1} / {pendingPosts.length} {isSpanish ? "publicaciones" : "posts"}
+                {carouselIndex + 1} / {carouselPosts.length} {isSpanish ? "publicaciones" : "posts"}
               </p>
 
               {/* Action Button */}
               <div className="mt-6 text-center">
                 <Button 
-                  onClick={() => setShowWelcomeModal(false)}
+                  onClick={() => { setShowWelcomeModal(false); setIsShowingSamples(false); }}
                   className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
                   data-testid="button-view-calendar"
                 >
@@ -493,7 +516,7 @@ export default function AIPlanner() {
             </div>
           )}
 
-          {pendingPosts.length === 0 && (
+          {carouselPosts.length === 0 && (
             <div className="p-6 text-center">
               <Loader2 className="w-12 h-12 mx-auto animate-spin text-indigo-600 mb-4" />
               <p className="text-gray-600">

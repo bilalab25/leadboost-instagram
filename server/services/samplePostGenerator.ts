@@ -317,25 +317,37 @@ export async function generateSamplePosts(
   return generatedPosts;
 }
 
-export async function createAndStoreSamplePosts(brandId: string): Promise<boolean> {
+export async function startSamplePostGeneration(brandId: string): Promise<{ jobId: string } | null> {
   try {
     const existingSamples = await getSamplePostsByBrand(brandId);
     if (existingSamples && existingSamples.length > 0) {
       console.log(`[SamplePostGenerator] Brand ${brandId} already has sample posts, skipping`);
-      return true;
-    }
-
-    const generatedPosts = await generateSamplePosts(brandId);
-    
-    if (generatedPosts.length === 0) {
-      console.error(`[SamplePostGenerator] No posts were generated for brand ${brandId}`);
-      return false;
+      return null;
     }
 
     const job = await createPostGeneratorJob(brandId);
     if (!job) {
       console.error(`[SamplePostGenerator] Could not create job for brand ${brandId}`);
-      return false;
+      return null;
+    }
+
+    processSamplePostsAsync(brandId, job.id);
+
+    return { jobId: job.id };
+  } catch (error) {
+    console.error(`[SamplePostGenerator] Error starting sample post generation:`, error);
+    return null;
+  }
+}
+
+async function processSamplePostsAsync(brandId: string, jobId: string): Promise<void> {
+  try {
+    const generatedPosts = await generateSamplePosts(brandId);
+    
+    if (generatedPosts.length === 0) {
+      console.error(`[SamplePostGenerator] No posts were generated for brand ${brandId}`);
+      await updatePostGeneratorJob(jobId, { status: "failed", error: "No posts generated" });
+      return;
     }
 
     const days = ["monday", "tuesday", "wednesday"];
@@ -343,7 +355,7 @@ export async function createAndStoreSamplePosts(brandId: string): Promise<boolea
     for (let i = 0; i < generatedPosts.length; i++) {
       const post = generatedPosts[i];
       await createAiGeneratedPost({
-        jobId: job.id,
+        jobId: jobId,
         brandId,
         platform: post.platform,
         titulo: post.titulo,
@@ -357,12 +369,16 @@ export async function createAndStoreSamplePosts(brandId: string): Promise<boolea
       });
     }
 
-    await updatePostGeneratorJob(job.id, { status: "completed" });
+    await updatePostGeneratorJob(jobId, { status: "completed" });
     
     console.log(`[SamplePostGenerator] Successfully created ${generatedPosts.length} sample posts for brand ${brandId}`);
-    return true;
   } catch (error) {
-    console.error(`[SamplePostGenerator] Error creating sample posts:`, error);
-    return false;
+    console.error(`[SamplePostGenerator] Error processing sample posts:`, error);
+    await updatePostGeneratorJob(jobId, { status: "failed", error: error instanceof Error ? error.message : "Unknown error" });
   }
+}
+
+export async function createAndStoreSamplePosts(brandId: string): Promise<boolean> {
+  const result = await startSamplePostGeneration(brandId);
+  return result !== null;
 }
