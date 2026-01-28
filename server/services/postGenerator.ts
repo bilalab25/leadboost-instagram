@@ -399,25 +399,29 @@ function buildTextPrompt(context: PostGenerationContext): string {
     connectedPlatforms,
   } = context;
   const productAssets = brandAssets.filter(
-    (a) => a.category === "product_assets",
+    (a) => a.category && ["product_images", "product", "products", "product_assets"].includes(a.category),
   );
   const locationAssets = brandAssets.filter(
-    (a) => a.category === "location_assets",
+    (a) => a.category && ["location", "location_images", "location_assets", "place"].includes(a.category),
   );
   const inspirationAssets = brandAssets.filter(
     (a) => a.category === "inspiration_templates",
   );
 
   // Detect if brand has product images available
-  const hasProducts = brandAssets.some(
-    (a) =>
-      a.category &&
-      ["product_images", "product", "products", "product_assets"].includes(
-        a.category,
-      ),
-  );
+  const hasProducts = productAssets.length > 0;
+  
+  // Detect if brand has location images available
+  const hasLocation = locationAssets.length > 0;
 
-  // Product context for content strategy
+  // Visual context for content strategy based on available assets
+  const visualContext = hasProducts
+    ? "The brand has real product images available. These should be featured naturally in the posts - on elegant surfaces, in lifestyle contexts, or being used/worn."
+    : hasLocation
+    ? "The brand has real location images (e.g. clinic, restaurant, store, office). These represent a real physical space and MUST NOT be altered. Use them as-is and build marketing content around them."
+    : "The brand has no real product or location images available. Create lifestyle or brand-focused visuals from scratch that represent the brand's essence.";
+
+  // Product context for content strategy (legacy compatibility)
   const productContext = hasProducts
     ? "The brand has product images available. Focus on showcasing products, benefits, and use cases."
     : "The brand has no product images yet. Focus on brand awareness, lifestyle, and engagement content.";
@@ -661,11 +665,13 @@ REQUIREMENTS:
     * **THINK IMAGE FIRST:** Before writing the caption, visualize what image would best represent this post. The imagePrompt drives the content.
     * **CRITICAL:** The prompt MUST describe a **professional, photorealistic marketing image** suitable for social media.
     * **BRAND ALIGNMENT:** Use brand colors (${colorPalette}) and ${brandDesign.brandStyle || "modern"} style as visual foundation.
-    * ${hasProducts ? "**WITH PRODUCTS:** Feature brand products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn." : "**WITHOUT PRODUCTS:** Focus on lifestyle imagery, brand mood, atmosphere, and aspirational scenes that represent the brand's essence."}
+    * **VISUAL CONTEXT:** ${visualContext}
+    * ${hasProducts ? "**WITH PRODUCTS:** Feature brand products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn. Products may be creatively integrated into different settings." : hasLocation ? "**WITH LOCATION IMAGES:** The provided location images represent a REAL PHYSICAL SPACE (clinic, restaurant, store, office). These MUST NOT be modified, redesigned, or altered. Do NOT change architecture, furniture, layout, walls, or colors. Focus ONLY on lighting, framing, atmosphere, and composition. Do NOT hallucinate environments when real photos are provided." : "**WITHOUT REAL IMAGES:** Focus on lifestyle imagery, brand mood, atmosphere, and aspirational scenes that represent the brand's essence."}
     * **CRÍTICO: FIDELIDAD FÁCTICA DEL PRODUCTO:** When generating the imagePrompt, you MUST describe the product (e.g., the bracelet, the ring, the necklace) with **absolute fidelity** to the material, color, and shape provided in the 'FACTUAL PRODUCT CATALOG'. **DO NOT add details, change colors (e.g., Gold must remain Gold), or modify the object's geometry.** The creative freedom is restricted ONLY to the background and staging elements.
     * **TEXT IN IMAGES:** Avoid large blocks of text in images. If text is needed, limit to 1-3 subtle words only (brand name or short tagline).
     * **COMPOSITION:** Use professional composition suitable for social media - clean backgrounds, good lighting, visually appealing arrangement.
     * References specific products or assets from the brand when relevant (PRODUCT NAME from catalog).
+    * ${hasLocation ? "**LOCATION PRESERVATION:** If location images are referenced, describe them as-is without modifications to the physical space." : ""}
 5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
 6. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
 7. **CRÍTICO:** When creating the imagePrompt, you MUST reference the **specific names** of the top-selling products or relevant visual assets from the BRAND VISUAL ASSETS and TOP SELLING PRODUCTS lists (e.g., "The image must feature the 'Classic Chronos' watch in a leather band, matching the visual style of the reference images provided."). This ensures the final image features the brand's actual catalog.
@@ -1542,15 +1548,32 @@ export async function generateImageWithNanoBanana(
     // ✔ Prompt final con resúmenes incluidos (no cambia tu estructura original)
     // ==========================================================================================
     
-    // Detect if brand has product images available
+    // Classify brand assets into product and location categories
     const hasProducts = brandAssets?.some(
       (a) => a.category && ["product_images", "product", "products", "product_assets"].includes(a.category)
     ) ?? false;
     
-    // Product context for image strategy
+    const hasLocation = brandAssets?.some(
+      (a) => a.category && ["location", "location_images", "location_assets", "place"].includes(a.category)
+    ) ?? false;
+    
+    // Visual context for image strategy based on available assets
     const productImageContext = hasProducts
-      ? "The brand has product images. Feature products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn."
-      : "The brand has no product images yet. Focus on lifestyle imagery, brand mood, atmosphere, and aspirational scenes that represent the brand's essence.";
+      ? "The brand has real product images. Feature products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn. Products may be creatively integrated."
+      : hasLocation
+      ? "The brand has real location images (e.g. clinic, restaurant, store, office). These represent a REAL PHYSICAL SPACE and MUST NOT be altered. Use them as-is and build marketing content around them."
+      : "The brand has no real product or location images. Focus on lifestyle imagery, brand mood, atmosphere, and aspirational scenes that represent the brand's essence.";
+    
+    // Location-specific constraints
+    const locationConstraints = hasLocation
+      ? `
+LOCATION IMAGE CONSTRAINTS (CRITICAL):
+- The provided location images represent a REAL physical space - DO NOT alter, redesign, or modify them.
+- Do NOT change architecture, furniture, layout, walls, colors, or any structural elements.
+- Focus ONLY on: lighting enhancements, framing, atmosphere, and composition.
+- Do NOT hallucinate or add elements that don't exist in the real location.
+- Preserve the authentic look of the space exactly as photographed.`
+      : "";
     
     const enhancedPrompt = `${visualResetBlock}${imagePrompt}. 
 
@@ -1562,8 +1585,9 @@ La imagen final debe ser:
 - Lista para publicar sin edición adicional
 - Composición limpia con buena iluminación y fondo profesional
 
-PRODUCT AWARENESS:
+VISUAL CONTEXT:
 ${productImageContext}
+${locationConstraints}
 
 TEXT IN IMAGES (CRITICAL RULE):
 - AVOID large blocks of text in the image

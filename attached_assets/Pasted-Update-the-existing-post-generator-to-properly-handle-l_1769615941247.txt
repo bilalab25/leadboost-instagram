@@ -1,0 +1,47 @@
+Update the existing post generator to properly handle location images
+(e.g. clinics, restaurants, stores, offices).
+
+GOAL:
+Ensure the AI understands the difference between:
+- Product images (can be creatively integrated)
+- Location images (real places that MUST NOT be altered)
+- No images (fully generated visuals)
+
+REQUIRED CHANGES:
+
+1) Classify brand assets into two groups:
+- productAssets: categories "product", "products", "product_images"
+- locationAssets: categories "location", "location_images", "place"
+
+2) Add a visualContext string based on available assets:
+- If productAssets exist:
+  "The brand has real product images available. These should be featured naturally in the posts."
+- Else if locationAssets exist:
+  "The brand has real location images (e.g. clinic, restaurant, store). These represent a real physical space and MUST NOT be altered. Use them as-is and build marketing content around them."
+- Else:
+  "The brand has no real images available. Create lifestyle or brand-focused visuals from scratch."
+
+3) Inject visualContext into the main prompt sent to Gemini.
+
+4) Update the IMAGE PROMPT rules to include the following constraints:
+- If product images are provided, they may be creatively integrated.
+- If location images are provided, they represent a real physical place and MUST NOT be modified, redesigned, or altered.
+- Do NOT change architecture, furniture, layout, walls, or colors of location images.
+- For location images, focus only on lighting, framing, atmosphere, and composition.
+- Do NOT hallucinate environments when real photos are provided.
+
+5) When constructing the enhanced image prompt, conditionally add:
+- "- Feature the provided product images naturally in the scene" if productAssets exist
+- "- Use the provided location images as-is without altering the space" if locationAssets exist
+
+6) Do NOT change:
+- Function signatures
+- Storage logic
+- Job processing flow
+- Database schemas
+- API responses
+
+7) Keep all changes minimal and localized to prompt construction logic only.
+
+After the changes, the generator must behave exactly the same externally,
+but produce more realistic and brand-authentic images when location images exist.
