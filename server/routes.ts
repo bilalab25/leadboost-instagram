@@ -5740,29 +5740,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   // Only fetch profile for INBOUND messages if we don't have recent data
                   if (shouldFetchProfilePicture && !isOutbound) {
                     try {
-                      const igProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=username,name,profile_pic&access_token=${accessToken}`;
-                      console.log(
-                        `📱 [Instagram Direct] Fetching profile for sender: ${senderId}`,
-                      );
-                      const igProfileRes = await fetch(igProfileUrl);
-                      const igProfileData = await igProfileRes.json();
-                      console.log(
-                        `📱 [Instagram Direct] Profile response:`,
-                        igProfileData,
-                      );
-                      if (!igProfileData.error) {
-                        if (igProfileData.username || igProfileData.name) {
-                          contactName =
-                            igProfileData.username || igProfileData.name;
-                          console.log(
-                            `✅ [Instagram Direct] Got contact name: ${contactName}`,
-                          );
+                      console.log(`📱 [Instagram Direct] Fetching profile for sender: ${senderId}`);
+                      
+                      // First, try using conversation participants endpoint (more reliable for IG)
+                      const convoParticipantsUrl = `https://graph.facebook.com/v24.0/${integration.accountId || integration.pageId}/conversations?platform=instagram&user_id=${contactId}&fields=participants&access_token=${accessToken}`;
+                      const convoParticipantsRes = await fetch(convoParticipantsUrl);
+                      const convoParticipantsData = await convoParticipantsRes.json();
+                      
+                      console.log(`📋 [Instagram Direct] Conversation participants response:`, JSON.stringify(convoParticipantsData, null, 2));
+                      
+                      if (convoParticipantsData?.data?.[0]?.participants?.data) {
+                        const participants = convoParticipantsData.data[0].participants.data;
+                        const userParticipant = participants.find((p: any) => p.id === contactId);
+                        
+                        if (userParticipant?.username || userParticipant?.name) {
+                          contactName = userParticipant.username || userParticipant.name;
+                          console.log(`✅ [Instagram Direct] Got contact name from conversation: ${contactName}`);
                         }
-                        if (igProfileData.profile_pic) {
-                          contactProfilePicture = igProfileData.profile_pic;
-                          console.log(
-                            `✅ [Instagram Direct] Got profile picture`,
-                          );
+                      }
+                      
+                      // If still no name, try direct profile endpoint
+                      if (!contactName) {
+                        const igProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=username,name,profile_pic&access_token=${accessToken}`;
+                        console.log(`📱 [Instagram Direct] Trying direct profile endpoint...`);
+                        const igProfileRes = await fetch(igProfileUrl);
+                        const igProfileData = await igProfileRes.json();
+                        console.log(`📱 [Instagram Direct] Direct profile response:`, igProfileData);
+                        
+                        if (!igProfileData.error) {
+                          if (igProfileData.username || igProfileData.name) {
+                            contactName = igProfileData.username || igProfileData.name;
+                            console.log(`✅ [Instagram Direct] Got contact name: ${contactName}`);
+                          }
+                          if (igProfileData.profile_pic) {
+                            contactProfilePicture = igProfileData.profile_pic;
+                            console.log(`✅ [Instagram Direct] Got profile picture`);
+                          }
+                        } else {
+                          console.warn(`⚠️ [Instagram Direct] Direct profile API error:`, igProfileData.error);
                         }
                       }
                     } catch (profileErr) {
@@ -6115,30 +6130,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Only fetch profile if we don't have a recent one
                 if (shouldFetchProfilePicture) {
                   try {
-                    // All messaging platforms use graph.facebook.com with profile_pic
-                    const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`;
-                    console.log(
-                      `📷 [${platform}] Fetching profile for sender: ${senderId}`,
-                    );
-                    const profileRes = await fetch(profileUrl);
-                    const profileData = await profileRes.json();
-
-                    if (!profileData.error) {
-                      if (profileData.username || profileData.name) {
-                        contactName = profileData.username || profileData.name;
-                        console.log(
-                          `✅ [${platform}] Got contact name: ${contactName}`,
-                        );
+                    // For Instagram, try using the conversation participants endpoint first
+                    if (platform === "instagram" || platform === "instagram_direct") {
+                      console.log(`📷 [${platform}] Trying to fetch profile via conversation participants...`);
+                      
+                      // First, try to get the conversation ID from Meta
+                      const convoInfoUrl = `https://graph.facebook.com/v24.0/${pageId}/conversations?platform=instagram&user_id=${senderId}&fields=participants&access_token=${accessToken}`;
+                      const convoInfoRes = await fetch(convoInfoUrl);
+                      const convoInfoData = await convoInfoRes.json();
+                      
+                      console.log(`📋 [${platform}] Conversation participants response:`, JSON.stringify(convoInfoData, null, 2));
+                      
+                      if (convoInfoData?.data?.[0]?.participants?.data) {
+                        const participants = convoInfoData.data[0].participants.data;
+                        // Find the participant that is NOT the page/business account
+                        const userParticipant = participants.find((p: any) => p.id === senderId);
+                        
+                        if (userParticipant?.username || userParticipant?.name) {
+                          contactName = userParticipant.username || userParticipant.name;
+                          console.log(`✅ [${platform}] Got contact name from conversation: ${contactName}`);
+                        }
                       }
-                      if (profileData.profile_pic) {
-                        contactProfilePicture = profileData.profile_pic;
-                        console.log(`✅ [${platform}] Got profile picture`);
+                      
+                      // If still no name, try direct profile endpoint (works for some accounts)
+                      if (!contactName) {
+                        const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`;
+                        console.log(`📷 [${platform}] Trying direct profile endpoint for sender: ${senderId}`);
+                        const profileRes = await fetch(profileUrl);
+                        const profileData = await profileRes.json();
+                        
+                        if (!profileData.error) {
+                          if (profileData.username || profileData.name) {
+                            contactName = profileData.username || profileData.name;
+                            console.log(`✅ [${platform}] Got contact name: ${contactName}`);
+                          }
+                          if (profileData.profile_pic) {
+                            contactProfilePicture = profileData.profile_pic;
+                            console.log(`✅ [${platform}] Got profile picture`);
+                          }
+                        } else {
+                          console.warn(`⚠️ [${platform}] Direct profile API error:`, profileData.error);
+                        }
                       }
                     } else {
-                      console.warn(
-                        `⚠️ [${platform}] Profile API error:`,
-                        profileData.error,
-                      );
+                      // For Facebook Messenger, use direct profile endpoint
+                      const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`;
+                      console.log(`📷 [${platform}] Fetching profile for sender: ${senderId}`);
+                      const profileRes = await fetch(profileUrl);
+                      const profileData = await profileRes.json();
+
+                      if (!profileData.error) {
+                        if (profileData.username || profileData.name) {
+                          contactName = profileData.username || profileData.name;
+                          console.log(`✅ [${platform}] Got contact name: ${contactName}`);
+                        }
+                        if (profileData.profile_pic) {
+                          contactProfilePicture = profileData.profile_pic;
+                          console.log(`✅ [${platform}] Got profile picture`);
+                        }
+                      } else {
+                        console.warn(`⚠️ [${platform}] Profile API error:`, profileData.error);
+                      }
                     }
                   } catch (profileErr) {
                     console.warn(
