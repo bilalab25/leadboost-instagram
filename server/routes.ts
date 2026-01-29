@@ -5705,6 +5705,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }
 
                   // Check if profile picture is already cached and recent (less than 7 days old)
+                  // BUT still fetch if contactName is missing
+                  let shouldFetchContactName = !existingConversation?.contactName;
+                  
                   if (
                     existingConversation?.contactProfilePicture &&
                     existingConversation?.contactProfilePictureFetchedAt
@@ -5724,6 +5727,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       console.log(
                         `⏭️ [Instagram Direct] Using cached profile data (fetched ${fetchedAt.toISOString()})`,
                       );
+                      
+                      // If we have cached picture but no name, we should still try to fetch the name
+                      if (!contactName) {
+                        shouldFetchContactName = true;
+                        console.log(`🔄 [Instagram Direct] Cached picture exists but no name - will fetch profile`);
+                      }
                     }
                   }
 
@@ -5737,10 +5746,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     );
                   }
 
-                  // Only fetch profile for INBOUND messages if we don't have recent data
-                  if (shouldFetchProfilePicture && !isOutbound) {
+                  // Only fetch profile for INBOUND messages if we don't have recent data OR if name is missing
+                  if ((shouldFetchProfilePicture || shouldFetchContactName) && !isOutbound) {
                     try {
-                      console.log(`📱 [Instagram Direct] Fetching profile for sender: ${senderId}`);
+                      console.log(`📱 [Instagram Direct] Fetching profile for sender: ${senderId} (fetchPic: ${shouldFetchProfilePicture}, fetchName: ${shouldFetchContactName})`);
                       
                       // First, try using conversation participants endpoint (more reliable for IG)
                       const convoParticipantsUrl = `https://graph.facebook.com/v24.0/${integration.accountId || integration.pageId}/conversations?platform=instagram&user_id=${contactId}&fields=participants&access_token=${accessToken}`;
@@ -5759,17 +5768,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         }
                       }
                       
-                      // If still no name, try direct profile endpoint
+                      // If still no name, try Instagram Graph API endpoint (graph.instagram.com)
                       if (!contactName) {
-                        const igProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=name,profile_pic&access_token=${accessToken}`;
-                        console.log(`📱 [Instagram Direct] Trying direct profile endpoint...`);
+                        const igProfileUrl = `https://graph.instagram.com/v24.0/${contactId}?fields=name,profile_pic&access_token=${accessToken}`;
+                        console.log(`📱 [Instagram Direct] Trying Instagram Graph API: ${igProfileUrl.replace(accessToken, 'TOKEN_HIDDEN')}`);
                         const igProfileRes = await fetch(igProfileUrl);
                         const igProfileData = await igProfileRes.json();
-                        console.log(`📱 [Instagram Direct] Direct profile response:`, igProfileData);
+                        console.log(`📱 [Instagram Direct] Instagram Graph API response:`, JSON.stringify(igProfileData, null, 2));
                         
                         if (!igProfileData.error) {
-                          if (igProfileData.username || igProfileData.name) {
-                            contactName = igProfileData.username || igProfileData.name;
+                          if (igProfileData.name) {
+                            contactName = igProfileData.name;
                             console.log(`✅ [Instagram Direct] Got contact name: ${contactName}`);
                           }
                           if (igProfileData.profile_pic) {
@@ -5777,7 +5786,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
                             console.log(`✅ [Instagram Direct] Got profile picture`);
                           }
                         } else {
-                          console.warn(`⚠️ [Instagram Direct] Direct profile API error:`, igProfileData.error);
+                          console.warn(`⚠️ [Instagram Direct] Instagram Graph API error:`, igProfileData.error);
+                          
+                          // Fallback to Facebook Graph API
+                          const fbProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=name,profile_pic&access_token=${accessToken}`;
+                          console.log(`📱 [Instagram Direct] Fallback to Facebook Graph API...`);
+                          const fbProfileRes = await fetch(fbProfileUrl);
+                          const fbProfileData = await fbProfileRes.json();
+                          
+                          if (!fbProfileData.error) {
+                            if (fbProfileData.name) {
+                              contactName = fbProfileData.name;
+                              console.log(`✅ [Instagram Direct] Got contact name from FB: ${contactName}`);
+                            }
+                            if (fbProfileData.profile_pic) {
+                              contactProfilePicture = fbProfileData.profile_pic;
+                              console.log(`✅ [Instagram Direct] Got profile picture from FB`);
+                            }
+                          }
                         }
                       }
                     } catch (profileErr) {
