@@ -66,7 +66,7 @@ function hasVisualAssets(
   const hasLocations = brandAssets.some(
     (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
   );
-  const hasUsableLogo = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl;
+  const hasUsableLogo = !!(brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl);
 
   return hasProducts || hasLocations || hasUsableLogo;
 }

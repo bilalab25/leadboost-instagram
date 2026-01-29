@@ -7453,10 +7453,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // 2️⃣ Resolver meta_conversation_id
           metaConversationId = conversationId;
-          if (!conversationId.startsWith("t_")) {
-            console.log(
-              "🔄 Conversation ID parece un userId, buscando meta_conversation_id...",
-            );
+          
+          // Check if conversationId is a UUID (our internal conversation ID)
+          const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(conversationId);
+          
+          if (isUUID) {
+            // Fetch conversation directly from DB to get its metaConversationId
+            console.log("🔄 Conversation ID es UUID interno, buscando en DB...");
+            const conversation = await storage.getConversation(conversationId);
+            
+            if (conversation?.metaConversationId) {
+              metaConversationId = conversation.metaConversationId;
+              console.log(`✅ Mapeado a meta_conversation_id: ${metaConversationId}`);
+            } else {
+              console.warn("⚠️ No se encontró metaConversationId en la conversación.");
+            }
+          } else if (!conversationId.startsWith("t_")) {
+            // Legacy fallback: try to find via messages
+            console.log("🔄 Conversation ID parece un userId, buscando meta_conversation_id...");
 
             const localMsg = await storage.findMessageByUserAndRecipient(
               userId,
@@ -7466,9 +7480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             if (localMsg?.meta_conversation_id) {
               metaConversationId = localMsg.meta_conversation_id;
-              console.log(
-                `Mapeado a meta_conversation_id: ${metaConversationId}`,
-              );
+              console.log(`Mapeado a meta_conversation_id: ${metaConversationId}`);
             } else {
               console.warn("⚠️ No se encontró meta_conversation_id asociado.");
             }
@@ -7551,12 +7563,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`🆔 Page ID vinculado: ${pageId}`);
 
-          // El conversationId de IG ya es el meta_conversation_id
+          // Resolver meta_conversation_id
           metaConversationId = conversationId;
+          
+          // Check if conversationId is a UUID (our internal conversation ID)
+          const isIgUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(conversationId);
+          
+          if (isIgUUID) {
+            console.log("🔄 [IG] Conversation ID es UUID interno, buscando en DB...");
+            const igConversation = await storage.getConversation(conversationId);
+            
+            if (igConversation?.metaConversationId) {
+              metaConversationId = igConversation.metaConversationId;
+              console.log(`✅ [IG] Mapeado a meta_conversation_id: ${metaConversationId}`);
+            } else {
+              console.warn("⚠️ [IG] No se encontró metaConversationId en la conversación.");
+            }
+          }
 
           // Obtener destinatario
           const convoRes = await fetch(
-            `https://graph.facebook.com/v24.0/${conversationId}?fields=participants&access_token=${integration.accessToken}`,
+            `https://graph.facebook.com/v24.0/${metaConversationId}?fields=participants&access_token=${integration.accessToken}`,
           );
           const convoData = await convoRes.json();
 
@@ -7599,12 +7626,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`🆔 IGBA ID: ${igbaId}`);
 
-          // El conversationId ya es el meta_conversation_id
+          // Resolver meta_conversation_id
           metaConversationId = conversationId;
+          
+          // Check if conversationId is a UUID (our internal conversation ID)
+          const isIgDirectUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(conversationId);
+          
+          if (isIgDirectUUID) {
+            console.log("🔄 [IG Direct] Conversation ID es UUID interno, buscando en DB...");
+            const igDirectConvo = await storage.getConversation(conversationId);
+            
+            if (igDirectConvo?.metaConversationId) {
+              metaConversationId = igDirectConvo.metaConversationId;
+              console.log(`✅ [IG Direct] Mapeado a meta_conversation_id: ${metaConversationId}`);
+            } else {
+              console.warn("⚠️ [IG Direct] No se encontró metaConversationId en la conversación.");
+            }
+          }
 
-          // Extract recipient ID from conversation ID
+          // Extract recipient ID from conversation ID (metaConversationId)
           // Format: {igbaId}_{recipientIGSID} e.g., "17841458433478265_2041846339885995"
-          const parts = conversationId.split("_");
+          const parts = metaConversationId.split("_");
           if (parts.length >= 2) {
             // The recipient ID is the second part
             recipientId = parts[1];
