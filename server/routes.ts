@@ -7644,12 +7644,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          // Extract recipient ID from conversation ID (metaConversationId)
-          // Format: {igbaId}_{recipientIGSID} e.g., "17841458433478265_2041846339885995"
+          // Extract recipient ID from metaConversationId
+          // Formats can be:
+          // - "ig_dm_2041846339885995" (ig_dm_recipientId) 
+          // - "17841458433478265_2041846339885995" (igbaId_recipientId)
           const parts = metaConversationId.split("_");
           if (parts.length >= 2) {
-            // The recipient ID is the second part
-            recipientId = parts[1];
+            // The recipient ID is the LAST part (handles both formats)
+            recipientId = parts[parts.length - 1];
             console.log(
               `📍 Recipient ID extracted from conversation ID: ${recipientId}`,
             );

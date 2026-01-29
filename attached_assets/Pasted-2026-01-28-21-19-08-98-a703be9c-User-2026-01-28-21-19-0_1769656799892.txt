@@ -1,0 +1,132 @@
+2026-01-28 21:19:08.98
+a703be9c
+User
+=============================
+2026-01-28 21:19:08.98
+a703be9c
+User
+✉️ Message content: hola
+2026-01-28 21:19:08.98
+a703be9c
+User
+💬 Conversation ID: 11bf4a48-d23f-4424-83f3-bb22bd20b759
+2026-01-28 21:19:09.00
+a703be9c
+User
+💬 [Instagram Direct] Sending message to conversation 11bf4a48-d23f-4424-83f3-bb22bd20b759
+2026-01-28 21:19:09.00
+a703be9c
+User
+🆔 IGBA ID: 17841458433478265
+2026-01-28 21:19:09.00
+a703be9c
+User
+🔄 [IG Direct] Conversation ID es UUID interno, buscando en DB...
+2026-01-28 21:19:09.02
+a703be9c
+User
+✅ [IG Direct] Mapeado a meta_conversation_id: ig_dm_2041846339885995
+2026-01-28 21:19:09.02
+a703be9c
+User
+📍 Recipient ID extracted from conversation ID: dm
+2026-01-28 21:19:09.02
+a703be9c
+User
+📍 Recipient ID (IG Direct): dm
+2026-01-28 21:19:09.02
+a703be9c
+User
+}
+2026-01-28 21:19:09.02
+a703be9c
+User
+"message": "{\"text\":\"hola\"}"
+2026-01-28 21:19:09.02
+a703be9c
+User
+📦 Payload: {
+2026-01-28 21:19:09.02
+a703be9c
+User
+✅ [Instagram Direct] Payload final: { recipient: '{"id":"dm"}', message: '{"text":"hola"}' }
+2026-01-28 21:19:09.02
+a703be9c
+User
+"recipient": "{\"id\":\"dm\"}",
+2026-01-28 21:19:09.02
+a703be9c
+User
+🔐 Using Authorization Bearer header for Instagram Direct
+2026-01-28 21:19:09.02
+a703be9c
+User
+🚀 Enviando mensaje a Meta API:
+2026-01-28 21:19:09.02
+a703be9c
+User
+🔗 URL: https://graph.instagram.com/v21.0/me/messages
+2026-01-28 21:19:09.02
+a703be9c
+User
+✅ [Instagram Direct] Using Authorization Bearer header
+2026-01-28 21:19:09.18
+a703be9c
+User
+⚡ Socket.IO client connected: NwwfuB0OYilA2lFWAAAD
+2026-01-28 21:19:09.44
+a703be9c
+User
+}
+2026-01-28 21:19:09.44
+a703be9c
+User
+"message": "Param recipient[id] must be a valid ID string (e.g., \"123\")",
+2026-01-28 21:19:09.44
+a703be9c
+User
+"fbtrace_id": "AqKuNr63v1UBcnTH8pEhUia"
+2026-01-28 21:19:09.44
+a703be9c
+User
+"type": "IGApiException",
+2026-01-28 21:19:09.44
+a703be9c
+User
+"error": {
+2026-01-28 21:19:09.44
+a703be9c
+User
+"code": 100,
+2026-01-28 21:19:09.44
+a703be9c
+User
+📥 Meta API Response: {
+2026-01-28 21:19:09.44
+a703be9c
+User
+}
+2026-01-28 21:19:09.44
+a703be9c
+User
+type: 'IGApiException',
+2026-01-28 21:19:09.44
+a703be9c
+User
+message: 'Param recipient[id] must be a valid ID string (e.g., "123")',
+2026-01-28 21:19:09.44
+a703be9c
+User
+code: 100,
+2026-01-28 21:19:09.44
+a703be9c
+User
+instagram_direct send error: {
+2026-01-28 21:19:09.44
+a703be9c
+User
+}
+2026-01-28 21:19:09.44
+a703be9c
+User
+fbtrace_id: 'AqKuNr63v1UBcnTH8pEhUia'
