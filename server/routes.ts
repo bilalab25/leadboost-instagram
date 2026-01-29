@@ -6159,10 +6159,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   if (convoData?.data?.[0]?.id) {
                     metaConversationId = convoData.data[0].id;
                   } else {
-                    metaConversationId = `ig_dm_${senderId}`;
+                    metaConversationId = `${recipientId}_${senderId}`;
                   }
                 } catch (err) {
-                  metaConversationId = `ig_dm_${senderId}`;
+                  metaConversationId = `${recipientId}_${senderId}`;
                 }
 
                 // Find existing conversation FIRST to check if we already have profile picture
