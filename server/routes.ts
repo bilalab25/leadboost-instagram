@@ -5761,7 +5761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       
                       // If still no name, try direct profile endpoint
                       if (!contactName) {
-                        const igProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=username,name,profile_pic&access_token=${accessToken}`;
+                        const igProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=name,profile_pic&access_token=${accessToken}`;
                         console.log(`📱 [Instagram Direct] Trying direct profile endpoint...`);
                         const igProfileRes = await fetch(igProfileUrl);
                         const igProfileData = await igProfileRes.json();
@@ -6154,7 +6154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       
                       // If still no name, try direct profile endpoint (works for some accounts)
                       if (!contactName) {
-                        const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`;
+                        const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,profile_pic&access_token=${accessToken}`;
                         console.log(`📷 [${platform}] Trying direct profile endpoint for sender: ${senderId}`);
                         const profileRes = await fetch(profileUrl);
                         const profileData = await profileRes.json();
@@ -6174,7 +6174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       }
                     } else {
                       // For Facebook Messenger, use direct profile endpoint
-                      const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username,profile_pic&access_token=${accessToken}`;
+                      const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,profile_pic&access_token=${accessToken}`;
                       console.log(`📷 [${platform}] Fetching profile for sender: ${senderId}`);
                       const profileRes = await fetch(profileUrl);
                       const profileData = await profileRes.json();
@@ -6930,7 +6930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           if (platform === "instagram_direct" || platform === "instagram") {
             // Try Instagram Graph API first
-            const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name&access_token=${accessToken}`;
+            const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=name&access_token=${accessToken}`;
             console.log(`📱 Fetching Instagram profile for: ${senderId}`);
 
             const profileRes = await fetch(profileUrl);
@@ -6949,7 +6949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               );
 
               // Fallback: Try Facebook Graph API
-              const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username&access_token=${accessToken}`;
+              const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name&access_token=${accessToken}`;
               const fbProfileRes = await fetch(fbProfileUrl);
               const fbProfileData = await fbProfileRes.json();
 
@@ -7073,7 +7073,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             let contactName: string | null = null;
 
             if (platform === "instagram_direct" || platform === "instagram") {
-              const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=username,name&access_token=${accessToken}`;
+              const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=name&access_token=${accessToken}`;
               const profileRes = await fetch(profileUrl);
               const profileData = await profileRes.json();
 
@@ -7084,7 +7084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 contactName = profileData.username || profileData.name;
               } else if (profileData.error) {
                 // Fallback to Facebook Graph API
-                const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,username&access_token=${accessToken}`;
+                const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name&access_token=${accessToken}`;
                 const fbProfileRes = await fetch(fbProfileUrl);
                 const fbProfileData = await fbProfileRes.json();
 
