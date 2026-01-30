@@ -42,6 +42,7 @@ export default function ImageEditorDialog({
             brandAssets={brandAssets}
             onSave={onSave}
             onCancel={onClose}
+            isUploading={isUploading}
           />
         )}
 

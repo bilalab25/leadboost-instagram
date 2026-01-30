@@ -128,6 +128,7 @@ interface ImageEditorProps {
   brandColors?: string[];
   onSave: (dataUrl: string) => void;
   onCancel: () => void;
+  isUploading?: boolean;
 }
 
 // Load Google Font dynamically
@@ -206,7 +207,9 @@ function ColorPalette({
           <button
             key={idx}
             className={`w-6 h-6 rounded border-2 transition-all ${
-              currentColor === color ? "border-primary ring-2 ring-primary/50" : "border-gray-300"
+              currentColor === color
+                ? "border-primary ring-2 ring-primary/50"
+                : "border-gray-300"
             }`}
             style={{ backgroundColor: color }}
             onClick={() => onChange(color)}
@@ -235,9 +238,19 @@ function ColorPalette({
 export default function ImageEditor({
   imageUrl,
   brandAssets = [],
-  brandColors = ["#000000", "#ffffff", "#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"],
+  brandColors = [
+    "#000000",
+    "#ffffff",
+    "#ff0000",
+    "#00ff00",
+    "#0000ff",
+    "#ffff00",
+    "#ff00ff",
+    "#00ffff",
+  ],
   onSave,
   onCancel,
+  isUploading,
 }: ImageEditorProps) {
   const [backgroundImage] = useImage(imageUrl, "anonymous");
   const stageRef = useRef<Konva.Stage>(null);
@@ -255,7 +268,8 @@ export default function ImageEditor({
     width: 1080,
     height: 1080,
   });
-  const [selectedPreset, setSelectedPreset] = useState<string>("instagram-feed");
+  const [selectedPreset, setSelectedPreset] =
+    useState<string>("instagram-feed");
 
   // Elements on canvas
   const [elements, setElements] = useState<EditorElement[]>([]);
@@ -267,7 +281,9 @@ export default function ImageEditor({
   const textInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Loaded fonts
-  const [loadedFonts, setLoadedFonts] = useState<Set<string>>(new Set(SYSTEM_FONTS));
+  const [loadedFonts, setLoadedFonts] = useState<Set<string>>(
+    new Set(SYSTEM_FONTS),
+  );
 
   const pushToHistory = (newElements: EditorElement[]) => {
     setHistory((prev) => [...prev, elements]);
@@ -276,7 +292,9 @@ export default function ImageEditor({
   };
 
   // Tool state
-  const [activeTool, setActiveTool] = useState<"select" | "text" | "shape" | "sticker">("select");
+  const [activeTool, setActiveTool] = useState<
+    "select" | "text" | "shape" | "sticker"
+  >("select");
   const [currentShape, setCurrentShape] = useState<ShapeType>("rect");
   const [currentColor, setCurrentColor] = useState("#ffffff");
   const [currentStrokeColor, setCurrentStrokeColor] = useState("#000000");
@@ -312,7 +330,8 @@ export default function ImageEditor({
 
   // Calculate display size based on container
   useEffect(() => {
-    const preset = PLATFORM_PRESETS[selectedPreset as keyof typeof PLATFORM_PRESETS];
+    const preset =
+      PLATFORM_PRESETS[selectedPreset as keyof typeof PLATFORM_PRESETS];
     if (preset) {
       setOriginalSize({ width: preset.width, height: preset.height });
       const maxSize = 400;
@@ -326,7 +345,12 @@ export default function ImageEditor({
 
   // Update transformer when selection changes
   useEffect(() => {
-    if (selectedId && transformerRef.current && stageRef.current && !editingTextId) {
+    if (
+      selectedId &&
+      transformerRef.current &&
+      stageRef.current &&
+      !editingTextId
+    ) {
       const node = stageRef.current.findOne(`#${selectedId}`);
       if (node) {
         transformerRef.current.nodes([node]);
@@ -367,9 +391,11 @@ export default function ImageEditor({
 
     // Check if clicked on stage or background image (not sticker images which have IDs)
     const clickedNode = e.target as Konva.Node;
-    const isBackground = e.target === stage || 
-      (clickedNode.className === "Image" && clickedNode.name() === "background");
-    
+    const isBackground =
+      e.target === stage ||
+      (clickedNode.className === "Image" &&
+        clickedNode.name() === "background");
+
     if (isBackground) {
       if (activeTool === "text") {
         ensureFontLoaded(currentFont);
@@ -453,7 +479,7 @@ export default function ImageEditor({
     if (editingTextId) {
       if (editingTextValue.trim()) {
         const newElements = elements.map((el) =>
-          el.id === editingTextId ? { ...el, text: editingTextValue } : el
+          el.id === editingTextId ? { ...el, text: editingTextValue } : el,
         );
         pushToHistory(newElements);
       } else {
@@ -482,7 +508,7 @@ export default function ImageEditor({
 
   const updateElement = (id: string, updates: Partial<EditorElement>) => {
     const newElements = elements.map((el) =>
-      el.id === id ? { ...el, ...updates } : el
+      el.id === id ? { ...el, ...updates } : el,
     );
     pushToHistory(newElements);
   };
@@ -643,7 +669,14 @@ export default function ImageEditor({
   // Get position for inline text editor
   const getEditingTextPosition = () => {
     const el = elements.find((e) => e.id === editingTextId);
-    if (!el) return { left: 0, top: 0, fontSize: 16, fontFamily: "Arial", color: "#ffffff" };
+    if (!el)
+      return {
+        left: 0,
+        top: 0,
+        fontSize: 16,
+        fontFamily: "Arial",
+        color: "#ffffff",
+      };
     return {
       left: el.x * renderScale,
       top: el.y * renderScale,
@@ -685,9 +718,14 @@ export default function ImageEditor({
           <Button variant="outline" size="sm" onClick={onCancel}>
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSave} className="gap-1">
+          <Button
+            size="sm"
+            onClick={handleSave}
+            className="gap-1"
+            disabled={isUploading}
+          >
             <Download className="h-4 w-4" />
-            Save
+            {isUploading ? "Uploading..." : "Save"}
           </Button>
         </div>
       </div>
@@ -785,7 +823,8 @@ export default function ImageEditor({
                     const renderWidth = baseWidth * bgZoom;
                     const renderHeight = baseHeight * bgZoom;
                     const centerOffsetX = (canvasSize.width - renderWidth) / 2;
-                    const centerOffsetY = (canvasSize.height - renderHeight) / 2;
+                    const centerOffsetY =
+                      (canvasSize.height - renderHeight) / 2;
 
                     return (
                       <Image
@@ -912,7 +951,12 @@ export default function ImageEditor({
                 <Transformer
                   ref={transformerRef}
                   keepRatio={true}
-                  enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+                  enabledAnchors={[
+                    "top-left",
+                    "top-right",
+                    "bottom-left",
+                    "bottom-right",
+                  ]}
                   boundBoxFunc={(oldBox, newBox) => {
                     if (newBox.width < 30 || newBox.height < 30) return oldBox;
                     return newBox;
@@ -970,16 +1014,32 @@ export default function ImageEditor({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
-                      <div className="px-2 py-1 text-xs text-muted-foreground">System Fonts</div>
+                      <div className="px-2 py-1 text-xs text-muted-foreground">
+                        System Fonts
+                      </div>
                       {SYSTEM_FONTS.map((font) => (
-                        <SelectItem key={font} value={font} style={{ fontFamily: font }}>
+                        <SelectItem
+                          key={font}
+                          value={font}
+                          style={{ fontFamily: font }}
+                        >
                           {font}
                         </SelectItem>
                       ))}
                       <Separator className="my-1" />
-                      <div className="px-2 py-1 text-xs text-muted-foreground">Google Fonts</div>
+                      <div className="px-2 py-1 text-xs text-muted-foreground">
+                        Google Fonts
+                      </div>
                       {GOOGLE_FONTS.map((font) => (
-                        <SelectItem key={font} value={font} style={{ fontFamily: loadedFonts.has(font) ? font : "inherit" }}>
+                        <SelectItem
+                          key={font}
+                          value={font}
+                          style={{
+                            fontFamily: loadedFonts.has(font)
+                              ? font
+                              : "inherit",
+                          }}
+                        >
                           {font}
                         </SelectItem>
                       ))}
@@ -1003,7 +1063,9 @@ export default function ImageEditor({
                     onChange={setCurrentColor}
                     label="Color"
                   />
-                  <p className="text-xs text-muted-foreground">Click canvas to add text</p>
+                  <p className="text-xs text-muted-foreground">
+                    Click canvas to add text
+                  </p>
                 </div>
               )}
 
@@ -1021,7 +1083,9 @@ export default function ImageEditor({
                       <Square className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant={currentShape === "circle" ? "default" : "outline"}
+                      variant={
+                        currentShape === "circle" ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setCurrentShape("circle")}
                     >
@@ -1058,7 +1122,9 @@ export default function ImageEditor({
                       className="flex-1"
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">Click canvas to add shape</p>
+                  <p className="text-xs text-muted-foreground">
+                    Click canvas to add shape
+                  </p>
                 </div>
               )}
 
@@ -1096,14 +1162,17 @@ export default function ImageEditor({
               {selectedElement && (
                 <div className="space-y-3 p-3 border rounded-lg bg-blue-50 dark:bg-blue-950">
                   <Label className="text-sm font-medium flex items-center gap-2">
-                    <Settings2 className="h-4 w-4" /> Selected: {selectedElement.type}
+                    <Settings2 className="h-4 w-4" /> Selected:{" "}
+                    {selectedElement.type}
                   </Label>
 
                   {selectedElement.type === "text" && (
                     <>
                       <Input
                         value={selectedElement.text || ""}
-                        onChange={(e) => updateElement(selectedId!, { text: e.target.value })}
+                        onChange={(e) =>
+                          updateElement(selectedId!, { text: e.target.value })
+                        }
                         placeholder="Edit text..."
                       />
                       <Select
@@ -1117,16 +1186,32 @@ export default function ImageEditor({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
-                          <div className="px-2 py-1 text-xs text-muted-foreground">System Fonts</div>
+                          <div className="px-2 py-1 text-xs text-muted-foreground">
+                            System Fonts
+                          </div>
                           {SYSTEM_FONTS.map((font) => (
-                            <SelectItem key={font} value={font} style={{ fontFamily: font }}>
+                            <SelectItem
+                              key={font}
+                              value={font}
+                              style={{ fontFamily: font }}
+                            >
                               {font}
                             </SelectItem>
                           ))}
                           <Separator className="my-1" />
-                          <div className="px-2 py-1 text-xs text-muted-foreground">Google Fonts</div>
+                          <div className="px-2 py-1 text-xs text-muted-foreground">
+                            Google Fonts
+                          </div>
                           {GOOGLE_FONTS.map((font) => (
-                            <SelectItem key={font} value={font} style={{ fontFamily: loadedFonts.has(font) ? font : "inherit" }}>
+                            <SelectItem
+                              key={font}
+                              value={font}
+                              style={{
+                                fontFamily: loadedFonts.has(font)
+                                  ? font
+                                  : "inherit",
+                              }}
+                            >
                               {font}
                             </SelectItem>
                           ))}
@@ -1136,7 +1221,9 @@ export default function ImageEditor({
                         <Label className="text-xs w-12">Size</Label>
                         <Slider
                           value={[selectedElement.fontSize || 32]}
-                          onValueChange={([v]) => updateElement(selectedId!, { fontSize: v })}
+                          onValueChange={([v]) =>
+                            updateElement(selectedId!, { fontSize: v })
+                          }
                           min={12}
                           max={120}
                           step={2}
@@ -1146,30 +1233,39 @@ export default function ImageEditor({
                       <ColorPalette
                         brandColors={brandColors}
                         currentColor={selectedElement.fill || "#ffffff"}
-                        onChange={(c) => updateElement(selectedId!, { fill: c })}
+                        onChange={(c) =>
+                          updateElement(selectedId!, { fill: c })
+                        }
                         label="Color"
                       />
                     </>
                   )}
 
-                  {(selectedElement.type === "rect" || selectedElement.type === "circle") && (
+                  {(selectedElement.type === "rect" ||
+                    selectedElement.type === "circle") && (
                     <>
                       <ColorPalette
                         brandColors={brandColors}
                         currentColor={selectedElement.fill || "#ffffff"}
-                        onChange={(c) => updateElement(selectedId!, { fill: c })}
+                        onChange={(c) =>
+                          updateElement(selectedId!, { fill: c })
+                        }
                         label="Fill"
                       />
                       <ColorPalette
                         brandColors={brandColors}
                         currentColor={selectedElement.stroke || "#000000"}
-                        onChange={(c) => updateElement(selectedId!, { stroke: c })}
+                        onChange={(c) =>
+                          updateElement(selectedId!, { stroke: c })
+                        }
                         label="Stroke"
                       />
                     </>
                   )}
 
-                  <p className="text-xs text-muted-foreground">Double-click text to edit inline</p>
+                  <p className="text-xs text-muted-foreground">
+                    Double-click text to edit inline
+                  </p>
                 </div>
               )}
 
@@ -1249,7 +1345,9 @@ export default function ImageEditor({
                     step={5}
                     className="flex-1"
                   />
-                  <span className="text-xs w-10">{Math.round(bgZoom * 100)}%</span>
+                  <span className="text-xs w-10">
+                    {Math.round(bgZoom * 100)}%
+                  </span>
                 </div>
                 <Button
                   variant="outline"
