@@ -3151,7 +3151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const { postId } = req.params;
-        const { status, scheduledPublishTime } = req.body;
+        const { status, scheduledPublishTime, imageUrl } = req.body;
 
         if (!status || !["accepted", "rejected"].includes(status)) {
           return res.status(400).json({ message: "Invalid status" });
@@ -3165,6 +3165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           postId,
           status,
           scheduledPublishTime,
+          imageUrl,
         );
         if (!updated) {
           return res.status(404).json({ message: "Post not found" });

@@ -730,7 +730,7 @@ export default function ContentCalendar() {
       // Then update the post status to accepted with scheduling
       const statusRes = await apiRequest(
         "PATCH",
-        `/api/ai-generated-posts/${postId}`,
+        `/api/ai-generated-posts/${postId}/status`,
         {
           status: "accepted",
           imageUrl: uploadData.imageUrl,

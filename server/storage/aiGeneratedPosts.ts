@@ -151,13 +151,18 @@ export async function getAiGeneratedPostsByBrand(brandId: string, status?: strin
 export async function updateAiGeneratedPostStatus(
   postId: string,
   status: "pending" | "accepted" | "rejected" | "published",
-  scheduledPublishTime?: string
+  scheduledPublishTime?: string,
+  imageUrl?: string
 ): Promise<AiGeneratedPost | null> {
   const now = new Date();
   const updateData: any = { status, updatedAt: now };
   
   if (scheduledPublishTime) {
     updateData.scheduledPublishTime = new Date(scheduledPublishTime);
+  }
+  
+  if (imageUrl) {
+    updateData.imageUrl = imageUrl;
   }
   
   const result = await db
