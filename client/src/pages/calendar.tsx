@@ -1337,7 +1337,8 @@ export default function ContentCalendar() {
                                         disabled={
                                           isPastMonth ||
                                           bulkUpdatePostStatusMutation.isPending ||
-                                          isLoadingAiPosts
+                                          isLoadingAiPosts ||
+                                          !hasPostingFrequency
                                         }
                                         className={
                                           isPastMonth || isLoadingAiPosts
@@ -1502,7 +1503,8 @@ export default function ContentCalendar() {
                                 className="w-full bg-gray-800 hover:bg-gray-900 text-white"
                                 onClick={() => handleApproveDay("accepted")}
                                 disabled={
-                                  bulkUpdatePostStatusMutation.isPending
+                                  bulkUpdatePostStatusMutation.isPending ||
+                                  !hasPostingFrequency
                                 }
                                 data-testid="button-approve-day"
                               >
@@ -1704,7 +1706,8 @@ export default function ContentCalendar() {
                                             )
                                           }
                                           disabled={
-                                            updatePostStatusMutation.isPending
+                                            updatePostStatusMutation.isPending ||
+                                            !hasPostingFrequency
                                           }
                                           data-testid={`button-approve-post-${post.id}`}
                                         >
@@ -2061,6 +2064,7 @@ export default function ContentCalendar() {
                         setSelectedPost(null);
                       }}
                       data-testid="button-reject-post"
+                      disabled={!hasPostingFrequency}
                     >
                       <XCircle className="w-4 h-4 mr-2" /> Reject Post
                     </Button>
@@ -2105,6 +2109,7 @@ export default function ContentCalendar() {
                             setSelectedPost(null);
                           }}
                           data-testid="button-approve-post"
+                          disabled={!hasPostingFrequency}
                         >
                           <CheckCircle className="w-4 h-4 mr-2" /> Approve
                         </Button>

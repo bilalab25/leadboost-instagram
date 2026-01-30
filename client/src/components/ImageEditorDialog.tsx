@@ -16,6 +16,7 @@ interface Props {
   onSave: (image: string) => Promise<void>;
   onAcceptWithoutEdit: () => void;
   isUploading?: boolean;
+  hasPostingFrequency: boolean;
 }
 
 export default function ImageEditorDialog({
@@ -26,6 +27,7 @@ export default function ImageEditorDialog({
   onSave,
   onAcceptWithoutEdit,
   isUploading = false,
+  hasPostingFrequency,
 }: Props) {
   return (
     <Dialog open={show} onOpenChange={(open) => !open && onClose()}>
@@ -46,7 +48,7 @@ export default function ImageEditorDialog({
         <div className="flex justify-center gap-4 mt-6 pt-4 border-t border-gray-200 relative">
           <Button
             onClick={onAcceptWithoutEdit}
-            disabled={isUploading}
+            disabled={isUploading || !hasPostingFrequency}
             variant="outline"
           >
             Accept Without Editing
