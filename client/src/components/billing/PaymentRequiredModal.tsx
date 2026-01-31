@@ -19,7 +19,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CreditCard, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useBrand } from "@/contexts/BrandContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PaymentRequiredModalProps {
   isOpen: boolean;
@@ -32,7 +31,6 @@ function PaymentForm({ brandId, onSuccess }: { brandId: string; onSuccess: () =>
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { t } = useLanguage();
 
   const confirmMutation = useMutation({
     mutationFn: async () => {
@@ -121,10 +119,9 @@ export function PaymentRequiredModal({ isOpen, onClose, onSuccess }: PaymentRequ
   const { activeBrandId } = useBrand();
   const [step, setStep] = useState<"info" | "payment" | "success">("info");
   const [stripePromise, setStripePromise] = useState<Promise<any> | null>(null);
-  const { t } = useLanguage();
 
   // Get Stripe publishable key
-  const { data: stripeConfig } = useQuery({
+  const { data: stripeConfig } = useQuery<{ publishableKey: string }>({
     queryKey: ["/api/stripe/config"],
     enabled: isOpen,
   });

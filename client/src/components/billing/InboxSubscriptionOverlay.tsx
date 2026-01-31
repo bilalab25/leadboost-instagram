@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, MessageSquare, Check, Lock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useBrand } from "@/contexts/BrandContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface InboxSubscriptionOverlayProps {
   children: React.ReactNode;
@@ -14,7 +13,6 @@ interface InboxSubscriptionOverlayProps {
 
 export function InboxSubscriptionOverlay({ children }: InboxSubscriptionOverlayProps) {
   const { activeBrandId } = useBrand();
-  const { t } = useLanguage();
 
   const { data: inboxAccess, isLoading } = useQuery({
     queryKey: ["/api/billing", activeBrandId, "inbox-access"],
