@@ -2941,8 +2941,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Record image usage after processing completes
         processPostGeneration(brandId, job.id, targetMonth, targetYear)
           .then(async (result: any) => {
-            // Record image generation for billing (assuming 1 image per post generated)
-            const imageCount = result?.postsCreated || 1;
+            // Record image generation for billing (use postsGenerated from result)
+            const imageCount = result?.postsGenerated || result?.postsCreated || 1;
             await billingService.recordImageGeneration(brandId, '/api/post-generator', imageCount);
             console.log(`[Billing] Recorded ${imageCount} image(s) for brand ${brandId}`);
           })
