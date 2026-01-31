@@ -48,6 +48,8 @@ import { posIntegrationService } from "./services/posIntegrations";
 import { lightspeedService } from "./services/lightspeed";
 import { boostyService } from "./services/boosty";
 import { generateBrandEssence } from "./services/generateBrandEssence";
+import { registerStripeRoutes } from "./stripe/stripeRoutes";
+import { billingService } from "./stripe/billingService";
 import { generateBrandAssetDescription } from "./services/generateBrandAssetDescription";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
@@ -918,6 +920,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware
   await setupAuth(app);
+
+  // Register Stripe billing routes
+  registerStripeRoutes(app, isAuthenticated);
 
   // Add site-wide password protection middleware
 
@@ -2871,6 +2876,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Brand ID is required" });
         }
 
+        // Check billing - can brand generate images?
+        const billingCheck = await billingService.canGenerateImages(brandId);
+        if (!billingCheck.allowed) {
+          return res.status(402).json({
+            success: false,
+            message: "Has agotado tus 10 imágenes gratuitas. Por favor, conecta un método de pago para continuar generando contenido.",
+            requiresPayment: true,
+            freeRemaining: billingCheck.freeRemaining,
+            hasPaymentMethod: billingCheck.hasPaymentMethod,
+          });
+        }
+
         // Default to current month/year if not provided
         const targetMonth = month || new Date().getMonth() + 1;
         const targetYear = year || new Date().getFullYear();
@@ -2917,17 +2934,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Post generator job started",
           jobId: job.id,
           status: job.status,
+          freeRemaining: billingCheck.freeRemaining,
         });
 
         // Fire-and-forget: Process in background with Gemini AI
-        processPostGeneration(brandId, job.id, targetMonth, targetYear).catch(
-          (error) => {
+        // Record image usage after processing completes
+        processPostGeneration(brandId, job.id, targetMonth, targetYear)
+          .then(async (result: any) => {
+            // Record image generation for billing (assuming 1 image per post generated)
+            const imageCount = result?.postsCreated || 1;
+            await billingService.recordImageGeneration(brandId, '/api/post-generator', imageCount);
+            console.log(`[Billing] Recorded ${imageCount} image(s) for brand ${brandId}`);
+          })
+          .catch((error) => {
             console.error(
               "[Post Generator] Background processing error:",
               error,
             );
-          },
-        );
+          });
       } catch (error) {
         console.error("[Post Generator] Error:", error);
         res.status(500).json({
@@ -3260,6 +3284,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ message: "Unauthorized: Brand mismatch" });
         }
 
+        // Check billing - can brand generate images?
+        const billingCheck = await billingService.canGenerateImages(brandId);
+        if (!billingCheck.allowed) {
+          return res.status(402).json({
+            success: false,
+            message: "Has agotado tus 10 imágenes gratuitas. Por favor, conecta un método de pago para continuar generando contenido.",
+            requiresPayment: true,
+            freeRemaining: billingCheck.freeRemaining,
+            hasPaymentMethod: billingCheck.hasPaymentMethod,
+          });
+        }
+
         const { startSamplePostGeneration } = await import(
           "./services/samplePostGenerator"
         );
@@ -3267,10 +3303,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const result = await startSamplePostGeneration(brandId);
 
         if (result) {
+          // Record image usage for sample posts (3 sample posts = 3 images)
+          await billingService.recordImageGeneration(brandId, '/api/generate-sample-posts', 3);
+          console.log(`[Billing] Recorded 3 sample post images for brand ${brandId}`);
+
           res.json({
             message: "Sample post generation started",
             status: "processing",
             jobId: result.jobId,
+            freeRemaining: billingCheck.freeRemaining,
           });
         } else {
           res.json({

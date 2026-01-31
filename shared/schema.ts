@@ -1695,3 +1695,68 @@ export const insertPosCustomerSchema = createInsertSchema(posCustomers).omit({
 
 export type InsertPosCustomer = z.infer<typeof insertPosCustomerSchema>;
 export type PosCustomer = typeof posCustomers.$inferSelect;
+
+// ============================================
+// BILLING & STRIPE INTEGRATION
+// ============================================
+
+// Brand billing information - tracks Stripe customer, payment method and subscription status
+export const brandBilling = pgTable("brand_billing", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .references(() => brands.id, { onDelete: "cascade" })
+    .unique(),
+  stripeCustomerId: varchar("stripe_customer_id"), // Stripe customer ID
+  hasPaymentMethod: boolean("has_payment_method").default(false), // Whether card is on file
+  freeImagesRemaining: integer("free_images_remaining").default(10), // 10 free images per brand
+  inboxSubscriptionActive: boolean("inbox_subscription_active").default(false), // $99/month inbox subscription
+  stripeSubscriptionId: varchar("stripe_subscription_id"), // Stripe subscription ID for inbox
+  subscriptionStatus: varchar("subscription_status"), // active, canceled, past_due, etc.
+  subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end"), // When current period ends
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Image usage tracking - records each image generation for billing
+export const imageUsage = pgTable("image_usage", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  endpoint: varchar("endpoint").notNull(), // Which endpoint generated the image
+  imageCount: integer("image_count").notNull().default(1), // Number of images generated
+  costCents: integer("cost_cents").notNull(), // Cost in cents (3x Gemini cost)
+  wasFree: boolean("was_free").default(false), // Whether this used free credits
+  billed: boolean("billed").default(false), // Whether this has been charged
+  billedAt: timestamp("billed_at"), // When it was charged
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"), // Stripe payment intent for this charge
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("image_usage_brand_idx").on(table.brandId),
+  index("image_usage_billed_idx").on(table.billed),
+  index("image_usage_created_idx").on(table.createdAt),
+]);
+
+// Brand billing schemas
+export const insertBrandBillingSchema = createInsertSchema(brandBilling).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertBrandBilling = z.infer<typeof insertBrandBillingSchema>;
+export type BrandBilling = typeof brandBilling.$inferSelect;
+
+// Image usage schemas
+export const insertImageUsageSchema = createInsertSchema(imageUsage).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertImageUsage = z.infer<typeof insertImageUsageSchema>;
+export type ImageUsage = typeof imageUsage.$inferSelect;
