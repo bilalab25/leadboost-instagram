@@ -288,6 +288,26 @@ export class BillingService {
       .where(eq(brandBilling.stripeSubscriptionId, subscriptionId));
   }
 
+  // Activate inbox subscription for a brand (called from checkout.session.completed webhook)
+  async activateInboxSubscription(brandId: string, subscriptionId: string, currentPeriodEnd?: number) {
+    const updateData: any = { 
+      stripeSubscriptionId: subscriptionId,
+      subscriptionStatus: 'active',
+      inboxSubscriptionActive: true,
+      updatedAt: new Date()
+    };
+
+    if (currentPeriodEnd) {
+      updateData.subscriptionCurrentPeriodEnd = new Date(currentPeriodEnd * 1000);
+    }
+
+    console.log(`[Billing] Activating inbox subscription for brand ${brandId}, subscription ${subscriptionId}`);
+
+    await db.update(brandBilling)
+      .set(updateData)
+      .where(eq(brandBilling.brandId, brandId));
+  }
+
   // Charge accumulated usage for a brand
   async chargeAccumulatedUsage(brandId: string) {
     const billing = await this.getOrCreateBrandBilling(brandId);

@@ -111,11 +111,12 @@ async function handleCheckoutCompleted(session: any) {
   console.log(`[Stripe Webhook] Checkout completed for brand ${brandId}, type: ${type}`);
 
   if (type === 'inbox' && session.subscription) {
-    // Update subscription in our billing table
-    await billingService.updateSubscriptionStatus(
-      session.subscription,
-      'active'
+    // Activate inbox subscription using brandId (not subscriptionId which isn't stored yet)
+    await billingService.activateInboxSubscription(
+      brandId,
+      session.subscription
     );
+    console.log(`[Stripe Webhook] Inbox activated for brand ${brandId}`);
   }
 }
 
