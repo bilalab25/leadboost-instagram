@@ -43,6 +43,7 @@ import {
 import { useBrand } from "@/contexts/BrandContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { InboxSubscriptionOverlay } from "@/components/billing/InboxSubscriptionOverlay";
 
 interface InboxStats {
   totalMessages: number;
@@ -217,6 +218,7 @@ export default function Inbox() {
         {/* Main Content */}
         <div className="flex flex-col w-0 flex-1 overflow-hidden">
           <main className="flex-1 relative overflow-y-auto focus:outline-none">
+            <InboxSubscriptionOverlay>
             <div className="py-4">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
                 {/* Compact Header with Stats and Filters */}
@@ -480,6 +482,7 @@ export default function Inbox() {
                 )}
               </div>
             </div>
+            </InboxSubscriptionOverlay>
           </main>
         </div>
       </div>
