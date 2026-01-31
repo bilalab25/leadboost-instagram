@@ -198,6 +198,54 @@ export function registerStripeRoutes(app: Express, isAuthenticated: any) {
     }
   });
 
+  // Get payment methods for a brand
+  app.get('/api/billing/:brandId/payment-methods', isAuthenticated, async (req: any, res) => {
+    try {
+      const { brandId } = req.params;
+      const billing = await billingService.getOrCreateBrandBilling(brandId);
+
+      if (!billing.stripeCustomerId) {
+        return res.json({ paymentMethods: [] });
+      }
+
+      const stripe = await getUncachableStripeClient();
+      
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: billing.stripeCustomerId,
+        type: 'card',
+      });
+
+      const methods = paymentMethods.data.map(pm => ({
+        id: pm.id,
+        brand: pm.card?.brand || 'unknown',
+        last4: pm.card?.last4 || '****',
+        expMonth: pm.card?.exp_month?.toString() || '',
+        expYear: pm.card?.exp_year?.toString().slice(-2) || '',
+        isDefault: pm.id === billing.stripeCustomerId, // Simplified - could check customer's default_payment_method
+      }));
+
+      res.json({ paymentMethods: methods });
+    } catch (error) {
+      console.error('[Billing] Error getting payment methods:', error);
+      res.status(500).json({ message: 'Failed to get payment methods' });
+    }
+  });
+
+  // Delete a payment method
+  app.delete('/api/billing/:brandId/payment-methods/:paymentMethodId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { paymentMethodId } = req.params;
+      
+      const stripe = await getUncachableStripeClient();
+      await stripe.paymentMethods.detach(paymentMethodId);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('[Billing] Error deleting payment method:', error);
+      res.status(500).json({ message: 'Failed to delete payment method' });
+    }
+  });
+
   // Create customer portal session for managing subscription
   app.post('/api/billing/:brandId/portal', isAuthenticated, async (req: any, res) => {
     try {

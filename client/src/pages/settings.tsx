@@ -539,32 +539,7 @@ export default function Settings() {
 
                 {/* Payment Methods Tab */}
                 <TabsContent value="payment-methods" className="space-y-6">
-                  <PaymentMethodTab
-                    isSpanish={isSpanish}
-                    paymentMethods={paymentMethods}
-                    currentSubscription={currentSubscription}
-                    isAddPaymentMethodDialogOpen={isAddPaymentMethodDialogOpen}
-                    setIsAddPaymentMethodDialogOpen={
-                      setIsAddPaymentMethodDialogOpen
-                    }
-                    newCardNumber={newCardNumber}
-                    setNewCardNumber={setNewCardNumber}
-                    newCardExpMonth={newCardExpMonth}
-                    setNewCardExpMonth={setNewCardExpMonth}
-                    newCardExpYear={newCardExpYear}
-                    setNewCardExpYear={setNewCardExpYear}
-                    newCardCvc={newCardCvc}
-                    setNewCardCvc={setNewCardCvc}
-                    newCardIsDefault={newCardIsDefault}
-                    setNewCardIsDefault={setNewCardIsDefault}
-                    handleAddPaymentMethod={handleAddPaymentMethod}
-                    handleRemovePaymentMethod={handleRemovePaymentMethod}
-                    handleSetDefaultPaymentMethod={
-                      handleSetDefaultPaymentMethod
-                    }
-                    handleChangeSubscriptionPlan={handleChangeSubscriptionPlan}
-                    handleCancelSubscription={handleCancelSubscription}
-                  />
+                  <PaymentMethodTab isSpanish={isSpanish} />
                 </TabsContent>
 
                 {/* Notifications Tab */}
