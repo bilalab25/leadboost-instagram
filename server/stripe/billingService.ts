@@ -242,6 +242,25 @@ export class BillingService {
       .where(eq(brandBilling.brandId, brandId));
   }
 
+  // Update payment method status by Stripe customer ID (for webhooks)
+  async updatePaymentMethodStatusByStripeCustomer(stripeCustomerId: string, hasPaymentMethod: boolean) {
+    const result = await db.update(brandBilling)
+      .set({ 
+        hasPaymentMethod,
+        updatedAt: new Date()
+      })
+      .where(eq(brandBilling.stripeCustomerId, stripeCustomerId))
+      .returning();
+    
+    if (result.length > 0) {
+      console.log(`[Billing] Updated payment method status for customer ${stripeCustomerId}: ${hasPaymentMethod}`);
+    } else {
+      console.log(`[Billing] No billing record found for Stripe customer ${stripeCustomerId}`);
+    }
+    
+    return result.length > 0;
+  }
+
   // Create subscription for inbox ($99/month)
   async createInboxSubscription(brandId: string, priceId: string) {
     const billing = await this.getOrCreateBrandBilling(brandId);

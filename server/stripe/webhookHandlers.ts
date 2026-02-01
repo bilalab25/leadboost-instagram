@@ -55,6 +55,10 @@ export class WebhookHandlers {
           await handleSetupIntentSucceeded(event.data.object as Stripe.SetupIntent);
           break;
 
+        case 'payment_method.detached':
+          await handlePaymentMethodDetached(event.data.object as Stripe.PaymentMethod);
+          break;
+
         case 'payment_intent.succeeded':
           console.log('[Stripe Webhook] Payment succeeded:', (event.data.object as Stripe.PaymentIntent).id);
           break;
@@ -127,4 +131,30 @@ async function handleSetupIntentSucceeded(setupIntent: any) {
   console.log(`[Stripe Webhook] Setup intent succeeded for brand ${brandId}`);
   
   await billingService.updatePaymentMethodStatus(brandId, true);
+}
+
+async function handlePaymentMethodDetached(paymentMethod: any) {
+  const customerId = paymentMethod.customer;
+  if (!customerId) {
+    console.log('[Stripe Webhook] Payment method detached without customer ID');
+    return;
+  }
+
+  console.log(`[Stripe Webhook] Payment method detached from customer ${customerId}`);
+
+  // Check if customer still has any payment methods
+  const stripe = await getUncachableStripeClient();
+  const paymentMethods = await stripe.paymentMethods.list({
+    customer: customerId,
+    type: 'card',
+    limit: 1,
+  });
+
+  const hasRemainingMethods = paymentMethods.data.length > 0;
+  
+  // Only update to false if no payment methods remain
+  if (!hasRemainingMethods) {
+    await billingService.updatePaymentMethodStatusByStripeCustomer(customerId, false);
+    console.log(`[Stripe Webhook] Customer ${customerId} no longer has payment methods`);
+  }
 }
