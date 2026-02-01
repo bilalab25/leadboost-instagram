@@ -204,7 +204,7 @@ export default function Dashboard() {
   const integrations = integrationsData || [];
 
   // Check if the brand has incomplete onboarding
-  const { data: onboardingProgress } = useQuery<{ 
+  const { data: onboardingProgress } = useQuery<{
     hasIncompleteBrand: boolean;
     onboardingStep: number | null;
     onboardingCompleted: boolean;
@@ -214,7 +214,8 @@ export default function Dashboard() {
   });
 
   // Use server-provided flag to determine if onboarding is incomplete
-  const isOnboardingIncomplete = onboardingProgress?.hasIncompleteBrand === true && 
+  const isOnboardingIncomplete =
+    onboardingProgress?.hasIncompleteBrand === true &&
     onboardingProgress?.onboardingCompleted !== true;
 
   // Helper variables to detect connected integrations
@@ -345,6 +346,38 @@ export default function Dashboard() {
                 variants={staggerContainer}
                 className="max-w-7xl mx-auto space-y-6"
               >
+                {/* Continue Onboarding Banner */}
+                {isOnboardingIncomplete && (
+                  <motion.div
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    <Alert className="border-teal-200 bg-gradient-to-r from-teal-50 to-cyan-50">
+                      <Sparkles className="h-5 w-5 text-teal-600" />
+                      <AlertTitle className="text-teal-800 font-semibold">
+                        {isSpanish
+                          ? "¡Completa tu configuración!"
+                          : "Complete your setup!"}
+                      </AlertTitle>
+                      <AlertDescription className="flex items-center justify-between">
+                        <span className="text-teal-700">
+                          {isSpanish
+                            ? "Continúa configurando tu marca para desbloquear todas las funciones de IA y automatización."
+                            : "Continue setting up your brand to unlock all AI and automation features."}
+                        </span>
+                        <Button 
+                          onClick={() => window.location.href = "/onboarding"}
+                          className="ml-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+                        >
+                          {isSpanish ? "Continuar" : "Continue"}
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+                  </motion.div>
+                )}
+
                 {/* Hero Section - Clean Style */}
                 <motion.div variants={fadeInUp} className="relative p-8">
                   <div className="relative">
@@ -392,37 +425,6 @@ export default function Dashboard() {
                     ))}
                   </motion.div>
                 </motion.div>
-
-                {/* Continue Onboarding Banner */}
-                {isOnboardingIncomplete && (
-                  <motion.div
-                    variants={fadeInUp}
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    <Alert className="border-teal-200 bg-gradient-to-r from-teal-50 to-cyan-50">
-                      <Sparkles className="h-5 w-5 text-teal-600" />
-                      <AlertTitle className="text-teal-800 font-semibold">
-                        {isSpanish ? "¡Completa tu configuración!" : "Complete your setup!"}
-                      </AlertTitle>
-                      <AlertDescription className="flex items-center justify-between">
-                        <span className="text-teal-700">
-                          {isSpanish 
-                            ? "Continúa configurando tu marca para desbloquear todas las funciones de IA y automatización."
-                            : "Continue setting up your brand to unlock all AI and automation features."}
-                        </span>
-                        <Link href="/onboarding">
-                          <Button 
-                            className="ml-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
-                          >
-                            {isSpanish ? "Continuar" : "Continue"}
-                            <ArrowRight className="w-4 h-4 ml-2" />
-                          </Button>
-                        </Link>
-                      </AlertDescription>
-                    </Alert>
-                  </motion.div>
-                )}
 
                 {/* Period Selector */}
                 <motion.div
