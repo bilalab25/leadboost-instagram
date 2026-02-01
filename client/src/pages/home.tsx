@@ -3,18 +3,35 @@ import { useBrand } from "@/contexts/BrandContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useQuery } from "@tanstack/react-query";
+import { useLanguage } from "@/hooks/useLanguage";
 import { 
   MessageSquare, 
   Zap, 
   BarChart3, 
   Users, 
   Calendar,
-  LogOut
+  LogOut,
+  ArrowRight,
+  Sparkles
 } from "lucide-react";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
   const { activeMembership } = useBrand();
+  const { isSpanish } = useLanguage();
+
+  // Check if the brand has incomplete onboarding
+  const { data: onboardingProgress } = useQuery<{ onboardingStep: number | null }>({
+    queryKey: ["/api/onboarding/progress", activeMembership?.brandId],
+    enabled: !!activeMembership?.brandId,
+  });
+
+  // Onboarding is incomplete if step is less than 6 (final step)
+  const isOnboardingIncomplete = onboardingProgress?.onboardingStep !== null && 
+    onboardingProgress?.onboardingStep !== undefined &&
+    onboardingProgress.onboardingStep < 6;
 
   if (isLoading) {
     return (
@@ -68,12 +85,38 @@ export default function Home() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {activeMembership?.brandName || "User"}!
+            {isSpanish ? "¡Bienvenido de vuelta" : "Welcome back"}, {activeMembership?.brandName || "User"}!
           </h1>
           <p className="text-lg text-gray-600">
-            Your AI-powered social media management dashboard is ready.
+            {isSpanish 
+              ? "Tu dashboard de gestión de redes sociales con IA está listo."
+              : "Your AI-powered social media management dashboard is ready."}
           </p>
         </div>
+
+        {/* Continue Onboarding Banner */}
+        {isOnboardingIncomplete && (
+          <Alert className="mb-8 border-gradient-to-r from-teal-500 to-cyan-500 bg-gradient-to-r from-teal-50 to-cyan-50 border-teal-200">
+            <Sparkles className="h-5 w-5 text-teal-600" />
+            <AlertTitle className="text-teal-800 font-semibold">
+              {isSpanish ? "¡Completa tu configuración!" : "Complete your setup!"}
+            </AlertTitle>
+            <AlertDescription className="flex items-center justify-between">
+              <span className="text-teal-700">
+                {isSpanish 
+                  ? "Continúa configurando tu marca para desbloquear todas las funciones de IA y automatización."
+                  : "Continue setting up your brand to unlock all AI and automation features."}
+              </span>
+              <Button 
+                onClick={() => window.location.href = "/onboarding"}
+                className="ml-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+              >
+                {isSpanish ? "Continuar" : "Continue"}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Quick Actions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
