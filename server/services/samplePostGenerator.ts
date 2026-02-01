@@ -55,16 +55,17 @@ const LOCATION_CATEGORIES = [
 
 /**
  * Check if brand has any usable visual assets (products, locations, or usable logos)
+ * Note: Only counts images, not videos or documents (Gemini doesn't accept videos for image generation)
  */
 function hasVisualAssets(
   brandAssets: BrandAsset[],
   brandDesign: BrandDesign,
 ): boolean {
   const hasProducts = brandAssets.some(
-    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
+    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()) && a.assetType === "image",
   );
   const hasLocations = brandAssets.some(
-    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
+    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()) && a.assetType === "image",
   );
   const hasUsableLogo = !!(brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl);
 
@@ -218,11 +219,12 @@ async function detectImageIntent(
   brandAssets: BrandAsset[],
 ): Promise<{ intent: ImageIntent; reasoning: string }> {
   // Check what assets the brand has (this can override AI classification)
+  // Only count images, not videos or documents
   const hasProductAssets = brandAssets.some(
-    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
+    (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()) && a.assetType === "image",
   );
   const hasLocationAssets = brandAssets.some(
-    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
+    (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()) && a.assetType === "image",
   );
 
   // Step 1: Get AI classification based on brand info
@@ -575,19 +577,23 @@ async function generateSampleImage(
       whatsapp: "1:1 (square, 1080x1080px)",
     };
 
-    // Only use product assets if brand has them
+    // Only use product assets if brand has them (images only, not videos)
     const productAssets = brandAssets
       .filter(
         (a) =>
-          a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
+          a.category && 
+          PRODUCT_CATEGORIES.includes(a.category.toLowerCase()) &&
+          (!a.assetType || a.assetType === "image"), // Filter out videos and documents
       )
       .slice(0, 2);
 
-    // Only use location assets if brand has them
+    // Only use location assets if brand has them (images only, not videos)
     const locationAssets = brandAssets
       .filter(
         (a) =>
-          a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
+          a.category && 
+          LOCATION_CATEGORIES.includes(a.category.toLowerCase()) &&
+          (!a.assetType || a.assetType === "image"), // Filter out videos and documents
       )
       .slice(0, 1);
 

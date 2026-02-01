@@ -433,22 +433,25 @@ function buildTextPrompt(context: PostGenerationContext): string {
     postingSchedule,
     connectedPlatforms,
   } = context;
+  // Filter assets by category AND only use images (not videos or documents)
   const productAssets = brandAssets.filter(
     (a) =>
       a.category &&
       ["product_images", "product", "products", "product_assets"].includes(
         a.category,
-      ),
+      ) &&
+      a.assetType === "image",
   );
   const locationAssets = brandAssets.filter(
     (a) =>
       a.category &&
       ["location", "location_images", "location_assets", "place"].includes(
         a.category,
-      ),
+      ) &&
+      a.assetType === "image",
   );
   const inspirationAssets = brandAssets.filter(
-    (a) => a.category === "inspiration_templates",
+    (a) => a.category === "inspiration_templates" && a.assetType === "image",
   );
 
   // Detect if brand has product images available
@@ -1257,11 +1260,13 @@ function pickVisualReferenceAssets(
     "location_assets",
     "place",
   ];
+  // IMPORTANT: Only use images, not videos or documents (Gemini image generation doesn't accept videos)
   const visualAssets = assets.filter(
     (a) =>
       a.category &&
       (locationCategories.includes(a.category) ||
-        a.category === "inspiration_templates"),
+        a.category === "inspiration_templates") &&
+      (!a.assetType || a.assetType === "image"), // Filter out videos and documents
   );
 
   // Si no hay assets visuales específicos, no envía nada o usa un fallback
