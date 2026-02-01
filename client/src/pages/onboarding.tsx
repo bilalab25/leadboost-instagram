@@ -220,26 +220,32 @@ const brandStyles = [
 ];
 
 const assetCategories = [
-  { 
-    value: "product_images", 
+  {
+    value: "product_images",
     label: "Product Images",
     labelEs: "Imágenes de Productos",
-    description: "Photos of your products, merchandise, or services. These will be used to create promotional content and social media posts.",
-    descriptionEs: "Fotos de tus productos, mercancía o servicios. Estas se usarán para crear contenido promocional y publicaciones en redes sociales."
+    description:
+      "Photos of your products, merchandise, or services. These will be used to create promotional content and social media posts.",
+    descriptionEs:
+      "Fotos de tus productos, mercancía o servicios. Estas se usarán para crear contenido promocional y publicaciones en redes sociales.",
   },
-  { 
-    value: "location_images", 
+  {
+    value: "location_images",
     label: "Location Images",
     labelEs: "Imágenes de Ubicación",
-    description: "Photos of your store, office, workspace, or any physical location. Great for showcasing your business environment.",
-    descriptionEs: "Fotos de tu tienda, oficina, espacio de trabajo o cualquier ubicación física. Ideal para mostrar el ambiente de tu negocio."
+    description:
+      "Photos of your store, office, workspace, or any physical location. Great for showcasing your business environment.",
+    descriptionEs:
+      "Fotos de tu tienda, oficina, espacio de trabajo o cualquier ubicación física. Ideal para mostrar el ambiente de tu negocio.",
   },
-  { 
-    value: "inspiration_templates", 
+  {
+    value: "inspiration_templates",
     label: "Inspiration Templates",
     labelEs: "Plantillas de Inspiración",
-    description: "Design templates, mood boards, or visual references that inspire your brand's aesthetic and style.",
-    descriptionEs: "Plantillas de diseño, tableros de inspiración o referencias visuales que inspiran la estética y estilo de tu marca."
+    description:
+      "Design templates, mood boards, or visual references that inspire your brand's aesthetic and style.",
+    descriptionEs:
+      "Plantillas de diseño, tableros de inspiración o referencias visuales que inspiran la estética y estilo de tu marca.",
   },
 ];
 
@@ -1430,7 +1436,7 @@ export default function Onboarding() {
       if (data.brand?.id) {
         setCreatedBrandId(data.brand.id);
         setActiveBrandId(data.brand.id);
-        
+
         // If skipping, redirect to dashboard
         if (isSkipping) {
           setIsSkipping(false);
@@ -1438,7 +1444,7 @@ export default function Onboarding() {
           setLocation("/dashboard");
           return;
         }
-        
+
         setCurrentStep(2);
 
         // Save step 2 to database
@@ -1478,7 +1484,7 @@ export default function Onboarding() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/brand-memberships"] });
       refreshBrands();
-      
+
       // If skipping, redirect to dashboard
       if (isSkipping) {
         setIsSkipping(false);
@@ -1486,7 +1492,7 @@ export default function Onboarding() {
         setLocation("/dashboard");
         return;
       }
-      
+
       setCurrentStep(2);
     },
     onError: (error: any) => {
@@ -1726,7 +1732,12 @@ export default function Onboarding() {
       description: asset.description ?? null,
     };
 
-    console.log("[SaveAssetToDB] Saving with category:", asset.category, "Payload:", payload);
+    console.log(
+      "[SaveAssetToDB] Saving with category:",
+      asset.category,
+      "Payload:",
+      payload,
+    );
 
     await apiRequest(
       "POST",
@@ -1915,14 +1926,14 @@ export default function Onboarding() {
     if (!isValid) {
       toast({
         title: isSpanish ? "Campos requeridos" : "Required fields",
-        description: isSpanish 
+        description: isSpanish
           ? "Por favor completa todos los campos requeridos antes de saltar."
           : "Please complete all required fields before skipping.",
         variant: "destructive",
       });
       return;
     }
-    
+
     setIsSkipping(true);
     // Submit the form - the mutation will handle the redirect
     createForm.handleSubmit(onCreateSubmit)();
@@ -1991,70 +2002,83 @@ export default function Onboarding() {
           brandId: String(createdBrandId),
           completed: true,
         });
-        
+
         // Invalidate onboarding progress cache so dashboard banner updates
-        queryClient.invalidateQueries({ queryKey: ["/api/onboarding/progress"] });
+        queryClient.invalidateQueries({
+          queryKey: ["/api/onboarding/progress"],
+        });
 
         // If no integrations connected, generate sample posts with loading overlay
-        const hasConnectedIntegrations = integrations && integrations.length > 0;
+        const hasConnectedIntegrations =
+          integrations && integrations.length > 0;
         if (!hasConnectedIntegrations) {
-          console.log("[Onboarding] No integrations connected, generating sample posts...");
-          
+          console.log(
+            "[Onboarding] No integrations connected, generating sample posts...",
+          );
+
           setIsGeneratingAIPosts(true);
           setAiGenerationMessage(
             isSpanish
               ? "Estamos preparando algo especial para ti..."
               : "We're preparing something special for you...",
           );
-          
+
           try {
-            const response = await fetch(`/api/brands/${createdBrandId}/generate-sample-posts`, {
-              method: "POST",
-              credentials: "include",
-            });
-            
+            const response = await fetch(
+              `/api/brands/${createdBrandId}/generate-sample-posts`,
+              {
+                method: "POST",
+                credentials: "include",
+              },
+            );
+
             const data = await response.json();
-            
+
             // Handle case where sample posts already exist
             if (data.status === "skipped") {
-              console.log("[Onboarding] Sample posts already exist, skipping generation");
+              console.log(
+                "[Onboarding] Sample posts already exist, skipping generation",
+              );
               clearOnboardingState();
               setIsGeneratingAIPosts(false);
               setLocation("/waterfall?showSamples=true");
               return;
             }
-            
+
             if (data.jobId) {
               setAiGenerationMessage(
                 isSpanish
                   ? "Creando publicaciones de muestra con IA..."
                   : "Creating sample posts with AI...",
               );
-              
+
               let attempts = 0;
               const maxAttempts = 60;
-              
+
               const pollJobStatus = async (): Promise<boolean> => {
                 while (attempts < maxAttempts) {
                   attempts++;
                   await new Promise((resolve) => setTimeout(resolve, 5000));
-                  
+
                   try {
                     const statusResponse = await apiRequest(
                       "GET",
                       `/api/post-generator/jobs/${data.jobId}`,
                     );
-                    
+
                     if (statusResponse.ok) {
                       const statusData = await statusResponse.json();
-                      
+
                       if (statusData.status === "completed") {
                         return true;
                       } else if (statusData.status === "failed") {
-                        console.error("Sample post generation failed:", statusData.error);
+                        console.error(
+                          "Sample post generation failed:",
+                          statusData.error,
+                        );
                         return false;
                       }
-                      
+
                       if (attempts % 3 === 0) {
                         const messages = isSpanish
                           ? [
@@ -2072,7 +2096,12 @@ export default function Onboarding() {
                               "Almost ready!",
                             ];
                         setAiGenerationMessage(
-                          messages[Math.min(Math.floor(attempts / 3), messages.length - 1)],
+                          messages[
+                            Math.min(
+                              Math.floor(attempts / 3),
+                              messages.length - 1,
+                            )
+                          ],
                         );
                       }
                     }
@@ -2082,15 +2111,17 @@ export default function Onboarding() {
                 }
                 return false;
               };
-              
+
               const success = await pollJobStatus();
-              
+
               if (success) {
                 setAiGenerationMessage(
-                  isSpanish ? "¡Listo! Redirigiendo..." : "Done! Redirecting...",
+                  isSpanish
+                    ? "¡Listo! Redirigiendo..."
+                    : "Done! Redirecting...",
                 );
                 await new Promise((resolve) => setTimeout(resolve, 1000));
-                
+
                 clearOnboardingState();
                 setIsGeneratingAIPosts(false);
                 setLocation("/waterfall?showSamples=true");
@@ -2098,9 +2129,12 @@ export default function Onboarding() {
               }
             }
           } catch (sampleError) {
-            console.error("Failed to trigger sample post generation:", sampleError);
+            console.error(
+              "Failed to trigger sample post generation:",
+              sampleError,
+            );
           }
-          
+
           setIsGeneratingAIPosts(false);
         }
       } catch (error) {
@@ -2113,10 +2147,10 @@ export default function Onboarding() {
     toast({
       title: isSpanish ? "¡Onboarding completado!" : "Onboarding complete!",
       description: isSpanish
-        ? hasIntegrations 
+        ? hasIntegrations
           ? "Tu marca está lista para usar."
           : "Tu marca está lista."
-        : hasIntegrations 
+        : hasIntegrations
           ? "Your brand is ready to use."
           : "Your brand is ready.",
     });
@@ -2225,7 +2259,9 @@ export default function Onboarding() {
             completed: true,
           });
           // Invalidate onboarding progress cache so dashboard banner updates
-          queryClient.invalidateQueries({ queryKey: ["/api/onboarding/progress"] });
+          queryClient.invalidateQueries({
+            queryKey: ["/api/onboarding/progress"],
+          });
         } catch (error) {
           console.error("Failed to mark onboarding as completed:", error);
         }
@@ -2884,7 +2920,7 @@ export default function Onboarding() {
                             <SelectItem value="zh">中文 (简体)</SelectItem>
                             <SelectItem value="ja">日本語</SelectItem>
                             <SelectItem value="ko">한국어</SelectItem>
-                            <SelectItem value="ar">العربية</SelectItem>
+                            <SelectItem value="ar">ا �عربية</SelectItem>
                             <SelectItem value="hi">हिन्दी</SelectItem>
                           </SelectContent>
                         </Select>
@@ -3620,13 +3656,16 @@ export default function Onboarding() {
                           value={category.value}
                         >
                           <AccordionTrigger className="text-lg font-semibold">
-                            {isSpanish ? category.labelEs : category.label} ({assetsInCategory.length})
+                            {isSpanish ? category.labelEs : category.label} (
+                            {assetsInCategory.length})
                           </AccordionTrigger>
                           <AccordionContent className="space-y-4">
                             {/* Category description banner */}
                             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                               <p className="text-sm text-blue-700 dark:text-blue-300">
-                                {isSpanish ? category.descriptionEs : category.description}
+                                {isSpanish
+                                  ? category.descriptionEs
+                                  : category.description}
                               </p>
                             </div>
                             {/* Upload section per category */}
