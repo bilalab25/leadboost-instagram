@@ -1634,6 +1634,7 @@ export default function Onboarding() {
     e: React.ChangeEvent<HTMLInputElement>,
     assetCategory: string, // <-- Nuevo argumento
   ) => {
+    console.log("[AssetUpload] Category received:", assetCategory);
     if (!brandDesign?.id) return;
     const inputEl = e.currentTarget;
     const files = Array.from(inputEl.files || []);
@@ -1724,6 +1725,8 @@ export default function Onboarding() {
       publicId: asset.publicId,
       description: asset.description ?? null,
     };
+
+    console.log("[SaveAssetToDB] Saving with category:", asset.category, "Payload:", payload);
 
     await apiRequest(
       "POST",
