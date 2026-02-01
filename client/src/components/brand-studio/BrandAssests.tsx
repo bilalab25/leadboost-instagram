@@ -65,11 +65,16 @@ export default function BrandAssets({
               return (
                 <AccordionItem key={category.value} value={category.value}>
                   <AccordionTrigger className="text-lg font-semibold">
-                    {category.label}{" "} ({assetsInCategory.length})
-                   
+                    {isSpanish ? category.labelEs : category.label} ({assetsInCategory.length})
                   </AccordionTrigger>
 
                   <AccordionContent className="space-y-4">
+                    {/* Category description banner */}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        {isSpanish ? category.descriptionEs : category.description}
+                      </p>
+                    </div>
                     {/* Upload section per category */}
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                       <Upload className="mx-auto h-10 w-10 text-gray-400" />
@@ -85,8 +90,7 @@ export default function BrandAssets({
                             multiple
                             className="sr-only"
                             onChange={(e) => {
-                              setCurrentAssetUploadCategory(category.value);
-                              handleAssetUpload(e);
+                              handleAssetUpload(e, category.value);
                             }}
                             data-testid={`input-asset-upload-${category.value}`}
                           />

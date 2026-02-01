@@ -123,9 +123,27 @@ const brandStyles = [
 ];
 
 const assetCategories = [
-  { value: "product_images", label: "Product Images" },
-  { value: "location_images", label: "Location Images" },
-  { value: "inspiration_templates", label: "Inspiration Templates" },
+  { 
+    value: "product_images", 
+    label: "Product Images",
+    labelEs: "Imágenes de Productos",
+    description: "Photos of your products, merchandise, or services. These will be used to create promotional content and social media posts.",
+    descriptionEs: "Fotos de tus productos, mercancía o servicios. Estas se usarán para crear contenido promocional y publicaciones en redes sociales."
+  },
+  { 
+    value: "location_images", 
+    label: "Location Images",
+    labelEs: "Imágenes de Ubicación",
+    description: "Photos of your store, office, workspace, or any physical location. Great for showcasing your business environment.",
+    descriptionEs: "Fotos de tu tienda, oficina, espacio de trabajo o cualquier ubicación física. Ideal para mostrar el ambiente de tu negocio."
+  },
+  { 
+    value: "inspiration_templates", 
+    label: "Inspiration Templates",
+    labelEs: "Plantillas de Inspiración",
+    description: "Design templates, mood boards, or visual references that inspire your brand's aesthetic and style.",
+    descriptionEs: "Plantillas de diseño, tableros de inspiración o referencias visuales que inspiran la estética y estilo de tu marca."
+  },
 ];
 
 // Helper to determine asset type
@@ -262,11 +280,14 @@ export default function BrandStudio() {
     });
   }
 
-  const handleAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>, categoryValue?: string) => {
     if (!brandDesign?.id) return;
 
     const inputEl = e.currentTarget; // ✅ capturado antes de awaits
     const files = Array.from(inputEl.files || []); // lee los files desde el input capturado
+    // Use the passed category or fall back to state
+    const effectiveCategory = categoryValue || currentAssetUploadCategory;
+    console.log("[BrandStudio] Uploading with category:", effectiveCategory);
 
     for (const file of files) {
       const id = crypto.randomUUID();
@@ -301,7 +322,7 @@ export default function BrandStudio() {
               id,
               url: data.secure_url,
               name: file.name,
-              category: currentAssetUploadCategory,
+              category: effectiveCategory,
               assetType: getAssetType(file.name),
               publicId: data.public_id,
               description: "",
