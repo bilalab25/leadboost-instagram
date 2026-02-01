@@ -3553,8 +3553,8 @@ export default function Onboarding() {
               </CardTitle>
               <CardDescription>
                 {isSpanish
-                  ? "Sube imágenes, videos y documentos para tu marca"
-                  : "Upload images, videos and documents for your brand"}
+                  ? "Sube imágenes y videos para tu marca"
+                  : "Upload images and videos for your brand"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">

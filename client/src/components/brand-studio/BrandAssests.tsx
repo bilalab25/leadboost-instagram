@@ -1,13 +1,13 @@
 import { TabsContent } from "@/components/ui/tabs";
-import {
-  Card,
-  CardTitle,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardTitle, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 import { Upload, Download, Trash2, FileText } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +39,9 @@ export default function BrandAssets({
               {uploads.map((u) => (
                 <div key={u.id} className="text-left">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-gray-700 truncate">{u.name}</span>
+                    <span className="text-sm text-gray-700 truncate">
+                      {u.name}
+                    </span>
                     <span className="text-xs text-gray-500">{u.percent}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
@@ -59,34 +61,40 @@ export default function BrandAssets({
           <Accordion type="multiple" className="w-full">
             {assetCategories.map((category) => {
               const assetsInCategory = assets.filter(
-                (asset) => asset.category === category.value
+                (asset) => asset.category === category.value,
               );
 
               return (
                 <AccordionItem key={category.value} value={category.value}>
                   <AccordionTrigger className="text-lg font-semibold">
-                    {isSpanish ? category.labelEs : category.label} ({assetsInCategory.length})
+                    {isSpanish ? category.labelEs : category.label} (
+                    {assetsInCategory.length})
                   </AccordionTrigger>
 
                   <AccordionContent className="space-y-4">
                     {/* Category description banner */}
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                       <p className="text-sm text-blue-700 dark:text-blue-300">
-                        {isSpanish ? category.descriptionEs : category.description}
+                        {isSpanish
+                          ? category.descriptionEs
+                          : category.description}
                       </p>
                     </div>
                     {/* Upload section per category */}
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                       <Upload className="mx-auto h-10 w-10 text-gray-400" />
                       <div className="mt-3">
-                        <Label htmlFor={`asset-upload-${category.value}`} className="cursor-pointer">
+                        <Label
+                          htmlFor={`asset-upload-${category.value}`}
+                          className="cursor-pointer"
+                        >
                           <span className="font-medium text-brand-600 hover:text-brand-500">
                             {isSpanish ? "Subir recurso" : "Upload asset"}
                           </span>
                           <input
                             id={`asset-upload-${category.value}`}
                             type="file"
-                            accept="image/*,video/*,application/pdf"
+                            accept="image/*,video/*"
                             multiple
                             className="sr-only"
                             onChange={(e) => {
@@ -97,8 +105,8 @@ export default function BrandAssets({
                         </Label>
                         <p className="text-sm text-gray-500 mt-1">
                           {isSpanish
-                            ? "Imágenes, videos o PDFs."
-                            : "Images, videos or PDFs."}
+                            ? "Imágenes o videos."
+                            : "Images or videos"}
                         </p>
                       </div>
                     </div>
@@ -139,7 +147,11 @@ export default function BrandAssets({
                                 size="icon"
                                 onClick={() => handleRemoveAsset(asset.id)}
                                 className="m-1"
-                                aria-label={isSpanish ? "Eliminar recurso" : "Remove asset"}
+                                aria-label={
+                                  isSpanish
+                                    ? "Eliminar recurso"
+                                    : "Remove asset"
+                                }
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -147,7 +159,11 @@ export default function BrandAssets({
                                 href={asset.url}
                                 download={asset.name}
                                 className="m-1"
-                                aria-label={isSpanish ? "Descargar recurso" : "Download asset"}
+                                aria-label={
+                                  isSpanish
+                                    ? "Descargar recurso"
+                                    : "Download asset"
+                                }
                               >
                                 <Button variant="secondary" size="icon">
                                   <Download className="h-4 w-4" />
