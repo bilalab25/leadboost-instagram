@@ -554,6 +554,7 @@ export default function Onboarding() {
   const [customIndustry, setCustomIndustry] = useState("");
   const [isGeneratingAIPosts, setIsGeneratingAIPosts] = useState(false);
   const [aiGenerationMessage, setAiGenerationMessage] = useState("");
+  const [isSkipping, setIsSkipping] = useState(false);
 
   const INDUSTRY_OPTIONS = [
     { value: "technology", labelEn: "Technology", labelEs: "Tecnología" },
@@ -1411,6 +1412,15 @@ export default function Onboarding() {
       if (data.brand?.id) {
         setCreatedBrandId(data.brand.id);
         setActiveBrandId(data.brand.id);
+        
+        // If skipping, redirect to dashboard
+        if (isSkipping) {
+          setIsSkipping(false);
+          clearOnboardingState();
+          setLocation("/");
+          return;
+        }
+        
         setCurrentStep(2);
 
         // Save step 2 to database
@@ -1421,6 +1431,7 @@ export default function Onboarding() {
       }
     },
     onError: (error: any) => {
+      setIsSkipping(false);
       toast({
         title: isSpanish ? "Error" : "Error",
         description:
@@ -1449,9 +1460,19 @@ export default function Onboarding() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/brand-memberships"] });
       refreshBrands();
+      
+      // If skipping, redirect to dashboard
+      if (isSkipping) {
+        setIsSkipping(false);
+        clearOnboardingState();
+        setLocation("/");
+        return;
+      }
+      
       setCurrentStep(2);
     },
     onError: (error: any) => {
+      setIsSkipping(false);
       toast({
         title: isSpanish ? "Error" : "Error",
         description:
@@ -1864,6 +1885,26 @@ export default function Onboarding() {
 
   const onJoinSubmit = (data: JoinBrandForm) => {
     joinBrandMutation.mutate(data);
+  };
+
+  // Handle skip onboarding - saves data and redirects to dashboard
+  const handleSkipOnboarding = async () => {
+    // Validate form before skipping
+    const isValid = await createForm.trigger();
+    if (!isValid) {
+      toast({
+        title: isSpanish ? "Campos requeridos" : "Required fields",
+        description: isSpanish 
+          ? "Por favor completa todos los campos requeridos antes de saltar."
+          : "Please complete all required fields before skipping.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSkipping(true);
+    // Submit the form - the mutation will handle the redirect
+    createForm.handleSubmit(onCreateSubmit)();
   };
 
   // Navigation handlers
@@ -2903,39 +2944,62 @@ export default function Onboarding() {
                       </FormItem>
                     )}
                   />
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex flex-col gap-3 pt-4">
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setMode("choose")}
+                        className="flex-1"
+                        data-testid="button-back"
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        {isSpanish ? "Volver" : "Back"}
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="flex-1"
+                        disabled={
+                          createBrandMutation.isPending ||
+                          updateBrandMutation.isPending ||
+                          isSkipping
+                        }
+                        data-testid="button-next-step-1"
+                      >
+                        {createBrandMutation.isPending ||
+                        updateBrandMutation.isPending
+                          ? isSpanish
+                            ? createdBrandId
+                              ? "Actualizando..."
+                              : "Creando..."
+                            : createdBrandId
+                              ? "Updating..."
+                              : "Creating..."
+                          : isSpanish
+                            ? "Siguiente"
+                            : "Next"}
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
                     <Button
                       type="button"
-                      variant="outline"
-                      onClick={() => setMode("choose")}
-                      className="flex-1"
-                      data-testid="button-back"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      {isSpanish ? "Volver" : "Back"}
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="flex-1"
+                      variant="ghost"
+                      onClick={handleSkipOnboarding}
                       disabled={
                         createBrandMutation.isPending ||
-                        updateBrandMutation.isPending
+                        updateBrandMutation.isPending ||
+                        isSkipping
                       }
-                      data-testid="button-next-step-1"
+                      className="w-full text-muted-foreground hover:text-foreground"
+                      data-testid="button-skip-onboarding"
                     >
-                      {createBrandMutation.isPending ||
-                      updateBrandMutation.isPending
+                      {isSkipping
                         ? isSpanish
-                          ? createdBrandId
-                            ? "Actualizando..."
-                            : "Creando..."
-                          : createdBrandId
-                            ? "Updating..."
-                            : "Creating..."
+                          ? "Guardando y saltando..."
+                          : "Saving and skipping..."
                         : isSpanish
-                          ? "Siguiente"
-                          : "Next"}
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                          ? "Saltar por ahora (puedes completar después)"
+                          : "Skip for now (you can complete later)"}
                     </Button>
                   </div>
                 </form>
