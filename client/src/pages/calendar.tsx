@@ -28,6 +28,9 @@ import {
   Facebook,
   Instagram,
   RssIcon,
+  AlertCircle,
+  Check,
+  ArrowRight,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +54,7 @@ import {
   isSameMonth,
   isWithinInterval,
 } from "date-fns";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogHeader, DialogDescription } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,7 +67,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import PostingFrequencyModal from "@/components/PostingFrequencyModal";
 import ImageEditorDialog from "@/components/ImageEditorDialog";
 import { useImageEditorDialog } from "@/hooks/useImageEditorDialog";
@@ -160,6 +163,8 @@ export default function ContentCalendar() {
   const [suggestedPosts, setSuggestedPosts] = useState<ContentPost[]>([]);
   const [showGeneratingLoader, setShowGeneratingLoader] = useState(false);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [showPaymentRequiredModal, setShowPaymentRequiredModal] = useState(false);
+  const [, setLocation] = useLocation();
   const [aiPendingPosts, setAiPendingPosts] = useState<any[]>([]);
   const [imageLoadingStates, setImageLoadingStates] = useState<
     Record<string, boolean>
@@ -674,12 +679,23 @@ export default function ContentCalendar() {
         body: JSON.stringify({ month: targetMonth, year: targetYear }),
       });
 
-      if (!response.ok) {
-        const text = (await response.text()) || response.statusText;
-        throw new Error(`${response.status}: ${text}`);
+      // Check for 402 status FIRST (before parsing JSON)
+      if (response.status === 402) {
+        throw new Error("PAYMENT_REQUIRED");
       }
 
-      const data = await response.json();
+      // Try to parse JSON response
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("Error processing server response");
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to start post generation");
+      }
+
       return data;
     },
     onMutate: () => {
@@ -694,6 +710,13 @@ export default function ContentCalendar() {
     },
     onError: (error: any) => {
       setShowGeneratingLoader(false);
+      
+      // Check if it's a payment required error
+      if (error.message === "PAYMENT_REQUIRED") {
+        setShowPaymentRequiredModal(true);
+        return;
+      }
+      
       toast({
         title: "Generation Failed",
         description: error.message || "Failed to start post generation",
@@ -1010,6 +1033,98 @@ export default function ContentCalendar() {
 
   return (
     <TooltipProvider>
+      {/* Payment Required Modal - Large and prominent */}
+      <Dialog open={showPaymentRequiredModal} onOpenChange={setShowPaymentRequiredModal}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 p-8 text-white">
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center">
+                <AlertCircle className="w-12 h-12 text-white" />
+              </div>
+            </div>
+            <DialogHeader>
+              <DialogTitle className="text-3xl font-bold text-center text-white">
+                ¡Tus Créditos Gratuitos Se Agotaron!
+              </DialogTitle>
+              <DialogDescription className="text-center text-white/90 text-lg mt-3">
+                Has utilizado tus 10 imágenes gratuitas. ¡Pero no te preocupes! Puedes continuar creando contenido increíble.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          {/* Content */}
+          <div className="p-8 space-y-6">
+            {/* Pricing info */}
+            <div className="bg-gray-50 rounded-xl p-6 border-2 border-dashed border-gray-200">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">
+                  Precio por imagen
+                </p>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-5xl font-bold text-primary">$0.12</span>
+                  <span className="text-xl text-muted-foreground">USD</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Los cargos se procesan automáticamente cada 2 días
+                </p>
+              </div>
+            </div>
+            
+            {/* Benefits */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Check className="h-5 w-5 text-green-600" />
+                </div>
+                <span className="text-base">
+                  Imágenes de alta calidad generadas con IA
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Check className="h-5 w-5 text-green-600" />
+                </div>
+                <span className="text-base">
+                  Contenido personalizado para tu marca
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Check className="h-5 w-5 text-green-600" />
+                </div>
+                <span className="text-base">
+                  Cancela cuando quieras, sin compromisos
+                </span>
+              </div>
+            </div>
+            
+            {/* Action buttons */}
+            <div className="flex flex-col gap-3 pt-4">
+              <Button 
+                size="lg"
+                onClick={() => {
+                  setShowPaymentRequiredModal(false);
+                  setLocation("/settings?tab=payment");
+                }}
+                className="w-full text-lg py-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+              >
+                Agregar Método de Pago
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="lg"
+                onClick={() => setShowPaymentRequiredModal(false)}
+                className="w-full text-muted-foreground"
+              >
+                Quizás más tarde
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="min-h-screen bg-gray-50">
         <div className="flex h-screen overflow-hidden bg-gray-50">
           <div className="flex flex-col w-0 flex-1 overflow-hidden">
