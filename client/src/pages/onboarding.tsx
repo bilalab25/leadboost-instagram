@@ -220,9 +220,27 @@ const brandStyles = [
 ];
 
 const assetCategories = [
-  { value: "product_images", label: "Product Images" },
-  { value: "location_images", label: "Location Images" },
-  { value: "inspiration_templates", label: "Inspiration Templates" },
+  { 
+    value: "product_images", 
+    label: "Product Images",
+    labelEs: "Imágenes de Productos",
+    description: "Photos of your products, merchandise, or services. These will be used to create promotional content and social media posts.",
+    descriptionEs: "Fotos de tus productos, mercancía o servicios. Estas se usarán para crear contenido promocional y publicaciones en redes sociales."
+  },
+  { 
+    value: "location_images", 
+    label: "Location Images",
+    labelEs: "Imágenes de Ubicación",
+    description: "Photos of your store, office, workspace, or any physical location. Great for showcasing your business environment.",
+    descriptionEs: "Fotos de tu tienda, oficina, espacio de trabajo o cualquier ubicación física. Ideal para mostrar el ambiente de tu negocio."
+  },
+  { 
+    value: "inspiration_templates", 
+    label: "Inspiration Templates",
+    labelEs: "Plantillas de Inspiración",
+    description: "Design templates, mood boards, or visual references that inspire your brand's aesthetic and style.",
+    descriptionEs: "Plantillas de diseño, tableros de inspiración o referencias visuales que inspiran la estética y estilo de tu marca."
+  },
 ];
 
 // Integration providers (from integrations.tsx)
@@ -3594,9 +3612,15 @@ export default function Onboarding() {
                           value={category.value}
                         >
                           <AccordionTrigger className="text-lg font-semibold">
-                            {category.label} ({assetsInCategory.length})
+                            {isSpanish ? category.labelEs : category.label} ({assetsInCategory.length})
                           </AccordionTrigger>
                           <AccordionContent className="space-y-4">
+                            {/* Category description banner */}
+                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                              <p className="text-sm text-blue-700 dark:text-blue-300">
+                                {isSpanish ? category.descriptionEs : category.description}
+                              </p>
+                            </div>
                             {/* Upload section per category */}
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                               <Upload className="mx-auto h-10 w-10 text-gray-400" />
