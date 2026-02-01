@@ -1,18 +1,28 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, MessageSquare, Check, Lock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useBrand } from "@/contexts/BrandContext";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface InboxSubscriptionOverlayProps {
   children: React.ReactNode;
 }
 
-export function InboxSubscriptionOverlay({ children }: InboxSubscriptionOverlayProps) {
+export function InboxSubscriptionOverlay({
+  children,
+}: InboxSubscriptionOverlayProps) {
   const { activeBrandId } = useBrand();
+  const { isSpanish } = useLanguage();
 
   const { data: inboxAccess, isLoading } = useQuery({
     queryKey: ["/api/billing", activeBrandId, "inbox-access"],
@@ -28,7 +38,10 @@ export function InboxSubscriptionOverlay({ children }: InboxSubscriptionOverlayP
   const subscribeMutation = useMutation({
     mutationFn: async () => {
       if (!activeBrandId) throw new Error("No active brand");
-      const res = await apiRequest("POST", `/api/billing/${activeBrandId}/subscribe-inbox`);
+      const res = await apiRequest(
+        "POST",
+        `/api/billing/${activeBrandId}/subscribe-inbox`,
+      );
       if (!res.ok) throw new Error("Failed to create checkout session");
       return res.json();
     },
@@ -67,9 +80,15 @@ export function InboxSubscriptionOverlay({ children }: InboxSubscriptionOverlayP
             <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
               <Lock className="h-8 w-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Desbloquea el Inbox Unificado</CardTitle>
+            <CardTitle className="text-2xl">
+              {isSpanish
+                ? "Desbloquea el Inbox Unificado"
+                : "Unlock the Unified Inbox"}
+            </CardTitle>
             <CardDescription className="text-base mt-2">
-              Centraliza todas tus conversaciones de Instagram, Facebook y WhatsApp en un solo lugar
+              {isSpanish
+                ? "Centraliza todas tus conversaciones de Instagram, Facebook y WhatsApp en un solo lugar"
+                : "Centralize all your Instagram, Facebook, and WhatsApp conversations in one place"}
             </CardDescription>
           </CardHeader>
 
@@ -78,21 +97,37 @@ export function InboxSubscriptionOverlay({ children }: InboxSubscriptionOverlayP
               <span className="text-4xl font-bold">$99</span>
               <div className="text-left">
                 <Badge variant="secondary">USD</Badge>
-                <p className="text-sm text-muted-foreground">por mes</p>
+                <p className="text-sm text-muted-foreground">
+                  {isSpanish ? "por mes" : "per month"}
+                </p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <Feature>Bandeja de entrada unificada para todas las plataformas</Feature>
-              <Feature>Responde mensajes de Instagram, Facebook y WhatsApp</Feature>
-              <Feature>Historial completo de conversaciones</Feature>
-              <Feature>Notificaciones en tiempo real</Feature>
-              <Feature>Análisis de sentimiento con IA</Feature>
-              <Feature>Plantillas de WhatsApp integradas</Feature>
+              <Feature>
+                {isSpanish
+                  ? "Bandeja de entrada unificada para todas las plataformas"
+                  : "Unified inbox for all platforms"}
+              </Feature>
+              <Feature>
+                {isSpanish
+                  ? "Responde mensajes de Instagram, Facebook y WhatsApp"
+                  : "Respond to messages from Instagram, Facebook, and WhatsApp"}
+              </Feature>
+              <Feature>
+                {isSpanish
+                  ? "Historial completo de conversaciones"
+                  : "Full conversation history"}
+              </Feature>
+              <Feature>
+                {isSpanish
+                  ? "Notificaciones en tiempo real"
+                  : "Real-time notifications"}
+              </Feature>
             </div>
 
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="w-full text-lg py-6"
               onClick={() => subscribeMutation.mutate()}
               disabled={subscribeMutation.isPending}
@@ -100,18 +135,20 @@ export function InboxSubscriptionOverlay({ children }: InboxSubscriptionOverlayP
               {subscribeMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Procesando...
+                  {isSpanish ? "Procesando..." : "Processing..."}
                 </>
               ) : (
                 <>
                   <MessageSquare className="mr-2 h-5 w-5" />
-                  Suscribirse por $99/mes
+                  {isSpanish ? "Suscribirse por $99/mes" : "Subscribe for $99/month"}
                 </>
               )}
             </Button>
 
             <p className="text-xs text-center text-muted-foreground">
-              Puedes cancelar en cualquier momento. Sin contratos a largo plazo.
+              {isSpanish
+                ? "Puedes cancelar en cualquier momento. Sin contratos a largo plazo."
+                : "You can cancel anytime. No long-term contracts."}
             </p>
           </CardContent>
         </Card>
@@ -133,6 +170,7 @@ function Feature({ children }: { children: React.ReactNode }) {
 
 export function InboxSubscriptionBanner() {
   const { activeBrandId } = useBrand();
+  const { isSpanish } = useLanguage();
 
   const { data: inboxAccess } = useQuery({
     queryKey: ["/api/billing", activeBrandId, "inbox-access"],
@@ -148,7 +186,10 @@ export function InboxSubscriptionBanner() {
   const subscribeMutation = useMutation({
     mutationFn: async () => {
       if (!activeBrandId) throw new Error("No active brand");
-      const res = await apiRequest("POST", `/api/billing/${activeBrandId}/subscribe-inbox`);
+      const res = await apiRequest(
+        "POST",
+        `/api/billing/${activeBrandId}/subscribe-inbox`,
+      );
       if (!res.ok) throw new Error("Failed to create checkout session");
       return res.json();
     },
@@ -168,18 +209,26 @@ export function InboxSubscriptionBanner() {
       <div className="flex items-center gap-3">
         <Lock className="h-5 w-5 text-primary" />
         <div>
-          <p className="font-medium">Inbox bloqueado</p>
-          <p className="text-sm text-muted-foreground">Suscríbete para acceder al inbox unificado</p>
+          <p className="font-medium">
+            {isSpanish ? "Inbox bloqueado" : "Inbox locked"}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {isSpanish
+              ? "Suscríbete para acceder al inbox unificado"
+              : "Subscribe to access the unified inbox"}
+          </p>
         </div>
       </div>
-      <Button 
+      <Button
         onClick={() => subscribeMutation.mutate()}
         disabled={subscribeMutation.isPending}
       >
         {subscribeMutation.isPending ? (
           <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
+        ) : isSpanish ? (
           "Suscribirse $99/mes"
+        ) : (
+          "Subscribe $99/month"
         )}
       </Button>
     </div>
