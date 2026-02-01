@@ -308,11 +308,17 @@ export default function AIPlanner() {
         credentials: "include",
       });
       
-      const data = await res.json();
-      
-      // Check for payment required error (402)
-      if (res.status === 402 && data.requiresPayment) {
+      // Check for 402 status FIRST (before parsing JSON)
+      if (res.status === 402) {
         throw new Error("PAYMENT_REQUIRED");
+      }
+      
+      // Try to parse JSON response
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Error al procesar la respuesta del servidor");
       }
       
       if (!res.ok) {
@@ -407,45 +413,104 @@ export default function AIPlanner() {
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={t.sidebar.aiPlanner} />
       
-      {/* Payment Required Modal */}
+      {/* Payment Required Modal - Large and prominent */}
       <Dialog open={showPaymentRequiredModal} onOpenChange={setShowPaymentRequiredModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-orange-600">
-              <AlertCircle className="w-6 h-6" />
-              {isSpanish ? "Método de Pago Requerido" : "Payment Method Required"}
-            </DialogTitle>
-            <DialogDescription className="text-base mt-4 space-y-3">
-              <p>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 p-8 text-white">
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center">
+                <AlertCircle className="w-12 h-12 text-white" />
+              </div>
+            </div>
+            <DialogHeader>
+              <DialogTitle className="text-3xl font-bold text-center text-white">
+                {isSpanish ? "¡Tus Créditos Gratuitos Se Agotaron!" : "Your Free Credits Are Used Up!"}
+              </DialogTitle>
+              <DialogDescription className="text-center text-white/90 text-lg mt-3">
                 {isSpanish 
-                  ? "Has agotado tus 10 imágenes gratuitas. Para continuar generando contenido con IA, necesitas agregar un método de pago." 
-                  : "You've used your 10 free images. To continue generating AI content, you need to add a payment method."}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {isSpanish 
-                  ? "Cada imagen adicional cuesta $0.12 USD. Los cargos se procesan cada 2 días." 
-                  : "Each additional image costs $0.12 USD. Charges are processed every 2 days."}
-              </p>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-3 mt-4">
-            <Button 
-              onClick={() => {
-                setShowPaymentRequiredModal(false);
-                setLocation("/settings?tab=payment");
-              }}
-              className="w-full"
-            >
-              {isSpanish ? "Agregar Método de Pago" : "Add Payment Method"}
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowPaymentRequiredModal(false)}
-              className="w-full"
-            >
-              {isSpanish ? "Cerrar" : "Close"}
-            </Button>
+                  ? "Has utilizado tus 10 imágenes gratuitas. ¡Pero no te preocupes! Puedes continuar creando contenido increíble." 
+                  : "You've used your 10 free images. But don't worry! You can continue creating amazing content."}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          {/* Content */}
+          <div className="p-8 space-y-6">
+            {/* Pricing info */}
+            <div className="bg-gray-50 rounded-xl p-6 border-2 border-dashed border-gray-200">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">
+                  {isSpanish ? "Precio por imagen" : "Price per image"}
+                </p>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-5xl font-bold text-primary">$0.12</span>
+                  <span className="text-xl text-muted-foreground">USD</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {isSpanish 
+                    ? "Los cargos se procesan automáticamente cada 2 días" 
+                    : "Charges are processed automatically every 2 days"}
+                </p>
+              </div>
+            </div>
+            
+            {/* Benefits */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Check className="h-5 w-5 text-green-600" />
+                </div>
+                <span className="text-base">
+                  {isSpanish 
+                    ? "Imágenes de alta calidad generadas con IA" 
+                    : "High-quality AI-generated images"}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Check className="h-5 w-5 text-green-600" />
+                </div>
+                <span className="text-base">
+                  {isSpanish 
+                    ? "Contenido personalizado para tu marca" 
+                    : "Personalized content for your brand"}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Check className="h-5 w-5 text-green-600" />
+                </div>
+                <span className="text-base">
+                  {isSpanish 
+                    ? "Cancela cuando quieras, sin compromisos" 
+                    : "Cancel anytime, no commitments"}
+                </span>
+              </div>
+            </div>
+            
+            {/* Action buttons */}
+            <div className="flex flex-col gap-3 pt-4">
+              <Button 
+                size="lg"
+                onClick={() => {
+                  setShowPaymentRequiredModal(false);
+                  setLocation("/settings?tab=payment");
+                }}
+                className="w-full text-lg py-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+              >
+                {isSpanish ? "Agregar Método de Pago" : "Add Payment Method"}
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="lg"
+                onClick={() => setShowPaymentRequiredModal(false)}
+                className="w-full text-muted-foreground"
+              >
+                {isSpanish ? "Quizás más tarde" : "Maybe later"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
