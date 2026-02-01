@@ -1988,6 +1988,9 @@ export default function Onboarding() {
           brandId: String(createdBrandId),
           completed: true,
         });
+        
+        // Invalidate onboarding progress cache so dashboard banner updates
+        queryClient.invalidateQueries({ queryKey: ["/api/onboarding/progress"] });
 
         // If no integrations connected, generate sample posts with loading overlay
         const hasConnectedIntegrations = integrations && integrations.length > 0;
@@ -2218,6 +2221,8 @@ export default function Onboarding() {
             brandId: String(createdBrandId),
             completed: true,
           });
+          // Invalidate onboarding progress cache so dashboard banner updates
+          queryClient.invalidateQueries({ queryKey: ["/api/onboarding/progress"] });
         } catch (error) {
           console.error("Failed to mark onboarding as completed:", error);
         }
