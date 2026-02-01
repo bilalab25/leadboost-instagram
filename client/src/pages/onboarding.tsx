@@ -1417,7 +1417,7 @@ export default function Onboarding() {
         if (isSkipping) {
           setIsSkipping(false);
           clearOnboardingState();
-          setLocation("/");
+          setLocation("/dashboard");
           return;
         }
         
@@ -1465,7 +1465,7 @@ export default function Onboarding() {
       if (isSkipping) {
         setIsSkipping(false);
         clearOnboardingState();
-        setLocation("/");
+        setLocation("/dashboard");
         return;
       }
       

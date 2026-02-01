@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -202,6 +203,20 @@ export default function Dashboard() {
 
   const integrations = integrationsData || [];
 
+  // Check if the brand has incomplete onboarding
+  const { data: onboardingProgress } = useQuery<{ 
+    hasIncompleteBrand: boolean;
+    onboardingStep: number | null;
+    onboardingCompleted: boolean;
+  }>({
+    queryKey: ["/api/onboarding/progress"],
+    enabled: isAuthenticated,
+  });
+
+  // Use server-provided flag to determine if onboarding is incomplete
+  const isOnboardingIncomplete = onboardingProgress?.hasIncompleteBrand === true && 
+    onboardingProgress?.onboardingCompleted !== true;
+
   // Helper variables to detect connected integrations
   const hasPOS = integrations.some(
     (i: any) =>
@@ -377,6 +392,37 @@ export default function Dashboard() {
                     ))}
                   </motion.div>
                 </motion.div>
+
+                {/* Continue Onboarding Banner */}
+                {isOnboardingIncomplete && (
+                  <motion.div
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    <Alert className="border-teal-200 bg-gradient-to-r from-teal-50 to-cyan-50">
+                      <Sparkles className="h-5 w-5 text-teal-600" />
+                      <AlertTitle className="text-teal-800 font-semibold">
+                        {isSpanish ? "¡Completa tu configuración!" : "Complete your setup!"}
+                      </AlertTitle>
+                      <AlertDescription className="flex items-center justify-between">
+                        <span className="text-teal-700">
+                          {isSpanish 
+                            ? "Continúa configurando tu marca para desbloquear todas las funciones de IA y automatización."
+                            : "Continue setting up your brand to unlock all AI and automation features."}
+                        </span>
+                        <Link href="/onboarding">
+                          <Button 
+                            className="ml-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+                          >
+                            {isSpanish ? "Continuar" : "Continue"}
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </Link>
+                      </AlertDescription>
+                    </Alert>
+                  </motion.div>
+                )}
 
                 {/* Period Selector */}
                 <motion.div
