@@ -23,15 +23,18 @@ export default function Home() {
   const { isSpanish } = useLanguage();
 
   // Check if the brand has incomplete onboarding
-  const { data: onboardingProgress } = useQuery<{ onboardingStep: number | null }>({
-    queryKey: ["/api/onboarding/progress", activeMembership?.brandId],
+  const { data: onboardingProgress } = useQuery<{ 
+    hasIncompleteBrand: boolean;
+    onboardingStep: number | null;
+    onboardingCompleted: boolean;
+  }>({
+    queryKey: ["/api/onboarding/progress"],
     enabled: !!activeMembership?.brandId,
   });
 
-  // Onboarding is incomplete if step is less than 6 (final step)
-  const isOnboardingIncomplete = onboardingProgress?.onboardingStep !== null && 
-    onboardingProgress?.onboardingStep !== undefined &&
-    onboardingProgress.onboardingStep < 6;
+  // Use server-provided flag to determine if onboarding is incomplete
+  const isOnboardingIncomplete = onboardingProgress?.hasIncompleteBrand === true && 
+    onboardingProgress?.onboardingCompleted !== true;
 
   if (isLoading) {
     return (
