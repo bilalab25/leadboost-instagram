@@ -130,6 +130,7 @@ export default function AIPlanner() {
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
   const [pollingEnabled, setPollingEnabled] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showPaymentRequiredModal, setShowPaymentRequiredModal] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [, setLocation] = useLocation();
   const searchString = useSearch();
@@ -298,11 +299,27 @@ export default function AIPlanner() {
   const generatePostsMutation = useMutation({
     mutationFn: async () => {
       if (!activeBrand?.id) throw new Error("No brand selected");
-      const response = await apiRequest("POST", `/api/post-generator/${activeBrand.id}`, {
-        month: selectedMonth,
-        year: selectedYear,
+      
+      // Make request manually to handle 402 payment required
+      const res = await fetch(`/api/post-generator/${activeBrand.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ month: selectedMonth, year: selectedYear }),
+        credentials: "include",
       });
-      return response.json();
+      
+      const data = await res.json();
+      
+      // Check for payment required error (402)
+      if (res.status === 402 && data.requiresPayment) {
+        throw new Error("PAYMENT_REQUIRED");
+      }
+      
+      if (!res.ok) {
+        throw new Error(data.message || "Error generating posts");
+      }
+      
+      return data;
     },
     onSuccess: (data) => {
       if (data.jobId) {
@@ -317,6 +334,12 @@ export default function AIPlanner() {
       }
     },
     onError: (error: Error) => {
+      // Check if it's a payment required error
+      if (error.message === "PAYMENT_REQUIRED") {
+        setShowPaymentRequiredModal(true);
+        return;
+      }
+      
       toast({
         title: isSpanish ? "Error" : "Error",
         description: error.message,
@@ -383,6 +406,49 @@ export default function AIPlanner() {
   return (
     <div className="min-h-screen bg-gray-50">
       <TopHeader pageName={t.sidebar.aiPlanner} />
+      
+      {/* Payment Required Modal */}
+      <Dialog open={showPaymentRequiredModal} onOpenChange={setShowPaymentRequiredModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-orange-600">
+              <AlertCircle className="w-6 h-6" />
+              {isSpanish ? "Método de Pago Requerido" : "Payment Method Required"}
+            </DialogTitle>
+            <DialogDescription className="text-base mt-4 space-y-3">
+              <p>
+                {isSpanish 
+                  ? "Has agotado tus 10 imágenes gratuitas. Para continuar generando contenido con IA, necesitas agregar un método de pago." 
+                  : "You've used your 10 free images. To continue generating AI content, you need to add a payment method."}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {isSpanish 
+                  ? "Cada imagen adicional cuesta $0.12 USD. Los cargos se procesan cada 2 días." 
+                  : "Each additional image costs $0.12 USD. Charges are processed every 2 days."}
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button 
+              onClick={() => {
+                setShowPaymentRequiredModal(false);
+                setLocation("/settings?tab=payment");
+              }}
+              className="w-full"
+            >
+              {isSpanish ? "Agregar Método de Pago" : "Add Payment Method"}
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowPaymentRequiredModal(false)}
+              className="w-full"
+            >
+              {isSpanish ? "Cerrar" : "Close"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {/* Welcome Carousel Modal */}
       <Dialog open={showWelcomeModal} onOpenChange={setShowWelcomeModal}>
