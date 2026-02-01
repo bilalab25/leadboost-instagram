@@ -38,7 +38,7 @@ import {
   CheckCircle2,
   HelpCircle,
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import {
   SiInstagram,
@@ -160,6 +160,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const t = translations[language];
+  const [, setLocation] = useLocation();
   const [selectedPeriod, setSelectedPeriod] = useState<
     "weekly" | "monthly" | "daily"
   >("weekly");
@@ -367,8 +368,13 @@ export default function Dashboard() {
                             : "Continue setting up your brand to unlock all AI and automation features."}
                         </span>
                         <Button 
-                          onClick={() => window.location.href = "/onboarding"}
-                          className="ml-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setLocation("/onboarding");
+                          }}
+                          className="ml-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white cursor-pointer"
                         >
                           {isSpanish ? "Continuar" : "Continue"}
                           <ArrowRight className="w-4 h-4 ml-2" />
