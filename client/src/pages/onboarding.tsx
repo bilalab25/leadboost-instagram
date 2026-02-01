@@ -3684,7 +3684,7 @@ export default function Onboarding() {
                                   <input
                                     id={`asset-upload-${category.value}`}
                                     type="file"
-                                    accept="image/*,video/*,application/pdf"
+                                    accept="image/*,video/*"
                                     multiple
                                     className="sr-only"
                                     onChange={(e) => {
@@ -3695,8 +3695,8 @@ export default function Onboarding() {
                                 </Label>
                                 <p className="text-sm text-gray-500 mt-1">
                                   {isSpanish
-                                    ? "Imágenes, videos o PDFs."
-                                    : "Images, videos or PDFs."}
+                                    ? "Imágenes o videos."
+                                    : "Images or videos."}
                                 </p>
                               </div>
                             </div>
