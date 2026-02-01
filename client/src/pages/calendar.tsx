@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBrand } from "@/contexts/BrandContext";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -140,6 +141,7 @@ export default function ContentCalendar() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const { activeBrandId } = useBrand();
+  const { isSpanish } = useLanguage();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -1045,10 +1047,12 @@ export default function ContentCalendar() {
             </div>
             <DialogHeader>
               <DialogTitle className="text-3xl font-bold text-center text-white">
-                ¡Tus Créditos Gratuitos Se Agotaron!
+                {isSpanish ? "¡Tus Créditos Gratuitos Se Agotaron!" : "Your Free Credits Are Used Up!"}
               </DialogTitle>
               <DialogDescription className="text-center text-white/90 text-lg mt-3">
-                Has utilizado tus 10 imágenes gratuitas. ¡Pero no te preocupes! Puedes continuar creando contenido increíble.
+                {isSpanish 
+                  ? "Has utilizado tus 10 imágenes gratuitas. ¡Pero no te preocupes! Puedes continuar creando contenido increíble." 
+                  : "You've used your 10 free images. But don't worry! You can continue creating amazing content."}
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -1059,14 +1063,16 @@ export default function ContentCalendar() {
             <div className="bg-gray-50 rounded-xl p-6 border-2 border-dashed border-gray-200">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">
-                  Precio por imagen
+                  {isSpanish ? "Precio por imagen" : "Price per image"}
                 </p>
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-5xl font-bold text-primary">$0.12</span>
                   <span className="text-xl text-muted-foreground">USD</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Los cargos se procesan automáticamente cada 2 días
+                  {isSpanish 
+                    ? "Los cargos se procesan automáticamente cada 2 días" 
+                    : "Charges are processed automatically every 2 days"}
                 </p>
               </div>
             </div>
@@ -1078,7 +1084,9 @@ export default function ContentCalendar() {
                   <Check className="h-5 w-5 text-green-600" />
                 </div>
                 <span className="text-base">
-                  Imágenes de alta calidad generadas con IA
+                  {isSpanish 
+                    ? "Imágenes de alta calidad generadas con IA" 
+                    : "High-quality AI-generated images"}
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -1086,7 +1094,9 @@ export default function ContentCalendar() {
                   <Check className="h-5 w-5 text-green-600" />
                 </div>
                 <span className="text-base">
-                  Contenido personalizado para tu marca
+                  {isSpanish 
+                    ? "Contenido personalizado para tu marca" 
+                    : "Personalized content for your brand"}
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -1094,7 +1104,9 @@ export default function ContentCalendar() {
                   <Check className="h-5 w-5 text-green-600" />
                 </div>
                 <span className="text-base">
-                  Cancela cuando quieras, sin compromisos
+                  {isSpanish 
+                    ? "Cancela cuando quieras, sin compromisos" 
+                    : "Cancel anytime, no commitments"}
                 </span>
               </div>
             </div>
@@ -1109,7 +1121,7 @@ export default function ContentCalendar() {
                 }}
                 className="w-full text-lg py-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
               >
-                Agregar Método de Pago
+                {isSpanish ? "Agregar Método de Pago" : "Add Payment Method"}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
@@ -1118,7 +1130,7 @@ export default function ContentCalendar() {
                 onClick={() => setShowPaymentRequiredModal(false)}
                 className="w-full text-muted-foreground"
               >
-                Quizás más tarde
+                {isSpanish ? "Quizás más tarde" : "Maybe later"}
               </Button>
             </div>
           </div>
