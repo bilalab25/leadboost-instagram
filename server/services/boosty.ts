@@ -18,6 +18,14 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
 });
 
+// Asset interface for image generation (same pattern as postGenerator.ts)
+interface BrandAssetForImage {
+  url: string;
+  name: string;
+  category?: string;
+  assetType?: string;
+}
+
 interface BrandContext {
   brand: {
     name: string;
@@ -37,11 +45,16 @@ interface BrandContext {
       secondary?: string;
     };
     hasLogo: boolean;
+    logoUrl?: string;
+    whiteLogoUrl?: string;
+    blackLogoUrl?: string;
   } | null;
   assets: {
     totalCount: number;
     categories: string[];
   };
+  // Full asset data for image generation (images only, no videos)
+  imageAssets: BrandAssetForImage[];
   integrations: {
     connected: string[];
   };
@@ -64,6 +77,11 @@ interface BrandContext {
     recentPlatforms: string[];
   };
 }
+
+// Asset category constants (same as postGenerator.ts)
+const PRODUCT_CATEGORIES = ["product_images", "products", "product", "product_assets"];
+const LOCATION_CATEGORIES = ["location", "location_images", "location_assets", "place", "venue"];
+const TEMPLATE_CATEGORIES = ["inspiration_templates", "templates", "inspiration"];
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -212,6 +230,16 @@ export class BoostyService {
       new Set(recentConversations.map((c) => c.platform)),
     );
 
+    // Filter assets to only include images (not videos or documents) for image generation
+    const imageOnlyAssets: BrandAssetForImage[] = assets
+      .filter((a) => a.assetType === "image")
+      .map((a) => ({
+        url: a.url,
+        name: a.name,
+        category: a.category || undefined,
+        assetType: a.assetType || undefined,
+      }));
+
     return {
       brand: {
         name: brand?.name || "Mi Marca",
@@ -236,12 +264,17 @@ export class BoostyService {
               design.blackLogoUrl ||
               design.logoUrl
             ),
+            logoUrl: design.logoUrl || undefined,
+            whiteLogoUrl: design.whiteLogoUrl || undefined,
+            blackLogoUrl: design.blackLogoUrl || undefined,
           }
         : null,
       assets: {
         totalCount: assets.length,
         categories: assetCategories,
       },
+      // Full image assets for AI image generation
+      imageAssets: imageOnlyAssets,
       integrations: {
         connected: connectedPlatforms,
       },
@@ -445,69 +478,146 @@ ${capabilities}`;
     }
   }
 
+  // Helper to select visual reference assets (same pattern as postGenerator.ts)
+  private pickVisualReferenceAssets(
+    assets: BrandAssetForImage[],
+    count = 3,
+  ): BrandAssetForImage[] {
+    if (!assets || assets.length === 0) return [];
+
+    // Filter for location and inspiration assets (best for visual style reference)
+    const visualAssets = assets.filter(
+      (a) =>
+        a.category &&
+        (LOCATION_CATEGORIES.includes(a.category.toLowerCase()) ||
+          TEMPLATE_CATEGORIES.includes(a.category.toLowerCase())),
+    );
+
+    // If no specific visual assets, use product images as fallback
+    const assetsToUse = visualAssets.length > 0 ? visualAssets : assets;
+
+    // Shuffle and return up to count
+    const shuffled = [...assetsToUse].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  }
+
   private async generateImage(
     imagePrompt: string,
     context: BrandContext,
+    userRequest: string = "",
   ): Promise<string | null> {
     try {
       const primaryColor = context.design?.colors?.primary || "#4F46E5";
       const accentColor = context.design?.colors?.accent1 || "#7C3AED";
-      const brandStyle =
-        context.design?.brandStyle || "modern and professional";
+      const accent2Color = context.design?.colors?.accent2 || "";
+      const brandStyle = context.design?.brandStyle || "modern and professional";
       const brandName = context.brand?.name || "Brand";
       const industry = context.brand?.industry || "";
 
-      // Prompt principal para generar la imagen
-      const enhancedPrompt = `
-  Generate a professional, high-quality marketing image for the brand "${brandName}" 
-  in the ${industry || "general"} industry. 
+      // Build color palette string
+      const colorPalette = [primaryColor, accentColor, accent2Color]
+        .filter(Boolean)
+        .join(", ");
 
-  Use the brand's visual style: ${brandStyle}.
-  Primary color: ${primaryColor}, Accent color: ${accentColor}.
-  Use up to 3 reference images provided (brand assets) to inspire the composition. 
-  Focus on clean composition, vibrant colors, and a modern, professional look. 
-  Do NOT include any text on the image. 
-  Ensure consistency with the brand's mood, products, and colors.
-  `;
+      // Get logo URL (prefer white/black versions)
+      const logoUrl =
+        context.design?.whiteLogoUrl ||
+        context.design?.blackLogoUrl ||
+        context.design?.logoUrl;
 
+      // Select assets by category (following postGenerator.ts pattern)
+      const productAssets = context.imageAssets.filter(
+        (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
+      );
+      const locationAssets = context.imageAssets.filter(
+        (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
+      );
+
+      const hasProducts = productAssets.length > 0;
+      const hasLocation = locationAssets.length > 0;
+
+      // Build content parts array for multimodal request
       const contentParts: any[] = [];
 
-      // Seleccionar hasta 3 assets para usar como referencia visual
-      if (
-        context.assets &&
-        Array.isArray(context.assets) &&
-        context.assets.length > 0
-      ) {
-        const assetsToUse = context.assets.slice(0, 3);
+      // 1. Add logo as primary visual reference
+      if (logoUrl) {
+        console.log("[Boosty] Adding brand logo as reference:", logoUrl);
+        const logoImage = await this.fetchImageAsBase64(logoUrl);
+        if (logoImage) {
+          contentParts.push({
+            inlineData: {
+              data: logoImage.data,
+              mimeType: logoImage.mimeType,
+            },
+          });
+        }
+      }
+
+      // 2. Add brand assets as visual references (up to 3)
+      if (context.imageAssets && context.imageAssets.length > 0) {
+        const assetsToUse = this.pickVisualReferenceAssets(context.imageAssets, 3);
+        console.log(
+          `[Boosty] Using ${assetsToUse.length} brand assets as references:`,
+          assetsToUse.map((a) => a.name),
+        );
 
         for (const asset of assetsToUse) {
           const imageData = await this.fetchImageAsBase64(asset.url);
           if (imageData) {
             contentParts.push({
-              role: "input",
-              parts: [
-                {
-                  inlineData: {
-                    data: imageData.data,
-                    mimeType: imageData.mimeType,
-                  },
-                },
-                {
-                  text: `Use this asset as visual inspiration to generate a new marketing image that matches the brand style, colors, and aesthetic.`,
-                },
-              ],
+              inlineData: {
+                data: imageData.data,
+                mimeType: imageData.mimeType,
+              },
             });
           }
         }
       }
 
-      // Agregar el prompt principal
-      contentParts.push({
-        role: "input",
-        parts: [{ text: enhancedPrompt }],
-      });
+      // 3. Build enhanced prompt (following postGenerator.ts pattern)
+      const enhancedPrompt = `
+🎨 IMAGE GENERATION REQUEST FOR "${brandName.toUpperCase()}"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-      // Llamada a Gemini
+USER REQUEST: ${userRequest || imagePrompt}
+
+BRAND CONTEXT:
+- Brand: ${brandName}
+- Industry: ${industry || "general"}
+- Visual Style: ${brandStyle}
+- Color Palette: ${colorPalette}
+${hasProducts ? "- Has real product images to reference" : ""}
+${hasLocation ? "- Has location/venue images to reference" : ""}
+
+DETAILED IMAGE PROMPT:
+${imagePrompt}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 CRITICAL VISUAL INSTRUCTIONS:
+1. If a logo image was provided above, reproduce it EXACTLY as shown - do NOT simplify, redraw, or reinterpret it.
+2. Use the reference images for lighting, textures, color mood, and composition inspiration.
+3. Maintain the brand's color palette (${colorPalette}) throughout the image.
+4. Create a professional, high-quality marketing image suitable for social media.
+5. The image should look like REAL SOCIAL MEDIA CONTENT, not a generic advertisement.
+${hasProducts ? "6. If product images were provided, feature products authentically in the scene." : ""}
+
+⛔ DO NOT:
+- Add any text, watermarks, or overlays to the image
+- Create generic stock photo looks
+- Deviate from the brand's visual identity
+- Simplify or alter the logo if one was provided
+
+Generate a visually stunning, brand-consistent image that fulfills the user's request.
+`;
+
+      contentParts.push({ text: enhancedPrompt });
+
+      console.log("[Boosty] Generating image with Gemini...");
+      console.log("[Boosty] Assets used:", context.imageAssets.length);
+      console.log("[Boosty] Logo provided:", !!logoUrl);
+
+      // Call Gemini with multimodal content
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-image",
         contents: contentParts,
@@ -516,14 +626,14 @@ ${capabilities}`;
         },
       });
 
-      // Buscar la imagen en la respuesta
+      // Extract image from response
       if (response.candidates?.[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
           if (part.inlineData?.data) {
             const base64Image = part.inlineData.data;
             const mimeType = part.inlineData.mimeType || "image/png";
             const dataUrl = `data:${mimeType};base64,${base64Image}`;
-            console.log("[Boosty] Image generated successfully");
+            console.log("[Boosty] Image generated successfully!");
             return dataUrl;
           }
         }
@@ -541,27 +651,81 @@ ${capabilities}`;
     userMessage: string,
     context: BrandContext,
     language: "es" | "en",
+    conversationHistory: ChatMessage[] = [],
   ): Promise<{ imagePrompt: string; caption: string; hashtags: string }> {
+    // Build conversation context for memory
+    const recentHistory = conversationHistory.slice(-6); // Last 6 messages for context
+    const conversationContext = recentHistory.length > 0
+      ? recentHistory.map((msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`).join("\n")
+      : "";
+
+    // Build asset context
+    const hasProducts = context.imageAssets.some(
+      (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
+    );
+    const hasLocations = context.imageAssets.some(
+      (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
+    );
+    const assetContext = `
+Available visual assets:
+- Total images: ${context.imageAssets.length}
+- Has product images: ${hasProducts ? "Yes" : "No"}
+- Has location/venue images: ${hasLocations ? "Yes" : "No"}
+- Has logo: ${context.design?.hasLogo ? "Yes" : "No"}
+`;
+
+    const colorPalette = [
+      context.design?.colors?.primary,
+      context.design?.colors?.accent1,
+      context.design?.colors?.accent2,
+    ].filter(Boolean).join(", ");
+
     const prompt =
       language === "es"
-        ? `Eres un experto en marketing visual. Basándote en esta solicitud del usuario: "${userMessage}"
-         Y el contexto de la marca: ${context.brand.name} (${context.brand.industry || "general"})
-         
-         Genera un JSON con:
-         1. "imagePrompt": Una descripción detallada en inglés para generar una imagen de marketing (máximo 100 palabras). Describe la escena, colores, estilo, composición. NO incluyas texto en la imagen.
-         2. "caption": Un caption atractivo en español para acompañar la imagen en redes sociales (máximo 150 caracteres).
-         3. "hashtags": 5-7 hashtags relevantes en español.
-         
-         Responde SOLO con el JSON, sin explicaciones adicionales.`
-        : `You are a visual marketing expert. Based on this user request: "${userMessage}"
-         And the brand context: ${context.brand.name} (${context.brand.industry || "general"})
-         
-         Generate a JSON with:
-         1. "imagePrompt": A detailed description in English to generate a marketing image (max 100 words). Describe the scene, colors, style, composition. Do NOT include text in the image.
-         2. "caption": An engaging caption in English to accompany the image on social media (max 150 characters).
-         3. "hashtags": 5-7 relevant hashtags in English.
-         
-         Respond ONLY with the JSON, no additional explanations.`;
+        ? `Eres un experto en marketing visual para la marca "${context.brand.name}" (${context.brand.industry || "general"}).
+
+CONTEXTO DE LA MARCA:
+- Estilo visual: ${context.design?.brandStyle || "moderno y profesional"}
+- Paleta de colores: ${colorPalette || "colores de marca"}
+${assetContext}
+${conversationContext ? `\nCONVERSACIÓN PREVIA:\n${conversationContext}\n` : ""}
+SOLICITUD ACTUAL DEL USUARIO: "${userMessage}"
+
+Genera un JSON con:
+1. "imagePrompt": Una descripción MUY DETALLADA en inglés para generar una imagen de marketing (máximo 150 palabras). 
+   - Describe la escena, iluminación, composición, ángulo de cámara
+   - Especifica los colores de la marca: ${colorPalette}
+   - Si el usuario menciona productos, describe cómo mostrarlos
+   - NO incluyas texto en la imagen
+   - Usa el contexto de la conversación para entender mejor lo que quiere
+
+2. "caption": Un caption atractivo en español para acompañar la imagen en redes sociales (máximo 150 caracteres).
+
+3. "hashtags": 5-7 hashtags relevantes en español.
+
+Responde SOLO con el JSON, sin explicaciones adicionales.`
+        : `You are a visual marketing expert for the brand "${context.brand.name}" (${context.brand.industry || "general"}).
+
+BRAND CONTEXT:
+- Visual style: ${context.design?.brandStyle || "modern and professional"}
+- Color palette: ${colorPalette || "brand colors"}
+${assetContext}
+${conversationContext ? `\nPREVIOUS CONVERSATION:\n${conversationContext}\n` : ""}
+CURRENT USER REQUEST: "${userMessage}"
+
+Generate a JSON with:
+1. "imagePrompt": A VERY DETAILED description in English to generate a marketing image (max 150 words).
+   - Describe the scene, lighting, composition, camera angle
+   - Specify brand colors: ${colorPalette}
+   - If user mentions products, describe how to showcase them
+   - Do NOT include text in the image
+   - Use conversation context to better understand the request
+
+2. "caption": An engaging caption in English to accompany the image on social media (max 150 characters).
+
+3. "hashtags": 5-7 relevant hashtags in English.
+
+Respond ONLY with the JSON, no additional explanations.`;
 
     try {
       const response = await ai.models.generateContent({
@@ -613,8 +777,9 @@ ${capabilities}`;
         message,
         context,
         language,
+        conversationHistory,
       );
-      const generatedImage = await this.generateImage(imagePrompt, context);
+      const generatedImage = await this.generateImage(imagePrompt, context, message);
 
       if (generatedImage) {
         const textResponse =
