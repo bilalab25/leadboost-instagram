@@ -772,15 +772,16 @@ ${isPromotion ? `\n🎯 DETECTADO: Imagen PROMOCIONAL - Incluir texto: "${promot
 
 Genera un JSON con:
 1. "imagePrompt": Una descripción MUY DETALLADA en inglés para generar una imagen de marketing (máximo 200 palabras). 
-   - Describe la escena, iluminación, composición, ángulo de cámara
+   - CRÍTICO: Lee TODA la conversación previa para entender el contexto completo (tema, ocasión, servicios/productos mencionados)
+   - Incorpora TODOS los elementos relevantes mencionados en la conversación (fechas especiales, ofertas, servicios específicos, estilo)
+   - Describe la escena, iluminación, composición y ángulo de cámara que refleje la conversación
    - Especifica los colores de la marca: ${colorPalette}
-   - Si el usuario menciona productos, describe cómo mostrarlos
+   - Si el usuario menciona productos o servicios específicos, inclúyelos en la imagen
    ${textInstructionsEs}
-   - Usa el contexto de la conversación para entender mejor lo que quiere
 
-2. "caption": Un caption atractivo en español para acompañar la imagen en redes sociales (máximo 150 caracteres).
+2. "caption": Un caption atractivo en español para acompañar la imagen en redes sociales (máximo 150 caracteres). Debe reflejar el tema de la conversación.
 
-3. "hashtags": 5-7 hashtags relevantes en español.
+3. "hashtags": 5-7 hashtags relevantes en español relacionados con el tema de la conversación.
 
 Responde SOLO con el JSON, sin explicaciones adicionales.`
         : `You are a visual marketing expert for the brand "${context.brand.name}" (${context.brand.industry || "general"}).
@@ -796,15 +797,16 @@ ${isPromotion ? `\n🎯 DETECTED: PROMOTIONAL image - Include text: "${promotion
 
 Generate a JSON with:
 1. "imagePrompt": A VERY DETAILED description in English to generate a marketing image (max 200 words).
-   - Describe the scene, lighting, composition, camera angle
+   - CRITICAL: Read the ENTIRE previous conversation to understand the full context (theme, occasion, services/products mentioned)
+   - Incorporate ALL relevant elements from the conversation (special dates, offers, specific services, style)
+   - Describe scene, lighting, composition, camera angle that reflects the conversation topic
    - Specify brand colors: ${colorPalette}
-   - If user mentions products, describe how to showcase them
+   - If user mentions specific products or services, include them in the image
    ${textInstructionsEn}
-   - Use conversation context to better understand the request
 
-2. "caption": An engaging caption in English to accompany the image on social media (max 150 characters).
+2. "caption": An engaging caption in English to accompany the image on social media (max 150 characters). Must reflect the conversation theme.
 
-3. "hashtags": 5-7 relevant hashtags in English.
+3. "hashtags": 5-7 relevant hashtags in English related to the conversation topic.
 
 Respond ONLY with the JSON, no additional explanations.`;
 
