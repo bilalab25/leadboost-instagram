@@ -648,6 +648,7 @@ Generate a visually stunning, brand-consistent image that fulfills the user's re
   }
 
   // Build a contextual fallback prompt when Gemini fails to generate JSON
+  // This is fully dynamic - no hardcoded themes, extracts context from conversation
   private buildContextualFallbackPrompt(
     userMessage: string,
     conversationContext: string,
@@ -655,26 +656,6 @@ Generate a visually stunning, brand-consistent image that fulfills the user's re
     isPromotion: boolean,
     promotionDetails: string,
   ): string {
-    const allText = `${userMessage} ${conversationContext}`.toLowerCase();
-    
-    // Extract key themes from conversation
-    const themes: string[] = [];
-    
-    // Check for Valentine's Day
-    if (/valentine|san valent[ií]n|14\s*(de\s*)?feb|february\s*14|amor|love|heart|coraz[oó]n/i.test(allText)) {
-      themes.push("Valentine's Day romantic theme with hearts and love elements");
-    }
-    
-    // Check for specific treatments/services
-    if (/filler|relleno|botox|est[eé]tic|aesthetic|beauty|belleza|skin|piel|facial|tratamiento|treatment/i.test(allText)) {
-      themes.push("beauty and aesthetic treatment services, elegant and professional");
-    }
-    
-    // Check for promotion
-    if (isPromotion) {
-      themes.push(`promotional offer with text overlay showing "${promotionDetails || "SPECIAL OFFER"}"`);
-    }
-    
     // Build color palette
     const colorPalette = [
       context.design?.colors?.primary,
@@ -682,18 +663,30 @@ Generate a visually stunning, brand-consistent image that fulfills the user's re
       context.design?.colors?.accent2,
     ].filter(Boolean).join(", ");
     
-    // Compose the fallback prompt
-    const basePrompt = themes.length > 0
-      ? `Professional marketing image for ${context.brand.name} featuring: ${themes.join("; ")}.`
-      : `Professional marketing image for ${context.brand.name} social media.`;
+    // Extract the last user messages for context (the actual content of what they want)
+    const userMessages = conversationContext
+      .split("\n")
+      .filter((line) => line.startsWith("User:"))
+      .map((line) => line.replace("User:", "").trim())
+      .slice(-3) // Last 3 user messages
+      .join(". ");
     
-    const stylePrompt = `Style: ${context.design?.brandStyle || "minimalist and elegant"}. Brand colors: ${colorPalette || "sophisticated tones"}. Typography: ${context.design?.fonts?.primary || "modern sans-serif"}.`;
+    // Build dynamic prompt using conversation content
+    const brandInfo = `for ${context.brand.name} (${context.brand.industry || "business"})`;
+    const contextInfo = userMessages 
+      ? `based on this request: "${userMessages}"`
+      : `for the current request: "${userMessage}"`;
     
-    const compositionPrompt = isPromotion
-      ? `The promotional text "${promotionDetails || "2X1"}" must be prominently displayed in bold, contrasting colors. Include decorative elements that match the theme.`
-      : "Clean composition with professional lighting and modern aesthetic.";
+    const stylePrompt = `Style: ${context.design?.brandStyle || "modern and professional"}. Brand colors: ${colorPalette || "elegant tones"}. Font: ${context.design?.fonts?.primary || "sans-serif"}.`;
     
-    return `${basePrompt} ${stylePrompt} ${compositionPrompt}`;
+    // Include promotional text if detected
+    const promoPrompt = isPromotion && promotionDetails
+      ? `IMPORTANT: Include prominent promotional text "${promotionDetails}" in the image with bold, contrasting typography.`
+      : isPromotion
+      ? `Include promotional messaging prominently in the image design.`
+      : "";
+    
+    return `Professional marketing image ${brandInfo} ${contextInfo}. ${stylePrompt} ${promoPrompt} High quality, modern composition suitable for social media.`.trim();
   }
 
   private async generateImagePrompt(
