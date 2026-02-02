@@ -5,6 +5,19 @@ import sharp from "sharp";
 import OpenAI from "openai";
 import cloudinary from "../cloudinary";
 
+// Asset usage tracking for intelligent rotation
+interface AssetUsageTracker {
+  [assetUrl: string]: number; // URL -> times used
+}
+
+interface CategoryUsageTracker {
+  [category: string]: number; // category -> times used
+}
+
+// Module-level caches for asset rotation (per brand)
+const assetUsageCache = new Map<string, AssetUsageTracker>();
+const categoryUsageCache = new Map<string, CategoryUsageTracker>();
+
 function enforceLanguage(
   posts: GeneratedPost[],
   lang: string,
@@ -1177,7 +1190,6 @@ export async function generatePostsWithGemini(
     throw error;
   }
 }
-
 // Helper function to fetch an image from URL and convert to base64
 async function fetchImageAsBase64(
   url: string,
@@ -1213,7 +1225,11 @@ interface BrandAssetForImage {
   description?: string;
 }
 
-function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
+function pickAssetsForMode(
+  mode: VisualMode,
+  assets: BrandAssetForImage[],
+  brandId?: string,
+) {
   const allProducts = assets.filter(
     (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
   );
@@ -1228,20 +1244,138 @@ function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
 
   const logos = assets.filter((a) => a.category === "logos");
 
-  // Random selection helpers
-  const randomItem = <T>(arr: T[]): T | null =>
-    arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
+  const cacheKey = brandId || "default";
+
+  if (!assetUsageCache.has(cacheKey)) {
+    assetUsageCache.set(cacheKey, {});
+  }
+  if (!categoryUsageCache.has(cacheKey)) {
+    categoryUsageCache.set(cacheKey, {});
+  }
+
+  const usageTracker = assetUsageCache.get(cacheKey)!;
+  const categoryTracker = categoryUsageCache.get(cacheKey)!;
+
+  console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+  console.log(`[PostGenerator] 🎯 ASSET SELECTION for mode: ${mode}`);
+  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+  console.log(`📦 Available pool:`);
+  console.log(`   - Products: ${allProducts.length}`);
+  console.log(`   - Templates: ${allTemplates.length}`);
+  console.log(`   - Locations: ${allLocations.length}`);
+
+  // ✅ NUEVA ESTRATEGIA: 90% individual usage, 10% category usage
+  const selectLeastUsedWithPriority = <T extends BrandAssetForImage>(
+    arr: T[],
+    assetType: string,
+  ): T | null => {
+    if (arr.length === 0) {
+      console.log(`   ⚠️ No ${assetType} assets available`);
+      return null;
+    }
+
+    if (arr.length === 1) {
+      const single = arr[0];
+      if (!(single.url in usageTracker)) {
+        usageTracker[single.url] = 0;
+      }
+      if (single.category && !(single.category in categoryTracker)) {
+        categoryTracker[single.category] = 0;
+      }
+      usageTracker[single.url]++;
+      if (single.category) {
+        categoryTracker[single.category]++;
+      }
+
+      console.log(`   ✅ ${assetType}: "${single.name}" [${single.category}]`);
+      console.log(
+        `      Usage: ${usageTracker[single.url]} times | Category: ${categoryTracker[single.category || ""]} times`,
+      );
+
+      return single;
+    }
+
+    // Initialize usage for new items
+    arr.forEach((item) => {
+      if (!(item.url in usageTracker)) {
+        usageTracker[item.url] = 0;
+      }
+      if (item.category && !(item.category in categoryTracker)) {
+        categoryTracker[item.category] = 0;
+      }
+    });
+
+    // Log current usage before selection
+    console.log(`\n   📊 Current ${assetType} usage:`);
+    arr.forEach((item) => {
+      const usage = usageTracker[item.url] || 0;
+      const catUsage = item.category ? categoryTracker[item.category] || 0 : 0;
+      console.log(`      - ${item.name}: ${usage}x (category: ${catUsage}x)`);
+    });
+
+    // ✅ PRIORITY SORTING:
+    // 1. Assets with 0 usage ALWAYS win
+    // 2. Among used assets, sort by: 90% individual + 10% category
+    // 3. If scores are equal, pick the one used least recently (or round-robin)
+    const sorted = [...arr].sort((a, b) => {
+      const usageA = usageTracker[a.url] || 0;
+      const usageB = usageTracker[b.url] || 0;
+
+      // Priority 1: Unused assets first
+      if (usageA === 0 && usageB > 0) return -1;
+      if (usageB === 0 && usageA > 0) return 1;
+
+      // Priority 2: If both have same usage status, use weighted score
+      const catUsageA = a.category ? categoryTracker[a.category] || 0 : 0;
+      const catUsageB = b.category ? categoryTracker[b.category] || 0 : 0;
+
+      // 100% individual weight for equal distribution
+      // (Category weight removed to ensure pure rotation)
+      const scoreA = usageA;
+      const scoreB = usageB;
+
+      return scoreA - scoreB;
+    });
+
+    const selected = sorted[0];
+
+    // Update both trackers
+    usageTracker[selected.url] = (usageTracker[selected.url] || 0) + 1;
+    if (selected.category) {
+      categoryTracker[selected.category] =
+        (categoryTracker[selected.category] || 0) + 1;
+    }
+
+    console.log(
+      `\n   ✅ SELECTED ${assetType}: "${selected.name}" [${selected.category}]`,
+    );
+    console.log(`      Asset usage: ${usageTracker[selected.url]} times`);
+    console.log(
+      `      Category usage: ${categoryTracker[selected.category || ""]} times`,
+    );
+    console.log(`      Pool size: ${arr.length} ${assetType} assets available`);
+
+    return selected;
+  };
+
+  const product = selectLeastUsedWithPriority(allProducts, "PRODUCT");
+
+  let template = null;
+  if (mode === "campaign_template" || mode === "inspiration_based") {
+    template = selectLeastUsedWithPriority(allTemplates, "TEMPLATE");
+  }
+
+  let location = null;
+  if (mode === "lifestyle" || mode === "venue_showcase") {
+    location = selectLeastUsedWithPriority(allLocations, "LOCATION");
+  }
+
+  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 
   return {
-    product: randomItem(allProducts),
-    template:
-      mode === "campaign_template" || mode === "inspiration_based"
-        ? randomItem(allTemplates)
-        : null,
-    location:
-      mode === "lifestyle" || mode === "venue_showcase"
-        ? randomItem(allLocations)
-        : null,
+    product,
+    template,
+    location,
     logo: logos[0] ?? null,
     mode,
   };
@@ -1249,17 +1383,17 @@ function pickAssetsForMode(mode: VisualMode, assets: BrandAssetForImage[]) {
 function pickVisualReferenceAssets(
   assets: BrandAssetForImage[],
   count = 3,
+  brandId?: string,
 ): BrandAssetForImage[] {
   if (!assets || assets.length === 0) return [];
 
-  // Filtra SOLO las categorías que definen el estilo y el lugar/ambiente
-  // Incluye todas las variantes de categorías de ubicación
   const locationCategories = [
     "location",
     "location_images",
     "location_assets",
     "place",
   ];
+
   // IMPORTANT: Only use images, not videos or documents (Gemini image generation doesn't accept videos)
   const visualAssets = assets.filter(
     (a) =>
@@ -1269,7 +1403,6 @@ function pickVisualReferenceAssets(
       (!a.assetType || a.assetType === "image"), // Filter out videos and documents
   );
 
-  // Si no hay assets visuales específicos, no envía nada o usa un fallback
   if (visualAssets.length === 0) {
     console.warn(
       "[PostGenerator] No specific location or inspiration assets found for image reference.",
@@ -1277,13 +1410,232 @@ function pickVisualReferenceAssets(
     return [];
   }
 
-  // Lógica de shuffle y slice
-  for (let i = visualAssets.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [visualAssets[i], visualAssets[j]] = [visualAssets[j], visualAssets[i]];
+  // If we have fewer assets than requested, return all
+  if (visualAssets.length <= count) {
+    return visualAssets;
   }
 
-  return visualAssets.slice(0, count);
+  // INTELLIGENT SELECTION: Category-balanced rotation
+  const cacheKey = brandId || "default";
+
+  if (!assetUsageCache.has(cacheKey)) {
+    assetUsageCache.set(cacheKey, {});
+  }
+  if (!categoryUsageCache.has(cacheKey)) {
+    categoryUsageCache.set(cacheKey, {});
+  }
+
+  const usageTracker = assetUsageCache.get(cacheKey)!;
+  const categoryTracker = categoryUsageCache.get(cacheKey)!;
+
+  // Initialize usage counts
+  visualAssets.forEach((asset) => {
+    if (!(asset.url in usageTracker)) {
+      usageTracker[asset.url] = 0;
+    }
+    if (asset.category && !(asset.category in categoryTracker)) {
+      categoryTracker[asset.category] = 0;
+    }
+  });
+
+  // Group assets by category
+  const assetsByCategory = visualAssets.reduce(
+    (acc, asset) => {
+      const cat = asset.category || "uncategorized";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(asset);
+      return acc;
+    },
+    {} as Record<string, BrandAssetForImage[]>,
+  );
+
+  const categories = Object.keys(assetsByCategory);
+  const selected: BrandAssetForImage[] = [];
+
+  console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+  console.log(`[PostGenerator] 🎨 Selecting visual reference assets`);
+  console.log(`   Available categories: ${categories.join(", ")}`);
+  console.log(`   Total assets: ${visualAssets.length}`);
+  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+
+  // STRATEGY: Rotate between categories, picking least-used asset from least-used category
+  while (selected.length < count && selected.length < visualAssets.length) {
+    // Sort categories by usage (least used first)
+    const sortedCategories = categories.sort((a, b) => {
+      const usageA = categoryTracker[a] || 0;
+      const usageB = categoryTracker[b] || 0;
+      return usageA - usageB;
+    });
+
+    // Pick from the least-used category
+    const targetCategory = sortedCategories[0];
+    const categoryAssets = assetsByCategory[targetCategory];
+
+    if (!categoryAssets || categoryAssets.length === 0) {
+      // Remove empty category
+      categories.splice(categories.indexOf(targetCategory), 1);
+      continue;
+    }
+
+    // ✅ PRIORIZAR ASSETS SIN USAR (usage = 0)
+    const sortedAssets = categoryAssets
+      .filter((a) => !selected.includes(a))
+      .sort((a, b) => {
+        const usageA = usageTracker[a.url] || 0;
+        const usageB = usageTracker[b.url] || 0;
+
+        // Si uno está sin usar y otro no, el sin usar SIEMPRE gana
+        if (usageA === 0 && usageB > 0) return -1;
+        if (usageB === 0 && usageA > 0) return 1;
+
+        // Si ambos tienen el mismo estado, ordenar por menor uso
+        return usageA - usageB;
+      });
+
+    if (sortedAssets.length === 0) {
+      // All assets from this category already selected
+      categories.splice(categories.indexOf(targetCategory), 1);
+      continue;
+    }
+
+    // Select the least-used asset from the least-used category
+    const selectedAsset = sortedAssets[0];
+    selected.push(selectedAsset);
+
+    // Update usage counters
+    usageTracker[selectedAsset.url] =
+      (usageTracker[selectedAsset.url] || 0) + 1;
+    if (selectedAsset.category) {
+      categoryTracker[selectedAsset.category] =
+        (categoryTracker[selectedAsset.category] || 0) + 1;
+    }
+
+    console.log(
+      `   ✅ [${selected.length}/${count}] "${selectedAsset.name}"`,
+      `\n      Category: ${selectedAsset.category}`,
+      `\n      Usage: ${usageTracker[selectedAsset.url]} times (category: ${categoryTracker[selectedAsset.category || ""]})`,
+    );
+  }
+
+  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+
+  return selected;
+}
+
+// Helper function for Holo-style mode instructions
+function getHoloStyleModeInstructions(mode: VisualMode): string {
+  switch (mode) {
+    case "campaign_template":
+      return `📸 CAMPAIGN TEMPLATE MODE
+
+OBJECTIVE: Combine product + template style inspiration
+
+STEP-BY-STEP PROCESS:
+1. Study the TEMPLATE reference:
+   - Identify lighting direction and quality
+   - Extract dominant color scheme
+   - Analyze composition balance
+   - Note depth of field and focus
+
+2. Use the PRODUCT reference:
+   - Reproduce it EXACTLY as shown
+   - Maintain all colors, materials, proportions
+   - DO NOT modify or stylize
+
+3. Create a NEW scene:
+   - Use DIFFERENT props from template (e.g., if template has flowers, use stones)
+   - Apply SIMILAR lighting and mood
+   - Follow SIMILAR composition principles
+   - Use brand color palette as foundation
+
+4. Integrate the LOGO:
+   - Add physically (engraved, embossed, or as small emblem)
+   - Make visible but not dominant
+
+CRITICAL: Template = INSPIRATION, not blueprint. Product = EXACT COPY.`;
+
+    case "lifestyle":
+      return `🏙️ LIFESTYLE MODE
+
+OBJECTIVE: Integrate product into real location naturally
+
+CRITICAL RULES:
+- Location is REAL SPACE → DO NOT alter architecture/furniture
+- Product must look PHYSICALLY PRESENT in that space
+- Add natural contact shadows
+- Preserve location authenticity
+
+ALLOWED ADJUSTMENTS:
+✅ Lighting (warmer, brighter, more dramatic)
+✅ Camera angle and framing
+✅ Atmosphere without changing structure
+
+INTEGRATION:
+- Place product naturally in the existing space
+- Logo on product or packaging`;
+
+    case "product_showcase":
+      return `💎 PRODUCT SHOWCASE MODE
+
+OBJECTIVE: Feature product as hero with brand-aligned backdrop
+
+PROCESS:
+1. Reproduce PRODUCT exactly from reference
+2. Create backdrop using brand colors
+3. Add complementary props (subtle, not competing)
+4. Professional lighting for product photography
+5. Integrate logo on product or packaging
+
+STYLE: Clean, minimal, or lifestyle-inspired based on brand style`;
+
+    case "venue_showcase":
+      return `🏢 VENUE SHOWCASE MODE
+
+OBJECTIVE: Showcase location while preserving authenticity
+
+ABSOLUTE RULES:
+❌ DO NOT change architecture, furniture, walls, colors
+❌ DO NOT add structural elements
+❌ DO NOT redesign the space
+
+✅ ONLY adjust lighting, framing, atmosphere
+✅ Integrate logo as signage or environmental element
+
+The space must remain RECOGNIZABLE as the original.`;
+
+    case "inspiration_based":
+      return `✨ INSPIRATION MODE
+
+OBJECTIVE: Create new content inspired by template style
+
+PROCESS:
+1. Analyze template(s) for visual DNA:
+   - Color schemes
+   - Lighting style
+   - Composition approach
+   - Mood and emotion
+
+2. Generate NEW content:
+   - Use brand colors
+   - Apply similar aesthetic
+   - Create original elements
+   - DO NOT copy specific objects
+
+3. Integrate logo creatively`;
+
+    case "brand_only":
+      return `🎨 BRAND-ONLY MODE
+
+OBJECTIVE: Create from brand identity alone
+
+APPROACH:
+- Use brand colors prominently
+- Follow brand style (modern)
+- Create distinctive visual
+- Integrate logo as central design element
+
+Avoid generic stock photo aesthetics.`;
+  }
 }
 
 export async function generateImageWithGeminiNanoBanana({
@@ -1304,82 +1656,152 @@ export async function generateImageWithGeminiNanoBanana({
   };
 }): Promise<string | null> {
   try {
-    console.log("🚀 [NanoBanana] Iniciando generación...");
-    console.log("📦 [Assets recibidos]:", brandAssets.length);
+    console.log("🚀 [NanoBanana] Iniciando generación estilo Holo...");
 
+    const brandId = brandAssets[0]?.url?.match(/brands\/([^/]+)/)?.[1];
     const mode = selectVisualMode(brandAssets);
-    const modeAssets = pickAssetsForMode(mode, brandAssets);
+    const modeAssets = pickAssetsForMode(mode, brandAssets, brandId);
 
-    // 🔍 LOG: Debug de Lógica de Selección
-    console.log("🛠️ [Modo Seleccionado]:", mode);
-    console.log("🖼️ [Mode Assets]:", {
-      hasProduct: !!modeAssets.product,
-      hasTemplate: !!modeAssets.template,
-      hasLocation: !!modeAssets.location,
-      productUrl: modeAssets.product?.url || "N/A",
-      templateUrl: modeAssets.template?.url || "N/A",
-      locationUrl: modeAssets.location?.url || "N/A",
-    });
+    console.log("🛠️ [Modo]:", mode);
 
-    const contentParts: any[] = [];
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // PASO 1: CONSTRUCCIÓN DE REFERENCIAS VISUALES (ESTILO HOLO)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // 1️⃣ TEMPLATE (for campaign_template or inspiration_based modes)
+    const visualReferences: Array<{
+      role: string;
+      imageData: { data: string; mimeType: string };
+      instruction: string;
+    }> = [];
+
+    // 1️⃣ LOGO (siempre primero)
+    const logoUrl =
+      brandDesign.whiteLogoUrl ||
+      brandDesign.blackLogoUrl ||
+      brandDesign.logoUrl;
+    if (logoUrl) {
+      const logoImg = await fetchImageAsBase64(logoUrl);
+      if (logoImg) {
+        visualReferences.push({
+          role: "LOGO",
+          imageData: logoImg,
+          instruction: `🏷️ BRAND LOGO - MANDATORY INTEGRATION
+This is the official brand mark that MUST appear in the final image.
+
+TYPOGRAPHY & FIDELITY (CRITICAL):
+⚠️ DO NOT distort, stretch, or compress the typography
+⚠️ Preserve letter spacing, proportions, and font style EXACTLY
+⚠️ If the logo has text, it must remain perfectly legible
+⚠️ DO NOT alter the aspect ratio of the logo
+⚠️ Keep all design elements in their original proportions
+
+INTEGRATION RULES:
+- Physical presence only (engraved, embossed, printed, or as metal emblem)
+- Clearly visible but not dominant
+- DO NOT alter, simplify, or reinterpret the logo design
+- Must be recognizable and match the original
+
+ALLOWED METHODS:
+• Engraved on product surface
+• Embossed on packaging
+• Small metal plate/emblem
+• Printed fabric label
+• Debossed on box/case
+• Tag (for jewelry/apparel)
+
+CRITICAL: If you cannot integrate this logo physically WITH CORRECT PROPORTIONS, the image is INVALID.`,
+        });
+      }
+    }
+
+    // 2️⃣ PRODUCTO (si existe)
+    if (modeAssets.product) {
+      const productImg = await fetchImageAsBase64(modeAssets.product.url);
+      if (productImg) {
+        visualReferences.push({
+          role: "PRODUCT",
+          imageData: productImg,
+          instruction: `🍎 PRODUCT REFERENCE - 100% FIDELITY REQUIRED
+This is the PRIMARY SUBJECT of the image.
+
+FIDELITY RULES (ABSOLUTE):
+- Match shape, color, material, finish EXACTLY
+- DO NOT modify proportions or details
+- DO NOT stylize or reinterpret
+- Product must look PHYSICALLY PRESENT (with natural shadows)
+
+The product shown here is the ONLY product you can use.`,
+        });
+      }
+    }
+
+    // 3️⃣ TEMPLATE (si existe - solo para composición)
     if (
       (mode === "campaign_template" || mode === "inspiration_based") &&
       modeAssets.template
     ) {
-      console.log("🎨 [Cargando Template]:", modeAssets.template.url);
       const templateImg = await fetchImageAsBase64(modeAssets.template.url);
       if (templateImg) {
-        contentParts.push({
-          inlineData: {
-            data: templateImg.data,
-            mimeType: templateImg.mimeType,
-          },
+        visualReferences.push({
+          role: "TEMPLATE",
+          imageData: templateImg,
+          instruction: `🎨 COMPOSITION TEMPLATE - INSPIRATION ONLY
+Use this ONLY for visual style guidance. DO NOT copy elements.
+
+WHAT TO EXTRACT:
+✅ Lighting style (soft, dramatic, natural)
+✅ Color mood (warm, cool, neutral)
+✅ Composition structure (centered, rule of thirds)
+✅ Depth of field
+✅ Overall aesthetic feel
+
+WHAT NOT TO COPY:
+❌ Specific objects (flowers, stones, fabrics)
+❌ Background textures
+❌ Props or decorative elements
+❌ Products shown in template
+
+PROCESS:
+1. Analyze the mood and lighting
+2. Extract the color palette
+3. Identify composition principles
+4. Create a NEW scene with DIFFERENT elements but SIMILAR feel`,
         });
       }
     }
 
-    // 2️⃣ LOCATION (for lifestyle or venue_showcase modes)
+    // 4️⃣ LOCATION (si existe - preservar)
     if (
       (mode === "lifestyle" || mode === "venue_showcase") &&
       modeAssets.location
     ) {
-      console.log("🏠 [Cargando Location]:", modeAssets.location.url);
       const locationImg = await fetchImageAsBase64(modeAssets.location.url);
       if (locationImg) {
-        contentParts.push({
-          inlineData: {
-            data: locationImg.data,
-            mimeType: locationImg.mimeType,
-          },
+        visualReferences.push({
+          role: "LOCATION",
+          imageData: locationImg,
+          instruction: `🏠 LOCATION REFERENCE - PRESERVE AS-IS
+This represents a REAL PHYSICAL SPACE. DO NOT ALTER.
+
+PRESERVATION RULES (CRITICAL):
+❌ DO NOT change architecture, furniture, walls, colors, layout
+❌ DO NOT add elements that don't exist
+❌ DO NOT modify structural elements
+
+✅ ONLY ALLOWED ADJUSTMENTS:
+- Lighting (make warmer, brighter, more dramatic)
+- Camera angle/framing
+- Atmosphere/mood (without changing physical elements)
+
+The space must remain recognizable as the original location.`,
         });
       }
     }
 
-    // 3️⃣ PRODUCTO (if available - for product_showcase, campaign_template, lifestyle modes)
-    if (modeAssets.product) {
-      console.log("🍎 [Cargando Producto]:", modeAssets.product.url);
-      const productImg = await fetchImageAsBase64(modeAssets.product.url);
-      if (productImg) {
-        contentParts.push({
-          inlineData: { data: productImg.data, mimeType: productImg.mimeType },
-        });
-      }
-    }
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // PASO 2: CONSTRUCCIÓN DEL PROMPT ESTRUCTURADO (ESTILO HOLO)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // 3️⃣ LOGO (Branding)
-    if (brandDesign.logoUrl) {
-      console.log("🏷️ [Cargando Logo]:", brandDesign.logoUrl);
-      const logoImg = await fetchImageAsBase64(brandDesign.logoUrl);
-      if (logoImg) {
-        contentParts.push({
-          inlineData: { data: logoImg.data, mimeType: logoImg.mimeType },
-        });
-      }
-    }
-
-    // Build color palette string for the prompt
     const colorPalette = [
       brandDesign.colorPrimary,
       brandDesign.colorAccent1,
@@ -1390,200 +1812,99 @@ export async function generateImageWithGeminiNanoBanana({
       .filter(Boolean)
       .join(", ");
 
-    // Mode-specific instructions
-    const getModeInstructions = (visualMode: VisualMode): string => {
-      switch (visualMode) {
-        case "campaign_template":
-          return `MODO: CAMPAIGN_TEMPLATE (Producto + Template de Inspiración)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-IMAGEN 1 – TEMPLATE: Referencia de composición y estilo. NO copiar literalmente.
-IMAGEN 2 – PRODUCTO: Elemento principal que debe presentarse con fidelidad absoluta.
+    const structuredPrompt = `You are an expert AI image generator creating professional marketing images with MAXIMUM CONSISTENCY.
 
-INSTRUCCIONES:
-- Inspirarte en la composición, balance y estilo del template
-- Reconstruir una NUEVA escena usando el producto proporcionado
-- El template guía la estructura visual, pero el producto es el protagonista
-- NO reutilizar objetos del template, crear escena nueva`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 GENERATION OBJECTIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create a PUBLISH-READY social media image that:
+- Is photorealistic and professional
+- Maintains brand identity consistency
+- Integrates all required elements naturally
+- Looks authentic, not AI-generated
 
-        case "lifestyle":
-          return `MODO: LIFESTYLE (Producto en Ubicación Real)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-IMAGEN 1 – UBICACIÓN: Espacio físico real que NO debe ser alterado.
-IMAGEN 2 – PRODUCTO: Debe integrarse naturalmente en el espacio.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 VISUAL REFERENCES PROVIDED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You have been provided with ${visualReferences.length} reference image(s):
+${visualReferences.map((ref, i) => `${i + 1}. ${ref.role}`).join("\n")}
 
-INSTRUCCIONES:
-- PRESERVAR la ubicación exactamente como fue fotografiada
-- NO modificar arquitectura, muebles, paredes, colores, layout
-- SOLO ajustar: iluminación, encuadre, atmósfera
-- Integrar el producto de forma natural en el espacio existente
-- El producto debe verse físicamente presente, con sombras de contacto`;
+Each reference has a SPECIFIC ROLE. Read the instructions for each carefully.
 
-        case "product_showcase":
-          return `MODO: PRODUCT_SHOWCASE (Solo Producto)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-IMAGEN 1 – PRODUCTO: Único elemento visual proporcionado.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 BRAND IDENTITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Style: ${brandDesign.brandStyle || "modern and professional"}
+Color Palette: ${colorPalette}
+Tone: ${brandEssence?.tone || "professional"}
+Emotion: ${brandEssence?.emotion || "inspiring"}
+Visual Keywords: ${brandEssence?.visualKeywords || "clean, elegant"}
 
-INSTRUCCIONES:
-- Crear un fondo y contexto atractivo basado en la identidad de marca
-- Usar los colores de marca para el entorno
-- El producto debe ser el protagonista absoluto
-- Crear una escena de estilo de vida o fondo minimalista según el estilo de marca
-- Añadir props complementarios sutiles si es apropiado para la industria`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 SCENE DESCRIPTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${imagePrompt}
 
-        case "venue_showcase":
-          return `MODO: VENUE_SHOWCASE (Solo Ubicación/Venue)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-IMAGEN 1 – UBICACIÓN: Espacio físico real que es el protagonista.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 GENERATION MODE: ${mode.toUpperCase()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${getHoloStyleModeInstructions(mode)}
 
-REGLAS CRÍTICAS:
-- PRESERVAR la ubicación EXACTAMENTE como fue fotografiada
-- NO modificar arquitectura, muebles, paredes, colores, elementos estructurales
-- NO inventar ni agregar elementos que no existan en la ubicación real
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ FINAL CHECKLIST (VERIFY BEFORE GENERATION)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Before generating, ensure:
 
-ÚNICOS AJUSTES PERMITIDOS:
-- Iluminación profesional (cálida, acogedora, dramática según marca)
-- Encuadre y composición
-- Atmósfera y mood (sin alterar elementos físicos)
-- Aplicar sutilmente los colores de marca en la iluminación/tonalidad`;
+1. ✅ Logo is physically integrated (if provided)
+2. ✅ Product matches reference exactly (if provided)
+3. ✅ Template used for STYLE only, not copied (if provided)
+4. ✅ Location preserved as-is (if provided)
+5. ✅ Colors align with brand palette
+6. ✅ Composition is clean and professional
+7. ✅ Lighting is appropriate for brand mood
+8. ✅ Image looks authentic, not AI/CGI
+9. ✅ No large text blocks (max 1-3 subtle words)
 
-        case "inspiration_based":
-          return `MODO: INSPIRATION_BASED (Solo Templates de Inspiración)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-IMAGEN(ES) – TEMPLATES: Referencias de estilo y composición.
+If ANY item is ❌, DO NOT generate. Adjust and verify again.
 
-INSTRUCCIONES:
-- Analizar el estilo, composición y mood de los templates
-- Crear una imagen NUEVA inspirada en ese estilo visual
-- Usar los colores y estilo de la marca
-- Generar contenido visual que capture la esencia de los templates
-- NO copiar elementos específicos, solo inspirarse en el estilo general`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 GENERATE THE IMAGE NOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 
-        case "brand_only":
-          return `MODO: BRAND_ONLY (Sin Assets - Solo Identidad de Marca)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-No hay imágenes de referencia proporcionadas.
+    // ━━━━━━━━━━━━━━━━━━━━lo�━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // PASO 3: ENSAMBLAJE FINAL DE CONTENIDO (ESTILO HOLO)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-INSTRUCCIONES:
-- Crear una imagen basada ÚNICAMENTE en la identidad de marca
-- Usar prominentemente los colores de marca
-- Seguir el estilo visual de la marca
-- Generar contenido visual abstracto o de estilo de vida que represente la marca
-- Evitar elementos genéricos, crear algo distintivo para esta marca`;
-      }
-    };
+    const contentParts: any[] = [];
 
-    const modeInstructions = getModeInstructions(mode);
+    // Agregar todas las referencias visuales con sus instrucciones
+    for (const ref of visualReferences) {
+      contentParts.push({
+        inlineData: {
+          data: ref.imageData.data,
+          mimeType: ref.imageData.mimeType,
+        },
+      });
+      contentParts.push({ text: ref.instruction });
+    }
 
-    const finalPrompt = `Eres un generador de imágenes AI experto en crear imágenes PROFESIONALES DE MARKETING para redes sociales que reflejan fielmente la identidad de la marca.
+    // Agregar el prompt principal al final
+    contentParts.push({ text: structuredPrompt });
 
-Tu objetivo es crear UNA NUEVA IMAGEN LISTA PARA PUBLICAR según el modo de generación indicado.
+    console.log(`📊 [Content Parts]: ${contentParts.length} elementos`);
+    console.log(
+      `🖼️ [Visual References]: ${visualReferences.map((r) => r.role).join(", ")}`,
+    );
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-IDENTIDAD DE MARCA
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Estilo: ${brandDesign.brandStyle || "moderno y profesional"}
-- Colores: ${colorPalette || "usar colores profesionales"}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${modeInstructions}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-OBJETIVO: IMAGEN PUBLISH-READY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-La imagen final debe ser:
-- Profesional y fotorealista, apta para marketing digital
-- Alineada con los colores de marca
-- Estilo visual coherente con la marca
-- Lista para publicar en redes sociales sin edición adicional
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REGLA DE TEXTO EN IMÁGENES (CRÍTICA)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- EVITAR bloques grandes de texto en la imagen
-- Si se necesita texto, LIMITAR a 1-3 palabras sutiles únicamente
-- El texto debe ser discreto y bien integrado, NO dominante
-- Preferir imágenes limpias y visuales
-
-${
-  mode === "campaign_template" ||
-  mode === "lifestyle" ||
-  mode === "product_showcase"
-    ? `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REGLAS DE PRODUCTO (SI APLICA)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Si hay un producto en las imágenes proporcionadas:
-- No modificar forma, color, proporciones ni materiales
-- No rediseñar, estilizar ni reinterpretar el producto
-- El producto debe coincidir exactamente con la imagen proporcionada
-- El producto debe verse FÍSICAMENTE PRESENTE, no insertado digitalmente
-- Deben existir sombras de contacto suaves y naturales
-`
-    : ""
-}
-
-${
-  mode === "lifestyle" || mode === "venue_showcase"
-    ? `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REGLAS DE UBICACIÓN (CRÍTICAS)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-La ubicación representa un ESPACIO FÍSICO REAL:
-- PRESERVAR exactamente como fue fotografiado
-- NO modificar: arquitectura, muebles, paredes, colores, layout
-- NO inventar ni agregar elementos que no existan
-- SOLO permitido: iluminación, encuadre, atmósfera
-`
-    : ""
-}
-
-DETALLE ESPECÍFICO PARA JOYERÍA (SI APLICA):
-- Las piezas no deben ser perfectamente paralelas.
-- Puede haber una mínima variación de profundidad entre piezas.
-- Las reflexiones deben variar sutilmente entre elementos.
-- Evitar simetría perfecta tipo catálogo CGI.
-
-───────────────────────────────
-IMAGEN 3 – LOGO (IDENTIDAD DE MARCA)
-────────────────────────────────
-La tercera imagen es el logo oficial de la marca.
-
-Debes integrar el logo de forma:
-- sutil
-- realista
-- física
-y coherente con la escena.
-
-Ejemplos de integración permitida:
-- grabado
-- relieve
-- emblema metálico
-- etiqueta o placa discreta
-- detalle sobre empaque o superficie cercana al producto
-
-REGLAS ESTRICTAS DEL LOGO:
-- No alterar la forma original del logo
-- No simplificarlo ni reemplazarlo por letras o símbolos
-- No añadir texto adicional
-- No estilizar, reinterpretar ni deformar el logo
-
-────────────────────────────────
-CONDICIONES FINALES (OBLIGATORIAS)
-────────────────────────────────
-- El producto debe ser el protagonista absoluto de la imagen
-- El template define la composición y estética, pero NO los objetos
-- El producto debe integrarse físicamente en la escena con realismo
-- El logo debe estar presente de forma física y claramente reconocible
-- La escena debe sentirse coherente, natural y visualmente integrada
-- Cualquier imagen que modifique el producto, copie objetos del template o altere el logo es inválida
-
-`;
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // PASO 4: GENERACIÓN CON GEMINI
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     // 🔍 LOG: Verificar orden de imágenes y prompt
     console.log("📝 [Total Content Parts]:", contentParts.length);
-    console.log("📝 [Prompt Final]:", finalPrompt);
+    console.log("📝 [Prompt Final]:", structuredPrompt);
 
-    contentParts.push({ text: finalPrompt });
+    contentParts.push({ text: structuredPrompt });
 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-image-preview",
@@ -1597,7 +1918,7 @@ CONDICIONES FINALES (OBLIGATORIAS)
     const parts = response.candidates?.[0]?.content?.parts || [];
     for (const part of parts) {
       if (part.inlineData?.data) {
-        console.log("✅ [NanoBanana] Imagen generada con éxito");
+        console.log("✅ [NanoBanana] Imagen generada con éxito (estilo Holo)");
         return `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
       }
     }
@@ -1739,7 +2060,7 @@ TEXT IN IMAGES (CRITICAL RULE):
 
     **CRITICAL SCENE DESCRIPTION (The core idea and FACTUAL SUBJECT):** ${imagePrompt}
     **FIDELITY MANDATE (DO NOT ALTER THE SUBJECT):** The product subject described above MUST be rendered with 100% fidelity to its material, shape, and color (e.g., if it is rose-gold, it must be rose-gold; if it is oval, it must be oval). **The product is fixed.**
-   
+
 LANGUAGE CONSTRAINT FOR IMAGE TEXT (MANDATORY):
 - Any visible text inside the image (signs, labels, packaging text, menus, cards, UI elements, posters, captions, etc.)
   MUST be written exclusively in ${languageLabel}.
@@ -1757,15 +2078,15 @@ ${logoPlacementBlock}
     - Brand Promise: ${brandEssence?.promise || "quality and reliability"}
 
     These MUST influence the image atmosphere, lighting, colors, textures, and composition.
-    
+
     Brand Style: ${brandDesign.brandStyle || "modern and professional"} 
     Color Scheme: Primary ${brandDesign.colorPrimary}, Accents ${brandDesign.colorAccent1}, ${brandDesign.colorAccent2}
-    
+
     REQUIREMENTS:
     - Follow the brand essence strictly
     - Match the real visual identity from the uploaded brand assets
     - Produce a professional social media image ready for publishing
-    
+
     ${styleSynthesisBlock}
     `;
 
@@ -1788,11 +2109,14 @@ ${logoPlacementBlock}
     }
 
     if (brandAssets && brandAssets.length > 0) {
-      // ✔ NUEVO: Usa 3 assets din �micos, no siempre los mismos
-      const assetsToUse = pickVisualReferenceAssets(brandAssets, 3);
+      // Extract brandId from asset URLs for intelligent rotation
+      const brandId = brandAssets[0]?.url?.match(/brands\/([^/]+)/)?.[1];
+
+      // ✅ Use intelligent category-balanced rotation
+      const assetsToUse = pickVisualReferenceAssets(brandAssets, 3, brandId);
 
       console.log(
-        `[PostGenerator] Using rotating brand assets:`,
+        `[PostGenerator] Using intelligently rotated brand assets:`,
         assetsToUse.map((a) => a.name),
       );
 
@@ -1864,6 +2188,115 @@ ${logoPlacementBlock}
     console.error("[PostGenerator] Error generating image:", error);
     return null;
   }
+}
+
+// Utility functions for asset usage tracking
+export function resetAssetUsageCache(brandId?: string): void {
+  if (brandId) {
+    assetUsageCache.delete(brandId);
+    categoryUsageCache.delete(brandId);
+    console.log(
+      `[PostGenerator] Reset asset and category usage cache for brand ${brandId}`,
+    );
+  } else {
+    assetUsageCache.clear();
+    categoryUsageCache.clear();
+    console.log("[PostGenerator] Reset all asset and category usage caches");
+  }
+}
+
+export function getAssetUsageStats(brandId?: string): {
+  assetUsage: Record<string, number>;
+  categoryUsage: Record<string, number>;
+} {
+  const cacheKey = brandId || "default";
+  return {
+    assetUsage: assetUsageCache.get(cacheKey) || {},
+    categoryUsage: categoryUsageCache.get(cacheKey) || {},
+  };
+}
+
+// Enhanced statistics display
+export function displayAssetUsageStats(brandId?: string): void {
+  const cacheKey = brandId || "default";
+  const assetUsage = assetUsageCache.get(cacheKey) || {};
+  const categoryUsage = categoryUsageCache.get(cacheKey) || {};
+
+  console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+  console.log(`📊 FINAL ASSET USAGE STATISTICS for brand: ${cacheKey}`);
+  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+
+  // Group by category
+  const byCategory: Record<string, Array<{ name: string; count: number }>> = {};
+
+  Object.entries(assetUsage).forEach(([url, count]) => {
+    const filename = url.substring(url.lastIndexOf("/") + 1);
+
+    // Try to determine category from URL pattern
+    let category = "unknown";
+    if (url.includes("product")) category = "Products";
+    else if (url.includes("inspiration") || url.includes("template"))
+      category = "Templates";
+    else if (url.includes("location")) category = "Locations";
+
+    if (!byCategory[category]) byCategory[category] = [];
+    byCategory[category].push({ name: filename, count });
+  });
+
+  // Display by category
+  Object.entries(byCategory).forEach(([category, items]) => {
+    console.log(`\n🏷️  ${category}:`);
+    items
+      .sort((a, b) => b.count - a.count)
+      .forEach(({ name, count }) => {
+        const bar = "█".repeat(Math.min(count, 20));
+        console.log(`   ${count}x ${bar} ${name}`);
+      });
+  });
+
+  console.log(`\n📈 Category Totals:`);
+  Object.entries(categoryUsage)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([category, count]) => {
+      console.log(`   ${count}x - ${category}`);
+    });
+
+  const totalSelections = Object.values(assetUsage).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
+  const uniqueAssets = Object.keys(assetUsage).length;
+
+  console.log(`\n📊 Summary:`);
+  console.log(`   Total asset selections: ${totalSelections}`);
+  console.log(`   Unique assets used: ${uniqueAssets}`);
+  if (uniqueAssets > 0) {
+    console.log(
+      `   Average uses per asset: ${(totalSelections / uniqueAssets).toFixed(2)}`,
+    );
+  }
+
+  // Check balance
+  const productCount = Object.entries(categoryUsage)
+    .filter(([cat]) => cat.toLowerCase().includes("product"))
+    .reduce((sum, [, count]) => sum + count, 0);
+  const templateCount = Object.entries(categoryUsage)
+    .filter(
+      ([cat]) =>
+        cat.toLowerCase().includes("template") ||
+        cat.toLowerCase().includes("inspiration"),
+    )
+    .reduce((sum, [, count]) => sum + count, 0);
+  const locationCount = Object.entries(categoryUsage)
+    .filter(([cat]) => cat.toLowerCase().includes("location"))
+    .reduce((sum, [, count]) => sum + count, 0);
+
+  console.log(`\n⚖️  Category Balance:`);
+  console.log(`   Products: ${productCount}x`);
+  console.log(`   Templates: ${templateCount}x`);
+  console.log(`   Locations: ${locationCount}x`);
+
+  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 }
 
 async function downloadImage(url: string): Promise<Buffer | null> {
@@ -2522,6 +2955,10 @@ export async function processPostGeneration(
         );
       }
     }
+
+    // ✅ Display final usage statistics
+    console.log(`\n[PostGenerator] Generation complete for job ${jobId}`);
+    displayAssetUsageStats(brandId);
 
     await updatePostGeneratorJob(jobId, {
       status: "completed",
