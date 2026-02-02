@@ -574,7 +574,10 @@ ${capabilities}`;
         }
       }
 
-      // 3. Build enhanced prompt (following postGenerator.ts pattern)
+      // 3. Detect if the prompt requests promotional text
+      const hasPromoText = /promotional text|text overlay|include.*text|texto promocional/i.test(imagePrompt);
+      
+      // 4. Build enhanced prompt (following postGenerator.ts pattern)
       const enhancedPrompt = `
 🎨 IMAGE GENERATION REQUEST FOR "${brandName.toUpperCase()}"
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -586,8 +589,8 @@ BRAND CONTEXT:
 - Industry: ${industry || "general"}
 - Visual Style: ${brandStyle}
 - Color Palette: ${colorPalette}
-${hasProducts ? "- Has real product images to reference" : ""}
-${hasLocation ? "- Has location/venue images to reference" : ""}
+${hasProducts ? "- Has real product images to USE AS VISUAL INSPIRATION" : ""}
+${hasLocation ? "- Has location/venue images to USE AS VISUAL INSPIRATION" : ""}
 
 DETAILED IMAGE PROMPT:
 ${imagePrompt}
@@ -595,20 +598,22 @@ ${imagePrompt}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚨 CRITICAL VISUAL INSTRUCTIONS:
-1. If a logo image was provided above, reproduce it EXACTLY as shown - do NOT simplify, redraw, or reinterpret it.
-2. Use the reference images for lighting, textures, color mood, and composition inspiration.
+1. If a logo image was provided above, reproduce it EXACTLY as shown - do NOT simplify, redraw, or reinterpret it. Place the logo in the image.
+2. **IMPORTANT**: Use the brand asset images provided as VISUAL INSPIRATION and REFERENCE. Incorporate similar products, textures, colors, and composition styles from those reference images.
 3. Maintain the brand's color palette (${colorPalette}) throughout the image.
 4. Create a professional, high-quality marketing image suitable for social media.
-5. The image should look like REAL SOCIAL MEDIA CONTENT, not a generic advertisement.
-${hasProducts ? "6. If product images were provided, feature products authentically in the scene." : ""}
+5. The image should look like REAL SOCIAL MEDIA CONTENT that matches the brand's existing visual identity.
+${hasProducts ? "6. FEATURE products from the provided product images authentically in the scene. Use similar styling and presentation." : ""}
+${hasLocation ? "7. Use the location images as reference for setting and ambiance." : ""}
 
 ⛔ DO NOT:
-- Add any text, watermarks, or overlays to the image
+${hasPromoText ? "- (Text IS allowed for this promotional image - follow the text instructions in the prompt above)" : "- Add any text, watermarks, or overlays to the image"}
 - Create generic stock photo looks
-- Deviate from the brand's visual identity
+- Deviate from the brand's visual identity shown in the reference images
 - Simplify or alter the logo if one was provided
+- Ignore the reference images - they are crucial for brand consistency
 
-Generate a visually stunning, brand-consistent image that fulfills the user's request.
+Generate a visually stunning, brand-consistent image that incorporates the reference images' style and fulfills the user's request.
 `;
 
       contentParts.push({ text: enhancedPrompt });
