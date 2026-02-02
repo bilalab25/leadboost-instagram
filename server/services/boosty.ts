@@ -647,6 +647,55 @@ Generate a visually stunning, brand-consistent image that fulfills the user's re
     }
   }
 
+  // Build a contextual fallback prompt when Gemini fails to generate JSON
+  private buildContextualFallbackPrompt(
+    userMessage: string,
+    conversationContext: string,
+    context: BrandContext,
+    isPromotion: boolean,
+    promotionDetails: string,
+  ): string {
+    const allText = `${userMessage} ${conversationContext}`.toLowerCase();
+    
+    // Extract key themes from conversation
+    const themes: string[] = [];
+    
+    // Check for Valentine's Day
+    if (/valentine|san valent[ií]n|14\s*(de\s*)?feb|february\s*14|amor|love|heart|coraz[oó]n/i.test(allText)) {
+      themes.push("Valentine's Day romantic theme with hearts and love elements");
+    }
+    
+    // Check for specific treatments/services
+    if (/filler|relleno|botox|est[eé]tic|aesthetic|beauty|belleza|skin|piel|facial|tratamiento|treatment/i.test(allText)) {
+      themes.push("beauty and aesthetic treatment services, elegant and professional");
+    }
+    
+    // Check for promotion
+    if (isPromotion) {
+      themes.push(`promotional offer with text overlay showing "${promotionDetails || "SPECIAL OFFER"}"`);
+    }
+    
+    // Build color palette
+    const colorPalette = [
+      context.design?.colors?.primary,
+      context.design?.colors?.accent1,
+      context.design?.colors?.accent2,
+    ].filter(Boolean).join(", ");
+    
+    // Compose the fallback prompt
+    const basePrompt = themes.length > 0
+      ? `Professional marketing image for ${context.brand.name} featuring: ${themes.join("; ")}.`
+      : `Professional marketing image for ${context.brand.name} social media.`;
+    
+    const stylePrompt = `Style: ${context.design?.brandStyle || "minimalist and elegant"}. Brand colors: ${colorPalette || "sophisticated tones"}. Typography: ${context.design?.fonts?.primary || "modern sans-serif"}.`;
+    
+    const compositionPrompt = isPromotion
+      ? `The promotional text "${promotionDetails || "2X1"}" must be prominently displayed in bold, contrasting colors. Include decorative elements that match the theme.`
+      : "Clean composition with professional lighting and modern aesthetic.";
+    
+    return `${basePrompt} ${stylePrompt} ${compositionPrompt}`;
+  }
+
   private async generateImagePrompt(
     userMessage: string,
     context: BrandContext,
@@ -766,33 +815,54 @@ Generate a JSON with:
 
 Respond ONLY with the JSON, no additional explanations.`;
 
+    console.log("[Boosty] Generating image prompt with conversation context:");
+    console.log("[Boosty] User message:", userMessage);
+    console.log("[Boosty] Is promotion:", isPromotion);
+    console.log("[Boosty] Promotion details:", promotionDetails);
+    console.log("[Boosty] Conversation context:", conversationContext.substring(0, 500));
+
     try {
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
           temperature: 0.7,
-          maxOutputTokens: 500,
+          maxOutputTokens: 800,
         },
       });
 
       const text = response.text || "";
+      console.log("[Boosty] Gemini response for image prompt:", text.substring(0, 500));
+      
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
+        const finalPrompt = parsed.imagePrompt || "Professional marketing image";
+        console.log("[Boosty] Parsed imagePrompt:", finalPrompt);
         return {
-          imagePrompt: parsed.imagePrompt || "Professional marketing image",
+          imagePrompt: finalPrompt,
           caption: parsed.caption || "",
           hashtags: parsed.hashtags || "",
         };
+      } else {
+        console.log("[Boosty] No JSON found in response, using fallback");
       }
     } catch (error) {
       console.error("[Boosty] Error generating image prompt:", error);
     }
 
+    // Build a contextual fallback prompt using conversation history
+    const contextualFallback = this.buildContextualFallbackPrompt(
+      userMessage,
+      conversationContext,
+      context,
+      isPromotion,
+      promotionDetails,
+    );
+    console.log("[Boosty] Using contextual fallback prompt:", contextualFallback);
+    
     return {
-      imagePrompt:
-        "Professional marketing image for social media, modern and clean design",
+      imagePrompt: contextualFallback,
       caption: "",
       hashtags: "",
     };
