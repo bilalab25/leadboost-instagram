@@ -32,9 +32,13 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
 - **Sample Posts for New Users**: When users complete onboarding without connecting any integrations, the platform automatically generates 3 sample posts (Instagram, Facebook, WhatsApp) using Gemini AI. These demo posts showcase the platform's capabilities and are marked with an orange "Sample/Muestra" badge in the AI Planner. Sample posts use brand design colors, logo, and any uploaded assets. The `isSample` flag in `ai_generated_posts` table identifies demo content.
 - **Preferred Language Selection**: Set during onboarding (Step 1) before Website Link field. Users can select English or Spanish as their preferred language for AI-generated posts. Stored in `brandDesigns.preferredLanguage` field. Includes info alert explaining that AI content will be created in the selected language.
 - **Boosty AI Assistant with Image Generation**: Located on /waterfall page in "Strategize with Boosty" tab. Features:
-  - Full brand context awareness (design, colors, sales data, integrations, conversations)
+  - Full brand context awareness (design, colors, sales data, integrations, conversations, image assets)
   - Automatic image request detection via regex patterns in Spanish/English
   - Image generation using Gemini gemini-2.5-flash-image model with brand-specific styling
+  - Uses brand logo and assets as visual references (same pattern as postGenerator.ts)
+  - pickVisualReferenceAssets() helper selects best images by category (products, locations, templates)
+  - Only image assets are used (videos/documents filtered out via assetType === "image")
+  - Conversation history memory - last 6 messages passed to AI for context-aware responses
   - Automatic caption and hashtag generation for social media posts
   - Animated UI with gradient styling (teal-cyan theme)
   - Bilingual support (English/Spanish) via useLanguage hook
