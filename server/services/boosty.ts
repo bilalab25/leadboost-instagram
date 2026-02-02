@@ -123,23 +123,29 @@ function detectEditorialMode(
   const lowerMsg = userMessage.toLowerCase();
   const lowerStyle = brandStyle.toLowerCase();
 
-  // Explicit flyer/poster request = NOT editorial
-  if (/\b(flyer|poster|bold\s*discount|cartel|volante)\b/i.test(lowerMsg)) {
+  // Explicit flyer/poster/text-heavy request = NOT editorial
+  const flyerPatterns = [
+    /\b(flyer|poster|cartel|volante|panfleto|banner|afiche)\b/i,
+    /\b(text\s*overlay|texto\s*sobre|letras\s*grandes|bold\s*text|texto\s*promocional)\b/i,
+    /\b(include\s*text|incluir\s*texto|con\s*texto|texto\s*llamativo)\b/i,
+    /\b(graphic|infographic|gráfico|infografía)\b/i,
+  ];
+  
+  if (flyerPatterns.some((p) => p.test(lowerMsg))) {
     return false;
   }
 
-  // Instagram feed, premium, luxury, editorial = editorial mode
+  // Editorial mode only for premium brand styles or explicit editorial keywords
   const editorialTriggers = [
-    /instagram\s*(feed|post)?/i,
-    /\b(premium|luxury|editorial|elegant|minimalist|minimal|high.?end|sofisticado|elegante|lujoso)\b/i,
+    /\b(editorial|luxury|premium|high.?end|elegant|minimal|magazine|elegante|lujoso|sofisticado)\b/i,
+    /\b(clinic|spa|beauty|aesthetic|cosmetic|skincare|clínica|estética)\b/i,
+    /\b(clean\s*image|imagen\s*limpia|photo|fotografía|professional\s*photo)\b/i,
   ];
 
-  const styleEditorial = /\b(minimal|elegant|luxury|premium|sofisticado|elegante)\b/i.test(lowerStyle);
+  const styleEditorial = /\b(minimal|elegant|luxury|premium|sofisticado|elegante|lujoso|high.?end)\b/i.test(lowerStyle);
 
-  // Default to editorial for most promotions unless explicitly asked for flyer
-  const isPromotion = /\b(promoci[oó]n|promo|2x1|oferta|discount|sale|descuento)\b/i.test(lowerMsg);
-
-  return editorialTriggers.some((p) => p.test(lowerMsg)) || styleEditorial || isPromotion;
+  // Promotions alone do NOT trigger editorial mode - must have explicit triggers
+  return editorialTriggers.some((p) => p.test(lowerMsg)) || styleEditorial;
 }
 
 function getEditorialPreset(
@@ -308,6 +314,8 @@ interface ChatResponse {
   text: string;
   image?: string;
   imagePrompt?: string;
+  layoutPlan?: LayoutPlan;
+  editorialMode?: boolean;
 }
 
 const IMAGE_REQUEST_PATTERNS = {
@@ -909,20 +917,25 @@ Create a professional marketing image suitable for social media.
   ): ImagePromptResult {
     const basePhotoPrompt = buildEditorialBasePrompt(preset, context, userMessage);
     
-    // Extract simple promo details for layout
+    // Extract promo details only if explicitly mentioned
     const promoMatch = userMessage.match(/(\d+x\d+|2x1|3x2)/gi);
     const promo = promoMatch ? promoMatch[0].toUpperCase() : "";
     
     const themeMatch = userMessage.match(/\b(valentine|amor|pareja|san\s*valent[ií]n|couples?)\b/i);
     const theme = themeMatch ? "Valentine's Day" : "";
 
+    // Only use promo as headline if explicitly present, otherwise use brand name
+    // Never insert generic "Special Offer" - keep it clean
+    const headline = promo || (theme ? theme : "");
+    const subhead = promo && theme ? theme : context.brand.name;
+
     return {
       basePhotoPrompt: sanitizePrompt(basePhotoPrompt),
       layoutPlan: sanitizeLayoutPlan({
         aspectRatio: "4:5",
         safeAreaPercent: { top: 8, right: 8, bottom: 10, left: 8 },
-        headline: promo || "Special Offer",
-        subhead: theme || context.brand.name,
+        headline: headline,
+        subhead: subhead,
         alignment: "center",
         theme: preset.background === "burgundy" || preset.mood === "warm_romantic" ? "dark" : "light",
       }),
@@ -967,8 +980,9 @@ Create a professional marketing image suitable for social media.
       context.design?.colors?.accent1,
     ].filter(Boolean).join(", ");
 
-    // Build the prompt for Gemini to generate basePhotoPrompt + layoutPlan
-    const prompt = `You are a luxury editorial photography director for "${context.brand.name}" (${context.brand.industry || "premium lifestyle"}).
+    // Different prompts for editorial vs non-editorial mode
+    const prompt = editorialMode
+      ? `You are a luxury editorial photography director for "${context.brand.name}" (${context.brand.industry || "premium lifestyle"}).
 
 USER REQUEST: "${userMessage}"
 ${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
@@ -1002,26 +1016,48 @@ Generate a JSON with:
    {
      "aspectRatio": "4:5",
      "safeAreaPercent": { "top": 8, "right": 8, "bottom": 10, "left": 8 },
-     "headline": "${promotionDetails || "Special"}" (max 4 words, NO repetition like "2x1, 2x1"),
+     "headline": "${promotionDetails || "Special"}" (max 4 words, NO repetition),
      "subhead": "short tagline" (max 6 words),
      "cta": "optional call to action" (max 3 words),
      "alignment": "center" | "left" | "right",
      "theme": "light" | "dark"
    }
 
-3. "caption": Short premium caption in ${language === "es" ? "Spanish" : "English"} (max 100 chars, elegant tone, NOT spammy)
+3. "caption": Short premium caption in ${language === "es" ? "Spanish" : "English"} (max 100 chars, elegant tone)
 
 4. "hashtags": 5-7 relevant hashtags in ${language === "es" ? "Spanish" : "English"}
 
 RULES:
 - ONE message only (no multiple discounts)
-- NO repeated text patterns (e.g., "2x1, 2x1, 2x1" is forbidden)
+- NO repeated text patterns
 - Premium, minimal aesthetic
-- Image must look like luxury fashion/skincare editorial, NOT a flyer
+- Image must look like luxury editorial, NOT a flyer
+
+Respond ONLY with valid JSON.`
+      : `You are a marketing visual expert for "${context.brand.name}" (${context.brand.industry || "general business"}).
+
+USER REQUEST: "${userMessage}"
+${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
+BRAND:
+- Style: ${context.design?.brandStyle || "modern and professional"}
+- Colors: ${colorPalette || "brand colors"}
+- Font: ${context.design?.fonts?.primary || "Roboto"}
+
+${promotionDetails ? `PROMOTION: ${promotionDetails}` : ""}
+${valentineMatch ? "THEME: Valentine's Day" : ""}
+
+Generate a JSON with:
+
+1. "imagePrompt": A detailed description in English (max 200 words) for a marketing image.
+   ${promotionDetails ? `- IMPORTANT: Include promotional text "${promotionDetails}" prominently in the image with bold typography and brand colors.` : "- Do NOT include text in the image."}
+
+2. "caption": An engaging caption in ${language === "es" ? "Spanish" : "English"} (max 150 chars).
+
+3. "hashtags": 5-7 relevant hashtags.
 
 Respond ONLY with valid JSON.`;
 
-    console.log("[Boosty] Generating editorial image prompt...");
+    console.log("[Boosty] Generating image prompt, editorialMode:", editorialMode);
 
     try {
       const response = await ai.models.generateContent({
@@ -1040,35 +1076,71 @@ Respond ONLY with valid JSON.`;
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
         
-        // Sanitize the outputs
-        const basePhotoPrompt = sanitizePrompt(parsed.basePhotoPrompt || buildEditorialBasePrompt(preset, context, userMessage));
-        const layoutPlan = sanitizeLayoutPlan(parsed.layoutPlan || {
-          aspectRatio: "4:5",
-          safeAreaPercent: { top: 8, right: 8, bottom: 10, left: 8 },
-          headline: promotionDetails || "Special",
-          subhead: context.brand.name,
-          alignment: "center",
-          theme: "light",
-        });
+        if (editorialMode) {
+          // Sanitize editorial outputs
+          const basePhotoPrompt = sanitizePrompt(parsed.basePhotoPrompt || buildEditorialBasePrompt(preset, context, userMessage));
+          const layoutPlan = sanitizeLayoutPlan(parsed.layoutPlan || {
+            aspectRatio: "4:5",
+            safeAreaPercent: { top: 8, right: 8, bottom: 10, left: 8 },
+            headline: promotionDetails || context.brand.name,
+            subhead: context.design?.brandStyle || "",
+            alignment: "center",
+            theme: "light",
+          });
 
-        console.log("[Boosty] basePhotoPrompt:", basePhotoPrompt.substring(0, 200));
-        console.log("[Boosty] layoutPlan:", JSON.stringify(layoutPlan));
+          console.log("[Boosty] Editorial basePhotoPrompt:", basePhotoPrompt.substring(0, 200));
+          console.log("[Boosty] layoutPlan:", JSON.stringify(layoutPlan));
 
-        return {
-          basePhotoPrompt,
-          layoutPlan,
-          caption: parsed.caption || "",
-          hashtags: parsed.hashtags || "",
-          editorialMode,
-        };
+          return {
+            basePhotoPrompt,
+            layoutPlan,
+            caption: parsed.caption || "",
+            hashtags: parsed.hashtags || "",
+            editorialMode: true,
+          };
+        } else {
+          // Non-editorial: return imagePrompt directly, no layoutPlan needed
+          return {
+            basePhotoPrompt: parsed.imagePrompt || "Professional marketing image for " + context.brand.name,
+            layoutPlan: {
+              aspectRatio: "4:5",
+              safeAreaPercent: { top: 0, right: 0, bottom: 0, left: 0 },
+              headline: "",
+              subhead: "",
+              alignment: "center" as const,
+              theme: "light" as const,
+            },
+            caption: parsed.caption || "",
+            hashtags: parsed.hashtags || "",
+            editorialMode: false,
+          };
+        }
       }
     } catch (error) {
       console.error("[Boosty] Error generating image prompt:", error);
     }
 
-    // Fallback using preset
-    console.log("[Boosty] Using editorial fallback");
-    return this.buildEditorialFallback(userMessage, context, preset);
+    // Fallback based on mode
+    if (editorialMode) {
+      console.log("[Boosty] Using editorial fallback");
+      return this.buildEditorialFallback(userMessage, context, preset);
+    } else {
+      console.log("[Boosty] Using non-editorial fallback");
+      return {
+        basePhotoPrompt: `Professional marketing image for ${context.brand.name}. ${userMessage}. Style: ${context.design?.brandStyle || "modern"}. Colors: ${colorPalette}.`,
+        layoutPlan: {
+          aspectRatio: "4:5",
+          safeAreaPercent: { top: 0, right: 0, bottom: 0, left: 0 },
+          headline: "",
+          subhead: "",
+          alignment: "center" as const,
+          theme: "light" as const,
+        },
+        caption: "",
+        hashtags: "",
+        editorialMode: false,
+      };
+    }
   }
 
   async chat(
@@ -1100,20 +1172,22 @@ Respond ONLY with valid JSON.`;
       const generatedImage = await this.generateImage(basePhotoPrompt, context, editorialMode);
 
       if (generatedImage) {
-        // Include layout plan info in response for future frontend overlay
+        // Include layout plan info in text for editorial mode
         const layoutInfo = editorialMode
           ? `\n\n**Layout Plan** (for text overlay):\n- Headline: ${layoutPlan.headline}\n- Subhead: ${layoutPlan.subhead}${layoutPlan.cta ? `\n- CTA: ${layoutPlan.cta}` : ""}`
           : "";
           
         const textResponse =
           language === "es"
-            ? `¡Aquí está tu imagen editorial! 🎨${layoutInfo}\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
-            : `Here's your editorial image! 🎨${layoutInfo}\n\n**Suggested caption:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\nWould you like me to make any adjustments or generate another version?`;
+            ? `¡Aquí está tu imagen${editorialMode ? " editorial" : ""}! 🎨${layoutInfo}\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
+            : `Here's your${editorialMode ? " editorial" : ""} image! 🎨${layoutInfo}\n\n**Suggested caption:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\nWould you like me to make any adjustments or generate another version?`;
 
         return {
           text: textResponse,
           image: generatedImage,
           imagePrompt: basePhotoPrompt, // Keep compatibility with existing API
+          layoutPlan: editorialMode ? layoutPlan : undefined, // Structured layoutPlan for frontend
+          editorialMode,
         };
       } else {
         const errorResponse =
