@@ -659,6 +659,22 @@ Generate a visually stunning, brand-consistent image that fulfills the user's re
       ? recentHistory.map((msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`).join("\n")
       : "";
 
+    // Detect promotional content in user message or conversation
+    const allContext = `${userMessage} ${conversationContext}`.toLowerCase();
+    const promotionPatterns = [
+      /\b(promoci[oó]n|promo|oferta|descuento|2x1|2\s*x\s*1|3x2|50%|20%|sale|discount|deal|special\s*offer|buy\s*one|gratis|free)\b/i,
+    ];
+    const isPromotion = promotionPatterns.some((pattern) => pattern.test(allContext));
+
+    // Extract promotion details from context
+    let promotionDetails = "";
+    if (isPromotion) {
+      const promoMatch = allContext.match(/(\d+x\d+|\d+\s*x\s*\d+|\d+%\s*off|\d+%\s*descuento|buy\s*\d+\s*get\s*\d+|gratis|free|2x1|3x2)/gi);
+      if (promoMatch) {
+        promotionDetails = promoMatch.join(", ").toUpperCase();
+      }
+    }
+
     // Build asset context
     const hasProducts = context.imageAssets.some(
       (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
@@ -680,6 +696,25 @@ Available visual assets:
       context.design?.colors?.accent2,
     ].filter(Boolean).join(", ");
 
+    // Build text overlay instructions based on whether it's a promotion
+    const textInstructionsEs = isPromotion
+      ? `- IMPORTANTE: Esta es una promoción. DEBES incluir texto promocional en la imagen:
+     * Texto principal grande y llamativo: "${promotionDetails || "PROMOCIÓN"}"
+     * El texto debe ser legible, con buen contraste sobre el fondo
+     * Usa los colores de la marca para el texto: ${colorPalette}
+     * Coloca el texto de manera prominente (centro o parte inferior de la imagen)
+     * Usa tipografía: ${context.design?.fonts?.primary || "sans-serif moderna y bold"}`
+      : `- NO incluyas texto en la imagen`;
+
+    const textInstructionsEn = isPromotion
+      ? `- IMPORTANT: This is a promotion. You MUST include promotional text in the image:
+     * Large, eye-catching main text: "${promotionDetails || "SPECIAL OFFER"}"
+     * Text must be readable with good contrast against the background
+     * Use brand colors for text: ${colorPalette}
+     * Place text prominently (center or bottom of image)
+     * Use typography: ${context.design?.fonts?.primary || "modern bold sans-serif"}`
+      : `- Do NOT include text in the image`;
+
     const prompt =
       language === "es"
         ? `Eres un experto en marketing visual para la marca "${context.brand.name}" (${context.brand.industry || "general"}).
@@ -687,16 +722,18 @@ Available visual assets:
 CONTEXTO DE LA MARCA:
 - Estilo visual: ${context.design?.brandStyle || "moderno y profesional"}
 - Paleta de colores: ${colorPalette || "colores de marca"}
+- Tipografía principal: ${context.design?.fonts?.primary || "Roboto"}
 ${assetContext}
 ${conversationContext ? `\nCONVERSACIÓN PREVIA:\n${conversationContext}\n` : ""}
 SOLICITUD ACTUAL DEL USUARIO: "${userMessage}"
+${isPromotion ? `\n🎯 DETECTADO: Imagen PROMOCIONAL - Incluir texto: "${promotionDetails || "PROMOCIÓN"}"\n` : ""}
 
 Genera un JSON con:
-1. "imagePrompt": Una descripción MUY DETALLADA en inglés para generar una imagen de marketing (máximo 150 palabras). 
+1. "imagePrompt": Una descripción MUY DETALLADA en inglés para generar una imagen de marketing (máximo 200 palabras). 
    - Describe la escena, iluminación, composición, ángulo de cámara
    - Especifica los colores de la marca: ${colorPalette}
    - Si el usuario menciona productos, describe cómo mostrarlos
-   - NO incluyas texto en la imagen
+   ${textInstructionsEs}
    - Usa el contexto de la conversación para entender mejor lo que quiere
 
 2. "caption": Un caption atractivo en español para acompañar la imagen en redes sociales (máximo 150 caracteres).
@@ -709,16 +746,18 @@ Responde SOLO con el JSON, sin explicaciones adicionales.`
 BRAND CONTEXT:
 - Visual style: ${context.design?.brandStyle || "modern and professional"}
 - Color palette: ${colorPalette || "brand colors"}
+- Primary font: ${context.design?.fonts?.primary || "Roboto"}
 ${assetContext}
 ${conversationContext ? `\nPREVIOUS CONVERSATION:\n${conversationContext}\n` : ""}
 CURRENT USER REQUEST: "${userMessage}"
+${isPromotion ? `\n🎯 DETECTED: PROMOTIONAL image - Include text: "${promotionDetails || "SPECIAL OFFER"}"\n` : ""}
 
 Generate a JSON with:
-1. "imagePrompt": A VERY DETAILED description in English to generate a marketing image (max 150 words).
+1. "imagePrompt": A VERY DETAILED description in English to generate a marketing image (max 200 words).
    - Describe the scene, lighting, composition, camera angle
    - Specify brand colors: ${colorPalette}
    - If user mentions products, describe how to showcase them
-   - Do NOT include text in the image
+   ${textInstructionsEn}
    - Use conversation context to better understand the request
 
 2. "caption": An engaging caption in English to accompany the image on social media (max 150 characters).
