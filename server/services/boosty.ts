@@ -18,6 +18,35 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
 });
 
+// ========================================
+// EDITORIAL MODE - Types and Interfaces
+// ========================================
+
+interface EditorialPreset {
+  mood: "luxury_minimal" | "warm_romantic" | "modern_clinical";
+  subject: "close_up" | "abstract" | "couple_detail" | "product_hero";
+  background: "cream" | "burgundy" | "neutral_gradient" | "soft_white";
+}
+
+interface LayoutPlan {
+  aspectRatio: "4:5";
+  safeAreaPercent: { top: number; right: number; bottom: number; left: number };
+  headline: string;
+  subhead: string;
+  cta?: string;
+  alignment: "left" | "center" | "right";
+  theme: "light" | "dark";
+  disclaimer?: string;
+}
+
+interface ImagePromptResult {
+  basePhotoPrompt: string;
+  layoutPlan: LayoutPlan;
+  caption: string;
+  hashtags: string;
+  editorialMode: boolean;
+}
+
 // Asset interface for image generation (same pattern as postGenerator.ts)
 interface BrandAssetForImage {
   url: string;
@@ -82,6 +111,193 @@ interface BrandContext {
 const PRODUCT_CATEGORIES = ["product_images", "products", "product", "product_assets"];
 const LOCATION_CATEGORIES = ["location", "location_images", "location_assets", "place", "venue"];
 const TEMPLATE_CATEGORIES = ["inspiration_templates", "templates", "inspiration"];
+
+// ========================================
+// EDITORIAL MODE - Helper Functions
+// ========================================
+
+function detectEditorialMode(
+  userMessage: string,
+  brandStyle: string = "",
+): boolean {
+  const lowerMsg = userMessage.toLowerCase();
+  const lowerStyle = brandStyle.toLowerCase();
+
+  // Explicit flyer/poster request = NOT editorial
+  if (/\b(flyer|poster|bold\s*discount|cartel|volante)\b/i.test(lowerMsg)) {
+    return false;
+  }
+
+  // Instagram feed, premium, luxury, editorial = editorial mode
+  const editorialTriggers = [
+    /instagram\s*(feed|post)?/i,
+    /\b(premium|luxury|editorial|elegant|minimalist|minimal|high.?end|sofisticado|elegante|lujoso)\b/i,
+  ];
+
+  const styleEditorial = /\b(minimal|elegant|luxury|premium|sofisticado|elegante)\b/i.test(lowerStyle);
+
+  // Default to editorial for most promotions unless explicitly asked for flyer
+  const isPromotion = /\b(promoci[oó]n|promo|2x1|oferta|discount|sale|descuento)\b/i.test(lowerMsg);
+
+  return editorialTriggers.some((p) => p.test(lowerMsg)) || styleEditorial || isPromotion;
+}
+
+function getEditorialPreset(
+  context: BrandContext,
+  userMessage: string,
+): EditorialPreset {
+  const lowerMsg = userMessage.toLowerCase();
+  const industry = context.brand?.industry?.toLowerCase() || "";
+  const brandStyle = context.design?.brandStyle?.toLowerCase() || "";
+
+  // Valentine/couples/romantic context
+  if (/\b(valentine|amor|pareja|couples?|romantic|san\s*valent[ií]n)\b/i.test(lowerMsg)) {
+    return {
+      mood: "warm_romantic",
+      subject: "couple_detail",
+      background: "burgundy",
+    };
+  }
+
+  // Medical/clinic context
+  if (/\b(clinic|medical|aesthetic|botox|filler|tratamiento|cl[ií]nica|m[eé]dico)\b/i.test(lowerMsg) ||
+      /\b(health|wellness|beauty|spa|aesthetic)\b/i.test(industry)) {
+    return {
+      mood: "modern_clinical",
+      subject: "close_up",
+      background: "soft_white",
+    };
+  }
+
+  // Minimal/elegant brand style
+  if (/\b(minimal|elegant|luxury|premium)\b/i.test(brandStyle)) {
+    return {
+      mood: "luxury_minimal",
+      subject: "product_hero",
+      background: "cream",
+    };
+  }
+
+  // Default preset
+  return {
+    mood: "luxury_minimal",
+    subject: "abstract",
+    background: "neutral_gradient",
+  };
+}
+
+function sanitizePrompt(prompt: string): string {
+  // Remove terms that lead to flyer-style outputs
+  const forbiddenTerms = [
+    /text\s*overlay/gi,
+    /percent\s*off/gi,
+    /\bFREE\b/gi,
+    /(2x1|3x2),?\s*(2x1|3x2),?\s*(2x1|3x2)/gi, // repeated promos
+    /\bposter\b/gi,
+    /\bflyer\b/gi,
+    /\bbold\s*discount\b/gi,
+    /\bdiagonal\s*text\b/gi,
+    /promotional\s*text/gi,
+    /include.*text/gi,
+  ];
+
+  let sanitized = prompt;
+  for (const term of forbiddenTerms) {
+    sanitized = sanitized.replace(term, "");
+  }
+
+  return sanitized.trim();
+}
+
+function sanitizeLayoutPlan(plan: LayoutPlan): LayoutPlan {
+  // Enforce word limits
+  const limitWords = (text: string, max: number): string => {
+    const words = text.split(/\s+/).filter(Boolean);
+    return words.slice(0, max).join(" ");
+  };
+
+  // Remove repeated tokens (e.g., "2x1, 2x1, 2x1")
+  const removeRepeats = (text: string): string => {
+    const words = text.split(/[\s,]+/).filter(Boolean);
+    const seen = new Set<string>();
+    const unique: string[] = [];
+    for (const w of words) {
+      const lower = w.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        unique.push(w);
+      }
+    }
+    return unique.join(" ");
+  };
+
+  return {
+    ...plan,
+    headline: removeRepeats(limitWords(plan.headline || "", 4)),
+    subhead: removeRepeats(limitWords(plan.subhead || "", 6)),
+    cta: plan.cta ? limitWords(plan.cta, 3) : undefined,
+  };
+}
+
+function buildEditorialBasePrompt(
+  preset: EditorialPreset,
+  context: BrandContext,
+  userMessage: string,
+): string {
+  const primaryColor = context.design?.colors?.primary || "#4F46E5";
+  const accentColor = context.design?.colors?.accent1 || "#7C3AED";
+  const industry = context.brand?.industry || "premium lifestyle";
+
+  const moodDescriptions: Record<string, string> = {
+    luxury_minimal: "ultra-minimal luxury aesthetic, clean lines, sophisticated simplicity",
+    warm_romantic: "warm romantic atmosphere, soft candlelight, intimate and tender mood",
+    modern_clinical: "pristine clinical elegance, spotless white surfaces, professional medical spa aesthetic",
+  };
+
+  const subjectDescriptions: Record<string, string> = {
+    close_up: "extreme close-up detail shot, macro beauty photography",
+    abstract: "abstract artistic composition, soft focus gradient background",
+    couple_detail: "intimate couple detail shot, hands touching or close faces, romantic",
+    product_hero: "hero product shot, centered with dramatic lighting",
+  };
+
+  const backgroundDescriptions: Record<string, string> = {
+    cream: "cream and ivory toned background with subtle texture",
+    burgundy: `deep ${primaryColor || "burgundy"} and wine tones, moody shadows`,
+    neutral_gradient: "soft neutral gradient background, subtle cream to beige",
+    soft_white: "pure white background with soft shadows, clinical precision",
+  };
+
+  return `Luxury editorial photography for ${industry} brand.
+
+STYLE: ${moodDescriptions[preset.mood]}
+SUBJECT: ${subjectDescriptions[preset.subject]}
+BACKGROUND: ${backgroundDescriptions[preset.background]}
+
+COMPOSITION:
+- Instagram 4:5 vertical format
+- Generous negative space (top 15%, bottom 15% clear for text overlay in post-production)
+- Rule of thirds composition
+- Shallow depth of field, creamy bokeh
+- Soft diffused studio lighting
+- Color grading: subtle tint toward brand palette (${primaryColor}, ${accentColor})
+
+MANDATORY NEGATIVES - DO NOT INCLUDE:
+- NO text, NO letters, NO typography, NO logos, NO watermarks
+- NO icons, NO syringe icons, NO medical symbols
+- NO collage layouts, NO flyer aesthetics, NO poster designs
+- NO diagonal text, NO repeated patterns of words or numbers
+- NO discount percentages, NO promotional text overlays
+- NO generic stock photo look
+
+QUALITY:
+- High-end fashion magazine editorial quality
+- Professional retouching, skin texture preserved
+- Sharp focus on subject with artistic blur falloff
+- Elegant color harmony
+
+This image should look like a luxury skincare or fashion editorial, NOT a promotional flyer.`.trim();
+}
 
 interface ChatMessage {
   role: "user" | "assistant";

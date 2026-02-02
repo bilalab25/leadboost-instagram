@@ -1,0 +1,111 @@
+GOAL (MOST IMPORTANT)
+Add an “EDITORIAL MODE” to the image generation pipeline so the agent produces:
+- clean luxury editorial photography
+- minimal and controlled typography (or no typography)
+- no repeated text, no patterns, no diagonal poster layouts
+- one clear message only (max 2 text blocks)
+- consistent 4:5 feed composition with safe margins and negative space
+
+CONSTRAINTS
+- Keep using GoogleGenAI (Gemini) models.
+- Do NOT add new external dependencies.
+- Do NOT break existing API shape returned by `chat()` (still `{ text, image?, imagePrompt? }`).
+- You can add new fields internally and/or in logs.
+- Maintain Spanish responses when language="es" (but prompts for image generation can be English).
+
+IMPLEMENTATION TASKS
+
+1) Add an `editorialMode` decision
+- When the user asks for an image for Instagram feed OR mentions premium/luxury/editorial OR the brand style includes “minimal / elegant / luxury”, set `editorialMode = true`.
+- For promotions (detected via 2x1, discount, oferta, etc.), editorialMode should still be true by default unless user explicitly asks for a “flyer” or “bold discount poster”.
+
+2) Split “image generation” into 2 outputs:
+A) Base Photo Prompt (always)
+- Generate a premium editorial base photo prompt in English, max 120 words.
+- MUST include explicit negatives:
+  - no text, no letters, no typography, no logos, no watermarks
+  - no icons, no syringe icon, no collage, no flyer, no poster layout, no diagonal text
+  - no repeated patterns of words/numbers
+- MUST include quality constraints:
+  - luxury editorial photography
+  - soft studio lighting, shallow depth of field
+  - minimal composition, negative space for overlay
+  - Instagram 4:5 vertical composition
+
+B) Layout Plan (for frontend overlay; even if you don’t implement frontend now)
+- Generate a JSON “layoutPlan” (internal) with:
+  - aspectRatio: "4:5"
+  - safeAreaPercent: { top: 8, right: 8, bottom: 10, left: 8 }
+  - headline (max 4 words)
+  - subhead (max 6 words)
+  - cta (optional, max 3 words)
+  - alignment: "left" | "center" | "right"
+  - theme: "light" | "dark"
+  - disclaimer (optional)
+Rules:
+- In editorialMode, headline/subhead must be SHORT and NEVER include multiple promos.
+- For example, if promo detected “2x1 Botox Couples”, headline could be “2x1 Botox Couples” and subhead “Valentine’s Special”.
+- DO NOT include “FREE”, “25% OFF”, or repeated “2x1” patterns in editorial mode.
+
+3) Refactor `generateImagePrompt()`
+Currently it returns `{ imagePrompt, caption, hashtags }`.
+Change it to return:
+- `basePhotoPrompt` (string)
+- `layoutPlan` (object)
+- `caption` (string)
+- `hashtags` (string)
+But keep compatibility:
+- Set `imagePrompt` to `basePhotoPrompt` when returning from `chat()` (so existing callers still work).
+If Gemini fails to output valid JSON, create a robust fallback basePhotoPrompt using brand colors/style and conversation context.
+
+4) Refactor `generateImage()`
+- It must generate ONLY the base photo image.
+- It must NOT ask for text overlay, and must forbid all typography/icons.
+- DO NOT attach the brand logo as a reference image (it degrades aesthetics). Remove “reproduce logo exactly”.
+- Limit reference images to 0–2:
+  - Prefer location_assets or inspiration_templates (if present)
+  - Otherwise include at most 1 product image
+- Instruct: “use as inspiration for lighting/color/texture only; do not copy exactly.”
+
+5) Add “anti-flyer guardrails”
+Before calling the image model, run a small validator on the basePhotoPrompt:
+- If it contains terms like “text overlay”, “percent off”, “FREE”, “2x1 repeated”, “poster”, “flyer”, automatically rewrite prompt to remove them.
+Also validate layoutPlan:
+- Enforce max words: headline<=4, subhead<=6, cta<=3
+- Remove repeated tokens (e.g. “2x1, 2x1, 2x1”)
+
+6) Add 3 editorial presets
+Create helper `getEditorialPreset(context, userMessage)` returning:
+- mood: "luxury_minimal" | "warm_romantic" | "modern_clinical"
+- subject: "close-up" | "abstract" | "couple_detail"
+- background: "cream" | "burgundy" | "neutral_gradient"
+Use preset to shape basePhotoPrompt.
+Default:
+- Valentine/couples => mood="warm_romantic", subject="couple_detail"
+- Clinic/medical context => mood="modern_clinical"
+- Brand style minimal/elegant => mood="luxury_minimal"
+
+7) Update copy behavior (caption/hashtags)
+- Caption should be Spanish when language="es"
+- Keep it short and premium (no “spammy” discount list)
+- Hashtags 5–7 in Spanish
+
+8) Provide output
+- Make code changes in TypeScript for:
+  - `generateImagePrompt()`
+  - `generateImage()`
+  - `pickVisualReferenceAssets()`
+  - add helpers: `getEditorialPreset()`, `sanitizePrompt()`, `sanitizeLayoutPlan()`
+- Provide an example output JSON for the user request:
+  “create an image for my 2x1 valentines day promotion in botox for couples”
+Show basePhotoPrompt + layoutPlan + caption + hashtags.
+
+IMPORTANT QUALITY RULES (EDITORIAL MODE)
+- One message only (no multiple discounts)
+- No repeated text patterns
+- No diagonal typography
+- No icons (especially syringe icon)
+- Big margins and negative space
+- Looks like a luxury skincare editorial shoot, not a flyer
+
+Do not ask me questions. Make reasonable assumptions and implement these changes now.
