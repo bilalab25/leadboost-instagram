@@ -1640,12 +1640,10 @@ Avoid generic stock photo aesthetics.`;
 }
 
 export async function generateImageWithGeminiNanoBanana({
-  imagePrompt,
   brandDesign,
   brandAssets,
   brandEssence,
 }: {
-  imagePrompt: string;
   brandDesign: BrandDesign;
   brandAssets: BrandAssetForImage[];
   brandEssence?: {
@@ -1840,11 +1838,6 @@ Color Palette: ${colorPalette}
 Tone: ${brandEssence?.tone || "professional"}
 Emotion: ${brandEssence?.emotion || "inspiring"}
 Visual Keywords: ${brandEssence?.visualKeywords || "clean, elegant"}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📝 SCENE DESCRIPTION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${imagePrompt}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔧 GENERATION MODE: ${mode.toUpperCase()}
@@ -2896,23 +2889,28 @@ export async function processPostGeneration(
     for (const post of posts) {
       // ⚠️ BILLING CHECK: Before generating each image, verify billing status
       const billingCheck = await billingService.canGenerateImages(brandId);
-      console.log(`[PostGenerator] Billing check before image ${imagesGenerated + 1}/${posts.length}: freeRemaining=${billingCheck.freeRemaining}, hasPaymentMethod=${billingCheck.hasPaymentMethod}`);
-      
+      console.log(
+        `[PostGenerator] Billing check before image ${imagesGenerated + 1}/${posts.length}: freeRemaining=${billingCheck.freeRemaining}, hasPaymentMethod=${billingCheck.hasPaymentMethod}`,
+      );
+
       if (billingCheck.requiresPayment) {
-        console.log(`[PostGenerator] 🛑 Payment required! User has ${billingCheck.freeRemaining} free images remaining and no payment method.`);
+        console.log(
+          `[PostGenerator] 🛑 Payment required! User has ${billingCheck.freeRemaining} free images remaining and no payment method.`,
+        );
         paymentRequired = true;
-        
+
         // Update job status to payment_required so frontend can show modal
         await updatePostGeneratorJob(jobId, {
           status: "payment_required",
-          result: { 
+          result: {
             postsGenerated: imagesGenerated,
             totalPlanned: posts.length,
             paymentRequired: true,
-            message: "Please add a payment method to continue generating images."
+            message:
+              "Please add a payment method to continue generating images.",
           },
         });
-        
+
         // Stop generating more images
         break;
       }
@@ -2921,7 +2919,6 @@ export async function processPostGeneration(
       let cloudinaryPublicId = null;
       try {
         const generatedImage = await generateImageWithGeminiNanoBanana({
-          imagePrompt: post.imagePrompt,
           brandDesign,
           brandAssets: assetsForImageGen,
           brandEssence,
@@ -2957,11 +2954,17 @@ export async function processPostGeneration(
 
             finalUrl = upload.secure_url;
             cloudinaryPublicId = upload.public_id;
-            
+
             // ✅ Record successful image generation IMMEDIATELY after each image
-            await billingService.recordImageGeneration(brandId, '/api/post-generator', 1);
+            await billingService.recordImageGeneration(
+              brandId,
+              "/api/post-generator",
+              1,
+            );
             imagesGenerated++;
-            console.log(`[PostGenerator] ✅ Image ${imagesGenerated}/${posts.length} generated and billed for ${post.platform}`);
+            console.log(
+              `[PostGenerator] ✅ Image ${imagesGenerated}/${posts.length} generated and billed for ${post.platform}`,
+            );
           } catch (err) {
             console.warn(
               "[PostGenerator] Refinement failed, using original copy",
@@ -3000,7 +3003,9 @@ export async function processPostGeneration(
         status: "completed",
         result: { postsGenerated: imagesGenerated },
       });
-      console.log(`[PostGenerator] Job ${jobId} completed successfully with ${imagesGenerated} images`);
+      console.log(
+        `[PostGenerator] Job ${jobId} completed successfully with ${imagesGenerated} images`,
+      );
     }
 
     return { postsGenerated: imagesGenerated, paymentRequired };
@@ -3011,7 +3016,7 @@ export async function processPostGeneration(
       status: "failed",
       error: error instanceof Error ? error.message : "Unknown error",
     });
-    
+
     return { postsGenerated: 0, paymentRequired: false };
   }
 }

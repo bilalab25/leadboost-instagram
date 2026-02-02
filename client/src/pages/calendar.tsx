@@ -55,7 +55,13 @@ import {
   isSameMonth,
   isWithinInterval,
 } from "date-fns";
-import { Dialog, DialogContent, DialogTitle, DialogHeader, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogHeader,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -165,7 +171,8 @@ export default function ContentCalendar() {
   const [suggestedPosts, setSuggestedPosts] = useState<ContentPost[]>([]);
   const [showGeneratingLoader, setShowGeneratingLoader] = useState(false);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
-  const [showPaymentRequiredModal, setShowPaymentRequiredModal] = useState(false);
+  const [showPaymentRequiredModal, setShowPaymentRequiredModal] =
+    useState(false);
   const [, setLocation] = useLocation();
   const [aiPendingPosts, setAiPendingPosts] = useState<any[]>([]);
   const [imageLoadingStates, setImageLoadingStates] = useState<
@@ -565,26 +572,29 @@ export default function ContentCalendar() {
       // 💳 Payment required - user ran out of free images during generation
       setShowGeneratingLoader(false);
       setShowPaymentRequiredModal(true);
-      
+
       // Refetch any posts that were generated before hitting the limit
       queryClient.invalidateQueries({
         queryKey: ["/api/ai-generated-posts", activeBrandId],
       });
-      
-      const result = job.result as { postsGenerated?: number; totalPlanned?: number } | null;
+
+      const result = job.result as {
+        postsGenerated?: number;
+        totalPlanned?: number;
+      } | null;
       const generatedCount = result?.postsGenerated || 0;
       const totalPlanned = result?.totalPlanned || 0;
-      
+
       if (generatedCount > 0) {
         toast({
           title: isSpanish ? "⚠️ Generación Pausada" : "⚠️ Generation Paused",
-          description: isSpanish 
+          description: isSpanish
             ? `Se generaron ${generatedCount} de ${totalPlanned} imágenes. Agrega un método de pago para continuar.`
             : `Generated ${generatedCount} of ${totalPlanned} images. Add a payment method to continue.`,
           variant: "destructive",
         });
       }
-      
+
       setCurrentJobId(null); // Stop polling
     } else if (job.status === "failed") {
       setShowGeneratingLoader(false);
@@ -740,13 +750,13 @@ export default function ContentCalendar() {
     },
     onError: (error: any) => {
       setShowGeneratingLoader(false);
-      
+
       // Check if it's a payment required error
       if (error.message === "PAYMENT_REQUIRED") {
         setShowPaymentRequiredModal(true);
         return;
       }
-      
+
       toast({
         title: "Generation Failed",
         description: error.message || "Failed to start post generation",
@@ -1064,7 +1074,10 @@ export default function ContentCalendar() {
   return (
     <TooltipProvider>
       {/* Payment Required Modal - Large and prominent */}
-      <Dialog open={showPaymentRequiredModal} onOpenChange={setShowPaymentRequiredModal}>
+      <Dialog
+        open={showPaymentRequiredModal}
+        onOpenChange={setShowPaymentRequiredModal}
+      >
         <DialogContent className="max-w-2xl p-0 overflow-hidden">
           {/* Header with gradient */}
           <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 p-8 text-white">
@@ -1075,16 +1088,18 @@ export default function ContentCalendar() {
             </div>
             <DialogHeader>
               <DialogTitle className="text-3xl font-bold text-center text-white">
-                {isSpanish ? "¡Tus Créditos Gratuitos Se Agotaron!" : "Your Free Credits Are Used Up!"}
+                {isSpanish
+                  ? "¡Tus Créditos Gratuitos Se Agotaron!"
+                  : "Your Free Credits Are Used Up!"}
               </DialogTitle>
               <DialogDescription className="text-center text-white/90 text-lg mt-3">
-                {isSpanish 
-                  ? "Has utilizado tus 10 imágenes gratuitas. ¡Pero no te preocupes! Puedes continuar creando contenido increíble." 
+                {isSpanish
+                  ? "Has utilizado tus 10 imágenes gratuitas. ¡Pero no te preocupes! Puedes continuar creando contenido increíble."
                   : "You've used your 10 free images. But don't worry! You can continue creating amazing content."}
               </DialogDescription>
             </DialogHeader>
           </div>
-          
+
           {/* Content */}
           <div className="p-8 space-y-6">
             {/* Pricing info */}
@@ -1098,13 +1113,13 @@ export default function ContentCalendar() {
                   <span className="text-xl text-muted-foreground">USD</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {isSpanish 
-                    ? "Los cargos se procesan automáticamente cada 2 días" 
+                  {isSpanish
+                    ? "Los cargos se procesan automáticamente cada 2 días"
                     : "Charges are processed automatically every 2 days"}
                 </p>
               </div>
             </div>
-            
+
             {/* Benefits */}
             <div className="space-y-3">
               <div className="flex items-center gap-3">
@@ -1112,8 +1127,8 @@ export default function ContentCalendar() {
                   <Check className="h-5 w-5 text-green-600" />
                 </div>
                 <span className="text-base">
-                  {isSpanish 
-                    ? "Imágenes de alta calidad generadas con IA" 
+                  {isSpanish
+                    ? "Imágenes de alta calidad generadas con IA"
                     : "High-quality AI-generated images"}
                 </span>
               </div>
@@ -1122,8 +1137,8 @@ export default function ContentCalendar() {
                   <Check className="h-5 w-5 text-green-600" />
                 </div>
                 <span className="text-base">
-                  {isSpanish 
-                    ? "Contenido personalizado para tu marca" 
+                  {isSpanish
+                    ? "Contenido personalizado para tu marca"
                     : "Personalized content for your brand"}
                 </span>
               </div>
@@ -1132,16 +1147,16 @@ export default function ContentCalendar() {
                   <Check className="h-5 w-5 text-green-600" />
                 </div>
                 <span className="text-base">
-                  {isSpanish 
-                    ? "Cancela cuando quieras, sin compromisos" 
+                  {isSpanish
+                    ? "Cancela cuando quieras, sin compromisos"
                     : "Cancel anytime, no commitments"}
                 </span>
               </div>
             </div>
-            
+
             {/* Action buttons */}
             <div className="flex flex-col gap-3 pt-4">
-              <Button 
+              <Button
                 size="lg"
                 onClick={() => {
                   setShowPaymentRequiredModal(false);
@@ -1152,8 +1167,8 @@ export default function ContentCalendar() {
                 {isSpanish ? "Agregar Método de Pago" : "Add Payment Method"}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="lg"
                 onClick={() => setShowPaymentRequiredModal(false)}
                 className="w-full text-muted-foreground"
@@ -1451,8 +1466,7 @@ export default function ContentCalendar() {
                                           <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                           Loading...
                                         </>
-                                      ) : hasActiveJob ||
-                                        generatePostsMutation.isPending ? (
+                                      ) : generatePostsMutation.isPending ? (
                                         <>
                                           <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                           Generating...
