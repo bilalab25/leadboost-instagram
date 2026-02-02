@@ -108,9 +108,24 @@ interface BrandContext {
 }
 
 // Asset category constants (same as postGenerator.ts)
-const PRODUCT_CATEGORIES = ["product_images", "products", "product", "product_assets"];
-const LOCATION_CATEGORIES = ["location", "location_images", "location_assets", "place", "venue"];
-const TEMPLATE_CATEGORIES = ["inspiration_templates", "templates", "inspiration"];
+const PRODUCT_CATEGORIES = [
+  "product_images",
+  "products",
+  "product",
+  "product_assets",
+];
+const LOCATION_CATEGORIES = [
+  "location",
+  "location_images",
+  "location_assets",
+  "place",
+  "venue",
+];
+const TEMPLATE_CATEGORIES = [
+  "inspiration_templates",
+  "templates",
+  "inspiration",
+];
 
 // ========================================
 // EDITORIAL MODE - Helper Functions
@@ -130,7 +145,7 @@ function detectEditorialMode(
     /\b(include\s*text|incluir\s*texto|con\s*texto|texto\s*llamativo)\b/i,
     /\b(graphic|infographic|gráfico|infografía)\b/i,
   ];
-  
+
   if (flyerPatterns.some((p) => p.test(lowerMsg))) {
     return false;
   }
@@ -142,7 +157,10 @@ function detectEditorialMode(
     /\b(clean\s*image|imagen\s*limpia|photo|fotografía|professional\s*photo)\b/i,
   ];
 
-  const styleEditorial = /\b(minimal|elegant|luxury|premium|sofisticado|elegante|lujoso|high.?end)\b/i.test(lowerStyle);
+  const styleEditorial =
+    /\b(minimal|elegant|luxury|premium|sofisticado|elegante|lujoso|high.?end)\b/i.test(
+      lowerStyle,
+    );
 
   // Promotions alone do NOT trigger editorial mode - must have explicit triggers
   return editorialTriggers.some((p) => p.test(lowerMsg)) || styleEditorial;
@@ -157,7 +175,11 @@ function getEditorialPreset(
   const brandStyle = context.design?.brandStyle?.toLowerCase() || "";
 
   // Valentine/couples/romantic context
-  if (/\b(valentine|amor|pareja|couples?|romantic|san\s*valent[ií]n)\b/i.test(lowerMsg)) {
+  if (
+    /\b(valentine|amor|pareja|couples?|romantic|san\s*valent[ií]n)\b/i.test(
+      lowerMsg,
+    )
+  ) {
     return {
       mood: "warm_romantic",
       subject: "couple_detail",
@@ -166,8 +188,12 @@ function getEditorialPreset(
   }
 
   // Medical/clinic context
-  if (/\b(clinic|medical|aesthetic|botox|filler|tratamiento|cl[ií]nica|m[eé]dico)\b/i.test(lowerMsg) ||
-      /\b(health|wellness|beauty|spa|aesthetic)\b/i.test(industry)) {
+  if (
+    /\b(clinic|medical|aesthetic|botox|filler|tratamiento|cl[ií]nica|m[eé]dico)\b/i.test(
+      lowerMsg,
+    ) ||
+    /\b(health|wellness|beauty|spa|aesthetic)\b/i.test(industry)
+  ) {
     return {
       mood: "modern_clinical",
       subject: "close_up",
@@ -255,15 +281,19 @@ function buildEditorialBasePrompt(
   const industry = context.brand?.industry || "premium lifestyle";
 
   const moodDescriptions: Record<string, string> = {
-    luxury_minimal: "ultra-minimal luxury aesthetic, clean lines, sophisticated simplicity",
-    warm_romantic: "warm romantic atmosphere, soft candlelight, intimate and tender mood",
-    modern_clinical: "pristine clinical elegance, spotless white surfaces, professional medical spa aesthetic",
+    luxury_minimal:
+      "ultra-minimal luxury aesthetic, clean lines, sophisticated simplicity",
+    warm_romantic:
+      "warm romantic atmosphere, soft candlelight, intimate and tender mood",
+    modern_clinical:
+      "pristine clinical elegance, spotless white surfaces, professional medical spa aesthetic",
   };
 
   const subjectDescriptions: Record<string, string> = {
     close_up: "extreme close-up detail shot, macro beauty photography",
     abstract: "abstract artistic composition, soft focus gradient background",
-    couple_detail: "intimate couple detail shot, hands touching or close faces, romantic",
+    couple_detail:
+      "intimate couple detail shot, hands touching or close faces, romantic",
     product_hero: "hero product shot, centered with dramatic lighting",
   };
 
@@ -716,13 +746,16 @@ ${capabilities}`;
 
     // Filter for location and inspiration assets (best for visual style reference)
     const locationAssets = assets.filter(
-      (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
+      (a) =>
+        a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
     );
     const templateAssets = assets.filter(
-      (a) => a.category && TEMPLATE_CATEGORIES.includes(a.category.toLowerCase()),
+      (a) =>
+        a.category && TEMPLATE_CATEGORIES.includes(a.category.toLowerCase()),
     );
     const productAssets = assets.filter(
-      (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
+      (a) =>
+        a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
     );
 
     // Priority: location/inspiration > products (for editorial, products last)
@@ -768,11 +801,17 @@ ${capabilities}`;
       // In EDITORIAL MODE: Do NOT attach logo (degrades aesthetics)
       // Only attach 0-2 reference images for lighting/color/texture inspiration
       if (editorialMode) {
-        console.log("[Boosty] EDITORIAL MODE: Skipping logo, limiting reference images to 2");
-        
+        console.log(
+          "[Boosty] EDITORIAL MODE: Skipping logo, limiting reference images to 2",
+        );
+
         // Select limited reference images (0-2) for inspiration only
         if (context.imageAssets && context.imageAssets.length > 0) {
-          const assetsToUse = this.pickVisualReferenceAssets(context.imageAssets, 2, true);
+          const assetsToUse = this.pickVisualReferenceAssets(
+            context.imageAssets,
+            2,
+            true,
+          );
           console.log(
             `[Boosty Editorial] Using ${assetsToUse.length} reference images for inspiration:`,
             assetsToUse.map((a) => a.name),
@@ -811,7 +850,11 @@ ${capabilities}`;
         }
 
         if (context.imageAssets && context.imageAssets.length > 0) {
-          const assetsToUse = this.pickVisualReferenceAssets(context.imageAssets, 3, false);
+          const assetsToUse = this.pickVisualReferenceAssets(
+            context.imageAssets,
+            3,
+            false,
+          );
           for (const asset of assetsToUse) {
             const imageData = await this.fetchImageAsBase64(asset.url);
             if (imageData) {
@@ -827,7 +870,9 @@ ${capabilities}`;
       }
 
       // Build the final prompt - sanitized for editorial mode
-      const sanitizedPrompt = editorialMode ? sanitizePrompt(basePhotoPrompt) : basePhotoPrompt;
+      const sanitizedPrompt = editorialMode
+        ? sanitizePrompt(basePhotoPrompt)
+        : basePhotoPrompt;
 
       const enhancedPrompt = editorialMode
         ? `
@@ -877,11 +922,14 @@ Create a professional marketing image suitable for social media.
 
       console.log("[Boosty] Generating image with Gemini...");
       console.log("[Boosty] Editorial mode:", editorialMode);
-      console.log("[Boosty] Reference images attached:", contentParts.length - 1);
+      console.log(
+        "[Boosty] Reference images attached:",
+        contentParts.length - 1,
+      );
 
       // Call Gemini with multimodal content
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-image",
+        model: "gemini-3-pro-image-preview",
         contents: contentParts,
         config: {
           responseModalities: [Modality.TEXT, Modality.IMAGE],
@@ -915,13 +963,19 @@ Create a professional marketing image suitable for social media.
     context: BrandContext,
     preset: EditorialPreset,
   ): ImagePromptResult {
-    const basePhotoPrompt = buildEditorialBasePrompt(preset, context, userMessage);
-    
+    const basePhotoPrompt = buildEditorialBasePrompt(
+      preset,
+      context,
+      userMessage,
+    );
+
     // Extract promo details only if explicitly mentioned
     const promoMatch = userMessage.match(/(\d+x\d+|2x1|3x2)/gi);
     const promo = promoMatch ? promoMatch[0].toUpperCase() : "";
-    
-    const themeMatch = userMessage.match(/\b(valentine|amor|pareja|san\s*valent[ií]n|couples?)\b/i);
+
+    const themeMatch = userMessage.match(
+      /\b(valentine|amor|pareja|san\s*valent[ií]n|couples?)\b/i,
+    );
     const theme = themeMatch ? "Valentine's Day" : "";
 
     // Only use promo as headline if explicitly present, otherwise use brand name
@@ -937,7 +991,10 @@ Create a professional marketing image suitable for social media.
         headline: headline,
         subhead: subhead,
         alignment: "center",
-        theme: preset.background === "burgundy" || preset.mood === "warm_romantic" ? "dark" : "light",
+        theme:
+          preset.background === "burgundy" || preset.mood === "warm_romantic"
+            ? "dark"
+            : "light",
       }),
       caption: "",
       hashtags: "",
@@ -953,16 +1010,25 @@ Create a professional marketing image suitable for social media.
   ): Promise<ImagePromptResult> {
     // Build conversation context for memory
     const recentHistory = conversationHistory.slice(-6);
-    const conversationContext = recentHistory.length > 0
-      ? recentHistory.map((msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`).join("\n")
-      : "";
+    const conversationContext =
+      recentHistory.length > 0
+        ? recentHistory
+            .map(
+              (msg) =>
+                `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`,
+            )
+            .join("\n")
+        : "";
 
     const allContext = `${userMessage} ${conversationContext}`;
-    
+
     // Detect editorial mode
-    const editorialMode = detectEditorialMode(allContext, context.design?.brandStyle || "");
+    const editorialMode = detectEditorialMode(
+      allContext,
+      context.design?.brandStyle || "",
+    );
     const preset = getEditorialPreset(context, allContext);
-    
+
     console.log("[Boosty] Editorial mode:", editorialMode);
     console.log("[Boosty] Preset:", preset);
 
@@ -971,14 +1037,21 @@ Create a professional marketing image suitable for social media.
     const promotionDetails = promoMatch ? promoMatch[0].toUpperCase() : "";
 
     // Detect theme keywords
-    const valentineMatch = /\b(valentine|san\s*valent[ií]n|amor|pareja|couples?|romantic)\b/i.test(allContext);
-    const serviceMatch = allContext.match(/\b(botox|filler|tratamiento|rellenos?|faciales?|lifting)\b/i);
+    const valentineMatch =
+      /\b(valentine|san\s*valent[ií]n|amor|pareja|couples?|romantic)\b/i.test(
+        allContext,
+      );
+    const serviceMatch = allContext.match(
+      /\b(botox|filler|tratamiento|rellenos?|faciales?|lifting)\b/i,
+    );
     const serviceName = serviceMatch ? serviceMatch[0] : "";
 
     const colorPalette = [
       context.design?.colors?.primary,
       context.design?.colors?.accent1,
-    ].filter(Boolean).join(", ");
+    ]
+      .filter(Boolean)
+      .join(", ");
 
     // Different prompts for editorial vs non-editorial mode
     const prompt = editorialMode
@@ -1057,7 +1130,10 @@ Generate a JSON with:
 
 Respond ONLY with valid JSON.`;
 
-    console.log("[Boosty] Generating image prompt, editorialMode:", editorialMode);
+    console.log(
+      "[Boosty] Generating image prompt, editorialMode:",
+      editorialMode,
+    );
 
     try {
       const response = await ai.models.generateContent({
@@ -1075,20 +1151,28 @@ Respond ONLY with valid JSON.`;
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        
+
         if (editorialMode) {
           // Sanitize editorial outputs
-          const basePhotoPrompt = sanitizePrompt(parsed.basePhotoPrompt || buildEditorialBasePrompt(preset, context, userMessage));
-          const layoutPlan = sanitizeLayoutPlan(parsed.layoutPlan || {
-            aspectRatio: "4:5",
-            safeAreaPercent: { top: 8, right: 8, bottom: 10, left: 8 },
-            headline: promotionDetails || context.brand.name,
-            subhead: context.design?.brandStyle || "",
-            alignment: "center",
-            theme: "light",
-          });
+          const basePhotoPrompt = sanitizePrompt(
+            parsed.basePhotoPrompt ||
+              buildEditorialBasePrompt(preset, context, userMessage),
+          );
+          const layoutPlan = sanitizeLayoutPlan(
+            parsed.layoutPlan || {
+              aspectRatio: "4:5",
+              safeAreaPercent: { top: 8, right: 8, bottom: 10, left: 8 },
+              headline: promotionDetails || context.brand.name,
+              subhead: context.design?.brandStyle || "",
+              alignment: "center",
+              theme: "light",
+            },
+          );
 
-          console.log("[Boosty] Editorial basePhotoPrompt:", basePhotoPrompt.substring(0, 200));
+          console.log(
+            "[Boosty] Editorial basePhotoPrompt:",
+            basePhotoPrompt.substring(0, 200),
+          );
           console.log("[Boosty] layoutPlan:", JSON.stringify(layoutPlan));
 
           return {
@@ -1101,7 +1185,9 @@ Respond ONLY with valid JSON.`;
         } else {
           // Non-editorial: return imagePrompt directly, no layoutPlan needed
           return {
-            basePhotoPrompt: parsed.imagePrompt || "Professional marketing image for " + context.brand.name,
+            basePhotoPrompt:
+              parsed.imagePrompt ||
+              "Professional marketing image for " + context.brand.name,
             layoutPlan: {
               aspectRatio: "4:5",
               safeAreaPercent: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -1155,7 +1241,9 @@ Respond ONLY with valid JSON.`;
     const wantsImage = this.isImageRequest(message, language);
 
     if (wantsImage) {
-      console.log("[Boosty] Image request detected, generating editorial image...");
+      console.log(
+        "[Boosty] Image request detected, generating editorial image...",
+      );
 
       const promptResult = await this.generateImagePrompt(
         message,
@@ -1163,20 +1251,25 @@ Respond ONLY with valid JSON.`;
         language,
         conversationHistory,
       );
-      
-      const { basePhotoPrompt, layoutPlan, caption, hashtags, editorialMode } = promptResult;
-      
+
+      const { basePhotoPrompt, layoutPlan, caption, hashtags, editorialMode } =
+        promptResult;
+
       console.log("[Boosty] Editorial mode:", editorialMode);
       console.log("[Boosty] Layout plan:", JSON.stringify(layoutPlan));
-      
-      const generatedImage = await this.generateImage(basePhotoPrompt, context, editorialMode);
+
+      const generatedImage = await this.generateImage(
+        basePhotoPrompt,
+        context,
+        editorialMode,
+      );
 
       if (generatedImage) {
         // Include layout plan info in text for editorial mode
         const layoutInfo = editorialMode
           ? `\n\n**Layout Plan** (for text overlay):\n- Headline: ${layoutPlan.headline}\n- Subhead: ${layoutPlan.subhead}${layoutPlan.cta ? `\n- CTA: ${layoutPlan.cta}` : ""}`
           : "";
-          
+
         const textResponse =
           language === "es"
             ? `¡Aquí está tu imagen${editorialMode ? " editorial" : ""}! 🎨${layoutInfo}\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
