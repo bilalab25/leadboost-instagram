@@ -694,149 +694,182 @@ ${capabilities}`;
     }
   }
 
-  // Helper to select visual reference assets (same pattern as postGenerator.ts)
+  // Helper to select visual reference assets for editorial mode
+  // Editorial mode limits to 0-2 images, preferring location/inspiration over products
   private pickVisualReferenceAssets(
     assets: BrandAssetForImage[],
-    count = 3,
+    count = 2, // Default to 2 for editorial mode
+    editorialMode = true,
   ): BrandAssetForImage[] {
     if (!assets || assets.length === 0) return [];
 
+    // In editorial mode, limit to max 2 reference images
+    const maxCount = editorialMode ? Math.min(count, 2) : count;
+
     // Filter for location and inspiration assets (best for visual style reference)
-    const visualAssets = assets.filter(
-      (a) =>
-        a.category &&
-        (LOCATION_CATEGORIES.includes(a.category.toLowerCase()) ||
-          TEMPLATE_CATEGORIES.includes(a.category.toLowerCase())),
+    const locationAssets = assets.filter(
+      (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
+    );
+    const templateAssets = assets.filter(
+      (a) => a.category && TEMPLATE_CATEGORIES.includes(a.category.toLowerCase()),
+    );
+    const productAssets = assets.filter(
+      (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
     );
 
-    // If no specific visual assets, use product images as fallback
-    const assetsToUse = visualAssets.length > 0 ? visualAssets : assets;
+    // Priority: location/inspiration > products (for editorial, products last)
+    const prioritized: BrandAssetForImage[] = [];
 
-    // Shuffle and return up to count
-    const shuffled = [...assetsToUse].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
+    if (editorialMode) {
+      // Prefer location and templates for editorial aesthetic
+      prioritized.push(...locationAssets.slice(0, 1));
+      prioritized.push(...templateAssets.slice(0, 1));
+      // Only add product if we have room and no other assets
+      if (prioritized.length === 0 && productAssets.length > 0) {
+        prioritized.push(productAssets[0]);
+      }
+    } else {
+      // Non-editorial: mix all
+      prioritized.push(...locationAssets, ...templateAssets, ...productAssets);
+    }
+
+    // Shuffle and return up to maxCount
+    const shuffled = [...prioritized].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, maxCount);
   }
 
   private async generateImage(
-    imagePrompt: string,
+    basePhotoPrompt: string,
     context: BrandContext,
-    userRequest: string = "",
+    editorialMode: boolean = true,
   ): Promise<string | null> {
     try {
       const primaryColor = context.design?.colors?.primary || "#4F46E5";
       const accentColor = context.design?.colors?.accent1 || "#7C3AED";
-      const accent2Color = context.design?.colors?.accent2 || "";
-      const brandStyle = context.design?.brandStyle || "modern and professional";
       const brandName = context.brand?.name || "Brand";
       const industry = context.brand?.industry || "";
 
       // Build color palette string
-      const colorPalette = [primaryColor, accentColor, accent2Color]
+      const colorPalette = [primaryColor, accentColor]
         .filter(Boolean)
         .join(", ");
-
-      // Get logo URL (prefer white/black versions)
-      const logoUrl =
-        context.design?.whiteLogoUrl ||
-        context.design?.blackLogoUrl ||
-        context.design?.logoUrl;
-
-      // Select assets by category (following postGenerator.ts pattern)
-      const productAssets = context.imageAssets.filter(
-        (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
-      );
-      const locationAssets = context.imageAssets.filter(
-        (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
-      );
-
-      const hasProducts = productAssets.length > 0;
-      const hasLocation = locationAssets.length > 0;
 
       // Build content parts array for multimodal request
       const contentParts: any[] = [];
 
-      // 1. Add logo as primary visual reference
-      if (logoUrl) {
-        console.log("[Boosty] Adding brand logo as reference:", logoUrl);
-        const logoImage = await this.fetchImageAsBase64(logoUrl);
-        if (logoImage) {
-          contentParts.push({
-            inlineData: {
-              data: logoImage.data,
-              mimeType: logoImage.mimeType,
-            },
-          });
+      // In EDITORIAL MODE: Do NOT attach logo (degrades aesthetics)
+      // Only attach 0-2 reference images for lighting/color/texture inspiration
+      if (editorialMode) {
+        console.log("[Boosty] EDITORIAL MODE: Skipping logo, limiting reference images to 2");
+        
+        // Select limited reference images (0-2) for inspiration only
+        if (context.imageAssets && context.imageAssets.length > 0) {
+          const assetsToUse = this.pickVisualReferenceAssets(context.imageAssets, 2, true);
+          console.log(
+            `[Boosty Editorial] Using ${assetsToUse.length} reference images for inspiration:`,
+            assetsToUse.map((a) => a.name),
+          );
+
+          for (const asset of assetsToUse) {
+            const imageData = await this.fetchImageAsBase64(asset.url);
+            if (imageData) {
+              contentParts.push({
+                inlineData: {
+                  data: imageData.data,
+                  mimeType: imageData.mimeType,
+                },
+              });
+            }
+          }
         }
-      }
+      } else {
+        // Non-editorial mode: include logo and more assets
+        const logoUrl =
+          context.design?.whiteLogoUrl ||
+          context.design?.blackLogoUrl ||
+          context.design?.logoUrl;
 
-      // 2. Add brand assets as visual references (up to 3)
-      if (context.imageAssets && context.imageAssets.length > 0) {
-        const assetsToUse = this.pickVisualReferenceAssets(context.imageAssets, 3);
-        console.log(
-          `[Boosty] Using ${assetsToUse.length} brand assets as references:`,
-          assetsToUse.map((a) => a.name),
-        );
-
-        for (const asset of assetsToUse) {
-          const imageData = await this.fetchImageAsBase64(asset.url);
-          if (imageData) {
+        if (logoUrl) {
+          console.log("[Boosty] Adding brand logo as reference:", logoUrl);
+          const logoImage = await this.fetchImageAsBase64(logoUrl);
+          if (logoImage) {
             contentParts.push({
               inlineData: {
-                data: imageData.data,
-                mimeType: imageData.mimeType,
+                data: logoImage.data,
+                mimeType: logoImage.mimeType,
               },
             });
           }
         }
+
+        if (context.imageAssets && context.imageAssets.length > 0) {
+          const assetsToUse = this.pickVisualReferenceAssets(context.imageAssets, 3, false);
+          for (const asset of assetsToUse) {
+            const imageData = await this.fetchImageAsBase64(asset.url);
+            if (imageData) {
+              contentParts.push({
+                inlineData: {
+                  data: imageData.data,
+                  mimeType: imageData.mimeType,
+                },
+              });
+            }
+          }
+        }
       }
 
-      // 3. Detect if the prompt requests promotional text
-      const hasPromoText = /promotional text|text overlay|include.*text|texto promocional/i.test(imagePrompt);
-      
-      // 4. Build enhanced prompt (following postGenerator.ts pattern)
-      const enhancedPrompt = `
-🎨 IMAGE GENERATION REQUEST FOR "${brandName.toUpperCase()}"
+      // Build the final prompt - sanitized for editorial mode
+      const sanitizedPrompt = editorialMode ? sanitizePrompt(basePhotoPrompt) : basePhotoPrompt;
+
+      const enhancedPrompt = editorialMode
+        ? `
+🎨 EDITORIAL PHOTOGRAPHY REQUEST FOR "${brandName.toUpperCase()}"
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-USER REQUEST: ${userRequest || imagePrompt}
+${sanitizedPrompt}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📸 EDITORIAL QUALITY REQUIREMENTS:
+- Luxury editorial photography, high-end magazine quality
+- Soft diffused studio lighting with subtle shadows
+- Shallow depth of field, creamy bokeh background
+- Instagram 4:5 vertical composition
+- Color grading: subtle warmth with brand palette hints (${colorPalette})
+- Generous negative space (15% margins) for clean composition
+
+🔇 REFERENCE IMAGE USAGE:
+${contentParts.length > 1 ? "Use provided reference images ONLY for lighting, color mood, and texture inspiration. Do NOT copy subjects directly." : "No reference images provided - use the prompt description."}
+
+⛔ ABSOLUTELY FORBIDDEN - DO NOT INCLUDE:
+- NO text, NO letters, NO typography of any kind
+- NO logos, NO watermarks, NO brand marks
+- NO icons (especially syringe, medical symbols)
+- NO collage layouts, NO poster aesthetics, NO flyer designs
+- NO diagonal elements, NO repeated patterns
+- NO discount percentages, NO promotional overlays
+- NO generic stock photo look
+
+This must look like a luxury fashion/beauty editorial, NOT a promotional flyer.
+Generate ONLY the clean base photograph.
+`
+        : `
+🎨 IMAGE GENERATION REQUEST FOR "${brandName.toUpperCase()}"
+
+${sanitizedPrompt}
 
 BRAND CONTEXT:
-- Brand: ${brandName}
 - Industry: ${industry || "general"}
-- Visual Style: ${brandStyle}
 - Color Palette: ${colorPalette}
-${hasProducts ? "- Has real product images to USE AS VISUAL INSPIRATION" : ""}
-${hasLocation ? "- Has location/venue images to USE AS VISUAL INSPIRATION" : ""}
 
-DETAILED IMAGE PROMPT:
-${imagePrompt}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚨 CRITICAL VISUAL INSTRUCTIONS:
-1. If a logo image was provided above, reproduce it EXACTLY as shown - do NOT simplify, redraw, or reinterpret it. Place the logo in the image.
-2. **IMPORTANT**: Use the brand asset images provided as VISUAL INSPIRATION and REFERENCE. Incorporate similar products, textures, colors, and composition styles from those reference images.
-3. Maintain the brand's color palette (${colorPalette}) throughout the image.
-4. Create a professional, high-quality marketing image suitable for social media.
-5. The image should look like REAL SOCIAL MEDIA CONTENT that matches the brand's existing visual identity.
-${hasProducts ? "6. FEATURE products from the provided product images authentically in the scene. Use similar styling and presentation." : ""}
-${hasLocation ? "7. Use the location images as reference for setting and ambiance." : ""}
-
-⛔ DO NOT:
-${hasPromoText ? "- (Text IS allowed for this promotional image - follow the text instructions in the prompt above)" : "- Add any text, watermarks, or overlays to the image"}
-- Create generic stock photo looks
-- Deviate from the brand's visual identity shown in the reference images
-- Simplify or alter the logo if one was provided
-- Ignore the reference images - they are crucial for brand consistency
-
-Generate a visually stunning, brand-consistent image that incorporates the reference images' style and fulfills the user's request.
+Create a professional marketing image suitable for social media.
 `;
 
       contentParts.push({ text: enhancedPrompt });
 
       console.log("[Boosty] Generating image with Gemini...");
-      console.log("[Boosty] Assets used:", context.imageAssets.length);
-      console.log("[Boosty] Logo provided:", !!logoUrl);
+      console.log("[Boosty] Editorial mode:", editorialMode);
+      console.log("[Boosty] Reference images attached:", contentParts.length - 1);
 
       // Call Gemini with multimodal content
       const response = await ai.models.generateContent({
@@ -854,7 +887,7 @@ Generate a visually stunning, brand-consistent image that incorporates the refer
             const base64Image = part.inlineData.data;
             const mimeType = part.inlineData.mimeType || "image/png";
             const dataUrl = `data:${mimeType};base64,${base64Image}`;
-            console.log("[Boosty] Image generated successfully!");
+            console.log("[Boosty] Editorial image generated successfully!");
             return dataUrl;
           }
         }
@@ -868,46 +901,35 @@ Generate a visually stunning, brand-consistent image that incorporates the refer
     }
   }
 
-  // Build a contextual fallback prompt when Gemini fails to generate JSON
-  // This is fully dynamic - no hardcoded themes, extracts context from conversation
-  private buildContextualFallbackPrompt(
+  // Build fallback editorial prompt when Gemini fails to generate JSON
+  private buildEditorialFallback(
     userMessage: string,
-    conversationContext: string,
     context: BrandContext,
-    isPromotion: boolean,
-    promotionDetails: string,
-  ): string {
-    // Build color palette
-    const colorPalette = [
-      context.design?.colors?.primary,
-      context.design?.colors?.accent1,
-      context.design?.colors?.accent2,
-    ].filter(Boolean).join(", ");
+    preset: EditorialPreset,
+  ): ImagePromptResult {
+    const basePhotoPrompt = buildEditorialBasePrompt(preset, context, userMessage);
     
-    // Extract the last user messages for context (the actual content of what they want)
-    const userMessages = conversationContext
-      .split("\n")
-      .filter((line) => line.startsWith("User:"))
-      .map((line) => line.replace("User:", "").trim())
-      .slice(-3) // Last 3 user messages
-      .join(". ");
+    // Extract simple promo details for layout
+    const promoMatch = userMessage.match(/(\d+x\d+|2x1|3x2)/gi);
+    const promo = promoMatch ? promoMatch[0].toUpperCase() : "";
     
-    // Build dynamic prompt using conversation content
-    const brandInfo = `for ${context.brand.name} (${context.brand.industry || "business"})`;
-    const contextInfo = userMessages 
-      ? `based on this request: "${userMessages}"`
-      : `for the current request: "${userMessage}"`;
-    
-    const stylePrompt = `Style: ${context.design?.brandStyle || "modern and professional"}. Brand colors: ${colorPalette || "elegant tones"}. Font: ${context.design?.fonts?.primary || "sans-serif"}.`;
-    
-    // Include promotional text if detected
-    const promoPrompt = isPromotion && promotionDetails
-      ? `IMPORTANT: Include prominent promotional text "${promotionDetails}" in the image with bold, contrasting typography.`
-      : isPromotion
-      ? `Include promotional messaging prominently in the image design.`
-      : "";
-    
-    return `Professional marketing image ${brandInfo} ${contextInfo}. ${stylePrompt} ${promoPrompt} High quality, modern composition suitable for social media.`.trim();
+    const themeMatch = userMessage.match(/\b(valentine|amor|pareja|san\s*valent[ií]n|couples?)\b/i);
+    const theme = themeMatch ? "Valentine's Day" : "";
+
+    return {
+      basePhotoPrompt: sanitizePrompt(basePhotoPrompt),
+      layoutPlan: sanitizeLayoutPlan({
+        aspectRatio: "4:5",
+        safeAreaPercent: { top: 8, right: 8, bottom: 10, left: 8 },
+        headline: promo || "Special Offer",
+        subhead: theme || context.brand.name,
+        alignment: "center",
+        theme: preset.background === "burgundy" || preset.mood === "warm_romantic" ? "dark" : "light",
+      }),
+      caption: "",
+      hashtags: "",
+      editorialMode: true,
+    };
   }
 
   private async generateImagePrompt(
@@ -915,127 +937,91 @@ Generate a visually stunning, brand-consistent image that incorporates the refer
     context: BrandContext,
     language: "es" | "en",
     conversationHistory: ChatMessage[] = [],
-  ): Promise<{ imagePrompt: string; caption: string; hashtags: string }> {
+  ): Promise<ImagePromptResult> {
     // Build conversation context for memory
-    const recentHistory = conversationHistory.slice(-6); // Last 6 messages for context
+    const recentHistory = conversationHistory.slice(-6);
     const conversationContext = recentHistory.length > 0
       ? recentHistory.map((msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`).join("\n")
       : "";
 
-    // Detect promotional content in user message or conversation
-    const allContext = `${userMessage} ${conversationContext}`.toLowerCase();
-    const promotionPatterns = [
-      /\b(promoci[oó]n|promo|oferta|descuento|2x1|2\s*x\s*1|3x2|50%|20%|sale|discount|deal|special\s*offer|buy\s*one|gratis|free)\b/i,
-    ];
-    const isPromotion = promotionPatterns.some((pattern) => pattern.test(allContext));
+    const allContext = `${userMessage} ${conversationContext}`;
+    
+    // Detect editorial mode
+    const editorialMode = detectEditorialMode(allContext, context.design?.brandStyle || "");
+    const preset = getEditorialPreset(context, allContext);
+    
+    console.log("[Boosty] Editorial mode:", editorialMode);
+    console.log("[Boosty] Preset:", preset);
 
-    // Extract promotion details from context
-    let promotionDetails = "";
-    if (isPromotion) {
-      const promoMatch = allContext.match(/(\d+x\d+|\d+\s*x\s*\d+|\d+%\s*off|\d+%\s*descuento|buy\s*\d+\s*get\s*\d+|gratis|free|2x1|3x2)/gi);
-      if (promoMatch) {
-        promotionDetails = promoMatch.join(", ").toUpperCase();
-      }
-    }
+    // Extract promotion details
+    const promoMatch = allContext.match(/(\d+x\d+|2x1|3x2)/gi);
+    const promotionDetails = promoMatch ? promoMatch[0].toUpperCase() : "";
 
-    // Build asset context
-    const hasProducts = context.imageAssets.some(
-      (a) => a.category && PRODUCT_CATEGORIES.includes(a.category.toLowerCase()),
-    );
-    const hasLocations = context.imageAssets.some(
-      (a) => a.category && LOCATION_CATEGORIES.includes(a.category.toLowerCase()),
-    );
-    const assetContext = `
-Available visual assets:
-- Total images: ${context.imageAssets.length}
-- Has product images: ${hasProducts ? "Yes" : "No"}
-- Has location/venue images: ${hasLocations ? "Yes" : "No"}
-- Has logo: ${context.design?.hasLogo ? "Yes" : "No"}
-`;
+    // Detect theme keywords
+    const valentineMatch = /\b(valentine|san\s*valent[ií]n|amor|pareja|couples?|romantic)\b/i.test(allContext);
+    const serviceMatch = allContext.match(/\b(botox|filler|tratamiento|rellenos?|faciales?|lifting)\b/i);
+    const serviceName = serviceMatch ? serviceMatch[0] : "";
 
     const colorPalette = [
       context.design?.colors?.primary,
       context.design?.colors?.accent1,
-      context.design?.colors?.accent2,
     ].filter(Boolean).join(", ");
 
-    // Build text overlay instructions based on whether it's a promotion
-    const textInstructionsEs = isPromotion
-      ? `- IMPORTANTE: Esta es una promoción. DEBES incluir texto promocional en la imagen:
-     * Texto principal grande y llamativo: "${promotionDetails || "PROMOCIÓN"}"
-     * El texto debe ser legible, con buen contraste sobre el fondo
-     * Usa los colores de la marca para el texto: ${colorPalette}
-     * Coloca el texto de manera prominente (centro o parte inferior de la imagen)
-     * Usa tipografía: ${context.design?.fonts?.primary || "sans-serif moderna y bold"}`
-      : `- NO incluyas texto en la imagen`;
+    // Build the prompt for Gemini to generate basePhotoPrompt + layoutPlan
+    const prompt = `You are a luxury editorial photography director for "${context.brand.name}" (${context.brand.industry || "premium lifestyle"}).
 
-    const textInstructionsEn = isPromotion
-      ? `- IMPORTANT: This is a promotion. You MUST include promotional text in the image:
-     * Large, eye-catching main text: "${promotionDetails || "SPECIAL OFFER"}"
-     * Text must be readable with good contrast against the background
-     * Use brand colors for text: ${colorPalette}
-     * Place text prominently (center or bottom of image)
-     * Use typography: ${context.design?.fonts?.primary || "modern bold sans-serif"}`
-      : `- Do NOT include text in the image`;
+USER REQUEST: "${userMessage}"
+${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
+BRAND:
+- Style: ${context.design?.brandStyle || "modern and professional"}
+- Colors: ${colorPalette || "elegant neutral tones"}
+- Industry: ${context.brand.industry || "lifestyle"}
 
-    const prompt =
-      language === "es"
-        ? `Eres un experto en marketing visual para la marca "${context.brand.name}" (${context.brand.industry || "general"}).
+EDITORIAL PRESET:
+- Mood: ${preset.mood}
+- Subject: ${preset.subject}
+- Background: ${preset.background}
 
-CONTEXTO DE LA MARCA:
-- Estilo visual: ${context.design?.brandStyle || "moderno y profesional"}
-- Paleta de colores: ${colorPalette || "colores de marca"}
-- Tipografía principal: ${context.design?.fonts?.primary || "Roboto"}
-${assetContext}
-${conversationContext ? `\nCONVERSACIÓN PREVIA:\n${conversationContext}\n` : ""}
-SOLICITUD ACTUAL DEL USUARIO: "${userMessage}"
-${isPromotion ? `\n🎯 DETECTADO: Imagen PROMOCIONAL - Incluir texto: "${promotionDetails || "PROMOCIÓN"}"\n` : ""}
-
-Genera un JSON con:
-1. "imagePrompt": Una descripción MUY DETALLADA en inglés para generar una imagen de marketing (máximo 200 palabras). 
-   - CRÍTICO: Lee TODA la conversación previa para entender el contexto completo (tema, ocasión, servicios/productos mencionados)
-   - Incorpora TODOS los elementos relevantes mencionados en la conversación (fechas especiales, ofertas, servicios específicos, estilo)
-   - Describe la escena, iluminación, composición y ángulo de cámara que refleje la conversación
-   - Especifica los colores de la marca: ${colorPalette}
-   - Si el usuario menciona productos o servicios específicos, inclúyelos en la imagen
-   ${textInstructionsEs}
-
-2. "caption": Un caption atractivo en español para acompañar la imagen en redes sociales (máximo 150 caracteres). Debe reflejar el tema de la conversación.
-
-3. "hashtags": 5-7 hashtags relevantes en español relacionados con el tema de la conversación.
-
-Responde SOLO con el JSON, sin explicaciones adicionales.`
-        : `You are a visual marketing expert for the brand "${context.brand.name}" (${context.brand.industry || "general"}).
-
-BRAND CONTEXT:
-- Visual style: ${context.design?.brandStyle || "modern and professional"}
-- Color palette: ${colorPalette || "brand colors"}
-- Primary font: ${context.design?.fonts?.primary || "Roboto"}
-${assetContext}
-${conversationContext ? `\nPREVIOUS CONVERSATION:\n${conversationContext}\n` : ""}
-CURRENT USER REQUEST: "${userMessage}"
-${isPromotion ? `\n🎯 DETECTED: PROMOTIONAL image - Include text: "${promotionDetails || "SPECIAL OFFER"}"\n` : ""}
+${promotionDetails ? `PROMOTION DETECTED: ${promotionDetails}` : ""}
+${valentineMatch ? "THEME: Valentine's Day / Couples / Romance" : ""}
+${serviceName ? `SERVICE: ${serviceName}` : ""}
 
 Generate a JSON with:
-1. "imagePrompt": A VERY DETAILED description in English to generate a marketing image (max 200 words).
-   - CRITICAL: Read the ENTIRE previous conversation to understand the full context (theme, occasion, services/products mentioned)
-   - Incorporate ALL relevant elements from the conversation (special dates, offers, specific services, style)
-   - Describe scene, lighting, composition, camera angle that reflects the conversation topic
-   - Specify brand colors: ${colorPalette}
-   - If user mentions specific products or services, include them in the image
-   ${textInstructionsEn}
 
-2. "caption": An engaging caption in English to accompany the image on social media (max 150 characters). Must reflect the conversation theme.
+1. "basePhotoPrompt": A detailed editorial photography description in English (max 120 words). MUST be a CLEAN BASE PHOTO with:
+   - Luxury editorial photography style
+   - Soft studio lighting, shallow depth of field
+   - Instagram 4:5 vertical composition
+   - Negative space for text overlay (15% margins)
+   - Color grading matching brand palette
+   
+   MANDATORY NEGATIVES - Include in prompt:
+   "no text, no letters, no typography, no logos, no watermarks, no icons, no syringe icon, no collage, no flyer, no poster layout, no diagonal text, no repeated patterns"
 
-3. "hashtags": 5-7 relevant hashtags in English related to the conversation topic.
+2. "layoutPlan": JSON object for frontend text overlay:
+   {
+     "aspectRatio": "4:5",
+     "safeAreaPercent": { "top": 8, "right": 8, "bottom": 10, "left": 8 },
+     "headline": "${promotionDetails || "Special"}" (max 4 words, NO repetition like "2x1, 2x1"),
+     "subhead": "short tagline" (max 6 words),
+     "cta": "optional call to action" (max 3 words),
+     "alignment": "center" | "left" | "right",
+     "theme": "light" | "dark"
+   }
 
-Respond ONLY with the JSON, no additional explanations.`;
+3. "caption": Short premium caption in ${language === "es" ? "Spanish" : "English"} (max 100 chars, elegant tone, NOT spammy)
 
-    console.log("[Boosty] Generating image prompt with conversation context:");
-    console.log("[Boosty] User message:", userMessage);
-    console.log("[Boosty] Is promotion:", isPromotion);
-    console.log("[Boosty] Promotion details:", promotionDetails);
-    console.log("[Boosty] Conversation context:", conversationContext.substring(0, 500));
+4. "hashtags": 5-7 relevant hashtags in ${language === "es" ? "Spanish" : "English"}
+
+RULES:
+- ONE message only (no multiple discounts)
+- NO repeated text patterns (e.g., "2x1, 2x1, 2x1" is forbidden)
+- Premium, minimal aesthetic
+- Image must look like luxury fashion/skincare editorial, NOT a flyer
+
+Respond ONLY with valid JSON.`;
+
+    console.log("[Boosty] Generating editorial image prompt...");
 
     try {
       const response = await ai.models.generateContent({
@@ -1043,45 +1029,46 @@ Respond ONLY with the JSON, no additional explanations.`;
         contents: prompt,
         config: {
           temperature: 0.7,
-          maxOutputTokens: 800,
+          maxOutputTokens: 1000,
         },
       });
 
       const text = response.text || "";
-      console.log("[Boosty] Gemini response for image prompt:", text.substring(0, 500));
-      
+      console.log("[Boosty] Gemini response:", text.substring(0, 500));
+
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        const finalPrompt = parsed.imagePrompt || "Professional marketing image";
-        console.log("[Boosty] Parsed imagePrompt:", finalPrompt);
+        
+        // Sanitize the outputs
+        const basePhotoPrompt = sanitizePrompt(parsed.basePhotoPrompt || buildEditorialBasePrompt(preset, context, userMessage));
+        const layoutPlan = sanitizeLayoutPlan(parsed.layoutPlan || {
+          aspectRatio: "4:5",
+          safeAreaPercent: { top: 8, right: 8, bottom: 10, left: 8 },
+          headline: promotionDetails || "Special",
+          subhead: context.brand.name,
+          alignment: "center",
+          theme: "light",
+        });
+
+        console.log("[Boosty] basePhotoPrompt:", basePhotoPrompt.substring(0, 200));
+        console.log("[Boosty] layoutPlan:", JSON.stringify(layoutPlan));
+
         return {
-          imagePrompt: finalPrompt,
+          basePhotoPrompt,
+          layoutPlan,
           caption: parsed.caption || "",
           hashtags: parsed.hashtags || "",
+          editorialMode,
         };
-      } else {
-        console.log("[Boosty] No JSON found in response, using fallback");
       }
     } catch (error) {
       console.error("[Boosty] Error generating image prompt:", error);
     }
 
-    // Build a contextual fallback prompt using conversation history
-    const contextualFallback = this.buildContextualFallbackPrompt(
-      userMessage,
-      conversationContext,
-      context,
-      isPromotion,
-      promotionDetails,
-    );
-    console.log("[Boosty] Using contextual fallback prompt:", contextualFallback);
-    
-    return {
-      imagePrompt: contextualFallback,
-      caption: "",
-      hashtags: "",
-    };
+    // Fallback using preset
+    console.log("[Boosty] Using editorial fallback");
+    return this.buildEditorialFallback(userMessage, context, preset);
   }
 
   async chat(
@@ -1096,26 +1083,37 @@ Respond ONLY with the JSON, no additional explanations.`;
     const wantsImage = this.isImageRequest(message, language);
 
     if (wantsImage) {
-      console.log("[Boosty] Image request detected, generating image...");
+      console.log("[Boosty] Image request detected, generating editorial image...");
 
-      const { imagePrompt, caption, hashtags } = await this.generateImagePrompt(
+      const promptResult = await this.generateImagePrompt(
         message,
         context,
         language,
         conversationHistory,
       );
-      const generatedImage = await this.generateImage(imagePrompt, context, message);
+      
+      const { basePhotoPrompt, layoutPlan, caption, hashtags, editorialMode } = promptResult;
+      
+      console.log("[Boosty] Editorial mode:", editorialMode);
+      console.log("[Boosty] Layout plan:", JSON.stringify(layoutPlan));
+      
+      const generatedImage = await this.generateImage(basePhotoPrompt, context, editorialMode);
 
       if (generatedImage) {
+        // Include layout plan info in response for future frontend overlay
+        const layoutInfo = editorialMode
+          ? `\n\n**Layout Plan** (for text overlay):\n- Headline: ${layoutPlan.headline}\n- Subhead: ${layoutPlan.subhead}${layoutPlan.cta ? `\n- CTA: ${layoutPlan.cta}` : ""}`
+          : "";
+          
         const textResponse =
           language === "es"
-            ? `¡Aquí está tu imagen! 🎨\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
-            : `Here's your image! 🎨\n\n**Suggested caption:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\nWould you like me to make any adjustments or generate another version?`;
+            ? `¡Aquí está tu imagen editorial! 🎨${layoutInfo}\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
+            : `Here's your editorial image! 🎨${layoutInfo}\n\n**Suggested caption:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\nWould you like me to make any adjustments or generate another version?`;
 
         return {
           text: textResponse,
           image: generatedImage,
-          imagePrompt,
+          imagePrompt: basePhotoPrompt, // Keep compatibility with existing API
         };
       } else {
         const errorResponse =
