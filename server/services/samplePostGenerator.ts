@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality, Type } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { storage } from "../storage";
 import type { BrandDesign, Brand, BrandAsset } from "@shared/schema";
 import cloudinary from "../cloudinary";
@@ -719,10 +719,11 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
         console.log(`🔄 [SampleImage] Attempt ${attempt}/${MAX_RETRIES}...`);
 
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-image",
-          contents: [{ role: "user", parts: contentParts }],
+          model: "gemini-3-pro-image-preview",
+          contents: contentParts,
           config: {
-            responseModalities: [Modality.TEXT, Modality.IMAGE],
+            responseModalities: ["IMAGE"],
+            imageConfig: { aspectRatio: platform === "facebook" ? "16:9" : "1:1", imageSize: "2K" },
           },
         });
 
@@ -832,10 +833,11 @@ Create THAT kind of image - organic, engaging, real.`;
         console.log(`🔄 [SimpleOrganic] Attempt ${attempt}/${MAX_RETRIES}...`);
 
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-image",
-          contents: [{ role: "user", parts: [{ text: simplePrompt }] }],
+          model: "gemini-3-pro-image-preview",
+          contents: [{ text: simplePrompt }],
           config: {
-            responseModalities: [Modality.TEXT, Modality.IMAGE],
+            responseModalities: ["IMAGE"],
+            imageConfig: { aspectRatio: platform === "facebook" ? "16:9" : "1:1", imageSize: "2K" },
           },
         });
 
