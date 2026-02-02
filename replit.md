@@ -42,6 +42,16 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
   - Automatic caption and hashtag generation for social media posts
   - Animated UI with gradient styling (teal-cyan theme)
   - Bilingual support (English/Spanish) via useLanguage hook
+  - **Editorial Mode** (Premium Feature):
+    - Generates luxury magazine-quality base photos WITHOUT text/logos for frontend text overlay
+    - Three presets: luxury_minimal (default), warm_romantic (Valentine's/couples), modern_clinical (medical aesthetics)
+    - detectEditorialMode() function determines mode based on brand style and user request
+    - Only triggers for explicit editorial/premium keywords or premium brand styles (NOT promotions alone)
+    - Flyer/poster requests bypass editorial mode and allow text in images
+    - Returns structured layoutPlan for frontend overlay: headline (max 4 words), subhead (max 6 words), cta, alignment, theme
+    - sanitizePrompt() and sanitizeLayoutPlan() guardrails prevent flyer-style outputs
+    - pickVisualReferenceAssets() limits to 0-2 reference images in editorial mode
+    - ChatResponse includes layoutPlan and editorialMode fields for frontend consumption
 - **Automation Flows**: Visual builder for custom workflows with various node types and advanced condition logic.
 - **Brand Studio**: Brand-specific designs and Cloudinary-based asset management with category organization.
 - **Posting Frequency Management**: Brand-specific scheduling with AI suggestions. Integrated into onboarding as Step 5 (conditional - only appears when social media accounts are connected). Features:
