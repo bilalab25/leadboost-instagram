@@ -4,6 +4,7 @@ import type { BrandDesign, BrandAsset, Integration } from "@shared/schema";
 import sharp from "sharp";
 import OpenAI from "openai";
 import cloudinary from "../cloudinary";
+import { BillingService } from "../stripe/billingService";
 
 // Asset usage tracking for intelligent rotation
 interface AssetUsageTracker {
@@ -2616,11 +2617,12 @@ export async function processPostGeneration(
   jobId: string,
   month: number,
   year: number,
-): Promise<void> {
+): Promise<{ postsGenerated: number; paymentRequired: boolean }> {
   const { updatePostGeneratorJob } = await import(
     "../storage/postGeneratorJobs"
   );
   const { createAiGeneratedPost } = await import("../storage/aiGeneratedPosts");
+  const billingService = new BillingService();
 
   try {
     console.log(`[PostGenerator] Processing job ${jobId} for brand ${brandId}`);
@@ -2887,7 +2889,34 @@ export async function processPostGeneration(
       description: (a as any).description || "",
     }));
 
+    // Track how many images were successfully generated
+    let imagesGenerated = 0;
+    let paymentRequired = false;
+
     for (const post of posts) {
+      // ⚠️ BILLING CHECK: Before generating each image, verify billing status
+      const billingCheck = await billingService.canGenerateImages(brandId);
+      console.log(`[PostGenerator] Billing check before image ${imagesGenerated + 1}/${posts.length}: freeRemaining=${billingCheck.freeRemaining}, hasPaymentMethod=${billingCheck.hasPaymentMethod}`);
+      
+      if (billingCheck.requiresPayment) {
+        console.log(`[PostGenerator] 🛑 Payment required! User has ${billingCheck.freeRemaining} free images remaining and no payment method.`);
+        paymentRequired = true;
+        
+        // Update job status to payment_required so frontend can show modal
+        await updatePostGeneratorJob(jobId, {
+          status: "payment_required",
+          result: { 
+            postsGenerated: imagesGenerated,
+            totalPlanned: posts.length,
+            paymentRequired: true,
+            message: "Please add a payment method to continue generating images."
+          },
+        });
+        
+        // Stop generating more images
+        break;
+      }
+
       let finalUrl = "";
       let cloudinaryPublicId = null;
       try {
@@ -2928,6 +2957,11 @@ export async function processPostGeneration(
 
             finalUrl = upload.secure_url;
             cloudinaryPublicId = upload.public_id;
+            
+            // ✅ Record successful image generation IMMEDIATELY after each image
+            await billingService.recordImageGeneration(brandId, '/api/post-generator', 1);
+            imagesGenerated++;
+            console.log(`[PostGenerator] ✅ Image ${imagesGenerated}/${posts.length} generated and billed for ${post.platform}`);
           } catch (err) {
             console.warn(
               "[PostGenerator] Refinement failed, using original copy",
@@ -2960,12 +2994,16 @@ export async function processPostGeneration(
     console.log(`\n[PostGenerator] Generation complete for job ${jobId}`);
     displayAssetUsageStats(brandId);
 
-    await updatePostGeneratorJob(jobId, {
-      status: "completed",
-      result: { postsGenerated: posts.length },
-    });
+    // Only update to completed if we didn't hit payment_required
+    if (!paymentRequired) {
+      await updatePostGeneratorJob(jobId, {
+        status: "completed",
+        result: { postsGenerated: imagesGenerated },
+      });
+      console.log(`[PostGenerator] Job ${jobId} completed successfully with ${imagesGenerated} images`);
+    }
 
-    console.log(`[PostGenerator] Job ${jobId} completed successfully`);
+    return { postsGenerated: imagesGenerated, paymentRequired };
   } catch (error) {
     console.error(`[PostGenerator] Job ${jobId} failed:`, error);
 
@@ -2973,6 +3011,8 @@ export async function processPostGeneration(
       status: "failed",
       error: error instanceof Error ? error.message : "Unknown error",
     });
+    
+    return { postsGenerated: 0, paymentRequired: false };
   }
 }
 

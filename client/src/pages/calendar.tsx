@@ -476,6 +476,9 @@ export default function ContentCalendar() {
       if (job.status === "pending" || job.status === "processing") {
         setCurrentJobId(job.id);
         setShowGeneratingLoader(true);
+      } else if (job.status === "payment_required") {
+        // 💳 If page loads with payment_required status, show modal immediately
+        setShowPaymentRequiredModal(true);
       }
     }
   }, [activeJobId]); // Only depend on job ID, not the entire data object
@@ -557,6 +560,31 @@ export default function ContentCalendar() {
         });
       });
 
+      setCurrentJobId(null); // Stop polling
+    } else if (job.status === "payment_required") {
+      // 💳 Payment required - user ran out of free images during generation
+      setShowGeneratingLoader(false);
+      setShowPaymentRequiredModal(true);
+      
+      // Refetch any posts that were generated before hitting the limit
+      queryClient.invalidateQueries({
+        queryKey: ["/api/ai-generated-posts", activeBrandId],
+      });
+      
+      const result = job.result as { postsGenerated?: number; totalPlanned?: number } | null;
+      const generatedCount = result?.postsGenerated || 0;
+      const totalPlanned = result?.totalPlanned || 0;
+      
+      if (generatedCount > 0) {
+        toast({
+          title: isSpanish ? "⚠️ Generación Pausada" : "⚠️ Generation Paused",
+          description: isSpanish 
+            ? `Se generaron ${generatedCount} de ${totalPlanned} imágenes. Agrega un método de pago para continuar.`
+            : `Generated ${generatedCount} of ${totalPlanned} images. Add a payment method to continue.`,
+          variant: "destructive",
+        });
+      }
+      
       setCurrentJobId(null); // Stop polling
     } else if (job.status === "failed") {
       setShowGeneratingLoader(false);

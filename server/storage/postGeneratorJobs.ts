@@ -6,7 +6,7 @@ import { randomUUID } from "crypto";
 export interface PostGeneratorJob {
   id: string;
   brandId: string;
-  status: "pending" | "processing" | "completed" | "failed";
+  status: "pending" | "processing" | "completed" | "failed" | "payment_required";
   result: any | null;
   error: string | null;
   createdAt: string;
@@ -97,7 +97,8 @@ export async function getPostGeneratorJob(
 export async function getActiveJobByBrand(
   brandId: string,
 ): Promise<PostGeneratorJob | null> {
-  // Query directly for pending/processing jobs, ordered by newest first
+  // Query directly for pending/processing/payment_required jobs, ordered by newest first
+  // Include payment_required so modal can reappear on page refresh
   const result = await db
     .select()
     .from(postGeneratorJobs)
@@ -106,7 +107,8 @@ export async function getActiveJobByBrand(
         eq(postGeneratorJobs.brandId, brandId),
         or(
           eq(postGeneratorJobs.status, "pending"),
-          eq(postGeneratorJobs.status, "processing")
+          eq(postGeneratorJobs.status, "processing"),
+          eq(postGeneratorJobs.status, "payment_required")
         )
       )
     )

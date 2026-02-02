@@ -2938,13 +2938,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Fire-and-forget: Process in background with Gemini AI
-        // Record image usage after processing completes
+        // Billing is now handled per-image inside processPostGeneration loop
         processPostGeneration(brandId, job.id, targetMonth, targetYear)
-          .then(async (result: any) => {
-            // Record image generation for billing (use postsGenerated from result)
-            const imageCount = result?.postsGenerated || result?.postsCreated || 1;
-            await billingService.recordImageGeneration(brandId, '/api/post-generator', imageCount);
-            console.log(`[Billing] Recorded ${imageCount} image(s) for brand ${brandId}`);
+          .then(async (result) => {
+            // Billing already recorded per-image inside the loop
+            console.log(`[PostGenerator] Background processing complete: ${result.postsGenerated} images generated, paymentRequired=${result.paymentRequired}`);
           })
           .catch((error) => {
             console.error(
