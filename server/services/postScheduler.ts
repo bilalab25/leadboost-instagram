@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { db } from "../db";
 import { aiGeneratedPosts, brands, integrations } from "@shared/schema";
-import { eq, lte, isNull, and } from "drizzle-orm";
+import { eq, lte, isNull, and, inArray } from "drizzle-orm";
 
 class PostSchedulerService {
   private isRunning = false;
@@ -23,30 +23,18 @@ class PostSchedulerService {
     this.isRunning = true;
   }
 
-  /**
-   * Attempts to acquire an exclusive lock on a post using atomic UPDATE.
-   * Returns true if lock acquired, false if already locked by another process.
-   * Uses UPDATE ... WHERE lockedAt IS NULL to ensure only one process can claim.
-   */
   private async lockPost(postId: string): Promise<boolean> {
     const result = await db
       .update(aiGeneratedPosts)
       .set({ lockedAt: new Date() })
       .where(
-        and(
-          eq(aiGeneratedPosts.id, postId),
-          isNull(aiGeneratedPosts.lockedAt),
-        ),
+        and(eq(aiGeneratedPosts.id, postId), isNull(aiGeneratedPosts.lockedAt)),
       )
       .returning({ id: aiGeneratedPosts.id });
 
     return result.length > 0;
   }
 
-  /**
-   * Releases the lock on a post (sets lockedAt to null).
-   * Called when publish fails to allow retry.
-   */
   private async unlockPost(postId: string): Promise<void> {
     await db
       .update(aiGeneratedPosts)
@@ -58,7 +46,6 @@ class PostSchedulerService {
     const now = new Date();
 
     try {
-      // Find posts ready to publish (accepted, due, not yet published, not locked)
       const postsToPublish = await db
         .select()
         .from(aiGeneratedPosts)
@@ -67,20 +54,17 @@ class PostSchedulerService {
             eq(aiGeneratedPosts.status, "accepted"),
             lte(aiGeneratedPosts.scheduledPublishTime, now),
             isNull(aiGeneratedPosts.publishedAt),
-            isNull(aiGeneratedPosts.lockedAt), // Exclude already locked posts
+            isNull(aiGeneratedPosts.lockedAt),
           ),
         );
 
-      if (postsToPublish.length === 0) {
-        return;
-      }
+      if (postsToPublish.length === 0) return;
 
       console.log(
         `[PostScheduler] Found ${postsToPublish.length} posts ready to publish`,
       );
 
       for (const post of postsToPublish) {
-        // Check if brand has auto-post enabled
         const brand = await db
           .select()
           .from(brands)
@@ -101,10 +85,8 @@ class PostSchedulerService {
           continue;
         }
 
-        // Try to acquire lock before publishing
         const locked = await this.lockPost(post.id);
         if (!locked) {
-          // Another process already claimed this post, skip silently
           console.log(
             `[PostScheduler] Post ${post.id} already locked by another process, skipping`,
           );
@@ -122,20 +104,30 @@ class PostSchedulerService {
     console.log(`[PostScheduler] Publishing post ${post.id}`);
 
     try {
+      // ✅ FIX: for instagram posts, allow either "instagram" or "instagram_direct"
+      const providers =
+        post.platform === "instagram"
+          ? (["instagram_direct", "instagram"] as const)
+          : ([post.platform] as const);
+
       const integrationsList = await db
         .select()
         .from(integrations)
         .where(
           and(
             eq(integrations.brandId, post.brandId),
-            eq(integrations.provider, post.platform),
+            inArray(integrations.provider, providers as any),
           ),
         );
 
-      const integration = integrationsList[0];
+      // ✅ Prefer instagram_direct if present
+      const integration =
+        post.platform === "instagram"
+          ? (integrationsList.find((i) => i.provider === "instagram_direct") ??
+            integrationsList.find((i) => i.provider === "instagram"))
+          : integrationsList[0];
 
       if (!integration || !integration.accessToken) {
-        // No integration or access token found - release lock and mark status
         await db
           .update(aiGeneratedPosts)
           .set({
@@ -149,7 +141,6 @@ class PostSchedulerService {
 
       const accessToken = integration.accessToken;
 
-      // Publish to Facebook
       if (post.platform === "facebook") {
         const params = new URLSearchParams({
           url: post.imageUrl!,
@@ -174,7 +165,6 @@ class PostSchedulerService {
         );
       }
 
-      // Publish to Instagram (two-step: create container, then publish)
       if (post.platform === "instagram") {
         const params = new URLSearchParams({
           image_url: post.imageUrl!,
@@ -195,7 +185,6 @@ class PostSchedulerService {
           );
         }
 
-        // Wait for container to be ready
         await new Promise((res) => setTimeout(res, 2000));
 
         const publishResponse = await fetch(
@@ -218,13 +207,12 @@ class PostSchedulerService {
         }
       }
 
-      // Success: mark as published, keep lock cleared implicitly via status change
       await db
         .update(aiGeneratedPosts)
         .set({
           status: "published",
           publishedAt: new Date(),
-          lockedAt: null, // Clear lock on success
+          lockedAt: null,
           updatedAt: new Date(),
         })
         .where(eq(aiGeneratedPosts.id, post.id));
@@ -236,12 +224,11 @@ class PostSchedulerService {
         error,
       );
 
-      // Failure: release lock and mark status as failed
       await db
         .update(aiGeneratedPosts)
         .set({
           status: "publish_failed",
-          lockedAt: null, // Release lock so it can be retried
+          lockedAt: null,
           updatedAt: new Date(),
         })
         .where(eq(aiGeneratedPosts.id, post.id));
