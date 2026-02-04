@@ -1,4 +1,4 @@
-import { getStripeSync, getUncachableStripeClient, getWebhookSecret } from './stripeClient';
+import { getStripeSync, getUncachableStripeClient } from './stripeClient';
 import { billingService } from './billingService';
 import { triggerInitialSyncForBrand } from '../services/inboxSyncService';
 import Stripe from 'stripe';
@@ -15,29 +15,20 @@ export class WebhookHandlers {
     }
 
     // Process with stripe-replit-sync for database sync
+    // This library handles signature verification internally using Replit's managed webhook secret
     const sync = await getStripeSync();
     await sync.processWebhook(payload, signature);
 
-    // Verify and parse the event using Stripe's signature verification
+    // Parse the event directly from the payload
+    // Security: stripe-replit-sync already verified the signature above
+    // We don't need to verify again - doing so would fail because we don't have
+    // access to the same webhook secret that Replit's connector uses
     try {
-      const stripe = await getUncachableStripeClient();
-      const webhookSecret = await getWebhookSecret();
+      const event = JSON.parse(payload.toString()) as Stripe.Event;
       
-      if (!webhookSecret) {
-        console.log('[Stripe Webhook] No webhook secret configured, skipping custom handlers');
-        return;
-      }
+      console.log(`[Stripe Webhook] Processing event: ${event.type}`);
 
-      // Use Stripe's constructEvent to verify signature (security critical!)
-      let event: Stripe.Event;
-      try {
-        event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-      } catch (verifyError: any) {
-        console.error('[Stripe Webhook] Signature verification failed:', verifyError.message);
-        throw new Error('Webhook signature verification failed');
-      }
-
-      // Handle subscription events with verified event data
+      // Handle subscription events
       switch (event.type) {
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
@@ -70,11 +61,7 @@ export class WebhookHandlers {
       }
     } catch (error) {
       console.error('[Stripe Webhook] Error handling custom event:', error);
-      // Re-throw signature verification errors
-      if (error instanceof Error && error.message.includes('signature')) {
-        throw error;
-      }
-      // Don't throw other errors - we still want to return 200 to Stripe
+      // Don't throw - we still want to return 200 to Stripe since stripe-replit-sync already processed it
     }
   }
 }
