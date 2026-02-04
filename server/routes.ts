@@ -50,7 +50,7 @@ import { boostyService } from "./services/boosty";
 import { generateBrandEssence } from "./services/generateBrandEssence";
 import { registerStripeRoutes } from "./stripe/stripeRoutes";
 import { billingService } from "./stripe/billingService";
-import { registerSyncFunctions, registerSocketIO } from "./services/inboxSyncService";
+import { registerSyncFunctions, registerSocketIO, triggerSyncForNewIntegration } from "./services/inboxSyncService";
 import { generateBrandAssetDescription } from "./services/generateBrandAssetDescription";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
@@ -3954,7 +3954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       console.log("🔵 Saving Facebook integration…");
 
-      await storage.createOrUpdateIntegration({
+      const savedFbIntegration = await storage.createOrUpdateIntegration({
         userId,
         brandId,
         provider: "facebook",
@@ -3972,6 +3972,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           igLinked: !!igInfo,
           source: "facebook_callback",
         },
+      });
+
+      // Trigger sync if inbox subscription is already active
+      triggerSyncForNewIntegration(savedFbIntegration).catch(err => {
+        console.error("❌ Error triggering sync for Facebook integration:", err);
       });
 
       // -----------------------------------------
@@ -4019,7 +4024,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         const igDetails = await igDetailsRes.json();
 
-        await storage.createOrUpdateIntegration({
+        const savedIgIntegration = await storage.createOrUpdateIntegration({
           userId,
           brandId,
           provider: "instagram",
@@ -4040,7 +4045,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         });
 
-        await storage.createOrUpdateIntegration({
+        // Trigger sync if inbox subscription is already active
+        triggerSyncForNewIntegration(savedIgIntegration).catch(err => {
+          console.error("❌ Error triggering sync for Instagram integration:", err);
+        });
+
+        const savedThreadsIntegration = await storage.createOrUpdateIntegration({
           userId,
           brandId,
           provider: "threads",
@@ -4059,6 +4069,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             igUsername: igDetails.username,
             source: "facebook_callback",
           },
+        });
+
+        // Trigger sync if inbox subscription is already active
+        triggerSyncForNewIntegration(savedThreadsIntegration).catch(err => {
+          console.error("❌ Error triggering sync for Threads integration:", err);
         });
       }
 
@@ -4330,8 +4345,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("✅ Instagram Direct integration saved successfully");
 
-      // Initial sync now only happens when inbox subscription is activated via webhook
-      // See: server/stripe/webhookHandlers.ts handleCheckoutCompleted()
+      // Trigger sync if inbox subscription is already active (for users who reconnect after paying)
+      // This runs in the background (non-blocking)
+      triggerSyncForNewIntegration(savedIntegration).catch(err => {
+        console.error("❌ Error triggering sync for new integration:", err);
+      });
 
       // 6️⃣ Redirect based on origin (onboarding or integrations)
       console.log(
@@ -4643,7 +4661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // 6️⃣ Guardar la integración en tu storage
-      await storage.createOrUpdateIntegration({
+      const savedWhatsAppIntegration = await storage.createOrUpdateIntegration({
         userId,
         brandId,
         provider: "whatsapp",
@@ -4663,6 +4681,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         isActive: true,
         syncEnabled: true,
+      });
+
+      // Trigger sync if inbox subscription is already active
+      triggerSyncForNewIntegration(savedWhatsAppIntegration).catch(err => {
+        console.error("❌ Error triggering sync for WhatsApp integration:", err);
       });
 
       // Redirect based on origin (onboarding or integrations)

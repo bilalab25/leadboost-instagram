@@ -1,5 +1,6 @@
 import { storage } from '../storage';
 import { Server as SocketIOServer } from 'socket.io';
+import { billingService } from '../stripe/billingService';
 
 /**
  * Inbox Sync Service
@@ -91,6 +92,7 @@ export async function triggerInitialSyncForBrand(brandId: number | string): Prom
         if (provider === 'instagram_direct') {
           console.log(`[InboxSyncService] Starting sync for instagram_direct (${integration.accountName})`);
           await performInstagramDirectSync(userId, integration);
+          await storage.markIntegrationAsFetched(integration.id);
           console.log(`✅ [InboxSyncService] Completed sync for instagram_direct`);
         }
 
@@ -115,6 +117,78 @@ export async function triggerInitialSyncForBrand(brandId: number | string): Prom
     console.error(`❌ [InboxSyncService] Error syncing brand ${brandId}:`, error);
     // Emit sync completed with error
     emitSyncEvent(brandIdStr, 'inbox_sync_completed', { success: false, error: String(error) });
+    throw error;
+  }
+}
+
+/**
+ * Trigger sync for a single newly connected integration
+ * Called when a new integration is connected and the brand already has an active inbox subscription
+ */
+export async function triggerSyncForNewIntegration(integration: any): Promise<void> {
+  // Guard against null/undefined integrations
+  if (!integration || !integration.brandId || !integration.userId || !integration.id) {
+    console.error('[InboxSyncService] Invalid integration object, skipping sync');
+    return;
+  }
+
+  const brandId = String(integration.brandId);
+  const provider = integration.provider;
+  const userId = integration.userId;
+
+  if (!performInitialSync || !performInstagramDirectSync) {
+    console.error('[InboxSyncService] Sync functions not registered yet');
+    return;
+  }
+
+  // Check if brand has active inbox subscription
+  const billing = await billingService.getOrCreateBrandBilling(brandId);
+  if (!billing?.inboxSubscriptionActive) {
+    console.log(`[InboxSyncService] Brand ${brandId} does not have active inbox subscription, skipping sync`);
+    return;
+  }
+
+  // Skip if already synced
+  if (integration.hasFetchedHistory) {
+    console.log(`[InboxSyncService] Integration ${provider} already synced, skipping`);
+    return;
+  }
+
+  console.log(`\n🔄 [InboxSyncService] Starting sync for newly connected ${provider} (brand ${brandId})`);
+
+  // Emit sync started event
+  emitSyncEvent(brandId, 'inbox_sync_started', { 
+    integrations: [provider],
+    totalCount: 1 
+  });
+
+  try {
+    // Sync based on provider type
+    if (provider === 'facebook' || provider === 'instagram' || provider === 'threads') {
+      console.log(`[InboxSyncService] Starting sync for ${provider} (${integration.accountName})`);
+      await performInitialSync(userId, integration, provider);
+      await storage.markIntegrationAsFetched(integration.id);
+      console.log(`✅ [InboxSyncService] Completed sync for ${provider}`);
+    }
+
+    if (provider === 'instagram_direct') {
+      console.log(`[InboxSyncService] Starting sync for instagram_direct (${integration.accountName})`);
+      await performInstagramDirectSync(userId, integration);
+      await storage.markIntegrationAsFetched(integration.id);
+      console.log(`✅ [InboxSyncService] Completed sync for instagram_direct`);
+    }
+
+    if (provider === 'whatsapp') {
+      console.log(`[InboxSyncService] WhatsApp setup for ${integration.accountName}`);
+      await storage.markIntegrationAsFetched(integration.id);
+      console.log(`✅ [InboxSyncService] Completed setup for whatsapp`);
+    }
+
+    console.log(`🏁 [InboxSyncService] Completed sync for new integration ${provider}`);
+    emitSyncEvent(brandId, 'inbox_sync_completed', { success: true });
+  } catch (error) {
+    console.error(`❌ [InboxSyncService] Error syncing ${provider}:`, error);
+    emitSyncEvent(brandId, 'inbox_sync_completed', { success: false, error: String(error) });
     throw error;
   }
 }
