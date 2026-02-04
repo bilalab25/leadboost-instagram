@@ -491,8 +491,14 @@ export default function ContentCalendar() {
   }, [activeJobId]); // Only depend on job ID, not the entire data object
 
   // Check if there's an active job running (must be after activeJobQuery is defined)
+  // Exclude payment_required status - job is not "actively generating" anymore
+  const jobStatus = activeJobQuery.data?.job?.status;
+  const isJobActuallyProcessing = activeJobQuery.data?.hasActiveJob && 
+    jobStatus !== 'payment_required' && 
+    jobStatus !== 'completed' && 
+    jobStatus !== 'failed';
   const hasActiveJob =
-    activeJobQuery.data?.hasActiveJob || showGeneratingLoader || !!currentJobId;
+    isJobActuallyProcessing || showGeneratingLoader || !!currentJobId;
 
   // Check if AI posts are still loading
   const isLoadingAiPosts =
