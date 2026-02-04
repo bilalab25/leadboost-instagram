@@ -2043,6 +2043,20 @@ export class DatabaseStorage implements IStorage {
         createdAt: now,
       });
     }
+
+    // Return the saved integration
+    const savedIntegration = await db
+      .select()
+      .from(integrations)
+      .where(
+        and(
+          eq(integrations.provider, data.provider),
+          eq(integrations.userId, data.userId),
+          eq(integrations.brandId, data.brandId),
+        ),
+      );
+
+    return savedIntegration[0] || null;
   }
 
   async getIntegrations(userId: string) {
