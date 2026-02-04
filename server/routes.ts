@@ -4319,7 +4319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 6️⃣ Save Instagram Direct Integration
       // Use IGBA ID for pageId (this is what webhooks use for recipient matching)
-      await storage.createOrUpdateIntegration({
+      const savedIntegration = await storage.createOrUpdateIntegration({
         userId,
         brandId,
         provider: "instagram_direct",
