@@ -63,6 +63,11 @@ export async function getStripeSecretKey() {
 }
 
 export async function getWebhookSecret(): Promise<string | null> {
+  // Ensure credentials are loaded first so connectionSettings is populated
+  if (!connectionSettings) {
+    await getCredentials();
+  }
+  
   // Webhook secret comes from the connector settings or env variable
   // For Replit managed webhooks, the secret is stored in the connection settings
   if (connectionSettings?.settings?.webhook_secret) {

@@ -50,6 +50,7 @@ import { boostyService } from "./services/boosty";
 import { generateBrandEssence } from "./services/generateBrandEssence";
 import { registerStripeRoutes } from "./stripe/stripeRoutes";
 import { billingService } from "./stripe/billingService";
+import { registerSyncFunctions } from "./services/inboxSyncService";
 import { generateBrandAssetDescription } from "./services/generateBrandAssetDescription";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
@@ -920,6 +921,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware
   await setupAuth(app);
+
+  // Register sync functions with the inbox sync service
+  // These functions are called from the Stripe webhook when inbox subscription is activated
+  registerSyncFunctions(performInitialSync, performInstagramDirectSync);
 
   // Register Stripe billing routes
   registerStripeRoutes(app, isAuthenticated);
@@ -2017,11 +2022,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             case "facebook":
             case "instagram":
             case "threads": {
-              // Opcional: Ejecutar sincronización inicial si es necesario (como en el otro endpoint)
-              if (!integration.hasFetchedHistory) {
-                await performInitialSync(userId, integration, provider);
-                await storage.markIntegrationAsFetched(integration.id);
-              }
+              // Initial sync now only happens when inbox subscription is activated via webhook
+              // See: server/stripe/webhookHandlers.ts handleCheckoutCompleted()
 
               // ✅ Leer mensajes de la base de datos local para Meta (Facebook/Instagram/Threads)
               const dbMessages = await storage.getMessagesByIntegration(
@@ -4328,22 +4330,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("✅ Instagram Direct integration saved successfully");
 
-      // 6️⃣ Perform initial message sync
-      // Fetch the saved integration to get its ID
-      const brandIntegrations = await storage.getIntegrationsByBrandId(brandId);
-      const savedIntegration = brandIntegrations.find(
-        (i) => i.provider === "instagram_direct" && i.userId === userId,
-      );
+      // Initial sync now only happens when inbox subscription is activated via webhook
+      // See: server/stripe/webhookHandlers.ts handleCheckoutCompleted()
 
-      if (savedIntegration && !savedIntegration.hasFetchedHistory) {
-        console.log("🔄 Starting initial message sync for Instagram Direct...");
-        // Run sync in background (don't await to avoid blocking redirect)
-        performInstagramDirectSync(userId, savedIntegration).catch((err) => {
-          console.error("❌ Background sync failed:", err);
-        });
-      }
-
-      // 7️⃣ Redirect based on origin (onboarding or integrations)
+      // 6️⃣ Redirect based on origin (onboarding or integrations)
       console.log(
         `✅ [Instagram Direct Callback] Successfully connected for brand ${brandId}, origin: ${origin}`,
       );
@@ -6769,62 +6759,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        // Get brand's integrations to check if initial sync is needed
-        const integrations = await storage.getIntegrationsByBrandId(brandId);
-
-        // Perform initial sync for integrations that haven't fetched history yet
-        for (const integration of integrations) {
-          const provider = integration.provider;
-
-          // Sync for Meta platforms via Facebook API (Facebook, Instagram, Threads)
-          if (
-            (provider === "facebook" ||
-              provider === "instagram" ||
-              provider === "threads") &&
-            !integration.hasFetchedHistory
-          ) {
-            console.log(
-              `🔄 [Initial Sync] Starting initial sync for ${provider} (${integration.accountName})`,
-            );
-
-            try {
-              await performInitialSync(userId, integration, provider);
-              await storage.markIntegrationAsFetched(integration.id);
-              console.log(
-                `✅ [Initial Sync] Completed for ${provider} (${integration.accountName})`,
-              );
-            } catch (syncError) {
-              console.error(
-                `❌ [Initial Sync] Failed for ${provider}:`,
-                syncError,
-              );
-              // Continue with other integrations even if one fails
-            }
-          }
-
-          // Sync for Instagram Direct (via Instagram Login API)
-          if (
-            provider === "instagram_direct" &&
-            !integration.hasFetchedHistory
-          ) {
-            console.log(
-              `🔄 [Initial Sync] Starting initial sync for instagram_direct (${integration.accountName})`,
-            );
-
-            try {
-              await performInstagramDirectSync(userId, integration);
-              console.log(
-                `✅ [Initial Sync] Completed for instagram_direct (${integration.accountName})`,
-              );
-            } catch (syncError) {
-              console.error(
-                `❌ [Initial Sync] Failed for instagram_direct:`,
-                syncError,
-              );
-              // Continue with other integrations even if one fails
-            }
-          }
-        }
+        // Initial sync now only happens when inbox subscription is activated via webhook
+        // See: server/stripe/webhookHandlers.ts handleCheckoutCompleted()
 
         const conversations = await storage.getConversationsByBrandId(
           brandId,
@@ -7383,17 +7319,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               case "facebook":
               case "instagram":
               case "threads": {
-                // ✅ Step 1: Perform initial sync if necessary
-                if (!integration.hasFetchedHistory) {
-                  console.log(
-                    `🔄 [${provider.toUpperCase()}] Performing initial sync...`,
-                  );
-                  await performInitialSync(userId, integration, provider);
-                  integration.hasFetchedHistory = true;
-                  await storage.markIntegrationAsFetched(integration.id);
-                }
+                // Initial sync now only happens when inbox subscription is activated via webhook
+                // See: server/stripe/webhookHandlers.ts handleCheckoutCompleted()
 
-                // a�� Step 2: Always read messages from your local database
+                // Read messages from your local database
                 console.log(
                   `💾 [${provider.toUpperCase()}] Fetching messages from local database`,
                 );

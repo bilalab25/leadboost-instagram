@@ -1,5 +1,6 @@
 import { getStripeSync, getUncachableStripeClient, getWebhookSecret } from './stripeClient';
 import { billingService } from './billingService';
+import { triggerInitialSyncForBrand } from '../services/inboxSyncService';
 import Stripe from 'stripe';
 
 export class WebhookHandlers {
@@ -121,6 +122,13 @@ async function handleCheckoutCompleted(session: any) {
       session.subscription
     );
     console.log(`[Stripe Webhook] Inbox activated for brand ${brandId}`);
+
+    // Trigger initial sync for all brand integrations now that subscription is active
+    // Run in background to not block webhook response
+    triggerInitialSyncForBrand(brandId).catch((err) => {
+      console.error(`[Stripe Webhook] Background sync failed for brand ${brandId}:`, err);
+    });
+    console.log(`[Stripe Webhook] Initial sync triggered for brand ${brandId}`);
   }
 }
 
