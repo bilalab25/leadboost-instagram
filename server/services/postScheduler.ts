@@ -35,13 +35,6 @@ class PostSchedulerService {
     return result.length > 0;
   }
 
-  private async unlockPost(postId: string): Promise<void> {
-    await db
-      .update(aiGeneratedPosts)
-      .set({ lockedAt: null, updatedAt: new Date() })
-      .where(eq(aiGeneratedPosts.id, postId));
-  }
-
   private async checkAndPublishPosts() {
     const now = new Date();
 
@@ -104,7 +97,6 @@ class PostSchedulerService {
     console.log(`[PostScheduler] Publishing post ${post.id}`);
 
     try {
-      // ✅ FIX: for instagram posts, allow either "instagram" or "instagram_direct"
       const providers =
         post.platform === "instagram"
           ? (["instagram_direct", "instagram"] as const)
@@ -120,7 +112,6 @@ class PostSchedulerService {
           ),
         );
 
-      // ✅ Prefer instagram_direct if present
       const integration =
         post.platform === "instagram"
           ? (integrationsList.find((i) => i.provider === "instagram_direct") ??
@@ -141,6 +132,7 @@ class PostSchedulerService {
 
       const accessToken = integration.accessToken;
 
+      // Publish to Facebook
       if (post.platform === "facebook") {
         const params = new URLSearchParams({
           url: post.imageUrl!,
@@ -165,16 +157,24 @@ class PostSchedulerService {
         );
       }
 
+      // Publish to Instagram
       if (post.platform === "instagram") {
-        const params = new URLSearchParams({
+        const isDirect = integration.provider === "instagram_direct";
+        const baseUrl = isDirect
+          ? "https://graph.instagram.com"
+          : "https://graph.facebook.com";
+
+        const commonHeaders: Record<string, string> = {};
+
+        const containerParams = new URLSearchParams({
           image_url: post.imageUrl!,
           caption: post.content ?? "",
           access_token: accessToken,
         });
 
         const containerResponse = await fetch(
-          `https://graph.facebook.com/v24.0/${integration.accountId}/media`,
-          { method: "POST", body: params },
+          `${baseUrl}/v24.0/${integration.accountId}/media`,
+          { method: "POST", headers: commonHeaders, body: containerParams },
         );
 
         const containerData = await containerResponse.json();
@@ -185,17 +185,17 @@ class PostSchedulerService {
           );
         }
 
+        // 2) Publish container
         await new Promise((res) => setTimeout(res, 2000));
 
+        const publishParams = new URLSearchParams({
+          creation_id: containerData.id,
+          access_token: accessToken,
+        });
+
         const publishResponse = await fetch(
-          `https://graph.facebook.com/v24.0/${integration.accountId}/media_publish`,
-          {
-            method: "POST",
-            body: new URLSearchParams({
-              creation_id: containerData.id,
-              access_token: accessToken,
-            }),
-          },
+          `${baseUrl}/v24.0/${integration.accountId}/media_publish`,
+          { method: "POST", headers: commonHeaders, body: publishParams },
         );
 
         const publishData = await publishResponse.json();
@@ -206,8 +206,6 @@ class PostSchedulerService {
           );
         }
       }
-
-
 
       await db
         .update(aiGeneratedPosts)

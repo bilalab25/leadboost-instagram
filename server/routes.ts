@@ -3800,6 +3800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "pages_read_engagement",
         "pages_manage_metadata",
         "pages_manage_posts",
+        "pages_manage_engagement",
         "pages_messaging",
         "instagram_basic",
         "instagram_manage_messages",
@@ -3807,6 +3808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "read_insights",
         "instagram_manage_insights",
         "pages_read_user_content",
+        "publish_video",
       ].join(",");
 
       console.log("🔐 Facebook OAuth scopes:", scopes);
@@ -4094,9 +4096,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const scopes = [
         "instagram_business_basic",
         "instagram_business_manage_messages",
-        "instagram_business_manage_comments",
         "instagram_business_content_publish",
-        "instagram_business_manage_insights",
       ].join(",");
 
       console.log("🔐 Instagram Direct OAuth scopes:", scopes);
