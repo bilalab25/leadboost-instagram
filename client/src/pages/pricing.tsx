@@ -1,315 +1,431 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Zap, Crown, Building2 } from "lucide-react";
+import { Check, Sparkles, Rocket, Crown, Image, Video, Zap } from "lucide-react";
 import { useLanguage } from '@/hooks/useLanguage';
-import { translations } from '@/lib/translations';
+
+const pricingData = {
+  monthly: {
+    free: {
+      name: "FREE",
+      price: 0,
+      period: "month",
+      images: 10,
+      videos: 4,
+      imageOverage: 0.60,
+      videoOverage: 2.00,
+      discount: 0,
+      cta: "Get Started Free",
+      ctaEs: "Comenzar Gratis",
+      icon: Sparkles,
+      highlight: false,
+    },
+    core: {
+      name: "CORE",
+      price: 49.99,
+      period: "month",
+      images: 200,
+      videos: 40,
+      imageOverage: 0.48,
+      videoOverage: 1.60,
+      discount: 20,
+      cta: "Upgrade to Core",
+      ctaEs: "Actualizar a Core",
+      icon: Rocket,
+      highlight: true,
+    },
+    premium: {
+      name: "PREMIUM",
+      price: 99.99,
+      period: "month",
+      images: 500,
+      videos: 100,
+      imageOverage: 0.42,
+      videoOverage: 1.40,
+      discount: 30,
+      cta: "Go Premium",
+      ctaEs: "Ir Premium",
+      icon: Crown,
+      highlight: false,
+    },
+  },
+  annual: {
+    free: {
+      name: "FREE",
+      price: 0,
+      period: "year",
+      images: 10,
+      videos: 4,
+      imageOverage: 0.60,
+      videoOverage: 2.00,
+      discount: 0,
+      cta: "Get Started Free",
+      ctaEs: "Comenzar Gratis",
+      icon: Sparkles,
+      highlight: false,
+    },
+    core: {
+      name: "CORE",
+      price: 479.88,
+      period: "year",
+      images: 200,
+      videos: 40,
+      imageOverage: 0.48,
+      videoOverage: 1.60,
+      discount: 20,
+      cta: "Upgrade to Core",
+      ctaEs: "Actualizar a Core",
+      icon: Rocket,
+      highlight: true,
+    },
+    premium: {
+      name: "PREMIUM",
+      price: 959.88,
+      period: "year",
+      images: 500,
+      videos: 100,
+      imageOverage: 0.42,
+      videoOverage: 1.40,
+      discount: 30,
+      cta: "Go Premium",
+      ctaEs: "Ir Premium",
+      icon: Crown,
+      highlight: false,
+    },
+  },
+  payAsYouGo: {
+    imagePrice: 0.60,
+    videoPrice: 2.00,
+  },
+};
 
 export default function Pricing() {
   const { language } = useLanguage();
   const isSpanish = language === 'es';
-  const t = translations[language as keyof typeof translations];
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  
+  const plans = billingPeriod === 'monthly' ? pricingData.monthly : pricingData.annual;
+  const isAnnual = billingPeriod === 'annual';
+
+  const formatPrice = (price: number) => {
+    if (price === 0) return isSpanish ? "Gratis" : "Free";
+    return `$${price.toFixed(2)}`;
+  };
+
+  const getPeriodLabel = () => {
+    if (isAnnual) return isSpanish ? "/ año" : "/ year";
+    return isSpanish ? "/ mes" : "/ month";
+  };
+
+  const getMonthlyEquivalent = (yearlyPrice: number) => {
+    return (yearlyPrice / 12).toFixed(2);
+  };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-25 to-brand-100 relative overflow-hidden">
-      {/* Background decorative elements */}
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-100 relative overflow-hidden">
       <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-brand-300/20 to-brand-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-40 left-10 w-64 h-64 bg-gradient-to-br from-brand-400/15 to-brand-600/10 rounded-full blur-2xl"></div>
       
-      {/* Header */}
-      <div className="relative pt-32 pb-20">
+      <div className="relative pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6 leading-[0.88] tracking-tight">
-            {t.pricing.title}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-4 leading-tight tracking-tight">
+            LeadBoost Pricing
           </h1>
-          <div className="text-2xl lg:text-3xl font-semibold text-brand-600 mb-8 tracking-wide">
-            {isSpanish ? 'Elige Tu Plan Perfecto' : 'Choose Your Perfect Plan'}
-          </div>
-          <p className="text-lg lg:text-xl text-gray-600 max-w-4xl mx-auto mb-16 leading-relaxed font-normal">
-            {t.pricing.subtitle}
+          <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed">
+            {isSpanish 
+              ? "Precios simples y transparentes para generación de imágenes y videos con IA."
+              : "Simple, transparent pricing for AI image and video generation."}
           </p>
+
+          <div className="inline-flex items-center bg-white rounded-full p-1 shadow-md border border-gray-200 mb-12">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                billingPeriod === 'monthly'
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {isSpanish ? "Mensual" : "Monthly"}
+            </button>
+            <button
+              onClick={() => setBillingPeriod('annual')}
+              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                billingPeriod === 'annual'
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {isSpanish ? "Anual" : "Annual"}
+              <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold">
+                {isSpanish ? "Ahorra 20%" : "Save 20%"}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Pricing Cards */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           
-          {/* Starter Plan */}
-          <Card className="relative bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-            <CardContent className="p-8">
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
-                  <Zap className="h-6 w-6 text-gray-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.starter}</h3>
-              </div>
-              
-              <div className="mb-8">
-                <span className="text-5xl font-bold text-gray-900">{t.pricing.free}</span>
-                <div className="text-sm text-gray-500 font-medium mt-2">{isSpanish ? 'Perfecto para comenzar' : 'Perfect to get started'}</div>
-              </div>
-              
-              <p className="text-gray-600 mb-6">{t.pricing.starterDesc}</p>
-              
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.freeTool}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.platforms5}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.campaigns2}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.basicAnalytics}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.emailSupport}</span>
-                </li>
-              </ul>
-              
-              <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 rounded-lg" data-testid="button-starter-plan">
-                {t.pricing.startFree}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Professional Plan - Most Popular */}
-          <Card className="relative bg-white rounded-lg shadow-md border-2 border-brand-600 hover:shadow-lg transition-shadow duration-200">
-            {/* Most Popular Badge */}
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <div className="bg-brand-600 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-lg">
-                {t.pricing.mostPopular}
-              </div>
-            </div>
+          {Object.entries(plans).map(([key, plan]) => {
+            const IconComponent = plan.icon;
+            const isHighlighted = plan.highlight;
             
-            <CardContent className="p-8">
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-brand-600 rounded-lg flex items-center justify-center mr-4">
-                  <Crown className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.professional}</h3>
-              </div>
-              
-              <div className="mb-8">
-                <div className="flex items-baseline mb-2">
-                  <span className="text-5xl font-bold text-gray-900">$79</span>
-                  <span className="text-lg text-gray-600 ml-2">{t.pricing.perMonth}</span>
-                </div>
-                <div className="text-sm text-gray-500 font-medium">{isSpanish ? 'Recomendado para la mayoría' : 'Recommended for most businesses'}</div>
-              </div>
-              
-              <p className="text-gray-600 mb-6">{t.pricing.professionalDesc}</p>
-              
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.everythingStarter}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.monthlyPlanner}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.unifiedInbox}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.platforms15}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.campaigns30}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.advancedAnalytics}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.brandStudio}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.prioritySupport}</span>
-                </li>
-              </ul>
-              
-              <Button className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-lg" data-testid="button-professional-plan">
-                {t.pricing.startFreeTrial}
-              </Button>
-            </CardContent>
-          </Card>
+            return (
+              <Card 
+                key={key}
+                className={`relative bg-white rounded-2xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                  isHighlighted 
+                    ? 'border-2 border-brand-600 shadow-lg ring-4 ring-brand-100' 
+                    : 'border border-gray-200 shadow-sm hover:border-brand-300'
+                }`}
+              >
+                {isHighlighted && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-gradient-to-r from-brand-600 to-brand-500 text-white px-5 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-1.5">
+                      <Zap className="h-3.5 w-3.5" />
+                      {isSpanish ? "Más Popular" : "Most Popular"}
+                    </div>
+                  </div>
+                )}
+                
+                <CardContent className="p-8">
+                  <div className="flex items-center mb-6">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${
+                      isHighlighted 
+                        ? 'bg-brand-600 text-white' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      <IconComponent className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
+                      {plan.discount > 0 && (
+                        <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                          {plan.discount}% {isSpanish ? "descuento" : "discount"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <div className="flex items-baseline">
+                      <span className="text-4xl lg:text-5xl font-black text-gray-900">
+                        {formatPrice(plan.price)}
+                      </span>
+                      {plan.price > 0 && (
+                        <span className="text-gray-500 ml-2 font-medium">{getPeriodLabel()}</span>
+                      )}
+                    </div>
+                    {isAnnual && plan.price > 0 && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        ${getMonthlyEquivalent(plan.price)}{isSpanish ? "/mes facturado anual" : "/mo billed annually"}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+                      {isSpanish ? "Incluido" : "Included"}
+                    </h4>
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Image className="h-4 w-4 text-brand-600" />
+                          <span className="text-gray-700">{isSpanish ? "Imágenes" : "Images"}</span>
+                        </div>
+                        <span className="font-bold text-gray-900">{plan.images}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Video className="h-4 w-4 text-brand-600" />
+                          <span className="text-gray-700">{isSpanish ? "Videos" : "Videos"}</span>
+                        </div>
+                        <span className="font-bold text-gray-900">{plan.videos}</span>
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Agency Plan */}
-          <Card className="relative bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-            <CardContent className="p-8">
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
-                  <Building2 className="h-6 w-6 text-gray-600" />
+                  <div className="bg-brand-50 rounded-xl p-4 mb-6">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+                      {isSpanish ? "Precio por Exceso" : "Overage Pricing"}
+                    </h4>
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">{isSpanish ? "Imagen" : "Image"}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-900">${plan.imageOverage.toFixed(2)}</span>
+                          <span className="text-gray-500 text-sm">{isSpanish ? "c/u" : "each"}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">{isSpanish ? "Video" : "Video"}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-900">${plan.videoOverage.toFixed(2)}</span>
+                          <span className="text-gray-500 text-sm">{isSpanish ? "c/u" : "each"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                      <span className="text-gray-700">{isSpanish ? "API de generación de IA" : "AI generation API"}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                      <span className="text-gray-700">{isSpanish ? "Múltiples estilos" : "Multiple styles"}</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                      <span className="text-gray-700">{isSpanish ? "Salida de alta resolución" : "High-resolution output"}</span>
+                    </li>
+                    {plan.discount > 0 && (
+                      <li className="flex items-center">
+                        <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                        <span className="text-gray-700 font-medium">
+                          {plan.discount}% {isSpanish ? "descuento en excesos" : "off overage rates"}
+                        </span>
+                      </li>
+                    )}
+                  </ul>
+                  
+                  <Button 
+                    className={`w-full font-semibold py-3 rounded-xl transition-all duration-200 ${
+                      isHighlighted
+                        ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-md hover:shadow-lg'
+                        : 'bg-gray-900 hover:bg-gray-800 text-white'
+                    }`}
+                    data-testid={`button-${key}-plan`}
+                  >
+                    {isSpanish ? plan.ctaEs : plan.cta}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div className="mt-20 max-w-4xl mx-auto">
+          <Card className="bg-gradient-to-br from-white to-brand-25 rounded-2xl shadow-lg border border-brand-100">
+            <CardContent className="p-8 lg:p-10">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
+                  {isSpanish ? "Precios de Pago por Uso" : "Pay-As-You-Go Pricing"}
+                </h2>
+                <p className="text-gray-600">
+                  {isSpanish 
+                    ? "Sin compromiso mensual. Paga solo por lo que usas."
+                    : "No monthly commitment. Pay only for what you use."}
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                <div className="bg-white rounded-xl p-6 border border-gray-200 text-center hover:shadow-md transition-shadow">
+                  <div className="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Image className="h-7 w-7 text-brand-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{isSpanish ? "Imágenes" : "Images"}</h3>
+                  <div className="text-3xl font-black text-gray-900">
+                    ${pricingData.payAsYouGo.imagePrice.toFixed(2)}
+                    <span className="text-base font-medium text-gray-500 ml-1">{isSpanish ? "c/u" : "each"}</span>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">{t.pricing.business}</h3>
-              </div>
-              
-              <div className="mb-8">
-                <span className="text-3xl font-bold text-gray-900">{t.pricing.businessTiered}</span>
-                <div className="text-sm text-gray-500 font-medium mt-2">{isSpanish ? 'Soluciones empresariales' : 'Enterprise solutions'}</div>
-              </div>
-              
-              <p className="text-gray-600 mb-6">{t.pricing.businessDesc}</p>
-              
-              <div className="bg-gray-50 p-6 rounded-lg mb-8 border border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-4 text-base">{isSpanish ? 'Precios Escalonados' : 'Pricing Tiers'}</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="font-medium text-gray-700">5 Brands</span>
-                    <span className="font-semibold text-gray-900">$199/mo</span>
+                
+                <div className="bg-white rounded-xl p-6 border border-gray-200 text-center hover:shadow-md transition-shadow">
+                  <div className="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Video className="h-7 w-7 text-brand-600" />
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="font-medium text-gray-700">10 Brands</span>
-                    <span className="font-semibold text-gray-900">$349/mo</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="font-medium text-gray-700">20 Brands</span>
-                    <span className="font-semibold text-gray-900">$599/mo</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-900 rounded-lg text-white">
-                    <span className="font-medium">50+ Brands</span>
-                    <span className="font-semibold">$999/mo</span>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{isSpanish ? "Videos" : "Videos"}</h3>
+                  <div className="text-3xl font-black text-gray-900">
+                    ${pricingData.payAsYouGo.videoPrice.toFixed(2)}
+                    <span className="text-base font-medium text-gray-500 ml-1">{isSpanish ? "c/u" : "each"}</span>
                   </div>
                 </div>
               </div>
               
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.everythingProfessional}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.unlimitedTeamMembers}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.whitelabelDashboard}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.businessReporting}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.clientAccessPortals}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.customBranding}</span>
-                </li>
-                <li className="flex items-center">
-                  <Check className="h-5 w-5 text-green-500 mr-3" />
-                  <span>{t.pricing.dedicatedSupport}</span>
-                </li>
-              </ul>
-              
-              <Button className="w-full border border-gray-300 text-gray-900 hover:bg-gray-50 font-semibold py-3 rounded-lg" data-testid="button-agency-plan">
-                {t.pricing.startTrial}
-              </Button>
+              <div className="bg-brand-50 rounded-xl p-4 text-center">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold text-brand-700">
+                    {isSpanish ? "Nota:" : "Note:"}
+                  </span>{" "}
+                  {isSpanish 
+                    ? "Los suscriptores reciben precios de exceso con descuento según el plan."
+                    : "Subscribers receive discounted overage pricing based on plan."}
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Social Proof + CTA Section */}
-        <div className="text-center mt-20">
-          {/* Statistics */}
-          <div className="mb-16">
-            <h3 className="text-3xl lg:text-4xl font-black text-gray-900 mb-12">
-              {isSpanish ? 'Resultados que Hablan por Sí Solos' : 'Results That Speak for Themselves'}
+        <div className="mt-20 text-center">
+          <div className="bg-gradient-to-br from-white to-brand-25 rounded-3xl p-10 lg:p-12 max-w-4xl mx-auto shadow-xl border border-brand-100">
+            <h3 className="text-3xl lg:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-6">
+              {isSpanish ? "¿Listo para Comenzar?" : "Ready to Get Started?"}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-black text-brand-600 mb-2">10,000+</div>
-                <p className="text-gray-600 font-medium">{isSpanish ? 'Empresas Activas' : 'Active Businesses'}</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-black text-emerald-600 mb-2">250M+</div>
-                <p className="text-gray-600 font-medium">{isSpanish ? 'Citas Programadas' : 'Appointments Booked'}</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-black text-purple-600 mb-2">40%</div>
-                <p className="text-gray-600 font-medium">{isSpanish ? 'Aumento en Conversión' : 'Increase in Conversions'}</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-black text-orange-600 mb-2">24/7</div>
-                <p className="text-gray-600 font-medium">{isSpanish ? 'IA Trabajando' : 'AI Working'}</p>
-              </div>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              {isSpanish 
+                ? "Únete a miles de creadores que usan LeadBoost para generar contenido visual impresionante."
+                : "Join thousands of creators using LeadBoost to generate stunning visual content."}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                className="bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-md hover:shadow-lg transition-all"
+                data-testid="button-start-free"
+              >
+                {isSpanish ? "Comenzar Gratis" : "Start Free"}
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 rounded-xl font-semibold text-lg transition-all"
+                data-testid="button-contact-sales"
+              >
+                {isSpanish ? "Contactar Ventas" : "Contact Sales"}
+              </Button>
             </div>
           </div>
-          
-          {/* CTA */}
-          <div className="bg-gradient-to-br from-white to-brand-25 rounded-3xl p-12 max-w-4xl mx-auto shadow-2xl border border-brand-100">
-            <h3 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-8">
-              {t.pricing.freeTrialTitle}
-            </h3>
-            <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-              {t.pricing.freeTrialDesc}
-            </p>
-            <Button 
-              size="lg" 
-              className="bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-lg font-semibold text-lg"
-              data-testid="button-free-trial"
-            >
-              {t.pricing.startYourTrial}
-            </Button>
-          </div>
         </div>
 
-        {/* FAQ Section */}
-        <div className="mt-32">
-          <h2 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 text-center mb-20">
-            {t.pricing.faqTitle}
+        <div className="mt-20">
+          <h2 className="text-3xl lg:text-4xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-brand-600 to-gray-900 mb-12">
+            {isSpanish ? "Preguntas Frecuentes" : "Frequently Asked Questions"}
           </h2>
           
-          <div className="max-w-5xl mx-auto space-y-8">
-            <div className="bg-gradient-to-br from-white to-brand-25 rounded-2xl p-10 shadow-lg border border-brand-100 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-black text-gray-900 mb-4">
-                {t.pricing.faqQuestion1}
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                {isSpanish ? "¿Qué pasa si excedo mi límite mensual?" : "What happens if I exceed my monthly limit?"}
               </h3>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                {t.pricing.faqAnswer1}
+              <p className="text-gray-600">
+                {isSpanish 
+                  ? "Se te cobrará según los precios de exceso de tu plan. Los suscriptores de CORE obtienen un 20% de descuento y los de PREMIUM obtienen un 30% de descuento en las tarifas de pago por uso."
+                  : "You'll be charged at your plan's overage rates. CORE subscribers get 20% off and PREMIUM subscribers get 30% off pay-as-you-go rates."}
               </p>
             </div>
             
-            <div className="bg-gradient-to-br from-white to-brand-25 rounded-2xl p-10 shadow-lg border border-brand-100 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-black text-gray-900 mb-4">
-                {t.pricing.faqQuestion3}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                {isSpanish ? "¿Puedo cambiar de plan en cualquier momento?" : "Can I change plans at any time?"}
               </h3>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                {t.pricing.faqAnswer3}
+              <p className="text-gray-600">
+                {isSpanish 
+                  ? "¡Sí! Puedes actualizar o degradar tu plan en cualquier momento. Los cambios se aplican al comienzo del siguiente ciclo de facturación."
+                  : "Yes! You can upgrade or downgrade your plan at any time. Changes take effect at the start of your next billing cycle."}
               </p>
             </div>
             
-            <div className="bg-gradient-to-br from-white to-brand-25 rounded-2xl p-10 shadow-lg border border-brand-100 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-black text-gray-900 mb-4">
-                {t.pricing.faqQuestion2}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                {isSpanish ? "¿Los créditos no utilizados se acumulan?" : "Do unused credits roll over?"}
               </h3>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                {t.pricing.faqAnswer2}
-              </p>
-            </div>
-            
-            <div className="bg-gradient-to-br from-white to-brand-25 rounded-2xl p-10 shadow-lg border border-brand-100 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-black text-gray-900 mb-4">
-                {t.pricing.faqQuestion4}
-              </h3>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                {t.pricing.faqAnswer4}
+              <p className="text-gray-600">
+                {isSpanish 
+                  ? "Los créditos incluidos en tu plan no se acumulan de un mes a otro. Se reinician cada mes con tu ciclo de facturación."
+                  : "Credits included in your plan do not roll over month to month. They reset each month with your billing cycle."}
               </p>
             </div>
           </div>
