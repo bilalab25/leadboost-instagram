@@ -20,7 +20,6 @@ const pricingData = {
       icon: Sparkles,
       highlight: false,
       gradient: "from-slate-500 to-slate-600",
-      bgGradient: "from-slate-50 to-white",
     },
     core: {
       name: "CORE",
@@ -36,7 +35,6 @@ const pricingData = {
       icon: Rocket,
       highlight: true,
       gradient: "from-brand-500 to-brand-700",
-      bgGradient: "from-brand-50 via-white to-brand-50",
     },
     premium: {
       name: "PREMIUM",
@@ -52,7 +50,6 @@ const pricingData = {
       icon: Crown,
       highlight: false,
       gradient: "from-purple-500 to-indigo-600",
-      bgGradient: "from-purple-50 to-white",
     },
   },
   annual: {
@@ -70,7 +67,6 @@ const pricingData = {
       icon: Sparkles,
       highlight: false,
       gradient: "from-slate-500 to-slate-600",
-      bgGradient: "from-slate-50 to-white",
     },
     core: {
       name: "CORE",
@@ -86,7 +82,6 @@ const pricingData = {
       icon: Rocket,
       highlight: true,
       gradient: "from-brand-500 to-brand-700",
-      bgGradient: "from-brand-50 via-white to-brand-50",
     },
     premium: {
       name: "PREMIUM",
@@ -102,7 +97,6 @@ const pricingData = {
       icon: Crown,
       highlight: false,
       gradient: "from-purple-500 to-indigo-600",
-      bgGradient: "from-purple-50 to-white",
     },
   },
   payAsYouGo: {
@@ -119,11 +113,6 @@ export default function Pricing() {
   const plans = billingPeriod === 'monthly' ? pricingData.monthly : pricingData.annual;
   const isAnnual = billingPeriod === 'annual';
 
-  const formatPrice = (price: number) => {
-    if (price === 0) return isSpanish ? "Gratis" : "Free";
-    return `$${price.toFixed(2)}`;
-  };
-
   const getPeriodLabel = () => {
     if (isAnnual) return isSpanish ? "/ año" : "/ year";
     return isSpanish ? "/ mes" : "/ month";
@@ -134,14 +123,13 @@ export default function Pricing() {
   };
   
   return (
-    <div className="min-h-screen bg-[#0a0a0f] relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-900/20 via-transparent to-purple-900/20"></div>
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-brand-500/20 via-brand-600/10 to-transparent rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-purple-600/10 to-transparent rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-gradient-to-tl from-brand-600/10 to-transparent rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-100 relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-brand-200/30 via-brand-100/20 to-transparent rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-brand-200/20 to-transparent rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-gradient-to-tl from-purple-200/20 to-transparent rounded-full blur-3xl"></div>
       
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+      <div className="absolute inset-0 opacity-[0.02]" style={{
+        backgroundImage: `radial-gradient(circle at 1px 1px, #1e3a5f 1px, transparent 0)`,
         backgroundSize: '40px 40px'
       }}></div>
 
@@ -152,30 +140,30 @@ export default function Pricing() {
           transition={{ duration: 0.6 }}
           className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
         >
-          <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-4 py-2 mb-6">
-            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-            <span className="text-sm text-gray-300">{isSpanish ? "Más de 10,000 creadores confían en nosotros" : "Trusted by 10,000+ creators"}</span>
+          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-brand-200 rounded-full px-4 py-2 mb-6 shadow-sm">
+            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+            <span className="text-sm text-gray-700 font-medium">{isSpanish ? "Más de 10,000 creadores confían en nosotros" : "Trusted by 10,000+ creators"}</span>
           </div>
           
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white mb-4 leading-tight tracking-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-gray-900 mb-4 leading-tight tracking-tight">
             {isSpanish ? "Precios de" : "LeadBoost"}{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-brand-500 to-purple-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 via-brand-600 to-purple-600">
               {isSpanish ? "LeadBoost" : "Pricing"}
             </span>
           </h1>
-          <p className="text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
             {isSpanish 
               ? "Precios simples y transparentes para generación de imágenes y videos con IA."
               : "Simple, transparent pricing for AI image and video generation."}
           </p>
 
-          <div className="inline-flex items-center bg-white/5 backdrop-blur-md rounded-2xl p-1.5 border border-white/10 mb-16">
+          <div className="inline-flex items-center bg-white rounded-2xl p-1.5 border border-gray-200 shadow-lg mb-16">
             <button
               onClick={() => setBillingPeriod('monthly')}
               className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
                 billingPeriod === 'monthly'
-                  ? 'bg-white text-gray-900 shadow-lg'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-brand-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               {isSpanish ? "Mensual" : "Monthly"}
@@ -184,12 +172,12 @@ export default function Pricing() {
               onClick={() => setBillingPeriod('annual')}
               className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
                 billingPeriod === 'annual'
-                  ? 'bg-white text-gray-900 shadow-lg'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-brand-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               {isSpanish ? "Anual" : "Annual"}
-              <span className="bg-gradient-to-r from-green-400 to-emerald-500 text-white text-xs px-2.5 py-1 rounded-full font-bold">
+              <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">
                 -20%
               </span>
             </button>
@@ -213,21 +201,21 @@ export default function Pricing() {
                 className={`relative group ${isHighlighted ? 'lg:-mt-4 lg:mb-4' : ''}`}
               >
                 {isHighlighted && (
-                  <div className="absolute -inset-[1px] bg-gradient-to-b from-brand-400 via-brand-500 to-purple-600 rounded-3xl opacity-100"></div>
+                  <div className="absolute -inset-[2px] bg-gradient-to-b from-brand-400 via-brand-500 to-purple-500 rounded-3xl opacity-100 shadow-xl shadow-brand-500/20"></div>
                 )}
                 
-                <div className={`relative h-full bg-gradient-to-b ${isHighlighted ? 'from-[#0f1419] to-[#0a0d12]' : 'from-white/[0.03] to-white/[0.01]'} backdrop-blur-xl rounded-3xl border ${isHighlighted ? 'border-transparent' : 'border-white/10'} overflow-hidden transition-all duration-500 hover:border-white/20`}>
+                <div className={`relative h-full bg-white rounded-3xl border ${isHighlighted ? 'border-transparent' : 'border-gray-200 hover:border-brand-300'} overflow-hidden transition-all duration-500 hover:shadow-xl ${!isHighlighted ? 'shadow-lg' : ''}`}>
                   
                   {isHighlighted && (
-                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-400 to-transparent"></div>
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-400 via-brand-500 to-purple-500"></div>
                   )}
                   
                   <div className="p-8">
                     {isHighlighted && (
                       <div className="flex justify-center mb-6">
-                        <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-brand-500/20 to-purple-500/20 border border-brand-500/30 rounded-full px-4 py-1.5">
-                          <Zap className="h-3.5 w-3.5 text-brand-400" />
-                          <span className="text-xs font-bold text-brand-300 uppercase tracking-wider">
+                        <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-brand-50 to-purple-50 border border-brand-200 rounded-full px-4 py-1.5 shadow-sm">
+                          <Zap className="h-3.5 w-3.5 text-brand-600" />
+                          <span className="text-xs font-bold text-brand-700 uppercase tracking-wider">
                             {isSpanish ? "Más Popular" : "Most Popular"}
                           </span>
                         </div>
@@ -239,9 +227,9 @@ export default function Pricing() {
                         <IconComponent className="h-7 w-7 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
                         {plan.discount > 0 && (
-                          <span className="text-xs font-semibold text-emerald-400">
+                          <span className="text-xs font-semibold text-emerald-600">
                             {plan.discount}% {isSpanish ? "ahorro en excesos" : "off overages"}
                           </span>
                         )}
@@ -250,7 +238,7 @@ export default function Pricing() {
                     
                     <div className="mb-8">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-5xl lg:text-6xl font-black text-white">
+                        <span className="text-5xl lg:text-6xl font-black text-gray-900">
                           {plan.price === 0 ? (isSpanish ? "Gratis" : "Free") : `$${Math.floor(plan.price)}`}
                         </span>
                         {plan.price > 0 && (
@@ -262,38 +250,38 @@ export default function Pricing() {
                       </div>
                       {isAnnual && plan.price > 0 && (
                         <p className="text-sm text-gray-500 mt-2">
-                          ${getMonthlyEquivalent(plan.price)}{isSpanish ? "/mes" : "/mo"} <span className="text-gray-600">{isSpanish ? "facturado anualmente" : "billed annually"}</span>
+                          ${getMonthlyEquivalent(plan.price)}{isSpanish ? "/mes" : "/mo"} <span className="text-gray-400">{isSpanish ? "facturado anualmente" : "billed annually"}</span>
                         </p>
                       )}
                     </div>
                     
                     <div className="space-y-4 mb-8">
-                      <div className="bg-white/5 rounded-2xl p-5 border border-white/5">
+                      <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl p-5 border border-gray-100">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 flex items-center justify-center">
-                              <Image className="h-5 w-5 text-pink-400" />
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center shadow-sm">
+                              <Image className="h-5 w-5 text-pink-600" />
                             </div>
                             <div>
-                              <span className="text-white font-semibold">{plan.images}</span>
-                              <span className="text-gray-400 text-sm ml-1">{isSpanish ? "imágenes" : "images"}</span>
+                              <span className="text-gray-900 font-semibold">{plan.images}</span>
+                              <span className="text-gray-500 text-sm ml-1">{isSpanish ? "imágenes" : "images"}</span>
                             </div>
                           </div>
-                          <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-lg">
+                          <span className="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-lg border border-gray-200 shadow-sm">
                             +${plan.imageOverage.toFixed(2)}/{isSpanish ? "extra" : "extra"}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center">
-                              <Video className="h-5 w-5 text-violet-400" />
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center shadow-sm">
+                              <Video className="h-5 w-5 text-violet-600" />
                             </div>
                             <div>
-                              <span className="text-white font-semibold">{plan.videos}</span>
-                              <span className="text-gray-400 text-sm ml-1">{isSpanish ? "videos" : "videos"}</span>
+                              <span className="text-gray-900 font-semibold">{plan.videos}</span>
+                              <span className="text-gray-500 text-sm ml-1">{isSpanish ? "videos" : "videos"}</span>
                             </div>
                           </div>
-                          <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-lg">
+                          <span className="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-lg border border-gray-200 shadow-sm">
                             +${plan.videoOverage.toFixed(2)}/{isSpanish ? "extra" : "extra"}
                           </span>
                         </div>
@@ -308,10 +296,10 @@ export default function Pricing() {
                         ...(plan.discount > 0 ? [isSpanish ? `${plan.discount}% descuento en excesos` : `${plan.discount}% off overage rates`] : [])
                       ].map((feature, i) => (
                         <li key={i} className="flex items-center gap-3">
-                          <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                            <Check className="h-3 w-3 text-emerald-400" />
+                          <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                            <Check className="h-3 w-3 text-emerald-600" />
                           </div>
-                          <span className="text-gray-300 text-sm">{feature}</span>
+                          <span className="text-gray-600 text-sm">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -319,8 +307,8 @@ export default function Pricing() {
                     <Button 
                       className={`w-full font-semibold py-6 rounded-xl transition-all duration-300 group/btn ${
                         isHighlighted
-                          ? 'bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40'
-                          : 'bg-white/10 hover:bg-white/15 text-white border border-white/10 hover:border-white/20'
+                          ? 'bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40'
+                          : 'bg-gray-900 hover:bg-gray-800 text-white shadow-md hover:shadow-lg'
                       }`}
                       data-testid={`button-${key}-plan`}
                     >
@@ -341,13 +329,13 @@ export default function Pricing() {
           className="mt-24 max-w-4xl mx-auto"
         >
           <div className="relative">
-            <div className="absolute -inset-[1px] bg-gradient-to-r from-brand-500/50 via-purple-500/50 to-brand-500/50 rounded-3xl blur-sm"></div>
-            <div className="relative bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-xl rounded-3xl border border-white/10 p-10">
+            <div className="absolute -inset-[1px] bg-gradient-to-r from-brand-400 via-purple-400 to-brand-400 rounded-3xl blur-sm opacity-50"></div>
+            <div className="relative bg-white rounded-3xl border border-gray-100 shadow-xl p-10">
               <div className="text-center mb-10">
-                <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3">
+                <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
                   {isSpanish ? "Pago por Uso" : "Pay-As-You-Go"}
                 </h2>
-                <p className="text-gray-400">
+                <p className="text-gray-600">
                   {isSpanish 
                     ? "Sin compromisos. Paga solo por lo que usas."
                     : "No commitments. Pay only for what you use."}
@@ -355,32 +343,32 @@ export default function Pricing() {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                <div className="bg-white/5 rounded-2xl p-6 border border-white/5 text-center group hover:bg-white/[0.07] transition-colors">
-                  <div className="w-16 h-16 bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                    <Image className="h-8 w-8 text-pink-400" />
+                <div className="bg-gradient-to-br from-gray-50 to-pink-50/30 rounded-2xl p-6 border border-gray-100 text-center group hover:shadow-lg transition-all duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-md">
+                    <Image className="h-8 w-8 text-pink-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{isSpanish ? "Imágenes" : "Images"}</h3>
-                  <div className="text-4xl font-black text-white">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{isSpanish ? "Imágenes" : "Images"}</h3>
+                  <div className="text-4xl font-black text-gray-900">
                     ${pricingData.payAsYouGo.imagePrice.toFixed(2)}
                     <span className="text-lg font-medium text-gray-500 ml-1">{isSpanish ? "c/u" : "each"}</span>
                   </div>
                 </div>
                 
-                <div className="bg-white/5 rounded-2xl p-6 border border-white/5 text-center group hover:bg-white/[0.07] transition-colors">
-                  <div className="w-16 h-16 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                    <Video className="h-8 w-8 text-violet-400" />
+                <div className="bg-gradient-to-br from-gray-50 to-violet-50/30 rounded-2xl p-6 border border-gray-100 text-center group hover:shadow-lg transition-all duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-violet-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-md">
+                    <Video className="h-8 w-8 text-violet-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{isSpanish ? "Videos" : "Videos"}</h3>
-                  <div className="text-4xl font-black text-white">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{isSpanish ? "Videos" : "Videos"}</h3>
+                  <div className="text-4xl font-black text-gray-900">
                     ${pricingData.payAsYouGo.videoPrice.toFixed(2)}
                     <span className="text-lg font-medium text-gray-500 ml-1">{isSpanish ? "c/u" : "each"}</span>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-brand-500/10 rounded-xl p-4 text-center border border-brand-500/20">
-                <p className="text-sm text-gray-300">
-                  <span className="font-semibold text-brand-400">
+              <div className="bg-gradient-to-r from-brand-50 to-purple-50 rounded-xl p-4 text-center border border-brand-100">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold text-brand-700">
                     {isSpanish ? "Nota:" : "Note:"}
                   </span>{" "}
                   {isSpanish 
@@ -399,15 +387,15 @@ export default function Pricing() {
           className="mt-24 text-center"
         >
           <div className="relative max-w-4xl mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-600/20 via-purple-600/20 to-brand-600/20 rounded-3xl blur-2xl"></div>
-            <div className="relative bg-gradient-to-b from-white/[0.08] to-white/[0.03] backdrop-blur-xl rounded-3xl border border-white/10 p-12 lg:p-16">
-              <h3 className="text-3xl lg:text-5xl font-black text-white mb-6">
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-200/40 via-purple-200/40 to-brand-200/40 rounded-3xl blur-2xl"></div>
+            <div className="relative bg-white rounded-3xl border border-gray-100 shadow-2xl p-12 lg:p-16">
+              <h3 className="text-3xl lg:text-5xl font-black text-gray-900 mb-6">
                 {isSpanish ? "¿Listo para" : "Ready to"}{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-purple-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-purple-500">
                   {isSpanish ? "Comenzar?" : "Get Started?"}
                 </span>
               </h3>
-              <p className="text-lg text-gray-400 mb-10 max-w-xl mx-auto leading-relaxed">
+              <p className="text-lg text-gray-600 mb-10 max-w-xl mx-auto leading-relaxed">
                 {isSpanish 
                   ? "Únete a miles de creadores que usan LeadBoost para generar contenido visual impresionante."
                   : "Join thousands of creators using LeadBoost to generate stunning visual content."}
@@ -415,7 +403,7 @@ export default function Pricing() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
                   size="lg" 
-                  className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white px-10 py-6 rounded-xl font-semibold text-lg shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all group"
+                  className="bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white px-10 py-6 rounded-xl font-semibold text-lg shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all group"
                   data-testid="button-start-free"
                 >
                   {isSpanish ? "Comenzar Gratis" : "Start Free"}
@@ -424,7 +412,7 @@ export default function Pricing() {
                 <Button 
                   size="lg" 
                   variant="outline"
-                  className="bg-white/5 border-white/20 text-white hover:bg-white/10 px-10 py-6 rounded-xl font-semibold text-lg transition-all"
+                  className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-10 py-6 rounded-xl font-semibold text-lg transition-all"
                   data-testid="button-contact-sales"
                 >
                   {isSpanish ? "Contactar Ventas" : "Contact Sales"}
@@ -440,7 +428,7 @@ export default function Pricing() {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="mt-24"
         >
-          <h2 className="text-3xl lg:text-4xl font-black text-center text-white mb-12">
+          <h2 className="text-3xl lg:text-4xl font-black text-center text-gray-900 mb-12">
             {isSpanish ? "Preguntas Frecuentes" : "Frequently Asked Questions"}
           </h2>
           
@@ -465,9 +453,9 @@ export default function Pricing() {
                   : "Credits included in your plan do not roll over month to month. They reset each month with your billing cycle."
               }
             ].map((faq, i) => (
-              <div key={i} className="bg-white/[0.03] backdrop-blur-sm rounded-2xl p-6 border border-white/5 hover:border-white/10 transition-colors">
-                <h3 className="text-lg font-bold text-white mb-2">{faq.q}</h3>
-                <p className="text-gray-400">{faq.a}</p>
+              <div key={i} className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{faq.q}</h3>
+                <p className="text-gray-600">{faq.a}</p>
               </div>
             ))}
           </div>
