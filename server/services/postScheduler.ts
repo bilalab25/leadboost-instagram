@@ -207,6 +207,8 @@ class PostSchedulerService {
         }
       }
 
+
+
       await db
         .update(aiGeneratedPosts)
         .set({
