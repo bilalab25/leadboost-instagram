@@ -382,7 +382,18 @@ export default function Landing() {
                 : "Your Entire Marketing Done by AI."}
             </span>
           </div>
-
+          {/* Boosty Video - Full Width */}
+          <div className="w-full flex justify-center mb-8">
+            <video
+              src={boostyLoopVideo2}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full max-w-4xl h-auto"
+              data-testid="boosty-loop-video"
+            />
+          </div>
           {/* Main Headline - Mobile-first responsive typography */}
           <h1
             className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[0.95] sm:leading-[0.9] tracking-tight mb-6 sm:mb-8 lg:mb-12 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-700 bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
@@ -431,19 +442,6 @@ export default function Landing() {
               {isSpanish ? "Sin tarjeta de crédito" : "No credit card required"}
             </p>
           </div>
-        </div>
-
-        {/* Boosty Video - Full Width */}
-        <div className="w-full flex justify-center mb-8">
-          <video
-            src={boostyLoopVideo2}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full max-w-4xl h-auto"
-            data-testid="boosty-loop-video"
-          />
         </div>
 
         {/* Slogan above video */}

@@ -1474,7 +1474,7 @@ export default function ContentCalendar() {
                                       ) : (
                                         <>
                                           <Sparkles className="w-4 h-4 mr-1" />
-                                          AI Suggestions
+                                          Generate AI Posts
                                         </>
                                       )}
                                     </Button>
