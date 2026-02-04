@@ -1,0 +1,45 @@
+    <Button
+                                      size="sm"
+                                      variant={
+                                        hasActiveJob || isLoadingAiPosts
+                                          ? "outline"
+                                          : canGenerateAiPosts
+                                            ? "default"
+                                            : "outline"
+                                      }
+                                      onClick={() =>
+                                        generatePostsMutation.mutate()
+                                      }
+                                      disabled={
+                                        generatePostsMutation.isPending ||
+                                        !activeBrandId ||
+                                        !canGenerateAiPosts ||
+                                        hasActiveJob ||
+                                        isLoadingAiPosts
+                                      }
+                                      className={
+                                        hasActiveJob || isLoadingAiPosts
+                                          ? "bg-purple-100 border-purple-300 text-purple-700"
+                                          : canGenerateAiPosts
+                                            ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                            : "opacity-60 cursor-not-allowed"
+                                      }
+                                      data-testid="button-generate-ai-posts"
+                                    >
+                                      {isLoadingAiPosts ? (
+                                        <>
+                                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                          Loading...
+                                        </>
+                                      ) : generatePostsMutation.isPending ? (
+                                        <>
+                                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                          Generating...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Sparkles className="w-4 h-4 mr-1" />
+                                          Generate AI Posts
+                                        </>
+                                      )}
+                                    </Button>

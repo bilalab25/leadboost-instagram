@@ -1466,7 +1466,7 @@ export default function ContentCalendar() {
                                           <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                           Loading...
                                         </>
-                                      ) : generatePostsMutation.isPending ? (
+                                      ) : generatePostsMutation.isPending || hasActiveJob ? (
                                         <>
                                           <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                           Generating...
