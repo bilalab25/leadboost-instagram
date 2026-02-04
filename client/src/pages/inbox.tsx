@@ -83,6 +83,8 @@ export default function Inbox() {
     "all" | "none" | "important" | "archived"
   >("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncingIntegrations, setSyncingIntegrations] = useState<string[]>([]);
 
   // Listen for real-time new message events
   useEffect(() => {
@@ -119,8 +121,65 @@ export default function Inbox() {
 
     socket.on("new_message", handleNewMessage);
 
+    // Listen for inbox sync events
+    const handleSyncStarted = (data: { brandId: string; integrations: string[]; totalCount: number }) => {
+      // Validate brandId matches active brand (safety check like new_message)
+      if (data.brandId && data.brandId !== activeBrandId) {
+        console.log(`⏭️ Sync started event is for brand ${data.brandId}, ignoring (active: ${activeBrandId})`);
+        return;
+      }
+      
+      console.log("🔄 Inbox sync started:", data);
+      setIsSyncing(true);
+      setSyncingIntegrations(data.integrations || []);
+      toast({
+        title: isSpanish ? "Sincronizando mensajes..." : "Syncing messages...",
+        description: isSpanish 
+          ? "Estamos obteniendo tus conversaciones. Esto puede tomar unos momentos."
+          : "Fetching your conversations. This may take a moment.",
+      });
+    };
+
+    const handleSyncCompleted = (data: { brandId: string; success: boolean; error?: string }) => {
+      // Validate brandId matches active brand (safety check like new_message)
+      if (data.brandId && data.brandId !== activeBrandId) {
+        console.log(`⏭️ Sync completed event is for brand ${data.brandId}, ignoring (active: ${activeBrandId})`);
+        return;
+      }
+      
+      console.log("✅ Inbox sync completed:", data);
+      setIsSyncing(false);
+      setSyncingIntegrations([]);
+      
+      // Refresh conversations and stats after sync completes
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations", activeBrandId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/inbox/stats", activeBrandId] });
+      
+      if (data.success) {
+        toast({
+          title: isSpanish ? "Sincronización completada" : "Sync completed",
+          description: isSpanish 
+            ? "Tus conversaciones se han sincronizado exitosamente."
+            : "Your conversations have been synced successfully.",
+        });
+      } else {
+        toast({
+          title: isSpanish ? "Error de sincronización" : "Sync error",
+          description: isSpanish 
+            ? "Hubo un problema al sincronizar tus mensajes. Por favor intenta más tarde."
+            : "There was a problem syncing your messages. Please try again later.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    socket.on("inbox_sync_started", handleSyncStarted);
+    socket.on("inbox_sync_completed", handleSyncCompleted);
+
     return () => {
       socket.off("new_message", handleNewMessage);
+      socket.off("inbox_sync_started", handleSyncStarted);
+      socket.off("inbox_sync_completed", handleSyncCompleted);
     };
   }, [socket, queryClient, toast, isSpanish, activeBrandId]);
 
@@ -277,6 +336,39 @@ export default function Inbox() {
                     </div>
                   </div>
                 </motion.div>
+
+                {/* Syncing Indicator */}
+                {isSyncing && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="mb-4"
+                  >
+                    <Card className="border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-blue-900">
+                              {isSpanish ? "Sincronizando mensajes..." : "Syncing messages..."}
+                            </p>
+                            <p className="text-xs text-blue-600">
+                              {isSpanish 
+                                ? `Obteniendo conversaciones de ${syncingIntegrations.join(", ")}`
+                                : `Fetching conversations from ${syncingIntegrations.join(", ")}`}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: "0.2s" }} />
+                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: "0.4s" }} />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
 
                 {/* No Integrations Empty State */}
                 {integrations.length === 0 && (

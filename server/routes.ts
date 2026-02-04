@@ -50,7 +50,7 @@ import { boostyService } from "./services/boosty";
 import { generateBrandEssence } from "./services/generateBrandEssence";
 import { registerStripeRoutes } from "./stripe/stripeRoutes";
 import { billingService } from "./stripe/billingService";
-import { registerSyncFunctions } from "./services/inboxSyncService";
+import { registerSyncFunctions, registerSocketIO } from "./services/inboxSyncService";
 import { generateBrandAssetDescription } from "./services/generateBrandAssetDescription";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
@@ -11500,6 +11500,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Make io accessible in routes via app.set
   app.set("io", io);
+  
+  // Register Socket.IO with inbox sync service for real-time sync notifications
+  registerSocketIO(io);
 
   return server;
 }
