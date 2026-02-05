@@ -999,7 +999,9 @@ export default function ContentCalendar() {
         return isSameDay(scheduledDate, date);
       }
       // Otherwise fall back to matching by day name within the month
-      const dayName = format(date, "EEEE", { locale: dateLocale }).toLowerCase();
+      const dayName = format(date, "EEEE", {
+        locale: dateLocale,
+      }).toLowerCase();
       return (
         post.dia?.toLowerCase() === dayName &&
         isSameMonth(new Date(post.createdAt), currentDate)
@@ -1401,7 +1403,9 @@ export default function ContentCalendar() {
                               <CardTitle className="text-xl font-bold flex items-center gap-2">
                                 <CalendarIcon className="h-6 w-6 text-gray-500" />
                                 <span className="text-gray-800">
-                                  {format(currentDate, "MMMM yyyy", { locale: dateLocale })}
+                                  {format(currentDate, "MMMM yyyy", {
+                                    locale: dateLocale,
+                                  })}
                                 </span>
                               </CardTitle>
                               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
@@ -1577,13 +1581,13 @@ export default function ContentCalendar() {
                           {/* Week headers */}
                           <div className="grid grid-cols-7 gap-2 mb-4">
                             {[
-                              "Sun",
-                              "Mon",
-                              "Tue",
-                              "Wed",
-                              "Thu",
-                              "Fri",
-                              "Sat",
+                              isSpanish ? "Dom" : "Sun",
+                              isSpanish ? "Lu" : "Mon",
+                              isSpanish ? "Mar" : "Tue",
+                              isSpanish ? "Mie" : "Web",
+                              isSpanish ? "Jue" : "Thu",
+                              isSpanish ? "Vie" : "Fri",
+                              isSpanish ? "Sab" : "Sat",
                             ].map((day) => (
                               <div
                                 key={day}
@@ -1685,7 +1689,9 @@ export default function ContentCalendar() {
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-lg">
                               {selectedDate
-                                ? format(selectedDate, "EEEE, MMMM d", { locale: dateLocale })
+                                ? format(selectedDate, "EEEE, MMMM d", {
+                                    locale: dateLocale,
+                                  })
                                 : isSpanish
                                   ? "Selecciona una fecha"
                                   : "Select a date"}
@@ -1880,7 +1886,8 @@ export default function ContentCalendar() {
                                         onClick={() => handleOpenPost(post)}
                                         data-testid={`button-view-post-${post.id}`}
                                       >
-                                        <Eye className="w-3 h-3 mr-1" /> View
+                                        <Eye className="w-3 h-3 mr-1" />{" "}
+                                        {isSpanish ? "Ver" : "View"}
                                       </Button>
                                       {/*  <Button
                                         size="sm"
