@@ -68,7 +68,7 @@ export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
   const { language } = useLanguage();
-  const t = translations[language]; // Use current language setting
+  const t = translations[language]; 
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
@@ -76,7 +76,7 @@ export default function Sidebar() {
   const navigation = [
     { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
     {
-      name: "Boosty",
+      name: t.sidebar.waterfall,
       href: "/waterfall",
       icon: Sparkles,
       special: true,

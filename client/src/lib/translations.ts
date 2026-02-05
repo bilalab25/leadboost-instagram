@@ -171,6 +171,7 @@ export const translations = {
       team: "Team",
       integrations: "Integrations",
       settings: "Settings",
+      waterfall: "Your content",
     },
     // Messages and Inbox
     messages: {
@@ -553,6 +554,7 @@ export const translations = {
       team: "Equipo",
       integrations: "Integraciones",
       settings: "Configuración",
+      waterfall: "Tu contenido",
     },
     // Messages and Inbox
     messages: {
