@@ -1589,6 +1589,7 @@ export const aiGeneratedPosts = pgTable("ai_generated_posts", {
   lockedAt: timestamp("locked_at"), // Lock timestamp for concurrent publish prevention
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  type: text("type").notNull().default("image"),
 });
 
 // Chatbot schemas
@@ -1721,26 +1722,30 @@ export const brandBilling = pgTable("brand_billing", {
 });
 
 // Image usage tracking - records each image generation for billing
-export const imageUsage = pgTable("image_usage", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  brandId: uuid("brand_id")
-    .notNull()
-    .references(() => brands.id, { onDelete: "cascade" }),
-  endpoint: varchar("endpoint").notNull(), // Which endpoint generated the image
-  imageCount: integer("image_count").notNull().default(1), // Number of images generated
-  costCents: integer("cost_cents").notNull(), // Cost in cents (3x Gemini cost)
-  wasFree: boolean("was_free").default(false), // Whether this used free credits
-  billed: boolean("billed").default(false), // Whether this has been charged
-  billedAt: timestamp("billed_at"), // When it was charged
-  stripePaymentIntentId: varchar("stripe_payment_intent_id"), // Stripe payment intent for this charge
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("image_usage_brand_idx").on(table.brandId),
-  index("image_usage_billed_idx").on(table.billed),
-  index("image_usage_created_idx").on(table.createdAt),
-]);
+export const imageUsage = pgTable(
+  "image_usage",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "cascade" }),
+    endpoint: varchar("endpoint").notNull(), // Which endpoint generated the image
+    imageCount: integer("image_count").notNull().default(1), // Number of images generated
+    costCents: integer("cost_cents").notNull(), // Cost in cents (3x Gemini cost)
+    wasFree: boolean("was_free").default(false), // Whether this used free credits
+    billed: boolean("billed").default(false), // Whether this has been charged
+    billedAt: timestamp("billed_at"), // When it was charged
+    stripePaymentIntentId: varchar("stripe_payment_intent_id"), // Stripe payment intent for this charge
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("image_usage_brand_idx").on(table.brandId),
+    index("image_usage_billed_idx").on(table.billed),
+    index("image_usage_created_idx").on(table.createdAt),
+  ],
+);
 
 // Brand billing schemas
 export const insertBrandBillingSchema = createInsertSchema(brandBilling).omit({

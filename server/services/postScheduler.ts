@@ -133,7 +133,7 @@ class PostSchedulerService {
       const accessToken = integration.accessToken;
 
       // Publish to Facebook
-      if (post.platform === "facebook") {
+      if (post.platform === "facebook" && post.type === "image") {
         const params = new URLSearchParams({
           url: post.imageUrl!,
           caption: post.content ?? "",
@@ -154,6 +154,37 @@ class PostSchedulerService {
 
         console.log(
           `[PostScheduler] Facebook post published with id ${data.post_id || data.id}`,
+        );
+      }
+
+      if (post.platform === "facebook" && post.type === "video") {
+        if (!post.imageUrl) {
+          throw new Error("Missing imageUrl for Facebook video post");
+        }
+
+        const params = new URLSearchParams({
+          access_token: accessToken,
+          file_url: post.imageUrl,
+          title: post.titulo,
+          description: post.content ?? "",
+          published: "true",
+        });
+
+        const response = await fetch(
+          `https://graph-video.facebook.com/v24.0/${integration.accountId}/videos`,
+          { method: "POST", body: params },
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          throw new Error(
+            data.error?.message || "Facebook video publish failed",
+          );
+        }
+
+        console.log(
+          `[PostScheduler] Facebook video published with id ${data.id}`,
         );
       }
 
