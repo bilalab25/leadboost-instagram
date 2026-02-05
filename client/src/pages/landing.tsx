@@ -383,20 +383,20 @@ export default function Landing() {
             </span>
           </div>
           {/* Boosty Video - Full Width */}
-          <div className="w-full flex justify-center mb-8">
+          <div className="w-full flex justify-center mb-6">
             <video
               src={boostyLoopVideo2}
               autoPlay
               loop
               muted
               playsInline
-              className="w-full max-w-4xl h-auto"
+              className="w-full max-w-5xl h-auto"
               data-testid="boosty-loop-video"
             />
           </div>
           {/* Main Headline - Mobile-first responsive typography */}
           <h1
-            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[0.95] sm:leading-[0.9] tracking-tight mb-6 sm:mb-8 lg:mb-12 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-700 bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`text-4xl sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl font-bold leading-[0.95] sm:leading-[0.9] tracking-tight mb-6 sm:mb-8 lg:mb-12 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-700 bg-clip-text text-transparent transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             {isSpanish ? (
               <>
@@ -419,7 +419,7 @@ export default function Landing() {
 
           {/* Subtitle - Mobile Optimized */}
           <p
-            className={`text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-12 lg:mb-16 max-w-4xl mx-auto leading-relaxed font-light transition-all duration-1000 delay-400 px-2 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            className={`text-base sm:text-sm md:text-xl lg:text-1xl text-gray-600 mb-8 sm:mb-12 lg:mb-16 max-w-4xl mx-auto leading-relaxed font-light transition-all duration-1000 delay-400 px-2 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             {isSpanish
               ? "La única plataforma que recopila tus datos, crea campañas inteligentes y cierra ventas—todo automáticamente."
@@ -445,7 +445,7 @@ export default function Landing() {
         </div>
 
         {/* Slogan above video */}
-        <div className="flex justify-center items-center mb-8 px-6">
+        {/*     <div className="flex justify-center items-center mb-8 px-6">
           <div
             className="inline-flex items-center gap-2.5 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-gray-200 shadow-lg"
             style={{ backgroundColor: "#F8F8FA" }}
@@ -459,7 +459,7 @@ export default function Landing() {
                 : "Your All-in-One Marketing Agent"}
             </span>
           </div>
-        </div>
+        </div> */}
 
         {/* Trustpilot Rating */}
         <div className="flex flex-col items-center gap-4 px-6 pb-3">
@@ -1004,15 +1004,17 @@ export default function Landing() {
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                 <span className="text-blue-600 text-xs sm:text-sm font-semibold tracking-wide uppercase">
                   {isSpanish
-                    ? "Tu Asistente IA 24/7"
-                    : "Your 24/7 AI Assistant"}
+                    ? "Todo tu equipo de marketing"
+                    : "Your entire marketing team"}
                 </span>
               </div>
-
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6">
+              <h2 className="text-1xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-3xl font-bold">
+                {" "}
                 <span className="text-gray-900">
                   {isSpanish ? "Conoce a " : "Meet "}
                 </span>
+              </h2>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6">
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
                   Boosty
                 </span>
@@ -1020,8 +1022,8 @@ export default function Landing() {
 
               <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 sm:mb-8 leading-relaxed font-light px-2 lg:px-0">
                 {isSpanish
-                  ? "Tu asistente de marketing con inteligencia artificial. Genera contenido, programa publicaciones y gestiona campañas—todo con una simple conversación."
-                  : "Your AI-powered marketing assistant. Generate content, schedule posts, and manage campaigns—all with a simple conversation."}
+                  ? "Crea y publica contenido por ti en todas las plataformas."
+                  : "Creates and posts for you across all platforms."}
               </p>
 
               {/* Capabilities grid - Mobile optimized */}
