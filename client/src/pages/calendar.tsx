@@ -96,6 +96,7 @@ interface ContentPost {
     | "skipped_auto_post_disabled";
   content: string;
   imageUrl?: string;
+  type?: "image" | "video";
   source?: "manual" | "ai";
   hashtags?: string;
   scheduledPublishTime?: string;
@@ -2032,22 +2033,33 @@ export default function ContentCalendar() {
                       Live Preview
                     </p>
                     <div className="bg-white rounded-xl shadow-lg overflow-hidden border">
-                      {/* Image */}
+                      {/* Image or Video */}
                       <div className="aspect-square relative bg-gray-100">
-                        <img
-                          src={editPost.imageUrl}
-                          alt={editPost.title}
-                          className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() =>
-                            editPost.imageUrl &&
-                            setFullscreenImage(editPost.imageUrl)
-                          }
-                          title="Click to view full size"
-                        />
-                        <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1 pointer-events-none">
-                          <Eye className="w-3 h-3" />
-                          Click to enlarge
-                        </div>
+                        {editPost.type === "video" ? (
+                          <video
+                            src={editPost.imageUrl}
+                            className="w-full h-full object-cover"
+                            controls
+                            preload="metadata"
+                          />
+                        ) : (
+                          <>
+                            <img
+                              src={editPost.imageUrl}
+                              alt={editPost.title}
+                              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() =>
+                                editPost.imageUrl &&
+                                setFullscreenImage(editPost.imageUrl)
+                              }
+                              title="Click to view full size"
+                            />
+                            <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1 pointer-events-none">
+                              <Eye className="w-3 h-3" />
+                              Click to enlarge
+                            </div>
+                          </>
+                        )}
                       </div>
                       {/* Content */}
                       <div className="p-4">
