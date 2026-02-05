@@ -99,7 +99,10 @@ export default function Waterfall() {
   const [pendingWelcome, setPendingWelcome] = useState(() => {
     // Check if we arrived with showWelcome or showSamples param
     const params = new URLSearchParams(window.location.search);
-    return params.get("showWelcome") === "true" || params.get("showSamples") === "true";
+    return (
+      params.get("showWelcome") === "true" ||
+      params.get("showSamples") === "true"
+    );
   });
   const [activeTab, setActiveTab] = useState<"campaigns" | "planner">(
     "campaigns",
@@ -478,7 +481,10 @@ export default function Waterfall() {
                   data-testid="tab-campaigns"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span className="hidden sm:inline">Strategize with</span>{" "}
+                  <span className="hidden sm:inline">
+                    {" "}
+                    {isSpanish ? "Genera estrategias con" : "Strategize with"}
+                  </span>{" "}
                   Boosty
                 </TabsTrigger>
                 <TabsTrigger
@@ -487,7 +493,7 @@ export default function Waterfall() {
                   data-testid="tab-planner"
                 >
                   <Calendar className="h-4 w-4" />
-                  30-Day Planner
+                  {isSpanish ? "Este mes" : "This month"}
                 </TabsTrigger>
               </TabsList>
 

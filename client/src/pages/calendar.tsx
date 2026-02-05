@@ -493,10 +493,11 @@ export default function ContentCalendar() {
   // Check if there's an active job running (must be after activeJobQuery is defined)
   // Exclude payment_required status - job is not "actively generating" anymore
   const jobStatus = activeJobQuery.data?.job?.status;
-  const isJobActuallyProcessing = activeJobQuery.data?.hasActiveJob && 
-    jobStatus !== 'payment_required' && 
-    jobStatus !== 'completed' && 
-    jobStatus !== 'failed';
+  const isJobActuallyProcessing =
+    activeJobQuery.data?.hasActiveJob &&
+    jobStatus !== "payment_required" &&
+    jobStatus !== "completed" &&
+    jobStatus !== "failed";
   const hasActiveJob =
     isJobActuallyProcessing || showGeneratingLoader || !!currentJobId;
 
@@ -1199,18 +1200,21 @@ export default function ContentCalendar() {
                       <Alert className="border-amber-200 bg-amber-50">
                         <Link2 className="h-4 w-4 text-amber-600" />
                         <AlertTitle className="text-amber-800">
-                          Connect your social accounts
+                          {isSpanish
+                            ? "Conecta tus redes sociales"
+                            : "Connect your social accounts"}
                         </AlertTitle>
                         <AlertDescription className="text-amber-700">
-                          To generate AI posts, connect your Instagram or
-                          Facebook account first.
+                          {isSpanish
+                            ? "Para generar posts con AI, conecta primero tu cuenta de instagram o facebook"
+                            : "To generate AI posts, connect your Instagram or Facebook account first."}
                           <Link href="/integrations">
                             <Button
                               variant="link"
                               className="text-amber-800 font-semibold p-0 h-auto ml-1"
                               data-testid="link-connect-integrations"
                             >
-                              Connect now →
+                              {isSpanish ? "Conectar ahora →" : "Connect now →"}
                             </Button>
                           </Link>
                         </AlertDescription>
@@ -1272,12 +1276,14 @@ export default function ContentCalendar() {
                       <Alert className="border-purple-200 bg-purple-50">
                         <Sparkles className="h-4 w-4 text-purple-600" />
                         <AlertTitle className="text-purple-800">
-                          AI posts ready for {format(currentDate, "MMMM yyyy")}
+                          {isSpanish
+                            ? `Posts de IA listos para ${format(currentDate, "MMMM yyyy")}`
+                            : `AI posts ready for ${format(currentDate, "MMMM yyyy")}`}
                         </AlertTitle>
                         <AlertDescription className="text-purple-700">
-                          You have {currentMonthAiPosts.length} AI-generated
-                          posts for this month. Review them in the calendar
-                          below.
+                          {isSpanish
+                            ? `Tienes ${currentMonthAiPosts.length} posts generados por la IA para este mes. Revísalos en el calendario de abajo.`
+                            : `You have ${currentMonthAiPosts.length} AI-generated posts for this month. Review them in the calendar below.`}
                         </AlertDescription>
                       </Alert>
                     )}
@@ -1292,7 +1298,7 @@ export default function ContentCalendar() {
                           <div className="flex items-center gap-2 mb-2">
                             <CalendarDays className="h-5 w-5 text-gray-500" />
                             <span className="font-semibold text-gray-800">
-                              This Week
+                              {isSpanish ? "Esta Semana" : "This Week"}
                             </span>
                             <Badge variant="secondary" className="ml-2">
                               {thisWeekStats.total} posts
@@ -1302,19 +1308,22 @@ export default function ContentCalendar() {
                             <span className="flex items-center gap-1.5">
                               <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
                               <span className="text-gray-600">
-                                {thisWeekStats.pending} pending
+                                {thisWeekStats.pending}{" "}
+                                {isSpanish ? "pendientes" : "pending"}
                               </span>
                             </span>
                             <span className="flex items-center gap-1.5">
                               <span className="w-2 h-2 rounded-full bg-green-500"></span>
                               <span className="text-gray-600">
-                                {thisWeekStats.accepted} accepted
+                                {thisWeekStats.accepted}{" "}
+                                {isSpanish ? "aceptados" : "accepted"}
                               </span>
                             </span>
                             <span className="flex items-center gap-1.5">
                               <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                               <span className="text-gray-600">
-                                {thisWeekStats.published} published
+                                {thisWeekStats.published}{" "}
+                                {isSpanish ? "publicados" : "published"}
                               </span>
                             </span>
                           </div>
@@ -1336,8 +1345,12 @@ export default function ContentCalendar() {
                           >
                             <Settings className="w-4 h-4 mr-1" />
                             {hasPostingFrequency
-                              ? "Edit Frequency"
-                              : "Set Frequency"}
+                              ? isSpanish
+                                ? "Editar Frecuencia"
+                                : "Edit Frequency"
+                              : isSpanish
+                                ? "Establecer Frecuencia"
+                                : "Set Frequency"}
                           </Button>
 
                           {/* Auto-posting Toggle */}
@@ -1413,7 +1426,7 @@ export default function ContentCalendar() {
                                   onClick={() => setCurrentDate(new Date())}
                                   data-testid="button-today"
                                 >
-                                  Today
+                                  {isSpanish ? "Hoy" : "Today"}
                                 </Button>
                                 <Button
                                   variant="ghost"
@@ -1472,15 +1485,20 @@ export default function ContentCalendar() {
                                           <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                           Loading...
                                         </>
-                                      ) : generatePostsMutation.isPending || hasActiveJob ? (
+                                      ) : generatePostsMutation.isPending ||
+                                        hasActiveJob ? (
                                         <>
                                           <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                          Generating...
+                                          {isSpanish
+                                            ? "Generando..."
+                                            : "Generating..."}
                                         </>
                                       ) : (
                                         <>
                                           <Sparkles className="w-4 h-4 mr-1" />
-                                          Generate AI Posts
+                                          {isSpanish
+                                            ? "Generar Posts con IA"
+                                            : "Generate AI Posts"}
                                         </>
                                       )}
                                     </Button>
@@ -1530,7 +1548,9 @@ export default function ContentCalendar() {
                                         ) : (
                                           <>
                                             <CheckCircle className="w-4 h-4 mr-1" />
-                                            Approve Month
+                                            {isSpanish
+                                              ? "Aprobar Mes"
+                                              : "Approve Month"}
                                           </>
                                         )}
                                       </Button>
@@ -1664,7 +1684,9 @@ export default function ContentCalendar() {
                             <CardTitle className="text-lg">
                               {selectedDate
                                 ? format(selectedDate, "EEEE, MMMM d")
-                                : "Select a date"}
+                                : isSpanish
+                                  ? "Selecciona una fecha"
+                                  : "Select a date"}
                             </CardTitle>
                           </div>
                           {/* ✅ Approve all posts for the day - only show if there are pending posts */}
@@ -1898,8 +1920,12 @@ export default function ContentCalendar() {
                           ) : (
                             <p className="text-gray-500 text-center py-8">
                               {selectedDate
-                                ? "No posts for this day"
-                                : "Click on a day to view posts"}
+                                ? isSpanish
+                                  ? "No hay posts para este día"
+                                  : "No posts for this day"
+                                : isSpanish
+                                  ? "Selecciona una fecha para ver los posts"
+                                  : "Select a date to view posts"}
                             </p>
                           )}
                         </CardContent>
@@ -1929,10 +1955,12 @@ export default function ContentCalendar() {
                       </div>
                       <div>
                         <DialogTitle className="text-lg font-semibold">
-                          Edit Post
+                          {isSpanish ? "Editar Publicación" : "Edit Post"}
                         </DialogTitle>
                         <p className="text-sm text-gray-500">
-                          Preview and customize your content
+                          {isSpanish
+                            ? "Vista previa y personaliza tu contenido"
+                            : "Preview and customize your content"}
                         </p>
                       </div>
                     </div>
@@ -1954,17 +1982,20 @@ export default function ContentCalendar() {
                       {/* Status badge next to platform */}
                       {editPost.status === "pending" && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-sm font-medium border border-purple-200">
-                          <Clock className="w-4 h-4" /> Pending
+                          <Clock className="w-4 h-4" />{" "}
+                          {isSpanish ? "Pendiente" : "Pending"}
                         </span>
                       )}
                       {editPost.status === "accepted" && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium border border-green-200">
-                          <CheckCircle className="w-4 h-4" /> Approved
+                          <CheckCircle className="w-4 h-4" />{" "}
+                          {isSpanish ? "Aprobado" : "Approved"}
                         </span>
                       )}
                       {editPost.status === "published" && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium border border-green-200">
-                          <RssIcon className="w-4 h-4" /> Published
+                          <RssIcon className="w-4 h-4" />{" "}
+                          {isSpanish ? "Publicado" : "Published"}
                         </span>
                       )}
                       {editPost.status === "skipped_auto_post_disabled" && (
@@ -1975,7 +2006,8 @@ export default function ContentCalendar() {
                       )}
                       {editPost.status === "rejected" && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium border border-red-200">
-                          <XCircle className="w-4 h-4" /> Rejected
+                          <XCircle className="w-4 h-4" />{" "}
+                          {isSpanish ? "Rechazado" : "Rejected"}
                         </span>
                       )}
                     </div>

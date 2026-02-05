@@ -21,14 +21,12 @@ import {
   Globe,
   Shield,
   Clock,
-  ChevronDown,
-  Instagram,
-  Facebook,
-  Linkedin,
-  Twitter,
   Mail,
   Hash,
   Sparkles,
+  CalendarDays,
+  Wand2,
+  ArrowUpRight,
 } from "lucide-react";
 import {
   SiInstagram,
@@ -1014,7 +1012,7 @@ export default function Landing() {
                   {isSpanish ? "Conoce a " : "Meet "}
                 </span>
               </h2>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6">
+              <h2 className="text-5xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6">
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
                   Boosty
                 </span>
@@ -1115,63 +1113,77 @@ export default function Landing() {
           </div>
 
           {/* Boosty capabilities showcase - Mobile optimized */}
-          <div className="mt-12 sm:mt-16 lg:mt-24 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <div className="mt-16 lg:mt-20 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {[
               {
-                emoji: "🎨",
+                icon: Sparkles,
                 title: isSpanish ? "Creación de Contenido" : "Content Creation",
                 desc: isSpanish
                   ? "Genera posts, stories, reels y más para todas tus redes sociales en segundos."
                   : "Generate posts, stories, reels and more for all your social networks in seconds.",
-                gradient: "from-pink-50 to-rose-50",
-                border: "border-pink-200",
-                textColor: "text-gray-900",
-                descColor: "text-gray-600",
+                accent: "text-pink-600",
+                line: "bg-pink-500",
               },
               {
-                emoji: "📅",
+                icon: CalendarDays,
                 title: isSpanish ? "Planificación 30 Días" : "30-Day Planner",
                 desc: isSpanish
                   ? "Planifica y programa un mes completo de contenido con estrategia inteligente."
                   : "Plan and schedule a full month of content with intelligent strategy.",
-                gradient: "from-blue-50 to-cyan-50",
-                border: "border-blue-200",
-                textColor: "text-gray-900",
-                descColor: "text-gray-600",
+                accent: "text-sky-600",
+                line: "bg-sky-500",
               },
               {
-                emoji: "🚀",
+                icon: Wand2,
                 title: isSpanish
                   ? "Optimización Automática"
                   : "Auto Optimization",
                 desc: isSpanish
                   ? "Analiza rendimiento y mejora automáticamente tu contenido en tiempo real."
                   : "Analyze performance and automatically improve your content in real-time.",
-                gradient: "from-purple-50 to-indigo-50",
-                border: "border-purple-200",
-                textColor: "text-gray-900",
-                descColor: "text-gray-600",
+                accent: "text-violet-600",
+                line: "bg-violet-500",
               },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className={`relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br ${item.gradient} border ${item.border} p-5 sm:p-6 lg:p-8 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 group`}
-              >
-                <div className="text-3xl sm:text-4xl lg:text-5xl mb-3 sm:mb-4">
-                  {item.emoji}
+            ].map((item, i) => {
+              const Icon = item.icon;
+
+              return (
+                <div
+                  key={i}
+                  className="group relative rounded-2xl border border-gray-200/80 bg-white p-6 sm:p-7
+                             shadow-[0_8px_24px_rgba(15,23,42,0.05)]
+                             hover:shadow-[0_14px_36px_rgba(15,23,42,0.08)]
+                             transition-all duration-300"
+                >
+                  <div className="flex items-start gap-4">
+                    {/* icon */}
+                    <div className="mt-1">
+                      <Icon className={`h-6 w-6 ${item.accent}`} />
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900">
+                        {item.title}
+                      </h3>
+
+                      <p className="mt-2 text-sm sm:text-base leading-relaxed text-gray-600">
+                        {item.desc}
+                      </p>
+
+                      {/* quiet divider */}
+                      <div className="mt-4 flex items-center gap-3">
+                        <div className={`h-px w-10 ${item.line} opacity-40`} />
+                        <span className="text-xs text-gray-500">
+                          {isSpanish
+                            ? "Incluido en todos los planes"
+                            : "Included in all plans"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3
-                  className={`text-lg sm:text-xl font-bold ${item.textColor} mb-2 sm:mb-3 group-hover:text-blue-600 transition-colors`}
-                >
-                  {item.title}
-                </h3>
-                <p
-                  className={`${item.descColor} leading-relaxed text-sm sm:text-base`}
-                >
-                  {item.desc}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

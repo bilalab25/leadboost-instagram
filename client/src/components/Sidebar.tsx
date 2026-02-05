@@ -68,7 +68,7 @@ export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
   const { language } = useLanguage();
-  const t = translations[language]; 
+  const t = translations[language];
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
@@ -179,7 +179,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col">
+    <div className="hidden md:flex md:w-65 md:flex-col">
       <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white border-r border-gray-200">
         {/* Navigation */}
         <div className="mt-8 flex-grow flex flex-col">
