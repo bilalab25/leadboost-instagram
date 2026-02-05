@@ -22,7 +22,10 @@ export interface AiGeneratedPost {
 }
 
 export async function createAiGeneratedPost(
-  data: Omit<AiGeneratedPost, "id" | "createdAt" | "updatedAt" | "scheduledPublishTime" | "publishedAt">
+  data: Omit<
+    AiGeneratedPost,
+    "id" | "createdAt" | "updatedAt" | "scheduledPublishTime" | "publishedAt"
+  >,
 ): Promise<AiGeneratedPost> {
   const now = new Date();
   const result = await db
@@ -64,7 +67,9 @@ export async function createAiGeneratedPost(
   };
 }
 
-export async function getAiGeneratedPostsByJob(jobId: string): Promise<AiGeneratedPost[]> {
+export async function getAiGeneratedPostsByJob(
+  jobId: string,
+): Promise<AiGeneratedPost[]> {
   const results = await db
     .select()
     .from(aiGeneratedPosts)
@@ -90,11 +95,18 @@ export async function getAiGeneratedPostsByJob(jobId: string): Promise<AiGenerat
   }));
 }
 
-export async function getSamplePostsByBrand(brandId: string): Promise<AiGeneratedPost[]> {
+export async function getSamplePostsByBrand(
+  brandId: string,
+): Promise<AiGeneratedPost[]> {
   const results = await db
     .select()
     .from(aiGeneratedPosts)
-    .where(and(eq(aiGeneratedPosts.brandId, brandId), eq(aiGeneratedPosts.isSample, true)));
+    .where(
+      and(
+        eq(aiGeneratedPosts.brandId, brandId),
+        eq(aiGeneratedPosts.isSample, true),
+      ),
+    );
 
   return results.map((r) => ({
     id: r.id,
@@ -116,14 +128,25 @@ export async function getSamplePostsByBrand(brandId: string): Promise<AiGenerate
   }));
 }
 
-export async function getAiGeneratedPostsByBrand(brandId: string, status?: string): Promise<AiGeneratedPost[]> {
-  let query = db.select().from(aiGeneratedPosts).where(eq(aiGeneratedPosts.brandId, brandId));
-  
+export async function getAiGeneratedPostsByBrand(
+  brandId: string,
+  status?: string,
+): Promise<AiGeneratedPost[]> {
+  let query = db
+    .select()
+    .from(aiGeneratedPosts)
+    .where(eq(aiGeneratedPosts.brandId, brandId));
+
   if (status) {
     query = db
       .select()
       .from(aiGeneratedPosts)
-      .where(and(eq(aiGeneratedPosts.brandId, brandId), eq(aiGeneratedPosts.status, status)));
+      .where(
+        and(
+          eq(aiGeneratedPosts.brandId, brandId),
+          eq(aiGeneratedPosts.status, status),
+        ),
+      );
   }
 
   const results = await query;
@@ -145,6 +168,7 @@ export async function getAiGeneratedPostsByBrand(brandId: string, status?: strin
     publishedAt: r.publishedAt?.toISOString() || null,
     createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
     updatedAt: r.updatedAt?.toISOString() || new Date().toISOString(),
+    type: r.type || "image",
   }));
 }
 
@@ -152,19 +176,19 @@ export async function updateAiGeneratedPostStatus(
   postId: string,
   status: "pending" | "accepted" | "rejected" | "published",
   scheduledPublishTime?: string,
-  imageUrl?: string
+  imageUrl?: string,
 ): Promise<AiGeneratedPost | null> {
   const now = new Date();
   const updateData: any = { status, updatedAt: now };
-  
+
   if (scheduledPublishTime) {
     updateData.scheduledPublishTime = new Date(scheduledPublishTime);
   }
-  
+
   if (imageUrl) {
     updateData.imageUrl = imageUrl;
   }
-  
+
   const result = await db
     .update(aiGeneratedPosts)
     .set(updateData)
@@ -195,13 +219,13 @@ export async function updateAiGeneratedPostStatus(
 
 export async function bulkUpdateAiGeneratedPostsStatus(
   postIds: string[],
-  status: "pending" | "accepted" | "rejected"
+  status: "pending" | "accepted" | "rejected",
 ): Promise<number> {
   if (postIds.length === 0) return 0;
-  
+
   const now = new Date();
   const { inArray } = await import("drizzle-orm");
-  
+
   const result = await db
     .update(aiGeneratedPosts)
     .set({ status, updatedAt: now })

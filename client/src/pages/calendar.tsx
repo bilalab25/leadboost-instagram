@@ -418,6 +418,7 @@ export default function ContentCalendar() {
         publishedAt: post.publishedAt || undefined,
         createdAt: post.createdAt || undefined,
         dia: post.dia || undefined,
+        type: post.type || "image",
       });
     });
 
@@ -1975,6 +1976,7 @@ export default function ContentCalendar() {
                         </p>
                       </div>
                     </div>
+                    {console.log(editPost)}
                     <div className="flex items-center gap-2 mr-4">
                       {editPost.platform === "instagram" ||
                       editPost.platform === "instagram_direct" ? (
@@ -2033,15 +2035,21 @@ export default function ContentCalendar() {
                       Live Preview
                     </p>
                     <div className="bg-white rounded-xl shadow-lg overflow-hidden border">
-                      {/* Image or Video */}
                       <div className="aspect-square relative bg-gray-100">
                         {editPost.type === "video" ? (
-                          <video
-                            src={editPost.imageUrl}
-                            className="w-full h-full object-cover"
-                            controls
-                            preload="metadata"
-                          />
+                          <div className="w-full aspect-video bg-black rounded overflow-hidden">
+                            <video
+                              controls
+                              playsInline
+                              preload="metadata"
+                              className="w-full h-full"
+                            >
+                              <source
+                                src={editPost.imageUrl}
+                                type="video/mp4"
+                              />
+                            </video>
+                          </div>
                         ) : (
                           <>
                             <img
