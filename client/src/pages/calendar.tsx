@@ -55,6 +55,7 @@ import {
   isSameMonth,
   isWithinInterval,
 } from "date-fns";
+import { es, enUS } from "date-fns/locale";
 import {
   Dialog,
   DialogContent,
@@ -148,6 +149,7 @@ export default function ContentCalendar() {
   const { isAuthenticated, isLoading } = useAuth();
   const { activeBrandId } = useBrand();
   const { isSpanish } = useLanguage();
+  const dateLocale = isSpanish ? es : enUS;
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -524,7 +526,7 @@ export default function ContentCalendar() {
     if (!hasBrandDesign) return "Create your brand design first";
     if (!hasPostingFrequency) return "Set your posting frequency first";
     if (hasAiPostsForCurrentMonth)
-      return `Posts already exist for ${format(currentDate, "MMMM yyyy")}`;
+      return `Posts already exist for ${format(currentDate, "MMMM yyyy", { locale: dateLocale })}`;
     return "";
   };
 
@@ -997,7 +999,7 @@ export default function ContentCalendar() {
         return isSameDay(scheduledDate, date);
       }
       // Otherwise fall back to matching by day name within the month
-      const dayName = format(date, "EEEE").toLowerCase();
+      const dayName = format(date, "EEEE", { locale: dateLocale }).toLowerCase();
       return (
         post.dia?.toLowerCase() === dayName &&
         isSameMonth(new Date(post.createdAt), currentDate)
@@ -1277,8 +1279,8 @@ export default function ContentCalendar() {
                         <Sparkles className="h-4 w-4 text-purple-600" />
                         <AlertTitle className="text-purple-800">
                           {isSpanish
-                            ? `Posts de IA listos para ${format(currentDate, "MMMM yyyy")}`
-                            : `AI posts ready for ${format(currentDate, "MMMM yyyy")}`}
+                            ? `Posts de IA listos para ${format(currentDate, "MMMM yyyy", { locale: dateLocale })}`
+                            : `AI posts ready for ${format(currentDate, "MMMM yyyy", { locale: dateLocale })}`}
                         </AlertTitle>
                         <AlertDescription className="text-purple-700">
                           {isSpanish
@@ -1399,7 +1401,7 @@ export default function ContentCalendar() {
                               <CardTitle className="text-xl font-bold flex items-center gap-2">
                                 <CalendarIcon className="h-6 w-6 text-gray-500" />
                                 <span className="text-gray-800">
-                                  {format(currentDate, "MMMM yyyy")}
+                                  {format(currentDate, "MMMM yyyy", { locale: dateLocale })}
                                 </span>
                               </CardTitle>
                               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
@@ -1609,7 +1611,7 @@ export default function ContentCalendar() {
                                   onClick={() => handleDateClick(day)}
                                 >
                                   <div className="text-sm font-medium text-gray-900">
-                                    {format(day, "d")}
+                                    {format(day, "d", { locale: dateLocale })}
                                   </div>
                                   <div className="mt-1 space-y-1">
                                     {postsForDay.slice(0, 2).map((post) => {
@@ -1683,7 +1685,7 @@ export default function ContentCalendar() {
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-lg">
                               {selectedDate
-                                ? format(selectedDate, "EEEE, MMMM d")
+                                ? format(selectedDate, "EEEE, MMMM d", { locale: dateLocale })
                                 : isSpanish
                                   ? "Selecciona una fecha"
                                   : "Select a date"}
@@ -1862,6 +1864,7 @@ export default function ContentCalendar() {
                                       {format(
                                         new Date(post.scheduledFor),
                                         "h:mm a",
+                                        { locale: dateLocale },
                                       )}
                                     </p>
                                     <p className="text-sm text-gray-700 line-clamp-2">
@@ -2058,6 +2061,7 @@ export default function ContentCalendar() {
                         {format(
                           new Date(editPost.scheduledFor),
                           "MMM d, yyyy 'at' h:mm a",
+                          { locale: dateLocale },
                         )}
                       </span>
                     </div>
@@ -2154,6 +2158,7 @@ export default function ContentCalendar() {
                         value={format(
                           new Date(editPost.scheduledFor),
                           "yyyy-MM-dd'T'HH:mm",
+                          { locale: dateLocale },
                         )}
                         onChange={(e) =>
                           setEditPost((prev) =>
@@ -2185,6 +2190,7 @@ export default function ContentCalendar() {
                               {format(
                                 new Date(editPost.publishedAt),
                                 "PPP 'at' p",
+                                { locale: dateLocale },
                               )}
                             </span>
                           </div>
