@@ -5,7 +5,7 @@ import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 // Tu configuración de Firebase (obtenida de la consola de Firebase)
 const firebaseConfig = {
   apiKey: "AIzaSyDfch6TtQaX-OjvMfP7FZUVHgZGmeSfdBg",
-  authDomain: "leadboost-f0991.firebaseapp.com",
+  authDomain: "app.leadboostapp.ai",
   projectId: "leadboost-f0991",
   storageBucket: "leadboost-f0991.firebasestorage.app",
   messagingSenderId: "898474049332",
@@ -18,13 +18,13 @@ export const auth = getAuth(app);
 
 // Inicializa los proveedores de autenticación social
 export const googleProvider = new GoogleAuthProvider();
-export const microsoftProvider = new OAuthProvider('microsoft.com');
-export const appleProvider = new OAuthProvider('apple.com');
+export const microsoftProvider = new OAuthProvider("microsoft.com");
+export const appleProvider = new OAuthProvider("apple.com");
 
 microsoftProvider.setCustomParameters({
-  prompt: 'consent',
-  tenant: 'common'
+  prompt: "consent",
+  tenant: "common",
 });
 
-appleProvider.addScope('email');
-appleProvider.addScope('name');
+appleProvider.addScope("email");
+appleProvider.addScope("name");

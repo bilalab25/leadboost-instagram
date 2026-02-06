@@ -1234,18 +1234,24 @@ export default function ContentCalendar() {
                         <Alert className="border-purple-200 bg-purple-50">
                           <Palette className="h-4 w-4 text-purple-600" />
                           <AlertTitle className="text-purple-800">
-                            Create your brand design
+                            {isSpanish
+                              ? "Crea el diseño de tu marca"
+                              : "Create your brand design"}
                           </AlertTitle>
                           <AlertDescription className="text-purple-700">
-                            Define your brand colors, fonts, and style to enable
-                            AI post generation.
+                            {isSpanish
+                              ? "Define los colores, las fuentes y el estilo de tu marca para permitir la generación de publicaciones con IA."
+                              : "Define your brand colors, fonts, and style to enable AI post generation."}
                             <Link href="/brand-studio">
                               <Button
                                 variant="link"
                                 className="text-purple-800 font-semibold p-0 h-auto ml-1"
                                 data-testid="link-brand-studio"
                               >
-                                Go to Brand Studio →
+                                {isSpanish
+                                  ? "Ir al estudio de marcas"
+                                  : "Go to Brand Studio"}{" "}
+                                →
                               </Button>
                             </Link>
                           </AlertDescription>
@@ -1260,18 +1266,24 @@ export default function ContentCalendar() {
                         <Alert className="border-blue-200 bg-blue-50">
                           <CalendarDays className="h-4 w-4 text-blue-600" />
                           <AlertTitle className="text-blue-800">
-                            Set your posting frequency
+                            {isSpanish
+                              ? "Establece la frecuencia de publicación"
+                              : "Set your posting frequency"}
                           </AlertTitle>
                           <AlertDescription className="text-blue-700">
-                            Configure how often you want to post on each
-                            platform to generate the right amount of content.
+                            {isSpanish
+                              ? "Configura la frecuencia con la que deseas publicar en cada plataforma para generar la cantidad adecuada de contenido."
+                              : "Configure how often you want to post on each platform to generate the right amount of content."}
                             <Button
                               variant="link"
                               className="text-blue-800 font-semibold p-0 h-auto ml-1"
                               onClick={() => setIsFrequencyModalOpen(true)}
                               data-testid="link-set-frequency"
                             >
-                              Set frequency →
+                              {isSpanish
+                                ? "Establecer frecuencia"
+                                : "Set frequency"}{" "}
+                              →
                             </Button>
                           </AlertDescription>
                         </Alert>
@@ -1715,8 +1727,8 @@ export default function ContentCalendar() {
                                 }
                                 data-testid="button-approve-day"
                               >
-                                <CheckCircle className="w-4 h-4 mr-1" /> Approve
-                                Day
+                                <CheckCircle className="w-4 h-4 mr-1" />{" "}
+                                {isSpanish ? "Aprobar día" : "Approve Day"}
                               </Button>
                             )}
                         </CardHeader>
@@ -1976,7 +1988,6 @@ export default function ContentCalendar() {
                         </p>
                       </div>
                     </div>
-                    {console.log(editPost)}
                     <div className="flex items-center gap-2 mr-4">
                       {editPost.platform === "instagram" ||
                       editPost.platform === "instagram_direct" ? (
@@ -2032,7 +2043,7 @@ export default function ContentCalendar() {
                   {/* Live Preview - Left Side */}
                   <div className="col-span-2 bg-gray-50 p-6 border-r">
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-                      Live Preview
+                      {isSpanish ? "Vista Previa" : "Live Preview"}
                     </p>
                     <div className="bg-white rounded-xl shadow-lg overflow-hidden border">
                       <div className="aspect-square relative bg-gray-100">
@@ -2060,7 +2071,11 @@ export default function ContentCalendar() {
                                 editPost.imageUrl &&
                                 setFullscreenImage(editPost.imageUrl)
                               }
-                              title="Click to view full size"
+                              title={
+                                isSpanish
+                                  ? "Click para ver tamaño completo"
+                                  : "Click to view full size"
+                              }
                             />
                             <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1 pointer-events-none">
                               <Eye className="w-3 h-3" />
@@ -2084,7 +2099,7 @@ export default function ContentCalendar() {
                     <div className="mt-4 flex items-center gap-2 text-sm text-gray-600 bg-white rounded-lg px-3 py-2 border">
                       <CalendarCheck className="w-4 h-4 text-primary" />
                       <span>
-                        Scheduled for{" "}
+                        {isSpanish ? "Programado para" : "Scheduled for"}{" "}
                         {format(
                           new Date(editPost.scheduledFor),
                           "MMM d, yyyy 'at' h:mm a",
@@ -2099,7 +2114,7 @@ export default function ContentCalendar() {
                     {/* Title */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">
-                        Post Title
+                        {isSpanish ? "Título de la publicación" : "Post Title"}
                       </label>
                       <Input
                         value={editPost.title}
@@ -2123,7 +2138,7 @@ export default function ContentCalendar() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <label className="text-sm font-medium text-gray-700">
-                          Caption
+                          {isSpanish ? "Título" : "Caption"}
                         </label>
                         <span className="text-xs text-gray-400">
                           {editPost.content?.length || 0} / 2,200
