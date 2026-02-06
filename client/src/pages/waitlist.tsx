@@ -127,7 +127,22 @@ export default function WaitList() {
         return;
       }
 
-      console.log("WAITLIST:", data);
+      const { companyFax, ...payload } = data;
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.status === 409) {
+        setSubmitError("This email is already on the waitlist!");
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+
       setSubmitted({ email: data.email });
       form.reset();
     } catch (e) {
