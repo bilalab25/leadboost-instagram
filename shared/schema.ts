@@ -1765,3 +1765,30 @@ export const insertImageUsageSchema = createInsertSchema(imageUsage).omit({
 
 export type InsertImageUsage = z.infer<typeof insertImageUsageSchema>;
 export type ImageUsage = typeof imageUsage.$inferSelect;
+
+// Waitlist table
+export const waitlist = pgTable("waitlist", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  firstName: varchar("first_name").notNull(),
+  lastName: varchar("last_name").notNull(),
+  email: varchar("email").notNull().unique(),
+  company: varchar("company").notNull(),
+  role: varchar("role").notNull(),
+  teamSize: varchar("team_size").notNull(),
+  primaryGoal: varchar("primary_goal").notNull(),
+  platforms: text("platforms").array().notNull(),
+  postingFrequency: varchar("posting_frequency"),
+  country: varchar("country").notNull(),
+  city: varchar("city"),
+  website: varchar("website"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertWaitlistSchema = createInsertSchema(waitlist).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertWaitlist = z.infer<typeof insertWaitlistSchema>;
+export type Waitlist = typeof waitlist.$inferSelect;

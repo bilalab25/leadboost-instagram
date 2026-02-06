@@ -147,10 +147,6 @@ export default function WaitList() {
               alt="LeadBoost"
               className="h-10 sm:h-12 w-auto"
             />
-            <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
-              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-              <span>Trusted by 200+ brands</span>
-            </div>
           </div>
         </div>
       </header>
