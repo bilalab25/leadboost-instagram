@@ -421,7 +421,7 @@ export default function Landing() {
           >
             {isSpanish
               ? "La única plataforma que recopila tus datos, crea campañas inteligentes y cierra ventas—todo automáticamente."
-              : "The only platform that collects your business data, creates content for up to 30 days that runs automatically, and closes sales—all on autopilot."}
+              : "The only platform that collects your business data, creates content that runs automatically, and closes sales—all on autopilot."}
           </p>
 
           {/* Primary CTA - Mobile-friendly touch targets */}
