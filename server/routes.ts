@@ -56,7 +56,7 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
 import cloudinary from "./cloudinary";
 import { db } from "./db";
-import { brandDesigns, posIntegrations } from "@shared/schema";
+import { brandDesigns, posIntegrations, waitlist, insertWaitlistSchema } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import dayjs from "dayjs";
 import { nanoid } from "nanoid";
@@ -919,6 +919,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint for deployment
   app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "ok" });
+  });
+
+  app.post("/api/waitlist", async (req, res) => {
+    try {
+      const parsed = insertWaitlistSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.flatten() });
+      }
+      const [entry] = await db.insert(waitlist).values(parsed.data).returning();
+      res.status(201).json({ success: true, id: entry.id });
+    } catch (err: any) {
+      if (err?.code === "23505") {
+        return res.status(409).json({ error: "This email is already on the waitlist." });
+      }
+      console.error("Waitlist error:", err);
+      res.status(500).json({ error: "Something went wrong. Please try again." });
+    }
   });
 
   // Auth middleware
