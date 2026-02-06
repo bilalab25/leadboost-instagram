@@ -914,6 +914,8 @@ function mergeLocalAndRemote(
 // ==================================================================================
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  app.use("/.well-known", express.static(".well-known"));
+
   // Health check endpoint for deployment
   app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "ok" });
