@@ -61,6 +61,20 @@ export default function Landing() {
       className="min-h-screen relative text-gray-900 overflow-hidden"
       style={{ backgroundColor: "#F8F8FA" }}
     >
+      {/* Beta Announcement Banner */}
+      <div className="relative z-50 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 text-white text-center py-2 px-4">
+        <p className="text-xs sm:text-sm font-medium flex items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+            Beta
+          </span>
+          <span>
+            {isSpanish
+              ? "Estamos en beta — Obtén acceso anticipado y forma parte del futuro del marketing con IA"
+              : "We're in beta — Get early access and shape the future of AI marketing"}
+          </span>
+        </p>
+      </div>
+
       {/* Header - Mobile Optimized */}
       <header
         className="relative z-50 backdrop-blur-md border-b border-gray-200 shadow-sm"
