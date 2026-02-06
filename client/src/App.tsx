@@ -36,6 +36,7 @@ import Onboarding from "@/pages/onboarding";
 import WhatsAppTemplates from "@/pages/whatsapp-templates";
 import Sales from "@/pages/sales";
 import Boosty from "@/pages/boosty";
+import WaitList from "./pages/waitlist";
 
 function Router() {
   return (
@@ -46,7 +47,7 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/spanish-preview" component={SpanishPreview} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
-
+      <Route path="/waitlist" component={WaitList} />
       {/* Rutas de la aplicación - PROTEGIDAS por PrivateRoute */}
       {/* Si el usuario no está autenticado, PrivateRoute lo redirigirá a /login */}
       {/* Onboarding is a special case - requires auth but not brands */}
@@ -72,7 +73,6 @@ function Router() {
       <PrivateRoute path="/whatsapp-templates" component={WhatsAppTemplates} />
       <PrivateRoute path="/sales" component={Sales} />
       <PrivateRoute path="/boosty" component={Boosty} />
-
       {/* Ruta 404 para cualquier otra ruta no definida */}
       <Route component={NotFound} />
     </Switch>

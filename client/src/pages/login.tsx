@@ -311,7 +311,8 @@ export default function LoginPage() {
               variant="outline"
               className="w-full flex items-center justify-center gap-2"
               onClick={() => handleFirebaseSocialLogin(appleProvider)}
-              disabled={firebaseAuthMutation.isPending}
+              //disabled={firebaseAuthMutation.isPending}
+              disabled
             >
               <FaApple size={20} /> Continue with Apple
             </Button>
@@ -319,7 +320,8 @@ export default function LoginPage() {
               variant="outline"
               className="w-full flex items-center justify-center gap-2"
               onClick={() => handleFirebaseSocialLogin(microsoftProvider)}
-              disabled={firebaseAuthMutation.isPending}
+              //disabled={firebaseAuthMutation.isPending}
+              disabled
             >
               <FaMicrosoft size={20} /> Continue with Microsoft
             </Button>
