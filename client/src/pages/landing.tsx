@@ -65,150 +65,40 @@ export default function Landing() {
         className="relative z-50 backdrop-blur-md border-b border-gray-200 shadow-sm"
         style={{ backgroundColor: "rgba(248, 248, 250, 0.95)" }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3 sm:py-4">
-            <div className="flex items-center">
+        {/* padding en mobile, ya en desktop puedes volver a 0 si quieres */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-0">
+          <div className="flex items-center justify-between py-2 sm:py-3">
+            {/* Logo: más chico en mobile */}
+            <div className="flex items-center min-w-0">
               <img
                 src={leadBoostLogo}
-                alt="CampAIgner"
-                className="h-7 sm:h-8 w-auto"
+                alt="LeadBoost"
+                className="h-10 sm:h-14 lg:h-16 w-auto"
               />
             </div>
 
-            <nav className="hidden md:flex items-center space-x-8">
-              {/*   <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="text-gray-600 hover:text-gray-900 font-medium transition-colors p-0 h-auto"
-                  >
-                    {isSpanish ? "Características" : "Features"}
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-80">
-                  <DropdownMenuItem className="flex items-start gap-3 p-4">
-                    <Bot className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <div className="font-semibold text-gray-900">
-                        {isSpanish
-                          ? "Campañas IA Automatizadas"
-                          : "AI Automated Campaigns"}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {isSpanish
-                          ? "IA crea contenido basado en datos reales"
-                          : "AI Creates Content Based On Real Data"}
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-start gap-3 p-4">
-                    <MessageSquare className="h-5 w-5 text-green-600 mt-0.5" />
-                    <div>
-                      <div className="font-semibold text-gray-900">
-                        {isSpanish ? "Bandeja Unificada" : "Unified Inbox"}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {isSpanish
-                          ? "Gestiona todos los mensajes desde un lugar"
-                          : "Manage all messages from one place"}
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-start gap-3 p-4">
-                    <TrendingUp className="h-5 w-5 text-purple-600 mt-0.5" />
-                    <div>
-                      <div className="font-semibold text-gray-900">
-                        {isSpanish
-                          ? "Análisis en Tiempo Real"
-                          : "Real-Time Analytics"}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {isSpanish
-                          ? "Métricas de ventas y ROI automáticas"
-                          : "Automatic sales and ROI metrics"}
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-start gap-3 p-4">
-                    <Globe className="h-5 w-5 text-orange-600 mt-0.5" />
-                    <div>
-                      <div className="font-semibold text-gray-900">
-                        {isSpanish ? "21+ Plataformas" : "21+ Platforms"}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {isSpanish
-                          ? "Instagram, TikTok, Facebook, LinkedIn y más"
-                          : "Instagram, TikTok, Facebook, LinkedIn and more"}
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-start gap-3 p-4">
-                    <Users className="h-5 w-5 text-red-600 mt-0.5" />
-                    <div>
-                      <div className="font-semibold text-gray-900">
-                        {isSpanish ? "CRM Inteligente" : "Smart CRM"}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {isSpanish
-                          ? "Gestión automática de leads y clientes"
-                          : "Automatic lead and customer management"}
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-start gap-3 p-4">
-                    <Shield className="h-5 w-5 text-cyan-600 mt-0.5" />
-                    <div>
-                      <div className="font-semibold text-gray-900">
-                        {isSpanish
-                          ? "Seguridad Empresarial"
-                          : "Enterprise Security"}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {isSpanish
-                          ? "Cifrado, GDPR y backups automáticos"
-                          : "Encryption, GDPR and automatic backups"}
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-gray-900 font-medium transition-colors p-0 h-auto"
-                asChild
-              >
-                <a href="#pricing">{isSpanish ? "Precios" : "Pricing"}</a>
-              </Button> */}
-            </nav>
+            <nav className="hidden md:flex items-center space-x-8"></nav>
 
-            {/* Mobile-optimized header buttons with proper touch targets */}
+            {/* Acciones: compactas en mobile */}
             <div className="flex items-center gap-2 sm:gap-4">
-              <div className="hidden sm:block">
-                <HelpDropdown isSpanish={isSpanish} />
-              </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleLanguage}
-                className="text-gray-600 hover:text-gray-900 min-w-[44px] min-h-[44px] p-2"
+                className="text-gray-600 hover:text-gray-900 min-w-[40px] min-h-[40px] p-2"
                 data-testid="button-language-toggle"
               >
-                <Globe className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">
+                <Globe className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">
                   {isSpanish ? "EN" : "ES"}
                 </span>
               </Button>
+
+              {/* CTA: en mobile más compacto */}
               <Button
-                variant="outline"
-                className="hidden sm:flex border-gray-300 text-gray-700 hover:bg-gray-50 transition-all duration-300 min-h-[44px]"
-                data-testid="button-login"
-                onClick={() => navigate("/login")}
-              >
-                {isSpanish ? "Iniciar Sesión" : "Login"}
-              </Button>
-              <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 text-sm sm:text-base px-3 sm:px-4 min-h-[44px]"
+                className="bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300
+                           text-sm px-3 h-10 rounded-full
+                           sm:text-base sm:px-4 sm:min-h-[44px]"
                 data-testid="button-header-cta"
                 onClick={() => navigate("/login")}
               >
