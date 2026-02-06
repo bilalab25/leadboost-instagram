@@ -69,8 +69,8 @@ export default function Landing() {
           </span>
           <span>
             {isSpanish
-              ? "Estamos en beta — Obtén acceso anticipado y forma parte del futuro del marketing con IA"
-              : "We're in beta — Get early access and shape the future of AI marketing"}
+              ? "Estamos en beta — Obtén acceso anticipado y forma parte del futuro del marketing con IA y únete al futuro del marketing"
+              : "We're in beta — Get early access and shape the future of AI marketing and join the future of marketing"}
           </span>
         </p>
       </div>
@@ -342,7 +342,9 @@ export default function Landing() {
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
             </Button>
             <p className="text-gray-500 text-xs sm:text-sm">
-              {isSpanish ? "Plataforma en beta — cupos limitados" : "Beta platform — limited spots"}
+              {isSpanish
+                ? "Plataforma en beta — cupos limitados"
+                : "Beta platform — limited spots"}
             </p>
           </div>
         </div>
