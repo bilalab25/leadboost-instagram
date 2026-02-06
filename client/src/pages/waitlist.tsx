@@ -29,7 +29,9 @@ import {
   CheckCircle2,
   ArrowRight,
   Star,
+  Globe,
 } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const waitlistSchema = z.object({
   firstName: z.string().min(1, "Required"),
@@ -73,9 +75,79 @@ const platformOptions = [
 ];
 
 export default function WaitList() {
+  const { isSpanish, toggleLanguage } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<null | { email: string }>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const t = useMemo(() => ({
+    badge: isSpanish ? "Acceso anticipado — Cupos limitados" : "Early access — Limited spots",
+    trusted: isSpanish ? "Más de 200 marcas confían en nosotros" : "Trusted by 200+ brands",
+    heroTitle1: isSpanish ? "Haz crecer tu marca con " : "Grow your brand with ",
+    heroTitleHighlight: isSpanish ? "IA" : "AI-powered",
+    heroTitle2: isSpanish ? " en redes sociales" : " social media",
+    heroDesc: isSpanish
+      ? "Una plataforma para generar contenido, programar posts y convertir mensajes en clientes en Instagram, Facebook y WhatsApp."
+      : "One platform to generate content, schedule posts, and convert messages into customers across Instagram, Facebook & WhatsApp.",
+    featureAiTitle: isSpanish ? "Contenido IA" : "AI Content",
+    featureAiDesc: isSpanish ? "Posts con los assets de tu marca, logo y estilo" : "Posts from your brand assets, logo & style",
+    featureInboxTitle: isSpanish ? "Bandeja unificada" : "Unified Inbox",
+    featureInboxDesc: isSpanish ? "Todos los DMs y mensajes en un solo lugar" : "All DMs & messages in one place",
+    featureScheduleTitle: isSpanish ? "Auto-programación" : "Auto-scheduling",
+    featureScheduleDesc: isSpanish ? "Publicación inteligente con flujos de aprobación" : "Smart posting with approval workflows",
+    featureAnalyticsTitle: isSpanish ? "Analíticas" : "Analytics",
+    featureAnalyticsDesc: isSpanish ? "Mide engagement y optimiza rendimiento" : "Track engagement & optimize performance",
+    successTitle: isSpanish ? "¡Estás en la lista!" : "You're on the list!",
+    successDesc: isSpanish ? "Te enviaremos un correo a " : "We'll email ",
+    successDesc2: isSpanish ? " cuando tu acceso esté listo." : " when your access is ready.",
+    formTitle: isSpanish ? "Solicita acceso anticipado" : "Request early access",
+    formDesc: isSpanish ? "Cuéntanos sobre ti para priorizar el mejor perfil." : "Tell us about you so we can prioritize the best fit.",
+    firstName: isSpanish ? "Nombre" : "First name",
+    lastName: isSpanish ? "Apellido" : "Last name",
+    workEmail: isSpanish ? "Correo de trabajo" : "Work email",
+    companyBrand: isSpanish ? "Empresa / Marca" : "Company / Brand",
+    website: "Website",
+    optional: isSpanish ? "(opcional)" : "(optional)",
+    yourRole: isSpanish ? "Tu rol" : "Your role",
+    selectRole: isSpanish ? "Selecciona rol" : "Select role",
+    teamSize: isSpanish ? "Tamaño del equipo" : "Team size",
+    selectSize: isSpanish ? "Selecciona tamaño" : "Select size",
+    justMe: isSpanish ? "Solo yo" : "Just me",
+    primaryGoal: isSpanish ? "Objetivo principal" : "Primary goal",
+    selectGoal: isSpanish ? "Selecciona tu objetivo" : "Select your goal",
+    platforms: isSpanish ? "Plataformas a automatizar" : "Platforms to automate",
+    platformsHint: isSpanish ? "(selecciona las que apliquen)" : "(select all that apply)",
+    country: isSpanish ? "País" : "Country",
+    countryPlaceholder: isSpanish ? "ej. México" : "e.g. Mexico",
+    city: isSpanish ? "Ciudad" : "City",
+    cityPlaceholder: isSpanish ? "ej. Pachuca" : "e.g. Pachuca",
+    notes: isSpanish ? "¿Algo que debamos saber?" : "Anything we should know?",
+    notesPlaceholder: isSpanish
+      ? "ej. Manejamos 3 marcas, necesitamos aprobaciones + auto-publicación + bandeja unificada."
+      : "e.g. We manage 3 brands, need approvals + auto-posting + unified inbox.",
+    submitBtn: isSpanish ? "Unirme a la lista de espera" : "Join the waitlist",
+    submitting: isSpanish ? "Uniéndose..." : "Joining...",
+    disclaimer: isSpanish
+      ? "Al unirte, aceptas recibir actualizaciones del producto. Sin spam."
+      : "By joining, you agree to receive product updates. No spam, ever.",
+    errorDuplicate: isSpanish ? "¡Este correo ya está en la lista de espera!" : "This email is already on the waitlist!",
+    errorGeneric: isSpanish ? "Algo salió mal. Inténtalo de nuevo." : "Something went wrong. Please try again.",
+    poweredBy: isSpanish ? "Impulsado por IA" : "Powered by AI",
+  }), [isSpanish]);
+
+  const roleLabel = useMemo(
+    () => isSpanish
+      ? { owner: "Fundador/a / Dueño/a", marketing: "Marketing", sales: "Ventas", agency: "Agencia / Consultor", other: "Otro" }
+      : { owner: "Founder / Owner", marketing: "Marketing", sales: "Sales", agency: "Agency / Consultant", other: "Other" },
+    [isSpanish],
+  );
+
+  const goalLabel = useMemo(
+    () => isSpanish
+      ? { content: "Crear contenido más rápido", leads: "Captar más leads", inbox: "Centralizar mensajes (IG/FB/WA)", automation: "Automatizar publicaciones + seguimientos", analytics: "Mejorar rendimiento con analíticas", other: "Otro" }
+      : { content: "Create content faster", leads: "Capture more leads", inbox: "Centralize messages (IG/FB/WA)", automation: "Automate posting + follow-ups", analytics: "Improve performance with analytics", other: "Other" },
+    [isSpanish],
+  );
 
   const form = useForm<WaitlistForm>({
     resolver: zodResolver(waitlistSchema),
@@ -93,29 +165,6 @@ export default function WaitList() {
     },
     mode: "onBlur",
   });
-
-  const roleLabel = useMemo(
-    () => ({
-      owner: "Founder / Owner",
-      marketing: "Marketing",
-      sales: "Sales",
-      agency: "Agency / Consultant",
-      other: "Other",
-    }),
-    [],
-  );
-
-  const goalLabel = useMemo(
-    () => ({
-      content: "Create content faster",
-      leads: "Capture more leads",
-      inbox: "Centralize messages (IG/FB/WA)",
-      automation: "Automate posting + follow-ups",
-      analytics: "Improve performance with analytics",
-      other: "Other",
-    }),
-    [],
-  );
 
   const onSubmit = async (data: WaitlistForm) => {
     setSubmitError(null);
@@ -135,7 +184,7 @@ export default function WaitList() {
       });
 
       if (res.status === 409) {
-        setSubmitError("This email is already on the waitlist!");
+        setSubmitError(t.errorDuplicate);
         return;
       }
 
@@ -146,11 +195,18 @@ export default function WaitList() {
       setSubmitted({ email: data.email });
       form.reset();
     } catch (e) {
-      setSubmitError("Something went wrong. Please try again.");
+      setSubmitError(t.errorGeneric);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const features = [
+    { icon: Sparkles, title: t.featureAiTitle, desc: t.featureAiDesc, gradient: "from-violet-500 to-purple-600" },
+    { icon: MessageSquare, title: t.featureInboxTitle, desc: t.featureInboxDesc, gradient: "from-teal-500 to-cyan-600" },
+    { icon: Zap, title: t.featureScheduleTitle, desc: t.featureScheduleDesc, gradient: "from-amber-500 to-orange-600" },
+    { icon: BarChart3, title: t.featureAnalyticsTitle, desc: t.featureAnalyticsDesc, gradient: "from-blue-500 to-indigo-600" },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/30 text-gray-900">
@@ -162,6 +218,19 @@ export default function WaitList() {
               alt="LeadBoost"
               className="h-10 sm:h-12 w-auto"
             />
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <span>{t.trusted}</span>
+              </div>
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-600 transition-colors"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                {isSpanish ? "EN" : "ES"}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -175,50 +244,24 @@ export default function WaitList() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
                 </span>
-                Early access — Limited spots
+                {t.badge}
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight leading-[1.15]">
-                Grow your brand with{" "}
+                {t.heroTitle1}
                 <span className="bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                  AI-powered
-                </span>{" "}
-                social media
+                  {t.heroTitleHighlight}
+                </span>
+                {t.heroTitle2}
               </h1>
 
               <p className="mt-5 text-lg text-gray-500 leading-relaxed max-w-lg">
-                One platform to generate content, schedule posts, and convert
-                messages into customers across Instagram, Facebook & WhatsApp.
+                {t.heroDesc}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                {
-                  icon: Sparkles,
-                  title: "AI Content",
-                  desc: "Posts from your brand assets, logo & style",
-                  gradient: "from-violet-500 to-purple-600",
-                },
-                {
-                  icon: MessageSquare,
-                  title: "Unified Inbox",
-                  desc: "All DMs & messages in one place",
-                  gradient: "from-teal-500 to-cyan-600",
-                },
-                {
-                  icon: Zap,
-                  title: "Auto-scheduling",
-                  desc: "Smart posting with approval workflows",
-                  gradient: "from-amber-500 to-orange-600",
-                },
-                {
-                  icon: BarChart3,
-                  title: "Analytics",
-                  desc: "Track engagement & optimize performance",
-                  gradient: "from-blue-500 to-indigo-600",
-                },
-              ].map((feature) => (
+              {features.map((feature) => (
                 <div
                   key={feature.title}
                   className="group flex items-start gap-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200"
@@ -244,12 +287,12 @@ export default function WaitList() {
               <div className="rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-5 shadow-sm">
                 <div className="flex items-center gap-2 font-semibold text-green-800 text-lg">
                   <CheckCircle2 className="w-5 h-5" />
-                  You're on the list!
+                  {t.successTitle}
                 </div>
                 <p className="text-green-700 mt-1">
-                  We'll email{" "}
-                  <span className="font-semibold">{submitted.email}</span> when
-                  your access is ready.
+                  {t.successDesc}
+                  <span className="font-semibold">{submitted.email}</span>
+                  {t.successDesc2}
                 </p>
               </div>
             )}
@@ -264,10 +307,10 @@ export default function WaitList() {
           <div className="rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-100/50 overflow-hidden">
             <div className="px-6 py-5 bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-900">
-                Request early access
+                {t.formTitle}
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                Tell us about you so we can prioritize the best fit.
+                {t.formDesc}
               </p>
             </div>
 
@@ -300,7 +343,7 @@ export default function WaitList() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-gray-700 font-medium">
-                            First name
+                            {t.firstName}
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -320,7 +363,7 @@ export default function WaitList() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-gray-700 font-medium">
-                            Last name
+                            {t.lastName}
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -341,7 +384,7 @@ export default function WaitList() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-gray-700 font-medium">
-                          Work email
+                          {t.workEmail}
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -363,7 +406,7 @@ export default function WaitList() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-gray-700 font-medium">
-                            Company / Brand
+                            {t.companyBrand}
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -383,9 +426,9 @@ export default function WaitList() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-gray-700 font-medium">
-                            Website{" "}
+                            {t.website}{" "}
                             <span className="text-gray-400 font-normal">
-                              (optional)
+                              {t.optional}
                             </span>
                           </FormLabel>
                           <FormControl>
@@ -408,7 +451,7 @@ export default function WaitList() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-gray-700 font-medium">
-                            Your role
+                            {t.yourRole}
                           </FormLabel>
                           <Select
                             value={field.value}
@@ -416,7 +459,7 @@ export default function WaitList() {
                           >
                             <FormControl>
                               <SelectTrigger className="h-11 rounded-xl border-gray-200">
-                                <SelectValue placeholder="Select role" />
+                                <SelectValue placeholder={t.selectRole} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -438,7 +481,7 @@ export default function WaitList() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-gray-700 font-medium">
-                            Team size
+                            {t.teamSize}
                           </FormLabel>
                           <Select
                             value={field.value}
@@ -446,11 +489,11 @@ export default function WaitList() {
                           >
                             <FormControl>
                               <SelectTrigger className="h-11 rounded-xl border-gray-200">
-                                <SelectValue placeholder="Select size" />
+                                <SelectValue placeholder={t.selectSize} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="1">Just me</SelectItem>
+                              <SelectItem value="1">{t.justMe}</SelectItem>
                               <SelectItem value="2-5">2 – 5</SelectItem>
                               <SelectItem value="6-15">6 – 15</SelectItem>
                               <SelectItem value="16-50">16 – 50</SelectItem>
@@ -469,7 +512,7 @@ export default function WaitList() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-gray-700 font-medium">
-                          Primary goal
+                          {t.primaryGoal}
                         </FormLabel>
                         <Select
                           value={field.value}
@@ -477,7 +520,7 @@ export default function WaitList() {
                         >
                           <FormControl>
                             <SelectTrigger className="h-11 rounded-xl border-gray-200">
-                              <SelectValue placeholder="Select your goal" />
+                              <SelectValue placeholder={t.selectGoal} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -499,9 +542,9 @@ export default function WaitList() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-gray-700 font-medium">
-                          Platforms to automate
+                          {t.platforms}
                           <span className="text-gray-400 font-normal ml-1.5">
-                            (select all that apply)
+                            {t.platformsHint}
                           </span>
                         </FormLabel>
 
@@ -554,12 +597,12 @@ export default function WaitList() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-gray-700 font-medium">
-                            Country
+                            {t.country}
                           </FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="e.g. Mexico"
+                              placeholder={t.countryPlaceholder}
                               className="h-11 rounded-xl border-gray-200 focus:border-teal-400 focus:ring-teal-400/20"
                             />
                           </FormControl>
@@ -574,15 +617,15 @@ export default function WaitList() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-gray-700 font-medium">
-                            City{" "}
+                            {t.city}{" "}
                             <span className="text-gray-400 font-normal">
-                              (optional)
+                              {t.optional}
                             </span>
                           </FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="e.g. Pachuca"
+                              placeholder={t.cityPlaceholder}
                               className="h-11 rounded-xl border-gray-200 focus:border-teal-400 focus:ring-teal-400/20"
                             />
                           </FormControl>
@@ -598,15 +641,15 @@ export default function WaitList() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-gray-700 font-medium">
-                          Anything we should know?{" "}
+                          {t.notes}{" "}
                           <span className="text-gray-400 font-normal">
-                            (optional)
+                            {t.optional}
                           </span>
                         </FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
-                            placeholder="e.g. We manage 3 brands, need approvals + auto-posting + unified inbox."
+                            placeholder={t.notesPlaceholder}
                             className="min-h-[80px] rounded-xl border-gray-200 focus:border-teal-400 focus:ring-teal-400/20 resize-none"
                           />
                         </FormControl>
@@ -626,19 +669,18 @@ export default function WaitList() {
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Joining...
+                        {t.submitting}
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        Join the waitlist
+                        {t.submitBtn}
                         <ArrowRight className="w-4 h-4" />
                       </span>
                     )}
                   </Button>
 
                   <p className="text-xs text-gray-400 text-center leading-relaxed">
-                    By joining, you agree to receive product updates. No spam,
-                    ever.
+                    {t.disclaimer}
                   </p>
                 </form>
               </UIForm>
@@ -654,7 +696,7 @@ export default function WaitList() {
           </p>
           <div className="flex items-center gap-1 text-xs text-gray-400">
             <Zap className="w-3 h-3" />
-            Powered by AI
+            {t.poweredBy}
           </div>
         </div>
       </footer>
