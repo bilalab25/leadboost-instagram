@@ -103,7 +103,7 @@ export default function Landing() {
                 data-testid="button-header-cta"
                 onClick={() => navigate("/login")}
               >
-                {isSpanish ? "Empezar" : "Start Free"}
+                {isSpanish ? "Acceso Anticipado" : "Early Access"}
               </Button>
             </div>
           </div>
@@ -324,11 +324,11 @@ export default function Landing() {
               data-testid="button-start-free-trial"
               onClick={() => navigate("/login")}
             >
-              {isSpanish ? "Comenzar Gratis" : "Start Free Now"}
+              {isSpanish ? "Acceso Anticipado" : "Early Access"}
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
             </Button>
             <p className="text-gray-500 text-xs sm:text-sm">
-              {isSpanish ? "Sin tarjeta de crédito" : "No credit card required"}
+              {isSpanish ? "Plataforma en beta — cupos limitados" : "Beta platform — limited spots"}
             </p>
           </div>
         </div>
@@ -1355,13 +1355,13 @@ export default function Landing() {
               data-testid="button-start-free-trial-final"
               onClick={() => navigate("/login")}
             >
-              {isSpanish ? "Comenzar Gratis" : "Start Free Now"}
+              {isSpanish ? "Acceso Anticipado" : "Early Access"}
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
             </Button>
             <p className="text-gray-400 text-xs sm:text-sm px-2">
               {isSpanish
-                ? "Sin tarjeta • Cancela cuando quieras"
-                : "No credit card required • Cancel anytime"}
+                ? "Plataforma en beta — cupos limitados"
+                : "Beta platform — limited spots"}
             </p>
           </div>
 
