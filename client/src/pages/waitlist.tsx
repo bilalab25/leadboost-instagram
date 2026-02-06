@@ -143,9 +143,11 @@ export default function WaitList() {
         ? "(selecciona las que apliquen)"
         : "(select all that apply)",
       country: isSpanish ? "País" : "Country",
-      countryPlaceholder: isSpanish ? "ej. México" : "e.g. Mexico",
+      countryPlaceholder: isSpanish
+        ? "ej. Estados Unidos"
+        : "e.g. United States",
       city: isSpanish ? "Ciudad" : "City",
-      cityPlaceholder: isSpanish ? "ej. Pachuca" : "e.g. Pachuca",
+      cityPlaceholder: isSpanish ? "ej. Tallahassee" : "e.g. Tallahassee",
       notes: isSpanish
         ? "¿Algo que debamos saber?"
         : "Anything we should know?",
@@ -423,7 +425,7 @@ export default function WaitList() {
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="Paola"
+                              placeholder="John"
                               className="h-11 rounded-xl border-gray-200 focus:border-teal-400 focus:ring-teal-400/20"
                             />
                           </FormControl>
@@ -443,7 +445,7 @@ export default function WaitList() {
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="Perez"
+                              placeholder="Doe"
                               className="h-11 rounded-xl border-gray-200 focus:border-teal-400 focus:ring-teal-400/20"
                             />
                           </FormControl>
