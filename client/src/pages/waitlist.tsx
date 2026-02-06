@@ -80,72 +80,135 @@ export default function WaitList() {
   const [submitted, setSubmitted] = useState<null | { email: string }>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const t = useMemo(() => ({
-    badge: isSpanish ? "Acceso anticipado — Cupos limitados" : "Early access — Limited spots",
-    trusted: isSpanish ? "Más de 200 marcas confían en nosotros" : "Trusted by 200+ brands",
-    heroTitle1: isSpanish ? "Haz crecer tu marca con " : "Grow your brand with ",
-    heroTitleHighlight: isSpanish ? "IA" : "AI-powered",
-    heroTitle2: isSpanish ? " en redes sociales" : " social media",
-    heroDesc: isSpanish
-      ? "Una plataforma para generar contenido, programar posts y convertir mensajes en clientes en Instagram, Facebook y WhatsApp."
-      : "One platform to generate content, schedule posts, and convert messages into customers across Instagram, Facebook & WhatsApp.",
-    featureAiTitle: isSpanish ? "Contenido IA" : "AI Content",
-    featureAiDesc: isSpanish ? "Posts con los assets de tu marca, logo y estilo" : "Posts from your brand assets, logo & style",
-    featureInboxTitle: isSpanish ? "Bandeja unificada" : "Unified Inbox",
-    featureInboxDesc: isSpanish ? "Todos los DMs y mensajes en un solo lugar" : "All DMs & messages in one place",
-    featureScheduleTitle: isSpanish ? "Auto-programación" : "Auto-scheduling",
-    featureScheduleDesc: isSpanish ? "Publicación inteligente con flujos de aprobación" : "Smart posting with approval workflows",
-    featureAnalyticsTitle: isSpanish ? "Analíticas" : "Analytics",
-    featureAnalyticsDesc: isSpanish ? "Mide engagement y optimiza rendimiento" : "Track engagement & optimize performance",
-    successTitle: isSpanish ? "¡Estás en la lista!" : "You're on the list!",
-    successDesc: isSpanish ? "Te enviaremos un correo a " : "We'll email ",
-    successDesc2: isSpanish ? " cuando tu acceso esté listo." : " when your access is ready.",
-    formTitle: isSpanish ? "Solicita acceso anticipado" : "Request early access",
-    formDesc: isSpanish ? "Cuéntanos sobre ti para priorizar el mejor perfil." : "Tell us about you so we can prioritize the best fit.",
-    firstName: isSpanish ? "Nombre" : "First name",
-    lastName: isSpanish ? "Apellido" : "Last name",
-    workEmail: isSpanish ? "Correo de trabajo" : "Work email",
-    companyBrand: isSpanish ? "Empresa / Marca" : "Company / Brand",
-    website: "Website",
-    optional: isSpanish ? "(opcional)" : "(optional)",
-    yourRole: isSpanish ? "Tu rol" : "Your role",
-    selectRole: isSpanish ? "Selecciona rol" : "Select role",
-    teamSize: isSpanish ? "Tamaño del equipo" : "Team size",
-    selectSize: isSpanish ? "Selecciona tamaño" : "Select size",
-    justMe: isSpanish ? "Solo yo" : "Just me",
-    primaryGoal: isSpanish ? "Objetivo principal" : "Primary goal",
-    selectGoal: isSpanish ? "Selecciona tu objetivo" : "Select your goal",
-    platforms: isSpanish ? "Plataformas a automatizar" : "Platforms to automate",
-    platformsHint: isSpanish ? "(selecciona las que apliquen)" : "(select all that apply)",
-    country: isSpanish ? "País" : "Country",
-    countryPlaceholder: isSpanish ? "ej. México" : "e.g. Mexico",
-    city: isSpanish ? "Ciudad" : "City",
-    cityPlaceholder: isSpanish ? "ej. Pachuca" : "e.g. Pachuca",
-    notes: isSpanish ? "¿Algo que debamos saber?" : "Anything we should know?",
-    notesPlaceholder: isSpanish
-      ? "ej. Manejamos 3 marcas, necesitamos aprobaciones + auto-publicación + bandeja unificada."
-      : "e.g. We manage 3 brands, need approvals + auto-posting + unified inbox.",
-    submitBtn: isSpanish ? "Unirme a la lista de espera" : "Join the waitlist",
-    submitting: isSpanish ? "Uniéndose..." : "Joining...",
-    disclaimer: isSpanish
-      ? "Al unirte, aceptas recibir actualizaciones del producto. Sin spam."
-      : "By joining, you agree to receive product updates. No spam, ever.",
-    errorDuplicate: isSpanish ? "¡Este correo ya está en la lista de espera!" : "This email is already on the waitlist!",
-    errorGeneric: isSpanish ? "Algo salió mal. Inténtalo de nuevo." : "Something went wrong. Please try again.",
-    poweredBy: isSpanish ? "Impulsado por IA" : "Powered by AI",
-  }), [isSpanish]);
+  const t = useMemo(
+    () => ({
+      badge: isSpanish
+        ? "Acceso anticipado — Cupos limitados"
+        : "Early access — Limited spots",
+      trusted: isSpanish
+        ? "Más de 200 marcas confían en nosotros"
+        : "Trusted by 200+ brands",
+      heroTitle1: isSpanish
+        ? "Haz crecer tu marca con "
+        : "Grow your brand with ",
+      heroTitleHighlight: isSpanish ? "IA" : "AI-powered",
+      heroTitle2: isSpanish ? " en redes sociales" : " social media",
+      heroDesc: isSpanish
+        ? "Una plataforma para generar contenido, programar posts y convertir mensajes en clientes en Instagram, Facebook y WhatsApp."
+        : "One platform to generate content, schedule posts, and convert messages into customers across Instagram, Facebook & WhatsApp.",
+      featureAiTitle: isSpanish ? "Contenido IA" : "AI Content",
+      featureAiDesc: isSpanish
+        ? "Posts con los assets de tu marca, logo y estilo"
+        : "Posts from your brand assets, logo & style",
+      featureInboxTitle: isSpanish ? "Bandeja unificada" : "Unified Inbox",
+      featureInboxDesc: isSpanish
+        ? "Todos los DMs y mensajes en un solo lugar"
+        : "All DMs & messages in one place",
+      featureScheduleTitle: isSpanish ? "Auto-programación" : "Auto-scheduling",
+      featureScheduleDesc: isSpanish
+        ? "Publicación inteligente con flujos de aprobación"
+        : "Smart posting with approval workflows",
+      featureAnalyticsTitle: isSpanish ? "Analíticas" : "Analytics",
+      featureAnalyticsDesc: isSpanish
+        ? "Mide engagement y optimiza rendimiento"
+        : "Track engagement & optimize performance",
+      successTitle: isSpanish ? "¡Estás en la lista!" : "You're on the list!",
+      successDesc: isSpanish ? "Te enviaremos un correo a " : "We'll email ",
+      successDesc2: isSpanish
+        ? " cuando tu acceso esté listo."
+        : " when your access is ready.",
+      formTitle: isSpanish
+        ? "Solicita acceso anticipado"
+        : "Request early access",
+      formDesc: isSpanish
+        ? "Cuéntanos sobre ti para priorizar el mejor perfil."
+        : "Tell us about you so we can prioritize the best fit.",
+      firstName: isSpanish ? "Nombre" : "First name",
+      lastName: isSpanish ? "Apellido" : "Last name",
+      workEmail: isSpanish ? "Correo de trabajo" : "Work email",
+      companyBrand: isSpanish ? "Empresa / Marca" : "Company / Brand",
+      website: "Website",
+      optional: isSpanish ? "(opcional)" : "(optional)",
+      yourRole: isSpanish ? "Tu rol" : "Your role",
+      selectRole: isSpanish ? "Selecciona rol" : "Select role",
+      teamSize: isSpanish ? "Tamaño del equipo" : "Team size",
+      selectSize: isSpanish ? "Selecciona tamaño" : "Select size",
+      justMe: isSpanish ? "Solo yo" : "Just me",
+      primaryGoal: isSpanish ? "Objetivo principal" : "Primary goal",
+      selectGoal: isSpanish ? "Selecciona tu objetivo" : "Select your goal",
+      platforms: isSpanish
+        ? "Plataformas a automatizar"
+        : "Platforms to automate",
+      platformsHint: isSpanish
+        ? "(selecciona las que apliquen)"
+        : "(select all that apply)",
+      country: isSpanish ? "País" : "Country",
+      countryPlaceholder: isSpanish ? "ej. México" : "e.g. Mexico",
+      city: isSpanish ? "Ciudad" : "City",
+      cityPlaceholder: isSpanish ? "ej. Pachuca" : "e.g. Pachuca",
+      notes: isSpanish
+        ? "¿Algo que debamos saber?"
+        : "Anything we should know?",
+      notesPlaceholder: isSpanish
+        ? "ej. Manejamos 3 marcas, necesitamos aprobaciones + auto-publicación + bandeja unificada."
+        : "e.g. We manage 3 brands, need approvals + auto-posting + unified inbox.",
+      submitBtn: isSpanish
+        ? "Unirme a la lista de espera"
+        : "Join the waitlist",
+      submitting: isSpanish ? "Uniéndose..." : "Joining...",
+      disclaimer: isSpanish
+        ? "Al unirte, aceptas recibir actualizaciones del producto. Sin spam."
+        : "By joining, you agree to receive product updates. No spam, ever.",
+      errorDuplicate: isSpanish
+        ? "¡Este correo ya está en la lista de espera!"
+        : "This email is already on the waitlist!",
+      errorGeneric: isSpanish
+        ? "Algo salió mal. Inténtalo de nuevo."
+        : "Something went wrong. Please try again.",
+      poweredBy: isSpanish ? "Impulsado por IA" : "Powered by AI",
+    }),
+    [isSpanish],
+  );
 
   const roleLabel = useMemo(
-    () => isSpanish
-      ? { owner: "Fundador/a / Dueño/a", marketing: "Marketing", sales: "Ventas", agency: "Agencia / Consultor", other: "Otro" }
-      : { owner: "Founder / Owner", marketing: "Marketing", sales: "Sales", agency: "Agency / Consultant", other: "Other" },
+    () =>
+      isSpanish
+        ? {
+            owner: "Fundador/a / Dueño/a",
+            marketing: "Marketing",
+            sales: "Ventas",
+            agency: "Agencia / Consultor",
+            other: "Otro",
+          }
+        : {
+            owner: "Founder / Owner",
+            marketing: "Marketing",
+            sales: "Sales",
+            agency: "Agency / Consultant",
+            other: "Other",
+          },
     [isSpanish],
   );
 
   const goalLabel = useMemo(
-    () => isSpanish
-      ? { content: "Crear contenido más rápido", leads: "Captar más leads", inbox: "Centralizar mensajes (IG/FB/WA)", automation: "Automatizar publicaciones + seguimientos", analytics: "Mejorar rendimiento con analíticas", other: "Otro" }
-      : { content: "Create content faster", leads: "Capture more leads", inbox: "Centralize messages (IG/FB/WA)", automation: "Automate posting + follow-ups", analytics: "Improve performance with analytics", other: "Other" },
+    () =>
+      isSpanish
+        ? {
+            content: "Crear contenido más rápido",
+            leads: "Captar más leads",
+            inbox: "Centralizar mensajes (IG/FB/WA)",
+            automation: "Automatizar publicaciones + seguimientos",
+            analytics: "Mejorar rendimiento con analíticas",
+            other: "Otro",
+          }
+        : {
+            content: "Create content faster",
+            leads: "Capture more leads",
+            inbox: "Centralize messages (IG/FB/WA)",
+            automation: "Automate posting + follow-ups",
+            analytics: "Improve performance with analytics",
+            other: "Other",
+          },
     [isSpanish],
   );
 
@@ -202,10 +265,30 @@ export default function WaitList() {
   };
 
   const features = [
-    { icon: Sparkles, title: t.featureAiTitle, desc: t.featureAiDesc, gradient: "from-violet-500 to-purple-600" },
-    { icon: MessageSquare, title: t.featureInboxTitle, desc: t.featureInboxDesc, gradient: "from-teal-500 to-cyan-600" },
-    { icon: Zap, title: t.featureScheduleTitle, desc: t.featureScheduleDesc, gradient: "from-amber-500 to-orange-600" },
-    { icon: BarChart3, title: t.featureAnalyticsTitle, desc: t.featureAnalyticsDesc, gradient: "from-blue-500 to-indigo-600" },
+    {
+      icon: Sparkles,
+      title: t.featureAiTitle,
+      desc: t.featureAiDesc,
+      gradient: "from-violet-500 to-purple-600",
+    },
+    {
+      icon: MessageSquare,
+      title: t.featureInboxTitle,
+      desc: t.featureInboxDesc,
+      gradient: "from-teal-500 to-cyan-600",
+    },
+    {
+      icon: Zap,
+      title: t.featureScheduleTitle,
+      desc: t.featureScheduleDesc,
+      gradient: "from-amber-500 to-orange-600",
+    },
+    {
+      icon: BarChart3,
+      title: t.featureAnalyticsTitle,
+      desc: t.featureAnalyticsDesc,
+      gradient: "from-blue-500 to-indigo-600",
+    },
   ];
 
   return (
@@ -219,10 +302,6 @@ export default function WaitList() {
               className="h-10 sm:h-12 w-auto"
             />
             <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
-                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                <span>{t.trusted}</span>
-              </div>
               <button
                 onClick={toggleLanguage}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-600 transition-colors"
@@ -306,12 +385,8 @@ export default function WaitList() {
 
           <div className="rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-100/50 overflow-hidden">
             <div className="px-6 py-5 bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-100">
-              <h2 className="text-xl font-bold text-gray-900">
-                {t.formTitle}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {t.formDesc}
-              </p>
+              <h2 className="text-xl font-bold text-gray-900">{t.formTitle}</h2>
+              <p className="text-sm text-gray-500 mt-1">{t.formDesc}</p>
             </div>
 
             <div className="p-6">
