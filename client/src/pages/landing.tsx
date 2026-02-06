@@ -44,6 +44,7 @@ import { HelpDropdown } from "@/components/HelpDropdown";
 import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756873932398.png";
 import boostyLoopVideo2 from "@assets/Boosty_Mascot_Looping_Animation_1764608756145.mp4";
 import boostyWavingVideo2 from "@assets/Video_de_Boosty_Saludando_1764609155806.mp4";
+import boostyComputer from "@assets/boosty_computadora.png";
 import TrustpilotWidget from "@/components/TrustpilotWidget";
 
 export default function Landing() {
@@ -825,14 +826,9 @@ export default function Landing() {
                 className="relative"
                 style={{ animation: "float 6s ease-in-out infinite" }}
               >
-                <video
-                  src={boostyWavingVideo2}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-[220px] sm:w-[300px] md:w-[380px] lg:w-[450px] h-auto"
-                  data-testid="boosty-character"
+                <img
+                  src={boostyComputer}
+                  className="w-[200px] sm:w-[300px] md:w-[280px] lg:w-[350px] h-auto"
                 />
               </div>
 
