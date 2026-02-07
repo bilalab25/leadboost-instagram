@@ -69,8 +69,8 @@ export default function Landing() {
           </span>
           <span>
             {isSpanish
-              ? "Estamos en beta — Obtén acceso anticipado y forma parte del futuro del marketing con IA y únete al futuro del marketing"
-              : "We're in beta — Get early access and shape the future of AI marketing and join the future of marketing"}
+              ? "Estamos en beta — Obtén acceso anticipado y únete al futuro del marketing"
+              : "We're in beta — Get early access and join the future of marketing"}
           </span>
         </p>
       </div>
