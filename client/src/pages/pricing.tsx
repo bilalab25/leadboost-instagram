@@ -23,12 +23,15 @@ export default function Pricing() {
   const { language, toggleLanguage } = useLanguage();
   const isSpanish = language === "es";
   const [expandedAddon, setExpandedAddon] = useState<string | null>(null);
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("monthly");
+  const isAnnual = billingPeriod === "annual";
 
   const plans = [
     {
       key: "free",
       name: "FREE",
-      price: 0,
+      monthlyPrice: 0,
+      annualPrice: 0,
       tagline: isSpanish ? "Experimenta el Marketing en Autopilot." : "Experience Autopilot Marketing.",
       icon: Sparkles,
       gradient: "from-slate-500 to-slate-600",
@@ -50,7 +53,8 @@ export default function Pricing() {
     {
       key: "growth",
       name: "GROWTH",
-      price: 29,
+      monthlyPrice: 29,
+      annualPrice: 278,
       tagline: isSpanish ? "Marketing en Autopilot para marcas en crecimiento." : "Autopilot Marketing for growing brands.",
       icon: Rocket,
       gradient: "from-blue-500 to-blue-700",
@@ -78,7 +82,8 @@ export default function Pricing() {
     {
       key: "pro",
       name: "PRO",
-      price: 79,
+      monthlyPrice: 79,
+      annualPrice: 758,
       tagline: isSpanish ? "Sistema completo de Marketing en Autopilot." : "Full Autopilot Marketing System.",
       icon: Crown,
       gradient: "from-purple-500 to-indigo-600",
@@ -245,11 +250,37 @@ export default function Pricing() {
               {isSpanish ? "Precios" : "Pricing"}
             </span>
           </h1>
-          <p className="text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto mb-16 leading-relaxed">
+          <p className="text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
             {isSpanish
               ? "Precios simples y transparentes. Escala tu marketing sin esfuerzo."
               : "Simple, transparent pricing. Scale your marketing effortlessly."}
           </p>
+
+          <div className="inline-flex items-center bg-white rounded-2xl p-1.5 border border-gray-200 shadow-lg mb-16">
+            <button
+              onClick={() => setBillingPeriod("monthly")}
+              className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                billingPeriod === "monthly"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              {isSpanish ? "Mensual" : "Monthly"}
+            </button>
+            <button
+              onClick={() => setBillingPeriod("annual")}
+              className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                billingPeriod === "annual"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              {isSpanish ? "Anual" : "Annual"}
+              <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">
+                -20%
+              </span>
+            </button>
+          </div>
         </motion.div>
       </div>
 
@@ -305,17 +336,38 @@ export default function Pricing() {
 
                     <div className="mb-8">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-5xl lg:text-6xl font-black text-gray-900">
-                          {plan.price === 0
-                            ? isSpanish ? "Gratis" : "Free"
-                            : `$${plan.price}`}
-                        </span>
-                        {plan.price > 0 && (
-                          <span className="text-gray-500 ml-1">
-                            / {isSpanish ? "mes" : "month"}
+                        {plan.monthlyPrice === 0 ? (
+                          <span className="text-5xl lg:text-6xl font-black text-gray-900">
+                            {isSpanish ? "Gratis" : "Free"}
                           </span>
+                        ) : isAnnual ? (
+                          <>
+                            <span className="text-5xl lg:text-6xl font-black text-gray-900">
+                              ${plan.annualPrice}
+                            </span>
+                            <span className="text-gray-500 ml-1">
+                              / {isSpanish ? "año" : "year"}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-5xl lg:text-6xl font-black text-gray-900">
+                              ${plan.monthlyPrice}
+                            </span>
+                            <span className="text-gray-500 ml-1">
+                              / {isSpanish ? "mes" : "month"}
+                            </span>
+                          </>
                         )}
                       </div>
+                      {isAnnual && plan.annualPrice > 0 && (
+                        <p className="text-sm text-gray-500 mt-2">
+                          ${(plan.annualPrice / 12).toFixed(0)}/{isSpanish ? "mes" : "mo"}{" "}
+                          <span className="text-emerald-600 font-semibold">
+                            ({isSpanish ? "ahorras" : "save"} ${plan.monthlyPrice * 12 - plan.annualPrice}/{isSpanish ? "año" : "yr"})
+                          </span>
+                        </p>
+                      )}
                     </div>
 
                     <div className="mb-6">
