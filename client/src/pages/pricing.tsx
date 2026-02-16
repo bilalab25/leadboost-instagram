@@ -23,7 +23,9 @@ export default function Pricing() {
   const { language, toggleLanguage } = useLanguage();
   const isSpanish = language === "es";
   const [expandedAddon, setExpandedAddon] = useState<string | null>(null);
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("monthly");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">(
+    "monthly",
+  );
   const isAnnual = billingPeriod === "annual";
 
   const plans = [
@@ -32,7 +34,9 @@ export default function Pricing() {
       name: "FREE",
       monthlyPrice: 0,
       annualPrice: 0,
-      tagline: isSpanish ? "Experimenta el Marketing en Autopilot." : "Experience Autopilot Marketing.",
+      tagline: isSpanish
+        ? "Experimenta el Marketing en Autopilot."
+        : "Experience Autopilot Marketing.",
       icon: Sparkles,
       gradient: "from-slate-500 to-slate-600",
       highlight: false,
@@ -53,9 +57,11 @@ export default function Pricing() {
     {
       key: "growth",
       name: "GROWTH",
-      monthlyPrice: 29,
-      annualPrice: 278,
-      tagline: isSpanish ? "Marketing en Autopilot para marcas en crecimiento." : "Autopilot Marketing for growing brands.",
+      monthlyPrice: 49,
+      annualPrice: 470,
+      tagline: isSpanish
+        ? "Marketing en Autopilot para marcas en crecimiento."
+        : "Autopilot Marketing for growing brands.",
       icon: Rocket,
       gradient: "from-blue-500 to-blue-700",
       highlight: true,
@@ -82,9 +88,11 @@ export default function Pricing() {
     {
       key: "pro",
       name: "PRO",
-      monthlyPrice: 79,
-      annualPrice: 758,
-      tagline: isSpanish ? "Sistema completo de Marketing en Autopilot." : "Full Autopilot Marketing System.",
+      monthlyPrice: 99,
+      annualPrice: 950,
+      tagline: isSpanish
+        ? "Sistema completo de Marketing en Autopilot."
+        : "Full Autopilot Marketing System.",
       icon: Crown,
       gradient: "from-purple-500 to-indigo-600",
       highlight: false,
@@ -217,9 +225,6 @@ export default function Pricing() {
       <header className="relative z-10 border-b border-gray-100 bg-white/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <a href="/" className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              LeadBoost
-            </a>
             <button
               onClick={toggleLanguage}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-600 transition-colors"
@@ -238,14 +243,7 @@ export default function Pricing() {
           transition={{ duration: 0.6 }}
           className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
         >
-          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-blue-200 rounded-full px-4 py-2 mb-6 shadow-sm">
-            <Zap className="h-4 w-4 text-blue-600" />
-            <span className="text-sm text-gray-700 font-medium">
-              {isSpanish ? "Marketing en Autopilot" : "Autopilot Marketing"}
-            </span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-gray-900 mb-4 leading-tight tracking-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-gray-900 mb-4 leading-tight tracking-tight font-bold">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
               {isSpanish ? "Precios" : "Pricing"}
             </span>
@@ -337,12 +335,12 @@ export default function Pricing() {
                     <div className="mb-8">
                       <div className="flex items-baseline gap-1">
                         {plan.monthlyPrice === 0 ? (
-                          <span className="text-5xl lg:text-6xl font-black text-gray-900">
+                          <span className="text-5xl lg:text-6xl font-bold text-gray-900">
                             {isSpanish ? "Gratis" : "Free"}
                           </span>
                         ) : isAnnual ? (
                           <>
-                            <span className="text-5xl lg:text-6xl font-black text-gray-900">
+                            <span className="text-5xl lg:text-6xl text-gray-900 font-bold">
                               ${plan.annualPrice}
                             </span>
                             <span className="text-gray-500 ml-1">
@@ -351,7 +349,7 @@ export default function Pricing() {
                           </>
                         ) : (
                           <>
-                            <span className="text-5xl lg:text-6xl font-black text-gray-900">
+                            <span className="text-5xl lg:text-6xl font-bold text-gray-900">
                               ${plan.monthlyPrice}
                             </span>
                             <span className="text-gray-500 ml-1">
@@ -362,9 +360,12 @@ export default function Pricing() {
                       </div>
                       {isAnnual && plan.annualPrice > 0 && (
                         <p className="text-sm text-gray-500 mt-2">
-                          ${(plan.annualPrice / 12).toFixed(0)}/{isSpanish ? "mes" : "mo"}{" "}
+                          ${(plan.annualPrice / 12).toFixed(0)}/
+                          {isSpanish ? "mes" : "mo"}{" "}
                           <span className="text-emerald-600 font-semibold">
-                            ({isSpanish ? "ahorras" : "save"} ${plan.monthlyPrice * 12 - plan.annualPrice}/{isSpanish ? "año" : "yr"})
+                            ({isSpanish ? "ahorras" : "save"} $
+                            {plan.monthlyPrice * 12 - plan.annualPrice}/
+                            {isSpanish ? "año" : "yr"})
                           </span>
                         </p>
                       )}
@@ -380,7 +381,9 @@ export default function Pricing() {
                             <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                               <Check className="h-3 w-3 text-emerald-600" />
                             </div>
-                            <span className="text-gray-600 text-sm">{feature}</span>
+                            <span className="text-gray-600 text-sm">
+                              {feature}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -417,11 +420,13 @@ export default function Pricing() {
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-full px-4 py-2 mb-6">
               <span className="text-sm font-semibold text-purple-700">
-                {isSpanish ? "Solo para miembros PRO" : "Available for PRO Members Only"}
+                {isSpanish
+                  ? "Solo para miembros PRO"
+                  : "Available for PRO Members Only"}
               </span>
             </div>
-            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 mb-3">
-              <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-3">
+              <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent font-bold">
                 {isSpanish ? "Capas de Expansión" : "Expansion Layers"}
               </span>
             </h2>
@@ -446,25 +451,37 @@ export default function Pricing() {
                 >
                   <div className="bg-white rounded-2xl border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
                     <button
-                      onClick={() => setExpandedAddon(isExpanded ? null : addon.key)}
+                      onClick={() =>
+                        setExpandedAddon(isExpanded ? null : addon.key)
+                      }
                       className="w-full flex items-center justify-between p-6 text-left"
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${addon.gradient} shadow-md`}>
+                        <div
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${addon.gradient} shadow-md`}
+                        >
                           <AddonIcon className="h-6 w-6 text-white" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-lg">{addon.emoji}</span>
-                            <h3 className="text-lg font-bold text-gray-900">{addon.name}</h3>
+                            <h3 className="text-lg font-bold text-gray-900">
+                              {addon.name}
+                            </h3>
                           </div>
-                          <p className="text-sm text-gray-500">{addon.shortDesc}</p>
+                          <p className="text-sm text-gray-500">
+                            {addon.shortDesc}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <span className="text-2xl font-black text-gray-900">${addon.price}</span>
-                          <span className="text-gray-500 text-sm">/{isSpanish ? "mes" : "mo"}</span>
+                          <span className="text-2xl font-black text-gray-900">
+                            ${addon.price}
+                          </span>
+                          <span className="text-gray-500 text-sm">
+                            /{isSpanish ? "mes" : "mo"}
+                          </span>
                         </div>
                         {isExpanded ? (
                           <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -490,16 +507,22 @@ export default function Pricing() {
                                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                                     <Check className="h-3 w-3 text-emerald-600" />
                                   </div>
-                                  <span className="text-gray-600 text-sm">{feature}</span>
+                                  <span className="text-gray-600 text-sm">
+                                    {feature}
+                                  </span>
                                 </li>
                               ))}
                             </ul>
-                            <p className="text-xs text-gray-400 italic mb-4">{addon.footer}</p>
+                            <p className="text-xs text-gray-400 italic mb-4">
+                              {addon.footer}
+                            </p>
                             <Button
                               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-md"
                               data-testid={`button-addon-${addon.key}`}
                             >
-                              {isSpanish ? "Agregar a mi plan" : "Add to my plan"}
+                              {isSpanish
+                                ? "Agregar a mi plan"
+                                : "Add to my plan"}
                               <ArrowRight className="h-4 w-4 ml-2" />
                             </Button>
                           </div>
@@ -522,7 +545,7 @@ export default function Pricing() {
           <div className="relative max-w-4xl mx-auto">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-200/40 via-purple-200/40 to-blue-200/40 rounded-3xl blur-2xl"></div>
             <div className="relative bg-white rounded-3xl border border-gray-100 shadow-2xl p-12 lg:p-16">
-              <h3 className="text-3xl lg:text-5xl font-black text-gray-900 mb-6">
+              <h3 className="text-3xl lg:text-5xl font-black text-gray-900 mb-6 font-bold">
                 {isSpanish ? "¿Listo para" : "Ready to"}{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
                   {isSpanish ? "Automatizar?" : "Automate?"}
@@ -530,8 +553,8 @@ export default function Pricing() {
               </h3>
               <p className="text-lg text-gray-600 mb-10 max-w-xl mx-auto leading-relaxed">
                 {isSpanish
-                  ? "Únete a marcas que usan LeadBoost para poner su marketing en autopilot."
-                  : "Join brands using LeadBoost to put their marketing on autopilot."}
+                  ? "Únete a marcas que usan Lead Boost para poner su marketing en autopilot."
+                  : "Join brands using Lead Boost to put their marketing on autopilot."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
@@ -561,7 +584,7 @@ export default function Pricing() {
           transition={{ duration: 0.6, delay: 0.7 }}
           className="mt-24"
         >
-          <h2 className="text-3xl lg:text-4xl font-black text-center text-gray-900 mb-12">
+          <h2 className="text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-12">
             {isSpanish ? "Preguntas Frecuentes" : "Frequently Asked Questions"}
           </h2>
 

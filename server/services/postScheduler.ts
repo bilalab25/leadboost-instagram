@@ -196,10 +196,15 @@ class PostSchedulerService {
           : "https://graph.facebook.com";
 
         const commonHeaders: Record<string, string> = {};
+        const hashtagsString = post.hashtags?.length
+          ? "\n\n" + post.hashtags
+          : "";
+
+        const finalCaption = (post.content ?? "") + hashtagsString;
 
         const containerParams = new URLSearchParams({
           image_url: post.imageUrl!,
-          caption: post.content ?? "",
+          caption: finalCaption,
           access_token: accessToken,
         });
 
