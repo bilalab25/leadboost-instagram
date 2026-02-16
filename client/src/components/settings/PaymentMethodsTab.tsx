@@ -7,7 +7,21 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { CreditCard, DollarSign, Plus, Trash2, ExternalLink, Loader2, CheckCircle, Sparkles, Rocket, Crown, Check, ArrowRight, MessageSquare } from "lucide-react";
+import {
+  CreditCard,
+  DollarSign,
+  Plus,
+  Trash2,
+  ExternalLink,
+  Loader2,
+  CheckCircle,
+  Sparkles,
+  Rocket,
+  Crown,
+  Check,
+  ArrowRight,
+  MessageSquare,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -51,7 +65,13 @@ interface PaymentMethodsTabProps {
   isSpanish: boolean;
 }
 
-function AddPaymentMethodForm({ brandId, onSuccess }: { brandId: string; onSuccess: () => void }) {
+function AddPaymentMethodForm({
+  brandId,
+  onSuccess,
+}: {
+  brandId: string;
+  onSuccess: () => void;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -59,7 +79,10 @@ function AddPaymentMethodForm({ brandId, onSuccess }: { brandId: string; onSucce
 
   const confirmMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/billing/${brandId}/confirm-payment-method`);
+      const res = await apiRequest(
+        "POST",
+        `/api/billing/${brandId}/confirm-payment-method`,
+      );
       if (!res.ok) throw new Error("Failed to confirm payment method");
       return res.json();
     },
@@ -108,16 +131,16 @@ function AddPaymentMethodForm({ brandId, onSuccess }: { brandId: string; onSucce
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <PaymentElement />
-      
+
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
-      <Button 
-        type="submit" 
-        className="w-full" 
+
+      <Button
+        type="submit"
+        className="w-full"
         disabled={!stripe || isProcessing || confirmMutation.isPending}
       >
         {isProcessing || confirmMutation.isPending ? (
@@ -136,7 +159,9 @@ function AddPaymentMethodForm({ brandId, onSuccess }: { brandId: string; onSucce
   );
 }
 
-export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) {
+export default function PaymentMethodTab({
+  isSpanish,
+}: PaymentMethodsTabProps) {
   const { activeBrandId } = useBrand();
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -146,18 +171,22 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
     queryKey: ["/api/stripe/config"],
   });
 
-  const { data: billing, isLoading: billingLoading } = useQuery<BillingSummary>({
-    queryKey: ["/api/billing", activeBrandId],
-    queryFn: async () => {
-      if (!activeBrandId) return null;
-      const res = await fetch(`/api/billing/${activeBrandId}`);
-      if (!res.ok) throw new Error("Failed to fetch billing");
-      return res.json();
+  const { data: billing, isLoading: billingLoading } = useQuery<BillingSummary>(
+    {
+      queryKey: ["/api/billing", activeBrandId],
+      queryFn: async () => {
+        if (!activeBrandId) return null;
+        const res = await fetch(`/api/billing/${activeBrandId}`);
+        if (!res.ok) throw new Error("Failed to fetch billing");
+        return res.json();
+      },
+      enabled: !!activeBrandId,
     },
-    enabled: !!activeBrandId,
-  });
+  );
 
-  const { data: paymentMethodsData, isLoading: pmLoading } = useQuery<{ paymentMethods: PaymentMethod[] }>({
+  const { data: paymentMethodsData, isLoading: pmLoading } = useQuery<{
+    paymentMethods: PaymentMethod[];
+  }>({
     queryKey: ["/api/billing", activeBrandId, "payment-methods"],
     queryFn: async () => {
       if (!activeBrandId) return { paymentMethods: [] };
@@ -171,7 +200,10 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
   const setupIntentMutation = useMutation({
     mutationFn: async () => {
       if (!activeBrandId) throw new Error("No active brand");
-      const res = await apiRequest("POST", `/api/billing/${activeBrandId}/setup-intent`);
+      const res = await apiRequest(
+        "POST",
+        `/api/billing/${activeBrandId}/setup-intent`,
+      );
       if (!res.ok) throw new Error("Failed to create setup intent");
       return res.json();
     },
@@ -180,26 +212,36 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
   const deletePaymentMethodMutation = useMutation({
     mutationFn: async (paymentMethodId: string) => {
       if (!activeBrandId) throw new Error("No active brand");
-      const res = await apiRequest("DELETE", `/api/billing/${activeBrandId}/payment-methods/${paymentMethodId}`);
+      const res = await apiRequest(
+        "DELETE",
+        `/api/billing/${activeBrandId}/payment-methods/${paymentMethodId}`,
+      );
       if (!res.ok) throw new Error("Failed to delete payment method");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/billing", activeBrandId, "payment-methods"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/billing", activeBrandId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/billing", activeBrandId, "payment-methods"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/billing", activeBrandId],
+      });
     },
   });
 
   const portalMutation = useMutation({
     mutationFn: async () => {
       if (!activeBrandId) throw new Error("No active brand");
-      const res = await apiRequest("POST", `/api/billing/${activeBrandId}/portal`);
+      const res = await apiRequest(
+        "POST",
+        `/api/billing/${activeBrandId}/portal`,
+      );
       if (!res.ok) throw new Error("Failed to create portal session");
       return res.json();
     },
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, '_blank');
+        window.open(data.url, "_blank");
       }
     },
   });
@@ -207,7 +249,10 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
   const inboxSubscribeMutation = useMutation({
     mutationFn: async () => {
       if (!activeBrandId) throw new Error("No active brand");
-      const res = await apiRequest("POST", `/api/billing/${activeBrandId}/subscribe-inbox`);
+      const res = await apiRequest(
+        "POST",
+        `/api/billing/${activeBrandId}/subscribe-inbox`,
+      );
       if (!res.ok) throw new Error("Failed to create checkout session");
       return res.json();
     },
@@ -220,7 +265,7 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
 
   const handleOpenAddDialog = async () => {
     if (!stripeConfig?.publishableKey) return;
-    
+
     setStripePromise(loadStripe(stripeConfig.publishableKey));
     setupIntentMutation.mutate();
     setIsAddDialogOpen(true);
@@ -228,8 +273,12 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
 
   const handlePaymentMethodAdded = () => {
     setIsAddDialogOpen(false);
-    queryClient.invalidateQueries({ queryKey: ["/api/billing", activeBrandId, "payment-methods"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/billing", activeBrandId] });
+    queryClient.invalidateQueries({
+      queryKey: ["/api/billing", activeBrandId, "payment-methods"],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["/api/billing", activeBrandId],
+    });
   };
 
   const paymentMethods = paymentMethodsData?.paymentMethods || [];
@@ -242,9 +291,12 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
     );
   }
 
-  const currentPlan = billing?.subscriptionStatus === "pro" ? "pro" 
-    : billing?.subscriptionStatus === "growth" ? "growth" 
-    : "free";
+  const currentPlan =
+    billing?.subscriptionStatus === "pro"
+      ? "pro"
+      : billing?.subscriptionStatus === "growth"
+        ? "growth"
+        : "free";
 
   const planTiers = [
     {
@@ -254,9 +306,17 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
       icon: Sparkles,
       gradient: "from-slate-500 to-slate-600",
       features: isSpanish
-        ? ["5 Posts/Stories (Instagram, Facebook, Twitter)", "Auto-programación y publicación"]
-        : ["5 Posts/Stories (Instagram, Facebook, Twitter)", "Auto-scheduling & posting"],
-      tagline: isSpanish ? "Experimenta el Marketing en Autopilot." : "Experience Autopilot Marketing.",
+        ? [
+            "5 Posts/Stories (Instagram, Facebook, Twitter)",
+            "Auto-programación y publicación",
+          ]
+        : [
+            "5 Posts/Stories (Instagram, Facebook, Twitter)",
+            "Auto-scheduling & posting",
+          ],
+      tagline: isSpanish
+        ? "Experimenta el Marketing en Autopilot."
+        : "Experience Autopilot Marketing.",
     },
     {
       key: "growth",
@@ -265,9 +325,23 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
       icon: Rocket,
       gradient: "from-blue-500 to-blue-700",
       features: isSpanish
-        ? ["30 Posts/Stories (Instagram, Facebook, Twitter)", "8 Videos TikTok/Reels", "4 Campañas de Email", "Auto-programación y publicación", "Dashboard de analíticas básicas"]
-        : ["30 Posts/Stories (Instagram, Facebook, Twitter)", "8 TikTok/Reels videos", "4 Email campaigns", "Auto-scheduling & posting", "Basic analytics dashboard"],
-      tagline: isSpanish ? "Marketing en Autopilot para marcas en crecimiento." : "Autopilot Marketing for growing brands.",
+        ? [
+            "30 Posts/Stories (Instagram, Facebook, Twitter)",
+            "8 Videos TikTok/Reels",
+            "4 Campañas de Email",
+            "Auto-programación y publicación",
+            "Dashboard de analíticas básicas",
+          ]
+        : [
+            "30 Posts/Stories (Instagram, Facebook, Twitter)",
+            "8 TikTok/Reels videos",
+            "4 Email campaigns",
+            "Auto-scheduling & posting",
+            "Basic analytics dashboard",
+          ],
+      tagline: isSpanish
+        ? "Marketing en Autopilot para marcas en crecimiento."
+        : "Autopilot Marketing for growing brands.",
     },
     {
       key: "pro",
@@ -276,9 +350,25 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
       icon: Crown,
       gradient: "from-purple-500 to-indigo-600",
       features: isSpanish
-        ? ["90 Posts/Stories (Instagram, Facebook, Twitter)", "16 Videos TikTok/Reels", "20 Campañas de Email", "Auto-programación y publicación", "Analíticas avanzadas", "Estrategia de crecimiento IA avanzada"]
-        : ["90 Posts/Stories (Instagram, Facebook, Twitter)", "16 TikTok/Reels videos", "20 Email campaigns", "Auto-scheduling & posting", "Advanced analytics", "Advanced AI Growth Strategy"],
-      tagline: isSpanish ? "Sistema completo de Marketing en Autopilot." : "Full Autopilot Marketing System.",
+        ? [
+            "90 Posts/Stories (Instagram, Facebook, Twitter)",
+            "16 Videos TikTok/Reels",
+            "20 Campañas de Email",
+            "Auto-programación y publicación",
+            "Analíticas avanzadas",
+            "Estrategia de crecimiento IA avanzada",
+          ]
+        : [
+            "90 Posts/Stories (Instagram, Facebook, Twitter)",
+            "16 TikTok/Reels videos",
+            "20 Email campaigns",
+            "Auto-scheduling & posting",
+            "Advanced analytics",
+            "Advanced AI Growth Strategy",
+          ],
+      tagline: isSpanish
+        ? "Sistema completo de Marketing en Autopilot."
+        : "Full Autopilot Marketing System.",
     },
   ];
 
@@ -322,7 +412,9 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
                   )}
 
                   <div className="flex items-center gap-3 mb-3 mt-1">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${plan.gradient} shadow-sm`}>
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${plan.gradient} shadow-sm`}
+                    >
                       <PlanIcon className="h-5 w-5 text-white" />
                     </div>
                     <div>
@@ -333,10 +425,16 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
 
                   <div className="mb-4">
                     <span className="text-3xl font-black text-gray-900">
-                      {plan.price === 0 ? (isSpanish ? "Gratis" : "Free") : `$${plan.price}`}
+                      {plan.price === 0
+                        ? isSpanish
+                          ? "Gratis"
+                          : "Free"
+                        : `$${plan.price}`}
                     </span>
                     {plan.price > 0 && (
-                      <span className="text-gray-500 text-sm ml-1">/{isSpanish ? "mes" : "mo"}</span>
+                      <span className="text-gray-500 text-sm ml-1">
+                        /{isSpanish ? "mes" : "mo"}
+                      </span>
                     )}
                   </div>
 
@@ -353,7 +451,7 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
                     <Button
                       size="sm"
                       className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg"
-                      onClick={() => window.location.href = "/pricing"}
+                      onClick={() => (window.location.href = "/pricing")}
                     >
                       {isSpanish ? "Mejorar Plan" : "Upgrade"}
                       <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
@@ -370,8 +468,10 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
                     >
                       {portalMutation.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : isSpanish ? (
+                        "Cambiar a Free"
                       ) : (
-                        isSpanish ? "Cambiar a Free" : "Downgrade"
+                        "Downgrade"
                       )}
                     </Button>
                   )}
@@ -380,22 +480,25 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
             })}
           </div>
 
-          {billing?.subscriptionStatus && billing.subscriptionStatus !== "free" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => portalMutation.mutate()}
-              disabled={portalMutation.isPending}
-              className="w-full mt-4"
-            >
-              {portalMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <ExternalLink className="h-4 w-4 mr-2" />
-              )}
-              {isSpanish ? "Gestionar Suscripción en Stripe" : "Manage Subscription on Stripe"}
-            </Button>
-          )}
+          {billing?.subscriptionStatus &&
+            billing.subscriptionStatus !== "free" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => portalMutation.mutate()}
+                disabled={portalMutation.isPending}
+                className="w-full mt-4"
+              >
+                {portalMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                )}
+                {isSpanish
+                  ? "Gestionar Suscripción en Stripe"
+                  : "Manage Subscription on Stripe"}
+              </Button>
+            )}
         </CardContent>
       </Card>
 
@@ -413,11 +516,13 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className={`rounded-xl border-2 p-5 transition-all duration-200 ${
-            billing?.inboxSubscriptionActive
-              ? "border-emerald-500 bg-emerald-50/50"
-              : "border-gray-200"
-          }`}>
+          <div
+            className={`rounded-xl border-2 p-5 transition-all duration-200 ${
+              billing?.inboxSubscriptionActive
+                ? "border-emerald-500 bg-emerald-50/50"
+                : "border-gray-200"
+            }`}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-teal-500 to-cyan-600 shadow-sm">
@@ -436,7 +541,9 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
               </div>
               <div className="text-right">
                 <span className="text-2xl font-black text-gray-900">$99</span>
-                <span className="text-gray-500 text-sm ml-1">/{isSpanish ? "mes" : "mo"}</span>
+                <span className="text-gray-500 text-sm ml-1">
+                  /{isSpanish ? "mes" : "mo"}
+                </span>
               </div>
             </div>
 
@@ -444,13 +551,11 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
               {(isSpanish
                 ? [
                     "Mensajes de todas las plataformas en una bandeja",
-                    "Respuestas en tiempo real con Socket.IO",
                     "Búsqueda y filtros por plataforma",
                     "Estado de lectura y seguimiento de conversaciones",
                   ]
                 : [
                     "Messages from all platforms in one inbox",
-                    "Real-time replies with Socket.IO",
                     "Search and platform-specific filters",
                     "Read status & conversation tracking",
                   ]
@@ -473,7 +578,10 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
                   size="sm"
                   className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white rounded-lg"
                   onClick={() => inboxSubscribeMutation.mutate()}
-                  disabled={inboxSubscribeMutation.isPending || !billing?.hasPaymentMethod}
+                  disabled={
+                    inboxSubscribeMutation.isPending ||
+                    !billing?.hasPaymentMethod
+                  }
                 >
                   {inboxSubscribeMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -482,13 +590,14 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
                   <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
                 </Button>
               )}
-              {!billing?.inboxSubscriptionActive && !billing?.hasPaymentMethod && (
-                <p className="text-xs text-gray-400 mt-2 text-center">
-                  {isSpanish
-                    ? "Añade un método de pago primero para suscribirte"
-                    : "Add a payment method first to subscribe"}
-                </p>
-              )}
+              {!billing?.inboxSubscriptionActive &&
+                !billing?.hasPaymentMethod && (
+                  <p className="text-xs text-gray-400 mt-2 text-center">
+                    {isSpanish
+                      ? "Añade un método de pago primero para suscribirte"
+                      : "Add a payment method first to subscribe"}
+                  </p>
+                )}
             </div>
           </div>
         </CardContent>
@@ -511,7 +620,11 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
 
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" onClick={handleOpenAddDialog} disabled={!stripeConfig?.publishableKey}>
+              <Button
+                size="sm"
+                onClick={handleOpenAddDialog}
+                disabled={!stripeConfig?.publishableKey}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 {isSpanish ? "Añadir Tarjeta" : "Add Card"}
               </Button>
@@ -543,9 +656,9 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
                     appearance: { theme: "stripe" },
                   }}
                 >
-                  <AddPaymentMethodForm 
-                    brandId={activeBrandId!} 
-                    onSuccess={handlePaymentMethodAdded} 
+                  <AddPaymentMethodForm
+                    brandId={activeBrandId!}
+                    onSuccess={handlePaymentMethodAdded}
                   />
                 </Elements>
               )}
@@ -586,14 +699,17 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
                         {method.brand} •••• {method.last4}
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        {isSpanish ? "Expira" : "Expires"} {method.expMonth}/{method.expYear}
+                        {isSpanish ? "Expira" : "Expires"} {method.expMonth}/
+                        {method.expYear}
                       </p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => deletePaymentMethodMutation.mutate(method.id)}
+                    onClick={() =>
+                      deletePaymentMethodMutation.mutate(method.id)
+                    }
                     disabled={deletePaymentMethodMutation.isPending}
                   >
                     {deletePaymentMethodMutation.isPending ? (
@@ -621,9 +737,11 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
             variant="outline"
             size="sm"
             className="border-blue-300 text-blue-700 hover:bg-blue-50"
-            onClick={() => window.location.href = "/pricing"}
+            onClick={() => (window.location.href = "/pricing")}
           >
-            {isSpanish ? "Ver página de precios completa" : "View full pricing page"}
+            {isSpanish
+              ? "Ver página de precios completa"
+              : "View full pricing page"}
             <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
           </Button>
         </CardContent>
