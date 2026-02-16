@@ -57,8 +57,8 @@ export default function Pricing() {
     {
       key: "growth",
       name: "GROWTH",
-      monthlyPrice: 49,
-      annualPrice: 470,
+      monthlyPrice: 29,
+      annualPrice: 278,
       tagline: isSpanish
         ? "Marketing en Autopilot para marcas en crecimiento."
         : "Autopilot Marketing for growing brands.",
@@ -88,8 +88,8 @@ export default function Pricing() {
     {
       key: "pro",
       name: "PRO",
-      monthlyPrice: 99,
-      annualPrice: 950,
+      monthlyPrice: 79,
+      annualPrice: 758,
       tagline: isSpanish
         ? "Sistema completo de Marketing en Autopilot."
         : "Full Autopilot Marketing System.",

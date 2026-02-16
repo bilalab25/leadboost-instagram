@@ -7,7 +7,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { CreditCard, DollarSign, Plus, Trash2, ExternalLink, Loader2, ImageIcon, MessageSquare, CheckCircle } from "lucide-react";
+import { CreditCard, DollarSign, Plus, Trash2, ExternalLink, Loader2, CheckCircle, Sparkles, Rocket, Crown, Check, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -242,95 +242,158 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
     );
   }
 
+  const currentPlan = billing?.subscriptionStatus === "pro" ? "pro" 
+    : billing?.subscriptionStatus === "growth" ? "growth" 
+    : "free";
+
+  const planTiers = [
+    {
+      key: "free",
+      name: "FREE",
+      price: 0,
+      icon: Sparkles,
+      gradient: "from-slate-500 to-slate-600",
+      features: isSpanish
+        ? ["5 Posts/Stories (Instagram, Facebook, Twitter)", "Auto-programación y publicación"]
+        : ["5 Posts/Stories (Instagram, Facebook, Twitter)", "Auto-scheduling & posting"],
+      tagline: isSpanish ? "Experimenta el Marketing en Autopilot." : "Experience Autopilot Marketing.",
+    },
+    {
+      key: "growth",
+      name: "GROWTH",
+      price: 29,
+      icon: Rocket,
+      gradient: "from-blue-500 to-blue-700",
+      features: isSpanish
+        ? ["30 Posts/Stories (Instagram, Facebook, Twitter)", "8 Videos TikTok/Reels", "4 Campañas de Email", "Auto-programación y publicación", "Dashboard de analíticas básicas"]
+        : ["30 Posts/Stories (Instagram, Facebook, Twitter)", "8 TikTok/Reels videos", "4 Email campaigns", "Auto-scheduling & posting", "Basic analytics dashboard"],
+      tagline: isSpanish ? "Marketing en Autopilot para marcas en crecimiento." : "Autopilot Marketing for growing brands.",
+    },
+    {
+      key: "pro",
+      name: "PRO",
+      price: 79,
+      icon: Crown,
+      gradient: "from-purple-500 to-indigo-600",
+      features: isSpanish
+        ? ["90 Posts/Stories (Instagram, Facebook, Twitter)", "16 Videos TikTok/Reels", "20 Campañas de Email", "Auto-programación y publicación", "Analíticas avanzadas", "Estrategia de crecimiento IA avanzada"]
+        : ["90 Posts/Stories (Instagram, Facebook, Twitter)", "16 TikTok/Reels videos", "20 Email campaigns", "Auto-scheduling & posting", "Advanced analytics", "Advanced AI Growth Strategy"],
+      tagline: isSpanish ? "Sistema completo de Marketing en Autopilot." : "Full Autopilot Marketing System.",
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Billing Summary */}
+      {/* Current Plan */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <DollarSign className="mr-2 h-5 w-5" />
-            {isSpanish ? "Resumen de Facturación" : "Billing Summary"}
+            {isSpanish ? "Tu Plan Actual" : "Your Current Plan"}
           </CardTitle>
           <CardDescription>
             {isSpanish
-              ? "Tu uso actual y créditos disponibles"
-              : "Your current usage and available credits"}
+              ? "Gestiona tu suscripción y consulta los planes disponibles"
+              : "Manage your subscription and view available plans"}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Free Images */}
-          <div className="flex justify-between items-center border-b pb-3">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">
-                {isSpanish ? "Imágenes Gratuitas" : "Free Images"}
-              </span>
-            </div>
-            <Badge variant={billing?.freeImagesRemaining && billing.freeImagesRemaining > 0 ? "default" : "secondary"}>
-              {billing?.freeImagesRemaining ?? 0} / 10
-            </Badge>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {planTiers.map((plan) => {
+              const isCurrent = currentPlan === plan.key;
+              const PlanIcon = plan.icon;
+
+              return (
+                <div
+                  key={plan.key}
+                  className={`relative rounded-xl border-2 p-5 transition-all duration-200 ${
+                    isCurrent
+                      ? "border-blue-500 bg-blue-50/50 shadow-md"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {isCurrent && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <Badge className="bg-blue-600 text-white text-xs px-3">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        {isSpanish ? "Plan Actual" : "Current Plan"}
+                      </Badge>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 mb-3 mt-1">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${plan.gradient} shadow-sm`}>
+                      <PlanIcon className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900">{plan.name}</h4>
+                      <p className="text-xs text-gray-500">{plan.tagline}</p>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <span className="text-3xl font-black text-gray-900">
+                      {plan.price === 0 ? (isSpanish ? "Gratis" : "Free") : `$${plan.price}`}
+                    </span>
+                    {plan.price > 0 && (
+                      <span className="text-gray-500 text-sm ml-1">/{isSpanish ? "mes" : "mo"}</span>
+                    )}
+                  </div>
+
+                  <ul className="space-y-2 mb-4">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-xs text-gray-600">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {!isCurrent && plan.price > 0 && (
+                    <Button
+                      size="sm"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg"
+                      onClick={() => window.location.href = "/pricing"}
+                    >
+                      {isSpanish ? "Mejorar Plan" : "Upgrade"}
+                      <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                    </Button>
+                  )}
+
+                  {!isCurrent && plan.price === 0 && currentPlan !== "free" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full rounded-lg"
+                      onClick={() => portalMutation.mutate()}
+                      disabled={portalMutation.isPending}
+                    >
+                      {portalMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        isSpanish ? "Cambiar a Free" : "Downgrade"
+                      )}
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
-          {/* Unbilled Usage */}
-          {billing && billing.unbilledImages > 0 && (
-            <div className="flex justify-between items-center border-b pb-3">
-              <div>
-                <span className="font-medium">
-                  {isSpanish ? "Uso Pendiente de Cobro" : "Pending Charges"}
-                </span>
-                <p className="text-sm text-muted-foreground">
-                  {billing.unbilledImages} {isSpanish ? "imágenes" : "images"} @ $0.12
-                </p>
-              </div>
-              <span className="text-lg font-semibold">
-                ${(billing.unbilledAmountCents / 100).toFixed(2)}
-              </span>
-            </div>
-          )}
-
-          {/* Inbox Subscription */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">
-                {isSpanish ? "Suscripción Inbox" : "Inbox Subscription"}
-              </span>
-            </div>
-            {billing?.inboxSubscriptionActive ? (
-              <Badge className="bg-green-500">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                {isSpanish ? "Activa" : "Active"} - $99/mes
-              </Badge>
-            ) : (
-              <Button 
-                size="sm" 
-                onClick={() => inboxSubscribeMutation.mutate()}
-                disabled={inboxSubscribeMutation.isPending}
-              >
-                {inboxSubscribeMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  isSpanish ? "Suscribirse $99/mes" : "Subscribe $99/mo"
-                )}
-              </Button>
-            )}
-          </div>
-
-          {/* Manage Subscription */}
-          {billing?.inboxSubscriptionActive && (
-            <Button 
-              variant="outline" 
+          {billing?.subscriptionStatus && billing.subscriptionStatus !== "free" && (
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => portalMutation.mutate()}
               disabled={portalMutation.isPending}
-              className="w-full mt-2"
+              className="w-full mt-4"
             >
               {portalMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
                 <ExternalLink className="h-4 w-4 mr-2" />
               )}
-              {isSpanish ? "Gestionar Suscripción" : "Manage Subscription"}
+              {isSpanish ? "Gestionar Suscripción en Stripe" : "Manage Subscription on Stripe"}
             </Button>
           )}
         </CardContent>
@@ -451,18 +514,23 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
         </CardContent>
       </Card>
 
-      {/* Pricing Info */}
-      <Card className="bg-muted/30">
-        <CardContent className="pt-6">
-          <h4 className="font-medium mb-2">
-            {isSpanish ? "Información de Precios" : "Pricing Information"}
-          </h4>
-          <ul className="space-y-1 text-sm text-muted-foreground">
-            <li>• 10 {isSpanish ? "imágenes gratis para empezar" : "free images to start"}</li>
-            <li>• $0.12 USD {isSpanish ? "por imagen después" : "per image after"}</li>
-            <li>• {isSpanish ? "Cobro automático cada 2 días" : "Automatic billing every 2 days"}</li>
-            <li>• Inbox: $99 USD/{isSpanish ? "mes" : "month"}</li>
-          </ul>
+      {/* Full Pricing Link */}
+      <Card className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-blue-200/50">
+        <CardContent className="pt-6 text-center">
+          <p className="text-sm text-gray-600 mb-3">
+            {isSpanish
+              ? "¿Quieres ver todos los detalles, add-ons y precios anuales?"
+              : "Want to see all details, add-ons, and annual pricing?"}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            onClick={() => window.location.href = "/pricing"}
+          >
+            {isSpanish ? "Ver página de precios completa" : "View full pricing page"}
+            <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+          </Button>
         </CardContent>
       </Card>
     </div>
