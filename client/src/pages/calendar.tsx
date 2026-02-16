@@ -624,10 +624,16 @@ export default function ContentCalendar() {
       postId,
       status,
       scheduledPublishTime,
+      titulo,
+      content,
+      hashtags,
     }: {
       postId: string;
       status: "accepted" | "rejected" | "pending";
       scheduledPublishTime?: string;
+      titulo?: string;
+      content?: string;
+      hashtags?: string;
     }) => {
       const response = await fetch(`/api/ai-posts/${postId}/status`, {
         method: "PATCH",
@@ -637,6 +643,9 @@ export default function ContentCalendar() {
           status,
           brandId: activeBrandId,
           scheduledPublishTime,
+          titulo,
+          content,
+          hashtags,
         }),
       });
       if (!response.ok) throw new Error("Failed to update post status");
@@ -2359,6 +2368,9 @@ export default function ContentCalendar() {
                                 postId: selectedPost.id,
                                 status: "accepted",
                                 scheduledPublishTime: localDate.toISOString(),
+                                titulo: editPost.title,
+                                content: editPost.content,
+                                hashtags: editPost.hashtags,
                               });
                             }
                             setSelectedPost(null);

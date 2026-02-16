@@ -177,6 +177,7 @@ export async function updateAiGeneratedPostStatus(
   status: "pending" | "accepted" | "rejected" | "published",
   scheduledPublishTime?: string,
   imageUrl?: string,
+  editedFields?: { titulo?: string; content?: string; hashtags?: string },
 ): Promise<AiGeneratedPost | null> {
   const now = new Date();
   const updateData: any = { status, updatedAt: now };
@@ -187,6 +188,16 @@ export async function updateAiGeneratedPostStatus(
 
   if (imageUrl) {
     updateData.imageUrl = imageUrl;
+  }
+
+  if (editedFields?.titulo !== undefined) {
+    updateData.titulo = editedFields.titulo;
+  }
+  if (editedFields?.content !== undefined) {
+    updateData.content = editedFields.content;
+  }
+  if (editedFields?.hashtags !== undefined) {
+    updateData.hashtags = editedFields.hashtags;
   }
 
   const result = await db

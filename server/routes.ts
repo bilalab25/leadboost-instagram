@@ -3053,7 +3053,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const { postId } = req.params;
-        const { status, scheduledPublishTime } = req.body;
+        const { status, scheduledPublishTime, titulo, content, hashtags } = req.body;
         const brandId = req.brandId;
 
         if (!status || !["accepted", "rejected", "pending"].includes(status)) {
@@ -3064,10 +3064,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "./storage/aiGeneratedPosts"
         );
 
+        const editedFields = (titulo !== undefined || content !== undefined || hashtags !== undefined)
+          ? { titulo, content, hashtags }
+          : undefined;
+
         const updated = await updateAiGeneratedPostStatus(
           postId,
           status,
           scheduledPublishTime,
+          undefined,
+          editedFields,
         );
         if (!updated || updated.brandId !== brandId) {
           return res.status(404).json({ message: "Post not found" });
@@ -3194,7 +3200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const { postId } = req.params;
-        const { status, scheduledPublishTime, imageUrl } = req.body;
+        const { status, scheduledPublishTime, imageUrl, titulo, content, hashtags } = req.body;
 
         if (!status || !["accepted", "rejected"].includes(status)) {
           return res.status(400).json({ message: "Invalid status" });
@@ -3204,11 +3210,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "./storage/aiGeneratedPosts"
         );
 
+        const editedFields = (titulo !== undefined || content !== undefined || hashtags !== undefined)
+          ? { titulo, content, hashtags }
+          : undefined;
+
         const updated = await updateAiGeneratedPostStatus(
           postId,
           status,
           scheduledPublishTime,
           imageUrl,
+          editedFields,
         );
         if (!updated) {
           return res.status(404).json({ message: "Post not found" });
