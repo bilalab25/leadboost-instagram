@@ -32,6 +32,7 @@ import {
   AlertCircle,
   Check,
   ArrowRight,
+  Save,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
@@ -2346,6 +2347,26 @@ export default function ContentCalendar() {
                     </Button>
                     {editPost.status === "pending" && (
                       <>
+                        <Button
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => {
+                            if (selectedPost && editPost) {
+                              updatePostStatusMutation.mutate({
+                                postId: selectedPost.id,
+                                status: "pending",
+                                titulo: editPost.title,
+                                content: editPost.content,
+                                hashtags: editPost.hashtags,
+                              });
+                              setSelectedPost(null);
+                            }
+                          }}
+                          data-testid="button-save-edit"
+                          disabled={updatePostStatusMutation.isPending}
+                        >
+                          <Save className="w-4 h-4" /> Save
+                        </Button>
                         <Button
                           variant="outline"
                           className="gap-2"
