@@ -7,7 +7,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { CreditCard, DollarSign, Plus, Trash2, ExternalLink, Loader2, CheckCircle, Sparkles, Rocket, Crown, Check, ArrowRight } from "lucide-react";
+import { CreditCard, DollarSign, Plus, Trash2, ExternalLink, Loader2, CheckCircle, Sparkles, Rocket, Crown, Check, ArrowRight, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -396,6 +396,101 @@ export default function PaymentMethodTab({ isSpanish }: PaymentMethodsTabProps) 
               {isSpanish ? "Gestionar Suscripción en Stripe" : "Manage Subscription on Stripe"}
             </Button>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Inbox Subscription */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <MessageSquare className="mr-2 h-5 w-5" />
+            {isSpanish ? "Suscripción de Inbox" : "Inbox Subscription"}
+          </CardTitle>
+          <CardDescription>
+            {isSpanish
+              ? "Bandeja de entrada unificada para gestionar todas tus conversaciones"
+              : "Unified inbox to manage all your conversations"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className={`rounded-xl border-2 p-5 transition-all duration-200 ${
+            billing?.inboxSubscriptionActive
+              ? "border-emerald-500 bg-emerald-50/50"
+              : "border-gray-200"
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-teal-500 to-cyan-600 shadow-sm">
+                  <MessageSquare className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900">
+                    {isSpanish ? "Inbox Unificado" : "Unified Inbox"}
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    {isSpanish
+                      ? "Instagram, WhatsApp, Email y más en un solo lugar"
+                      : "Instagram, WhatsApp, Email & more in one place"}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-black text-gray-900">$99</span>
+                <span className="text-gray-500 text-sm ml-1">/{isSpanish ? "mes" : "mo"}</span>
+              </div>
+            </div>
+
+            <ul className="mt-4 space-y-2">
+              {(isSpanish
+                ? [
+                    "Mensajes de todas las plataformas en una bandeja",
+                    "Respuestas en tiempo real con Socket.IO",
+                    "Búsqueda y filtros por plataforma",
+                    "Estado de lectura y seguimiento de conversaciones",
+                  ]
+                : [
+                    "Messages from all platforms in one inbox",
+                    "Real-time replies with Socket.IO",
+                    "Search and platform-specific filters",
+                    "Read status & conversation tracking",
+                  ]
+              ).map((feature, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-xs text-gray-600">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-4">
+              {billing?.inboxSubscriptionActive ? (
+                <Badge className="bg-emerald-600 text-white">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  {isSpanish ? "Activa" : "Active"}
+                </Badge>
+              ) : (
+                <Button
+                  size="sm"
+                  className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white rounded-lg"
+                  onClick={() => inboxSubscribeMutation.mutate()}
+                  disabled={inboxSubscribeMutation.isPending || !billing?.hasPaymentMethod}
+                >
+                  {inboxSubscribeMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : null}
+                  {isSpanish ? "Suscribirse al Inbox" : "Subscribe to Inbox"}
+                  <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                </Button>
+              )}
+              {!billing?.inboxSubscriptionActive && !billing?.hasPaymentMethod && (
+                <p className="text-xs text-gray-400 mt-2 text-center">
+                  {isSpanish
+                    ? "Añade un método de pago primero para suscribirte"
+                    : "Add a payment method first to subscribe"}
+                </p>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
