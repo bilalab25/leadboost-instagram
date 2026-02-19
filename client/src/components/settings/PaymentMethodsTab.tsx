@@ -321,7 +321,7 @@ export default function PaymentMethodTab({
     {
       key: "growth",
       name: "GROWTH",
-      price: 29,
+      price: 49,
       icon: Rocket,
       gradient: "from-blue-500 to-blue-700",
       features: isSpanish
@@ -346,7 +346,7 @@ export default function PaymentMethodTab({
     {
       key: "pro",
       name: "PRO",
-      price: 79,
+      price: 99,
       icon: Crown,
       gradient: "from-purple-500 to-indigo-600",
       features: isSpanish
