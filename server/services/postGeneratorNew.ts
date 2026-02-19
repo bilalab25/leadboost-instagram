@@ -68,36 +68,32 @@ export async function generateImageWithNanoBanana() {
     });
   }
 
-  parts.push(
-        {
-          text: `Brand Name: Inborn
-            We are a luxury WELLNESS consulting firm specialized in image strategy and brand perception.
-            
-            Brand identity:
-            - Primary color: #052f22 (deep elegant green)
-            - Secondary color: #f1eeec (soft neutral beige)
-            - Style: luxury
-            
-            Task:
-            En la primera imagen se muestra una imagen de inspiración para el post. En la segunda imagen se muestra el producto que se promocionará. En la tercera imagen se muestra el logo de la marca. Genera una imagen de Instagram que combine los elementos de las imágenes de inspiración y el producto, manteniendo el estilo de la marca, el logo debe estar en la esquina inferior derecha.
-            
-            Strict rules:
-            - Avoid stock-photo feeling
-            - Use brand colors subtly and elegantly
-            - Leave negative space for future headline placement
-            - If necesary include catchy text to support the image
-            
-            Output:
-            Instagram-ready.
-            `,
-        },
-      ],
-    },
-  ];
+  parts.push({
+    text: `Brand Name: Inborn
+We are a luxury WELLNESS consulting firm specialized in image strategy and brand perception.
+
+Brand identity:
+- Primary color: #052f22 (deep elegant green)
+- Secondary color: #f1eeec (soft neutral beige)
+- Style: luxury
+
+Task:
+En la primera imagen se muestra una imagen de inspiración para el post. En la segunda imagen se muestra el producto que se promocionará. En la tercera imagen se muestra el logo de la marca. Genera una imagen de Instagram que combine los elementos de las imágenes de inspiración y el producto, manteniendo el estilo de la marca, el logo debe estar en la esquina inferior derecha.
+
+Strict rules:
+- Avoid stock-photo feeling
+- Use brand colors subtly and elegantly
+- Leave negative space for future headline placement
+- If necesary include catchy text to support the image
+
+Output:
+Instagram-ready.
+`,
+  });
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash-image",
-    contents: prompt,
+    contents: [{ role: "user", parts }],
     config: {
       systemInstruction: {
         role: "system",
@@ -118,10 +114,10 @@ export async function generateImageWithNanoBanana() {
     },
   });
 
-  const parts = response.candidates?.[0]?.content?.parts;
-  if (!parts) return null;
+  const responseParts = response.candidates?.[0]?.content?.parts;
+  if (!responseParts) return null;
 
-  for (const part of parts) {
+  for (const part of responseParts) {
     if (part.inlineData?.data) {
       return `data:${part.inlineData.mimeType || "image/png"};base64,${
         part.inlineData.data
