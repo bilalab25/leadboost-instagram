@@ -81,7 +81,6 @@ import PostingFrequencyModal from "@/components/PostingFrequencyModal";
 import ImageEditorDialog from "@/components/ImageEditorDialog";
 import { useImageEditorDialog } from "@/hooks/useImageEditorDialog";
 import { apiRequest } from "@/lib/queryClient";
-import { saveAndCreateImage } from "server/services/postGeneratorNew";
 
 interface ContentPost {
   id: string;
@@ -1097,13 +1096,6 @@ export default function ContentCalendar() {
 
   return (
     <TooltipProvider>
-      <Button
-        onClick={() => {
-          saveAndCreateImage();
-        }}
-      >
-        Generando imagen de prueba
-      </Button>
       {/* Payment Required Modal - Large and prominent */}
       <Dialog
         open={showPaymentRequiredModal}
