@@ -50,13 +50,22 @@ import { boostyService } from "./services/boosty";
 import { generateBrandEssence } from "./services/generateBrandEssence";
 import { registerStripeRoutes } from "./stripe/stripeRoutes";
 import { billingService } from "./stripe/billingService";
-import { registerSyncFunctions, registerSocketIO, triggerSyncForNewIntegration } from "./services/inboxSyncService";
+import {
+  registerSyncFunctions,
+  registerSocketIO,
+  triggerSyncForNewIntegration,
+} from "./services/inboxSyncService";
 import { generateBrandAssetDescription } from "./services/generateBrandAssetDescription";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import multer from "multer";
 import cloudinary from "./cloudinary";
 import { db } from "./db";
-import { brandDesigns, posIntegrations, waitlist, insertWaitlistSchema } from "@shared/schema";
+import {
+  brandDesigns,
+  posIntegrations,
+  waitlist,
+  insertWaitlistSchema,
+} from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import dayjs from "dayjs";
 import { nanoid } from "nanoid";
@@ -931,10 +940,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({ success: true, id: entry.id });
     } catch (err: any) {
       if (err?.code === "23505") {
-        return res.status(409).json({ error: "This email is already on the waitlist." });
+        return res
+          .status(409)
+          .json({ error: "This email is already on the waitlist." });
       }
       console.error("Waitlist error:", err);
-      res.status(500).json({ error: "Something went wrong. Please try again." });
+      res
+        .status(500)
+        .json({ error: "Something went wrong. Please try again." });
     }
   });
 
@@ -2902,7 +2915,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!billingCheck.allowed) {
           return res.status(402).json({
             success: false,
-            message: "Has agotado tus 10 imágenes gratuitas. Por favor, conecta un método de pago para continuar generando contenido.",
+            message:
+              "Has agotado tus 10 imágenes gratuitas. Por favor, conecta un método de pago para continuar generando contenido.",
             requiresPayment: true,
             freeRemaining: billingCheck.freeRemaining,
             hasPaymentMethod: billingCheck.hasPaymentMethod,
@@ -2963,7 +2977,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processPostGeneration(brandId, job.id, targetMonth, targetYear)
           .then(async (result) => {
             // Billing already recorded per-image inside the loop
-            console.log(`[PostGenerator] Background processing complete: ${result.postsGenerated} images generated, paymentRequired=${result.paymentRequired}`);
+            console.log(
+              `[PostGenerator] Background processing complete: ${result.postsGenerated} images generated, paymentRequired=${result.paymentRequired}`,
+            );
           })
           .catch((error) => {
             console.error(
@@ -3053,7 +3069,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const { postId } = req.params;
-        const { status, scheduledPublishTime, titulo, content, hashtags } = req.body;
+        const { status, scheduledPublishTime, titulo, content, hashtags } =
+          req.body;
         const brandId = req.brandId;
 
         if (!status || !["accepted", "rejected", "pending"].includes(status)) {
@@ -3064,9 +3081,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "./storage/aiGeneratedPosts"
         );
 
-        const editedFields = (titulo !== undefined || content !== undefined || hashtags !== undefined)
-          ? { titulo, content, hashtags }
-          : undefined;
+        const editedFields =
+          titulo !== undefined ||
+          content !== undefined ||
+          hashtags !== undefined
+            ? { titulo, content, hashtags }
+            : undefined;
 
         const updated = await updateAiGeneratedPostStatus(
           postId,
@@ -3200,7 +3220,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const { postId } = req.params;
-        const { status, scheduledPublishTime, imageUrl, titulo, content, hashtags } = req.body;
+        const {
+          status,
+          scheduledPublishTime,
+          imageUrl,
+          titulo,
+          content,
+          hashtags,
+        } = req.body;
 
         if (!status || !["accepted", "rejected"].includes(status)) {
           return res.status(400).json({ message: "Invalid status" });
@@ -3210,9 +3237,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "./storage/aiGeneratedPosts"
         );
 
-        const editedFields = (titulo !== undefined || content !== undefined || hashtags !== undefined)
-          ? { titulo, content, hashtags }
-          : undefined;
+        const editedFields =
+          titulo !== undefined ||
+          content !== undefined ||
+          hashtags !== undefined
+            ? { titulo, content, hashtags }
+            : undefined;
 
         const updated = await updateAiGeneratedPostStatus(
           postId,
@@ -3319,7 +3349,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!billingCheck.allowed) {
           return res.status(402).json({
             success: false,
-            message: "Has agotado tus 10 imágenes gratuitas. Por favor, conecta un método de pago para continuar generando contenido.",
+            message:
+              "Has agotado tus 10 imágenes gratuitas. Por favor, conecta un método de pago para continuar generando contenido.",
             requiresPayment: true,
             freeRemaining: billingCheck.freeRemaining,
             hasPaymentMethod: billingCheck.hasPaymentMethod,
@@ -3334,8 +3365,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (result) {
           // Record image usage for sample posts (3 sample posts = 3 images)
-          await billingService.recordImageGeneration(brandId, '/api/generate-sample-posts', 3);
-          console.log(`[Billing] Recorded 3 sample post images for brand ${brandId}`);
+          await billingService.recordImageGeneration(
+            brandId,
+            "/api/generate-sample-posts",
+            3,
+          );
+          console.log(
+            `[Billing] Recorded 3 sample post images for brand ${brandId}`,
+          );
 
           res.json({
             message: "Sample post generation started",
@@ -4005,8 +4042,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Trigger sync if inbox subscription is already active
-      triggerSyncForNewIntegration(savedFbIntegration).catch(err => {
-        console.error("❌ Error triggering sync for Facebook integration:", err);
+      triggerSyncForNewIntegration(savedFbIntegration).catch((err) => {
+        console.error(
+          "❌ Error triggering sync for Facebook integration:",
+          err,
+        );
       });
 
       // -----------------------------------------
@@ -4076,34 +4116,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Trigger sync if inbox subscription is already active
-        triggerSyncForNewIntegration(savedIgIntegration).catch(err => {
-          console.error("❌ Error triggering sync for Instagram integration:", err);
+        triggerSyncForNewIntegration(savedIgIntegration).catch((err) => {
+          console.error(
+            "❌ Error triggering sync for Instagram integration:",
+            err,
+          );
         });
 
-        const savedThreadsIntegration = await storage.createOrUpdateIntegration({
-          userId,
-          brandId,
-          provider: "threads",
-          category: "social_media",
-          storeName: "Threads",
-          storeUrl: `https://threads.net/@${igDetails.username}`,
-          accountId: igAcc.id,
-          accountName: igDetails.username,
-          accessToken: pageAccessToken,
-          pageId: selectedPage.id,
-          isActive: true,
-          syncEnabled: true,
-          metadata: {
-            fbPageId: selectedPage.id,
-            igAccountId: igAcc.id,
-            igUsername: igDetails.username,
-            source: "facebook_callback",
+        const savedThreadsIntegration = await storage.createOrUpdateIntegration(
+          {
+            userId,
+            brandId,
+            provider: "threads",
+            category: "social_media",
+            storeName: "Threads",
+            storeUrl: `https://threads.net/@${igDetails.username}`,
+            accountId: igAcc.id,
+            accountName: igDetails.username,
+            accessToken: pageAccessToken,
+            pageId: selectedPage.id,
+            isActive: true,
+            syncEnabled: true,
+            metadata: {
+              fbPageId: selectedPage.id,
+              igAccountId: igAcc.id,
+              igUsername: igDetails.username,
+              source: "facebook_callback",
+            },
           },
-        });
+        );
 
         // Trigger sync if inbox subscription is already active
-        triggerSyncForNewIntegration(savedThreadsIntegration).catch(err => {
-          console.error("❌ Error triggering sync for Threads integration:", err);
+        triggerSyncForNewIntegration(savedThreadsIntegration).catch((err) => {
+          console.error(
+            "❌ Error triggering sync for Threads integration:",
+            err,
+          );
         });
       }
 
@@ -4131,6 +4179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     (req: any, res) => {
       const redirectUri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
+      console.log("🔗 Instagram Direct OAuth redirect URI:", redirectUri);
       const clientId = process.env.IG_APP_ID;
 
       if (!clientId) {
@@ -4377,7 +4426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Trigger sync if inbox subscription is already active (for users who reconnect after paying)
       // This runs in the background (non-blocking)
-      triggerSyncForNewIntegration(savedIntegration).catch(err => {
+      triggerSyncForNewIntegration(savedIntegration).catch((err) => {
         console.error("❌ Error triggering sync for new integration:", err);
       });
 
@@ -4714,8 +4763,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Trigger sync if inbox subscription is already active
-      triggerSyncForNewIntegration(savedWhatsAppIntegration).catch(err => {
-        console.error("❌ Error triggering sync for WhatsApp integration:", err);
+      triggerSyncForNewIntegration(savedWhatsAppIntegration).catch((err) => {
+        console.error(
+          "❌ Error triggering sync for WhatsApp integration:",
+          err,
+        );
       });
 
       // Redirect based on origin (onboarding or integrations)
@@ -11553,7 +11605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Make io accessible in routes via app.set
   app.set("io", io);
-  
+
   // Register Socket.IO with inbox sync service for real-time sync notifications
   registerSocketIO(io);
 
