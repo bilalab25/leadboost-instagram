@@ -8696,6 +8696,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test: Generate image and save to Cloudinary
+  app.post(
+    "/api/test/generate-image",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { saveAndCreateImage } = await import(
+          "./services/postGeneratorNew"
+        );
+        const result = await saveAndCreateImage();
+        res.json({ success: true, result });
+      } catch (error) {
+        console.error("[Test] Generate image error:", error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
   // Upload edited image (from image editor) and update AI post
   app.post(
     "/api/upload-edited-image",

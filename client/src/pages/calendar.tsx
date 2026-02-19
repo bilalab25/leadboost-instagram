@@ -1094,8 +1094,43 @@ export default function ContentCalendar() {
     console.log("Posting schedule saved:", schedule);
   };
 
+  const generateTestImageMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/test/generate-image");
+      if (!response.ok) throw new Error("Failed to generate image");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Image Generated",
+        description: "Test image created and uploaded to Cloudinary.",
+      });
+      console.log("[Test] Image result:", data);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <TooltipProvider>
+      <Button
+        onClick={() => generateTestImageMutation.mutate()}
+        disabled={generateTestImageMutation.isPending}
+      >
+        {generateTestImageMutation.isPending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Generando imagen de prueba...
+          </>
+        ) : (
+          "Generando imagen de prueba"
+        )}
+      </Button>
       {/* Payment Required Modal - Large and prominent */}
       <Dialog
         open={showPaymentRequiredModal}
