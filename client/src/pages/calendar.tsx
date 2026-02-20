@@ -1118,7 +1118,7 @@ export default function ContentCalendar() {
 
   return (
     <TooltipProvider>
-      <Button
+      {/*       <Button
         onClick={() => generateTestImageMutation.mutate()}
         disabled={generateTestImageMutation.isPending}
       >
@@ -1130,7 +1130,7 @@ export default function ContentCalendar() {
         ) : (
           "Generando imagen de prueba"
         )}
-      </Button>
+      </Button> */}
       {/* Payment Required Modal - Large and prominent */}
       <Dialog
         open={showPaymentRequiredModal}
