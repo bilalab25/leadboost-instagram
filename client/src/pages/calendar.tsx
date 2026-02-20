@@ -33,6 +33,7 @@ import {
   Check,
   ArrowRight,
   Save,
+  Grid3X3,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
@@ -2078,6 +2079,85 @@ export default function ContentCalendar() {
                 </div>
               </div>
             </main>
+
+            {/* AI Image Gallery */}
+            {(() => {
+              const aiImages = (brandAssets || []).filter(
+                (a: any) => a.category === "ai-generated" && a.assetType === "image"
+              ).sort((a: any, b: any) => {
+                const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return dateB - dateA;
+              });
+
+              if (aiImages.length === 0) return null;
+
+              return (
+                <div className="px-6 pb-8">
+                  <Card className="border border-gray-200 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
+                            <Grid3X3 className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg font-semibold text-gray-900">
+                              {isSpanish ? "Galería de Imágenes AI" : "AI Image Gallery"}
+                            </CardTitle>
+                            <p className="text-sm text-gray-500">
+                              {isSpanish
+                                ? `${aiImages.length} ${aiImages.length === 1 ? "imagen aprobada" : "imágenes aprobadas"}`
+                                : `${aiImages.length} approved ${aiImages.length === 1 ? "image" : "images"}`}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        {aiImages.map((asset: any) => (
+                          <div
+                            key={asset.id}
+                            className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-teal-300"
+                            onClick={() => setFullscreenImage(asset.url)}
+                          >
+                            <img
+                              src={asset.url}
+                              alt={asset.description || asset.name || "AI Generated"}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              loading="lazy"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <div className="absolute bottom-2 left-2 right-2">
+                                <div className="flex items-center gap-1">
+                                  <Eye className="w-3.5 h-3.5 text-white" />
+                                  <span className="text-xs text-white font-medium truncate">
+                                    {isSpanish ? "Ver" : "View"}
+                                  </span>
+                                </div>
+                                {asset.createdAt && (
+                                  <p className="text-[10px] text-white/70 mt-0.5">
+                                    {format(new Date(asset.createdAt), "MMM d, yyyy", {
+                                      locale: isSpanish ? es : enUS,
+                                    })}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="absolute top-1.5 right-1.5">
+                              <Badge className="bg-teal-500/90 text-white text-[9px] px-1.5 py-0 border-0">
+                                AI
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -2697,6 +2777,9 @@ export default function ContentCalendar() {
                       { approved, rejected },
                     );
                     if (response.ok) {
+                      queryClient.invalidateQueries({
+                        queryKey: [`/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`],
+                      });
                       toast({
                         title: isSpanish
                           ? `¡${approved.length} imágenes guardadas!`
