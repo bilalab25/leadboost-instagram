@@ -2078,8 +2078,6 @@ export default function ContentCalendar() {
                   </div>
                 </div>
               </div>
-            </main>
-
             {/* AI Image Gallery */}
             {(() => {
               const aiImages = (brandAssets || []).filter(
@@ -2158,6 +2156,7 @@ export default function ContentCalendar() {
                 </div>
               );
             })()}
+            </main>
           </div>
         </div>
 
