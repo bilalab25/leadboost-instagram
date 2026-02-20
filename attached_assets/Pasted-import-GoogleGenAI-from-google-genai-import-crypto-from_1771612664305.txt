@@ -1,0 +1,226 @@
+import { GoogleGenAI } from "@google/genai";
+import crypto from "crypto";
+import { v2 as cloudinary } from "cloudinary";
+
+// ✅ Config Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key: process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
+});
+
+type BrandDNA = {
+  brandId: string;
+  description: string;
+  tone: string; // "premium, calm, wellness"
+  palette?: string[]; // ["#052f22", "#f1eeec"]
+  dos?: string[];
+  donts?: string[];
+  pillars: Array<"educacion" | "producto" | "lifestyle" | "social_proof">;
+  cloudinary: {
+    inspirationFolder: string; // e.g. "brands/001/inspiration"
+    productFolder: string;     // e.g. "brands/001/product"
+    logoFolder?: string;       // optional
+  };
+};
+
+type Concept = {
+  id: string;
+  pillar: BrandDNA["pillars"][number];
+  title: string;
+  prompt: string; // prompt base para ese concepto
+};
+
+// ---- Helpers
+async function downloadAsBase64(url: string): Promise<{ mimeType: string; data: string }> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch ref image: ${res.status} ${res.statusText}`);
+  const contentType = res.headers.get("content-type") || "image/jpeg";
+  const arrayBuffer = await res.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString("base64");
+  return { mimeType: contentType, data: base64 };
+}
+
+function sha256(buf: Buffer) {
+  return crypto.createHash("sha256").update(buf).digest("hex");
+}
+
+// Listar imágenes de una carpeta en Cloudinary
+async function listCloudinaryImages(folder: string, max = 50): Promise<string[]> {
+  const r = await cloudinary.search
+    .expression(`folder:${folder} AND resource_type:image`)
+    .sort_by("created_at", "desc")
+    .max_results(max)
+    .execute();
+
+  return (r.resources || []).map((x: any) => x.secure_url).filter(Boolean);
+}
+
+// Selección simple (puedes mejorar con embeddings/ranking después)
+function pickRandom<T>(arr: T[], n: number): T[] {
+  const copy = [...arr];
+  const out: T[] = [];
+  while (copy.length && out.length < n) {
+    const i = Math.floor(Math.random() * copy.length);
+    out.push(copy.splice(i, 1)[0]);
+  }
+  return out;
+}
+
+// Genera concepts automáticamente (mínimo viable)
+function buildAutoPlan(dna: BrandDNA, count = 12): Concept[] {
+  const pillars = dna.pillars.length ? dna.pillars : ["lifestyle", "producto", "educacion"];
+  const plan: Concept[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const pillar = pillars[i % pillars.length];
+    const id = `C${i + 1}`;
+
+    const title =
+      pillar === "producto" ? "Producto hero" :
+      pillar === "educacion" ? "Tip wellness" :
+      pillar === "social_proof" ? "Testimonial vibe" :
+      "Lifestyle editorial";
+
+    const prompt = `
+Concepto: ${title}.
+Marca: ${dna.description}.
+Tono: ${dna.tone}.
+Paleta (si aplica): ${(dna.palette || []).join(", ")}.
+DOs: ${(dna.dos || []).join("; ")}.
+DONTs: ${(dna.donts || []).join("; ")}.
+Requisitos: Imagen para feed Instagram 1:1, estética consistente, premium, minimal, sin texto grande.
+Pilar: ${pillar}.
+`;
+
+    plan.push({ id, pillar, title, prompt });
+  }
+  return plan;
+}
+
+// Extraer imagen binaria desde respuesta (depende del SDK; este patrón suele funcionar con parts)
+function extractImageBuffersFromResponse(resp: any): Buffer[] {
+  const bufs: Buffer[] = [];
+  const candidates = resp?.candidates || [];
+  for (const c of candidates) {
+    const parts = c?.content?.parts || [];
+    for (const p of parts) {
+      // Muchos responses traen inlineData con base64
+      if (p?.inlineData?.data) {
+        bufs.push(Buffer.from(p.inlineData.data, "base64"));
+      }
+    }
+  }
+  return bufs;
+}
+
+export async function generateBrandFeedBatch(dna: BrandDNA) {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+
+  // 1) Assets
+  const inspirationUrls = await listCloudinaryImages(dna.cloudinary.inspirationFolder, 80);
+  const productUrls = await listCloudinaryImages(dna.cloudinary.productFolder, 80);
+
+  // 2) Plan
+  const plan = buildAutoPlan(dna, 12);
+
+  // 3) Config modelo (1:1)
+  const config = {
+    imageConfig: {
+      aspectRatio: "1:1",
+      imageSize: "1K",
+      // personGeneration: "allow" | "dont_allow" (según tu caso)
+    },
+    responseModalities: ["IMAGE", "TEXT"],
+    systemInstruction: [{
+      text: `Eres un director creativo experto en branding wellness premium.
+Genera imágenes estilo editorial minimalista, coherentes con la marca.
+No agregues texto grande ni logos gigantes. Mantén consistencia de iluminación y paleta.`,
+    }],
+  };
+
+  const model = "gemini-3-pro-imag"; // usa el que ya tienes configurado
+
+  const uploaded: any[] = [];
+  const seenHashes = new Set<string>();
+
+  for (const concept of plan) {
+    // 4 variaciones por concept
+    for (let v = 1; v <= 4; v++) {
+      // refs automáticas (2 inspiración + 1 producto si es pilar producto)
+      const refs = [
+        ...pickRandom(inspirationUrls, 2),
+        ...(concept.pillar === "producto" ? pickRandom(productUrls, 1) : []),
+      ].filter(Boolean);
+
+      const refParts = [];
+      for (const url of refs) {
+        const b64 = await downloadAsBase64(url);
+        refParts.push({ inlineData: b64 });
+      }
+
+      const variationHint = `
+Variación ${v}/4:
+- Cambia SOLO: composición/encuadre y props sutiles.
+- Mantén consistencia de estilo y paleta.
+- Resultado: imagen cuadrada 1:1, lista para feed.
+`;
+
+      const userPrompt = `${concept.prompt}\n${variationHint}`;
+
+      const resp = await ai.models.generateContent({
+        model,
+        config,
+        contents: [{
+          role: "user",
+          parts: [
+            ...refParts,
+            { text: userPrompt },
+          ],
+        }],
+      });
+
+      const buffers = extractImageBuffersFromResponse(resp);
+
+      // Si el modelo devuelve 0 buffers, lo registras para debug
+      if (!buffers.length) {
+        uploaded.push({
+          conceptId: concept.id,
+          variant: v,
+          error: "No image returned",
+          debugText: resp?.candidates?.[0]?.content?.parts?.find((p: any) => p.text)?.text,
+        });
+        continue;
+      }
+
+      for (const buf of buffers) {
+        const h = sha256(buf);
+        if (seenHashes.has(h)) continue; // dedupe simple
+        seenHashes.add(h);
+
+        const dataUri = `data:image/png;base64,${buf.toString("base64")}`;
+
+        const folder = `brands/${dna.brandId}/feed/${new Date().toISOString().slice(0, 10)}`;
+        const uploadRes = await cloudinary.uploader.upload(dataUri, {
+          folder,
+          public_id: `${concept.id}_v${v}_${h.slice(0, 8)}`,
+          overwrite: false,
+        });
+
+        uploaded.push({
+          brandId: dna.brandId,
+          conceptId: concept.id,
+          pillar: concept.pillar,
+          variant: v,
+          prompt: userPrompt,
+          secure_url: uploadRes.secure_url,
+          public_id: uploadRes.public_id,
+          hash: h,
+          refs,
+        });
+      }
+    }
+  }
+
+  return { brandId: dna.brandId, total: uploaded.length, items: uploaded };
+}
