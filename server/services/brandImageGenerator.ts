@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { storage } from "../storage";
 import cloudinary from "../cloudinary";
 import crypto from "crypto";
+import sharp from "sharp";
 import { db } from "../db";
 import { brandAssets } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
@@ -52,6 +53,87 @@ async function fetchImageAsBase64(
 
 function sha256(buf: Buffer): string {
   return crypto.createHash("sha256").update(buf).digest("hex");
+}
+
+async function overlayLogoOnImage(
+  imageBuffer: Buffer,
+  logoUrl: string,
+  options: {
+    position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+    opacity?: number;
+    scale?: number;
+    padding?: number;
+  } = {},
+): Promise<Buffer> {
+  const {
+    position = "bottom-right",
+    opacity = 0.85,
+    scale = 0.18,
+    padding = 25,
+  } = options;
+
+  try {
+    const logoResponse = await fetch(logoUrl);
+    if (!logoResponse.ok) {
+      console.log(`[BrandImageGen] Logo overlay: failed to fetch logo (${logoResponse.status})`);
+      return imageBuffer;
+    }
+    const logoArrayBuffer = await logoResponse.arrayBuffer();
+    const logoBuffer = Buffer.from(logoArrayBuffer);
+
+    const imageMetadata = await sharp(imageBuffer).metadata();
+    const imageWidth = imageMetadata.width || 1024;
+    const imageHeight = imageMetadata.height || 1024;
+
+    const logoSize = Math.round(Math.min(imageWidth, imageHeight) * scale);
+
+    const resizedLogo = await sharp(logoBuffer)
+      .resize(logoSize, logoSize, {
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .ensureAlpha()
+      .composite([
+        {
+          input: Buffer.from([255, 255, 255, Math.round(255 * opacity)]),
+          raw: { width: 1, height: 1, channels: 4 },
+          tile: true,
+          blend: "dest-in",
+        },
+      ])
+      .toBuffer();
+
+    const logoMeta = await sharp(resizedLogo).metadata();
+    const logoWidth = logoMeta.width || logoSize;
+    const logoHeight = logoMeta.height || logoSize;
+
+    let left: number, top: number;
+    switch (position) {
+      case "top-left":
+        left = padding; top = padding; break;
+      case "top-right":
+        left = imageWidth - logoWidth - padding; top = padding; break;
+      case "bottom-left":
+        left = padding; top = imageHeight - logoHeight - padding; break;
+      case "bottom-right":
+      default:
+        left = imageWidth - logoWidth - padding; top = imageHeight - logoHeight - padding; break;
+    }
+
+    const result = await sharp(imageBuffer)
+      .composite([{
+        input: resizedLogo,
+        left: Math.max(0, left),
+        top: Math.max(0, top),
+      }])
+      .toBuffer();
+
+    console.log(`[BrandImageGen] ✅ Logo watermark applied (${position}, ${logoSize}px, ${Math.round(opacity * 100)}% opacity)`);
+    return result;
+  } catch (error) {
+    console.error(`[BrandImageGen] Logo overlay error:`, error);
+    return imageBuffer;
+  }
 }
 
 const assetUsageCache = new Map<string, Record<string, number>>();
@@ -276,17 +358,19 @@ export async function generateBrandImages(
   const brandStyle = brandDesign.brandStyle || "minimalist";
   const brandDescription = (brandDesign as any).brandDescription || brand.description || "";
 
-  const logoUrl = (brandDesign as any).whiteLogoUrl || (brandDesign as any).blackLogoUrl || brandDesign.logoUrl;
+  console.log(`[BrandImageGen] Logo fields — logoUrl: ${brandDesign.logoUrl || "null"}, whiteLogoUrl: ${brandDesign.whiteLogoUrl || "null"}, blackLogoUrl: ${brandDesign.blackLogoUrl || "null"}`);
+  const logoUrl = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
   let logoBase64: { data: string; mimeType: string } | null = null;
   if (logoUrl) {
+    console.log(`[BrandImageGen] Fetching logo from: ${logoUrl}`);
     logoBase64 = await fetchImageAsBase64(logoUrl);
     if (logoBase64) {
-      console.log(`[BrandImageGen] Logo loaded successfully from: ${logoUrl.slice(0, 60)}...`);
+      console.log(`[BrandImageGen] ✅ Logo loaded successfully (${logoBase64.mimeType}, ${Math.round(logoBase64.data.length / 1024)}KB base64)`);
     } else {
-      console.log(`[BrandImageGen] WARNING: Failed to load logo from ${logoUrl}`);
+      console.log(`[BrandImageGen] ❌ WARNING: Failed to download logo from ${logoUrl}`);
     }
   } else {
-    console.log(`[BrandImageGen] No logo URL found for brand`);
+    console.log(`[BrandImageGen] ⚠️ No logo URL found in any field for brand ${brandId}`);
   }
 
   const hasLogo = !!logoBase64;
@@ -453,7 +537,7 @@ ALL visible text/copy in the image (if any) MUST be in ${languageLabel}.
 
 Generate a single, stunning, scroll-stopping social media image.`;
 
-      console.log(`[BrandImageGen] Generating variation ${v + 1}/${count} with ${contentParts.length} reference images...`);
+      console.log(`[BrandImageGen] Generating variation ${v + 1}/${count} — ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}`);
 
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-image",
@@ -477,7 +561,7 @@ Generate a single, stunning, scroll-stopping social media image.`;
         const parts = candidate?.content?.parts || [];
         for (const part of parts) {
           if (part.inlineData?.data) {
-            const imageBuffer = Buffer.from(part.inlineData.data, "base64");
+            let imageBuffer = Buffer.from(part.inlineData.data, "base64");
             const hash = sha256(imageBuffer);
 
             if (seenHashes.has(hash)) {
@@ -486,7 +570,13 @@ Generate a single, stunning, scroll-stopping social media image.`;
             }
             seenHashes.add(hash);
 
-            const dataUri = `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
+            if (logoUrl) {
+              imageBuffer = await overlayLogoOnImage(imageBuffer, logoUrl);
+            }
+
+            const finalBase64 = imageBuffer.toString("base64");
+            const mimeType = part.inlineData.mimeType || "image/png";
+            const dataUri = `data:${mimeType};base64,${finalBase64}`;
             const folder = `brands/${brandId}/generated/${new Date().toISOString().slice(0, 10)}`;
             const publicIdValue = `gen_v${v + 1}_${hash.slice(0, 8)}`;
 
