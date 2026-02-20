@@ -187,6 +187,7 @@ export default function ContentCalendar() {
   const [showImageCarousel, setShowImageCarousel] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<any[]>([]);
   const [approvedImages, setApprovedImages] = useState<any[]>([]);
+  const [calendarTab, setCalendarTab] = useState<"month" | "gallery">("month");
 
   // Query to fetch integrations for the brand
   const { data: integrations, isLoading: integrationsLoading } = useQuery<
@@ -1293,6 +1294,44 @@ export default function ContentCalendar() {
             <main className="flex-1 relative overflow-y-auto focus:outline-none">
               <div className="py-6">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                  {/* Tab Navigation */}
+                  <div className="flex items-center gap-1 mb-6 border-b border-gray-200">
+                    <button
+                      onClick={() => setCalendarTab("month")}
+                      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                        calendarTab === "month"
+                          ? "border-purple-600 text-purple-700"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      <CalendarIcon className="w-4 h-4" />
+                      {isSpanish ? "Este Mes" : "This Month"}
+                    </button>
+                    <button
+                      onClick={() => setCalendarTab("gallery")}
+                      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                        calendarTab === "gallery"
+                          ? "border-teal-600 text-teal-700"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      <Grid3X3 className="w-4 h-4" />
+                      {isSpanish ? "Galería de Contenido" : "Content Gallery"}
+                      {(() => {
+                        const count = (brandAssets || []).filter(
+                          (a: any) => a.category === "ai-generated" && a.assetType === "image"
+                        ).length;
+                        return count > 0 ? (
+                          <Badge className="bg-teal-100 text-teal-700 text-[10px] px-1.5 py-0 border-0 ml-1">
+                            {count}
+                          </Badge>
+                        ) : null;
+                      })()}
+                    </button>
+                  </div>
+
+                  {calendarTab === "month" && (
+                  <>
                   {/* Alert Banners for Missing Requirements */}
                   <div className="space-y-3 mb-6">
                     {/* No integrations banner */}
@@ -2076,86 +2115,108 @@ export default function ContentCalendar() {
                       </Card>
                     </div>
                   </div>
-                </div>
-              </div>
-            {/* AI Image Gallery */}
-            {(() => {
-              const aiImages = (brandAssets || []).filter(
-                (a: any) => a.category === "ai-generated" && a.assetType === "image"
-              ).sort((a: any, b: any) => {
-                const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                return dateB - dateA;
-              });
+                  </>
+                  )}
 
-              if (aiImages.length === 0) return null;
+                  {/* Content Gallery Tab */}
+                  {calendarTab === "gallery" && (() => {
+                    const aiImages = (brandAssets || []).filter(
+                      (a: any) => a.category === "ai-generated" && a.assetType === "image"
+                    ).sort((a: any, b: any) => {
+                      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                      return dateB - dateA;
+                    });
 
-              return (
-                <div className="px-6 pb-8">
-                  <Card className="border border-gray-200 shadow-sm">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
-                            <Grid3X3 className="w-5 h-5 text-white" />
+                    if (aiImages.length === 0) {
+                      return (
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+                          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                            <Grid3X3 className="w-8 h-8 text-gray-400" />
                           </div>
-                          <div>
-                            <CardTitle className="text-lg font-semibold text-gray-900">
-                              {isSpanish ? "Galería de Imágenes AI" : "AI Image Gallery"}
-                            </CardTitle>
-                            <p className="text-sm text-gray-500">
-                              {isSpanish
-                                ? `${aiImages.length} ${aiImages.length === 1 ? "imagen aprobada" : "imágenes aprobadas"}`
-                                : `${aiImages.length} approved ${aiImages.length === 1 ? "image" : "images"}`}
-                            </p>
+                          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                            {isSpanish ? "Sin imágenes aún" : "No images yet"}
+                          </h3>
+                          <p className="text-sm text-gray-500 max-w-md">
+                            {isSpanish
+                              ? "Genera imágenes con IA desde la pestaña 'Este Mes' y apruébalas para verlas aquí."
+                              : "Generate AI images from the 'This Month' tab and approve them to see them here."}
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-4"
+                            onClick={() => setCalendarTab("month")}
+                          >
+                            <CalendarIcon className="w-4 h-4 mr-2" />
+                            {isSpanish ? "Ir a Este Mes" : "Go to This Month"}
+                          </Button>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="pb-8">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
+                              <Grid3X3 className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <h2 className="text-lg font-semibold text-gray-900">
+                                {isSpanish ? "Imágenes Generadas con IA" : "AI Generated Images"}
+                              </h2>
+                              <p className="text-sm text-gray-500">
+                                {isSpanish
+                                  ? `${aiImages.length} ${aiImages.length === 1 ? "imagen aprobada" : "imágenes aprobadas"}`
+                                  : `${aiImages.length} approved ${aiImages.length === 1 ? "image" : "images"}`}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                        {aiImages.map((asset: any) => (
-                          <div
-                            key={asset.id}
-                            className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-teal-300"
-                            onClick={() => setFullscreenImage(asset.url)}
-                          >
-                            <img
-                              src={asset.url}
-                              alt={asset.description || asset.name || "AI Generated"}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              loading="lazy"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                              <div className="absolute bottom-2 left-2 right-2">
-                                <div className="flex items-center gap-1">
-                                  <Eye className="w-3.5 h-3.5 text-white" />
-                                  <span className="text-xs text-white font-medium truncate">
-                                    {isSpanish ? "Ver" : "View"}
-                                  </span>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                          {aiImages.map((asset: any) => (
+                            <div
+                              key={asset.id}
+                              className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-teal-300"
+                              onClick={() => setFullscreenImage(asset.url)}
+                            >
+                              <img
+                                src={asset.url}
+                                alt={asset.description || asset.name || "AI Generated"}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                loading="lazy"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="absolute bottom-2 left-2 right-2">
+                                  <div className="flex items-center gap-1">
+                                    <Eye className="w-3.5 h-3.5 text-white" />
+                                    <span className="text-xs text-white font-medium truncate">
+                                      {isSpanish ? "Ver" : "View"}
+                                    </span>
+                                  </div>
+                                  {asset.createdAt && (
+                                    <p className="text-[10px] text-white/70 mt-0.5">
+                                      {format(new Date(asset.createdAt), "MMM d, yyyy", {
+                                        locale: isSpanish ? es : enUS,
+                                      })}
+                                    </p>
+                                  )}
                                 </div>
-                                {asset.createdAt && (
-                                  <p className="text-[10px] text-white/70 mt-0.5">
-                                    {format(new Date(asset.createdAt), "MMM d, yyyy", {
-                                      locale: isSpanish ? es : enUS,
-                                    })}
-                                  </p>
-                                )}
+                              </div>
+                              <div className="absolute top-1.5 right-1.5">
+                                <Badge className="bg-teal-500/90 text-white text-[9px] px-1.5 py-0 border-0">
+                                  AI
+                                </Badge>
                               </div>
                             </div>
-                            <div className="absolute top-1.5 right-1.5">
-                              <Badge className="bg-teal-500/90 text-white text-[9px] px-1.5 py-0 border-0">
-                                AI
-                              </Badge>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    );
+                  })()}
                 </div>
-              );
-            })()}
+              </div>
             </main>
           </div>
         </div>
