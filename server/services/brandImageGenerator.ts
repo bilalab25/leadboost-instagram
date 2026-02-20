@@ -152,19 +152,24 @@ function getLanguageLabel(lang: string): string {
   return map[lang] || "English";
 }
 
-function buildVariationHints(count: number): string[] {
-  const hints = [
-    "Close-up product hero shot with cinematic lighting, shallow depth of field, and a luxurious surface texture. Shot at golden hour warmth.",
-    "Wide environmental lifestyle shot showing the brand in context — real setting, natural light, aspirational atmosphere. Think editorial spread.",
-    "Overhead flat-lay with meticulous arrangement, clean negative space, and complementary props that reinforce the brand story.",
-    "Bold side-lit composition with dramatic shadows, high contrast, and a moody editorial feel. Magazine cover energy.",
-    "Candid lifestyle moment — authentic action, natural movement, human connection. Documentary-style but polished.",
-    "Ultra-minimalist centered composition with generous whitespace, single focal point, and soft diffused lighting. Apple-level clean.",
-    "Rich textural close-up — fabric, material, ingredient detail. Macro-style with beautiful bokeh and tactile quality.",
-    "Dynamic diagonal composition with leading lines, layered depth, and energetic visual flow. Modern and bold.",
+interface VariationHint {
+  direction: string;
+  includeText: boolean;
+}
+
+function buildVariationHints(count: number): VariationHint[] {
+  const hints: VariationHint[] = [
+    { direction: "Close-up product hero shot with cinematic lighting, shallow depth of field, and a luxurious surface texture. Shot at golden hour warmth.", includeText: true },
+    { direction: "Wide environmental lifestyle shot showing the brand in context — real setting, natural light, aspirational atmosphere. Think editorial spread.", includeText: false },
+    { direction: "Overhead flat-lay with meticulous arrangement, clean negative space, and complementary props that reinforce the brand story.", includeText: true },
+    { direction: "Bold side-lit composition with dramatic shadows, high contrast, and a moody editorial feel. Magazine cover energy.", includeText: false },
+    { direction: "Candid lifestyle moment — authentic action, natural movement, human connection. Documentary-style but polished.", includeText: false },
+    { direction: "Ultra-minimalist centered composition with generous whitespace, single focal point, and soft diffused lighting. Apple-level clean.", includeText: true },
+    { direction: "Rich textural close-up — fabric, material, ingredient detail. Macro-style with beautiful bokeh and tactile quality.", includeText: false },
+    { direction: "Dynamic diagonal composition with leading lines, layered depth, and energetic visual flow. Modern and bold.", includeText: true },
   ];
 
-  const selected: string[] = [];
+  const selected: VariationHint[] = [];
   for (let i = 0; i < count; i++) {
     selected.push(hints[i % hints.length]);
   }
@@ -281,7 +286,7 @@ export async function generateBrandImages(
 
   const systemInstruction = `You are a world-class creative director and visual artist specializing in luxury brand imagery for social media.
 
-YOUR MANDATE: Create images that look like they belong in a high-end advertising campaign — NOT stock photos, NOT amateur content, NOT AI-generated looking. Every image MUST include brand-related copy/text that enhances the message.
+YOUR MANDATE: Create images that look like they belong in a high-end advertising campaign — NOT stock photos, NOT amateur content, NOT AI-generated looking.
 
 ## PROFESSIONAL QUALITY STANDARDS
 - Photorealistic quality with cinematic lighting (golden hour, Rembrandt, split lighting)
@@ -292,17 +297,20 @@ YOUR MANDATE: Create images that look like they belong in a high-end advertising
 - NO watermarks, NO stock photo overlays, NO generic template layouts
 - If a logo is provided, reproduce it clearly and legibly in the image
 
-## BRAND COPY & TEXT REQUIREMENTS (CRITICAL)
-Every generated image MUST include brand-related text/copy embedded beautifully into the design:
-- Include the BRAND NAME prominently and legibly in every image
-- Add a short, catchy tagline, slogan, or promotional phrase relevant to the brand's industry and offerings
-- Text ideas: special offers ("20% OFF"), calls to action ("Shop Now", "Book Today"), value propositions ("Premium Quality"), seasonal messages, motivational quotes related to the industry
-- Text must be CLEAR, READABLE, and properly spelled — no garbled or distorted letters
-- Use elegant, modern typography that matches the brand style
-- Text should be integrated into the composition — overlaid on clean areas, inside design elements, or as part of the visual hierarchy
-- Use the brand's color palette for text — primary color for headlines, accent colors for secondary text
-- Ensure sufficient contrast between text and background for readability
-- Text placement should follow professional graphic design principles — balanced, aligned, purposeful
+## BRAND COPY & TEXT GUIDELINES
+Some images should include brand-related text/copy, but NOT all of them. Mix it up:
+- About HALF of the images in a set should include text (brand name, taglines, calls to action, promotional phrases)
+- The other half should be purely visual — beautiful product/lifestyle imagery with NO text, letting the visuals speak for themselves
+- When text IS included:
+  - Include the BRAND NAME prominently and legibly
+  - Add a short, catchy tagline or promotional phrase relevant to the brand
+  - Text must be CLEAR, READABLE, and properly spelled — no garbled or distorted letters
+  - Use elegant, modern typography that matches the brand style
+  - Use the brand's color palette for text and ensure sufficient contrast for readability
+  - Integrate text naturally into the composition
+- When text is NOT included:
+  - Focus entirely on stunning visuals, lighting, textures, and mood
+  - Let the product/scene be the hero with no distractions
 
 ## BRAND COHESION
 - Every image must feel like it belongs to the same visual campaign
@@ -366,12 +374,23 @@ Every generated image MUST include brand-related text/copy embedded beautifully 
         }
       }
 
-      const variationHint = variationHints[v];
+      const variation = variationHints[v];
+
+      const textSection = variation.includeText
+        ? `## COPY/TEXT TO INCLUDE IN THE IMAGE (REQUIRED FOR THIS VARIATION)
+The image MUST contain these text elements:
+1. The brand name "${brand.name}" — large, clear, and prominent
+2. A short compelling tagline or promotional phrase related to the brand (create one that fits the industry and brand description)
+3. Optional: a call-to-action phrase or additional detail
+Make the text beautiful — use elegant typography, ensure perfect spelling, and integrate it naturally into the composition. Text should use the brand's color palette and be fully readable at mobile sizes.`
+        : `## NO TEXT FOR THIS VARIATION
+This image should be PURELY VISUAL — do NOT include any text, copy, brand name, or typography.
+Focus entirely on stunning visuals, lighting, textures, mood, and composition. Let the imagery speak for itself.`;
 
       const userPrompt = `Create a premium social media image for this brand:
 
 ## BRAND IDENTITY
-- Name: "${brand.name}" (MUST appear prominently in the image)
+- Name: "${brand.name}"
 - Description: ${brandDescription}
 - Industry: ${brand.industry || "lifestyle"}
 - Visual Style: ${brandStyle}
@@ -388,21 +407,16 @@ Study these reference images carefully. Match their:
 - Level of sophistication and production value
 Create something NEW that feels like it belongs in the SAME visual world.
 
-## COPY/TEXT TO INCLUDE IN THE IMAGE (REQUIRED)
-The image MUST contain these text elements:
-1. The brand name "${brand.name}" — large, clear, and prominent
-2. A short compelling tagline or promotional phrase related to the brand (create one that fits the industry and brand description)
-3. Optional: a call-to-action phrase or additional detail
-Make the text beautiful — use elegant typography, ensure perfect spelling, and integrate it naturally into the composition. Text should use the brand's color palette and be fully readable at mobile sizes.
+${textSection}
 
 ## THIS VARIATION'S DIRECTION
-${variationHint}
+${variation.direction}
 ${historyContext}
 
 ## LANGUAGE REQUIREMENT
-ALL visible text/copy in the image MUST be in ${languageLabel}.
+ALL visible text/copy in the image (if any) MUST be in ${languageLabel}.
 
-Generate a single, stunning, scroll-stopping social media image with clear, professional brand copy.`;
+Generate a single, stunning, scroll-stopping social media image.`;
 
       console.log(`[BrandImageGen] Generating variation ${v + 1}/${count} with ${contentParts.length} reference images...`);
 
@@ -452,10 +466,10 @@ Generate a single, stunning, scroll-stopping social media image with clear, prof
               imageUrl: uploadRes.secure_url,
               cloudinaryUrl: uploadRes.secure_url,
               publicId: uploadRes.public_id,
-              prompt: variationHint,
+              prompt: variation.direction,
               variant: v + 1,
               hash,
-              variationHint,
+              variationHint: variation.direction,
             });
 
             imageFound = true;
