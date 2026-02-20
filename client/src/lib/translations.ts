@@ -439,7 +439,7 @@ export const translations = {
     },
     // Dashboard
     dashboard: {
-      welcomeBack: "Bienvenido de vuelta",
+      welcomeBack: "Bienvenido",
       totalMessages: "Total de Mensajes",
       unreadMessages: "Mensajes No Leídos",
       totalCampaigns: "Total de Campañas",

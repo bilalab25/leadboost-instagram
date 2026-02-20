@@ -68,18 +68,18 @@ export default function Pricing() {
       cta: isSpanish ? "Elegir Growth" : "Choose Growth",
       features: isSpanish
         ? [
-            "30 Posts/Stories (Instagram, Facebook, Twitter)",
-            "8 Videos TikTok/Reels",
-            "4 Campañas de Email",
-            "Auto-programación y publicación",
-            "Dashboard de analíticas básicas",
+            "30 Posts/Stories (Instagram, Facebook, Twitter) por mes",
+            "8 Videos TikTok/Reels por mes",
+            "4 Campañas de Email por mes",
+            "Auto-programación y publicación por mes",
+            "Dashboard de analíticas básicas por mes",
           ]
         : [
-            "30 Posts/Stories (Instagram, Facebook, Twitter)",
-            "8 TikTok/Reels videos",
-            "4 Email campaigns",
-            "Auto-scheduling & posting",
-            "Basic analytics dashboard",
+            "30 Posts/Stories (Instagram, Facebook, Twitter) per month",
+            "8 TikTok/Reels videos per month",
+            "4 Email campaigns per month",
+            "Auto-scheduling & posting per month",
+            "Basic analytics dashboard per month",
           ],
       footer: isSpanish
         ? "Contenido constante. Ejecución automatizada. Crecimiento estable."
@@ -99,20 +99,20 @@ export default function Pricing() {
       cta: isSpanish ? "Ir a Pro" : "Go Pro",
       features: isSpanish
         ? [
-            "90 Posts/Stories (Instagram, Facebook, Twitter)",
-            "16 Videos TikTok/Reels",
-            "20 Campañas de Email",
-            "Auto-programación y publicación",
-            "Analíticas avanzadas",
-            "Estrategia de crecimiento IA avanzada",
+            "90 Posts/Stories (Instagram, Facebook, Twitter) por mes",
+            "16 Videos TikTok/Reels por mes",
+            "20 Campañas de Email por mes",
+            "Auto-programación y publicación por mes",
+            "Analíticas avanzadas por mes",
+            "Estrategia de crecimiento IA avanzada por mes",
           ]
         : [
-            "90 Posts/Stories (Instagram, Facebook, Twitter)",
-            "16 TikTok/Reels videos",
-            "20 Email campaigns",
-            "Auto-scheduling & posting",
-            "Advanced analytics",
-            "Advanced AI Growth Strategy",
+            "90 Posts/Stories (Instagram, Facebook, Twitter) per month",
+            "16 TikTok/Reels videos per month",
+            "20 Email campaigns per month",
+            "Auto-scheduling & posting per month",
+            "Advanced analytics per month",
+            "Advanced AI Growth Strategy per month",
           ],
       footer: isSpanish
         ? "Para marcas que quieren marketing escalable y orientado a resultados en autopilot."
