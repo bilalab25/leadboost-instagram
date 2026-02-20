@@ -276,13 +276,33 @@ export async function generateBrandImages(
   const brandStyle = brandDesign.brandStyle || "minimalist";
   const brandDescription = (brandDesign as any).brandDescription || brand.description || "";
 
+  const logoUrl = (brandDesign as any).whiteLogoUrl || (brandDesign as any).blackLogoUrl || brandDesign.logoUrl;
   let logoBase64: { data: string; mimeType: string } | null = null;
-  if (brandDesign.logoUrl) {
-    logoBase64 = await fetchImageAsBase64(brandDesign.logoUrl);
+  if (logoUrl) {
+    logoBase64 = await fetchImageAsBase64(logoUrl);
     if (logoBase64) {
-      console.log(`[BrandImageGen] Logo loaded successfully`);
+      console.log(`[BrandImageGen] Logo loaded successfully from: ${logoUrl.slice(0, 60)}...`);
+    } else {
+      console.log(`[BrandImageGen] WARNING: Failed to load logo from ${logoUrl}`);
     }
+  } else {
+    console.log(`[BrandImageGen] No logo URL found for brand`);
   }
+
+  const hasLogo = !!logoBase64;
+
+  const logoSystemBlock = hasLogo
+    ? `## MANDATORY LOGO INTEGRATION
+- The FIRST image provided is the official brand LOGO. It is a FIXED graphic mark.
+- The logo MUST appear in EVERY generated image — this is NON-NEGOTIABLE.
+- Reproduce the logo EXACTLY as shown — do NOT alter its shape, proportions, colors, or design.
+- The logo must be clearly VISIBLE and LEGIBLE at social media sizes.
+- Integrate the logo PHYSICALLY into the scene as a real object: engraved on a surface, embossed on packaging, printed on a product, as signage, as a metal emblem, or as a sticker/label.
+- DO NOT make the logo float, glow, or appear as a digital overlay.
+- DO NOT simplify, redraw, or reinterpret the logo — copy it EXACTLY from the reference image.
+- If the logo contains text, that text must remain perfectly spelled and legible.
+- Acceptable placements: on products, packaging, shopping bags, business cards, storefronts, marble surfaces, fabric tags, or any surface that makes sense for the brand.`
+    : "";
 
   const systemInstruction = `You are a world-class creative director and visual artist specializing in luxury brand imagery for social media.
 
@@ -295,12 +315,13 @@ YOUR MANDATE: Create images that look like they belong in a high-end advertising
 - Depth of field that creates visual hierarchy — sharp subject, soft background
 - Natural textures and materials that feel tactile and premium
 - NO watermarks, NO stock photo overlays, NO generic template layouts
-- If a logo is provided, reproduce it clearly and legibly in the image
+
+${logoSystemBlock}
 
 ## BRAND COPY & TEXT GUIDELINES
 Some images should include brand-related text/copy, but NOT all of them. Mix it up:
 - About HALF of the images in a set should include text (brand name, taglines, calls to action, promotional phrases)
-- The other half should be purely visual — beautiful product/lifestyle imagery with NO text, letting the visuals speak for themselves
+- The other half should be purely visual — beautiful product/lifestyle imagery with NO text overlay, letting the visuals speak for themselves
 - When text IS included:
   - Include the BRAND NAME prominently and legibly
   - Add a short, catchy tagline or promotional phrase relevant to the brand
@@ -310,7 +331,9 @@ Some images should include brand-related text/copy, but NOT all of them. Mix it 
   - Integrate text naturally into the composition
 - When text is NOT included:
   - Focus entirely on stunning visuals, lighting, textures, and mood
-  - Let the product/scene be the hero with no distractions
+  - Let the product/scene be the hero
+  - The logo MUST still appear even when there is no text copy
+${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the LOGO must STILL be physically present in every image regardless" : ""}
 
 ## BRAND COHESION
 - Every image must feel like it belongs to the same visual campaign
@@ -354,7 +377,7 @@ Some images should include brand-related text/copy, but NOT all of them. Mix it 
             mimeType: logoBase64.mimeType,
           },
         });
-        assetLabels.push(`Image ${imageIndex}: Brand logo — reproduce it clearly and legibly in the design, placed naturally within the composition`);
+        assetLabels.push(`Image ${imageIndex}: 🏷️ OFFICIAL BRAND LOGO — This is a FIXED graphic mark. Reproduce it EXACTLY as shown in every image. Integrate it physically into the scene (engraved, embossed, printed on product/packaging/signage). DO NOT alter its shape, proportions, or colors. DO NOT simplify or reinterpret. It MUST be clearly visible and legible.`);
         imageIndex++;
       }
 
@@ -376,16 +399,28 @@ Some images should include brand-related text/copy, but NOT all of them. Mix it 
 
       const variation = variationHints[v];
 
+      const logoPromptBlock = hasLogo
+        ? `\n## LOGO (MANDATORY)
+The first reference image above is the brand's official logo. It MUST appear in this image:
+- Reproduce the logo EXACTLY — same shape, proportions, and colors
+- Integrate it physically: engraved, embossed, printed on product/packaging, as signage, on a shopping bag, etc.
+- It must be clearly visible and legible — not tiny, not hidden, not cropped
+- DO NOT float, glow, or digitally overlay the logo\n`
+        : "";
+
       const textSection = variation.includeText
         ? `## COPY/TEXT TO INCLUDE IN THE IMAGE (REQUIRED FOR THIS VARIATION)
 The image MUST contain these text elements:
 1. The brand name "${brand.name}" — large, clear, and prominent
 2. A short compelling tagline or promotional phrase related to the brand (create one that fits the industry and brand description)
 3. Optional: a call-to-action phrase or additional detail
-Make the text beautiful — use elegant typography, ensure perfect spelling, and integrate it naturally into the composition. Text should use the brand's color palette and be fully readable at mobile sizes.`
-        : `## NO TEXT FOR THIS VARIATION
-This image should be PURELY VISUAL — do NOT include any text, copy, brand name, or typography.
-Focus entirely on stunning visuals, lighting, textures, mood, and composition. Let the imagery speak for itself.`;
+Make the text beautiful — use elegant typography, ensure perfect spelling, and integrate it naturally into the composition. Text should use the brand's color palette and be fully readable at mobile sizes.
+${logoPromptBlock}`
+        : `## NO PROMOTIONAL TEXT FOR THIS VARIATION
+This image should have NO promotional copy, taglines, or calls to action.
+Focus entirely on stunning visuals, lighting, textures, mood, and composition.
+${hasLogo ? `HOWEVER — the brand LOGO must STILL appear physically in the scene. "No text" means no promotional copy — the logo is a graphic mark and must always be present.` : "Let the imagery speak for itself."}
+${logoPromptBlock}`;
 
       const userPrompt = `Create a premium social media image for this brand:
 
