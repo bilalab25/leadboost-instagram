@@ -62,6 +62,7 @@ import cloudinary from "./cloudinary";
 import { db } from "./db";
 import {
   brandDesigns,
+  brandAssets,
   posIntegrations,
   waitlist,
   insertWaitlistSchema,
@@ -8755,6 +8756,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(500);
     }
   });
+
+  app.post(
+    "/api/brands/:brandId/generate-images",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
+        const { count = 6 } = req.body;
+
+        const safeCount = Math.min(Math.max(Number(count) || 6, 1), 10);
+
+        console.log(`[API] Generating ${safeCount} images for brand ${brandId}`);
+
+        const { generateBrandImages } = await import(
+          "./services/brandImageGenerator"
+        );
+        const result = await generateBrandImages(brandId, safeCount);
+
+        res.json({
+          success: true,
+          images: result.images,
+          errors: result.errors,
+          total: result.images.length,
+        });
+      } catch (error) {
+        console.error("[API] Generate brand images error:", error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
+  app.post(
+    "/api/brands/:brandId/save-generated-images",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
+        const { images } = req.body;
+
+        if (!images || !Array.isArray(images) || images.length === 0) {
+          return res.status(400).json({ message: "No images provided" });
+        }
+
+        const design = await db
+          .select()
+          .from(brandDesigns)
+          .where(eq(brandDesigns.brandId, brandId))
+          .limit(1);
+
+        if (!design.length) {
+          return res.status(404).json({ message: "Brand design not found" });
+        }
+
+        const saved = [];
+        for (const img of images) {
+          if (!img.cloudinaryUrl || !img.publicId) continue;
+          const [asset] = await db
+            .insert(brandAssets)
+            .values({
+              brandDesignId: design[0].id,
+              url: img.cloudinaryUrl,
+              name: img.variationHint || `AI Generated Image`,
+              category: "ai-generated",
+              assetType: "image",
+              publicId: img.publicId,
+              description: img.prompt?.substring(0, 500) || null,
+            })
+            .returning();
+          saved.push(asset);
+        }
+
+        res.json({ success: true, saved: saved.length });
+      } catch (error) {
+        console.error("[API] Save generated images error:", error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
 
   // Test: Generate image and save to Cloudinary
   app.post(

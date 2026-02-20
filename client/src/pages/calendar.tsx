@@ -81,6 +81,7 @@ import PostingFrequencyModal from "@/components/PostingFrequencyModal";
 import ImageEditorDialog from "@/components/ImageEditorDialog";
 import { useImageEditorDialog } from "@/hooks/useImageEditorDialog";
 import { apiRequest } from "@/lib/queryClient";
+import ImageSwipeCarousel from "@/components/ImageSwipeCarousel";
 
 interface ContentPost {
   id: string;
@@ -182,6 +183,9 @@ export default function ContentCalendar() {
   const [imageLoadingStates, setImageLoadingStates] = useState<
     Record<string, boolean>
   >({});
+  const [showImageCarousel, setShowImageCarousel] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<any[]>([]);
+  const [approvedImages, setApprovedImages] = useState<any[]>([]);
 
   // Query to fetch integrations for the brand
   const { data: integrations, isLoading: integrationsLoading } = useQuery<
@@ -1116,6 +1120,50 @@ export default function ContentCalendar() {
     },
   });
 
+  const generateBrandImagesMutation = useMutation({
+    mutationFn: async () => {
+      if (!activeBrandId) throw new Error("No brand selected");
+      const response = await apiRequest(
+        "POST",
+        `/api/brands/${activeBrandId}/generate-images`,
+        { count: 6 },
+      );
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || "Failed to generate images");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.images && data.images.length > 0) {
+        setGeneratedImages(data.images);
+        setApprovedImages([]);
+        setShowImageCarousel(true);
+        toast({
+          title: isSpanish ? "¡Imágenes generadas!" : "Images generated!",
+          description: isSpanish
+            ? `Se generaron ${data.images.length} imágenes. Desliza para seleccionar.`
+            : `${data.images.length} images generated. Swipe to select.`,
+        });
+      } else {
+        toast({
+          title: isSpanish ? "Sin resultados" : "No results",
+          description: isSpanish
+            ? "No se pudieron generar imágenes. Intenta de nuevo."
+            : "Could not generate images. Try again.",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <TooltipProvider>
       {/*       <Button
@@ -1632,6 +1680,32 @@ export default function ContentCalendar() {
                                   )}
                                 </Tooltip>
                               )}
+
+                              <Button
+                                size="sm"
+                                onClick={() => generateBrandImagesMutation.mutate()}
+                                disabled={
+                                  generateBrandImagesMutation.isPending ||
+                                  !activeBrandId
+                                }
+                                className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+                              >
+                                {generateBrandImagesMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                    {isSpanish
+                                      ? "Generando imágenes..."
+                                      : "Generating images..."}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Wand2 className="w-4 h-4 mr-1" />
+                                    {isSpanish
+                                      ? "Generar Imágenes"
+                                      : "Generate Images"}
+                                  </>
+                                )}
+                              </Button>
                             </div>
                           </div>
                         </CardHeader>
@@ -2576,6 +2650,76 @@ export default function ContentCalendar() {
                 <XCircle className="w-6 h-6" />
               </button>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={showImageCarousel}
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowImageCarousel(false);
+            }
+          }}
+        >
+          <DialogContent className="max-w-md p-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Wand2 className="w-5 h-5 text-teal-500" />
+                {isSpanish
+                  ? "Selecciona tus Imágenes"
+                  : "Select Your Images"}
+              </DialogTitle>
+              <DialogDescription>
+                {isSpanish
+                  ? "Desliza a la derecha para aprobar o a la izquierda para rechazar cada imagen."
+                  : "Swipe right to approve or left to reject each image."}
+              </DialogDescription>
+            </DialogHeader>
+
+            <ImageSwipeCarousel
+              images={generatedImages}
+              onApprove={(img) => {
+                console.log("[Calendar] Approved image:", img.id);
+              }}
+              onReject={(img) => {
+                console.log("[Calendar] Rejected image:", img.id);
+              }}
+              onComplete={async (approved, rejected) => {
+                setApprovedImages(approved);
+                console.log(
+                  `[Calendar] Selection complete. Approved: ${approved.length}, Rejected: ${rejected.length}`,
+                );
+                if (approved.length > 0 && activeBrandId) {
+                  try {
+                    const response = await apiRequest(
+                      "POST",
+                      `/api/brands/${activeBrandId}/save-generated-images`,
+                      { images: approved },
+                    );
+                    if (response.ok) {
+                      toast({
+                        title: isSpanish
+                          ? `¡${approved.length} imágenes guardadas!`
+                          : `${approved.length} images saved!`,
+                        description: isSpanish
+                          ? "Las imágenes se guardaron en los assets de tu marca."
+                          : "Images saved to your brand assets.",
+                      });
+                    }
+                  } catch (err) {
+                    console.error("[Calendar] Failed to save images:", err);
+                    toast({
+                      title: isSpanish ? "Error" : "Error",
+                      description: isSpanish
+                        ? "No se pudieron guardar las imágenes."
+                        : "Failed to save images.",
+                      variant: "destructive",
+                    });
+                  }
+                }
+                setTimeout(() => setShowImageCarousel(false), 2000);
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>
