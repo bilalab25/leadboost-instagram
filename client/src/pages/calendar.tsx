@@ -2689,12 +2689,12 @@ export default function ContentCalendar() {
                 console.log(
                   `[Calendar] Selection complete. Approved: ${approved.length}, Rejected: ${rejected.length}`,
                 );
-                if (approved.length > 0 && activeBrandId) {
+                if (activeBrandId && (approved.length > 0 || rejected.length > 0)) {
                   try {
                     const response = await apiRequest(
                       "POST",
                       `/api/brands/${activeBrandId}/save-generated-images`,
-                      { images: approved },
+                      { approved, rejected },
                     );
                     if (response.ok) {
                       toast({
@@ -2702,8 +2702,8 @@ export default function ContentCalendar() {
                           ? `¡${approved.length} imágenes guardadas!`
                           : `${approved.length} images saved!`,
                         description: isSpanish
-                          ? "Las imágenes se guardaron en los assets de tu marca."
-                          : "Images saved to your brand assets.",
+                          ? "Las imágenes se guardaron en los assets de tu marca. Las futuras generaciones aprenderán de tus preferencias."
+                          : "Images saved to your brand assets. Future generations will learn from your preferences.",
                       });
                     }
                   } catch (err) {

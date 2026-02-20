@@ -8798,9 +8798,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const { brandId } = req.params;
-        const { images } = req.body;
+        const { approved, rejected } = req.body;
 
-        if (!images || !Array.isArray(images) || images.length === 0) {
+        const hasApproved = approved && Array.isArray(approved) && approved.length > 0;
+        const hasRejected = rejected && Array.isArray(rejected) && rejected.length > 0;
+
+        if (!hasApproved && !hasRejected) {
           return res.status(400).json({ message: "No images provided" });
         }
 
@@ -8814,25 +8817,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Brand design not found" });
         }
 
-        const saved = [];
-        for (const img of images) {
-          if (!img.cloudinaryUrl || !img.publicId) continue;
-          const [asset] = await db
-            .insert(brandAssets)
-            .values({
-              brandDesignId: design[0].id,
-              url: img.cloudinaryUrl,
-              name: img.variationHint || `AI Generated Image`,
-              category: "ai-generated",
-              assetType: "image",
-              publicId: img.publicId,
-              description: img.prompt?.substring(0, 500) || null,
-            })
-            .returning();
-          saved.push(asset);
+        let savedApproved = 0;
+        let savedRejected = 0;
+
+        if (approved && Array.isArray(approved)) {
+          for (const img of approved) {
+            if (!img.cloudinaryUrl || !img.publicId) continue;
+            await db
+              .insert(brandAssets)
+              .values({
+                brandDesignId: design[0].id,
+                url: img.cloudinaryUrl,
+                name: img.variationHint || `AI Generated Image`,
+                category: "ai-generated",
+                assetType: "image",
+                publicId: img.publicId,
+                description: img.prompt?.substring(0, 500) || null,
+              });
+            savedApproved++;
+          }
         }
 
-        res.json({ success: true, saved: saved.length });
+        if (rejected && Array.isArray(rejected)) {
+          for (const img of rejected) {
+            if (!img.cloudinaryUrl || !img.publicId) continue;
+            await db
+              .insert(brandAssets)
+              .values({
+                brandDesignId: design[0].id,
+                url: img.cloudinaryUrl,
+                name: img.variationHint || `AI Rejected Image`,
+                category: "ai-rejected",
+                assetType: "image",
+                publicId: img.publicId,
+                description: img.prompt?.substring(0, 500) || null,
+              });
+            savedRejected++;
+          }
+        }
+
+        res.json({ success: true, savedApproved, savedRejected });
       } catch (error) {
         console.error("[API] Save generated images error:", error);
         res.status(500).json({
