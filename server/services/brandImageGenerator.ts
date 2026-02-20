@@ -224,7 +224,7 @@ Create a professional, scroll-stopping social media image that is cohesive with 
       console.log(`[BrandImageGen] Generating variation ${v + 1}/${count}...`);
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-05-20",
+        model: "gemini-2.5-flash-image",
         contents: [{
           role: "user",
           parts: [...contentParts, { text: userPrompt }],
