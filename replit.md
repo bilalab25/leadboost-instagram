@@ -53,7 +53,7 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
     - pickVisualReferenceAssets() limits to 0-2 reference images in editorial mode
     - ChatResponse includes layoutPlan and editorialMode fields for frontend consumption
 - **Automation Flows**: Visual builder for custom workflows with various node types and advanced condition logic.
-- **Brand Studio**: Brand-specific designs and Cloudinary-based asset management with category organization.
+- **Brand Studio**: Brand-specific designs and Cloudinary-based asset management with category organization. Includes PDF upload in brand description that uses Gemini AI to auto-generate a summary paragraph (POST `/api/brands/:brandId/pdf-summary`).
 - **Posting Frequency Management**: Brand-specific scheduling with AI suggestions. Integrated into onboarding as Step 5 (conditional - only appears when social media accounts are connected). Features:
   - AI-suggested posting schedules based on industry best practices
   - Customizable days-of-week selection per platform

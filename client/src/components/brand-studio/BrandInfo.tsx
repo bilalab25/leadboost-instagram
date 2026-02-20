@@ -3,8 +3,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import {
   ArrowLeft,
   ArrowRight,
+  FileText,
   Globe,
   Info,
+  Loader2,
   Mic,
   MicOff,
   ShoppingBag,
@@ -30,7 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Textarea } from "../ui/textarea";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -442,7 +444,10 @@ export default function BrandIdentity() {
                 name="description"
                 render={({ field }) => {
                   const [listening, setListening] = useState(false);
-                  const recognitionRef = useRef<any>(null); // Asegurar el tipado
+                  const [pdfLoading, setPdfLoading] = useState(false);
+                  const [pdfFileName, setPdfFileName] = useState<string | null>(null);
+                  const recognitionRef = useRef<any>(null);
+                  const pdfInputRef = useRef<HTMLInputElement>(null);
 
                   const startListening = () => {
                     const SpeechRecognition =
@@ -459,11 +464,7 @@ export default function BrandIdentity() {
                     }
 
                     const recognition = new SpeechRecognition();
-
-                    // --- SOLUCIÓN PROBLEMA 2: Lenguaje dinámico ---
                     recognition.lang = isSpanish ? "es-MX" : "en-US";
-                    // ---------------------------------------------
-
                     recognition.continuous = true;
                     recognition.interimResults = false;
 
@@ -489,6 +490,74 @@ export default function BrandIdentity() {
                     setListening(false);
                   };
 
+                  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.type !== "application/pdf") {
+                      toast({
+                        title: isSpanish ? "Archivo inválido" : "Invalid file",
+                        description: isSpanish
+                          ? "Solo se permiten archivos PDF."
+                          : "Only PDF files are allowed.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    if (file.size > 20 * 1024 * 1024) {
+                      toast({
+                        title: isSpanish ? "Archivo muy grande" : "File too large",
+                        description: isSpanish
+                          ? "El archivo PDF debe ser menor a 20MB."
+                          : "PDF file must be under 20MB.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
+                    setPdfLoading(true);
+                    setPdfFileName(file.name);
+
+                    try {
+                      const formData = new FormData();
+                      formData.append("pdf", file);
+
+                      const res = await fetch(`/api/brands/${activeBrandId}/pdf-summary`, {
+                        method: "POST",
+                        body: formData,
+                        credentials: "include",
+                      });
+
+                      if (!res.ok) throw new Error("Failed to process PDF");
+
+                      const data = await res.json();
+                      if (data.summary) {
+                        const currentDesc = field.value || "";
+                        const newDesc = currentDesc
+                          ? currentDesc + "\n\n" + data.summary
+                          : data.summary;
+                        field.onChange(newDesc);
+                        toast({
+                          title: isSpanish ? "PDF procesado" : "PDF processed",
+                          description: isSpanish
+                            ? "El resumen se ha agregado a la descripción."
+                            : "The summary has been added to the description.",
+                        });
+                      }
+                    } catch (error) {
+                      console.error("PDF upload error:", error);
+                      toast({
+                        title: isSpanish ? "Error" : "Error",
+                        description: isSpanish
+                          ? "No se pudo procesar el PDF."
+                          : "Failed to process the PDF.",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setPdfLoading(false);
+                      if (pdfInputRef.current) pdfInputRef.current.value = "";
+                    }
+                  };
+
                   return (
                     <FormItem>
                       <FormLabel>
@@ -510,18 +579,56 @@ export default function BrandIdentity() {
                           />
                         </FormControl>
 
-                        <button
-                          type="button"
-                          onClick={listening ? stopListening : startListening}
-                          className="absolute right-2 bottom-2 p-2 bg-gray-200 rounded-full hover:bg-gray-300"
-                        >
-                          {listening ? (
-                            <MicOff className="w-4 h-4 text-red-600" />
-                          ) : (
-                            <Mic className="w-4 h-4 text-blue-600" />
-                          )}
-                        </button>
+                        <div className="absolute right-2 bottom-2 flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => pdfInputRef.current?.click()}
+                            disabled={pdfLoading}
+                            className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
+                            title={isSpanish ? "Adjuntar PDF" : "Attach PDF"}
+                          >
+                            {pdfLoading ? (
+                              <Loader2 className="w-4 h-4 text-teal-600 animate-spin" />
+                            ) : (
+                              <FileText className="w-4 h-4 text-teal-600" />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={listening ? stopListening : startListening}
+                            className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600"
+                          >
+                            {listening ? (
+                              <MicOff className="w-4 h-4 text-red-600" />
+                            ) : (
+                              <Mic className="w-4 h-4 text-blue-600" />
+                            )}
+                          </button>
+                        </div>
                       </div>
+
+                      <input
+                        ref={pdfInputRef}
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={handlePdfUpload}
+                      />
+
+                      {pdfLoading && pdfFileName && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          {isSpanish
+                            ? `Procesando ${pdfFileName}...`
+                            : `Processing ${pdfFileName}...`}
+                        </div>
+                      )}
+
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {isSpanish
+                          ? "Puedes adjuntar un PDF para que la IA genere un resumen automáticamente."
+                          : "You can attach a PDF to have AI automatically generate a summary."}
+                      </p>
 
                       <FormMessage />
                     </FormItem>

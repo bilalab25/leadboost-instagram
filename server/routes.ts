@@ -1154,6 +1154,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  const pdfUpload = multer({
+    dest: "uploads/",
+    limits: { fileSize: 20 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+      if (file.mimetype === "application/pdf") {
+        cb(null, true);
+      } else {
+        cb(new Error("Only PDF files are allowed"));
+      }
+    },
+  });
+
+  app.post("/api/brands/:brandId/pdf-summary", isAuthenticated, pdfUpload.single("pdf"), async (req: any, res) => {
+    const fs = await import("fs");
+    const filePath = req.file?.path;
+    try {
+      if (!req.file || !filePath) {
+        return res.status(400).json({ message: "No PDF file uploaded" });
+      }
+
+      if (req.file.mimetype !== "application/pdf") {
+        return res.status(400).json({ message: "Only PDF files are allowed" });
+      }
+
+      const fileBuffer = fs.readFileSync(filePath);
+      const base64Data = fileBuffer.toString("base64");
+
+      const { GoogleGenAI } = await import("@google/genai");
+      const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: "Read this PDF document carefully and provide a concise summary paragraph (3-5 sentences) that captures the key information about the brand, its products/services, target audience, and unique value proposition. Write the summary in the same language as the document. Only return the summary paragraph, nothing else." },
+              {
+                inlineData: {
+                  mimeType: "application/pdf",
+                  data: base64Data,
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const summary = response.text || "";
+      res.json({ summary });
+    } catch (error) {
+      console.error("Error processing PDF summary:", error);
+      res.status(500).json({ message: "Failed to process PDF" });
+    } finally {
+      if (filePath) {
+        try { fs.unlinkSync(filePath); } catch {}
+      }
+    }
+  });
+
   app.get("/api/brands/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
