@@ -278,42 +278,32 @@ function buildVariationHints(count: number): VariationHint[] {
   const hints: VariationHint[] = [
     {
       direction:
-        "Close-up product hero shot with cinematic lighting, shallow depth of field, and a luxurious surface texture. Shot at golden hour warmth.",
+        "Use the SAME angle, framing, and composition style as the reference images. If references show close-ups, do a close-up. If they show wide shots, do a wide shot. Match the EXACT lighting and color temperature. Feature the same type of products/services shown in the references.",
       includeText: true,
     },
     {
       direction:
-        "Wide environmental lifestyle shot showing the brand in context — real setting, natural light, aspirational atmosphere. Think editorial spread.",
+        "Create a slight angle variation from the references — if they mostly show front-facing shots, try a 3/4 angle instead. Keep EVERYTHING else identical: same lighting style, same color palette, same types of products/subjects, same background style. The viewer should think this is from the same photo session.",
       includeText: false,
     },
     {
       direction:
-        "Overhead flat-lay with meticulous arrangement, clean negative space, and complementary props that reinforce the brand story.",
+        "Show a different product/service item from the same brand, but in the EXACT same photographic style as the references. Same backdrop, same lighting setup, same color grading, same prop styling. Only the specific item changes — everything else stays consistent.",
       includeText: true,
     },
     {
       direction:
-        "Bold side-lit composition with dramatic shadows, high contrast, and a moody editorial feel. Magazine cover energy.",
+        "Create a slightly wider or closer crop than the references, but keep the same visual world: same lighting, same color palette, same surfaces/backgrounds, same mood. If references show products on marble, use marble. If they show a clinical setting, stay clinical.",
       includeText: false,
     },
     {
       direction:
-        "Candid lifestyle moment — authentic action, natural movement, human connection. Documentary-style but polished.",
+        "Focus on a detail or texture that appears in the reference images — zoom into a surface, ingredient, or material that is present in the references. Use the SAME color grading and lighting. This should feel like a macro/detail shot from the same photo shoot.",
       includeText: false,
     },
     {
       direction:
-        "Ultra-minimalist centered composition with generous whitespace, single focal point, and soft diffused lighting. Apple-level clean.",
-      includeText: true,
-    },
-    {
-      direction:
-        "Rich textural close-up — fabric, material, ingredient detail. Macro-style with beautiful bokeh and tactile quality.",
-      includeText: false,
-    },
-    {
-      direction:
-        "Dynamic diagonal composition with leading lines, layered depth, and energetic visual flow. Modern and bold.",
+        "Arrange multiple items from the brand (similar to what appears in references) in a flat-lay or grouped composition. Use the SAME background surfaces, color palette, and lighting as the reference images. Match the overall aesthetic exactly.",
       includeText: true,
     },
   ];
@@ -555,7 +545,7 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
   const seenHashes = new Set<string>();
   const variationHints = buildVariationHints(count);
 
-  const maxRefAssets = Math.min(6, imageAssets.length);
+  const maxRefAssets = Math.min(3, imageAssets.length);
 
   assetUsageCache.delete(brandId);
   categoryUsageCache.delete(brandId);
@@ -666,17 +656,19 @@ ${fontPrimary ? `- Typography: ${fontPrimary}` : ""}
 ## REFERENCE IMAGES PROVIDED (${contentParts.length} images above)
 ${assetLabels.join("\n")}
 
-## STYLE MATCHING INSTRUCTIONS (CRITICAL)
-Before generating, you MUST analyze the reference images above and answer these questions internally:
-1. What SPECIFIC products, services, or treatments are shown? → Feature the SAME type of products/services
-2. What is the color palette and color grading? → Match it EXACTLY (warm/cool tones, saturation, contrast)
-3. What type of compositions are used? → Use SIMILAR framing and composition approaches
-4. What is the overall aesthetic? (clinical, editorial, cozy, minimalist, bold, etc.) → Match it precisely
-5. What props and backgrounds appear? → Use SIMILAR props and settings
-6. What is the production style? (studio, natural light, lifestyle, etc.) → Replicate it
+## MANDATORY STYLE ANALYSIS (DO THIS FIRST)
+Before generating ANYTHING, you MUST carefully study EACH reference image and identify:
 
-Generate a NEW image that someone would believe was part of the SAME photo shoot or campaign as the references.
-Do NOT default to generic luxury imagery. Stay TRUE to what the references actually show.
+1. **SUBJECTS**: What exact items appear? (e.g., "glass dropper bottles with amber liquid", "facial treatment with derma roller", "skincare tubes on white shelf"). List them. Your generated image MUST feature items of the SAME type — not generic substitutes.
+2. **BACKGROUNDS/SURFACES**: What surfaces and backdrops appear? (e.g., "white marble counter", "beige linen fabric", "clinical white treatment room"). Use the SAME or very similar backgrounds.
+3. **COLOR PALETTE**: What exact tones dominate? (e.g., "warm cream and gold tones", "cool clinical whites with teal accents", "soft pink and nude tones"). Your image MUST have the SAME color temperature and saturation.
+4. **LIGHTING**: Is it soft diffused? Hard directional? Natural window light? Warm tungsten? Cool clinical? → Replicate the EXACT same lighting setup.
+5. **COMPOSITION**: Are items centered? Off to one side? Shot from above? At eye level? Close-up or pulled back? → Mirror this framing.
+6. **OVERALL VIBE**: Is the feeling clinical/medical? Warm/cozy? Minimalist/modern? Luxurious/dark? → Your image must evoke the IDENTICAL mood.
+
+YOUR GENERATED IMAGE MUST LOOK LIKE IT WAS PHOTOGRAPHED IN THE SAME ROOM, WITH THE SAME CAMERA, BY THE SAME PHOTOGRAPHER, ON THE SAME DAY AS THE REFERENCES.
+
+If you cannot clearly identify what the reference images show, default to the brand description — but NEVER generate generic stock-photo-style imagery.
 
 ${textSection}
 
@@ -707,7 +699,6 @@ Generate a single image that looks like it belongs in the same visual world as t
           systemInstruction: [{ text: systemInstruction }],
           imageConfig: {
             aspectRatio: "1:1",
-            imageSize: "2K",
           },
         },
       });
