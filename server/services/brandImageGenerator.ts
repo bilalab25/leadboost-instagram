@@ -193,6 +193,7 @@ function pickVisualAssetsBalanced(
   });
 
   const priorityOrder = [
+    "social_media_posts",
     "products",
     "product",
     "product_images",
@@ -250,6 +251,27 @@ function pickVisualAssetsBalanced(
     `[BrandImageGen] Selected ${selected.length} reference assets from ${categories.length} categories (${imageAssets.length} total available)`,
   );
   return selected.slice(0, maxCount);
+}
+
+function getCategoryContext(category: string): string {
+  switch (category) {
+    case "social_media_posts":
+      return "📱 REAL SOCIAL MEDIA POST from this brand — This is an actual post published by the brand. Study its EXACT visual style: composition, color grading, typography style, layout, mood, and overall aesthetic. Your generated image must feel like it was created by the same designer/brand";
+    case "product_images":
+    case "products":
+    case "product":
+      return "🛍️ BRAND PRODUCT PHOTO — Study the specific product, its packaging, textures, and how it's presented. Use this product's visual identity in your generation";
+    case "location_images":
+    case "location":
+    case "location_assets":
+    case "place":
+      return "📍 BRAND LOCATION PHOTO — Study the physical space, its ambiance, lighting, and decor style. Use this environment's feel in your generation";
+    case "inspiration_templates":
+    case "inspiration":
+      return "🎨 BRAND INSPIRATION/TEMPLATE — Study the design style, layout patterns, color usage, and typography choices. Use these design principles in your generation";
+    default:
+      return "📸 BRAND REFERENCE IMAGE — Study its visual style and use it as inspiration";
+  }
 }
 
 function getLanguageLabel(lang: string): string {
@@ -573,6 +595,7 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
         imageIndex++;
       }
 
+      let hasSocialMediaPosts = false;
       for (const asset of referenceAssets) {
         const imageData = await fetchImageAsBase64(asset.url);
         if (imageData) {
@@ -582,12 +605,14 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
               mimeType: imageData.mimeType,
             },
           });
-          const categoryLabel = asset.category ? ` [${asset.category}]` : "";
+          const cat = (asset.category || "").toLowerCase();
+          if (cat === "social_media_posts") hasSocialMediaPosts = true;
+          const categoryContext = getCategoryContext(cat);
           const descLabel = asset.description
-            ? `: ${asset.description.slice(0, 60)}`
+            ? ` — ${asset.description.slice(0, 80)}`
             : "";
           assetLabels.push(
-            `Image ${imageIndex}: ${asset.name}${categoryLabel}${descLabel}`,
+            `Image ${imageIndex}: ${categoryContext}${descLabel}`,
           );
           imageIndex++;
         }
@@ -618,6 +643,18 @@ Focus entirely on stunning visuals, lighting, textures, mood, and composition.
 ${hasLogo ? `HOWEVER — the brand LOGO must STILL appear physically in the scene. "No text" means no promotional copy — the logo is a graphic mark and must always be present.` : "Let the imagery speak for itself."}
 ${logoPromptBlock}`;
 
+      const socialMediaBlock = hasSocialMediaPosts
+        ? `## CRITICAL: REAL SOCIAL MEDIA POSTS PROVIDED
+Some of the reference images above are REAL POSTS from this brand's social media accounts.
+These are the most important references — they define the brand's ACTUAL visual identity on social media.
+You MUST:
+- Deeply analyze their visual style: composition, color grading, typography, layout, and mood
+- Generate a NEW image that looks like it was made by the SAME creative team
+- Match the same level of polish, the same aesthetic sensibility, the same "feel"
+- Your output should be indistinguishable in style from the brand's existing posts
+- Do NOT create generic stock-photo-style imagery — match the SPECIFIC style of these posts`
+        : "";
+
       const userPrompt = `Create a premium social media image for this brand:
 
 ## BRAND IDENTITY
@@ -631,12 +668,15 @@ ${fontPrimary ? `- Typography: ${fontPrimary}` : ""}
 ## REFERENCE IMAGES PROVIDED (${contentParts.length} images above)
 ${assetLabels.join("\n")}
 
+${socialMediaBlock}
+
 Study these reference images carefully. Match their:
-- Lighting quality and color temperature
-- Material textures and surface finishes
-- Overall mood and atmosphere
-- Level of sophistication and production value
-Create something NEW that feels like it belongs in the SAME visual world.
+- Visual style, composition patterns, and design language
+- Color grading, color temperature, and palette usage
+- Typography style, text placement, and layout decisions
+- Material textures, surface finishes, and lighting approach
+- Overall mood, atmosphere, and brand personality
+Create something NEW that feels like it was created by the SAME brand and the SAME designer.
 
 ${textSection}
 
@@ -650,7 +690,7 @@ ALL visible text/copy in the image (if any) MUST be in ${languageLabel}.
 Generate a single, stunning, scroll-stopping social media image.`;
 
       console.log(
-        `[BrandImageGen] Generating variation ${v + 1}/${count} — ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}`,
+        `[BrandImageGen] Generating variation ${v + 1}/${count} — ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}, socialMediaPosts=${hasSocialMediaPosts ? "YES" : "NO"}`,
       );
 
       const response = await ai.models.generateContent({

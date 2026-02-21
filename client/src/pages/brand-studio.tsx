@@ -143,6 +143,15 @@ const assetCategories = [
       "Fotos de tu tienda, oficina, espacio de trabajo o cualquier ubicación física. Ideal para mostrar el ambiente de tu negocio.",
   },
   {
+    value: "social_media_posts",
+    label: "Social Media Posts",
+    labelEs: "Posts de Redes Sociales",
+    description:
+      "Real posts from your brand's social media accounts. The AI will study their visual style, composition, colors, and typography to generate new images that match your brand's actual social media aesthetic.",
+    descriptionEs:
+      "Posts reales de las redes sociales de tu marca. La IA estudiará su estilo visual, composición, colores y tipografía para generar nuevas imágenes que coincidan con la estética real de tu marca en redes sociales.",
+  },
+  {
     value: "inspiration_templates",
     label: "Inspiration Templates",
     labelEs: "Plantillas de Inspiración",
