@@ -211,16 +211,23 @@ function pickVisualAssetsBalanced(
       usageTracker[sorted[i].url] = (usageTracker[sorted[i].url] || 0) + 1;
     }
     selectionLog["social_media_posts"] = socialSlots;
-    catTracker["social_media_posts"] = (catTracker["social_media_posts"] || 0) + 1;
+    catTracker["social_media_posts"] =
+      (catTracker["social_media_posts"] || 0) + 1;
   }
 
   const otherCategories = Object.keys(categoryGroups)
     .filter((cat) => cat !== "social_media_posts")
     .sort((a, b) => {
       const prioOrder = [
-        "products", "product", "product_images",
-        "location", "location_images", "location_assets", "place",
-        "inspiration_templates", "inspiration",
+        "products",
+        "product",
+        "product_images",
+        "location",
+        "location_images",
+        "location_assets",
+        "place",
+        "inspiration_templates",
+        "inspiration",
       ];
       const prioA = prioOrder.indexOf(a);
       const prioB = prioOrder.indexOf(b);
@@ -232,14 +239,23 @@ function pickVisualAssetsBalanced(
 
   const remainingSlots = maxCount - selected.length;
   if (remainingSlots > 0 && otherCategories.length > 0) {
-    const slotsPerCat = Math.max(1, Math.ceil(remainingSlots / otherCategories.length));
+    const slotsPerCat = Math.max(
+      1,
+      Math.ceil(remainingSlots / otherCategories.length),
+    );
     for (const cat of otherCategories) {
       if (selected.length >= maxCount) break;
       const catAssets = categoryGroups[cat];
       const sorted = catAssets
         .filter((a) => !selected.includes(a))
-        .sort((a, b) => (usageTracker[a.url] || 0) - (usageTracker[b.url] || 0));
-      const toTake = Math.min(slotsPerCat, sorted.length, maxCount - selected.length);
+        .sort(
+          (a, b) => (usageTracker[a.url] || 0) - (usageTracker[b.url] || 0),
+        );
+      const toTake = Math.min(
+        slotsPerCat,
+        sorted.length,
+        maxCount - selected.length,
+      );
       for (let i = 0; i < toTake; i++) {
         selected.push(sorted[i]);
         usageTracker[sorted[i].url] = (usageTracker[sorted[i].url] || 0) + 1;
@@ -710,12 +726,21 @@ Generate a single, stunning, scroll-stopping social media image.`;
         contents: [
           {
             role: "user",
-            parts: [...contentParts, { text: userPrompt }],
+            parts: [
+              ...contentParts,
+              {
+                text: "Estas imágenes que te doy son posts de instagram de mi marca. A partir de estas imágenes, crea una nueva imagen lista para publicar en instagram que sean profesionales.",
+              },
+            ],
           },
         ],
         config: {
           responseModalities: ["IMAGE", "TEXT"],
-          systemInstruction: [{ text: systemInstruction }],
+          systemInstruction: [
+            {
+              text: "Eres un experto en marketing digital, dirección creativa y producción visual para redes sociales. Tu función es generar imagenes detallados  publicitarias optimizada para Instagram, Facebook y TikTok. Las imagenes que generes deben ser profesionales, del nivel de una amrca de lujo.",
+            },
+          ],
           imageConfig: {
             aspectRatio: "1:1",
           },
