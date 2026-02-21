@@ -494,15 +494,29 @@ export async function generateBrandImages(
 - Acceptable placements: on products, packaging, shopping bags, business cards, storefronts, marble surfaces, fabric tags, or any surface that makes sense for the brand.`
     : "";
 
-  const systemInstruction = `You are a world-class creative director and visual artist specializing in luxury brand imagery for social media.
+  const systemInstruction = `You are a world-class creative director and visual artist specializing in brand imagery for social media.
 
-YOUR MANDATE: Create images that look like they belong in a high-end advertising campaign — NOT stock photos, NOT amateur content, NOT AI-generated looking.
+YOUR MANDATE: Create images that VISUALLY MATCH the brand's existing content style. The reference images provided are your PRIMARY guide — study them deeply and generate new content that feels like it was shot in the SAME session, by the SAME photographer, for the SAME campaign.
+
+## CRITICAL: REFERENCE IMAGE STYLE MATCHING
+This is the MOST IMPORTANT instruction. You MUST:
+1. **Analyze the SPECIFIC products/services** shown in the reference images — what exactly is being featured? (treatments, products, equipment, ingredients, etc.)
+2. **Match the visual aesthetic** — if the references show clinical/medical aesthetics, generate clinical aesthetics. If they show warm lifestyle, generate warm lifestyle. Do NOT default to generic luxury.
+3. **Replicate the color grading** — study the exact tones, warmth/coolness, contrast levels, and saturation in the references. Your generated image should have the SAME color feel.
+4. **Match the composition style** — if references use close-ups of products on marble, generate similar compositions. If they show treatment demonstrations, show treatments. Mirror the framing approach.
+5. **Use the SAME types of subjects** — if reference images show skincare products, serums, facial treatments, generate content about those SPECIFIC things. Do NOT substitute with unrelated luxury items.
+6. **Match the production level** — if references look like professional product photography, match that. If they look editorial, match that. Do NOT upgrade to a completely different visual language.
+
+## WHAT NOT TO DO
+- Do NOT generate generic "luxury spa" or "luxury lifestyle" imagery that ignores the specific content in the references
+- Do NOT substitute the brand's actual products with generic bottles, jars, or props
+- Do NOT change the visual genre — if the brand references show clinical aesthetics, don't generate cozy-home imagery
+- Do NOT ignore the reference images and default to your own idea of what looks good
 
 ## PROFESSIONAL QUALITY STANDARDS
-- Photorealistic quality with cinematic lighting (golden hour, Rembrandt, split lighting)
-- Rich color grading that matches the brand palette without being garish
-- Professional composition following rule of thirds, leading lines, or centered symmetry
-- Depth of field that creates visual hierarchy — sharp subject, soft background
+- Photorealistic quality with lighting that matches the reference images
+- Color grading consistent with the brand's existing visual palette
+- Professional composition that mirrors the style of the references
 - Natural textures and materials that feel tactile and premium
 - NO watermarks, NO stock photo overlays, NO generic template layouts
 
@@ -510,33 +524,31 @@ ${logoSystemBlock}
 
 ## BRAND COPY & TEXT GUIDELINES
 Some images should include brand-related text/copy, but NOT all of them. Mix it up:
-- About HALF of the images in a set should include text (brand name, taglines, calls to action, promotional phrases)
-- The other half should be purely visual — beautiful product/lifestyle imagery with NO text overlay, letting the visuals speak for themselves
+- About HALF of the images in a set should include text (brand name, taglines, calls to action)
+- The other half should be purely visual — letting the visuals speak for themselves
 - When text IS included:
   - Include the BRAND NAME prominently and legibly
-  - Add a short, catchy tagline or promotional phrase relevant to the brand
-  - Text must be CLEAR, READABLE, and properly spelled — no garbled or distorted letters
-  - Use elegant, modern typography that matches the brand style
-  - Use the brand's color palette for text and ensure sufficient contrast for readability
-  - Integrate text naturally into the composition
+  - Add a short compelling tagline relevant to the brand's actual services/products
+  - Text must be CLEAR, READABLE, and properly spelled
+  - Use elegant typography that matches the brand style
+  - Use the brand's color palette for text with sufficient contrast
 - When text is NOT included:
-  - Focus entirely on stunning visuals, lighting, textures, and mood
+  - Focus entirely on stunning visuals that match the reference style
   - Let the product/scene be the hero
   - The logo MUST still appear even when there is no text copy
 ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the LOGO must STILL be physically present in every image regardless" : ""}
 
 ## BRAND COHESION
-- Every image must feel like it belongs to the same visual campaign
-- Maintain consistent color temperature and mood
-- The brand's color palette should influence the environment, props, lighting, AND text styling
-- Think "brand world" — create a universe the brand lives in, with consistent messaging
+- Every image must feel like it belongs to the SAME visual world as the reference images
+- Maintain the SAME color temperature, mood, and production style as the references
+- The brand's color palette should influence the environment, props, and lighting
+- Think "same campaign" — your image should be indistinguishable in style from the references
 
 ## SOCIAL MEDIA OPTIMIZATION
 - Images must command attention in a fast-scrolling feed
-- The copy/text should enhance the scroll-stopping power of the image
-- Strong visual hooks in the first glance — the text should contribute to this
-- Clean enough to work at small mobile sizes — text must be large enough to read on mobile
-- Aspirational but authentic — real-world plausibility with professional messaging`;
+- Strong visual hooks in the first glance
+- Clean enough to work at small mobile sizes
+- Aspirational but authentic — real-world plausibility`;
 
   const results: GeneratedImageResult[] = [];
   const errors: string[] = [];
@@ -582,12 +594,22 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
               mimeType: imageData.mimeType,
             },
           });
-          const categoryLabel = asset.category ? ` [${asset.category}]` : "";
-          const descLabel = asset.description
-            ? `: ${asset.description.slice(0, 60)}`
-            : "";
+          const catMap: Record<string, string> = {
+            product_images: "BRAND PRODUCT PHOTO — This shows the brand's actual product/service. Study the product type, packaging, textures, and presentation style closely. Your generated image should feature SIMILAR products/services.",
+            products: "BRAND PRODUCT PHOTO — This shows the brand's actual product/service. Study the product type, packaging, textures, and presentation style closely. Your generated image should feature SIMILAR products/services.",
+            product: "BRAND PRODUCT PHOTO — This shows the brand's actual product/service. Study the product type, packaging, textures, and presentation style closely. Your generated image should feature SIMILAR products/services.",
+            location_images: "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
+            location: "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
+            location_assets: "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
+            place: "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
+            inspiration_templates: "BRAND STYLE REFERENCE — This shows the brand's preferred visual style, layout, and design language. Study the typography, color usage, composition patterns, and overall aesthetic. Your generated image should match this style.",
+            inspiration: "BRAND STYLE REFERENCE — This shows the brand's preferred visual style, layout, and design language. Study the typography, color usage, composition patterns, and overall aesthetic. Your generated image should match this style.",
+          };
+          const cat = (asset.category || "").toLowerCase();
+          const categoryContext = catMap[cat] || "BRAND VISUAL REFERENCE — Study this image's style, subject matter, colors, and composition. Generate content that matches this visual language.";
+          const descLabel = asset.description ? ` (${asset.description.slice(0, 80)})` : "";
           assetLabels.push(
-            `Image ${imageIndex}: ${asset.name}${categoryLabel}${descLabel}`,
+            `Image ${imageIndex}: ${categoryContext}${descLabel}`,
           );
           imageIndex++;
         }
@@ -618,7 +640,7 @@ Focus entirely on stunning visuals, lighting, textures, mood, and composition.
 ${hasLogo ? `HOWEVER — the brand LOGO must STILL appear physically in the scene. "No text" means no promotional copy — the logo is a graphic mark and must always be present.` : "Let the imagery speak for itself."}
 ${logoPromptBlock}`;
 
-      const userPrompt = `Create a premium social media image for this brand:
+      const userPrompt = `Create a social media image for this brand that MATCHES the style of the reference images provided:
 
 ## BRAND IDENTITY
 - Name: "${brand.name}"
@@ -631,23 +653,29 @@ ${fontPrimary ? `- Typography: ${fontPrimary}` : ""}
 ## REFERENCE IMAGES PROVIDED (${contentParts.length} images above)
 ${assetLabels.join("\n")}
 
-Study these reference images carefully. Match their:
-- Lighting quality and color temperature
-- Material textures and surface finishes
-- Overall mood and atmosphere
-- Level of sophistication and production value
-Create something NEW that feels like it belongs in the SAME visual world.
+## STYLE MATCHING INSTRUCTIONS (CRITICAL)
+Before generating, you MUST analyze the reference images above and answer these questions internally:
+1. What SPECIFIC products, services, or treatments are shown? → Feature the SAME type of products/services
+2. What is the color palette and color grading? → Match it EXACTLY (warm/cool tones, saturation, contrast)
+3. What type of compositions are used? → Use SIMILAR framing and composition approaches
+4. What is the overall aesthetic? (clinical, editorial, cozy, minimalist, bold, etc.) → Match it precisely
+5. What props and backgrounds appear? → Use SIMILAR props and settings
+6. What is the production style? (studio, natural light, lifestyle, etc.) → Replicate it
+
+Generate a NEW image that someone would believe was part of the SAME photo shoot or campaign as the references.
+Do NOT default to generic luxury imagery. Stay TRUE to what the references actually show.
 
 ${textSection}
 
 ## THIS VARIATION'S DIRECTION
 ${variation.direction}
+Apply this direction WHILE MAINTAINING the visual style of the reference images. The variation direction is secondary to style matching.
 ${historyContext}
 
 ## LANGUAGE REQUIREMENT
 ALL visible text/copy in the image (if any) MUST be in ${languageLabel}.
 
-Generate a single, stunning, scroll-stopping social media image.`;
+Generate a single image that looks like it belongs in the same visual world as the reference images.`;
 
       console.log(
         `[BrandImageGen] Generating variation ${v + 1}/${count} — ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}`,
