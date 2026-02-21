@@ -694,7 +694,7 @@ Generate a single, stunning, scroll-stopping social media image.`;
       );
 
       const response = await ai.models.generateContent({
-        model: "gemini-3-pro-image-preview",
+        model: "gemini-2.5-flash-image",
         contents: [
           {
             role: "user",
@@ -706,7 +706,6 @@ Generate a single, stunning, scroll-stopping social media image.`;
           systemInstruction: [{ text: systemInstruction }],
           imageConfig: {
             aspectRatio: "1:1",
-            imageSize: "2K",
           },
         },
       });
