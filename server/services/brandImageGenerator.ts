@@ -275,21 +275,21 @@ function pickVisualAssetsBalanced(
 function getCategoryContext(category: string): string {
   switch (category) {
     case "social_media_posts":
-      return "REAL Instagram post from this brand";
+      return "📱 REAL Instagram post from this brand — match this visual style";
     case "product_images":
     case "products":
     case "product":
-      return "Brand product photo";
+      return "🛍️ Brand product photo";
     case "location_images":
     case "location":
     case "location_assets":
     case "place":
-      return "Brand location photo";
+      return "📍 Brand location photo";
     case "inspiration_templates":
     case "inspiration":
-      return "Brand design inspiration";
+      return "🎨 Brand design inspiration";
     default:
-      return "Brand reference image";
+      return "📸 Brand reference image";
   }
 }
 
@@ -535,15 +535,49 @@ export async function generateBrandImages(
 - Acceptable placements: on products, packaging, shopping bags, business cards, storefronts, marble surfaces, fabric tags, or any surface that makes sense for the brand.`
     : "";
 
-  const systemInstruction = `You generate social media posts for brands. You will receive real Instagram posts from the brand as reference images. Your job is simple: create a NEW post that looks like it belongs in the same Instagram feed.
+  const systemInstruction = `You are a world-class creative director and visual artist specializing in luxury brand imagery for social media.
 
-Copy the same visual style — same colors, same backgrounds, same mood, same type of compositions, same vibe. The new image should be indistinguishable in style from the reference posts.
+YOUR MANDATE: Create images that look like they belong in a high-end advertising campaign — NOT stock photos, NOT amateur content, NOT AI-generated looking.
+
+## PROFESSIONAL QUALITY STANDARDS
+- Photorealistic quality with cinematic lighting (golden hour, Rembrandt, split lighting)
+- Rich color grading that matches the brand palette without being garish
+- Professional composition following rule of thirds, leading lines, or centered symmetry
+- Depth of field that creates visual hierarchy — sharp subject, soft background
+- Natural textures and materials that feel tactile and premium
+- NO watermarks, NO stock photo overlays, NO generic template layouts
 
 ${logoSystemBlock}
 
-${hasLogo ? "The brand logo must appear naturally in every image. Reproduce it exactly as provided." : ""}
+## BRAND COPY & TEXT GUIDELINES
+Some images should include brand-related text/copy, but NOT all of them. Mix it up:
+- About HALF of the images in a set should include text (brand name, taglines, calls to action, promotional phrases)
+- The other half should be purely visual — beautiful product/lifestyle imagery with NO text overlay, letting the visuals speak for themselves
+- When text IS included:
+  - Include the BRAND NAME prominently and legibly
+  - Add a short, catchy tagline or promotional phrase relevant to the brand
+  - Text must be CLEAR, READABLE, and properly spelled — no garbled or distorted letters
+  - Use elegant, modern typography that matches the brand style
+  - Use the brand's color palette for text and ensure sufficient contrast for readability
+  - Integrate text naturally into the composition
+- When text is NOT included:
+  - Focus entirely on stunning visuals, lighting, textures, and mood
+  - Let the product/scene be the hero
+  - The logo MUST still appear even when there is no text copy
+${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the LOGO must STILL be physically present in every image regardless" : ""}
 
-All text must be clear, readable, and properly spelled. No garbled letters.`;
+## BRAND COHESION
+- Every image must feel like it belongs to the same visual campaign
+- Maintain consistent color temperature and mood
+- The brand's color palette should influence the environment, props, lighting, AND text styling
+- Think "brand world" — create a universe the brand lives in, with consistent messaging
+
+## SOCIAL MEDIA OPTIMIZATION
+- Images must command attention in a fast-scrolling feed
+- The copy/text should enhance the scroll-stopping power of the image
+- Strong visual hooks in the first glance — the text should contribute to this
+- Clean enough to work at small mobile sizes — text must be large enough to read on mobile
+- Aspirational but authentic — real-world plausibility with professional messaging`;
 
   const results: GeneratedImageResult[] = [];
   const errors: string[] = [];
@@ -575,7 +609,7 @@ All text must be clear, readable, and properly spelled. No garbled letters.`;
           },
         });
         assetLabels.push(
-          `Image ${imageIndex}: Brand logo — reproduce it exactly as shown, place it naturally in the scene`,
+          `Image ${imageIndex}: 🏷️ OFFICIAL BRAND LOGO — This is a FIXED graphic mark. Reproduce it EXACTLY as shown in every image. Integrate it physically into the scene (engraved, embossed, printed on product/packaging/signage). DO NOT alter its shape, proportions, or colors. DO NOT simplify or reinterpret. It MUST be clearly visible and legible.`,
         );
         imageIndex++;
       }
@@ -605,25 +639,67 @@ All text must be clear, readable, and properly spelled. No garbled letters.`;
 
       const variation = variationHints[v];
 
+      const logoPromptBlock = hasLogo
+        ? `\n## LOGO (MANDATORY)
+The first reference image above is the brand's official logo. It MUST appear in this image:
+- Reproduce the logo EXACTLY — same shape, proportions, and colors
+- Integrate it physically: engraved, embossed, printed on product/packaging, as signage, on a shopping bag, etc.
+- It must be clearly visible and legible — not tiny, not hidden, not cropped
+- DO NOT float, glow, or digitally overlay the logo\n`
+        : "";
+
       const textSection = variation.includeText
-        ? `Include the brand name "${brand.name}" and a short catchy tagline in the image. Match the typography style from the reference posts.`
-        : `No promotional text in this image.${hasLogo ? ` The logo should still appear.` : ""}`;
+        ? `## COPY/TEXT TO INCLUDE IN THE IMAGE (REQUIRED FOR THIS VARIATION)
+The image MUST contain these text elements:
+1. The brand name "${brand.name}" — large, clear, and prominent
+2. A short compelling tagline or promotional phrase related to the brand (create one that fits the industry and brand description)
+3. Optional: a call-to-action phrase or additional detail
+Make the text beautiful — use elegant typography, ensure perfect spelling, and integrate it naturally into the composition. Text should use the brand's color palette and be fully readable at mobile sizes.
+${logoPromptBlock}`
+        : `## NO PROMOTIONAL TEXT FOR THIS VARIATION
+This image should have NO promotional copy, taglines, or calls to action.
+Focus entirely on stunning visuals, lighting, textures, mood, and composition.
+${hasLogo ? `HOWEVER — the brand LOGO must STILL appear physically in the scene. "No text" means no promotional copy — the logo is a graphic mark and must always be present.` : "Let the imagery speak for itself."}
+${logoPromptBlock}`;
 
-      const userPrompt = `Here are real Instagram posts from the brand "${brand.name}" (${brand.industry || "lifestyle"}).
-Brand colors: ${primaryColor}${accent1 ? `, ${accent1}` : ""}${accent2 ? `, ${accent2}` : ""}
+      const socialMediaBlock = hasSocialMediaPosts
+        ? `## STYLE REFERENCE
+Some of the images above are REAL Instagram posts from this brand. These are the most important references. Create a new post that matches the same visual style — same colors, same backgrounds, same mood, same type of compositions. It should look like it was made by the same designer.`
+        : "";
 
+      const userPrompt = `Create a premium social media image for this brand:
+
+## BRAND IDENTITY
+- Name: "${brand.name}"
+- Description: ${brandDescription}
+- Industry: ${brand.industry || "lifestyle"}
+- Visual Style: ${brandStyle}
+- Color Palette: Primary ${primaryColor}${accent1 ? `, Accent ${accent1}` : ""}${accent2 ? `, Secondary ${accent2}` : ""}
+${fontPrimary ? `- Typography: ${fontPrimary}` : ""}
+
+## REFERENCE IMAGES PROVIDED (${contentParts.length} images above)
 ${assetLabels.join("\n")}
 
-Create a NEW Instagram post for this brand that matches the SAME visual style as the reference posts above. Same backgrounds, same color tones, same compositions, same mood — it should look like it was made by the same designer.
+${socialMediaBlock}
+
+Study these reference images carefully. Match their:
+- Visual style, composition patterns, and design language
+- Color grading, color temperature, and palette usage
+- Typography style, text placement, and layout decisions
+- Material textures, surface finishes, and lighting approach
+- Overall mood, atmosphere, and brand personality
+Create something NEW that feels like it was created by the SAME brand and the SAME designer.
 
 ${textSection}
 
-Direction for this post: ${variation.direction}
+## THIS VARIATION'S DIRECTION
+${variation.direction}
 ${historyContext}
 
-${languageLabel !== "English" ? `All text must be in ${languageLabel}.` : ""}
+## LANGUAGE REQUIREMENT
+ALL visible text/copy in the image (if any) MUST be in ${languageLabel}.
 
-Do not create generic stock photography. Match the specific style of the references.`;
+Generate a single, stunning, scroll-stopping social media image.`;
 
       console.log(
         `[BrandImageGen] Generating variation ${v + 1}/${count} — ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}, socialMediaPosts=${hasSocialMediaPosts ? "YES" : "NO"}`,
