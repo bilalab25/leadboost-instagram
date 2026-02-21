@@ -36,7 +36,9 @@ async function fetchImageAsBase64(
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.log(`[BrandImageGen] Failed to fetch image from ${url}: ${response.status}`);
+      console.log(
+        `[BrandImageGen] Failed to fetch image from ${url}: ${response.status}`,
+      );
       return null;
     }
     const arrayBuffer = await response.arrayBuffer();
@@ -75,7 +77,9 @@ async function overlayLogoOnImage(
   try {
     const logoResponse = await fetch(logoUrl);
     if (!logoResponse.ok) {
-      console.log(`[BrandImageGen] Logo overlay: failed to fetch logo (${logoResponse.status})`);
+      console.log(
+        `[BrandImageGen] Logo overlay: failed to fetch logo (${logoResponse.status})`,
+      );
       return imageBuffer;
     }
     const logoArrayBuffer = await logoResponse.arrayBuffer();
@@ -110,25 +114,37 @@ async function overlayLogoOnImage(
     let left: number, top: number;
     switch (position) {
       case "top-left":
-        left = padding; top = padding; break;
+        left = padding;
+        top = padding;
+        break;
       case "top-right":
-        left = imageWidth - logoWidth - padding; top = padding; break;
+        left = imageWidth - logoWidth - padding;
+        top = padding;
+        break;
       case "bottom-left":
-        left = padding; top = imageHeight - logoHeight - padding; break;
+        left = padding;
+        top = imageHeight - logoHeight - padding;
+        break;
       case "bottom-right":
       default:
-        left = imageWidth - logoWidth - padding; top = imageHeight - logoHeight - padding; break;
+        left = imageWidth - logoWidth - padding;
+        top = imageHeight - logoHeight - padding;
+        break;
     }
 
     const result = await sharp(imageBuffer)
-      .composite([{
-        input: resizedLogo,
-        left: Math.max(0, left),
-        top: Math.max(0, top),
-      }])
+      .composite([
+        {
+          input: resizedLogo,
+          left: Math.max(0, left),
+          top: Math.max(0, top),
+        },
+      ])
       .toBuffer();
 
-    console.log(`[BrandImageGen] ✅ Logo watermark applied (${position}, ${logoSize}px, ${Math.round(opacity * 100)}% opacity)`);
+    console.log(
+      `[BrandImageGen] ✅ Logo watermark applied (${position}, ${logoSize}px, ${Math.round(opacity * 100)}% opacity)`,
+    );
     return result;
   } catch (error) {
     console.error(`[BrandImageGen] Logo overlay error:`, error);
@@ -145,7 +161,7 @@ function pickVisualAssetsBalanced(
   brandId: string,
 ): BrandAssetForImage[] {
   const imageAssets = assets.filter(
-    (a) => !a.assetType || a.assetType === "image"
+    (a) => !a.assetType || a.assetType === "image",
   );
   if (imageAssets.length === 0) return [];
 
@@ -168,15 +184,24 @@ function pickVisualAssetsBalanced(
   const usageTracker = assetUsageCache.get(brandId)!;
   const catTracker = categoryUsageCache.get(brandId)!;
 
-  const allEligible = [...Object.values(categoryGroups).flat(), ...uncategorized];
+  const allEligible = [
+    ...Object.values(categoryGroups).flat(),
+    ...uncategorized,
+  ];
   allEligible.forEach((a) => {
     if (!(a.url in usageTracker)) usageTracker[a.url] = 0;
   });
 
   const priorityOrder = [
-    "products", "product", "product_images",
-    "location", "location_images", "location_assets", "place",
-    "inspiration_templates", "inspiration",
+    "products",
+    "product",
+    "product_images",
+    "location",
+    "location_images",
+    "location_assets",
+    "place",
+    "inspiration_templates",
+    "inspiration",
   ];
 
   const selected: BrandAssetForImage[] = [];
@@ -221,15 +246,25 @@ function pickVisualAssetsBalanced(
     }
   }
 
-  console.log(`[BrandImageGen] Selected ${selected.length} reference assets from ${categories.length} categories (${imageAssets.length} total available)`);
+  console.log(
+    `[BrandImageGen] Selected ${selected.length} reference assets from ${categories.length} categories (${imageAssets.length} total available)`,
+  );
   return selected.slice(0, maxCount);
 }
 
 function getLanguageLabel(lang: string): string {
   const map: Record<string, string> = {
-    en: "English", es: "Spanish", pt: "Portuguese", fr: "French",
-    de: "German", it: "Italian", zh: "Chinese", ja: "Japanese",
-    ko: "Korean", ar: "Arabic", hi: "Hindi",
+    en: "English",
+    es: "Spanish",
+    pt: "Portuguese",
+    fr: "French",
+    de: "German",
+    it: "Italian",
+    zh: "Chinese",
+    ja: "Japanese",
+    ko: "Korean",
+    ar: "Arabic",
+    hi: "Hindi",
   };
   return map[lang] || "English";
 }
@@ -241,14 +276,46 @@ interface VariationHint {
 
 function buildVariationHints(count: number): VariationHint[] {
   const hints: VariationHint[] = [
-    { direction: "Close-up product hero shot with cinematic lighting, shallow depth of field, and a luxurious surface texture. Shot at golden hour warmth.", includeText: true },
-    { direction: "Wide environmental lifestyle shot showing the brand in context — real setting, natural light, aspirational atmosphere. Think editorial spread.", includeText: false },
-    { direction: "Overhead flat-lay with meticulous arrangement, clean negative space, and complementary props that reinforce the brand story.", includeText: true },
-    { direction: "Bold side-lit composition with dramatic shadows, high contrast, and a moody editorial feel. Magazine cover energy.", includeText: false },
-    { direction: "Candid lifestyle moment — authentic action, natural movement, human connection. Documentary-style but polished.", includeText: false },
-    { direction: "Ultra-minimalist centered composition with generous whitespace, single focal point, and soft diffused lighting. Apple-level clean.", includeText: true },
-    { direction: "Rich textural close-up — fabric, material, ingredient detail. Macro-style with beautiful bokeh and tactile quality.", includeText: false },
-    { direction: "Dynamic diagonal composition with leading lines, layered depth, and energetic visual flow. Modern and bold.", includeText: true },
+    {
+      direction:
+        "Close-up product hero shot with cinematic lighting, shallow depth of field, and a luxurious surface texture. Shot at golden hour warmth.",
+      includeText: true,
+    },
+    {
+      direction:
+        "Wide environmental lifestyle shot showing the brand in context — real setting, natural light, aspirational atmosphere. Think editorial spread.",
+      includeText: false,
+    },
+    {
+      direction:
+        "Overhead flat-lay with meticulous arrangement, clean negative space, and complementary props that reinforce the brand story.",
+      includeText: true,
+    },
+    {
+      direction:
+        "Bold side-lit composition with dramatic shadows, high contrast, and a moody editorial feel. Magazine cover energy.",
+      includeText: false,
+    },
+    {
+      direction:
+        "Candid lifestyle moment — authentic action, natural movement, human connection. Documentary-style but polished.",
+      includeText: false,
+    },
+    {
+      direction:
+        "Ultra-minimalist centered composition with generous whitespace, single focal point, and soft diffused lighting. Apple-level clean.",
+      includeText: true,
+    },
+    {
+      direction:
+        "Rich textural close-up — fabric, material, ingredient detail. Macro-style with beautiful bokeh and tactile quality.",
+      includeText: false,
+    },
+    {
+      direction:
+        "Dynamic diagonal composition with leading lines, layered depth, and energetic visual flow. Modern and bold.",
+      includeText: true,
+    },
   ];
 
   const selected: VariationHint[] = [];
@@ -266,7 +333,13 @@ async function getApprovalHistory(brandId: string): Promise<{
 }> {
   try {
     const design = await storage.getBrandDesignByBrandId(brandId);
-    if (!design) return { approvedDescriptions: [], rejectedDescriptions: [], approvedCount: 0, rejectedCount: 0 };
+    if (!design)
+      return {
+        approvedDescriptions: [],
+        rejectedDescriptions: [],
+        approvedCount: 0,
+        rejectedCount: 0,
+      };
 
     const allGenerated = await db
       .select()
@@ -275,7 +348,7 @@ async function getApprovalHistory(brandId: string): Promise<{
         and(
           eq(brandAssets.brandDesignId, design.id),
           eq(brandAssets.assetType, "image"),
-        )
+        ),
       )
       .orderBy(desc(brandAssets.createdAt));
 
@@ -292,7 +365,9 @@ async function getApprovalHistory(brandId: string): Promise<{
       .map((a) => a.description || a.name)
       .filter(Boolean);
 
-    console.log(`[BrandImageGen] History: ${approved.length} approved, ${rejected.length} rejected`);
+    console.log(
+      `[BrandImageGen] History: ${approved.length} approved, ${rejected.length} rejected`,
+    );
 
     return {
       approvedDescriptions,
@@ -302,24 +377,39 @@ async function getApprovalHistory(brandId: string): Promise<{
     };
   } catch (error) {
     console.error(`[BrandImageGen] Error fetching approval history:`, error);
-    return { approvedDescriptions: [], rejectedDescriptions: [], approvedCount: 0, rejectedCount: 0 };
+    return {
+      approvedDescriptions: [],
+      rejectedDescriptions: [],
+      approvedCount: 0,
+      rejectedCount: 0,
+    };
   }
 }
 
-function buildHistoryContext(history: Awaited<ReturnType<typeof getApprovalHistory>>): string {
+function buildHistoryContext(
+  history: Awaited<ReturnType<typeof getApprovalHistory>>,
+): string {
   const lines: string[] = [];
 
   if (history.approvedCount > 0) {
-    lines.push(`\n## LEARNING FROM PAST APPROVALS (${history.approvedCount} images approved by user)`);
-    lines.push("The user has previously APPROVED images with these characteristics — create more like these:");
+    lines.push(
+      `\n## LEARNING FROM PAST APPROVALS (${history.approvedCount} images approved by user)`,
+    );
+    lines.push(
+      "The user has previously APPROVED images with these characteristics — create more like these:",
+    );
     history.approvedDescriptions.forEach((d, i) => {
       lines.push(`  ${i + 1}. ${d}`);
     });
   }
 
   if (history.rejectedCount > 0) {
-    lines.push(`\n## AVOID THESE PATTERNS (${history.rejectedCount} images rejected by user)`);
-    lines.push("The user has previously REJECTED images with these characteristics — do NOT repeat these styles:");
+    lines.push(
+      `\n## AVOID THESE PATTERNS (${history.rejectedCount} images rejected by user)`,
+    );
+    lines.push(
+      "The user has previously REJECTED images with these characteristics — do NOT repeat these styles:",
+    );
     history.rejectedDescriptions.forEach((d, i) => {
       lines.push(`  ${i + 1}. ${d}`);
     });
@@ -332,23 +422,29 @@ export async function generateBrandImages(
   brandId: string,
   count: number = 6,
 ): Promise<{ images: GeneratedImageResult[]; errors: string[] }> {
-  console.log(`[BrandImageGen] Starting generation of ${count} images for brand ${brandId}`);
+  console.log(
+    `[BrandImageGen] Starting generation of ${count} images for brand ${brandId}`,
+  );
 
   const brand = await storage.getBrandByIdOnly(brandId);
   if (!brand) throw new Error("Brand not found");
 
   const brandDesign = await storage.getBrandDesignByBrandId(brandId);
-  if (!brandDesign) throw new Error("Brand design not found. Please set up your brand design first.");
+  if (!brandDesign)
+    throw new Error(
+      "Brand design not found. Please set up your brand design first.",
+    );
 
   const allAssets = await storage.getAssetsByBrandId(brandId);
   const imageAssets = (allAssets || []).filter(
-    (a: any) => !a.assetType || a.assetType === "image"
+    (a: any) => !a.assetType || a.assetType === "image",
   );
 
   const history = await getApprovalHistory(brandId);
   const historyContext = buildHistoryContext(history);
 
-  const preferredLanguage = (brandDesign as any).preferredLanguage || brand.preferredLanguage || "en";
+  const preferredLanguage =
+    (brandDesign as any).preferredLanguage || brand.preferredLanguage || "en";
   const languageLabel = getLanguageLabel(preferredLanguage);
 
   const primaryColor = brandDesign.colorPrimary || "#000000";
@@ -356,21 +452,31 @@ export async function generateBrandImages(
   const accent2 = brandDesign.colorAccent2 || "";
   const fontPrimary = brandDesign.fontPrimary || "";
   const brandStyle = brandDesign.brandStyle || "minimalist";
-  const brandDescription = (brandDesign as any).brandDescription || brand.description || "";
+  const brandDescription =
+    (brandDesign as any).brandDescription || brand.description || "";
 
-  console.log(`[BrandImageGen] Logo fields — logoUrl: ${brandDesign.logoUrl || "null"}, whiteLogoUrl: ${brandDesign.whiteLogoUrl || "null"}, blackLogoUrl: ${brandDesign.blackLogoUrl || "null"}`);
-  const logoUrl = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
+  console.log(
+    `[BrandImageGen] Logo fields — logoUrl: ${brandDesign.logoUrl || "null"}, whiteLogoUrl: ${brandDesign.whiteLogoUrl || "null"}, blackLogoUrl: ${brandDesign.blackLogoUrl || "null"}`,
+  );
+  const logoUrl =
+    brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
   let logoBase64: { data: string; mimeType: string } | null = null;
   if (logoUrl) {
     console.log(`[BrandImageGen] Fetching logo from: ${logoUrl}`);
     logoBase64 = await fetchImageAsBase64(logoUrl);
     if (logoBase64) {
-      console.log(`[BrandImageGen] ✅ Logo loaded successfully (${logoBase64.mimeType}, ${Math.round(logoBase64.data.length / 1024)}KB base64)`);
+      console.log(
+        `[BrandImageGen] ✅ Logo loaded successfully (${logoBase64.mimeType}, ${Math.round(logoBase64.data.length / 1024)}KB base64)`,
+      );
     } else {
-      console.log(`[BrandImageGen] ❌ WARNING: Failed to download logo from ${logoUrl}`);
+      console.log(
+        `[BrandImageGen] ❌ WARNING: Failed to download logo from ${logoUrl}`,
+      );
     }
   } else {
-    console.log(`[BrandImageGen] ⚠️ No logo URL found in any field for brand ${brandId}`);
+    console.log(
+      `[BrandImageGen] ⚠️ No logo URL found in any field for brand ${brandId}`,
+    );
   }
 
   const hasLogo = !!logoBase64;
@@ -461,7 +567,9 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
             mimeType: logoBase64.mimeType,
           },
         });
-        assetLabels.push(`Image ${imageIndex}: 🏷️ OFFICIAL BRAND LOGO — This is a FIXED graphic mark. Reproduce it EXACTLY as shown in every image. Integrate it physically into the scene (engraved, embossed, printed on product/packaging/signage). DO NOT alter its shape, proportions, or colors. DO NOT simplify or reinterpret. It MUST be clearly visible and legible.`);
+        assetLabels.push(
+          `Image ${imageIndex}: 🏷️ OFFICIAL BRAND LOGO — This is a FIXED graphic mark. Reproduce it EXACTLY as shown in every image. Integrate it physically into the scene (engraved, embossed, printed on product/packaging/signage). DO NOT alter its shape, proportions, or colors. DO NOT simplify or reinterpret. It MUST be clearly visible and legible.`,
+        );
         imageIndex++;
       }
 
@@ -475,8 +583,12 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
             },
           });
           const categoryLabel = asset.category ? ` [${asset.category}]` : "";
-          const descLabel = asset.description ? `: ${asset.description.slice(0, 60)}` : "";
-          assetLabels.push(`Image ${imageIndex}: ${asset.name}${categoryLabel}${descLabel}`);
+          const descLabel = asset.description
+            ? `: ${asset.description.slice(0, 60)}`
+            : "";
+          assetLabels.push(
+            `Image ${imageIndex}: ${asset.name}${categoryLabel}${descLabel}`,
+          );
           imageIndex++;
         }
       }
@@ -537,19 +649,24 @@ ALL visible text/copy in the image (if any) MUST be in ${languageLabel}.
 
 Generate a single, stunning, scroll-stopping social media image.`;
 
-      console.log(`[BrandImageGen] Generating variation ${v + 1}/${count} — ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}`);
+      console.log(
+        `[BrandImageGen] Generating variation ${v + 1}/${count} — ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}`,
+      );
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-image",
-        contents: [{
-          role: "user",
-          parts: [...contentParts, { text: userPrompt }],
-        }],
+        model: "gemini-3-pro-image-preview",
+        contents: [
+          {
+            role: "user",
+            parts: [...contentParts, { text: userPrompt }],
+          },
+        ],
         config: {
           responseModalities: ["IMAGE", "TEXT"],
           systemInstruction: [{ text: systemInstruction }],
           imageConfig: {
             aspectRatio: "1:1",
+            imageSize: "2K",
           },
         },
       });
@@ -565,7 +682,9 @@ Generate a single, stunning, scroll-stopping social media image.`;
             const hash = sha256(imageBuffer);
 
             if (seenHashes.has(hash)) {
-              console.log(`[BrandImageGen] Skipping duplicate image (hash: ${hash.slice(0, 8)})`);
+              console.log(
+                `[BrandImageGen] Skipping duplicate image (hash: ${hash.slice(0, 8)})`,
+              );
               continue;
             }
             seenHashes.add(hash);
@@ -598,7 +717,9 @@ Generate a single, stunning, scroll-stopping social media image.`;
             });
 
             imageFound = true;
-            console.log(`[BrandImageGen] Variation ${v + 1} generated and uploaded successfully`);
+            console.log(
+              `[BrandImageGen] Variation ${v + 1} generated and uploaded successfully`,
+            );
             break;
           }
         }
@@ -606,20 +727,31 @@ Generate a single, stunning, scroll-stopping social media image.`;
       }
 
       if (!imageFound) {
-        const textResponse = candidates[0]?.content?.parts?.find((p: any) => p.text)?.text;
-        errors.push(`Variation ${v + 1}: No image generated. ${textResponse ? `Model said: ${textResponse.slice(0, 100)}` : ""}`);
-        console.log(`[BrandImageGen] Variation ${v + 1} did not produce an image`);
+        const textResponse = candidates[0]?.content?.parts?.find(
+          (p: any) => p.text,
+        )?.text;
+        errors.push(
+          `Variation ${v + 1}: No image generated. ${textResponse ? `Model said: ${textResponse.slice(0, 100)}` : ""}`,
+        );
+        console.log(
+          `[BrandImageGen] Variation ${v + 1} did not produce an image`,
+        );
       }
 
       if (v < count - 1) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
       }
     } catch (error: any) {
-      console.error(`[BrandImageGen] Error generating variation ${v + 1}:`, error);
+      console.error(
+        `[BrandImageGen] Error generating variation ${v + 1}:`,
+        error,
+      );
       errors.push(`Variation ${v + 1}: ${error.message || "Unknown error"}`);
     }
   }
 
-  console.log(`[BrandImageGen] Complete. Generated ${results.length}/${count} images. Errors: ${errors.length}`);
+  console.log(
+    `[BrandImageGen] Complete. Generated ${results.length}/${count} images. Errors: ${errors.length}`,
+  );
   return { images: results, errors };
 }

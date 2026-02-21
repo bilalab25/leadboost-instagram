@@ -138,7 +138,7 @@ export class ImageProcessor {
   /**
    * Get brand style overlay configuration
    */
-  private getBrandStyleOverlay(brandStyle: string): { r: number; g: number; b: number; alpha: number } | null {
+  private  (brandStyle: string): { r: number; g: number; b: number; alpha: number } | null {
     switch (brandStyle) {
       case 'luxury':
         return { r: 0, g: 0, b: 0, alpha: 0.1 };
@@ -171,7 +171,7 @@ export class ImageProcessor {
 
   /**
    * Generate optimized images for all platforms from a single source
-   */
+   */  
   async generateAllPlatformImages(options: {
     sourceImageUrl: string;
     campaignText: string;
