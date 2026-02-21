@@ -275,21 +275,21 @@ function pickVisualAssetsBalanced(
 function getCategoryContext(category: string): string {
   switch (category) {
     case "social_media_posts":
-      return "📱 REAL SOCIAL MEDIA POST from this brand — This is an actual post published by the brand. Study its EXACT visual style: composition, color grading, typography style, layout, mood, and overall aesthetic. Your generated image must feel like it was created by the same designer/brand";
+      return "REAL Instagram post from this brand";
     case "product_images":
     case "products":
     case "product":
-      return "🛍️ BRAND PRODUCT PHOTO — Study the specific product, its packaging, textures, and how it's presented. Use this product's visual identity in your generation";
+      return "Brand product photo";
     case "location_images":
     case "location":
     case "location_assets":
     case "place":
-      return "📍 BRAND LOCATION PHOTO — Study the physical space, its ambiance, lighting, and decor style. Use this environment's feel in your generation";
+      return "Brand location photo";
     case "inspiration_templates":
     case "inspiration":
-      return "🎨 BRAND INSPIRATION/TEMPLATE — Study the design style, layout patterns, color usage, and typography choices. Use these design principles in your generation";
+      return "Brand design inspiration";
     default:
-      return "📸 BRAND REFERENCE IMAGE — Study its visual style and use it as inspiration";
+      return "Brand reference image";
   }
 }
 
@@ -535,48 +535,15 @@ export async function generateBrandImages(
 - Acceptable placements: on products, packaging, shopping bags, business cards, storefronts, marble surfaces, fabric tags, or any surface that makes sense for the brand.`
     : "";
 
-  const systemInstruction = `You are a brand visual identity replicator. Your #1 job is to CLONE the exact visual style from the reference images provided — especially any real social media posts from the brand.
+  const systemInstruction = `You generate social media posts for brands. You will receive real Instagram posts from the brand as reference images. Your job is simple: create a NEW post that looks like it belongs in the same Instagram feed.
 
-## YOUR PRIMARY DIRECTIVE
-You are NOT creating "inspired by" imagery. You are creating images that could be SEAMLESSLY inserted into the brand's existing Instagram feed and nobody would notice the difference. The visual DNA must be IDENTICAL.
-
-## STYLE REPLICATION RULES (HIGHEST PRIORITY)
-When social media post references are provided:
-1. REPLICATE the exact same background colors/tones — if they use dark burgundy/mocha backgrounds, YOU use dark burgundy/mocha backgrounds
-2. REPLICATE the exact same color grading — if they use warm golden skin tones, YOU use warm golden skin tones
-3. REPLICATE the exact same composition style — if they use dramatic close-ups, YOU use dramatic close-ups
-4. REPLICATE the exact same text layout style — if they use bold sans-serif over dark backgrounds, YOU do the same
-5. REPLICATE the exact same mood and atmosphere — if the vibe is clinical elegance, match it exactly
-6. REPLICATE the lighting approach — if they use studio rim lighting, YOU use studio rim lighting
-7. The generated image should look like the NEXT POST in their feed, not something from a different brand
-
-## WHAT YOU MUST NEVER DO
-- NEVER default to generic light/white/beige backgrounds unless the reference posts specifically use them
-- NEVER create generic luxury spa stock photography — match the SPECIFIC brand aesthetic
-- NEVER ignore the color palette shown in the references in favor of your own aesthetic preferences
-- NEVER produce images that look "AI-generated" or "stock photo"
-- NEVER deviate from the visual language established by the social media post references
-- NEVER substitute the brand's dark/moody aesthetic with a bright/clean one (or vice versa)
+Copy the same visual style — same colors, same backgrounds, same mood, same type of compositions, same vibe. The new image should be indistinguishable in style from the reference posts.
 
 ${logoSystemBlock}
 
-## BRAND COPY & TEXT GUIDELINES
-Some images should include brand-related text/copy, but NOT all of them:
-- When text IS included:
-  - Include the BRAND NAME prominently and legibly
-  - Add a short, catchy tagline or promotional phrase relevant to the brand
-  - Text must be CLEAR, READABLE, and properly spelled — no garbled or distorted letters
-  - Match the typography style from the reference posts (font weight, placement, size ratios)
-  - Use the brand's color palette for text and ensure sufficient contrast
-- When text is NOT included:
-  - Focus entirely on stunning visuals that match the reference post style
-  - The logo MUST still appear even when there is no text copy
-${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the LOGO must STILL be physically present in every image regardless" : ""}
+${hasLogo ? "The brand logo must appear naturally in every image. Reproduce it exactly as provided." : ""}
 
-## SOCIAL MEDIA OPTIMIZATION
-- Images must command attention in a fast-scrolling feed
-- Clean enough to work at small mobile sizes
-- Must feel like a natural continuation of the brand's existing content`;
+All text must be clear, readable, and properly spelled. No garbled letters.`;
 
   const results: GeneratedImageResult[] = [];
   const errors: string[] = [];
@@ -608,7 +575,7 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
           },
         });
         assetLabels.push(
-          `Image ${imageIndex}: 🏷️ OFFICIAL BRAND LOGO — This is a FIXED graphic mark. Reproduce it EXACTLY as shown in every image. Integrate it physically into the scene (engraved, embossed, printed on product/packaging/signage). DO NOT alter its shape, proportions, or colors. DO NOT simplify or reinterpret. It MUST be clearly visible and legible.`,
+          `Image ${imageIndex}: Brand logo — reproduce it exactly as shown, place it naturally in the scene`,
         );
         imageIndex++;
       }
@@ -638,81 +605,25 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
 
       const variation = variationHints[v];
 
-      const logoPromptBlock = hasLogo
-        ? `\n## LOGO (MANDATORY)
-The first reference image above is the brand's official logo. It MUST appear in this image:
-- Reproduce the logo EXACTLY — same shape, proportions, and colors
-- Integrate it physically: engraved, embossed, printed on product/packaging, as signage, on a shopping bag, etc.
-- It must be clearly visible and legible — not tiny, not hidden, not cropped
-- DO NOT float, glow, or digitally overlay the logo\n`
-        : "";
-
       const textSection = variation.includeText
-        ? `## COPY/TEXT TO INCLUDE IN THE IMAGE (REQUIRED FOR THIS VARIATION)
-The image MUST contain these text elements:
-1. The brand name "${brand.name}" — large, clear, and prominent
-2. A short compelling tagline or promotional phrase related to the brand (create one that fits the industry and brand description)
-3. Optional: a call-to-action phrase or additional detail
-Make the text beautiful — use elegant typography, ensure perfect spelling, and integrate it naturally into the composition. Text should use the brand's color palette and be fully readable at mobile sizes.
-${logoPromptBlock}`
-        : `## NO PROMOTIONAL TEXT FOR THIS VARIATION
-This image should have NO promotional copy, taglines, or calls to action.
-Focus entirely on stunning visuals, lighting, textures, mood, and composition.
-${hasLogo ? `HOWEVER — the brand LOGO must STILL appear physically in the scene. "No text" means no promotional copy — the logo is a graphic mark and must always be present.` : "Let the imagery speak for itself."}
-${logoPromptBlock}`;
+        ? `Include the brand name "${brand.name}" and a short catchy tagline in the image. Match the typography style from the reference posts.`
+        : `No promotional text in this image.${hasLogo ? ` The logo should still appear.` : ""}`;
 
-      const socialMediaBlock = hasSocialMediaPosts
-        ? `## ⚠️ CRITICAL — STYLE CLONING FROM REAL SOCIAL MEDIA POSTS
-The images marked as "📱 REAL SOCIAL MEDIA POST" above are ACTUAL PUBLISHED POSTS from this brand's Instagram/social media.
-These are your PRIMARY style reference — they override any other aesthetic instinct you may have.
+      const userPrompt = `Here are real Instagram posts from the brand "${brand.name}" (${brand.industry || "lifestyle"}).
+Brand colors: ${primaryColor}${accent1 ? `, ${accent1}` : ""}${accent2 ? `, ${accent2}` : ""}
 
-ANALYZE each social media post and extract:
-1. BACKGROUND: What colors/tones do they use? (dark, light, gradient, solid, textured?)
-2. COLOR GRADING: What is the overall color temperature? (warm, cool, moody, bright?)
-3. COMPOSITION: How are subjects framed? (close-up, full body, product flat-lay, centered?)
-4. TYPOGRAPHY: What font style, size, placement, and colors are used for text?
-5. MOOD: What feeling do these posts convey? (clinical, luxurious, warm, minimal, bold?)
-6. SUBJECTS: What is typically shown? (faces, products, treatments, lifestyle scenes?)
-
-Now CLONE these exact characteristics into your generated image. Your output must look like it was designed by the same person who made these posts. If someone scrolled past your image in their feed alongside the reference posts, they should NOT be able to tell which one is AI-generated.
-
-FORBIDDEN: Do NOT override the reference style with your own preferred aesthetic. If the posts use dark backgrounds, USE dark backgrounds. If they use close-up faces, USE close-up faces. REPLICATE, don't reinterpret.`
-        : "";
-
-      const userPrompt = `Create a social media image that REPLICATES this brand's visual style:
-
-## BRAND IDENTITY
-- Name: "${brand.name}"
-- Description: ${brandDescription}
-- Industry: ${brand.industry || "lifestyle"}
-- Visual Style: ${brandStyle}
-- Color Palette: Primary ${primaryColor}${accent1 ? `, Accent ${accent1}` : ""}${accent2 ? `, Secondary ${accent2}` : ""}
-${fontPrimary ? `- Typography: ${fontPrimary}` : ""}
-
-## REFERENCE IMAGES PROVIDED (${contentParts.length} images above)
 ${assetLabels.join("\n")}
 
-${socialMediaBlock}
-
-## STYLE REPLICATION CHECKLIST
-Before generating, answer these questions from the references:
-- What BACKGROUND style do they use? → Use the SAME backgrounds
-- What COLOR GRADING do they use? → Apply the SAME color grading
-- What COMPOSITION patterns do they use? → Follow the SAME composition
-- What LIGHTING setup do they use? → Replicate the SAME lighting
-- What MOOD/ATMOSPHERE do they convey? → Create the SAME mood
-Your image MUST match ALL of these. Do NOT substitute your own aesthetic preferences.
+Create a NEW Instagram post for this brand that matches the SAME visual style as the reference posts above. Same backgrounds, same color tones, same compositions, same mood — it should look like it was made by the same designer.
 
 ${textSection}
 
-## THIS VARIATION'S DIRECTION
-${variation.direction}
+Direction for this post: ${variation.direction}
 ${historyContext}
 
-## LANGUAGE REQUIREMENT
-ALL visible text/copy in the image (if any) MUST be in ${languageLabel}.
+${languageLabel !== "English" ? `All text must be in ${languageLabel}.` : ""}
 
-Generate a single image that looks like the NEXT POST in this brand's Instagram feed.`;
+Do not create generic stock photography. Match the specific style of the references.`;
 
       console.log(
         `[BrandImageGen] Generating variation ${v + 1}/${count} — ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}, socialMediaPosts=${hasSocialMediaPosts ? "YES" : "NO"}`,
