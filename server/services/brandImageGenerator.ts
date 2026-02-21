@@ -717,35 +717,56 @@ ALL visible text/copy in the image (if any) MUST be in ${languageLabel}.
 
 Generate a single, stunning, scroll-stopping social media image.`;
 
+      const simpleCount = Math.round(count * 0.7);
+      const useSimplePrompt = hasSocialMediaPosts && v < simpleCount;
+      const promptMode = useSimplePrompt ? "social-style" : "full-creative";
+
       console.log(
-        `[BrandImageGen] Generating variation ${v + 1}/${count} — ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}, socialMediaPosts=${hasSocialMediaPosts ? "YES" : "NO"}`,
+        `[BrandImageGen] Generating variation ${v + 1}/${count} — mode=${promptMode}, ${contentParts.length} reference images, logo=${hasLogo ? "YES" : "NO"}, text=${variation.includeText ? "YES" : "NO"}, socialMediaPosts=${hasSocialMediaPosts ? "YES" : "NO"}`,
       );
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-image",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              ...contentParts,
+      const response = useSimplePrompt
+        ? await ai.models.generateContent({
+            model: "gemini-2.5-flash-image",
+            contents: [
               {
-                text: "Estas imágenes que te doy son posts de instagram de mi marca. A partir de estas imágenes, crea una nueva imagen lista para publicar en instagram que sean profesionales.",
+                role: "user",
+                parts: [
+                  ...contentParts,
+                  {
+                    text: "Estas imágenes que te doy son posts de instagram de mi marca. A partir de estas imágenes, crea una nueva imagen lista para publicar en instagram que sean profesionales.",
+                  },
+                ],
               },
             ],
-          },
-        ],
-        config: {
-          responseModalities: ["IMAGE", "TEXT"],
-          systemInstruction: [
-            {
-              text: "Eres un experto en marketing digital, dirección creativa y producción visual para redes sociales. Tu función es generar imagenes detallados  publicitarias optimizada para Instagram, Facebook y TikTok. Las imagenes que generes deben ser profesionales, del nivel de una amrca de lujo.",
+            config: {
+              responseModalities: ["IMAGE", "TEXT"],
+              systemInstruction: [
+                {
+                  text: "Eres un experto en marketing digital, dirección creativa y producción visual para redes sociales. Tu función es generar imagenes detallados publicitarias optimizada para Instagram, Facebook y TikTok. Las imagenes que generes deben ser profesionales, del nivel de una marca de lujo.",
+                },
+              ],
+              imageConfig: {
+                aspectRatio: "1:1",
+              },
             },
-          ],
-          imageConfig: {
-            aspectRatio: "1:1",
-          },
-        },
-      });
+          })
+        : await ai.models.generateContent({
+            model: "gemini-2.5-flash-image",
+            contents: [
+              {
+                role: "user",
+                parts: [...contentParts, { text: userPrompt }],
+              },
+            ],
+            config: {
+              responseModalities: ["IMAGE", "TEXT"],
+              systemInstruction: [{ text: systemInstruction }],
+              imageConfig: {
+                aspectRatio: "1:1",
+              },
+            },
+          });
 
       const candidates = response.candidates || [];
       let imageFound = false;
