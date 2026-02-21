@@ -192,49 +192,63 @@ function pickVisualAssetsBalanced(
     if (!(a.url in usageTracker)) usageTracker[a.url] = 0;
   });
 
-  const priorityOrder = [
-    "social_media_posts",
-    "products",
-    "product",
-    "product_images",
-    "location",
-    "location_images",
-    "location_assets",
-    "place",
-    "inspiration_templates",
-    "inspiration",
-  ];
-
   const selected: BrandAssetForImage[] = [];
-  const categories = Object.keys(categoryGroups);
+  const selectionLog: Record<string, number> = {};
 
-  const sortedCategories = categories.sort((a, b) => {
-    const prioA = priorityOrder.indexOf(a);
-    const prioB = priorityOrder.indexOf(b);
-    const effectiveA = prioA === -1 ? 100 : prioA;
-    const effectiveB = prioB === -1 ? 100 : prioB;
-    if (effectiveA !== effectiveB) return effectiveA - effectiveB;
-    return (catTracker[a] || 0) - (catTracker[b] || 0);
-  });
+  const socialMediaPosts = categoryGroups["social_media_posts"] || [];
+  const hasSocialMedia = socialMediaPosts.length > 0;
 
-  for (const cat of sortedCategories) {
-    if (selected.length >= maxCount) break;
-    const catAssets = categoryGroups[cat];
-    const sorted = catAssets
-      .filter((a) => !selected.includes(a))
-      .sort((a, b) => (usageTracker[a.url] || 0) - (usageTracker[b.url] || 0));
-
-    const toTake = Math.min(
-      Math.ceil(maxCount / Math.max(sortedCategories.length, 1)),
-      sorted.length,
-      maxCount - selected.length,
+  if (hasSocialMedia) {
+    const socialSlots = Math.min(
+      Math.ceil(maxCount * 0.6),
+      socialMediaPosts.length,
     );
-
-    for (let i = 0; i < toTake; i++) {
+    const sorted = [...socialMediaPosts].sort(
+      (a, b) => (usageTracker[a.url] || 0) - (usageTracker[b.url] || 0),
+    );
+    for (let i = 0; i < socialSlots; i++) {
       selected.push(sorted[i]);
       usageTracker[sorted[i].url] = (usageTracker[sorted[i].url] || 0) + 1;
     }
-    catTracker[cat] = (catTracker[cat] || 0) + 1;
+    selectionLog["social_media_posts"] = socialSlots;
+    catTracker["social_media_posts"] = (catTracker["social_media_posts"] || 0) + 1;
+  }
+
+  const otherCategories = Object.keys(categoryGroups)
+    .filter((cat) => cat !== "social_media_posts")
+    .sort((a, b) => {
+      const prioOrder = [
+        "products", "product", "product_images",
+        "location", "location_images", "location_assets", "place",
+        "inspiration_templates", "inspiration",
+      ];
+      const prioA = prioOrder.indexOf(a);
+      const prioB = prioOrder.indexOf(b);
+      const effectiveA = prioA === -1 ? 100 : prioA;
+      const effectiveB = prioB === -1 ? 100 : prioB;
+      if (effectiveA !== effectiveB) return effectiveA - effectiveB;
+      return (catTracker[a] || 0) - (catTracker[b] || 0);
+    });
+
+  const remainingSlots = maxCount - selected.length;
+  if (remainingSlots > 0 && otherCategories.length > 0) {
+    const slotsPerCat = Math.max(1, Math.ceil(remainingSlots / otherCategories.length));
+    for (const cat of otherCategories) {
+      if (selected.length >= maxCount) break;
+      const catAssets = categoryGroups[cat];
+      const sorted = catAssets
+        .filter((a) => !selected.includes(a))
+        .sort((a, b) => (usageTracker[a.url] || 0) - (usageTracker[b.url] || 0));
+      const toTake = Math.min(slotsPerCat, sorted.length, maxCount - selected.length);
+      for (let i = 0; i < toTake; i++) {
+        selected.push(sorted[i]);
+        usageTracker[sorted[i].url] = (usageTracker[sorted[i].url] || 0) + 1;
+      }
+      if (toTake > 0) {
+        selectionLog[cat] = toTake;
+        catTracker[cat] = (catTracker[cat] || 0) + 1;
+      }
+    }
   }
 
   if (selected.length < maxCount && uncategorized.length > 0) {
@@ -245,11 +259,16 @@ function pickVisualAssetsBalanced(
     for (let i = 0; i < toTake; i++) {
       selected.push(remaining[i]);
     }
+    if (toTake > 0) selectionLog["uncategorized"] = toTake;
   }
 
+  const breakdown = Object.entries(selectionLog)
+    .map(([cat, count]) => `${cat}=${count}`)
+    .join(", ");
   console.log(
-    `[BrandImageGen] Selected ${selected.length} reference assets from ${categories.length} categories (${imageAssets.length} total available)`,
+    `[BrandImageGen] Selected ${selected.length}/${maxCount} reference assets — breakdown: { ${breakdown} } (${imageAssets.length} total available across ${Object.keys(categoryGroups).length} categories)`,
   );
+
   return selected.slice(0, maxCount);
 }
 
@@ -565,7 +584,7 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
   const seenHashes = new Set<string>();
   const variationHints = buildVariationHints(count);
 
-  const maxRefAssets = Math.min(6, imageAssets.length);
+  const maxRefAssets = Math.min(5, imageAssets.length);
 
   assetUsageCache.delete(brandId);
   categoryUsageCache.delete(brandId);
