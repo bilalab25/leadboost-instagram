@@ -595,19 +595,32 @@ ${hasLogo ? "- IMPORTANT: 'No text' means no promotional copy/taglines — the L
             },
           });
           const catMap: Record<string, string> = {
-            product_images: "BRAND PRODUCT PHOTO — This shows the brand's actual product/service. Study the product type, packaging, textures, and presentation style closely. Your generated image should feature SIMILAR products/services.",
-            products: "BRAND PRODUCT PHOTO — This shows the brand's actual product/service. Study the product type, packaging, textures, and presentation style closely. Your generated image should feature SIMILAR products/services.",
-            product: "BRAND PRODUCT PHOTO — This shows the brand's actual product/service. Study the product type, packaging, textures, and presentation style closely. Your generated image should feature SIMILAR products/services.",
-            location_images: "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
-            location: "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
-            location_assets: "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
-            place: "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
-            inspiration_templates: "BRAND STYLE REFERENCE — This shows the brand's preferred visual style, layout, and design language. Study the typography, color usage, composition patterns, and overall aesthetic. Your generated image should match this style.",
-            inspiration: "BRAND STYLE REFERENCE — This shows the brand's preferred visual style, layout, and design language. Study the typography, color usage, composition patterns, and overall aesthetic. Your generated image should match this style.",
+            product_images:
+              "BRAND PRODUCT PHOTO — This shows the brand's actual product/service. Study the product type, packaging, textures, and presentation style closely. Your generated image should feature SIMILAR products/services.",
+            products:
+              "BRAND PRODUCT PHOTO — This shows the brand's actual product/service. Study the product type, packaging, textures, and presentation style closely. Your generated image should feature SIMILAR products/services.",
+            product:
+              "BRAND PRODUCT PHOTO — This shows the brand's actual product/service. Study the product type, packaging, textures, and presentation style closely. Your generated image should feature SIMILAR products/services.",
+            location_images:
+              "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
+            location:
+              "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
+            location_assets:
+              "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
+            place:
+              "BRAND LOCATION/SPACE — This shows the brand's physical space or environment. Match the interior design style, lighting ambiance, and spatial feel in your generated images.",
+            inspiration_templates:
+              "BRAND STYLE REFERENCE — This shows the brand's preferred visual style, layout, and design language. Study the typography, color usage, composition patterns, and overall aesthetic. Your generated image should match this style.",
+            inspiration:
+              "BRAND STYLE REFERENCE — This shows the brand's preferred visual style, layout, and design language. Study the typography, color usage, composition patterns, and overall aesthetic. Your generated image should match this style.",
           };
           const cat = (asset.category || "").toLowerCase();
-          const categoryContext = catMap[cat] || "BRAND VISUAL REFERENCE — Study this image's style, subject matter, colors, and composition. Generate content that matches this visual language.";
-          const descLabel = asset.description ? ` (${asset.description.slice(0, 80)})` : "";
+          const categoryContext =
+            catMap[cat] ||
+            "BRAND VISUAL REFERENCE — Study this image's style, subject matter, colors, and composition. Generate content that matches this visual language.";
+          const descLabel = asset.description
+            ? ` (${asset.description.slice(0, 80)})`
+            : "";
           assetLabels.push(
             `Image ${imageIndex}: ${categoryContext}${descLabel}`,
           );
