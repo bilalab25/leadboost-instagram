@@ -34,6 +34,8 @@ import {
   ArrowRight,
   Save,
   Grid3X3,
+  CalendarPlus,
+  Plus,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
@@ -199,6 +201,16 @@ export default function ContentCalendar() {
   const [generatingBrandImages, setGeneratingBrandImages] = useState(() => {
     return !!localStorage.getItem("brandImageJobId");
   });
+  const [scheduleDialogImage, setScheduleDialogImage] = useState<any>(null);
+  const [scheduleForm, setScheduleForm] = useState({
+    platform: "instagram",
+    titulo: "",
+    content: "",
+    hashtags: "",
+    scheduledDate: "",
+  });
+  const [isUploadingContent, setIsUploadingContent] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
 
   // Query to fetch integrations for the brand
   const { data: integrations, isLoading: integrationsLoading } = useQuery<
@@ -1241,6 +1253,103 @@ export default function ContentCalendar() {
     },
   });
 
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+  const handleContentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!brandDesign?.id || !activeBrandId) return;
+    const files = Array.from(e.currentTarget.files || []);
+    if (files.length === 0) return;
+    setIsUploadingContent(true);
+
+    try {
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("upload_preset", uploadPreset);
+
+        const uploadRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+          { method: "POST", body: fd },
+        );
+        const data = await uploadRes.json();
+
+        if (data.secure_url) {
+          await apiRequest("POST", "/api/brand-assets", {
+            brandDesignId: brandDesign.id,
+            url: data.secure_url,
+            name: file.name,
+            category: "content",
+            assetType: "image",
+            publicId: data.public_id,
+            description: "",
+          });
+        }
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: [`/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`],
+      });
+      toast({
+        title: isSpanish ? "Contenido subido" : "Content uploaded",
+        description: isSpanish
+          ? `${files.length} ${files.length === 1 ? "imagen subida" : "imagenes subidas"} a tu galeria.`
+          : `${files.length} ${files.length === 1 ? "image uploaded" : "images uploaded"} to your gallery.`,
+      });
+    } catch (err) {
+      console.error("[Calendar] Upload error:", err);
+      toast({
+        title: "Error",
+        description: isSpanish ? "Error al subir archivos" : "Failed to upload files",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingContent(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleSchedulePost = async () => {
+    if (!activeBrandId || !scheduleDialogImage) return;
+    setIsScheduling(true);
+    try {
+      const response = await apiRequest(
+        "POST",
+        `/api/brands/${activeBrandId}/schedule-content`,
+        {
+          imageUrl: scheduleDialogImage.url,
+          platform: scheduleForm.platform,
+          titulo: scheduleForm.titulo || (isSpanish ? "Post programado" : "Scheduled Post"),
+          content: scheduleForm.content,
+          hashtags: scheduleForm.hashtags,
+          scheduledPublishTime: scheduleForm.scheduledDate || undefined,
+        },
+      );
+      if (response.ok) {
+        queryClient.invalidateQueries({
+          queryKey: ["/api/ai-generated-posts", activeBrandId],
+        });
+        toast({
+          title: isSpanish ? "Post programado" : "Post scheduled",
+          description: isSpanish
+            ? "El post se creo en tu calendario."
+            : "Post created on your calendar.",
+        });
+        setScheduleDialogImage(null);
+        setScheduleForm({ platform: "instagram", titulo: "", content: "", hashtags: "", scheduledDate: "" });
+      }
+    } catch (err) {
+      console.error("[Calendar] Schedule error:", err);
+      toast({
+        title: "Error",
+        description: isSpanish ? "Error al programar post" : "Failed to schedule post",
+        variant: "destructive",
+      });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
   return (
     <TooltipProvider>
       {/*       <Button
@@ -2203,33 +2312,14 @@ export default function ContentCalendar() {
                       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
                       return dateB - dateA;
                     });
-
-                    if (aiImages.length === 0) {
-                      return (
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                            <Grid3X3 className="w-8 h-8 text-gray-400" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                            {isSpanish ? "Sin imágenes aún" : "No images yet"}
-                          </h3>
-                          <p className="text-sm text-gray-500 max-w-md">
-                            {isSpanish
-                              ? "Genera imágenes con IA desde la pestaña 'Este Mes' y apruébalas para verlas aquí."
-                              : "Generate AI images from the 'This Month' tab and approve them to see them here."}
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-4"
-                            onClick={() => setCalendarTab("month")}
-                          >
-                            <CalendarIcon className="w-4 h-4 mr-2" />
-                            {isSpanish ? "Ir a Este Mes" : "Go to This Month"}
-                          </Button>
-                        </div>
-                      );
-                    }
+                    const contentImages = (brandAssets || []).filter(
+                      (a: any) => a.category === "content" && a.assetType === "image"
+                    ).sort((a: any, b: any) => {
+                      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                      return dateB - dateA;
+                    });
+                    const allGalleryImages = [...aiImages, ...contentImages];
 
                     return (
                       <div className="pb-8">
@@ -2240,54 +2330,123 @@ export default function ContentCalendar() {
                             </div>
                             <div>
                               <h2 className="text-lg font-semibold text-gray-900">
-                                {isSpanish ? "Imágenes Generadas con IA" : "AI Generated Images"}
+                                {isSpanish ? "Galeria de Contenido" : "Content Gallery"}
                               </h2>
                               <p className="text-sm text-gray-500">
                                 {isSpanish
-                                  ? `${aiImages.length} ${aiImages.length === 1 ? "imagen aprobada" : "imágenes aprobadas"}`
-                                  : `${aiImages.length} approved ${aiImages.length === 1 ? "image" : "images"}`}
+                                  ? `${allGalleryImages.length} ${allGalleryImages.length === 1 ? "imagen" : "imagenes"} disponibles`
+                                  : `${allGalleryImages.length} ${allGalleryImages.length === 1 ? "image" : "images"} available`}
                               </p>
                             </div>
                           </div>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                          {aiImages.map((asset: any) => (
-                            <div
-                              key={asset.id}
-                              className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-teal-300"
-                              onClick={() => setFullscreenImage(asset.url)}
+                          <div>
+                            <input
+                              type="file"
+                              id="content-upload-input"
+                              className="hidden"
+                              accept="image/*"
+                              multiple
+                              onChange={handleContentUpload}
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => document.getElementById("content-upload-input")?.click()}
+                              disabled={isUploadingContent}
+                              className="gap-1.5"
                             >
-                              <img
-                                src={asset.url}
-                                alt={asset.description || asset.name || "AI Generated"}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                loading="lazy"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <div className="absolute bottom-2 left-2 right-2">
-                                  <div className="flex items-center gap-1">
-                                    <Eye className="w-3.5 h-3.5 text-white" />
-                                    <span className="text-xs text-white font-medium truncate">
-                                      {isSpanish ? "Ver" : "View"}
-                                    </span>
+                              {isUploadingContent ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Plus className="w-4 h-4" />
+                              )}
+                              {isSpanish ? "Subir Contenido" : "Upload Content"}
+                            </Button>
+                          </div>
+                        </div>
+
+                        {allGalleryImages.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                              <Grid3X3 className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                              {isSpanish ? "Sin imagenes aun" : "No images yet"}
+                            </h3>
+                            <p className="text-sm text-gray-500 max-w-md mb-4">
+                              {isSpanish
+                                ? "Genera imagenes con IA o sube tu propio contenido para verlo aqui."
+                                : "Generate AI images or upload your own content to see them here."}
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCalendarTab("month")}
+                              >
+                                <CalendarIcon className="w-4 h-4 mr-2" />
+                                {isSpanish ? "Generar con IA" : "Generate with AI"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => document.getElementById("content-upload-input")?.click()}
+                                className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
+                              >
+                                <Upload className="w-4 h-4 mr-2" />
+                                {isSpanish ? "Subir Imagenes" : "Upload Images"}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                            {allGalleryImages.map((asset: any) => {
+                              const isAI = asset.category === "ai-generated";
+                              return (
+                                <div
+                                  key={asset.id}
+                                  className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-200 hover:border-teal-300"
+                                >
+                                  <img
+                                    src={asset.url}
+                                    alt={asset.description || asset.name || "Content"}
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+                                    loading="lazy"
+                                    onClick={() => setFullscreenImage(asset.url)}
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                                  <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <Button
+                                      size="sm"
+                                      className="w-full bg-white/90 hover:bg-white text-gray-900 text-xs h-7"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setScheduleDialogImage(asset);
+                                        setScheduleForm({ platform: "instagram", titulo: "", content: "", hashtags: "", scheduledDate: "" });
+                                      }}
+                                    >
+                                      <CalendarPlus className="w-3.5 h-3.5 mr-1" />
+                                      {isSpanish ? "Programar" : "Schedule"}
+                                    </Button>
+                                  </div>
+                                  <div className="absolute top-1.5 right-1.5">
+                                    <Badge className={`text-white text-[9px] px-1.5 py-0 border-0 ${isAI ? "bg-teal-500/90" : "bg-blue-500/90"}`}>
+                                      {isAI ? "AI" : isSpanish ? "Subido" : "Uploaded"}
+                                    </Badge>
                                   </div>
                                   {asset.createdAt && (
-                                    <p className="text-[10px] text-white/70 mt-0.5">
-                                      {format(new Date(asset.createdAt), "MMM d, yyyy", {
-                                        locale: isSpanish ? es : enUS,
-                                      })}
-                                    </p>
+                                    <div className="absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <span className="text-[10px] text-white bg-black/50 px-1.5 py-0.5 rounded">
+                                        {format(new Date(asset.createdAt), "MMM d", {
+                                          locale: isSpanish ? es : enUS,
+                                        })}
+                                      </span>
+                                    </div>
                                   )}
                                 </div>
-                              </div>
-                              <div className="absolute top-1.5 right-1.5">
-                                <Badge className="bg-teal-500/90 text-white text-[9px] px-1.5 py-0 border-0">
-                                  AI
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })()}
@@ -2916,21 +3075,44 @@ export default function ContentCalendar() {
                       queryClient.invalidateQueries({
                         queryKey: [`/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`],
                       });
-                      toast({
-                        title: isSpanish
-                          ? `¡${approved.length} imágenes guardadas!`
-                          : `${approved.length} images saved!`,
-                        description: isSpanish
-                          ? "Las imágenes se guardaron en los assets de tu marca. Las futuras generaciones aprenderán de tus preferencias."
-                          : "Images saved to your brand assets. Future generations will learn from your preferences.",
-                      });
+                    }
+
+                    if (approved.length > 0) {
+                      const postsResponse = await apiRequest(
+                        "POST",
+                        `/api/brands/${activeBrandId}/images-to-posts`,
+                        { images: approved, platform: "instagram" },
+                      );
+                      if (postsResponse.ok) {
+                        const postsData = await postsResponse.json();
+                        queryClient.invalidateQueries({
+                          queryKey: ["/api/ai-generated-posts", activeBrandId],
+                        });
+                        toast({
+                          title: isSpanish
+                            ? `${postsData.postsCreated} posts creados en tu calendario`
+                            : `${postsData.postsCreated} posts added to your calendar`,
+                          description: isSpanish
+                            ? "Las imagenes aprobadas ahora son posts pendientes con captions generados por IA. Revísalos en tu calendario."
+                            : "Approved images are now pending posts with AI-generated captions. Review them on your calendar.",
+                        });
+                      } else {
+                        toast({
+                          title: isSpanish
+                            ? `${approved.length} imagenes guardadas`
+                            : `${approved.length} images saved`,
+                          description: isSpanish
+                            ? "Las imagenes se guardaron pero no se pudieron crear posts automaticamente."
+                            : "Images saved but automatic post creation failed.",
+                        });
+                      }
                     }
                   } catch (err) {
                     console.error("[Calendar] Failed to save images:", err);
                     toast({
                       title: isSpanish ? "Error" : "Error",
                       description: isSpanish
-                        ? "No se pudieron guardar las imágenes."
+                        ? "No se pudieron guardar las imagenes."
                         : "Failed to save images.",
                       variant: "destructive",
                     });
@@ -2939,6 +3121,125 @@ export default function ContentCalendar() {
                 setTimeout(() => setShowImageCarousel(false), 2000);
               }}
             />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!scheduleDialogImage} onOpenChange={(open) => {
+          if (!open) {
+            setScheduleDialogImage(null);
+            setScheduleForm({ platform: "instagram", titulo: "", content: "", hashtags: "", scheduledDate: "" });
+          }
+        }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>
+                {isSpanish ? "Programar Post" : "Schedule Post"}
+              </DialogTitle>
+              <DialogDescription>
+                {isSpanish
+                  ? "Crea un post para tu calendario con esta imagen."
+                  : "Create a calendar post with this image."}
+              </DialogDescription>
+            </DialogHeader>
+            {scheduleDialogImage && (
+              <div className="space-y-4">
+                <div className="w-full aspect-square max-h-48 rounded-lg overflow-hidden bg-gray-100">
+                  <img
+                    src={scheduleDialogImage.url}
+                    alt="Post image"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      {isSpanish ? "Plataforma" : "Platform"}
+                    </label>
+                    <select
+                      value={scheduleForm.platform}
+                      onChange={(e) => setScheduleForm(prev => ({ ...prev, platform: e.target.value }))}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    >
+                      <option value="instagram">Instagram</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="tiktok">TikTok</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      {isSpanish ? "Titulo" : "Title"}
+                    </label>
+                    <Input
+                      placeholder={isSpanish ? "Titulo del post..." : "Post title..."}
+                      value={scheduleForm.titulo}
+                      onChange={(e) => setScheduleForm(prev => ({ ...prev, titulo: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      {isSpanish ? "Caption" : "Caption"}
+                    </label>
+                    <Textarea
+                      placeholder={isSpanish ? "Escribe tu caption..." : "Write your caption..."}
+                      value={scheduleForm.content}
+                      onChange={(e) => setScheduleForm(prev => ({ ...prev, content: e.target.value }))}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      Hashtags
+                    </label>
+                    <Input
+                      placeholder="#hashtag1 #hashtag2 #hashtag3"
+                      value={scheduleForm.hashtags}
+                      onChange={(e) => setScheduleForm(prev => ({ ...prev, hashtags: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      {isSpanish ? "Fecha de publicacion (opcional)" : "Publish date (optional)"}
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={scheduleForm.scheduledDate}
+                      onChange={(e) => setScheduleForm(prev => ({ ...prev, scheduledDate: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setScheduleDialogImage(null);
+                      setScheduleForm({ platform: "instagram", titulo: "", content: "", hashtags: "", scheduledDate: "" });
+                    }}
+                  >
+                    {isSpanish ? "Cancelar" : "Cancel"}
+                  </Button>
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
+                    onClick={handleSchedulePost}
+                    disabled={isScheduling}
+                  >
+                    {isScheduling ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <CalendarPlus className="w-4 h-4 mr-2" />
+                    )}
+                    {isSpanish ? "Crear Post" : "Create Post"}
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>

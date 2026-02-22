@@ -8938,6 +8938,221 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  app.post(
+    "/api/brands/:brandId/images-to-posts",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
+        const { images, platform } = req.body;
+
+        if (!images || !Array.isArray(images) || images.length === 0) {
+          return res.status(400).json({ message: "No images provided" });
+        }
+
+        const targetPlatform = platform || "instagram";
+
+        const design = await db
+          .select()
+          .from(brandDesigns)
+          .where(eq(brandDesigns.brandId, brandId))
+          .limit(1);
+
+        const brand = await db
+          .select()
+          .from(brands)
+          .where(eq(brands.id, brandId))
+          .limit(1);
+
+        if (!brand.length) {
+          return res.status(404).json({ message: "Brand not found" });
+        }
+
+        const brandName = brand[0].name || "Brand";
+        const brandDescription = brand[0].description || "";
+        const language = design[0]?.preferredLanguage || "es";
+        const isSpanish = language === "es";
+
+        const { createPostGeneratorJob } = await import(
+          "./storage/postGeneratorJobs"
+        );
+        const { createAiGeneratedPost } = await import(
+          "./storage/aiGeneratedPosts"
+        );
+
+        const job = await createPostGeneratorJob(brandId);
+
+        const { GoogleGenAI } = await import("@google/genai");
+        const ai = new GoogleGenAI({
+          apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || "",
+        });
+
+        const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const createdPosts: any[] = [];
+
+        for (let i = 0; i < images.length; i++) {
+          const img = images[i];
+          const imageUrl = img.cloudinaryUrl || img.url;
+          const publicId = img.publicId || null;
+
+          if (!imageUrl) continue;
+
+          try {
+            const captionPrompt = isSpanish
+              ? `Eres un experto en marketing digital para redes sociales. Genera contenido para un post de ${targetPlatform} para la marca "${brandName}" (${brandDescription}).
+
+Responde SOLO en JSON con este formato exacto:
+{"titulo": "titulo corto atractivo (max 8 palabras)", "content": "caption persuasivo para ${targetPlatform} (2-3 oraciones, incluye emojis)", "hashtags": "#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5"}
+
+Todo el contenido debe ser en español.`
+              : `You are a social media marketing expert. Generate content for a ${targetPlatform} post for the brand "${brandName}" (${brandDescription}).
+
+Respond ONLY in JSON with this exact format:
+{"titulo": "short catchy title (max 8 words)", "content": "persuasive ${targetPlatform} caption (2-3 sentences, include emojis)", "hashtags": "#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5"}
+
+All content must be in English.`;
+
+            const captionResponse = await ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: [{ role: "user", parts: [{ text: captionPrompt }] }],
+            });
+
+            let titulo = isSpanish ? "Post de marca" : "Brand Post";
+            let content = "";
+            let hashtags = "";
+
+            const responseText = captionResponse.text || "";
+            const jsonMatch = responseText.match(/\{[\s\S]*?\}/);
+            if (jsonMatch) {
+              try {
+                const parsed = JSON.parse(jsonMatch[0]);
+                titulo = parsed.titulo || titulo;
+                content = parsed.content || "";
+                hashtags = parsed.hashtags || "";
+              } catch (e) {
+                console.log("[API] Failed to parse AI caption JSON, using defaults");
+              }
+            }
+
+            const dayIndex = (new Date().getDay() + i) % 7;
+            const dia = daysOfWeek[dayIndex];
+
+            const post = await createAiGeneratedPost({
+              jobId: job.id,
+              brandId,
+              platform: targetPlatform,
+              titulo,
+              content,
+              imageUrl,
+              cloudinaryPublicId: publicId,
+              dia,
+              hashtags,
+              status: "pending",
+              isSample: false,
+            });
+
+            createdPosts.push(post);
+          } catch (captionError) {
+            console.error(`[API] Failed to generate caption for image ${i}:`, captionError);
+            const dayIndex = (new Date().getDay() + i) % 7;
+            const post = await createAiGeneratedPost({
+              jobId: job.id,
+              brandId,
+              platform: targetPlatform,
+              titulo: isSpanish ? `Post de ${brandName}` : `${brandName} Post`,
+              content: isSpanish ? `Nuevo contenido de ${brandName}` : `New content from ${brandName}`,
+              imageUrl,
+              cloudinaryPublicId: publicId,
+              dia: daysOfWeek[dayIndex],
+              hashtags: "",
+              status: "pending",
+              isSample: false,
+            });
+            createdPosts.push(post);
+          }
+        }
+
+        const { updatePostGeneratorJob } = await import("./storage/postGeneratorJobs");
+        await updatePostGeneratorJob(job.id, {
+          status: "completed",
+          result: { postsGenerated: createdPosts.length },
+        });
+
+        res.json({
+          success: true,
+          postsCreated: createdPosts.length,
+          jobId: job.id,
+          posts: createdPosts,
+        });
+      } catch (error) {
+        console.error("[API] Images to posts error:", error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
+  app.post(
+    "/api/brands/:brandId/schedule-content",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
+        const { imageUrl, platform, titulo, content, hashtags, scheduledPublishTime } = req.body;
+
+        if (!imageUrl) {
+          return res.status(400).json({ message: "Image URL is required" });
+        }
+
+        const { createPostGeneratorJob } = await import("./storage/postGeneratorJobs");
+        const { createAiGeneratedPost } = await import("./storage/aiGeneratedPosts");
+
+        const job = await createPostGeneratorJob(brandId);
+
+        const scheduledDate = scheduledPublishTime ? new Date(scheduledPublishTime) : new Date();
+        const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const dia = daysOfWeek[scheduledDate.getDay()];
+
+        const post = await createAiGeneratedPost({
+          jobId: job.id,
+          brandId,
+          platform: platform || "instagram",
+          titulo: titulo || "Scheduled Post",
+          content: content || "",
+          imageUrl,
+          cloudinaryPublicId: null,
+          dia,
+          hashtags: hashtags || "",
+          status: "accepted",
+          isSample: false,
+        });
+
+        const { updateAiGeneratedPostStatus } = await import("./storage/aiGeneratedPosts");
+        if (scheduledPublishTime) {
+          await updateAiGeneratedPostStatus(post.id, "accepted", scheduledPublishTime);
+        }
+
+        const { updatePostGeneratorJob } = await import("./storage/postGeneratorJobs");
+        await updatePostGeneratorJob(job.id, {
+          status: "completed",
+          result: { postsGenerated: 1 },
+        });
+
+        res.json({ success: true, post });
+      } catch (error) {
+        console.error("[API] Schedule content error:", error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    },
+  );
+
   // Test: Generate image and save to Cloudinary
   app.post(
     "/api/test/generate-image",

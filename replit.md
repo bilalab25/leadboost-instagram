@@ -64,6 +64,8 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
 - **Integrations Page**: Standalone page at `/integrations` for managing OAuth platform connections (Facebook, Instagram, WhatsApp, etc.). Features popup-based OAuth flow with session state persistence.
 - **Instagram Direct Integration**: Separate OAuth flow for Instagram Business accounts (not via Facebook). Uses Instagram's standalone OAuth with scopes for messaging, content publishing, comments, and insights. Environment variables: `IG_APP_ID`, `IG_APP_SECRET`.
 - **Settings Page**: 4-tab layout (Account, Brands, Payment Methods, Notifications) for user account management. Integrations moved to dedicated page.
+- **Brand Image Generation (Async)**: Image generation runs as a background job with polling. Users can navigate away and return to find the Tinder carousel ready. Job state persisted via localStorage. Approved images automatically become calendar posts with AI-generated captions via Gemini. API: POST `/api/brands/:brandId/generate-images` (returns jobId), GET `.../status/:jobId` for polling.
+- **Content Gallery**: Calendar "Gallery" tab shows AI-generated and user-uploaded content images. Upload button saves images to Cloudinary as brand assets (category: "content"). Each image has a "Schedule" action that opens a dialog to create a calendar post with platform, title, caption, hashtags, and optional date. APIs: POST `/api/brands/:brandId/images-to-posts`, POST `/api/brands/:brandId/schedule-content`.
 
 ## External Dependencies
 
