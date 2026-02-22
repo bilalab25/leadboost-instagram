@@ -188,6 +188,17 @@ export default function ContentCalendar() {
   const [generatedImages, setGeneratedImages] = useState<any[]>([]);
   const [approvedImages, setApprovedImages] = useState<any[]>([]);
   const [calendarTab, setCalendarTab] = useState<"month" | "gallery">("month");
+  const [brandImageJobId, setBrandImageJobId] = useState<string | null>(() => {
+    const saved = localStorage.getItem("brandImageJobId");
+    return saved || null;
+  });
+  const [brandImageJobBrandId, setBrandImageJobBrandId] = useState<string | null>(() => {
+    const saved = localStorage.getItem("brandImageJobBrandId");
+    return saved || null;
+  });
+  const [generatingBrandImages, setGeneratingBrandImages] = useState(() => {
+    return !!localStorage.getItem("brandImageJobId");
+  });
 
   // Query to fetch integrations for the brand
   const { data: integrations, isLoading: integrationsLoading } = useQuery<
@@ -624,6 +635,75 @@ export default function ContentCalendar() {
       setCurrentJobId(null);
     }
   }, [jobStatusQuery.data, currentJobId, activeBrandId]);
+
+  const brandImageJobQuery = useQuery({
+    queryKey: ["/api/brands/generate-images/status", brandImageJobId, brandImageJobBrandId],
+    queryFn: async () => {
+      if (!brandImageJobId || !brandImageJobBrandId) return null;
+      const response = await fetch(
+        `/api/brands/${brandImageJobBrandId}/generate-images/status/${brandImageJobId}`,
+        { credentials: "include" },
+      );
+      if (!response.ok) {
+        if (response.status === 404) {
+          localStorage.removeItem("brandImageJobId");
+          localStorage.removeItem("brandImageJobBrandId");
+          setBrandImageJobId(null);
+          setBrandImageJobBrandId(null);
+          setGeneratingBrandImages(false);
+          return null;
+        }
+        throw new Error("Failed to fetch job status");
+      }
+      return response.json();
+    },
+    refetchInterval: brandImageJobId ? 2000 : false,
+    enabled: !!brandImageJobId && !!brandImageJobBrandId,
+  });
+
+  useEffect(() => {
+    const job = brandImageJobQuery.data;
+    if (!job || !brandImageJobId) return;
+
+    if (job.status === "completed") {
+      localStorage.removeItem("brandImageJobId");
+      localStorage.removeItem("brandImageJobBrandId");
+      setBrandImageJobId(null);
+      setBrandImageJobBrandId(null);
+      setGeneratingBrandImages(false);
+
+      if (job.images && job.images.length > 0) {
+        setGeneratedImages(job.images);
+        setApprovedImages([]);
+        setShowImageCarousel(true);
+        toast({
+          title: isSpanish ? "Imagenes generadas!" : "Images generated!",
+          description: isSpanish
+            ? `Se generaron ${job.images.length} imagenes. Desliza para seleccionar.`
+            : `${job.images.length} images generated. Swipe to select.`,
+        });
+      } else {
+        toast({
+          title: isSpanish ? "Sin resultados" : "No results",
+          description: isSpanish
+            ? "No se pudieron generar imagenes. Intenta de nuevo."
+            : "Could not generate images. Try again.",
+          variant: "destructive",
+        });
+      }
+    } else if (job.status === "failed") {
+      localStorage.removeItem("brandImageJobId");
+      localStorage.removeItem("brandImageJobBrandId");
+      setBrandImageJobId(null);
+      setBrandImageJobBrandId(null);
+      setGeneratingBrandImages(false);
+      toast({
+        title: "Error",
+        description: job.errors?.[0] || "Image generation failed",
+        variant: "destructive",
+      });
+    }
+  }, [brandImageJobQuery.data, brandImageJobId, isSpanish]);
 
   // Mutation to update AI post status (single post)
   const updatePostStatusMutation = useMutation({
@@ -1137,27 +1217,22 @@ export default function ContentCalendar() {
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.images && data.images.length > 0) {
-        setGeneratedImages(data.images);
-        setApprovedImages([]);
-        setShowImageCarousel(true);
+      if (data.jobId) {
+        localStorage.setItem("brandImageJobId", data.jobId);
+        localStorage.setItem("brandImageJobBrandId", activeBrandId!);
+        setBrandImageJobId(data.jobId);
+        setBrandImageJobBrandId(activeBrandId!);
+        setGeneratingBrandImages(true);
         toast({
-          title: isSpanish ? "¡Imágenes generadas!" : "Images generated!",
+          title: isSpanish ? "Generando imagenes..." : "Generating images...",
           description: isSpanish
-            ? `Se generaron ${data.images.length} imágenes. Desliza para seleccionar.`
-            : `${data.images.length} images generated. Swipe to select.`,
-        });
-      } else {
-        toast({
-          title: isSpanish ? "Sin resultados" : "No results",
-          description: isSpanish
-            ? "No se pudieron generar imágenes. Intenta de nuevo."
-            : "Could not generate images. Try again.",
-          variant: "destructive",
+            ? "Puedes navegar a otras secciones. Las imagenes estaran listas cuando regreses."
+            : "You can navigate to other sections. Images will be ready when you come back.",
         });
       }
     },
     onError: (error: Error) => {
+      setGeneratingBrandImages(false);
       toast({
         title: "Error",
         description: error.message,
@@ -1726,11 +1801,12 @@ export default function ContentCalendar() {
                                 onClick={() => generateBrandImagesMutation.mutate()}
                                 disabled={
                                   generateBrandImagesMutation.isPending ||
+                                  generatingBrandImages ||
                                   !activeBrandId
                                 }
                                 className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
                               >
-                                {generateBrandImagesMutation.isPending ? (
+                                {generateBrandImagesMutation.isPending || generatingBrandImages ? (
                                   <>
                                     <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                     {isSpanish

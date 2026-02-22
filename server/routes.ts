@@ -8757,6 +8757,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  const brandImageJobs = new Map<string, {
+    id: string;
+    brandId: string;
+    status: "processing" | "completed" | "failed";
+    progress: number;
+    total: number;
+    images: any[];
+    errors: string[];
+    createdAt: number;
+  }>();
+
+  setInterval(() => {
+    const oneHour = 60 * 60 * 1000;
+    const now = Date.now();
+    for (const [id, job] of brandImageJobs) {
+      if (now - job.createdAt > oneHour) brandImageJobs.delete(id);
+    }
+  }, 10 * 60 * 1000);
+
   app.post(
     "/api/brands/:brandId/generate-images",
     isAuthenticated,
@@ -8767,26 +8786,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { count = 6 } = req.body;
 
         const safeCount = Math.min(Math.max(Number(count) || 6, 1), 10);
+        const jobId = `bimg_${brandId}_${Date.now()}`;
 
-        console.log(`[API] Generating ${safeCount} images for brand ${brandId}`);
-
-        const { generateBrandImages } = await import(
-          "./services/brandImageGenerator"
-        );
-        const result = await generateBrandImages(brandId, safeCount);
-
-        res.json({
-          success: true,
-          images: result.images,
-          errors: result.errors,
-          total: result.images.length,
+        brandImageJobs.set(jobId, {
+          id: jobId,
+          brandId,
+          status: "processing",
+          progress: 0,
+          total: safeCount,
+          images: [],
+          errors: [],
+          createdAt: Date.now(),
         });
+
+        console.log(`[API] Brand image job ${jobId} created for brand ${brandId} (${safeCount} images)`);
+
+        res.json({ success: true, jobId });
+
+        (async () => {
+          try {
+            const { generateBrandImages } = await import(
+              "./services/brandImageGenerator"
+            );
+            const result = await generateBrandImages(brandId, safeCount);
+            const job = brandImageJobs.get(jobId);
+            if (job) {
+              job.status = "completed";
+              job.images = result.images;
+              job.errors = result.errors;
+              job.progress = safeCount;
+              console.log(`[API] Brand image job ${jobId} completed with ${result.images.length} images`);
+            }
+          } catch (error) {
+            const job = brandImageJobs.get(jobId);
+            if (job) {
+              job.status = "failed";
+              job.errors = [error instanceof Error ? error.message : "Unknown error"];
+              console.error(`[API] Brand image job ${jobId} failed:`, error);
+            }
+          }
+        })();
       } catch (error) {
         console.error("[API] Generate brand images error:", error);
         res.status(500).json({
           success: false,
           message: error instanceof Error ? error.message : "Unknown error",
         });
+      }
+    },
+  );
+
+  app.get(
+    "/api/brands/:brandId/generate-images/status/:jobId",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { brandId, jobId } = req.params;
+        const job = brandImageJobs.get(jobId);
+        if (!job || job.brandId !== brandId) {
+          return res.status(404).json({ success: false, message: "Job not found or expired" });
+        }
+        res.json({
+          success: true,
+          jobId: job.id,
+          status: job.status,
+          progress: job.progress,
+          total: job.total,
+          images: job.status === "completed" ? job.images : [],
+          errors: job.errors,
+        });
+      } catch (error) {
+        res.status(500).json({ success: false, message: "Failed to check job status" });
       }
     },
   );
