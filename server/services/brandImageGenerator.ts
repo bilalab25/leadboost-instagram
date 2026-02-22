@@ -734,7 +734,7 @@ Generate a single, stunning, scroll-stopping social media image.`;
                 parts: [
                   ...contentParts,
                   {
-                    text: "Estas imágenes que te doy son posts de instagram de mi marca. A partir de estas imágenes, crea una nueva imagen lista para publicar en instagram que sean profesionales.",
+                    text: "Estas imágenes corresponden a publicaciones actuales de mi marca en Instagram. A partir de ellas, crea una nueva imagen profesional lista para publicar. La imagen generada debe ser coherente con el estilo y contenido de las referencias. Si alguna de las imágenes incluye texto, analízalo para asegurarte de que el nuevo diseño mantenga congruencia en mensaje, tono y estética.",
                   },
                 ],
               },
