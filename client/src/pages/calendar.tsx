@@ -194,7 +194,9 @@ export default function ContentCalendar() {
     const saved = localStorage.getItem("brandImageJobId");
     return saved || null;
   });
-  const [brandImageJobBrandId, setBrandImageJobBrandId] = useState<string | null>(() => {
+  const [brandImageJobBrandId, setBrandImageJobBrandId] = useState<
+    string | null
+  >(() => {
     const saved = localStorage.getItem("brandImageJobBrandId");
     return saved || null;
   });
@@ -649,7 +651,11 @@ export default function ContentCalendar() {
   }, [jobStatusQuery.data, currentJobId, activeBrandId]);
 
   const brandImageJobQuery = useQuery({
-    queryKey: ["/api/brands/generate-images/status", brandImageJobId, brandImageJobBrandId],
+    queryKey: [
+      "/api/brands/generate-images/status",
+      brandImageJobId,
+      brandImageJobBrandId,
+    ],
     queryFn: async () => {
       if (!brandImageJobId || !brandImageJobBrandId) return null;
       const response = await fetch(
@@ -788,7 +794,12 @@ export default function ContentCalendar() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ postIds, status, brandId: activeBrandId, scheduleTimes }),
+        body: JSON.stringify({
+          postIds,
+          status,
+          brandId: activeBrandId,
+          scheduleTimes,
+        }),
       });
       if (!response.ok) throw new Error("Failed to bulk update post status");
       return response.json();
@@ -1274,7 +1285,9 @@ export default function ContentCalendar() {
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-  const handleContentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleContentUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     if (!brandDesign?.id || !activeBrandId) return;
     const files = Array.from(e.currentTarget.files || []);
     if (files.length === 0) return;
@@ -1306,7 +1319,9 @@ export default function ContentCalendar() {
       }
 
       queryClient.invalidateQueries({
-        queryKey: [`/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`],
+        queryKey: [
+          `/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`,
+        ],
       });
       toast({
         title: isSpanish ? "Contenido subido" : "Content uploaded",
@@ -1318,7 +1333,9 @@ export default function ContentCalendar() {
       console.error("[Calendar] Upload error:", err);
       toast({
         title: "Error",
-        description: isSpanish ? "Error al subir archivos" : "Failed to upload files",
+        description: isSpanish
+          ? "Error al subir archivos"
+          : "Failed to upload files",
         variant: "destructive",
       });
     } finally {
@@ -1337,7 +1354,9 @@ export default function ContentCalendar() {
         {
           imageUrl: scheduleDialogImage.url,
           platform: scheduleForm.platform,
-          titulo: scheduleForm.titulo || (isSpanish ? "Post programado" : "Scheduled Post"),
+          titulo:
+            scheduleForm.titulo ||
+            (isSpanish ? "Post programado" : "Scheduled Post"),
           content: scheduleForm.content,
           hashtags: scheduleForm.hashtags,
           scheduledPublishTime: scheduleForm.scheduledDate || undefined,
@@ -1354,13 +1373,21 @@ export default function ContentCalendar() {
             : "Post created on your calendar.",
         });
         setScheduleDialogImage(null);
-        setScheduleForm({ platform: "instagram", titulo: "", content: "", hashtags: "", scheduledDate: "" });
+        setScheduleForm({
+          platform: "instagram",
+          titulo: "",
+          content: "",
+          hashtags: "",
+          scheduledDate: "",
+        });
       }
     } catch (err) {
       console.error("[Calendar] Schedule error:", err);
       toast({
         title: "Error",
-        description: isSpanish ? "Error al programar post" : "Failed to schedule post",
+        description: isSpanish
+          ? "Error al programar post"
+          : "Failed to schedule post",
         variant: "destructive",
       });
     } finally {
@@ -1521,7 +1548,9 @@ export default function ContentCalendar() {
                       {isSpanish ? "Galería de Contenido" : "Content Gallery"}
                       {(() => {
                         const count = (brandAssets || []).filter(
-                          (a: any) => a.category === "ai-generated" && a.assetType === "image"
+                          (a: any) =>
+                            a.category === "ai-generated" &&
+                            a.assetType === "image",
                         ).length;
                         return count > 0 ? (
                           <Badge className="bg-teal-100 text-teal-700 text-[10px] px-1.5 py-0 border-0 ml-1">
@@ -1533,397 +1562,399 @@ export default function ContentCalendar() {
                   </div>
 
                   {calendarTab === "month" && (
-                  <>
-                  {/* Alert Banners for Missing Requirements */}
-                  <div className="space-y-3 mb-6">
-                    {/* No integrations banner */}
-                    {!integrationsLoading && !hasSocialIntegrations && (
-                      <Alert className="border-amber-200 bg-amber-50">
-                        <Link2 className="h-4 w-4 text-amber-600" />
-                        <AlertTitle className="text-amber-800">
-                          {isSpanish
-                            ? "Conecta tus redes sociales"
-                            : "Connect your social accounts"}
-                        </AlertTitle>
-                        <AlertDescription className="text-amber-700">
-                          {isSpanish
-                            ? "Para generar posts con AI, conecta primero tu cuenta de instagram o facebook"
-                            : "To generate AI posts, connect your Instagram or Facebook account first."}
-                          <Link href="/integrations">
-                            <Button
-                              variant="link"
-                              className="text-amber-800 font-semibold p-0 h-auto ml-1"
-                              data-testid="link-connect-integrations"
-                            >
-                              {isSpanish ? "Conectar ahora →" : "Connect now →"}
-                            </Button>
-                          </Link>
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
-                    {/* No brand design banner */}
-                    {!brandDesignLoading &&
-                      hasSocialIntegrations &&
-                      !hasBrandDesign && (
-                        <Alert className="border-purple-200 bg-purple-50">
-                          <Palette className="h-4 w-4 text-purple-600" />
-                          <AlertTitle className="text-purple-800">
-                            {isSpanish
-                              ? "Crea el diseño de tu marca"
-                              : "Create your brand design"}
-                          </AlertTitle>
-                          <AlertDescription className="text-purple-700">
-                            {isSpanish
-                              ? "Define los colores, las fuentes y el estilo de tu marca para permitir la generación de publicaciones con IA."
-                              : "Define your brand colors, fonts, and style to enable AI post generation."}
-                            <Link href="/brand-studio">
-                              <Button
-                                variant="link"
-                                className="text-purple-800 font-semibold p-0 h-auto ml-1"
-                                data-testid="link-brand-studio"
-                              >
-                                {isSpanish
-                                  ? "Ir al estudio de marcas"
-                                  : "Go to Brand Studio"}{" "}
-                                →
-                              </Button>
-                            </Link>
-                          </AlertDescription>
-                        </Alert>
-                      )}
-
-                    {/* No posting frequency banner */}
-                    {!postingFrequencyLoading &&
-                      hasSocialIntegrations &&
-                      hasBrandDesign &&
-                      !hasPostingFrequency && (
-                        <Alert className="border-blue-200 bg-blue-50">
-                          <CalendarDays className="h-4 w-4 text-blue-600" />
-                          <AlertTitle className="text-blue-800">
-                            {isSpanish
-                              ? "Establece la frecuencia de publicación"
-                              : "Set your posting frequency"}
-                          </AlertTitle>
-                          <AlertDescription className="text-blue-700">
-                            {isSpanish
-                              ? "Configura la frecuencia con la que deseas publicar en cada plataforma para generar la cantidad adecuada de contenido."
-                              : "Configure how often you want to post on each platform to generate the right amount of content."}
-                            <Button
-                              variant="link"
-                              className="text-blue-800 font-semibold p-0 h-auto ml-1"
-                              onClick={() => setIsFrequencyModalOpen(true)}
-                              data-testid="link-set-frequency"
-                            >
+                    <>
+                      {/* Alert Banners for Missing Requirements */}
+                      <div className="space-y-3 mb-6">
+                        {/* No integrations banner */}
+                        {!integrationsLoading && !hasSocialIntegrations && (
+                          <Alert className="border-amber-200 bg-amber-50">
+                            <Link2 className="h-4 w-4 text-amber-600" />
+                            <AlertTitle className="text-amber-800">
                               {isSpanish
-                                ? "Establecer frecuencia"
-                                : "Set frequency"}{" "}
-                              →
-                            </Button>
-                          </AlertDescription>
-                        </Alert>
-                      )}
+                                ? "Conecta tus redes sociales"
+                                : "Connect your social accounts"}
+                            </AlertTitle>
+                            <AlertDescription className="text-amber-700">
+                              {isSpanish
+                                ? "Para generar posts con AI, conecta primero tu cuenta de instagram o facebook"
+                                : "To generate AI posts, connect your Instagram or Facebook account first."}
+                              <Link href="/integrations">
+                                <Button
+                                  variant="link"
+                                  className="text-amber-800 font-semibold p-0 h-auto ml-1"
+                                  data-testid="link-connect-integrations"
+                                >
+                                  {isSpanish
+                                    ? "Conectar ahora →"
+                                    : "Connect now →"}
+                                </Button>
+                              </Link>
+                            </AlertDescription>
+                          </Alert>
+                        )}
 
-                    {/* Posts already exist for month */}
-                    {hasAiPostsForCurrentMonth && (
-                      <Alert className="border-purple-200 bg-purple-50">
-                        <Sparkles className="h-4 w-4 text-purple-600" />
-                        <AlertTitle className="text-purple-800">
-                          {isSpanish
-                            ? `Posts de IA listos para ${format(currentDate, "MMMM yyyy", { locale: dateLocale })}`
-                            : `AI posts ready for ${format(currentDate, "MMMM yyyy", { locale: dateLocale })}`}
-                        </AlertTitle>
-                        <AlertDescription className="text-purple-700">
-                          {isSpanish
-                            ? `Tienes ${currentMonthAiPosts.length} posts generados por la IA para este mes. Revísalos en el calendario de abajo.`
-                            : `You have ${currentMonthAiPosts.length} AI-generated posts for this month. Review them in the calendar below.`}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
+                        {/* No brand design banner */}
+                        {!brandDesignLoading &&
+                          hasSocialIntegrations &&
+                          !hasBrandDesign && (
+                            <Alert className="border-purple-200 bg-purple-50">
+                              <Palette className="h-4 w-4 text-purple-600" />
+                              <AlertTitle className="text-purple-800">
+                                {isSpanish
+                                  ? "Crea el diseño de tu marca"
+                                  : "Create your brand design"}
+                              </AlertTitle>
+                              <AlertDescription className="text-purple-700">
+                                {isSpanish
+                                  ? "Define los colores, las fuentes y el estilo de tu marca para permitir la generación de publicaciones con IA."
+                                  : "Define your brand colors, fonts, and style to enable AI post generation."}
+                                <Link href="/brand-studio">
+                                  <Button
+                                    variant="link"
+                                    className="text-purple-800 font-semibold p-0 h-auto ml-1"
+                                    data-testid="link-brand-studio"
+                                  >
+                                    {isSpanish
+                                      ? "Ir al estudio de marcas"
+                                      : "Go to Brand Studio"}{" "}
+                                    →
+                                  </Button>
+                                </Link>
+                              </AlertDescription>
+                            </Alert>
+                          )}
 
-                  {/* Consolidated Control Panel */}
-                  <Card className="shadow-sm border mb-6">
-                    <CardContent className="py-4">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        {/* This Week Summary */}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <CalendarDays className="h-5 w-5 text-gray-500" />
-                            <span className="font-semibold text-gray-800">
-                              {isSpanish ? "Esta Semana" : "This Week"}
-                            </span>
-                            <Badge variant="secondary" className="ml-2">
-                              {thisWeekStats.total} posts
-                            </Badge>
-                          </div>
-                          <div className="flex flex-wrap gap-3 text-sm">
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
-                              <span className="text-gray-600">
-                                {thisWeekStats.pending}{" "}
-                                {isSpanish ? "pendientes" : "pending"}
-                              </span>
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                              <span className="text-gray-600">
-                                {thisWeekStats.accepted}{" "}
-                                {isSpanish ? "aceptados" : "accepted"}
-                              </span>
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                              <span className="text-gray-600">
-                                {thisWeekStats.published}{" "}
-                                {isSpanish ? "publicados" : "published"}
-                              </span>
-                            </span>
-                          </div>
-                        </div>
+                        {/* No posting frequency banner */}
+                        {!postingFrequencyLoading &&
+                          hasSocialIntegrations &&
+                          hasBrandDesign &&
+                          !hasPostingFrequency && (
+                            <Alert className="border-blue-200 bg-blue-50">
+                              <CalendarDays className="h-4 w-4 text-blue-600" />
+                              <AlertTitle className="text-blue-800">
+                                {isSpanish
+                                  ? "Establece la frecuencia de publicación"
+                                  : "Set your posting frequency"}
+                              </AlertTitle>
+                              <AlertDescription className="text-blue-700">
+                                {isSpanish
+                                  ? "Configura la frecuencia con la que deseas publicar en cada plataforma para generar la cantidad adecuada de contenido."
+                                  : "Configure how often you want to post on each platform to generate the right amount of content."}
+                                <Button
+                                  variant="link"
+                                  className="text-blue-800 font-semibold p-0 h-auto ml-1"
+                                  onClick={() => setIsFrequencyModalOpen(true)}
+                                  data-testid="link-set-frequency"
+                                >
+                                  {isSpanish
+                                    ? "Establecer frecuencia"
+                                    : "Set frequency"}{" "}
+                                  →
+                                </Button>
+                              </AlertDescription>
+                            </Alert>
+                          )}
 
-                        {/* Controls */}
-                        <div className="flex flex-wrap items-center gap-4">
-                          {/* Edit Frequency */}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setIsFrequencyModalOpen(true)}
-                            className={
-                              !hasPostingFrequency
-                                ? "border-blue-300 text-blue-700 hover:bg-blue-50"
-                                : ""
-                            }
-                            data-testid="button-set-posting-frequency-panel"
-                          >
-                            <Settings className="w-4 h-4 mr-1" />
-                            {hasPostingFrequency
-                              ? isSpanish
-                                ? "Editar Frecuencia"
-                                : "Edit Frequency"
-                              : isSpanish
-                                ? "Establecer Frecuencia"
-                                : "Set Frequency"}
-                          </Button>
-
-                          {/* Auto-posting Toggle */}
-                          <div className="flex items-center gap-3">
-                            <div
-                              onClick={handleToggle}
-                              role="switch"
-                              aria-checked={!isPaused}
-                              className={`relative flex w-14 h-7 rounded-full cursor-pointer border transition-all duration-300 ease-out ${
-                                isPaused
-                                  ? "bg-gray-100 border-gray-300"
-                                  : "bg-green-50 border-green-300"
-                              }`}
-                            >
-                              <span
-                                className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow-md border transform transition-all duration-300 ease-out ${
-                                  isPaused
-                                    ? "translate-x-0 border-gray-300"
-                                    : "translate-x-7 border-green-300"
-                                }`}
-                              />
-                            </div>
-                            <span
-                              className={`text-sm transition-colors duration-200 ${
-                                isPaused
-                                  ? "text-gray-500"
-                                  : "text-green-700 font-medium"
-                              }`}
-                            >
-                              {isPaused ? "Auto-post OFF" : "Auto-post ON"}
-                            </span>
-                          </div>
-                        </div>
+                        {/* Posts already exist for month */}
+                        {hasAiPostsForCurrentMonth && (
+                          <Alert className="border-purple-200 bg-purple-50">
+                            <Sparkles className="h-4 w-4 text-purple-600" />
+                            <AlertTitle className="text-purple-800">
+                              {isSpanish
+                                ? `Posts de IA listos para ${format(currentDate, "MMMM yyyy", { locale: dateLocale })}`
+                                : `AI posts ready for ${format(currentDate, "MMMM yyyy", { locale: dateLocale })}`}
+                            </AlertTitle>
+                            <AlertDescription className="text-purple-700">
+                              {isSpanish
+                                ? `Tienes ${currentMonthAiPosts.length} posts generados por la IA para este mes. Revísalos en el calendario de abajo.`
+                                : `You have ${currentMonthAiPosts.length} AI-generated posts for this month. Review them in the calendar below.`}
+                            </AlertDescription>
+                          </Alert>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* 📅 Calendar */}
-                    <div className="lg:col-span-2">
-                      <Card className="shadow-sm border">
-                        <CardHeader className="bg-white border-b">
-                          <div className="flex flex-col gap-4">
-                            {/* Header with title and navigation */}
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                <CalendarIcon className="h-6 w-6 text-gray-500" />
-                                <span className="text-gray-800">
-                                  {format(currentDate, "MMMM yyyy", {
-                                    locale: dateLocale,
-                                  })}
+                      {/* Consolidated Control Panel */}
+                      <Card className="shadow-sm border mb-6">
+                        <CardContent className="py-4">
+                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            {/* This Week Summary */}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <CalendarDays className="h-5 w-5 text-gray-500" />
+                                <span className="font-semibold text-gray-800">
+                                  {isSpanish ? "Esta Semana" : "This Week"}
                                 </span>
-                              </CardTitle>
-                              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-white"
-                                  onClick={() =>
-                                    setCurrentDate(
-                                      new Date(
-                                        currentDate.getFullYear(),
-                                        currentDate.getMonth() - 1,
-                                      ),
-                                    )
-                                  }
-                                  data-testid="button-prev-month"
-                                >
-                                  <ChevronLeft className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 px-3 hover:bg-white text-xs font-medium"
-                                  onClick={() => setCurrentDate(new Date())}
-                                  data-testid="button-today"
-                                >
-                                  {isSpanish ? "Hoy" : "Today"}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-white"
-                                  onClick={() =>
-                                    setCurrentDate(
-                                      new Date(
-                                        currentDate.getFullYear(),
-                                        currentDate.getMonth() + 1,
-                                      ),
-                                    )
-                                  }
-                                  data-testid="button-next-month"
-                                >
-                                  <ChevronRight className="h-4 w-4" />
-                                </Button>
+                                <Badge variant="secondary" className="ml-2">
+                                  {thisWeekStats.total} posts
+                                </Badge>
+                              </div>
+                              <div className="flex flex-wrap gap-3 text-sm">
+                                <span className="flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
+                                  <span className="text-gray-600">
+                                    {thisWeekStats.pending}{" "}
+                                    {isSpanish ? "pendientes" : "pending"}
+                                  </span>
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                  <span className="text-gray-600">
+                                    {thisWeekStats.accepted}{" "}
+                                    {isSpanish ? "aceptados" : "accepted"}
+                                  </span>
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                  <span className="text-gray-600">
+                                    {thisWeekStats.published}{" "}
+                                    {isSpanish ? "publicados" : "published"}
+                                  </span>
+                                </span>
                               </div>
                             </div>
 
-                            {/* Action buttons row */}
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span>
-                                    <Button
-                                      size="sm"
-                                      variant={
-                                        hasActiveJob || isLoadingAiPosts
-                                          ? "outline"
-                                          : canGenerateAiPosts
-                                            ? "default"
-                                            : "outline"
-                                      }
-                                      onClick={() =>
-                                        generatePostsMutation.mutate()
-                                      }
-                                      disabled={
-                                        generatePostsMutation.isPending ||
-                                        !activeBrandId ||
-                                        !canGenerateAiPosts ||
-                                        hasActiveJob ||
-                                        isLoadingAiPosts
-                                      }
-                                      className={
-                                        hasActiveJob || isLoadingAiPosts
-                                          ? "bg-purple-100 border-purple-300 text-purple-700"
-                                          : canGenerateAiPosts
-                                            ? "bg-purple-600 hover:bg-purple-700 text-white"
-                                            : "opacity-60 cursor-not-allowed"
-                                      }
-                                      data-testid="button-generate-ai-posts"
-                                    >
-                                      {isLoadingAiPosts ? (
-                                        <>
-                                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                          Loading...
-                                        </>
-                                      ) : generatePostsMutation.isPending ||
-                                        hasActiveJob ? (
-                                        <>
-                                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                          {isSpanish
-                                            ? "Generando..."
-                                            : "Generating..."}
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Sparkles className="w-4 h-4 mr-1" />
-                                          {isSpanish
-                                            ? "Generar Posts con IA"
-                                            : "Generate AI Posts"}
-                                        </>
-                                      )}
-                                    </Button>
-                                  </span>
-                                </TooltipTrigger>
-                                {(!canGenerateAiPosts ||
-                                  hasActiveJob ||
-                                  isLoadingAiPosts) && (
-                                  <TooltipContent>
-                                    <p>
-                                      {isLoadingAiPosts
-                                        ? "Loading existing posts..."
-                                        : getDisabledReason()}
-                                    </p>
-                                  </TooltipContent>
-                                )}
-                              </Tooltip>
-
-                              {/* Only show Approve Month button if there are pending posts */}
-                              {hasPendingPostsForMonth && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span>
-                                      <Button
-                                        size="sm"
-                                        onClick={() =>
-                                          handleApproveMonth("accepted")
-                                        }
-                                        disabled={
-                                          isPastMonth ||
-                                          bulkUpdatePostStatusMutation.isPending ||
-                                          isLoadingAiPosts ||
-                                          !hasPostingFrequency
-                                        }
-                                        className={
-                                          isPastMonth || isLoadingAiPosts
-                                            ? "opacity-60 cursor-not-allowed bg-gray-200"
-                                            : "bg-gray-800 hover:bg-gray-900 text-white"
-                                        }
-                                        data-testid="button-approve-month"
-                                      >
-                                        {isLoadingAiPosts ? (
-                                          <>
-                                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                            Loading...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <CheckCircle className="w-4 h-4 mr-1" />
-                                            {isSpanish
-                                              ? "Aprobar Mes"
-                                              : "Approve Month"}
-                                          </>
-                                        )}
-                                      </Button>
-                                    </span>
-                                  </TooltipTrigger>
-                                  {(isPastMonth || isLoadingAiPosts) && (
-                                    <TooltipContent>
-                                      <p>
-                                        {isLoadingAiPosts
-                                          ? "Loading posts..."
-                                          : "Cannot approve past months"}
-                                      </p>
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
-                              )}
-
+                            {/* Controls */}
+                            <div className="flex flex-wrap items-center gap-4">
+                              {/* Edit Frequency */}
                               <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setIsFrequencyModalOpen(true)}
+                                className={
+                                  !hasPostingFrequency
+                                    ? "border-blue-300 text-blue-700 hover:bg-blue-50"
+                                    : ""
+                                }
+                                data-testid="button-set-posting-frequency-panel"
+                              >
+                                <Settings className="w-4 h-4 mr-1" />
+                                {hasPostingFrequency
+                                  ? isSpanish
+                                    ? "Editar Frecuencia"
+                                    : "Edit Frequency"
+                                  : isSpanish
+                                    ? "Establecer Frecuencia"
+                                    : "Set Frequency"}
+                              </Button>
+
+                              {/* Auto-posting Toggle */}
+                              <div className="flex items-center gap-3">
+                                <div
+                                  onClick={handleToggle}
+                                  role="switch"
+                                  aria-checked={!isPaused}
+                                  className={`relative flex w-14 h-7 rounded-full cursor-pointer border transition-all duration-300 ease-out ${
+                                    isPaused
+                                      ? "bg-gray-100 border-gray-300"
+                                      : "bg-green-50 border-green-300"
+                                  }`}
+                                >
+                                  <span
+                                    className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow-md border transform transition-all duration-300 ease-out ${
+                                      isPaused
+                                        ? "translate-x-0 border-gray-300"
+                                        : "translate-x-7 border-green-300"
+                                    }`}
+                                  />
+                                </div>
+                                <span
+                                  className={`text-sm transition-colors duration-200 ${
+                                    isPaused
+                                      ? "text-gray-500"
+                                      : "text-green-700 font-medium"
+                                  }`}
+                                >
+                                  {isPaused ? "Auto-post OFF" : "Auto-post ON"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* 📅 Calendar */}
+                        <div className="lg:col-span-2">
+                          <Card className="shadow-sm border">
+                            <CardHeader className="bg-white border-b">
+                              <div className="flex flex-col gap-4">
+                                {/* Header with title and navigation */}
+                                <div className="flex items-center justify-between">
+                                  <CardTitle className="text-xl font-bold flex items-center gap-2">
+                                    <CalendarIcon className="h-6 w-6 text-gray-500" />
+                                    <span className="text-gray-800">
+                                      {format(currentDate, "MMMM yyyy", {
+                                        locale: dateLocale,
+                                      })}
+                                    </span>
+                                  </CardTitle>
+                                  <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 hover:bg-white"
+                                      onClick={() =>
+                                        setCurrentDate(
+                                          new Date(
+                                            currentDate.getFullYear(),
+                                            currentDate.getMonth() - 1,
+                                          ),
+                                        )
+                                      }
+                                      data-testid="button-prev-month"
+                                    >
+                                      <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 px-3 hover:bg-white text-xs font-medium"
+                                      onClick={() => setCurrentDate(new Date())}
+                                      data-testid="button-today"
+                                    >
+                                      {isSpanish ? "Hoy" : "Today"}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 hover:bg-white"
+                                      onClick={() =>
+                                        setCurrentDate(
+                                          new Date(
+                                            currentDate.getFullYear(),
+                                            currentDate.getMonth() + 1,
+                                          ),
+                                        )
+                                      }
+                                      data-testid="button-next-month"
+                                    >
+                                      <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                {/* Action buttons row */}
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span>
+                                        <Button
+                                          size="sm"
+                                          variant={
+                                            hasActiveJob || isLoadingAiPosts
+                                              ? "outline"
+                                              : canGenerateAiPosts
+                                                ? "default"
+                                                : "outline"
+                                          }
+                                          onClick={() =>
+                                            generatePostsMutation.mutate()
+                                          }
+                                          disabled={
+                                            generatePostsMutation.isPending ||
+                                            !activeBrandId ||
+                                            !canGenerateAiPosts ||
+                                            hasActiveJob ||
+                                            isLoadingAiPosts
+                                          }
+                                          className={
+                                            hasActiveJob || isLoadingAiPosts
+                                              ? "bg-purple-100 border-purple-300 text-purple-700"
+                                              : canGenerateAiPosts
+                                                ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                                : "opacity-60 cursor-not-allowed"
+                                          }
+                                          data-testid="button-generate-ai-posts"
+                                        >
+                                          {isLoadingAiPosts ? (
+                                            <>
+                                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                              Loading...
+                                            </>
+                                          ) : generatePostsMutation.isPending ||
+                                            hasActiveJob ? (
+                                            <>
+                                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                              {isSpanish
+                                                ? "Generando..."
+                                                : "Generating..."}
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Sparkles className="w-4 h-4 mr-1" />
+                                              {isSpanish
+                                                ? "Generar Posts con IA"
+                                                : "Generate AI Posts"}
+                                            </>
+                                          )}
+                                        </Button>
+                                      </span>
+                                    </TooltipTrigger>
+                                    {(!canGenerateAiPosts ||
+                                      hasActiveJob ||
+                                      isLoadingAiPosts) && (
+                                      <TooltipContent>
+                                        <p>
+                                          {isLoadingAiPosts
+                                            ? "Loading existing posts..."
+                                            : getDisabledReason()}
+                                        </p>
+                                      </TooltipContent>
+                                    )}
+                                  </Tooltip>
+
+                                  {/* Only show Approve Month button if there are pending posts */}
+                                  {hasPendingPostsForMonth && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span>
+                                          <Button
+                                            size="sm"
+                                            onClick={() =>
+                                              handleApproveMonth("accepted")
+                                            }
+                                            disabled={
+                                              isPastMonth ||
+                                              bulkUpdatePostStatusMutation.isPending ||
+                                              isLoadingAiPosts ||
+                                              !hasPostingFrequency
+                                            }
+                                            className={
+                                              isPastMonth || isLoadingAiPosts
+                                                ? "opacity-60 cursor-not-allowed bg-gray-200"
+                                                : "bg-gray-800 hover:bg-gray-900 text-white"
+                                            }
+                                            data-testid="button-approve-month"
+                                          >
+                                            {isLoadingAiPosts ? (
+                                              <>
+                                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                                Loading...
+                                              </>
+                                            ) : (
+                                              <>
+                                                <CheckCircle className="w-4 h-4 mr-1" />
+                                                {isSpanish
+                                                  ? "Aprobar Mes"
+                                                  : "Approve Month"}
+                                              </>
+                                            )}
+                                          </Button>
+                                        </span>
+                                      </TooltipTrigger>
+                                      {(isPastMonth || isLoadingAiPosts) && (
+                                        <TooltipContent>
+                                          <p>
+                                            {isLoadingAiPosts
+                                              ? "Loading posts..."
+                                              : "Cannot approve past months"}
+                                          </p>
+                                        </TooltipContent>
+                                      )}
+                                    </Tooltip>
+                                  )}
+
+                                  {/*         <Button
                                 size="sm"
                                 onClick={() => generateBrandImagesMutation.mutate()}
                                 disabled={
@@ -1948,324 +1979,333 @@ export default function ContentCalendar() {
                                       : "Generate Images"}
                                   </>
                                 )}
-                              </Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-
-                        <CardContent>
-                          {/* Week headers */}
-                          <div className="grid grid-cols-7 gap-2 mb-4">
-                            {[
-                              isSpanish ? "Dom" : "Sun",
-                              isSpanish ? "Lu" : "Mon",
-                              isSpanish ? "Mar" : "Tue",
-                              isSpanish ? "Mie" : "Web",
-                              isSpanish ? "Jue" : "Thu",
-                              isSpanish ? "Vie" : "Fri",
-                              isSpanish ? "Sab" : "Sat",
-                            ].map((day) => (
-                              <div
-                                key={day}
-                                className="text-center text-sm font-medium text-gray-500 py-2"
-                              >
-                                {day}
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Days */}
-                          <div className="grid grid-cols-7 gap-2">
-                            {daysInMonth.map((day) => {
-                              const postsForDay = getPostsForDate(day);
-                              const isSelected =
-                                selectedDate && isSameDay(selectedDate, day);
-                              return (
-                                <div
-                                  key={day.toISOString()}
-                                  className={`p-2 min-h-[80px] border rounded-lg cursor-pointer transition-colors ${
-                                    isToday(day)
-                                      ? "bg-purple-50 border-purple-200"
-                                      : "bg-white border-gray-200"
-                                  } ${isSelected ? "ring-2 ring-gray-400" : ""}`}
-                                  onClick={() => handleDateClick(day)}
-                                >
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {format(day, "d", { locale: dateLocale })}
-                                  </div>
-                                  <div className="mt-1 space-y-1">
-                                    {postsForDay.slice(0, 2).map((post) => {
-                                      const PlatformIcon =
-                                        platformIcons[
-                                          post.platform as keyof typeof platformIcons
-                                        ];
-                                      const isAiPost = post.source === "ai";
-                                      const postStatus = post.status as
-                                        | "pending"
-                                        | "accepted"
-                                        | "rejected"
-                                        | "published"
-                                        | "skipped_auto_post_disabled";
-
-                                      const iconColor =
-                                        platformIconColors[
-                                          post.platform as keyof typeof platformIconColors
-                                        ] || "text-gray-600";
-
-                                      return (
-                                        <div
-                                          key={post.id}
-                                          data-testid={`calendar-post-${post.id}`}
-                                          className={`text-xs px-2 py-1.5 rounded-md truncate flex items-center gap-1.5 shadow-sm hover:shadow transition-shadow cursor-pointer ${platformColors[post.platform as keyof typeof platformColors]} ${postStatus === "rejected" ? "opacity-50" : ""}`}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleOpenPost(post);
-                                          }}
-                                        >
-                                          <PlatformIcon
-                                            className={`inline w-3 h-3 flex-shrink-0 ${iconColor}`}
-                                          />
-                                          <span className="truncate font-medium text-gray-700">
-                                            {post.title}
-                                          </span>
-                                          {isAiPost &&
-                                            postStatus === "accepted" && (
-                                              <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
-                                            )}
-
-                                          {isAiPost &&
-                                            postStatus === "published" && (
-                                              <RssIcon className="w-3 h-3 text-green-500 flex-shrink-0" />
-                                            )}
-                                          {isAiPost &&
-                                            postStatus === "pending" && (
-                                              <Clock className="w-3 h-3 text-purple-400 flex-shrink-0" />
-                                            )}
-                                          {isAiPost &&
-                                            postStatus ===
-                                              "skipped_auto_post_disabled" && (
-                                              <XCircle className="w-3 h-3 text-red-400 flex-shrink-0" />
-                                            )}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
+                              </Button> */}
                                 </div>
-                              );
-                            })}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
+                              </div>
+                            </CardHeader>
 
-                    {/* 📊 Sidebar */}
-                    <div className="space-y-4">
-                      <Card>
-                        <CardHeader className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg">
-                              {selectedDate
-                                ? format(selectedDate, "EEEE, MMMM d", {
-                                    locale: dateLocale,
-                                  })
-                                : isSpanish
-                                  ? "Selecciona una fecha"
-                                  : "Select a date"}
-                            </CardTitle>
-                          </div>
-                          {/* ✅ Approve all posts for the day - only show if there are pending posts */}
-                          {selectedDate &&
-                            selectedDatePosts.length > 0 &&
-                            selectedDatePosts.some(
-                              (post) => post.status === "pending",
-                            ) && (
-                              <Button
-                                size="sm"
-                                className="w-full bg-gray-800 hover:bg-gray-900 text-white"
-                                onClick={() => handleApproveDay("accepted")}
-                                disabled={
-                                  bulkUpdatePostStatusMutation.isPending ||
-                                  !hasPostingFrequency
-                                }
-                                data-testid="button-approve-day"
-                              >
-                                <CheckCircle className="w-4 h-4 mr-1" />{" "}
-                                {isSpanish ? "Aprobar día" : "Approve Day"}
-                              </Button>
-                            )}
-                        </CardHeader>
-                        <CardContent>
-                          {selectedDatePosts.length > 0 ? (
-                            <div className="space-y-4">
-                              {selectedDatePosts.map((post) => {
-                                const PlatformIcon =
-                                  platformIcons[
-                                    post.platform as keyof typeof platformIcons
-                                  ];
-                                const isImageLoading =
-                                  imageLoadingStates[post.id] !== false;
-                                const isAiPost = post.source === "ai";
-                                const postStatus = post.status as
-                                  | "pending"
-                                  | "accepted"
-                                  | "rejected"
-                                  | "published"
-                                  | "skipped_auto_post_disabled";
-
-                                const statusConfig = {
-                                  pending: {
-                                    bg: "bg-yellow-100",
-                                    text: "text-yellow-800",
-                                    border: "border-yellow-200",
-                                    icon: Clock,
-                                    label: "Pending",
-                                  },
-                                  accepted: {
-                                    bg: "bg-green-100",
-                                    text: "text-green-800",
-                                    border: "border-green-200",
-                                    icon: CheckCircle,
-                                    label: "Approved",
-                                  },
-                                  rejected: {
-                                    bg: "bg-red-100",
-                                    text: "text-red-800",
-                                    border: "border-red-200",
-                                    icon: XCircle,
-                                    label: "Rejected",
-                                  },
-                                  published: {
-                                    bg: "bg-green-100",
-                                    text: "text-green-800",
-                                    border: "border-green-200",
-                                    icon: RssIcon,
-                                    label: "Published",
-                                  },
-                                  skipped_auto_post_disabled: {
-                                    bg: "bg-red-100",
-                                    text: "text-red-800",
-                                    border: "border-red-200",
-                                    icon: XCircle,
-                                    label: "Skipped",
-                                  },
-                                };
-
-                                const currentStatus =
-                                  statusConfig[postStatus] ||
-                                  statusConfig.pending;
-                                const StatusIcon = currentStatus.icon;
-
-                                return (
+                            <CardContent>
+                              {/* Week headers */}
+                              <div className="grid grid-cols-7 gap-2 mb-4">
+                                {[
+                                  isSpanish ? "Dom" : "Sun",
+                                  isSpanish ? "Lu" : "Mon",
+                                  isSpanish ? "Mar" : "Tue",
+                                  isSpanish ? "Mie" : "Web",
+                                  isSpanish ? "Jue" : "Thu",
+                                  isSpanish ? "Vie" : "Fri",
+                                  isSpanish ? "Sab" : "Sat",
+                                ].map((day) => (
                                   <div
-                                    key={post.id}
-                                    className={`border rounded-lg p-4 transition-all hover:shadow-md relative ${
-                                      isAiPost
-                                        ? postStatus === "accepted"
-                                          ? "border-green-300 bg-gradient-to-br from-green-50/50 to-white"
-                                          : postStatus === "rejected" ||
-                                              postStatus ===
-                                                "skipped_auto_post_disabled"
-                                            ? "border-red-300 bg-gradient-to-br from-red-50/50 to-white opacity-60"
-                                            : "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white"
-                                        : ""
-                                    }`}
-                                    data-testid={`post-preview-${post.id}`}
+                                    key={day}
+                                    className="text-center text-sm font-medium text-gray-500 py-2"
                                   >
-                                    {/* Status Badge - Top Right Corner */}
-                                    {isAiPost && (
+                                    {day}
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Days */}
+                              <div className="grid grid-cols-7 gap-2">
+                                {daysInMonth.map((day) => {
+                                  const postsForDay = getPostsForDate(day);
+                                  const isSelected =
+                                    selectedDate &&
+                                    isSameDay(selectedDate, day);
+                                  return (
+                                    <div
+                                      key={day.toISOString()}
+                                      className={`p-2 min-h-[80px] border rounded-lg cursor-pointer transition-colors ${
+                                        isToday(day)
+                                          ? "bg-purple-50 border-purple-200"
+                                          : "bg-white border-gray-200"
+                                      } ${isSelected ? "ring-2 ring-gray-400" : ""}`}
+                                      onClick={() => handleDateClick(day)}
+                                    >
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {format(day, "d", {
+                                          locale: dateLocale,
+                                        })}
+                                      </div>
+                                      <div className="mt-1 space-y-1">
+                                        {postsForDay.slice(0, 2).map((post) => {
+                                          const PlatformIcon =
+                                            platformIcons[
+                                              post.platform as keyof typeof platformIcons
+                                            ];
+                                          const isAiPost = post.source === "ai";
+                                          const postStatus = post.status as
+                                            | "pending"
+                                            | "accepted"
+                                            | "rejected"
+                                            | "published"
+                                            | "skipped_auto_post_disabled";
+
+                                          const iconColor =
+                                            platformIconColors[
+                                              post.platform as keyof typeof platformIconColors
+                                            ] || "text-gray-600";
+
+                                          return (
+                                            <div
+                                              key={post.id}
+                                              data-testid={`calendar-post-${post.id}`}
+                                              className={`text-xs px-2 py-1.5 rounded-md truncate flex items-center gap-1.5 shadow-sm hover:shadow transition-shadow cursor-pointer ${platformColors[post.platform as keyof typeof platformColors]} ${postStatus === "rejected" ? "opacity-50" : ""}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenPost(post);
+                                              }}
+                                            >
+                                              <PlatformIcon
+                                                className={`inline w-3 h-3 flex-shrink-0 ${iconColor}`}
+                                              />
+                                              <span className="truncate font-medium text-gray-700">
+                                                {post.title}
+                                              </span>
+                                              {isAiPost &&
+                                                postStatus === "accepted" && (
+                                                  <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                                )}
+
+                                              {isAiPost &&
+                                                postStatus === "published" && (
+                                                  <RssIcon className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                                )}
+                                              {isAiPost &&
+                                                postStatus === "pending" && (
+                                                  <Clock className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                                                )}
+                                              {isAiPost &&
+                                                postStatus ===
+                                                  "skipped_auto_post_disabled" && (
+                                                  <XCircle className="w-3 h-3 text-red-400 flex-shrink-0" />
+                                                )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+
+                        {/* 📊 Sidebar */}
+                        <div className="space-y-4">
+                          <Card>
+                            <CardHeader className="flex flex-col gap-2">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg">
+                                  {selectedDate
+                                    ? format(selectedDate, "EEEE, MMMM d", {
+                                        locale: dateLocale,
+                                      })
+                                    : isSpanish
+                                      ? "Selecciona una fecha"
+                                      : "Select a date"}
+                                </CardTitle>
+                              </div>
+                              {/* ✅ Approve all posts for the day - only show if there are pending posts */}
+                              {selectedDate &&
+                                selectedDatePosts.length > 0 &&
+                                selectedDatePosts.some(
+                                  (post) => post.status === "pending",
+                                ) && (
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-gray-800 hover:bg-gray-900 text-white"
+                                    onClick={() => handleApproveDay("accepted")}
+                                    disabled={
+                                      bulkUpdatePostStatusMutation.isPending ||
+                                      !hasPostingFrequency
+                                    }
+                                    data-testid="button-approve-day"
+                                  >
+                                    <CheckCircle className="w-4 h-4 mr-1" />{" "}
+                                    {isSpanish ? "Aprobar día" : "Approve Day"}
+                                  </Button>
+                                )}
+                            </CardHeader>
+                            <CardContent>
+                              {selectedDatePosts.length > 0 ? (
+                                <div className="space-y-4">
+                                  {selectedDatePosts.map((post) => {
+                                    const PlatformIcon =
+                                      platformIcons[
+                                        post.platform as keyof typeof platformIcons
+                                      ];
+                                    const isImageLoading =
+                                      imageLoadingStates[post.id] !== false;
+                                    const isAiPost = post.source === "ai";
+                                    const postStatus = post.status as
+                                      | "pending"
+                                      | "accepted"
+                                      | "rejected"
+                                      | "published"
+                                      | "skipped_auto_post_disabled";
+
+                                    const statusConfig = {
+                                      pending: {
+                                        bg: "bg-yellow-100",
+                                        text: "text-yellow-800",
+                                        border: "border-yellow-200",
+                                        icon: Clock,
+                                        label: "Pending",
+                                      },
+                                      accepted: {
+                                        bg: "bg-green-100",
+                                        text: "text-green-800",
+                                        border: "border-green-200",
+                                        icon: CheckCircle,
+                                        label: "Approved",
+                                      },
+                                      rejected: {
+                                        bg: "bg-red-100",
+                                        text: "text-red-800",
+                                        border: "border-red-200",
+                                        icon: XCircle,
+                                        label: "Rejected",
+                                      },
+                                      published: {
+                                        bg: "bg-green-100",
+                                        text: "text-green-800",
+                                        border: "border-green-200",
+                                        icon: RssIcon,
+                                        label: "Published",
+                                      },
+                                      skipped_auto_post_disabled: {
+                                        bg: "bg-red-100",
+                                        text: "text-red-800",
+                                        border: "border-red-200",
+                                        icon: XCircle,
+                                        label: "Skipped",
+                                      },
+                                    };
+
+                                    const currentStatus =
+                                      statusConfig[postStatus] ||
+                                      statusConfig.pending;
+                                    const StatusIcon = currentStatus.icon;
+
+                                    return (
                                       <div
-                                        className={`absolute top-2 right-2 flex items-center gap-1 text-xs px-2 py-1 rounded-full ${currentStatus.bg} ${currentStatus.text} ${currentStatus.border} border`}
-                                        data-testid={`post-status-${post.id}`}
+                                        key={post.id}
+                                        className={`border rounded-lg p-4 transition-all hover:shadow-md relative ${
+                                          isAiPost
+                                            ? postStatus === "accepted"
+                                              ? "border-green-300 bg-gradient-to-br from-green-50/50 to-white"
+                                              : postStatus === "rejected" ||
+                                                  postStatus ===
+                                                    "skipped_auto_post_disabled"
+                                                ? "border-red-300 bg-gradient-to-br from-red-50/50 to-white opacity-60"
+                                                : "border-purple-200 bg-gradient-to-br from-purple-50/50 to-white"
+                                            : ""
+                                        }`}
+                                        data-testid={`post-preview-${post.id}`}
                                       >
-                                        <StatusIcon className="w-3 h-3" />
-                                        <span className="font-medium">
-                                          {currentStatus.label}
-                                        </span>
-                                      </div>
-                                    )}
+                                        {/* Status Badge - Top Right Corner */}
+                                        {isAiPost && (
+                                          <div
+                                            className={`absolute top-2 right-2 flex items-center gap-1 text-xs px-2 py-1 rounded-full ${currentStatus.bg} ${currentStatus.text} ${currentStatus.border} border`}
+                                            data-testid={`post-status-${post.id}`}
+                                          >
+                                            <StatusIcon className="w-3 h-3" />
+                                            <span className="font-medium">
+                                              {currentStatus.label}
+                                            </span>
+                                          </div>
+                                        )}
 
-                                    {/* AI Badge */}
-                                    {isAiPost && (
-                                      <div className="flex items-center gap-1 text-xs text-purple-600 mb-2">
-                                        <Sparkles className="w-3 h-3" />
-                                        <span className="font-medium">
-                                          AI Generated
-                                        </span>
-                                      </div>
-                                    )}
+                                        {/* AI Badge */}
+                                        {isAiPost && (
+                                          <div className="flex items-center gap-1 text-xs text-purple-600 mb-2">
+                                            <Sparkles className="w-3 h-3" />
+                                            <span className="font-medium">
+                                              AI Generated
+                                            </span>
+                                          </div>
+                                        )}
 
-                                    {/* Image with loading state */}
-                                    <div className="relative w-full h-32 mb-2 rounded overflow-hidden bg-gray-100">
-                                      {isImageLoading && post.imageUrl && (
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                          <Skeleton className="w-full h-full" />
-                                          <div className="absolute inset-0 flex items-center justify-center">
-                                            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                                        {/* Image with loading state */}
+                                        <div className="relative w-full h-32 mb-2 rounded overflow-hidden bg-gray-100">
+                                          {isImageLoading && post.imageUrl && (
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                              <Skeleton className="w-full h-full" />
+                                              <div className="absolute inset-0 flex items-center justify-center">
+                                                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                                              </div>
+                                            </div>
+                                          )}
+                                          {post.imageUrl ? (
+                                            <img
+                                              src={post.imageUrl}
+                                              alt={post.title}
+                                              className={`w-full h-full object-cover transition-opacity duration-300 ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+                                              onLoad={() =>
+                                                setImageLoadingStates(
+                                                  (prev) => ({
+                                                    ...prev,
+                                                    [post.id]: false,
+                                                  }),
+                                                )
+                                              }
+                                              onError={() =>
+                                                setImageLoadingStates(
+                                                  (prev) => ({
+                                                    ...prev,
+                                                    [post.id]: false,
+                                                  }),
+                                                )
+                                              }
+                                            />
+                                          ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                              <ImageIcon className="w-8 h-8 text-gray-300" />
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <div className="flex items-center justify-between mb-1">
+                                          <p className="font-medium text-sm line-clamp-1">
+                                            {post.title}
+                                          </p>
+                                          <div
+                                            className={`flex items-center text-xs px-2 py-1 rounded flex-shrink-0 ml-2 ${platformColors[post.platform as keyof typeof platformColors]}`}
+                                          >
+                                            <PlatformIcon className="w-3 h-3 mr-1" />
+                                            {post.platform
+                                              .charAt(0)
+                                              .toUpperCase() +
+                                              post.platform.slice(1)}
                                           </div>
                                         </div>
-                                      )}
-                                      {post.imageUrl ? (
-                                        <img
-                                          src={post.imageUrl}
-                                          alt={post.title}
-                                          className={`w-full h-full object-cover transition-opacity duration-300 ${isImageLoading ? "opacity-0" : "opacity-100"}`}
-                                          onLoad={() =>
-                                            setImageLoadingStates((prev) => ({
-                                              ...prev,
-                                              [post.id]: false,
-                                            }))
-                                          }
-                                          onError={() =>
-                                            setImageLoadingStates((prev) => ({
-                                              ...prev,
-                                              [post.id]: false,
-                                            }))
-                                          }
-                                        />
-                                      ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                          <ImageIcon className="w-8 h-8 text-gray-300" />
-                                        </div>
-                                      )}
-                                    </div>
+                                        <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                                          <Clock className="w-3 h-3" />
+                                          {format(
+                                            new Date(post.scheduledFor),
+                                            "h:mm a",
+                                            { locale: dateLocale },
+                                          )}
+                                        </p>
+                                        <p className="text-sm text-gray-700 line-clamp-2">
+                                          {post.content}
+                                        </p>
 
-                                    <div className="flex items-center justify-between mb-1">
-                                      <p className="font-medium text-sm line-clamp-1">
-                                        {post.title}
-                                      </p>
-                                      <div
-                                        className={`flex items-center text-xs px-2 py-1 rounded flex-shrink-0 ml-2 ${platformColors[post.platform as keyof typeof platformColors]}`}
-                                      >
-                                        <PlatformIcon className="w-3 h-3 mr-1" />
-                                        {post.platform.charAt(0).toUpperCase() +
-                                          post.platform.slice(1)}
-                                      </div>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {format(
-                                        new Date(post.scheduledFor),
-                                        "h:mm a",
-                                        { locale: dateLocale },
-                                      )}
-                                    </p>
-                                    <p className="text-sm text-gray-700 line-clamp-2">
-                                      {post.content}
-                                    </p>
-
-                                    {/* Action buttons */}
-                                    <div className="flex gap-2 mt-3">
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="flex-1"
-                                        onClick={() => handleOpenPost(post)}
-                                        data-testid={`button-view-post-${post.id}`}
-                                      >
-                                        <Eye className="w-3 h-3 mr-1" />{" "}
-                                        {isSpanish ? "Ver" : "View"}
-                                      </Button>
-                                      {/*  <Button
+                                        {/* Action buttons */}
+                                        <div className="flex gap-2 mt-3">
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="flex-1"
+                                            onClick={() => handleOpenPost(post)}
+                                            data-testid={`button-view-post-${post.id}`}
+                                          >
+                                            <Eye className="w-3 h-3 mr-1" />{" "}
+                                            {isSpanish ? "Ver" : "View"}
+                                          </Button>
+                                          {/*  <Button
                                         size="sm"
                                         variant="outline"
                                         className="flex-1"
@@ -2274,200 +2314,257 @@ export default function ContentCalendar() {
                                       >
                                         <Edit className="w-3 h-3 mr-1" /> Edit
                                       </Button> */}
-                                    </div>
+                                        </div>
 
-                                    {/* Individual Approve button for AI posts */}
-                                    {isAiPost && postStatus === "pending" && (
-                                      <div className="mt-2 pt-2 border-t border-gray-100">
-                                        <Button
-                                          size="sm"
-                                          className="w-full bg-gray-800 hover:bg-gray-900 text-white"
-                                          onClick={() =>
-                                            handleUpdatePostStatus(
-                                              post.id,
-                                              "accepted",
-                                            )
-                                          }
-                                          disabled={
-                                            updatePostStatusMutation.isPending ||
-                                            !hasPostingFrequency
-                                          }
-                                          data-testid={`button-approve-post-${post.id}`}
-                                        >
-                                          <CheckCircle className="w-3 h-3 mr-1" />{" "}
-                                          Approve & Schedule
-                                        </Button>
+                                        {/* Individual Approve button for AI posts */}
+                                        {isAiPost &&
+                                          postStatus === "pending" && (
+                                            <div className="mt-2 pt-2 border-t border-gray-100">
+                                              <Button
+                                                size="sm"
+                                                className="w-full bg-gray-800 hover:bg-gray-900 text-white"
+                                                onClick={() =>
+                                                  handleUpdatePostStatus(
+                                                    post.id,
+                                                    "accepted",
+                                                  )
+                                                }
+                                                disabled={
+                                                  updatePostStatusMutation.isPending ||
+                                                  !hasPostingFrequency
+                                                }
+                                                data-testid={`button-approve-post-${post.id}`}
+                                              >
+                                                <CheckCircle className="w-3 h-3 mr-1" />{" "}
+                                                Approve & Schedule
+                                              </Button>
+                                            </div>
+                                          )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <p className="text-gray-500 text-center py-8">
+                                  {selectedDate
+                                    ? isSpanish
+                                      ? "No hay posts para este día"
+                                      : "No posts for this day"
+                                    : isSpanish
+                                      ? "Selecciona una fecha para ver los posts"
+                                      : "Select a date to view posts"}
+                                </p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Content Gallery Tab */}
+                  {calendarTab === "gallery" &&
+                    (() => {
+                      const aiImages = (brandAssets || [])
+                        .filter(
+                          (a: any) =>
+                            a.category === "ai-generated" &&
+                            a.assetType === "image",
+                        )
+                        .sort((a: any, b: any) => {
+                          const dateA = a.createdAt
+                            ? new Date(a.createdAt).getTime()
+                            : 0;
+                          const dateB = b.createdAt
+                            ? new Date(b.createdAt).getTime()
+                            : 0;
+                          return dateB - dateA;
+                        });
+                      const contentImages = (brandAssets || [])
+                        .filter(
+                          (a: any) =>
+                            a.category === "content" && a.assetType === "image",
+                        )
+                        .sort((a: any, b: any) => {
+                          const dateA = a.createdAt
+                            ? new Date(a.createdAt).getTime()
+                            : 0;
+                          const dateB = b.createdAt
+                            ? new Date(b.createdAt).getTime()
+                            : 0;
+                          return dateB - dateA;
+                        });
+                      const allGalleryImages = [...aiImages, ...contentImages];
+
+                      return (
+                        <div className="pb-8">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
+                                <Grid3X3 className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                  {isSpanish
+                                    ? "Galeria de Contenido"
+                                    : "Content Gallery"}
+                                </h2>
+                                <p className="text-sm text-gray-500">
+                                  {isSpanish
+                                    ? `${allGalleryImages.length} ${allGalleryImages.length === 1 ? "imagen" : "imagenes"} disponibles`
+                                    : `${allGalleryImages.length} ${allGalleryImages.length === 1 ? "image" : "images"} available`}
+                                </p>
+                              </div>
+                            </div>
+                            <div>
+                              <input
+                                type="file"
+                                id="content-upload-input"
+                                className="hidden"
+                                accept="image/*"
+                                multiple
+                                onChange={handleContentUpload}
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  document
+                                    .getElementById("content-upload-input")
+                                    ?.click()
+                                }
+                                disabled={isUploadingContent}
+                                className="gap-1.5"
+                              >
+                                {isUploadingContent ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Plus className="w-4 h-4" />
+                                )}
+                                {isSpanish
+                                  ? "Subir Contenido"
+                                  : "Upload Content"}
+                              </Button>
+                            </div>
+                          </div>
+
+                          {allGalleryImages.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                              <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                                <Grid3X3 className="w-8 h-8 text-gray-400" />
+                              </div>
+                              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                                {isSpanish
+                                  ? "Sin imagenes aun"
+                                  : "No images yet"}
+                              </h3>
+                              <p className="text-sm text-gray-500 max-w-md mb-4">
+                                {isSpanish
+                                  ? "Genera imagenes con IA o sube tu propio contenido para verlo aqui."
+                                  : "Generate AI images or upload your own content to see them here."}
+                              </p>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setCalendarTab("month")}
+                                >
+                                  <CalendarIcon className="w-4 h-4 mr-2" />
+                                  {isSpanish
+                                    ? "Generar con IA"
+                                    : "Generate with AI"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    document
+                                      .getElementById("content-upload-input")
+                                      ?.click()
+                                  }
+                                  className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
+                                >
+                                  <Upload className="w-4 h-4 mr-2" />
+                                  {isSpanish
+                                    ? "Subir Imagenes"
+                                    : "Upload Images"}
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                              {allGalleryImages.map((asset: any) => {
+                                const isAI = asset.category === "ai-generated";
+                                return (
+                                  <div
+                                    key={asset.id}
+                                    className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-200 hover:border-teal-300"
+                                  >
+                                    <img
+                                      src={asset.url}
+                                      alt={
+                                        asset.description ||
+                                        asset.name ||
+                                        "Content"
+                                      }
+                                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+                                      loading="lazy"
+                                      onClick={() =>
+                                        setFullscreenImage(asset.url)
+                                      }
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                                    <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                      <Button
+                                        size="sm"
+                                        className="w-full bg-white/90 hover:bg-white text-gray-900 text-xs h-7"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setScheduleDialogImage(asset);
+                                          setScheduleForm({
+                                            platform: "instagram",
+                                            titulo: "",
+                                            content: "",
+                                            hashtags: "",
+                                            scheduledDate: "",
+                                          });
+                                        }}
+                                      >
+                                        <CalendarPlus className="w-3.5 h-3.5 mr-1" />
+                                        {isSpanish ? "Programar" : "Schedule"}
+                                      </Button>
+                                    </div>
+                                    <div className="absolute top-1.5 right-1.5">
+                                      <Badge
+                                        className={`text-white text-[9px] px-1.5 py-0 border-0 ${isAI ? "bg-teal-500/90" : "bg-blue-500/90"}`}
+                                      >
+                                        {isAI
+                                          ? "AI"
+                                          : isSpanish
+                                            ? "Subido"
+                                            : "Uploaded"}
+                                      </Badge>
+                                    </div>
+                                    {asset.createdAt && (
+                                      <div className="absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="text-[10px] text-white bg-black/50 px-1.5 py-0.5 rounded">
+                                          {format(
+                                            new Date(asset.createdAt),
+                                            "MMM d",
+                                            {
+                                              locale: isSpanish ? es : enUS,
+                                            },
+                                          )}
+                                        </span>
                                       </div>
                                     )}
                                   </div>
                                 );
                               })}
                             </div>
-                          ) : (
-                            <p className="text-gray-500 text-center py-8">
-                              {selectedDate
-                                ? isSpanish
-                                  ? "No hay posts para este día"
-                                  : "No posts for this day"
-                                : isSpanish
-                                  ? "Selecciona una fecha para ver los posts"
-                                  : "Select a date to view posts"}
-                            </p>
                           )}
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-                  </>
-                  )}
-
-                  {/* Content Gallery Tab */}
-                  {calendarTab === "gallery" && (() => {
-                    const aiImages = (brandAssets || []).filter(
-                      (a: any) => a.category === "ai-generated" && a.assetType === "image"
-                    ).sort((a: any, b: any) => {
-                      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                      return dateB - dateA;
-                    });
-                    const contentImages = (brandAssets || []).filter(
-                      (a: any) => a.category === "content" && a.assetType === "image"
-                    ).sort((a: any, b: any) => {
-                      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                      return dateB - dateA;
-                    });
-                    const allGalleryImages = [...aiImages, ...contentImages];
-
-                    return (
-                      <div className="pb-8">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
-                              <Grid3X3 className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h2 className="text-lg font-semibold text-gray-900">
-                                {isSpanish ? "Galeria de Contenido" : "Content Gallery"}
-                              </h2>
-                              <p className="text-sm text-gray-500">
-                                {isSpanish
-                                  ? `${allGalleryImages.length} ${allGalleryImages.length === 1 ? "imagen" : "imagenes"} disponibles`
-                                  : `${allGalleryImages.length} ${allGalleryImages.length === 1 ? "image" : "images"} available`}
-                              </p>
-                            </div>
-                          </div>
-                          <div>
-                            <input
-                              type="file"
-                              id="content-upload-input"
-                              className="hidden"
-                              accept="image/*"
-                              multiple
-                              onChange={handleContentUpload}
-                            />
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => document.getElementById("content-upload-input")?.click()}
-                              disabled={isUploadingContent}
-                              className="gap-1.5"
-                            >
-                              {isUploadingContent ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Plus className="w-4 h-4" />
-                              )}
-                              {isSpanish ? "Subir Contenido" : "Upload Content"}
-                            </Button>
-                          </div>
                         </div>
-
-                        {allGalleryImages.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                              <Grid3X3 className="w-8 h-8 text-gray-400" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                              {isSpanish ? "Sin imagenes aun" : "No images yet"}
-                            </h3>
-                            <p className="text-sm text-gray-500 max-w-md mb-4">
-                              {isSpanish
-                                ? "Genera imagenes con IA o sube tu propio contenido para verlo aqui."
-                                : "Generate AI images or upload your own content to see them here."}
-                            </p>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCalendarTab("month")}
-                              >
-                                <CalendarIcon className="w-4 h-4 mr-2" />
-                                {isSpanish ? "Generar con IA" : "Generate with AI"}
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => document.getElementById("content-upload-input")?.click()}
-                                className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
-                              >
-                                <Upload className="w-4 h-4 mr-2" />
-                                {isSpanish ? "Subir Imagenes" : "Upload Images"}
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                            {allGalleryImages.map((asset: any) => {
-                              const isAI = asset.category === "ai-generated";
-                              return (
-                                <div
-                                  key={asset.id}
-                                  className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-200 hover:border-teal-300"
-                                >
-                                  <img
-                                    src={asset.url}
-                                    alt={asset.description || asset.name || "Content"}
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
-                                    loading="lazy"
-                                    onClick={() => setFullscreenImage(asset.url)}
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-                                  <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <Button
-                                      size="sm"
-                                      className="w-full bg-white/90 hover:bg-white text-gray-900 text-xs h-7"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setScheduleDialogImage(asset);
-                                        setScheduleForm({ platform: "instagram", titulo: "", content: "", hashtags: "", scheduledDate: "" });
-                                      }}
-                                    >
-                                      <CalendarPlus className="w-3.5 h-3.5 mr-1" />
-                                      {isSpanish ? "Programar" : "Schedule"}
-                                    </Button>
-                                  </div>
-                                  <div className="absolute top-1.5 right-1.5">
-                                    <Badge className={`text-white text-[9px] px-1.5 py-0 border-0 ${isAI ? "bg-teal-500/90" : "bg-blue-500/90"}`}>
-                                      {isAI ? "AI" : isSpanish ? "Subido" : "Uploaded"}
-                                    </Badge>
-                                  </div>
-                                  {asset.createdAt && (
-                                    <div className="absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <span className="text-[10px] text-white bg-black/50 px-1.5 py-0.5 rounded">
-                                        {format(new Date(asset.createdAt), "MMM d", {
-                                          locale: isSpanish ? es : enUS,
-                                        })}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
                 </div>
               </div>
             </main>
@@ -3058,9 +3155,7 @@ export default function ContentCalendar() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Wand2 className="w-5 h-5 text-teal-500" />
-                {isSpanish
-                  ? "Selecciona tus Imágenes"
-                  : "Select Your Images"}
+                {isSpanish ? "Selecciona tus Imágenes" : "Select Your Images"}
               </DialogTitle>
               <DialogDescription>
                 {isSpanish
@@ -3082,7 +3177,10 @@ export default function ContentCalendar() {
                 console.log(
                   `[Calendar] Selection complete. Approved: ${approved.length}, Rejected: ${rejected.length}`,
                 );
-                if (activeBrandId && (approved.length > 0 || rejected.length > 0)) {
+                if (
+                  activeBrandId &&
+                  (approved.length > 0 || rejected.length > 0)
+                ) {
                   try {
                     const response = await apiRequest(
                       "POST",
@@ -3091,7 +3189,9 @@ export default function ContentCalendar() {
                     );
                     if (response.ok) {
                       queryClient.invalidateQueries({
-                        queryKey: [`/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`],
+                        queryKey: [
+                          `/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`,
+                        ],
                       });
                     }
 
@@ -3142,12 +3242,21 @@ export default function ContentCalendar() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={!!scheduleDialogImage} onOpenChange={(open) => {
-          if (!open) {
-            setScheduleDialogImage(null);
-            setScheduleForm({ platform: "instagram", titulo: "", content: "", hashtags: "", scheduledDate: "" });
-          }
-        }}>
+        <Dialog
+          open={!!scheduleDialogImage}
+          onOpenChange={(open) => {
+            if (!open) {
+              setScheduleDialogImage(null);
+              setScheduleForm({
+                platform: "instagram",
+                titulo: "",
+                content: "",
+                hashtags: "",
+                scheduledDate: "",
+              });
+            }
+          }}
+        >
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>
@@ -3176,7 +3285,12 @@ export default function ContentCalendar() {
                     </label>
                     <select
                       value={scheduleForm.platform}
-                      onChange={(e) => setScheduleForm(prev => ({ ...prev, platform: e.target.value }))}
+                      onChange={(e) =>
+                        setScheduleForm((prev) => ({
+                          ...prev,
+                          platform: e.target.value,
+                        }))
+                      }
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     >
                       <option value="instagram">Instagram</option>
@@ -3191,9 +3305,16 @@ export default function ContentCalendar() {
                       {isSpanish ? "Titulo" : "Title"}
                     </label>
                     <Input
-                      placeholder={isSpanish ? "Titulo del post..." : "Post title..."}
+                      placeholder={
+                        isSpanish ? "Titulo del post..." : "Post title..."
+                      }
                       value={scheduleForm.titulo}
-                      onChange={(e) => setScheduleForm(prev => ({ ...prev, titulo: e.target.value }))}
+                      onChange={(e) =>
+                        setScheduleForm((prev) => ({
+                          ...prev,
+                          titulo: e.target.value,
+                        }))
+                      }
                     />
                   </div>
 
@@ -3202,9 +3323,18 @@ export default function ContentCalendar() {
                       {isSpanish ? "Caption" : "Caption"}
                     </label>
                     <Textarea
-                      placeholder={isSpanish ? "Escribe tu caption..." : "Write your caption..."}
+                      placeholder={
+                        isSpanish
+                          ? "Escribe tu caption..."
+                          : "Write your caption..."
+                      }
                       value={scheduleForm.content}
-                      onChange={(e) => setScheduleForm(prev => ({ ...prev, content: e.target.value }))}
+                      onChange={(e) =>
+                        setScheduleForm((prev) => ({
+                          ...prev,
+                          content: e.target.value,
+                        }))
+                      }
                       rows={3}
                     />
                   </div>
@@ -3216,18 +3346,30 @@ export default function ContentCalendar() {
                     <Input
                       placeholder="#hashtag1 #hashtag2 #hashtag3"
                       value={scheduleForm.hashtags}
-                      onChange={(e) => setScheduleForm(prev => ({ ...prev, hashtags: e.target.value }))}
+                      onChange={(e) =>
+                        setScheduleForm((prev) => ({
+                          ...prev,
+                          hashtags: e.target.value,
+                        }))
+                      }
                     />
                   </div>
 
                   <div>
                     <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      {isSpanish ? "Fecha de publicacion (opcional)" : "Publish date (optional)"}
+                      {isSpanish
+                        ? "Fecha de publicacion (opcional)"
+                        : "Publish date (optional)"}
                     </label>
                     <Input
                       type="datetime-local"
                       value={scheduleForm.scheduledDate}
-                      onChange={(e) => setScheduleForm(prev => ({ ...prev, scheduledDate: e.target.value }))}
+                      onChange={(e) =>
+                        setScheduleForm((prev) => ({
+                          ...prev,
+                          scheduledDate: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                 </div>
@@ -3238,7 +3380,13 @@ export default function ContentCalendar() {
                     className="flex-1"
                     onClick={() => {
                       setScheduleDialogImage(null);
-                      setScheduleForm({ platform: "instagram", titulo: "", content: "", hashtags: "", scheduledDate: "" });
+                      setScheduleForm({
+                        platform: "instagram",
+                        titulo: "",
+                        content: "",
+                        hashtags: "",
+                        scheduledDate: "",
+                      });
                     }}
                   >
                     {isSpanish ? "Cancelar" : "Cancel"}
