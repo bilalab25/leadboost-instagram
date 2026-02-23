@@ -3178,7 +3178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     async (req: any, res) => {
       try {
-        const { postIds, status } = req.body;
+        const { postIds, status, scheduleTimes } = req.body;
         const brandId = req.brandId;
 
         if (!postIds || !Array.isArray(postIds) || postIds.length === 0) {
@@ -3206,6 +3206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const updatedCount = await bulkUpdateAiGeneratedPostsStatus(
           validPostIds,
           status,
+          scheduleTimes,
         );
 
         res.json({

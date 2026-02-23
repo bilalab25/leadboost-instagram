@@ -778,15 +778,17 @@ export default function ContentCalendar() {
     mutationFn: async ({
       postIds,
       status,
+      scheduleTimes,
     }: {
       postIds: string[];
       status: "accepted" | "rejected" | "pending";
+      scheduleTimes?: Record<string, string>;
     }) => {
       const response = await fetch(`/api/ai-posts/bulk-status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ postIds, status, brandId: activeBrandId }),
+        body: JSON.stringify({ postIds, status, brandId: activeBrandId, scheduleTimes }),
       });
       if (!response.ok) throw new Error("Failed to bulk update post status");
       return response.json();
@@ -1133,7 +1135,15 @@ export default function ContentCalendar() {
     }
 
     const postIds = pendingPosts.map((p) => p.id);
-    bulkUpdatePostStatusMutation.mutate({ postIds, status });
+    const scheduleTimes: Record<string, string> = {};
+    if (status === "accepted") {
+      pendingPosts.forEach((p) => {
+        if (p.scheduledFor) {
+          scheduleTimes[p.id] = new Date(p.scheduledFor).toISOString();
+        }
+      });
+    }
+    bulkUpdatePostStatusMutation.mutate({ postIds, status, scheduleTimes });
   };
 
   // 🔹 Bulk approve/reject for day
@@ -1152,7 +1162,15 @@ export default function ContentCalendar() {
     }
 
     const postIds = pendingPosts.map((p) => p.id);
-    bulkUpdatePostStatusMutation.mutate({ postIds, status });
+    const scheduleTimes: Record<string, string> = {};
+    if (status === "accepted") {
+      pendingPosts.forEach((p) => {
+        if (p.scheduledFor) {
+          scheduleTimes[p.id] = new Date(p.scheduledFor).toISOString();
+        }
+      });
+    }
+    bulkUpdatePostStatusMutation.mutate({ postIds, status, scheduleTimes });
   };
 
   // Handle single post status update

@@ -231,10 +231,29 @@ export async function updateAiGeneratedPostStatus(
 export async function bulkUpdateAiGeneratedPostsStatus(
   postIds: string[],
   status: "pending" | "accepted" | "rejected",
+  scheduleTimes?: Record<string, string>,
 ): Promise<number> {
   if (postIds.length === 0) return 0;
 
   const now = new Date();
+
+  if (scheduleTimes && Object.keys(scheduleTimes).length > 0) {
+    let count = 0;
+    for (const postId of postIds) {
+      const updateData: any = { status, updatedAt: now };
+      if (scheduleTimes[postId]) {
+        updateData.scheduledPublishTime = new Date(scheduleTimes[postId]);
+      }
+      const result = await db
+        .update(aiGeneratedPosts)
+        .set(updateData)
+        .where(eq(aiGeneratedPosts.id, postId))
+        .returning();
+      if (result.length > 0) count++;
+    }
+    return count;
+  }
+
   const { inArray } = await import("drizzle-orm");
 
   const result = await db
