@@ -215,16 +215,9 @@ export default function ContentCalendar() {
   const [isScheduling, setIsScheduling] = useState(false);
   const [createPostDialogOpen, setCreatePostDialogOpen] = useState(false);
   const [createPostImageUrl, setCreatePostImageUrl] = useState<string>("");
-  const [createPostStep, setCreatePostStep] = useState<"pick" | "form">("pick");
-  const [createPostForm, setCreatePostForm] = useState({
-    platform: "instagram",
-    titulo: "",
-    content: "",
-    hashtags: "",
-    scheduledDate: "",
-  });
   const [isUploadingCreatePost, setIsUploadingCreatePost] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [isNewPostMode, setIsNewPostMode] = useState(false);
 
   // Query to fetch integrations for the brand
   const { data: integrations, isLoading: integrationsLoading } = useQuery<
@@ -1408,19 +1401,30 @@ export default function ContentCalendar() {
   };
 
   const openCreatePostDialog = () => {
+    setCreatePostImageUrl("");
+    setCreatePostDialogOpen(true);
+  };
+
+  const openNewPostModal = (imageUrl: string) => {
+    setCreatePostDialogOpen(false);
     const defaultDate = selectedDate
       ? format(selectedDate, "yyyy-MM-dd") + "T10:00"
-      : "";
-    setCreatePostForm({
+      : format(new Date(), "yyyy-MM-dd") + "T10:00";
+    const newPost: ContentPost = {
+      id: "new",
+      title: "",
       platform: "instagram",
-      titulo: "",
+      scheduledFor: defaultDate,
+      status: "pending",
       content: "",
+      imageUrl,
+      type: "image",
+      source: "manual",
       hashtags: "",
-      scheduledDate: defaultDate,
-    });
-    setCreatePostImageUrl("");
-    setCreatePostStep("pick");
-    setCreatePostDialogOpen(true);
+    };
+    setIsNewPostMode(true);
+    setSelectedPost(newPost);
+    setEditPost({ ...newPost });
   };
 
   const handleCreatePostUpload = async (
@@ -1459,8 +1463,7 @@ export default function ContentCalendar() {
           `/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`,
         ],
       });
-      setCreatePostImageUrl(data.secure_url);
-      setCreatePostStep("form");
+      openNewPostModal(data.secure_url);
     } catch (err) {
       console.error("[Calendar] Create post upload error:", err);
       toast({
@@ -1474,23 +1477,23 @@ export default function ContentCalendar() {
     }
   };
 
-  const handleCreatePost = async () => {
-    if (!activeBrandId || !createPostImageUrl) return;
+  const handleCreateNewPost = async () => {
+    if (!activeBrandId || !editPost?.imageUrl) return;
     setIsCreatingPost(true);
     try {
       const response = await apiRequest(
         "POST",
         `/api/brands/${activeBrandId}/schedule-content`,
         {
-          imageUrl: createPostImageUrl,
-          platform: createPostForm.platform,
+          imageUrl: editPost.imageUrl,
+          platform: editPost.platform,
           titulo:
-            createPostForm.titulo ||
+            editPost.title ||
             (isSpanish ? "Post programado" : "Scheduled Post"),
-          content: createPostForm.content,
-          hashtags: createPostForm.hashtags,
-          scheduledPublishTime: createPostForm.scheduledDate
-            ? new Date(createPostForm.scheduledDate).toISOString()
+          content: editPost.content,
+          hashtags: editPost.hashtags,
+          scheduledPublishTime: editPost.scheduledFor
+            ? new Date(editPost.scheduledFor).toISOString()
             : undefined,
         },
       );
@@ -1504,7 +1507,8 @@ export default function ContentCalendar() {
             ? "El post se agregó a tu calendario."
             : "Post added to your calendar.",
         });
-        setCreatePostDialogOpen(false);
+        setSelectedPost(null);
+        setIsNewPostMode(false);
       }
     } catch (err) {
       console.error("[Calendar] Create post error:", err);
@@ -2708,7 +2712,10 @@ export default function ContentCalendar() {
         {/* Modal Meta Ads Style */}
         <Dialog
           open={!!selectedPost}
-          onOpenChange={() => setSelectedPost(null)}
+          onOpenChange={() => {
+            setSelectedPost(null);
+            setIsNewPostMode(false);
+          }}
         >
           <DialogContent className="max-w-4xl p-0 overflow-hidden">
             {editPost && (
@@ -2717,22 +2724,47 @@ export default function ContentCalendar() {
                 <div className="px-6 py-4 border-b bg-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-purple-600" />
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isNewPostMode ? "bg-teal-100" : "bg-purple-100"}`}>
+                        {isNewPostMode ? (
+                          <CalendarPlus className="w-5 h-5 text-teal-600" />
+                        ) : (
+                          <Sparkles className="w-5 h-5 text-purple-600" />
+                        )}
                       </div>
                       <div>
                         <DialogTitle className="text-lg font-semibold">
-                          {isSpanish ? "Editar Publicación" : "Edit Post"}
+                          {isNewPostMode
+                            ? isSpanish ? "Crear Post" : "Create Post"
+                            : isSpanish ? "Editar Publicación" : "Edit Post"}
                         </DialogTitle>
                         <p className="text-sm text-gray-500">
-                          {isSpanish
-                            ? "Vista previa y personaliza tu contenido"
-                            : "Preview and customize your content"}
+                          {isNewPostMode
+                            ? isSpanish
+                              ? "Configura y programa tu nuevo post"
+                              : "Set up and schedule your new post"
+                            : isSpanish
+                              ? "Vista previa y personaliza tu contenido"
+                              : "Preview and customize your content"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 mr-4">
-                      {editPost.platform === "instagram" ||
+                      {isNewPostMode ? (
+                        <select
+                          value={editPost.platform}
+                          onChange={(e) =>
+                            setEditPost((prev) =>
+                              prev ? { ...prev, platform: e.target.value } : prev,
+                            )
+                          }
+                          className="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium bg-white"
+                        >
+                          <option value="instagram">Instagram</option>
+                          <option value="facebook">Facebook</option>
+                          <option value="whatsapp">WhatsApp</option>
+                          <option value="tiktok">TikTok</option>
+                        </select>
+                      ) : editPost.platform === "instagram" ||
                       editPost.platform === "instagram_direct" ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-sm font-medium">
                           <Instagram className="w-4 h-4" /> Instagram
@@ -2746,8 +2778,8 @@ export default function ContentCalendar() {
                           {editPost.platform}
                         </span>
                       )}
-                      {/* Status badge next to platform */}
-                      {editPost.status === "pending" && (
+                      {/* Status badge next to platform - hide in new post mode */}
+                      {!isNewPostMode && editPost.status === "pending" && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-sm font-medium border border-purple-200">
                           <Clock className="w-4 h-4" />{" "}
                           {isSpanish ? "Pendiente" : "Pending"}
@@ -2907,7 +2939,7 @@ export default function ContentCalendar() {
                     </div>
 
                     {/* Hashtags */}
-                    {editPost.hashtags && (
+                    {(isNewPostMode || editPost.hashtags) && (
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">
                           Hashtags
@@ -3047,96 +3079,126 @@ export default function ContentCalendar() {
 
                 {/* Footer */}
                 <div className="px-6 py-4 border-t bg-white flex items-center justify-between">
-                  {/* Show reject button only for pending posts */}
-                  {editPost.status === "pending" ? (
-                    <Button
-                      variant="ghost"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => {
-                        if (selectedPost) {
-                          updatePostStatusMutation.mutate({
-                            postId: selectedPost.id,
-                            status: "rejected",
-                          });
-                        }
-                        setSelectedPost(null);
-                      }}
-                      data-testid="button-reject-post"
-                      disabled={!hasPostingFrequency}
-                    >
-                      <XCircle className="w-4 h-4 mr-2" /> Reject Post
-                    </Button>
+                  {isNewPostMode ? (
+                    <>
+                      <div></div>
+                      <div className="flex gap-3">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedPost(null);
+                            setIsNewPostMode(false);
+                          }}
+                        >
+                          {isSpanish ? "Cancelar" : "Cancel"}
+                        </Button>
+                        <Button
+                          className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white gap-2"
+                          onClick={handleCreateNewPost}
+                          disabled={isCreatingPost}
+                        >
+                          {isCreatingPost ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <CalendarPlus className="w-4 h-4" />
+                          )}
+                          {isSpanish ? "Crear Post" : "Create Post"}
+                        </Button>
+                      </div>
+                    </>
                   ) : (
-                    <div></div>
-                  )}
-
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setSelectedPost(null)}
-                      data-testid="button-cancel-edit"
-                    >
-                      {editPost.status === "pending" ? "Cancel" : "Close"}
-                    </Button>
-                    {editPost.status === "pending" && (
-                      <>
+                    <>
+                      {editPost.status === "pending" ? (
                         <Button
-                          variant="outline"
-                          className="gap-2"
+                          variant="ghost"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           onClick={() => {
-                            if (selectedPost && editPost) {
+                            if (selectedPost) {
                               updatePostStatusMutation.mutate({
                                 postId: selectedPost.id,
-                                status: "pending",
-                                titulo: editPost.title,
-                                content: editPost.content,
-                                hashtags: editPost.hashtags,
-                              });
-                              setSelectedPost(null);
-                            }
-                          }}
-                          data-testid="button-save-edit"
-                          disabled={updatePostStatusMutation.isPending}
-                        >
-                          <Save className="w-4 h-4" /> Save
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="gap-2"
-                          onClick={() => {
-                            if (selectedPost && editPost) {
-                              setSelectedPost(null);
-                              handleEditBeforeAccept(editPost);
-                            }
-                          }}
-                          data-testid="button-edit-image"
-                        >
-                          <Edit className="w-4 h-4" /> Edit Image
-                        </Button>
-                        <Button
-                          className="bg-gray-800 hover:bg-gray-900 text-white"
-                          onClick={() => {
-                            if (selectedPost && editPost) {
-                              const localDate = new Date(editPost.scheduledFor);
-                              updatePostStatusMutation.mutate({
-                                postId: selectedPost.id,
-                                status: "accepted",
-                                scheduledPublishTime: localDate.toISOString(),
-                                titulo: editPost.title,
-                                content: editPost.content,
-                                hashtags: editPost.hashtags,
+                                status: "rejected",
                               });
                             }
                             setSelectedPost(null);
                           }}
-                          data-testid="button-approve-post"
+                          data-testid="button-reject-post"
                           disabled={!hasPostingFrequency}
                         >
-                          <CheckCircle className="w-4 h-4 mr-2" /> Approve
+                          <XCircle className="w-4 h-4 mr-2" /> Reject Post
                         </Button>
-                      </>
-                    )}
-                  </div>
+                      ) : (
+                        <div></div>
+                      )}
+
+                      <div className="flex gap-3">
+                        <Button
+                          variant="outline"
+                          onClick={() => setSelectedPost(null)}
+                          data-testid="button-cancel-edit"
+                        >
+                          {editPost.status === "pending" ? "Cancel" : "Close"}
+                        </Button>
+                        {editPost.status === "pending" && (
+                          <>
+                            <Button
+                              variant="outline"
+                              className="gap-2"
+                              onClick={() => {
+                                if (selectedPost && editPost) {
+                                  updatePostStatusMutation.mutate({
+                                    postId: selectedPost.id,
+                                    status: "pending",
+                                    titulo: editPost.title,
+                                    content: editPost.content,
+                                    hashtags: editPost.hashtags,
+                                  });
+                                  setSelectedPost(null);
+                                }
+                              }}
+                              data-testid="button-save-edit"
+                              disabled={updatePostStatusMutation.isPending}
+                            >
+                              <Save className="w-4 h-4" /> Save
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="gap-2"
+                              onClick={() => {
+                                if (selectedPost && editPost) {
+                                  setSelectedPost(null);
+                                  handleEditBeforeAccept(editPost);
+                                }
+                              }}
+                              data-testid="button-edit-image"
+                            >
+                              <Edit className="w-4 h-4" /> Edit Image
+                            </Button>
+                            <Button
+                              className="bg-gray-800 hover:bg-gray-900 text-white"
+                              onClick={() => {
+                                if (selectedPost && editPost) {
+                                  const localDate = new Date(editPost.scheduledFor);
+                                  updatePostStatusMutation.mutate({
+                                    postId: selectedPost.id,
+                                    status: "accepted",
+                                    scheduledPublishTime: localDate.toISOString(),
+                                    titulo: editPost.title,
+                                    content: editPost.content,
+                                    hashtags: editPost.hashtags,
+                                  });
+                                }
+                                setSelectedPost(null);
+                              }}
+                              data-testid="button-approve-post"
+                              disabled={!hasPostingFrequency}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" /> Approve
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </>
             )}
@@ -3549,224 +3611,80 @@ export default function ContentCalendar() {
             if (!open) {
               setCreatePostDialogOpen(false);
               setCreatePostImageUrl("");
-              setCreatePostStep("pick");
             }
           }}
         >
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {createPostStep === "pick"
-                  ? isSpanish ? "Selecciona una imagen" : "Select an image"
-                  : isSpanish ? "Crear Post" : "Create Post"}
+                {isSpanish ? "Selecciona una imagen" : "Select an image"}
               </DialogTitle>
               <DialogDescription>
-                {createPostStep === "pick"
-                  ? isSpanish
-                    ? "Elige una imagen de tu galería o sube una nueva."
-                    : "Pick an image from your gallery or upload a new one."
-                  : isSpanish
-                    ? "Completa los detalles de tu post."
-                    : "Fill in your post details."}
+                {isSpanish
+                  ? "Elige una imagen de tu galería o sube una nueva."
+                  : "Pick an image from your gallery or upload a new one."}
               </DialogDescription>
             </DialogHeader>
 
-            {createPostStep === "pick" && (
-              <div className="space-y-4">
-                <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-teal-400 hover:bg-teal-50/50 transition-colors">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleCreatePostUpload}
-                    disabled={isUploadingCreatePost}
-                  />
-                  {isUploadingCreatePost ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
-                      <span className="text-sm text-gray-500">
-                        {isSpanish ? "Subiendo..." : "Uploading..."}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <Upload className="w-6 h-6 text-gray-400" />
-                      <span className="text-sm text-gray-500">
-                        {isSpanish ? "Subir nueva imagen" : "Upload new image"}
-                      </span>
-                    </div>
-                  )}
-                </label>
+            <div className="space-y-4">
+              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-teal-400 hover:bg-teal-50/50 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleCreatePostUpload}
+                  disabled={isUploadingCreatePost}
+                />
+                {isUploadingCreatePost ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
+                    <span className="text-sm text-gray-500">
+                      {isSpanish ? "Subiendo..." : "Uploading..."}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-6 h-6 text-gray-400" />
+                    <span className="text-sm text-gray-500">
+                      {isSpanish ? "Subir nueva imagen" : "Upload new image"}
+                    </span>
+                  </div>
+                )}
+              </label>
 
-                {(() => {
-                  const imageAssets = (brandAssets || []).filter(
-                    (a: any) => a.assetType === "image",
-                  );
-                  if (imageAssets.length === 0) {
-                    return (
-                      <p className="text-sm text-gray-400 text-center py-4">
-                        {isSpanish
-                          ? "No tienes imágenes en tu galería. Sube una arriba."
-                          : "No images in your gallery yet. Upload one above."}
-                      </p>
-                    );
-                  }
+              {(() => {
+                const imageAssets = (brandAssets || []).filter(
+                  (a: any) => a.assetType === "image",
+                );
+                if (imageAssets.length === 0) {
                   return (
-                    <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-                      {imageAssets.map((asset: any) => (
-                        <button
-                          key={asset.id}
-                          className="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-teal-500 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400"
-                          onClick={() => {
-                            setCreatePostImageUrl(asset.url);
-                            setCreatePostStep("form");
-                          }}
-                        >
-                          <img
-                            src={asset.url}
-                            alt={asset.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        </button>
-                      ))}
-                    </div>
+                    <p className="text-sm text-gray-400 text-center py-4">
+                      {isSpanish
+                        ? "No tienes imágenes en tu galería. Sube una arriba."
+                        : "No images in your gallery yet. Upload one above."}
+                    </p>
                   );
-                })()}
-              </div>
-            )}
-
-            {createPostStep === "form" && (
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                    <img
-                      src={createPostImageUrl}
-                      alt="Selected"
-                      className="w-full h-full object-cover"
-                    />
+                }
+                return (
+                  <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                    {imageAssets.map((asset: any) => (
+                      <button
+                        key={asset.id}
+                        className="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-teal-500 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400"
+                        onClick={() => openNewPostModal(asset.url)}
+                      >
+                        <img
+                          src={asset.url}
+                          alt={asset.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </button>
+                    ))}
                   </div>
-                  <button
-                    className="text-sm text-teal-600 hover:text-teal-700 underline mt-1"
-                    onClick={() => setCreatePostStep("pick")}
-                  >
-                    {isSpanish ? "Cambiar imagen" : "Change image"}
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      {isSpanish ? "Plataforma" : "Platform"}
-                    </label>
-                    <select
-                      value={createPostForm.platform}
-                      onChange={(e) =>
-                        setCreatePostForm((prev) => ({
-                          ...prev,
-                          platform: e.target.value,
-                        }))
-                      }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                    >
-                      <option value="instagram">Instagram</option>
-                      <option value="facebook">Facebook</option>
-                      <option value="whatsapp">WhatsApp</option>
-                      <option value="tiktok">TikTok</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      {isSpanish ? "Título" : "Title"}
-                    </label>
-                    <Input
-                      placeholder={isSpanish ? "Título del post..." : "Post title..."}
-                      value={createPostForm.titulo}
-                      onChange={(e) =>
-                        setCreatePostForm((prev) => ({
-                          ...prev,
-                          titulo: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      {isSpanish ? "Descripción" : "Caption"}
-                    </label>
-                    <Textarea
-                      placeholder={
-                        isSpanish ? "Escribe tu caption..." : "Write your caption..."
-                      }
-                      value={createPostForm.content}
-                      onChange={(e) =>
-                        setCreatePostForm((prev) => ({
-                          ...prev,
-                          content: e.target.value,
-                        }))
-                      }
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      {isSpanish ? "Etiquetas" : "Hashtags"}
-                    </label>
-                    <Input
-                      placeholder="#hashtag1 #hashtag2 #hashtag3"
-                      value={createPostForm.hashtags}
-                      onChange={(e) =>
-                        setCreatePostForm((prev) => ({
-                          ...prev,
-                          hashtags: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      {isSpanish ? "Fecha de publicación" : "Publish date"}
-                    </label>
-                    <Input
-                      type="datetime-local"
-                      value={createPostForm.scheduledDate}
-                      onChange={(e) =>
-                        setCreatePostForm((prev) => ({
-                          ...prev,
-                          scheduledDate: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setCreatePostDialogOpen(false)}
-                  >
-                    {isSpanish ? "Cancelar" : "Cancel"}
-                  </Button>
-                  <Button
-                    className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
-                    onClick={handleCreatePost}
-                    disabled={isCreatingPost}
-                  >
-                    {isCreatingPost ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <CalendarPlus className="w-4 h-4 mr-2" />
-                    )}
-                    {isSpanish ? "Crear Post" : "Create Post"}
-                  </Button>
-                </div>
-              </div>
-            )}
+                );
+              })()}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
