@@ -1167,7 +1167,7 @@ export default function Landing() {
             </div>
 
             {/* High-Converting Chatbot Card - Top Right */}
-            <div className="sm:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 via-rose-900 to-pink-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-rose-500/20 hover:border-rose-400/40 transition-all duration-500">
+            {/*   <div className="sm:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 via-rose-900 to-pink-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-rose-500/20 hover:border-rose-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
@@ -1209,7 +1209,7 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Inbox Card */}
             <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-green-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-green-500/20 hover:border-green-400/40 transition-all duration-500">
@@ -1256,7 +1256,7 @@ export default function Landing() {
             </div>
 
             {/* CRM Card */}
-            <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-red-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-red-500/20 hover:border-red-400/40 transition-all duration-500">
+            {/*  <div className="group relative overflow-hidden bg-gradient-to-br from-gray-900 to-red-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-red-500/20 hover:border-red-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
@@ -1277,7 +1277,7 @@ export default function Landing() {
                 </p>
               </div>
             </div>
-
+ */}
             {/* Analytics Card - Bottom Featured */}
             <div className="sm:col-span-2 group relative overflow-hidden bg-gradient-to-br from-gray-900 to-purple-900 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-500">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
