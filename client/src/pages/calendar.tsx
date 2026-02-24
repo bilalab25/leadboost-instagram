@@ -213,6 +213,18 @@ export default function ContentCalendar() {
   });
   const [isUploadingContent, setIsUploadingContent] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [createPostDialogOpen, setCreatePostDialogOpen] = useState(false);
+  const [createPostImageUrl, setCreatePostImageUrl] = useState<string>("");
+  const [createPostStep, setCreatePostStep] = useState<"pick" | "form">("pick");
+  const [createPostForm, setCreatePostForm] = useState({
+    platform: "instagram",
+    titulo: "",
+    content: "",
+    hashtags: "",
+    scheduledDate: "",
+  });
+  const [isUploadingCreatePost, setIsUploadingCreatePost] = useState(false);
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
 
   // Query to fetch integrations for the brand
   const { data: integrations, isLoading: integrationsLoading } = useQuery<
@@ -1395,6 +1407,119 @@ export default function ContentCalendar() {
     }
   };
 
+  const openCreatePostDialog = () => {
+    const defaultDate = selectedDate
+      ? format(selectedDate, "yyyy-MM-dd") + "T10:00"
+      : "";
+    setCreatePostForm({
+      platform: "instagram",
+      titulo: "",
+      content: "",
+      hashtags: "",
+      scheduledDate: defaultDate,
+    });
+    setCreatePostImageUrl("");
+    setCreatePostStep("pick");
+    setCreatePostDialogOpen(true);
+  };
+
+  const handleCreatePostUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (!brandDesign?.id || !activeBrandId) return;
+    const file = e.currentTarget.files?.[0];
+    if (!file) return;
+    setIsUploadingCreatePost(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", uploadPreset);
+      const uploadRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+        { method: "POST", body: fd },
+      );
+      if (!uploadRes.ok) {
+        throw new Error("Cloudinary upload failed");
+      }
+      const data = await uploadRes.json();
+      if (!data.secure_url) {
+        throw new Error("No URL returned from upload");
+      }
+      await apiRequest("POST", "/api/brand-assets", {
+        brandDesignId: brandDesign.id,
+        url: data.secure_url,
+        name: file.name,
+        category: "content",
+        assetType: "image",
+        publicId: data.public_id,
+        description: "",
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`,
+        ],
+      });
+      setCreatePostImageUrl(data.secure_url);
+      setCreatePostStep("form");
+    } catch (err) {
+      console.error("[Calendar] Create post upload error:", err);
+      toast({
+        title: "Error",
+        description: isSpanish ? "Error al subir imagen" : "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingCreatePost(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleCreatePost = async () => {
+    if (!activeBrandId || !createPostImageUrl) return;
+    setIsCreatingPost(true);
+    try {
+      const response = await apiRequest(
+        "POST",
+        `/api/brands/${activeBrandId}/schedule-content`,
+        {
+          imageUrl: createPostImageUrl,
+          platform: createPostForm.platform,
+          titulo:
+            createPostForm.titulo ||
+            (isSpanish ? "Post programado" : "Scheduled Post"),
+          content: createPostForm.content,
+          hashtags: createPostForm.hashtags,
+          scheduledPublishTime: createPostForm.scheduledDate
+            ? new Date(createPostForm.scheduledDate).toISOString()
+            : undefined,
+        },
+      );
+      if (response.ok) {
+        queryClient.invalidateQueries({
+          queryKey: ["/api/ai-generated-posts", activeBrandId],
+        });
+        toast({
+          title: isSpanish ? "Post creado" : "Post created",
+          description: isSpanish
+            ? "El post se agregó a tu calendario."
+            : "Post added to your calendar.",
+        });
+        setCreatePostDialogOpen(false);
+      }
+    } catch (err) {
+      console.error("[Calendar] Create post error:", err);
+      toast({
+        title: "Error",
+        description: isSpanish
+          ? "Error al crear post"
+          : "Failed to create post",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingPost(false);
+    }
+  };
+
   return (
     <TooltipProvider>
       {/*       <Button
@@ -2107,7 +2232,16 @@ export default function ContentCalendar() {
                                       : "Select a date"}
                                 </CardTitle>
                               </div>
-                              {/* ✅ Approve all posts for the day - only show if there are pending posts */}
+                              {selectedDate && (
+                                <Button
+                                  size="sm"
+                                  className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-600 hover:to-cyan-600"
+                                  onClick={openCreatePostDialog}
+                                >
+                                  <Plus className="w-4 h-4 mr-1" />
+                                  {isSpanish ? "Crear Post" : "Create Post"}
+                                </Button>
+                              )}
                               {selectedDate &&
                                 selectedDatePosts.length > 0 &&
                                 selectedDatePosts.some(
@@ -3397,6 +3531,233 @@ export default function ContentCalendar() {
                     disabled={isScheduling}
                   >
                     {isScheduling ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <CalendarPlus className="w-4 h-4 mr-2" />
+                    )}
+                    {isSpanish ? "Crear Post" : "Create Post"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={createPostDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setCreatePostDialogOpen(false);
+              setCreatePostImageUrl("");
+              setCreatePostStep("pick");
+            }
+          }}
+        >
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {createPostStep === "pick"
+                  ? isSpanish ? "Selecciona una imagen" : "Select an image"
+                  : isSpanish ? "Crear Post" : "Create Post"}
+              </DialogTitle>
+              <DialogDescription>
+                {createPostStep === "pick"
+                  ? isSpanish
+                    ? "Elige una imagen de tu galería o sube una nueva."
+                    : "Pick an image from your gallery or upload a new one."
+                  : isSpanish
+                    ? "Completa los detalles de tu post."
+                    : "Fill in your post details."}
+              </DialogDescription>
+            </DialogHeader>
+
+            {createPostStep === "pick" && (
+              <div className="space-y-4">
+                <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-teal-400 hover:bg-teal-50/50 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCreatePostUpload}
+                    disabled={isUploadingCreatePost}
+                  />
+                  {isUploadingCreatePost ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
+                      <span className="text-sm text-gray-500">
+                        {isSpanish ? "Subiendo..." : "Uploading..."}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <Upload className="w-6 h-6 text-gray-400" />
+                      <span className="text-sm text-gray-500">
+                        {isSpanish ? "Subir nueva imagen" : "Upload new image"}
+                      </span>
+                    </div>
+                  )}
+                </label>
+
+                {(() => {
+                  const imageAssets = (brandAssets || []).filter(
+                    (a: any) => a.assetType === "image",
+                  );
+                  if (imageAssets.length === 0) {
+                    return (
+                      <p className="text-sm text-gray-400 text-center py-4">
+                        {isSpanish
+                          ? "No tienes imágenes en tu galería. Sube una arriba."
+                          : "No images in your gallery yet. Upload one above."}
+                      </p>
+                    );
+                  }
+                  return (
+                    <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                      {imageAssets.map((asset: any) => (
+                        <button
+                          key={asset.id}
+                          className="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-teal-500 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400"
+                          onClick={() => {
+                            setCreatePostImageUrl(asset.url);
+                            setCreatePostStep("form");
+                          }}
+                        >
+                          <img
+                            src={asset.url}
+                            alt={asset.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {createPostStep === "form" && (
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    <img
+                      src={createPostImageUrl}
+                      alt="Selected"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <button
+                    className="text-sm text-teal-600 hover:text-teal-700 underline mt-1"
+                    onClick={() => setCreatePostStep("pick")}
+                  >
+                    {isSpanish ? "Cambiar imagen" : "Change image"}
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      {isSpanish ? "Plataforma" : "Platform"}
+                    </label>
+                    <select
+                      value={createPostForm.platform}
+                      onChange={(e) =>
+                        setCreatePostForm((prev) => ({
+                          ...prev,
+                          platform: e.target.value,
+                        }))
+                      }
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    >
+                      <option value="instagram">Instagram</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="tiktok">TikTok</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      {isSpanish ? "Título" : "Title"}
+                    </label>
+                    <Input
+                      placeholder={isSpanish ? "Título del post..." : "Post title..."}
+                      value={createPostForm.titulo}
+                      onChange={(e) =>
+                        setCreatePostForm((prev) => ({
+                          ...prev,
+                          titulo: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      {isSpanish ? "Descripción" : "Caption"}
+                    </label>
+                    <Textarea
+                      placeholder={
+                        isSpanish ? "Escribe tu caption..." : "Write your caption..."
+                      }
+                      value={createPostForm.content}
+                      onChange={(e) =>
+                        setCreatePostForm((prev) => ({
+                          ...prev,
+                          content: e.target.value,
+                        }))
+                      }
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      {isSpanish ? "Etiquetas" : "Hashtags"}
+                    </label>
+                    <Input
+                      placeholder="#hashtag1 #hashtag2 #hashtag3"
+                      value={createPostForm.hashtags}
+                      onChange={(e) =>
+                        setCreatePostForm((prev) => ({
+                          ...prev,
+                          hashtags: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      {isSpanish ? "Fecha de publicación" : "Publish date"}
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={createPostForm.scheduledDate}
+                      onChange={(e) =>
+                        setCreatePostForm((prev) => ({
+                          ...prev,
+                          scheduledDate: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setCreatePostDialogOpen(false)}
+                  >
+                    {isSpanish ? "Cancelar" : "Cancel"}
+                  </Button>
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
+                    onClick={handleCreatePost}
+                    disabled={isCreatingPost}
+                  >
+                    {isCreatingPost ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
                       <CalendarPlus className="w-4 h-4 mr-2" />

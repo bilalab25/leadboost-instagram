@@ -66,6 +66,7 @@ The platform features a component-based UI built with React, utilizing Shadcn/UI
 - **Settings Page**: 4-tab layout (Account, Brands, Payment Methods, Notifications) for user account management. Integrations moved to dedicated page.
 - **Brand Image Generation (Async)**: Image generation runs as a background job with polling. Users can navigate away and return to find the Tinder carousel ready. Job state persisted via localStorage. Approved images automatically become calendar posts with AI-generated captions via Gemini. API: POST `/api/brands/:brandId/generate-images` (returns jobId), GET `.../status/:jobId` for polling.
 - **Content Gallery**: Calendar "Gallery" tab shows AI-generated and user-uploaded content images. Upload button saves images to Cloudinary as brand assets (category: "content"). Each image has a "Schedule" action that opens a dialog to create a calendar post with platform, title, caption, hashtags, and optional date. APIs: POST `/api/brands/:brandId/images-to-posts`, POST `/api/brands/:brandId/schedule-content`.
+- **Create Post from Calendar**: Calendar sidebar features a "Create Post" button (visible when a date is selected). Opens a two-step dialog: 1) Pick an image from the brand asset gallery or upload a new one, 2) Fill in post details (platform, title, caption, hashtags, publish date). Pre-fills the date with the selected calendar date at 10:00 AM. Uses the same `/api/brands/:brandId/schedule-content` endpoint. Bilingual (English/Spanish).
 
 ## External Dependencies
 
