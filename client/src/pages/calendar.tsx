@@ -218,6 +218,7 @@ export default function ContentCalendar() {
   const [isUploadingCreatePost, setIsUploadingCreatePost] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [isNewPostMode, setIsNewPostMode] = useState(false);
+  const [gallerySubTab, setGallerySubTab] = useState<"all" | "ai" | "uploaded">("all");
 
   // Query to fetch integrations for the brand
   const { data: integrations, isLoading: integrationsLoading } = useQuery<
@@ -2542,7 +2543,12 @@ export default function ContentCalendar() {
                             : 0;
                           return dateB - dateA;
                         });
-                      const allGalleryImages = [...aiImages, ...contentImages];
+                      const allGalleryImages = [...aiImages, ...contentImages].sort((a: any, b: any) => {
+                        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                        return dateB - dateA;
+                      });
+                      const displayImages = gallerySubTab === "ai" ? aiImages : gallerySubTab === "uploaded" ? contentImages : allGalleryImages;
 
                       return (
                         <div className="pb-8">
@@ -2559,8 +2565,8 @@ export default function ContentCalendar() {
                                 </h2>
                                 <p className="text-sm text-gray-500">
                                   {isSpanish
-                                    ? `${allGalleryImages.length} ${allGalleryImages.length === 1 ? "imagen" : "imagenes"} disponibles`
-                                    : `${allGalleryImages.length} ${allGalleryImages.length === 1 ? "image" : "images"} available`}
+                                    ? `${displayImages.length} ${displayImages.length === 1 ? "imagen" : "imagenes"} disponibles`
+                                    : `${displayImages.length} ${displayImages.length === 1 ? "image" : "images"} available`}
                                 </p>
                               </div>
                             </div>
@@ -2596,20 +2602,51 @@ export default function ContentCalendar() {
                             </div>
                           </div>
 
-                          {allGalleryImages.length === 0 ? (
+                          <div className="flex gap-1 mb-4 bg-gray-100 rounded-lg p-1">
+                            <button
+                              onClick={() => setGallerySubTab("all")}
+                              className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${gallerySubTab === "all" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                            >
+                              {isSpanish ? "Todas" : "All"} ({allGalleryImages.length})
+                            </button>
+                            <button
+                              onClick={() => setGallerySubTab("ai")}
+                              className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${gallerySubTab === "ai" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                            >
+                              {isSpanish ? "Generadas IA" : "AI Generated"} ({aiImages.length})
+                            </button>
+                            <button
+                              onClick={() => setGallerySubTab("uploaded")}
+                              className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${gallerySubTab === "uploaded" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                            >
+                              {isSpanish ? "Subidas" : "Uploaded"} ({contentImages.length})
+                            </button>
+                          </div>
+
+                          {displayImages.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 text-center">
                               <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                                 <Grid3X3 className="w-8 h-8 text-gray-400" />
                               </div>
                               <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                                {isSpanish
-                                  ? "Sin imagenes aun"
-                                  : "No images yet"}
+                                {gallerySubTab === "ai"
+                                  ? (isSpanish ? "Sin imagenes de IA" : "No AI images yet")
+                                  : gallerySubTab === "uploaded"
+                                    ? (isSpanish ? "Sin imagenes subidas" : "No uploaded images yet")
+                                    : (isSpanish ? "Sin imagenes aun" : "No images yet")}
                               </h3>
                               <p className="text-sm text-gray-500 max-w-md mb-4">
-                                {isSpanish
-                                  ? "Genera imagenes con IA o sube tu propio contenido para verlo aqui."
-                                  : "Generate AI images or upload your own content to see them here."}
+                                {gallerySubTab === "ai"
+                                  ? (isSpanish
+                                      ? "Genera imagenes con IA desde la pestaña del calendario."
+                                      : "Generate AI images from the calendar tab.")
+                                  : gallerySubTab === "uploaded"
+                                    ? (isSpanish
+                                        ? "Sube tu propio contenido usando el botón de arriba."
+                                        : "Upload your own content using the button above.")
+                                    : (isSpanish
+                                        ? "Genera imagenes con IA o sube tu propio contenido para verlo aqui."
+                                        : "Generate AI images or upload your own content to see them here.")}
                               </p>
                               <div className="flex gap-2">
                                 <Button
@@ -2640,7 +2677,7 @@ export default function ContentCalendar() {
                             </div>
                           ) : (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                              {allGalleryImages.map((asset: any) => {
+                              {displayImages.map((asset: any) => {
                                 const isAI = asset.category === "ai-generated";
                                 return (
                                   <div
