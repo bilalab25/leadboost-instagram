@@ -1844,6 +1844,14 @@ export default function ContentCalendar() {
 
                             {/* Controls */}
                             <div className="flex flex-wrap items-center gap-4">
+                              <Button
+                                size="sm"
+                                className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-600 hover:to-cyan-600"
+                                onClick={openCreatePostDialog}
+                              >
+                                <Plus className="w-4 h-4 mr-1" />
+                                {isSpanish ? "Crear Post" : "Create Post"}
+                              </Button>
                               {/* Edit Frequency */}
                               <Button
                                 size="sm"
