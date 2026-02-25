@@ -55,6 +55,37 @@ export default function Pricing() {
         : "Perfect to test automated content powered by LeadBoost.",
     },
     {
+      key: "elevate",
+      name: "ELEVATE",
+      monthlyPrice: 29,
+      annualPrice: 278,
+      tagline: isSpanish
+        ? "Marketing en Autopilot para marcas en crecimiento."
+        : "Autopilot Marketing for growing brands.",
+      icon: Rocket,
+      gradient: "from-blue-500 to-blue-700",
+      highlight: false,
+      cta: isSpanish ? "Elegir Elevate" : "Choose Elevate",
+      features: isSpanish
+        ? [
+            "15 Posts/Stories (Instagram, Facebook, Twitter) por mes",
+            "4 Videos TikTok/Reels por mes",
+            "2 Campañas de Email por mes",
+            "Auto-programación y publicación por mes",
+            "Dashboard de analíticas básicas por mes",
+          ]
+        : [
+            "15 Posts/Stories (Instagram, Facebook, Twitter) per month",
+            "4 TikTok/Reels videos per month",
+            "2 Email campaigns per month",
+            "Auto-scheduling & posting per month",
+            "Basic analytics dashboard per month",
+          ],
+      footer: isSpanish
+        ? "Da el primer paso hacia el marketing automatizado con más alcance."
+        : "Take the first step toward automated marketing with greater reach.",
+    },
+    {
       key: "growth",
       name: "GROWTH",
       monthlyPrice: 49,
