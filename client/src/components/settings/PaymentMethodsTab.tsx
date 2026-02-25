@@ -425,7 +425,7 @@ export default function PaymentMethodTab({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {planTiers.map((plan) => {
               const isCurrent = currentPlan === plan.key;
               const PlanIcon = plan.icon;
@@ -433,97 +433,85 @@ export default function PaymentMethodTab({
               return (
                 <div
                   key={plan.key}
-                  className={`relative flex flex-col rounded-2xl border-2 overflow-hidden transition-all duration-200 ${
+                  className={`relative rounded-xl border-2 p-5 transition-all duration-200 ${
                     isCurrent
-                      ? plan.activeColor + " shadow-lg"
-                      : plan.popular
-                        ? plan.accentColor + " hover:shadow-md"
-                        : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                      ? "border-blue-500 bg-blue-50/50 shadow-md"
+                      : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  {/* Top gradient bar */}
-                  <div className={`h-1.5 w-full bg-gradient-to-r ${plan.gradient}`} />
+                  {isCurrent && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <Badge className="bg-blue-600 text-white text-xs px-3">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        {isSpanish ? "Plan Actual" : "Current Plan"}
+                      </Badge>
+                    </div>
+                  )}
 
-                  {/* Badges row */}
-                  <div className="flex items-center justify-between px-4 pt-3 min-h-[28px]">
-                    {isCurrent ? (
-                      <Badge className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 gap-1">
-                        <CheckCircle className="h-2.5 w-2.5" />
-                        {isSpanish ? "Actual" : "Current"}
-                      </Badge>
-                    ) : plan.popular ? (
-                      <Badge className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-[10px] px-2 py-0.5">
-                        ⭐ {isSpanish ? "Popular" : "Popular"}
-                      </Badge>
-                    ) : (
-                      <span />
+                  <div className="flex items-center gap-3 mb-3 mt-1">
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${plan.gradient} shadow-sm`}
+                    >
+                      <PlanIcon className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900">{plan.name}</h4>
+                      <p className="text-xs text-gray-500">{plan.tagline}</p>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <span className="text-3xl font-black text-gray-900">
+                      {plan.price === 0
+                        ? isSpanish
+                          ? "Gratis"
+                          : "Free"
+                        : `$${plan.price}`}
+                    </span>
+                    {plan.price > 0 && (
+                      <span className="text-gray-500 text-sm ml-1">
+                        /{isSpanish ? "mes" : "mo"}
+                      </span>
                     )}
                   </div>
 
-                  <div className="px-4 pb-4 flex flex-col flex-1">
-                    {/* Icon + name */}
-                    <div className="flex items-center gap-2.5 mb-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br ${plan.gradient} shadow-sm flex-shrink-0`}>
-                        <PlanIcon className="h-4.5 w-4.5 text-white" style={{ width: 18, height: 18 }} />
-                      </div>
-                      <div>
-                        <h4 className="font-extrabold text-sm text-gray-900 tracking-wide">{plan.name}</h4>
-                        <p className="text-[10px] text-gray-400 leading-tight">{plan.tagline}</p>
-                      </div>
-                    </div>
+                  <ul className="space-y-2 mb-4">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-xs text-gray-600">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-                    {/* Price */}
-                    <div className="mb-3">
-                      <span className="text-2xl font-black text-gray-900">
-                        {plan.price === 0 ? (isSpanish ? "Gratis" : "Free") : `$${plan.price}`}
-                      </span>
-                      {plan.price > 0 && (
-                        <span className="text-gray-400 text-xs ml-1">/{isSpanish ? "mes" : "mo"}</span>
+                  {!isCurrent && plan.price > 0 && (
+                    <Button
+                      size="sm"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg"
+                      onClick={() => (window.location.href = "/pricing")}
+                    >
+                      {isSpanish ? "Mejorar Plan" : "Upgrade"}
+                      <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                    </Button>
+                  )}
+
+                  {!isCurrent && plan.price === 0 && currentPlan !== "free" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full rounded-lg"
+                      onClick={() => portalMutation.mutate()}
+                      disabled={portalMutation.isPending}
+                    >
+                      {portalMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : isSpanish ? (
+                        "Cambiar a Free"
+                      ) : (
+                        "Downgrade"
                       )}
-                    </div>
-
-                    {/* Divider */}
-                    <div className="border-t border-gray-100 mb-3" />
-
-                    {/* Features */}
-                    <ul className="space-y-1.5 mb-4 flex-1">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-1.5">
-                          <Check className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-[11px] text-gray-600 leading-snug">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* CTA */}
-                    {isCurrent ? (
-                      <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 font-medium py-1.5">
-                        <CheckCircle className="h-3.5 w-3.5" />
-                        {isSpanish ? "Plan activo" : "Active plan"}
-                      </div>
-                    ) : !isCurrent && plan.price > 0 ? (
-                      <Button
-                        size="sm"
-                        className={`w-full text-white rounded-lg text-xs h-8 bg-gradient-to-r ${plan.gradient} hover:opacity-90`}
-                        onClick={() => (window.location.href = "/pricing")}
-                      >
-                        {isSpanish ? "Mejorar" : "Upgrade"}
-                        <ArrowRight className="h-3 w-3 ml-1" />
-                      </Button>
-                    ) : !isCurrent && plan.price === 0 && currentPlan !== "free" ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full rounded-lg text-xs h-8"
-                        onClick={() => portalMutation.mutate()}
-                        disabled={portalMutation.isPending}
-                      >
-                        {portalMutation.isPending ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : isSpanish ? "Bajar a Free" : "Downgrade"}
-                      </Button>
-                    ) : null}
-                  </div>
+                    </Button>
+                  )}
                 </div>
               );
             })}
