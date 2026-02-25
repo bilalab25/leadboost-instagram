@@ -2665,14 +2665,7 @@ export default function ContentCalendar() {
                                         className="w-full bg-white/90 hover:bg-white text-gray-900 text-xs h-7"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          setScheduleDialogImage(asset);
-                                          setScheduleForm({
-                                            platform: "instagram",
-                                            titulo: "",
-                                            content: "",
-                                            hashtags: "",
-                                            scheduledDate: "",
-                                          });
+                                          openNewPostModal(asset.url);
                                         }}
                                       >
                                         <CalendarPlus className="w-3.5 h-3.5 mr-1" />
