@@ -2995,6 +2995,7 @@ export default function ContentCalendar() {
                         placeholder="Enter a catchy title..."
                         className={`h-11 ${isNewPostMode && createPostErrors.title ? "border-red-400 focus-visible:ring-red-400" : ""}`}
                         disabled={
+                          editPost.status === "accepted" ||
                           editPost.status === "rejected" ||
                           editPost.status === "published" ||
                           editPost.status === "skipped_auto_post_disabled"
@@ -3030,6 +3031,7 @@ export default function ContentCalendar() {
                         placeholder="Write your caption..."
                         className={`min-h-[120px] resize-none ${isNewPostMode && createPostErrors.content ? "border-red-400 focus-visible:ring-red-400" : ""}`}
                         disabled={
+                          editPost.status === "accepted" ||
                           editPost.status === "rejected" ||
                           editPost.status === "published" ||
                           editPost.status === "skipped_auto_post_disabled"
@@ -3059,6 +3061,7 @@ export default function ContentCalendar() {
                           placeholder="#hashtag1 #hashtag2..."
                           className="min-h-[60px] resize-none text-sm text-blue-600"
                           disabled={
+                            editPost.status === "accepted" ||
                             editPost.status === "rejected" ||
                             editPost.status === "published" ||
                             editPost.status === "skipped_auto_post_disabled"
@@ -3092,6 +3095,7 @@ export default function ContentCalendar() {
                         }}
                         className={`h-11 ${isNewPostMode && createPostErrors.scheduledFor ? "border-red-400 focus-visible:ring-red-400" : ""}`}
                         disabled={
+                          editPost.status === "accepted" ||
                           editPost.status === "rejected" ||
                           editPost.status === "published" ||
                           editPost.status === "skipped_auto_post_disabled"
