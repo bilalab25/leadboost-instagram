@@ -2570,7 +2570,29 @@ export default function ContentCalendar() {
                                 </p>
                               </div>
                             </div>
-                            <div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => generateBrandImagesMutation.mutate()}
+                                disabled={
+                                  generateBrandImagesMutation.isPending ||
+                                  generatingBrandImages ||
+                                  !activeBrandId
+                                }
+                                className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white gap-1.5"
+                              >
+                                {generateBrandImagesMutation.isPending || generatingBrandImages ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    {isSpanish ? "Generando..." : "Generating..."}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Wand2 className="w-4 h-4" />
+                                    {isSpanish ? "Generar Imágenes" : "Generate Images"}
+                                  </>
+                                )}
+                              </Button>
                               <input
                                 type="file"
                                 id="content-upload-input"
