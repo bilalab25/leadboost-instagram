@@ -1409,6 +1409,7 @@ export default function ContentCalendar() {
 
   const openNewPostModal = (imageUrl: string) => {
     setCreatePostDialogOpen(false);
+    setCreatePostErrors({});
     const defaultDate = selectedDate
       ? format(selectedDate, "yyyy-MM-dd") + "T10:00"
       : format(new Date(), "yyyy-MM-dd") + "T10:00";
