@@ -2674,9 +2674,18 @@ export default function ContentCalendar() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setCalendarTab("month")}
+                                  onClick={() => generateBrandImagesMutation.mutate()}
+                                  disabled={
+                                    generateBrandImagesMutation.isPending ||
+                                    generatingBrandImages ||
+                                    !activeBrandId
+                                  }
                                 >
-                                  <CalendarIcon className="w-4 h-4 mr-2" />
+                                  {generateBrandImagesMutation.isPending || generatingBrandImages ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Wand2 className="w-4 h-4 mr-2" />
+                                  )}
                                   {isSpanish
                                     ? "Generar con IA"
                                     : "Generate with AI"}
