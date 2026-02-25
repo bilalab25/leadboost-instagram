@@ -314,7 +314,7 @@ export default function Pricing() {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-5">
           {plans.map((plan, index) => {
             const IconComponent = plan.icon;
             const isHighlighted = plan.highlight;
