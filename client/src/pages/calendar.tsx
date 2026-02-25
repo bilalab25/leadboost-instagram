@@ -1480,8 +1480,26 @@ export default function ContentCalendar() {
     }
   };
 
+  const [createPostErrors, setCreatePostErrors] = useState<Record<string, string>>({});
+
   const handleCreateNewPost = async () => {
     if (!activeBrandId || !editPost?.imageUrl) return;
+
+    const errors: Record<string, string> = {};
+    if (!editPost.title?.trim()) {
+      errors.title = isSpanish ? "El título es obligatorio" : "Title is required";
+    }
+    if (!editPost.content?.trim()) {
+      errors.content = isSpanish ? "La descripción es obligatoria" : "Caption is required";
+    }
+    if (!editPost.scheduledFor) {
+      errors.scheduledFor = isSpanish ? "La fecha es obligatoria" : "Schedule date is required";
+    }
+    if (Object.keys(errors).length > 0) {
+      setCreatePostErrors(errors);
+      return;
+    }
+    setCreatePostErrors({});
     setIsCreatingPost(true);
     try {
       const response = await apiRequest(
@@ -2786,6 +2804,7 @@ export default function ContentCalendar() {
           onOpenChange={() => {
             setSelectedPost(null);
             setIsNewPostMode(false);
+            setCreatePostErrors({});
           }}
         >
           <DialogContent className="max-w-4xl p-0 overflow-hidden">
@@ -2964,13 +2983,16 @@ export default function ContentCalendar() {
                       </label>
                       <Input
                         value={editPost.title}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setEditPost((prev) =>
                             prev ? { ...prev, title: e.target.value } : prev,
-                          )
-                        }
+                          );
+                          if (isNewPostMode && createPostErrors.title) {
+                            setCreatePostErrors((prev) => { const n = {...prev}; delete n.title; return n; });
+                          }
+                        }}
                         placeholder="Enter a catchy title..."
-                        className="h-11"
+                        className={`h-11 ${isNewPostMode && createPostErrors.title ? "border-red-400 focus-visible:ring-red-400" : ""}`}
                         disabled={
                           editPost.status === "rejected" ||
                           editPost.status === "published" ||
@@ -2978,6 +3000,9 @@ export default function ContentCalendar() {
                         }
                         data-testid="input-post-title"
                       />
+                      {isNewPostMode && createPostErrors.title && (
+                        <p className="text-xs text-red-500">{createPostErrors.title}</p>
+                      )}
                     </div>
 
                     {/* Content */}
@@ -2992,14 +3017,17 @@ export default function ContentCalendar() {
                       </div>
                       <Textarea
                         value={editPost.content}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setEditPost((prev) =>
                             prev ? { ...prev, content: e.target.value } : prev,
-                          )
-                        }
+                          );
+                          if (isNewPostMode && createPostErrors.content) {
+                            setCreatePostErrors((prev) => { const n = {...prev}; delete n.content; return n; });
+                          }
+                        }}
                         style={{ fontSize: ".6rem" }}
                         placeholder="Write your caption..."
-                        className="min-h-[120px] resize-none"
+                        className={`min-h-[120px] resize-none ${isNewPostMode && createPostErrors.content ? "border-red-400 focus-visible:ring-red-400" : ""}`}
                         disabled={
                           editPost.status === "rejected" ||
                           editPost.status === "published" ||
@@ -3007,6 +3035,9 @@ export default function ContentCalendar() {
                         }
                         data-testid="input-post-content"
                       />
+                      {isNewPostMode && createPostErrors.content && (
+                        <p className="text-xs text-red-500">{createPostErrors.content}</p>
+                      )}
                     </div>
 
                     {/* Hashtags */}
@@ -3048,14 +3079,17 @@ export default function ContentCalendar() {
                           "yyyy-MM-dd'T'HH:mm",
                           { locale: dateLocale },
                         )}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setEditPost((prev) =>
                             prev
                               ? { ...prev, scheduledFor: e.target.value }
                               : prev,
-                          )
-                        }
-                        className="h-11"
+                          );
+                          if (isNewPostMode && createPostErrors.scheduledFor) {
+                            setCreatePostErrors((prev) => { const n = {...prev}; delete n.scheduledFor; return n; });
+                          }
+                        }}
+                        className={`h-11 ${isNewPostMode && createPostErrors.scheduledFor ? "border-red-400 focus-visible:ring-red-400" : ""}`}
                         disabled={
                           editPost.status === "rejected" ||
                           editPost.status === "published" ||
@@ -3063,6 +3097,9 @@ export default function ContentCalendar() {
                         }
                         data-testid="input-post-schedule"
                       />
+                      {isNewPostMode && createPostErrors.scheduledFor && (
+                        <p className="text-xs text-red-500">{createPostErrors.scheduledFor}</p>
+                      )}
                     </div>
 
                     {/* Published At - Show when post is published */}
@@ -3159,6 +3196,7 @@ export default function ContentCalendar() {
                           onClick={() => {
                             setSelectedPost(null);
                             setIsNewPostMode(false);
+                            setCreatePostErrors({});
                           }}
                         >
                           {isSpanish ? "Cancelar" : "Cancel"}
