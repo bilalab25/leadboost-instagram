@@ -1312,6 +1312,7 @@ export default function ContentCalendar() {
 
         if (data.secure_url) {
           await apiRequest("POST", "/api/brand-assets", {
+            brandId: activeBrandId,
             brandDesignId: brandDesign.id,
             url: data.secure_url,
             name: file.name,
@@ -1450,6 +1451,7 @@ export default function ContentCalendar() {
         throw new Error("No URL returned from upload");
       }
       await apiRequest("POST", "/api/brand-assets", {
+        brandId: activeBrandId,
         brandDesignId: brandDesign.id,
         url: data.secure_url,
         name: file.name,
