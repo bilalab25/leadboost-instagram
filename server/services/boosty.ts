@@ -1235,6 +1235,8 @@ Respond ONLY with valid JSON.`;
     message: string,
     conversationHistory: ChatMessage[] = [],
     language: "es" | "en" = "es",
+    attachmentBase64?: string,
+    attachmentMimeType?: string,
   ): Promise<ChatResponse> {
     const context = await this.getBrandContext(brandId, userId);
     const systemPrompt = this.buildSystemPrompt(context, language);
@@ -1314,9 +1316,18 @@ Respond ONLY with valid JSON.`;
       });
     }
 
+    const userParts: any[] = [{ text: message }];
+    if (attachmentBase64 && attachmentMimeType) {
+      userParts.push({
+        inlineData: {
+          mimeType: attachmentMimeType,
+          data: attachmentBase64,
+        },
+      });
+    }
     messages.push({
       role: "user" as const,
-      parts: [{ text: message }],
+      parts: userParts,
     });
 
     try {

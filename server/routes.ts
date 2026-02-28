@@ -11253,7 +11253,7 @@ All content must be in English.`;
       try {
         const brandId = req.brandId;
         const userId = req.user.id;
-        const { message, conversationHistory, language } = req.body;
+        const { message, conversationHistory, language, attachmentBase64, attachmentMimeType } = req.body;
 
         if (!message || typeof message !== "string") {
           return res.status(400).json({ error: "Message is required" });
@@ -11265,6 +11265,8 @@ All content must be in English.`;
           message,
           conversationHistory || [],
           language || "es",
+          attachmentBase64,
+          attachmentMimeType,
         );
 
         res.json({
@@ -11275,6 +11277,31 @@ All content must be in English.`;
       } catch (error) {
         console.error("Error in Boosty chat:", error);
         res.status(500).json({ error: "Failed to process chat message" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/boosty/transcribe",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const { audioBase64, mimeType } = req.body;
+        if (!audioBase64) {
+          return res.status(400).json({ error: "audioBase64 is required" });
+        }
+        const buffer = Buffer.from(audioBase64, "base64");
+        const file = new File([buffer], "voice-note.webm", {
+          type: mimeType || "audio/webm",
+        });
+        const transcription = await openai.audio.transcriptions.create({
+          file,
+          model: "whisper-1",
+        });
+        res.json({ transcript: transcription.text });
+      } catch (error) {
+        console.error("Error transcribing voice note:", error);
+        res.status(500).json({ error: "Failed to transcribe audio" });
       }
     },
   );

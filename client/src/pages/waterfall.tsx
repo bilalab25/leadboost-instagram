@@ -119,7 +119,7 @@ export default function Waterfall() {
   };
 
   const [messages, setMessages] = useState<
-    { role: "user" | "assistant"; content: string; image?: string }[]
+    { role: "user" | "assistant"; content: string; image?: string; attachmentPreview?: string; attachmentName?: string }[]
   >([
     {
       role: "assistant",
@@ -207,7 +207,15 @@ export default function Waterfall() {
   });
 
   const chatMutation = useMutation({
-    mutationFn: async (message: string) => {
+    mutationFn: async ({
+      message,
+      attachmentBase64,
+      attachmentMimeType,
+    }: {
+      message: string;
+      attachmentBase64?: string;
+      attachmentMimeType?: string;
+    }) => {
       const response = await apiRequest("POST", "/api/boosty/chat", {
         brandId: activeBrandId,
         message,
@@ -216,6 +224,8 @@ export default function Waterfall() {
           content: m.content,
         })),
         language,
+        attachmentBase64,
+        attachmentMimeType,
       });
       return response.json();
     },
@@ -244,12 +254,69 @@ export default function Waterfall() {
     },
   });
 
-  const handleSend = () => {
-    if (!input.trim() || chatMutation.isPending || !activeBrandId) return;
-    const userInput = input.trim();
-    setMessages((prev) => [...prev, { role: "user", content: userInput }]);
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(",")[1]);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handleSend = async () => {
+    if (chatMutation.isPending || !activeBrandId) return;
+
+    let userText = input.trim();
+    let attachmentBase64: string | undefined;
+    let attachmentMimeType: string | undefined;
+    let attachmentPreviewUrl: string | undefined;
+
+    // Handle voice note: transcribe first
+    if (voiceNote) {
+      const audioBase64 = await toBase64(new File([voiceNote], "voice.webm", { type: "audio/webm" }));
+      try {
+        const res = await apiRequest("POST", "/api/boosty/transcribe", {
+          audioBase64,
+          mimeType: "audio/webm",
+        });
+        const data = await res.json();
+        const transcript = data.transcript || "";
+        userText = userText ? `${userText} ${transcript}` : transcript;
+      } catch {
+        userText = userText || (language === "es" ? "[Nota de voz]" : "[Voice note]");
+      }
+      setVoiceNote(null);
+      setRecordingSeconds(0);
+    }
+
+    // Handle image attachment
+    if (attachedFile && attachedFile.type.startsWith("image/")) {
+      attachmentBase64 = await toBase64(attachedFile);
+      attachmentMimeType = attachedFile.type;
+      attachmentPreviewUrl = URL.createObjectURL(attachedFile);
+      if (!userText) userText = language === "es" ? "Analiza esta imagen." : "Analyze this image.";
+    } else if (attachedFile) {
+      // Non-image file: mention it in text
+      if (!userText) userText = attachedFile.name;
+    }
+
+    if (!userText) return;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        content: userText,
+        attachmentPreview: attachmentPreviewUrl,
+        attachmentName: attachedFile?.name,
+      },
+    ]);
     setInput("");
-    chatMutation.mutate(userInput);
+    setAttachedFile(null);
+
+    chatMutation.mutate({ message: userText, attachmentBase64, attachmentMimeType });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -779,9 +846,18 @@ export default function Waterfall() {
                                     </ReactMarkdown>
                                   </>
                                 ) : (
-                                  <span className="whitespace-pre-wrap">
-                                    {msg.content}
-                                  </span>
+                                  <>
+                                    {msg.attachmentPreview && (
+                                      <img
+                                        src={msg.attachmentPreview}
+                                        alt={msg.attachmentName || "attachment"}
+                                        className="max-w-[220px] rounded-lg mb-2 border border-white/20 object-cover"
+                                      />
+                                    )}
+                                    <span className="whitespace-pre-wrap">
+                                      {msg.content}
+                                    </span>
+                                  </>
                                 )}
                               </div>
                               {msg.role === "user" && (
