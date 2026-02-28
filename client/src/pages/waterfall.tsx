@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +28,11 @@ import {
   ArrowRight,
   Loader2,
   Image,
+  Paperclip,
+  Mic,
+  MicOff,
+  X,
+  FileAudio,
 } from "lucide-react";
 import { SiInstagram, SiFacebook, SiTiktok } from "react-icons/si";
 import Sidebar from "@/components/Sidebar";
@@ -122,8 +127,15 @@ export default function Waterfall() {
     },
   ]);
   const [input, setInput] = useState("");
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [voiceNote, setVoiceNote] = useState<Blob | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Query for AI generated posts (for welcome modal)
   const { data: aiGeneratedPosts } = useQuery<AIGeneratedPost[]>({
@@ -251,6 +263,57 @@ export default function Waterfall() {
     setInput(suggestion);
     textareaRef.current?.focus();
   };
+
+  const handleAttachFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setAttachedFile(file);
+    e.target.value = "";
+  };
+
+  const removeAttachment = () => setAttachedFile(null);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        setVoiceNote(blob);
+        stream.getTracks().forEach((t) => t.stop());
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setIsRecording(true);
+      setRecordingSeconds(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds((s) => s + 1);
+      }, 1000);
+    } catch {
+      alert(language === "es" ? "No se pudo acceder al micrófono." : "Could not access microphone.");
+    }
+  }, [language]);
+
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    setIsRecording(false);
+  }, []);
+
+  const removeVoiceNote = () => {
+    setVoiceNote(null);
+    setRecordingSeconds(0);
+  };
+
+  const formatSeconds = (s: number) =>
+    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+  useEffect(() => {
+    return () => {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -792,28 +855,105 @@ export default function Waterfall() {
 
                     {/* Input area */}
                     <div className="p-4 border-t bg-white dark:bg-gray-800">
-                      <div className="max-w-3xl mx-auto flex items-end gap-3">
-                        <div className="flex-1 relative">
-                          <Textarea
-                            ref={textareaRef}
-                            placeholder={t.placeholder}
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            className="min-h-[48px] max-h-[120px] resize-none rounded-xl border-gray-200 dark:border-gray-600 pr-12 focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                            disabled={chatMutation.isPending}
-                            rows={1}
-                            data-testid="input-chat"
+                      <div className="max-w-3xl mx-auto space-y-2">
+
+                        {/* Attachment / voice note previews */}
+                        {(attachedFile || voiceNote) && (
+                          <div className="flex flex-wrap gap-2 px-1">
+                            {attachedFile && (
+                              <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300">
+                                <Paperclip className="h-3.5 w-3.5 text-gray-500" />
+                                <span className="max-w-[160px] truncate">{attachedFile.name}</span>
+                                <button onClick={removeAttachment} className="ml-1 hover:text-red-500 transition-colors">
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            )}
+                            {voiceNote && (
+                              <div className="flex items-center gap-1.5 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-1.5 text-xs text-teal-700 dark:text-teal-300">
+                                <FileAudio className="h-3.5 w-3.5" />
+                                <span>{language === "es" ? "Nota de voz" : "Voice note"} · {formatSeconds(recordingSeconds)}</span>
+                                <button onClick={removeVoiceNote} className="ml-1 hover:text-red-500 transition-colors">
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Recording indicator */}
+                        {isRecording && (
+                          <div className="flex items-center gap-2 px-1 text-xs text-red-500 font-medium">
+                            <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                            {language === "es" ? "Grabando" : "Recording"} · {formatSeconds(recordingSeconds)}
+                          </div>
+                        )}
+
+                        <div className="flex items-end gap-2">
+                          {/* Attachment button */}
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            className="hidden"
+                            accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+                            onChange={handleAttachFile}
                           />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={chatMutation.isPending}
+                            className="h-11 w-11 rounded-xl text-gray-500 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 flex-shrink-0"
+                            title={language === "es" ? "Adjuntar archivo" : "Attach file"}
+                            data-testid="button-attach"
+                          >
+                            <Paperclip className="h-5 w-5" />
+                          </Button>
+
+                          {/* Textarea */}
+                          <div className="flex-1">
+                            <Textarea
+                              ref={textareaRef}
+                              placeholder={t.placeholder}
+                              value={input}
+                              onChange={(e) => setInput(e.target.value)}
+                              onKeyDown={handleKeyDown}
+                              className="min-h-[44px] max-h-[120px] resize-none rounded-xl border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                              disabled={chatMutation.isPending}
+                              rows={1}
+                              data-testid="input-chat"
+                            />
+                          </div>
+
+                          {/* Voice note button */}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={isRecording ? stopRecording : startRecording}
+                            disabled={chatMutation.isPending || !!voiceNote}
+                            className={`h-11 w-11 rounded-xl flex-shrink-0 transition-colors ${
+                              isRecording
+                                ? "text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40"
+                                : "text-gray-500 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20"
+                            }`}
+                            title={isRecording ? (language === "es" ? "Detener grabación" : "Stop recording") : (language === "es" ? "Nota de voz" : "Voice note")}
+                            data-testid="button-voicenote"
+                          >
+                            {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                          </Button>
+
+                          {/* Send button */}
+                          <Button
+                            onClick={handleSend}
+                            disabled={chatMutation.isPending || (!input.trim() && !attachedFile && !voiceNote)}
+                            className="h-11 w-11 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 shadow-lg flex-shrink-0"
+                            data-testid="button-send"
+                          >
+                            <Send className="h-5 w-5" />
+                          </Button>
                         </div>
-                        <Button
-                          onClick={handleSend}
-                          disabled={chatMutation.isPending || !input.trim()}
-                          className="h-12 w-12 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 shadow-lg"
-                          data-testid="button-send"
-                        >
-                          <Send className="h-5 w-5" />
-                        </Button>
                       </div>
                     </div>
                   </div>
