@@ -45,6 +45,7 @@ import { useBrand } from "@/contexts/BrandContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { cn } from "@/lib/utils";
 import boosty_face from "./boosty_face.png";
+import AdsDashboard from "./ads-dashboard";
 
 interface AIGeneratedPost {
   id: string;
@@ -119,7 +120,13 @@ export default function Waterfall() {
   };
 
   const [messages, setMessages] = useState<
-    { role: "user" | "assistant"; content: string; image?: string; attachmentPreview?: string; attachmentName?: string }[]
+    {
+      role: "user" | "assistant";
+      content: string;
+      image?: string;
+      attachmentPreview?: string;
+      attachmentName?: string;
+    }[]
   >([
     {
       role: "assistant",
@@ -275,7 +282,9 @@ export default function Waterfall() {
 
     // Handle voice note: transcribe first
     if (voiceNote) {
-      const audioBase64 = await toBase64(new File([voiceNote], "voice.webm", { type: "audio/webm" }));
+      const audioBase64 = await toBase64(
+        new File([voiceNote], "voice.webm", { type: "audio/webm" }),
+      );
       try {
         const res = await apiRequest("POST", "/api/boosty/transcribe", {
           audioBase64,
@@ -285,7 +294,8 @@ export default function Waterfall() {
         const transcript = data.transcript || "";
         userText = userText ? `${userText} ${transcript}` : transcript;
       } catch {
-        userText = userText || (language === "es" ? "[Nota de voz]" : "[Voice note]");
+        userText =
+          userText || (language === "es" ? "[Nota de voz]" : "[Voice note]");
       }
       setVoiceNote(null);
       setRecordingSeconds(0);
@@ -296,7 +306,9 @@ export default function Waterfall() {
       attachmentBase64 = await toBase64(attachedFile);
       attachmentMimeType = attachedFile.type;
       attachmentPreviewUrl = URL.createObjectURL(attachedFile);
-      if (!userText) userText = language === "es" ? "Analiza esta imagen." : "Analyze this image.";
+      if (!userText)
+        userText =
+          language === "es" ? "Analiza esta imagen." : "Analyze this image.";
     } else if (attachedFile) {
       // Non-image file: mention it in text
       if (!userText) userText = attachedFile.name;
@@ -316,7 +328,11 @@ export default function Waterfall() {
     setInput("");
     setAttachedFile(null);
 
-    chatMutation.mutate({ message: userText, attachmentBase64, attachmentMimeType });
+    chatMutation.mutate({
+      message: userText,
+      attachmentBase64,
+      attachmentMimeType,
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -358,7 +374,11 @@ export default function Waterfall() {
         setRecordingSeconds((s) => s + 1);
       }, 1000);
     } catch {
-      alert(language === "es" ? "No se pudo acceder al micrófono." : "Could not access microphone.");
+      alert(
+        language === "es"
+          ? "No se pudo acceder al micrófono."
+          : "Could not access microphone.",
+      );
     }
   }, [language]);
 
@@ -604,7 +624,7 @@ export default function Waterfall() {
               }
               className="w-full h-full flex flex-col"
             >
-              <TabsList className="grid w-full grid-cols-2 mb-4 p-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+              <TabsList className="grid w-full grid-cols-3 mb-4 p-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
                 <TabsTrigger
                   value="campaigns"
                   className="flex items-center gap-2 rounded-lg data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-cyan-500"
@@ -624,6 +644,14 @@ export default function Waterfall() {
                 >
                   <Calendar className="h-4 w-4" />
                   {isSpanish ? "Este mes" : "This month"}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="ads"
+                  className="flex items-center gap-2 rounded-lg"
+                  data-testid="tab-planner"
+                >
+                  <Calendar className="h-4 w-4" />
+                  {isSpanish ? "Anuncios" : "Ads"}
                 </TabsTrigger>
               </TabsList>
 
@@ -932,15 +960,19 @@ export default function Waterfall() {
                     {/* Input area */}
                     <div className="p-4 border-t bg-white dark:bg-gray-800">
                       <div className="max-w-3xl mx-auto space-y-2">
-
                         {/* Attachment / voice note previews */}
                         {(attachedFile || voiceNote) && (
                           <div className="flex flex-wrap gap-2 px-1">
                             {attachedFile && (
                               <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300">
                                 <Paperclip className="h-3.5 w-3.5 text-gray-500" />
-                                <span className="max-w-[160px] truncate">{attachedFile.name}</span>
-                                <button onClick={removeAttachment} className="ml-1 hover:text-red-500 transition-colors">
+                                <span className="max-w-[160px] truncate">
+                                  {attachedFile.name}
+                                </span>
+                                <button
+                                  onClick={removeAttachment}
+                                  className="ml-1 hover:text-red-500 transition-colors"
+                                >
                                   <X className="h-3.5 w-3.5" />
                                 </button>
                               </div>
@@ -948,8 +980,16 @@ export default function Waterfall() {
                             {voiceNote && (
                               <div className="flex items-center gap-1.5 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-1.5 text-xs text-teal-700 dark:text-teal-300">
                                 <FileAudio className="h-3.5 w-3.5" />
-                                <span>{language === "es" ? "Nota de voz" : "Voice note"} · {formatSeconds(recordingSeconds)}</span>
-                                <button onClick={removeVoiceNote} className="ml-1 hover:text-red-500 transition-colors">
+                                <span>
+                                  {language === "es"
+                                    ? "Nota de voz"
+                                    : "Voice note"}{" "}
+                                  · {formatSeconds(recordingSeconds)}
+                                </span>
+                                <button
+                                  onClick={removeVoiceNote}
+                                  className="ml-1 hover:text-red-500 transition-colors"
+                                >
                                   <X className="h-3.5 w-3.5" />
                                 </button>
                               </div>
@@ -961,7 +1001,8 @@ export default function Waterfall() {
                         {isRecording && (
                           <div className="flex items-center gap-2 px-1 text-xs text-red-500 font-medium">
                             <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                            {language === "es" ? "Grabando" : "Recording"} · {formatSeconds(recordingSeconds)}
+                            {language === "es" ? "Grabando" : "Recording"} ·{" "}
+                            {formatSeconds(recordingSeconds)}
                           </div>
                         )}
 
@@ -981,7 +1022,11 @@ export default function Waterfall() {
                             onClick={() => fileInputRef.current?.click()}
                             disabled={chatMutation.isPending}
                             className="h-11 w-11 rounded-xl text-gray-500 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 flex-shrink-0"
-                            title={language === "es" ? "Adjuntar archivo" : "Attach file"}
+                            title={
+                              language === "es"
+                                ? "Adjuntar archivo"
+                                : "Attach file"
+                            }
                             data-testid="button-attach"
                           >
                             <Paperclip className="h-5 w-5" />
@@ -1007,23 +1052,40 @@ export default function Waterfall() {
                             type="button"
                             variant="ghost"
                             size="icon"
-                            onClick={isRecording ? stopRecording : startRecording}
+                            onClick={
+                              isRecording ? stopRecording : startRecording
+                            }
                             disabled={chatMutation.isPending || !!voiceNote}
                             className={`h-11 w-11 rounded-xl flex-shrink-0 transition-colors ${
                               isRecording
                                 ? "text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40"
                                 : "text-gray-500 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20"
                             }`}
-                            title={isRecording ? (language === "es" ? "Detener grabación" : "Stop recording") : (language === "es" ? "Nota de voz" : "Voice note")}
+                            title={
+                              isRecording
+                                ? language === "es"
+                                  ? "Detener grabación"
+                                  : "Stop recording"
+                                : language === "es"
+                                  ? "Nota de voz"
+                                  : "Voice note"
+                            }
                             data-testid="button-voicenote"
                           >
-                            {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                            {isRecording ? (
+                              <MicOff className="h-5 w-5" />
+                            ) : (
+                              <Mic className="h-5 w-5" />
+                            )}
                           </Button>
 
                           {/* Send button */}
                           <Button
                             onClick={handleSend}
-                            disabled={chatMutation.isPending || (!input.trim() && !attachedFile && !voiceNote)}
+                            disabled={
+                              chatMutation.isPending ||
+                              (!input.trim() && !attachedFile && !voiceNote)
+                            }
                             className="h-11 w-11 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 hover:from-brand-700 hover:to-cyan-600 shadow-lg flex-shrink-0"
                             data-testid="button-send"
                           >
@@ -1038,6 +1100,9 @@ export default function Waterfall() {
 
               <TabsContent value="planner" className="flex-1 mt-0">
                 <ContentCalendar />
+              </TabsContent>
+              <TabsContent value="ads" className="flex-1 mt-0">
+                <AdsDashboard />
               </TabsContent>
             </Tabs>
           </main>

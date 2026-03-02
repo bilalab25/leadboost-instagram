@@ -83,7 +83,12 @@ export default function Sidebar() {
     },
     { name: t.sidebar.inbox, href: "/inbox", icon: Inbox },
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
-    /* { name: "Automation Flows", href: "/flows-dashboard", icon: GitBranch }, */
+    /* {
+      name: t.sidebar.automationFlows,
+      href: "/flows-dashboard",
+      icon: GitBranch,
+    }, */
+    /*  */
     /*  {
       name: "WhatsApp Templates",
       href: "/whatsapp-templates",

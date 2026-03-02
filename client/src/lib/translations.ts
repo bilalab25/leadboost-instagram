@@ -172,6 +172,7 @@ export const translations = {
       integrations: "Integrations",
       settings: "Settings",
       waterfall: "Your content",
+      automationFlows: "Automation Flows",
     },
     // Messages and Inbox
     messages: {
@@ -555,6 +556,7 @@ export const translations = {
       integrations: "Integraciones",
       settings: "Configuración",
       waterfall: "Tu contenido",
+      automationFlows: "Flujos de Automatización",
     },
     // Messages and Inbox
     messages: {
