@@ -45,6 +45,7 @@ import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756
 import boostyLoopVideo2 from "@assets/Boosty_Mascot_Looping_Animation_1764608756145.mp4";
 import boostyWavingVideo2 from "@assets/Video_de_Boosty_Saludando_1764609155806.mp4";
 import boostyComputer from "@assets/boosty_computadora.png";
+import contentDemoVideo from "@assets/Screen_Recording_2026-03-02_at_10.07.50_a.m._1772467708783.mov";
 import TrustpilotWidget from "@/components/TrustpilotWidget";
 
 export default function Landing() {
@@ -443,63 +444,18 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Actual video — swap src when you have the recording */}
+            {/* Platform screen recording */}
             <video
               className="w-full h-full object-cover pt-8 sm:pt-10"
               autoPlay
               loop
               muted
               playsInline
-              poster=""
+              controls
             >
-              {/* TODO: replace with your screen recording:
-                  1. Record the "Your Content" tab (Content Gallery)
-                  2. Copy the file to client/src/pages/ (e.g. content-demo.mp4)
-                  3. Import at top: import contentDemo from "@assets/content-demo.mp4"
-                  4. Replace the src below with {contentDemo}
-              */}
-              {/* <source src={contentDemo} type="video/mp4" /> */}
+              <source src={contentDemoVideo} type="video/quicktime" />
+              <source src={contentDemoVideo} type="video/mp4" />
             </video>
-
-            {/* Placeholder overlay shown while no video src is set */}
-            <div className="absolute inset-0 pt-8 sm:pt-10 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-4 backdrop-blur-sm">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-              <p className="text-white/60 text-sm sm:text-base font-medium">
-                {isSpanish ? "Demo del panel de contenido" : "Content dashboard demo"}
-              </p>
-              <p className="text-white/30 text-xs sm:text-sm mt-1">
-                {isSpanish ? "Video próximamente" : "Video coming soon"}
-              </p>
-
-              {/* Floating UI card decorations */}
-              <div className="absolute bottom-6 left-4 sm:left-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-3 text-white">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-[10px] sm:text-xs text-white/60">{isSpanish ? "IA generó" : "AI generated"}</p>
-                  <p className="text-xs sm:text-sm font-semibold">6 {isSpanish ? "imágenes listas" : "images ready"}</p>
-                </div>
-              </div>
-
-              <div className="absolute top-12 sm:top-14 right-4 sm:right-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-3 text-white">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-[10px] sm:text-xs text-white/60">{isSpanish ? "Programado" : "Scheduled"}</p>
-                  <p className="text-xs sm:text-sm font-semibold">12 {isSpanish ? "posts este mes" : "posts this month"}</p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Feature pills below video */}
