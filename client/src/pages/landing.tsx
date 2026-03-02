@@ -439,7 +439,7 @@ export default function Landing() {
               <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500" />
               <div className="mx-auto flex-1 max-w-xs sm:max-w-sm">
                 <div className="bg-gray-700 rounded-md px-3 py-0.5 text-gray-400 text-[10px] sm:text-xs text-center truncate">
-                  app.leadboost.ai / calendar
+                  leadboostapp.ai / yourcontent
                 </div>
               </div>
             </div>
