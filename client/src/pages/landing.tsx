@@ -409,24 +409,24 @@ export default function Landing() {
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight mb-4">
               {isSpanish ? (
                 <>
-                  Tu contenido,{" "}
+                  Tu contenido del mes,{" "}
                   <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    organizado y listo
+                    generado en segundos.
                   </span>
                 </>
               ) : (
                 <>
-                  Your content,{" "}
+                  Your content for the month,{" "}
                   <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    organized and ready
+                    generated in seconds.
                   </span>
                 </>
               )}
             </h2>
             <p className="text-gray-500 text-base sm:text-lg max-w-2xl mx-auto">
               {isSpanish
-                ? "Mira cómo LeadBoost genera, organiza y programa tu contenido automáticamente en la pestaña 'Tu Contenido'."
-                : "See how LeadBoost generates, organizes, and schedules your content automatically in the 'Your Content' tab."}
+                ? "Mira cómo Lead Boost genera, organiza y publica tu contenido automáticamente."
+                : "See how Lead Boost generates, organizes, and posts your content automatically."}
             </p>
           </div>
 
