@@ -444,18 +444,31 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Platform screen recording — sits fully below the chrome bar, no cropping */}
-            <video
-              className="w-full block"
-              autoPlay
-              loop
-              muted
-              playsInline
-              controls
-            >
-              <source src={contentDemoVideo} type="video/quicktime" />
-              <source src={contentDemoVideo} type="video/mp4" />
-            </video>
+            {/* Platform screen recording — cinematic CSS grade */}
+            <div className="relative w-full">
+              <video
+                className="w-full block"
+                style={{
+                  filter: "contrast(1.08) saturate(1.18) brightness(0.97) hue-rotate(-8deg)",
+                }}
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls
+              >
+                <source src={contentDemoVideo} type="video/quicktime" />
+                <source src={contentDemoVideo} type="video/mp4" />
+              </video>
+              {/* Vignette overlay */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at center, transparent 55%, rgba(0,4,20,0.45) 100%)",
+                }}
+              />
+            </div>
           </div>
 
           {/* Feature pills below video */}
