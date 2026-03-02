@@ -416,7 +416,7 @@ export default function Landing() {
                 </>
               ) : (
                 <>
-                  Your content for the month,{" "}
+                  A full month of content,{" "}
                   <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     generated in seconds.
                   </span>
@@ -425,8 +425,8 @@ export default function Landing() {
             </h2>
             <p className="text-gray-500 text-base sm:text-lg max-w-2xl mx-auto">
               {isSpanish
-                ? "Mira cómo Lead Boost genera, organiza y publica tu contenido automáticamente."
-                : "See how Lead Boost generates, organizes, and posts your content automatically."}
+                ? "Mira cómo Lead Boost crea, organiza y publica contenido automáticamente — para que nunca tengas que preocuparte por qué publicar."
+                : "Watch how Lead Boost automatically creates, organizes, and posts content — so you never worry about what to post again."}
             </p>
           </div>
 
