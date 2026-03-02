@@ -431,9 +431,9 @@ export default function Landing() {
           </div>
 
           {/* Video player */}
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 bg-gray-900 aspect-video">
+          <div className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 bg-gray-900 flex flex-col">
             {/* Fake browser chrome bar */}
-            <div className="absolute top-0 inset-x-0 h-8 sm:h-10 bg-gray-800 flex items-center px-3 sm:px-4 gap-1.5 z-10">
+            <div className="flex-none h-8 sm:h-10 bg-gray-800 flex items-center px-3 sm:px-4 gap-1.5">
               <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500" />
               <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400" />
               <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500" />
@@ -444,9 +444,9 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Platform screen recording */}
+            {/* Platform screen recording — sits fully below the chrome bar, no cropping */}
             <video
-              className="w-full h-full object-cover pt-8 sm:pt-10"
+              className="w-full block"
               autoPlay
               loop
               muted
