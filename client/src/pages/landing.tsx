@@ -391,6 +391,137 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Platform Demo Video Section */}
+      <section className="relative py-20 sm:py-28 bg-white overflow-hidden">
+        {/* Subtle background decoration */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-50 to-transparent rounded-full blur-3xl opacity-60" />
+        </div>
+
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Heading */}
+          <div className="text-center mb-10 sm:mb-14">
+            <span className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-600 text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              {isSpanish ? "Plataforma en acción" : "Platform in action"}
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight mb-4">
+              {isSpanish ? (
+                <>
+                  Tu contenido,{" "}
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    organizado y listo
+                  </span>
+                </>
+              ) : (
+                <>
+                  Your content,{" "}
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    organized and ready
+                  </span>
+                </>
+              )}
+            </h2>
+            <p className="text-gray-500 text-base sm:text-lg max-w-2xl mx-auto">
+              {isSpanish
+                ? "Mira cómo LeadBoost genera, organiza y programa tu contenido automáticamente en la pestaña 'Tu Contenido'."
+                : "See how LeadBoost generates, organizes, and schedules your content automatically in the 'Your Content' tab."}
+            </p>
+          </div>
+
+          {/* Video player */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 bg-gray-900 aspect-video">
+            {/* Fake browser chrome bar */}
+            <div className="absolute top-0 inset-x-0 h-8 sm:h-10 bg-gray-800 flex items-center px-3 sm:px-4 gap-1.5 z-10">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500" />
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400" />
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500" />
+              <div className="mx-auto flex-1 max-w-xs sm:max-w-sm">
+                <div className="bg-gray-700 rounded-md px-3 py-0.5 text-gray-400 text-[10px] sm:text-xs text-center truncate">
+                  app.leadboost.ai / calendar
+                </div>
+              </div>
+            </div>
+
+            {/* Actual video — swap src when you have the recording */}
+            <video
+              className="w-full h-full object-cover pt-8 sm:pt-10"
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster=""
+            >
+              {/* TODO: replace with your screen recording:
+                  1. Record the "Your Content" tab (Content Gallery)
+                  2. Copy the file to client/src/pages/ (e.g. content-demo.mp4)
+                  3. Import at top: import contentDemo from "@assets/content-demo.mp4"
+                  4. Replace the src below with {contentDemo}
+              */}
+              {/* <source src={contentDemo} type="video/mp4" /> */}
+            </video>
+
+            {/* Placeholder overlay shown while no video src is set */}
+            <div className="absolute inset-0 pt-8 sm:pt-10 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-4 backdrop-blur-sm">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+              <p className="text-white/60 text-sm sm:text-base font-medium">
+                {isSpanish ? "Demo del panel de contenido" : "Content dashboard demo"}
+              </p>
+              <p className="text-white/30 text-xs sm:text-sm mt-1">
+                {isSpanish ? "Video próximamente" : "Video coming soon"}
+              </p>
+
+              {/* Floating UI card decorations */}
+              <div className="absolute bottom-6 left-4 sm:left-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-3 text-white">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[10px] sm:text-xs text-white/60">{isSpanish ? "IA generó" : "AI generated"}</p>
+                  <p className="text-xs sm:text-sm font-semibold">6 {isSpanish ? "imágenes listas" : "images ready"}</p>
+                </div>
+              </div>
+
+              <div className="absolute top-12 sm:top-14 right-4 sm:right-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-3 text-white">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[10px] sm:text-xs text-white/60">{isSpanish ? "Programado" : "Scheduled"}</p>
+                  <p className="text-xs sm:text-sm font-semibold">12 {isSpanish ? "posts este mes" : "posts this month"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature pills below video */}
+          <div className="flex flex-wrap justify-center gap-3 mt-8">
+            {[
+              { emoji: "🎨", label: isSpanish ? "Imágenes generadas por IA" : "AI-generated images" },
+              { emoji: "📅", label: isSpanish ? "Calendario visual" : "Visual content calendar" },
+              { emoji: "✅", label: isSpanish ? "Aprueba con un clic" : "One-click approval" },
+              { emoji: "📤", label: isSpanish ? "Publicación automática" : "Auto-publishing" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-700 font-medium"
+              >
+                <span>{item.emoji}</span>
+                {item.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Circular AI Process Diagram */}
       <section
         id="circle-section"
