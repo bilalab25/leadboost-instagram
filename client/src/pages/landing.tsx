@@ -461,10 +461,9 @@ export default function Landing() {
           {/* Feature pills below video */}
           <div className="flex flex-wrap justify-center gap-3 mt-8">
             {[
-              { emoji: "🎨", label: isSpanish ? "Imágenes generadas por IA" : "AI-generated images" },
-              { emoji: "📅", label: isSpanish ? "Calendario visual" : "Visual content calendar" },
+              { emoji: "🎨", label: isSpanish ? "Imágenes y videos generados por IA" : "AI-generated images & videos" },
+              { emoji: "📅", label: isSpanish ? "Publicación automática" : "Auto-publishing" },
               { emoji: "✅", label: isSpanish ? "Aprueba con un clic" : "One-click approval" },
-              { emoji: "📤", label: isSpanish ? "Publicación automática" : "Auto-publishing" },
             ].map((item) => (
               <div
                 key={item.label}
