@@ -11,6 +11,7 @@ import {
 import { Upload, Download, Trash2, FileText } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 export default function BrandAssets({
   assets,
@@ -19,6 +20,7 @@ export default function BrandAssets({
   setCurrentAssetUploadCategory,
   handleAssetUpload,
   handleRemoveAsset,
+  handleUpdateAssetCaption,
   uploads,
 }) {
   const { isSpanish } = useLanguage();
@@ -112,71 +114,103 @@ export default function BrandAssets({
                     </div>
 
                     {/* Assets grid */}
+                    {/* Assets grid (new tile style + caption input) */}
                     {assetsInCategory.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                         {assetsInCategory.map((asset) => (
-                          <div
-                            key={asset.id}
-                            className="relative group border rounded-md p-2 flex flex-col items-center justify-center h-32 overflow-hidden"
-                          >
-                            {asset.assetType === "image" ? (
-                              <img
-                                src={asset.url}
-                                alt={asset.name}
-                                className="max-h-full max-w-full object-contain"
-                              />
-                            ) : asset.assetType === "video" ? (
-                              <video
-                                src={asset.url}
-                                controls
-                                className="max-h-full max-w-full object-contain"
-                              />
-                            ) : (
-                              <div className="flex flex-col items-center text-gray-500 text-sm p-1">
-                                <FileText className="h-8 w-8 mb-1" />
-                                <span className="truncate w-full text-center">
-                                  {asset.name}
+                          <div key={asset.id} className="space-y-2">
+                            {/* Tile */}
+                            <div className="relative group rounded-[28px] border bg-muted/30 overflow-hidden shadow-sm">
+                              {/* Square preview area */}
+                              <div className="aspect-square w-full">
+                                {asset.assetType === "image" ? (
+                                  <img
+                                    src={asset.url}
+                                    alt={asset.name}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : asset.assetType === "video" ? (
+                                  <video
+                                    src={asset.url}
+                                    className="h-full w-full object-cover"
+                                    controls
+                                  />
+                                ) : (
+                                  <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground">
+                                    <FileText className="h-10 w-10 mb-2" />
+                                    <span className="text-xs px-3 text-center line-clamp-2">
+                                      {asset.name}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Top-right badge (like your reference) */}
+                              <div className="absolute top-3 right-3">
+                                <span className="rounded-full bg-emerald-500/90 text-white text-[11px] px-2 py-1 leading-none">
+                                  {asset.assetType === "image"
+                                    ? "IMG"
+                                    : asset.assetType === "video"
+                                      ? "VID"
+                                      : "FILE"}
                                 </span>
                               </div>
-                            )}
 
-                            {/* Hover actions */}
-                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="destructive"
-                                size="icon"
-                                onClick={() => handleRemoveAsset(asset.id)}
-                                className="m-1"
-                                aria-label={
-                                  isSpanish
-                                    ? "Eliminar recurso"
-                                    : "Remove asset"
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                              <a
-                                href={asset.url}
-                                download={asset.name}
-                                className="m-1"
-                                aria-label={
-                                  isSpanish
-                                    ? "Descargar recurso"
-                                    : "Download asset"
-                                }
-                              >
-                                <Button variant="secondary" size="icon">
-                                  <Download className="h-4 w-4" />
+                              {/* Hover actions */}
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  onClick={() => handleRemoveAsset(asset.id)}
+                                  aria-label={
+                                    isSpanish
+                                      ? "Eliminar recurso"
+                                      : "Remove asset"
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
-                              </a>
+
+                                <a
+                                  href={asset.url}
+                                  download={asset.name}
+                                  aria-label={
+                                    isSpanish
+                                      ? "Descargar recurso"
+                                      : "Download asset"
+                                  }
+                                >
+                                  <Button variant="secondary" size="icon">
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </a>
+                              </div>
                             </div>
 
-                            <Badge
-                              variant="secondary"
-                              className="absolute bottom-1 left-1 text-xs px-1 py-0.5 opacity-80"
-                            >
-                              {asset.name}
-                            </Badge>
+                            {/* Optional: file name (subtle) */}
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-xs text-muted-foreground truncate">
+                                {asset.name}
+                              </p>
+                            </div>
+
+                            {/* Caption input */}
+                            <Input
+                              value={asset.caption ?? ""}
+                              onChange={(e) =>
+                                handleUpdateAssetCaption(
+                                  asset.id,
+                                  e.target.value,
+                                )
+                              }
+                              placeholder={
+                                isSpanish
+                                  ? "Escribe un caption..."
+                                  : "Write a caption..."
+                              }
+                              className="h-9 rounded-xl"
+                            />
                           </div>
                         ))}
                       </div>

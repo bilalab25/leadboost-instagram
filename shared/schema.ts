@@ -1253,6 +1253,7 @@ export const brandAssets = pgTable("brand_assets", {
   publicId: varchar("public_id").notNull(), // 🔹 para borrar en Cloudinary
   createdAt: timestamp("created_at").defaultNow(),
   description: text("description"),
+  caption: text("caption"),
 });
 
 // Brand Design schemas

@@ -43,6 +43,7 @@ interface BrandAsset {
   assetType: "image" | "video" | "document"; // New: Type for rendering
   publicId: string;
   description: string;
+  caption?: string | null;
 }
 
 interface BrandDesign {
@@ -802,6 +803,22 @@ export default function BrandStudio() {
         : "Fonts have been added to your selection.",
     });
   };
+  function handleUpdateAssetCaption(assetId: string, caption: string) {
+    setBrandAssets((prev) =>
+      prev.map((a) => (a.id === assetId ? { ...a, caption } : a)),
+    );
+
+    const brandDesignId = (brandDesign as any)?.id;
+    if (!brandDesignId) return;
+
+    apiRequest("PATCH", `/api/brand-assets/${assetId}`, {
+      caption,
+      brandDesignId,
+      brandId: activeBrandId,
+    }).catch((err) => {
+      console.error("Failed to save caption:", err);
+    });
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -905,6 +922,7 @@ export default function BrandStudio() {
                     handleAssetUpload={handleAssetUpload}
                     handleRemoveAsset={handleRemoveAsset}
                     uploads={uploads}
+                    handleUpdateAssetCaption={handleUpdateAssetCaption}
                   />
                   {/* Brand Info Tab */}
                   <BrandInfo />

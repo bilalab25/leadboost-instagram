@@ -1868,6 +1868,25 @@ export class DatabaseStorage implements IStorage {
     return this.getAssetsByBrandDesignId(design.id);
   }
 
+  // Actualizar caption de asset
+  async updateBrandAssetCaption(
+    id: string,
+    brandDesignId: string,
+    caption: string,
+  ): Promise<BrandAsset | undefined> {
+    const [updated] = await db
+      .update(brandAssets)
+      .set({ caption })
+      .where(
+        and(
+          eq(brandAssets.id, id),
+          eq(brandAssets.brandDesignId, brandDesignId),
+        ),
+      )
+      .returning();
+    return updated;
+  }
+
   // Eliminar asset
   async deleteBrandAsset(
     id: string,

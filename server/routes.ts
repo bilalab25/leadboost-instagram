@@ -11241,6 +11241,44 @@ All content must be in English.`;
     },
   );
 
+  // PATCH /api/brand-assets/:id — update caption
+  app.patch(
+    "/api/brand-assets/:id",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const assetId = req.params.id;
+        const { caption, brandDesignId } = req.body;
+
+        if (!brandDesignId) {
+          return res.status(400).json({ message: "brandDesignId is required" });
+        }
+
+        const brandDesign = await storage.getBrandDesignByBrandId(brandId);
+        if (!brandDesign || brandDesign.id !== brandDesignId) {
+          return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        const updated = await storage.updateBrandAssetCaption(
+          assetId,
+          brandDesignId,
+          caption ?? "",
+        );
+
+        if (!updated) {
+          return res.status(404).json({ message: "Asset not found" });
+        }
+
+        res.json(updated);
+      } catch (error) {
+        console.error("Error updating asset caption:", error);
+        res.status(500).json({ message: "Failed to update caption" });
+      }
+    },
+  );
+
   // ============================================
   // Boosty AI Assistant Routes
   // ============================================
