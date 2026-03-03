@@ -1905,7 +1905,7 @@ If ANY item is ❌, DO NOT generate. Adjust and verify again.
       contents: contentParts,
       config: {
         responseModalities: ["IMAGE"],
-        imageConfig: { aspectRatio: "1:1", imageSize: "2K" },
+        imageConfig: { aspectRatio: "4:5", imageSize: "2K" },
       },
     });
 

@@ -747,7 +747,7 @@ Generate a single, stunning, scroll-stopping social media image.`;
                 },
               ],
               imageConfig: {
-                aspectRatio: "1:1",
+                aspectRatio: "4:5",
               },
             },
           })
@@ -763,7 +763,7 @@ Generate a single, stunning, scroll-stopping social media image.`;
               responseModalities: ["IMAGE", "TEXT"],
               systemInstruction: [{ text: systemInstruction }],
               imageConfig: {
-                aspectRatio: "1:1",
+                aspectRatio: "4:5",
               },
             },
           });
