@@ -177,7 +177,7 @@ export default function FlowsDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-10">
         {/* Hero */}
         <div
           className="relative rounded-2xl overflow-hidden p-8 sm:p-12"
