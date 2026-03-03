@@ -804,11 +804,16 @@ export default function BrandStudio() {
     });
   };
   function handleUpdateAssetCaption(assetId: string, caption: string) {
-    setBrandAssets((prev) =>
-      prev.map((a) => (a.id === assetId ? { ...a, caption } : a)),
+    const brandDesignId = (brandDesign as any)?.id;
+
+    queryClient.setQueryData<BrandAsset[]>(
+      ["/api/brand-assets", activeBrandId, brandDesignId],
+      (prev) =>
+        prev
+          ? prev.map((a) => (a.id === assetId ? { ...a, caption } : a))
+          : prev,
     );
 
-    const brandDesignId = (brandDesign as any)?.id;
     if (!brandDesignId) return;
 
     apiRequest("PATCH", `/api/brand-assets/${assetId}`, {
