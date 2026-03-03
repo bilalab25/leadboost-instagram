@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -178,6 +178,7 @@ export default function BrandStudio() {
   const { isSpanish } = useLanguage();
   const queryClient = useQueryClient();
   const { activeBrandId } = useBrand();
+  const captionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [selectedStyle, setSelectedStyle] = useState<string>("");
   // Replaced customColors with individual states for explicit control
@@ -816,13 +817,16 @@ export default function BrandStudio() {
 
     if (!brandDesignId) return;
 
-    apiRequest("PATCH", `/api/brand-assets/${assetId}`, {
-      caption,
-      brandDesignId,
-      brandId: activeBrandId,
-    }).catch((err) => {
-      console.error("Failed to save caption:", err);
-    });
+    if (captionDebounceRef.current) clearTimeout(captionDebounceRef.current);
+    captionDebounceRef.current = setTimeout(() => {
+      apiRequest("PATCH", `/api/brand-assets/${assetId}`, {
+        caption,
+        brandDesignId,
+        brandId: activeBrandId,
+      }).catch((err) => {
+        console.error("Failed to save caption:", err);
+      });
+    }, 600);
   }
 
   return (
