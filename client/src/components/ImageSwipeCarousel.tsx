@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import {
   ThumbsUp,
   ThumbsDown,
   Loader2,
@@ -11,6 +15,7 @@ import {
   X,
   Check,
   ImageIcon,
+  ZoomIn,
 } from "lucide-react";
 
 interface GeneratedImage {
@@ -41,7 +46,9 @@ export default function ImageSwipeCarousel({
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [previewImage, setPreviewImage] = useState<GeneratedImage | null>(null);
   const startX = useRef(0);
+  const maxDrag = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const currentImage = images[currentIndex];
@@ -84,6 +91,7 @@ export default function ImageSwipeCarousel({
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsDragging(true);
     startX.current = e.clientX;
+    maxDrag.current = 0;
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
@@ -91,11 +99,18 @@ export default function ImageSwipeCarousel({
     if (!isDragging) return;
     const diff = e.clientX - startX.current;
     setDragOffset(diff);
+    maxDrag.current = Math.max(maxDrag.current, Math.abs(diff));
   };
 
   const handlePointerUp = () => {
     if (!isDragging) return;
     setIsDragging(false);
+
+    if (maxDrag.current < 6) {
+      setDragOffset(0);
+      setPreviewImage(currentImage);
+      return;
+    }
 
     if (Math.abs(dragOffset) > 100) {
       handleSwipe(dragOffset > 0 ? "right" : "left");
@@ -223,11 +238,17 @@ export default function ImageSwipeCarousel({
           )}
 
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-white" />
-              <span className="text-white text-sm font-medium">
-                {isSpanish ? "Variación" : "Variation"} {currentImage?.variant}
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-white" />
+                <span className="text-white text-sm font-medium">
+                  {isSpanish ? "Variación" : "Variation"} {currentImage?.variant}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
+                <ZoomIn className="w-3 h-3 text-white" />
+                <span className="text-white text-xs">{isSpanish ? "Ver" : "Preview"}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -261,9 +282,25 @@ export default function ImageSwipeCarousel({
 
       <p className="text-xs text-muted-foreground text-center max-w-xs">
         {isSpanish
-          ? "Desliza a la derecha para aprobar, a la izquierda para rechazar. También puedes usar los botones."
-          : "Swipe right to approve, left to reject. You can also use the buttons."}
+          ? "Toca para ver la imagen completa. Desliza a la derecha para aprobar, a la izquierda para rechazar."
+          : "Tap to preview. Swipe right to approve, left to reject. You can also use the buttons."}
       </p>
+
+      <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl w-full p-2 bg-black border-none">
+          <div className="relative">
+            <img
+              src={previewImage?.imageUrl}
+              alt={`Variation ${previewImage?.variant}`}
+              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+            />
+            <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <ImageIcon className="w-3 h-3" />
+              {isSpanish ? "Variación" : "Variation"} {previewImage?.variant}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
