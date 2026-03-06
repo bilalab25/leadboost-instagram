@@ -22,6 +22,7 @@ import bold from "./brand-images/bold.png";
 import BrandAssets from "@/components/brand-studio/BrandAssests";
 import BrandIdentity from "@/components/brand-studio/BrandIdentity";
 import BrandInfo from "@/components/brand-studio/BrandInfo";
+import BrandProducts from "@/components/brand-studio/BrandProducts";
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
@@ -841,7 +842,7 @@ export default function BrandStudio() {
             <div className="py-6">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
                 <Tabs defaultValue="brand-identity" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger
                       value="brand-identity"
                       data-testid="tab-brand-identity"
@@ -853,6 +854,9 @@ export default function BrandStudio() {
                     </TabsTrigger>
                     <TabsTrigger value="information" data-testid="tab-info">
                       {isSpanish ? "Información de la marca" : "Brand Info"}
+                    </TabsTrigger>
+                    <TabsTrigger value="products" data-testid="tab-info">
+                      {isSpanish ? "Productos de la marca" : "Brand Products"}
                     </TabsTrigger>
                   </TabsList>
 
@@ -935,6 +939,7 @@ export default function BrandStudio() {
                   />
                   {/* Brand Info Tab */}
                   <BrandInfo />
+                  <BrandProducts />
                 </Tabs>
               </div>
             </div>
