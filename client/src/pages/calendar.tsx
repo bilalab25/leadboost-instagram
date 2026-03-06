@@ -189,6 +189,7 @@ export default function ContentCalendar() {
   const [showImageCarousel, setShowImageCarousel] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<any[]>([]);
   const [approvedImages, setApprovedImages] = useState<any[]>([]);
+  const [carouselSource, setCarouselSource] = useState<"month" | "gallery" | null>(null);
   const [calendarTab, setCalendarTab] = useState<"month" | "gallery">("month");
   const [brandImageJobId, setBrandImageJobId] = useState<string | null>(() => {
     const saved = localStorage.getItem("brandImageJobId");
@@ -2000,38 +2001,27 @@ export default function ContentCalendar() {
                                         <Button
                                           size="sm"
                                           variant={
-                                            hasActiveJob || isLoadingAiPosts
+                                            generateBrandImagesMutation.isPending || generatingBrandImages
                                               ? "outline"
-                                              : canGenerateAiPosts
-                                                ? "default"
-                                                : "outline"
+                                              : "default"
                                           }
-                                          onClick={() =>
-                                            generatePostsMutation.mutate()
-                                          }
+                                          onClick={() => {
+                                            setCarouselSource("month");
+                                            generateBrandImagesMutation.mutate();
+                                          }}
                                           disabled={
-                                            generatePostsMutation.isPending ||
-                                            !activeBrandId ||
-                                            !canGenerateAiPosts ||
-                                            hasActiveJob ||
-                                            isLoadingAiPosts
+                                            generateBrandImagesMutation.isPending ||
+                                            generatingBrandImages ||
+                                            !activeBrandId
                                           }
                                           className={
-                                            hasActiveJob || isLoadingAiPosts
+                                            generateBrandImagesMutation.isPending || generatingBrandImages
                                               ? "bg-purple-100 border-purple-300 text-purple-700"
-                                              : canGenerateAiPosts
-                                                ? "bg-purple-600 hover:bg-purple-700 text-white"
-                                                : "opacity-60 cursor-not-allowed"
+                                              : "bg-purple-600 hover:bg-purple-700 text-white"
                                           }
                                           data-testid="button-generate-ai-posts"
                                         >
-                                          {isLoadingAiPosts ? (
-                                            <>
-                                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                              Loading...
-                                            </>
-                                          ) : generatePostsMutation.isPending ||
-                                            hasActiveJob ? (
+                                          {generateBrandImagesMutation.isPending || generatingBrandImages ? (
                                             <>
                                               <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                                               {isSpanish
@@ -2592,7 +2582,7 @@ export default function ContentCalendar() {
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
-                                onClick={() => generateBrandImagesMutation.mutate()}
+                                onClick={() => { setCarouselSource("gallery"); generateBrandImagesMutation.mutate(); }}
                                 disabled={
                                   generateBrandImagesMutation.isPending ||
                                   generatingBrandImages ||
@@ -2693,7 +2683,7 @@ export default function ContentCalendar() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => generateBrandImagesMutation.mutate()}
+                                  onClick={() => { setCarouselSource("gallery"); generateBrandImagesMutation.mutate(); }}
                                   disabled={
                                     generateBrandImagesMutation.isPending ||
                                     generatingBrandImages ||
@@ -3485,24 +3475,60 @@ export default function ContentCalendar() {
               onComplete={async (approved, rejected) => {
                 setApprovedImages(approved);
                 console.log(
-                  `[Calendar] Selection complete. Approved: ${approved.length}, Rejected: ${rejected.length}`,
+                  `[Calendar] Selection complete (source: ${carouselSource}). Approved: ${approved.length}, Rejected: ${rejected.length}`,
                 );
-                if (
-                  activeBrandId &&
-                  (approved.length > 0 || rejected.length > 0)
-                ) {
-                  try {
-                    const response = await apiRequest(
-                      "POST",
-                      `/api/brands/${activeBrandId}/save-generated-images`,
-                      { approved, rejected },
-                    );
-                    if (response.ok) {
-                      queryClient.invalidateQueries({
-                        queryKey: [
-                          `/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`,
-                        ],
-                      });
+
+                if (!activeBrandId) {
+                  setTimeout(() => setShowImageCarousel(false), 2000);
+                  return;
+                }
+
+                try {
+                  if (carouselSource === "month") {
+                    // Month view flow: skip brand assets, go straight to calendar posts
+                    if (approved.length > 0) {
+                      const postsResponse = await apiRequest(
+                        "POST",
+                        `/api/brands/${activeBrandId}/images-to-posts`,
+                        {
+                          images: approved,
+                          platform: "instagram",
+                          month: currentDate.getMonth() + 1,
+                          year: currentDate.getFullYear(),
+                        },
+                      );
+                      if (postsResponse.ok) {
+                        const postsData = await postsResponse.json();
+                        queryClient.invalidateQueries({
+                          queryKey: ["/api/ai-generated-posts", activeBrandId],
+                        });
+                        toast({
+                          title: isSpanish
+                            ? `${postsData.postsCreated} posts creados en tu calendario`
+                            : `${postsData.postsCreated} posts added to your calendar`,
+                          description: isSpanish
+                            ? "Las imágenes aprobadas son ahora posts pendientes con captions. Revísalos en tu calendario."
+                            : "Approved images are now pending posts with AI captions. Review them on your calendar.",
+                        });
+                      } else {
+                        throw new Error("Failed to create posts");
+                      }
+                    }
+                  } else {
+                    // Gallery flow: save to brand assets first, then create calendar posts
+                    if (approved.length > 0 || rejected.length > 0) {
+                      const response = await apiRequest(
+                        "POST",
+                        `/api/brands/${activeBrandId}/save-generated-images`,
+                        { approved, rejected },
+                      );
+                      if (response.ok) {
+                        queryClient.invalidateQueries({
+                          queryKey: [
+                            `/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`,
+                          ],
+                        });
+                      }
                     }
 
                     if (approved.length > 0) {
@@ -3535,17 +3561,18 @@ export default function ContentCalendar() {
                         });
                       }
                     }
-                  } catch (err) {
-                    console.error("[Calendar] Failed to save images:", err);
-                    toast({
-                      title: isSpanish ? "Error" : "Error",
-                      description: isSpanish
-                        ? "No se pudieron guardar las imagenes."
-                        : "Failed to save images.",
-                      variant: "destructive",
-                    });
                   }
+                } catch (err) {
+                  console.error("[Calendar] Failed to process images:", err);
+                  toast({
+                    title: isSpanish ? "Error" : "Error",
+                    description: isSpanish
+                      ? "No se pudieron procesar las imágenes."
+                      : "Failed to process images.",
+                    variant: "destructive",
+                  });
                 }
+
                 setTimeout(() => setShowImageCarousel(false), 2000);
               }}
             />

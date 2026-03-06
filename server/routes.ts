@@ -66,6 +66,7 @@ import {
   posIntegrations,
   waitlist,
   insertWaitlistSchema,
+  socialPostingFrequency,
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import dayjs from "dayjs";
@@ -8971,7 +8972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const { brandId } = req.params;
-        const { images, platform } = req.body;
+        const { images, platform, month, year } = req.body;
 
         if (!images || !Array.isArray(images) || images.length === 0) {
           return res.status(400).json({ message: "No images provided" });
@@ -9024,6 +9025,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "friday",
           "saturday",
         ];
+
+        // Build calendar dates if month/year provided (Month view flow)
+        let calendarDates: Date[] = [];
+        if (month && year) {
+          try {
+            const { calculatePostingDates } = await import(
+              "./services/postGenerator"
+            );
+            const freqRows = await db
+              .select()
+              .from(socialPostingFrequency)
+              .where(eq(socialPostingFrequency.brandId, brandId));
+
+            // Collect all unique posting days across platforms
+            const allDays = new Set<string>();
+            for (const freq of freqRows) {
+              const days: string[] = Array.isArray(freq.daysWeek)
+                ? freq.daysWeek
+                : [];
+              days.forEach((d) => allDays.add(d.toLowerCase()));
+            }
+
+            if (allDays.size > 0) {
+              const dateStrings = calculatePostingDates(
+                Number(month),
+                Number(year),
+                Array.from(allDays),
+                true,
+              );
+              calendarDates = dateStrings.map((ds) => {
+                const d = new Date(`${ds}T10:00:00`);
+                return d;
+              });
+            }
+
+            // Fallback: spread every 3 days through the month if no frequency set
+            if (calendarDates.length === 0) {
+              const today = new Date();
+              const startDay =
+                Number(month) === today.getMonth() + 1 &&
+                Number(year) === today.getFullYear()
+                  ? today.getDate()
+                  : 1;
+              const start = new Date(Number(year), Number(month) - 1, startDay, 10, 0, 0);
+              const end = new Date(Number(year), Number(month), 0);
+              for (
+                let d = new Date(start);
+                d <= end && calendarDates.length < images.length;
+                d.setDate(d.getDate() + 3)
+              ) {
+                calendarDates.push(new Date(d));
+              }
+            }
+          } catch (freqErr) {
+            console.error(
+              "[API] Failed to calculate calendar dates:",
+              freqErr,
+            );
+          }
+        }
+
         const createdPosts: any[] = [];
 
         for (let i = 0; i < images.length; i++) {
@@ -9072,8 +9134,16 @@ All content must be in English.`;
               }
             }
 
-            const dayIndex = (new Date().getDay() + i) % 7;
-            const dia = daysOfWeek[dayIndex];
+            let dia: string;
+            let scheduledPublishTime: Date | undefined;
+            if (calendarDates.length > 0) {
+              const dateForPost = calendarDates[i % calendarDates.length];
+              dia = daysOfWeek[dateForPost.getDay()];
+              scheduledPublishTime = dateForPost;
+            } else {
+              const dayIndex = (new Date().getDay() + i) % 7;
+              dia = daysOfWeek[dayIndex];
+            }
 
             const post = await createAiGeneratedPost({
               jobId: job.id,
@@ -9087,6 +9157,7 @@ All content must be in English.`;
               hashtags,
               status: "pending",
               isSample: false,
+              ...(scheduledPublishTime && { scheduledPublishTime }),
             });
 
             createdPosts.push(post);
@@ -9095,7 +9166,15 @@ All content must be in English.`;
               `[API] Failed to generate caption for image ${i}:`,
               captionError,
             );
-            const dayIndex = (new Date().getDay() + i) % 7;
+            let fallbackDia: string;
+            let fallbackScheduledTime: Date | undefined;
+            if (calendarDates.length > 0) {
+              const dateForPost = calendarDates[i % calendarDates.length];
+              fallbackDia = daysOfWeek[dateForPost.getDay()];
+              fallbackScheduledTime = dateForPost;
+            } else {
+              fallbackDia = daysOfWeek[(new Date().getDay() + i) % 7];
+            }
             const post = await createAiGeneratedPost({
               jobId: job.id,
               brandId,
@@ -9106,10 +9185,11 @@ All content must be in English.`;
                 : `New content from ${brandName}`,
               imageUrl,
               cloudinaryPublicId: publicId,
-              dia: daysOfWeek[dayIndex],
+              dia: fallbackDia,
               hashtags: "",
               status: "pending",
               isSample: false,
+              ...(fallbackScheduledTime && { scheduledPublishTime: fallbackScheduledTime }),
             });
             createdPosts.push(post);
           }
