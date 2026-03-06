@@ -127,8 +127,8 @@ const brandStyles = [
 const assetCategories = [
   {
     value: "product_images",
-    label: "Product Images",
-    labelEs: "Imágenes de Productos",
+    label: "Product Images (Make sure your product images have no text)",
+    labelEs: "Imágenes de Productos (Tus imágenes no deberán incluir texto)",
     description:
       "Photos of your products, merchandise, or services. These will be used to create promotional content and social media posts.",
     descriptionEs:
@@ -154,8 +154,8 @@ const assetCategories = [
   },
   {
     value: "inspiration_templates",
-    label: "Inspiration Templates",
-    labelEs: "Plantillas de Inspiración",
+    label: "Inspiration Posts",
+    labelEs: "Posts de Inspiración",
     description:
       "Design templates, mood boards, or visual references that inspire your brand's aesthetic and style.",
     descriptionEs:

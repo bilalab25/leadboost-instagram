@@ -1858,6 +1858,9 @@ Before generating, ensure:
 7. ✅ Lighting is appropriate for brand mood
 8. ✅ Image looks authentic, not AI/CGI
 9. ✅ No large text blocks (max 1-3 subtle words)
+10. ✅ All brand rules are strictly followed
+11. You should only use brand colors provided on the brand identity. No other colors.
+12. Preserve letter spacing, proportions, and font style EXACTLY as provided in the brand identity.
 
 If ANY item is ❌, DO NOT generate. Adjust and verify again.
 
@@ -1867,7 +1870,7 @@ If ANY item is ❌, DO NOT generate. Adjust and verify again.
 
     // ━━━━━━━━━━━━━━━━━━━━lo�━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // PASO 3: ENSAMBLAJE FINAL DE CONTENIDO (ESTILO HOLO)
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ━━━━━━━━━━━━━━━━━━━━r��━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const contentParts: any[] = [];
 
@@ -1901,7 +1904,7 @@ If ANY item is ❌, DO NOT generate. Adjust and verify again.
     contentParts.push({ text: structuredPrompt });
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-image-preview",
+      model: "gemini-2.5-flash-image",
       contents: contentParts,
       config: {
         responseModalities: ["IMAGE"],

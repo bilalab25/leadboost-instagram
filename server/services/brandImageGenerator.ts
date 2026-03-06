@@ -57,7 +57,7 @@ function sha256(buf: Buffer): string {
   return crypto.createHash("sha256").update(buf).digest("hex");
 }
 
-async function overlayLogoOnImage(
+/* async function overlayLogoOnImage(
   imageBuffer: Buffer,
   logoUrl: string,
   options: {
@@ -151,7 +151,7 @@ async function overlayLogoOnImage(
     return imageBuffer;
   }
 }
-
+ */
 const assetUsageCache = new Map<string, Record<string, number>>();
 const categoryUsageCache = new Map<string, Record<string, number>>();
 
@@ -786,9 +786,9 @@ Generate a single, stunning, scroll-stopping social media image.`;
             }
             seenHashes.add(hash);
 
-            if (logoUrl) {
+            /*   if (logoUrl) {
               imageBuffer = await overlayLogoOnImage(imageBuffer, logoUrl);
-            }
+            } */
 
             const finalBase64 = imageBuffer.toString("base64");
             const mimeType = part.inlineData.mimeType || "image/png";
