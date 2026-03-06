@@ -1252,10 +1252,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const brandId = req.params.id;
       const { preferredLanguage, brandCategory, ...updates } = req.body;
 
-      // Include brandCategory in the updates if provided
+      // Include brandCategory and preferredLanguage in the updates if provided
       const fullUpdates = {
         ...updates,
         ...(brandCategory !== undefined && { brandCategory }),
+        ...(preferredLanguage !== undefined && { preferredLanguage }),
       };
 
       const brand = await storage.updateBrand(brandId, userId, fullUpdates);
