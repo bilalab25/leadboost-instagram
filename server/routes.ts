@@ -61,7 +61,6 @@ import multer from "multer";
 import cloudinary from "./cloudinary";
 import { db } from "./db";
 import {
-  brands,
   brandDesigns,
   brandAssets,
   posIntegrations,
@@ -8987,18 +8986,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .where(eq(brandDesigns.brandId, brandId))
           .limit(1);
 
-        const brand = await db
-          .select()
-          .from(brands)
-          .where(eq(brands.id, brandId))
-          .limit(1);
+        const brand = await storage.getBrandByIdOnly(brandId);
 
-        if (!brand.length) {
+        if (!brand) {
           return res.status(404).json({ message: "Brand not found" });
         }
 
-        const brandName = brand[0].name || "Brand";
-        const brandDescription = brand[0].description || "";
+        const brandName = brand.name || "Brand";
+        const brandDescription = brand.description || "";
         const language = design[0]?.preferredLanguage || "es";
         const isSpanish = language === "es";
 
