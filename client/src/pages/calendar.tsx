@@ -3502,14 +3502,42 @@ export default function ContentCalendar() {
                         queryClient.invalidateQueries({
                           queryKey: ["/api/ai-generated-posts", activeBrandId],
                         });
+
+                        // Extract scheduled dates from created posts
+                        const scheduledDates: Date[] = (postsData.posts || [])
+                          .filter((p: any) => p.scheduledPublishTime)
+                          .map((p: any) => new Date(p.scheduledPublishTime))
+                          .sort((a: Date, b: Date) => a.getTime() - b.getTime());
+
+                        const dateLabels = scheduledDates
+                          .slice(0, 4)
+                          .map((d: Date) =>
+                            d.toLocaleDateString(isSpanish ? "es-ES" : "en-US", {
+                              month: "short",
+                              day: "numeric",
+                            }),
+                          )
+                          .join(", ");
+
                         toast({
                           title: isSpanish
                             ? `${postsData.postsCreated} posts creados en tu calendario`
                             : `${postsData.postsCreated} posts added to your calendar`,
-                          description: isSpanish
-                            ? "Las imágenes aprobadas son ahora posts pendientes con captions. Revísalos en tu calendario."
-                            : "Approved images are now pending posts with AI captions. Review them on your calendar.",
+                          description: dateLabels
+                            ? (isSpanish
+                                ? `Programados para: ${dateLabels}`
+                                : `Scheduled for: ${dateLabels}`)
+                            : (isSpanish
+                                ? "Las imágenes aprobadas son ahora posts pendientes con captions."
+                                : "Approved images are now pending posts with AI captions."),
                         });
+
+                        // Auto-navigate to the first new post date after carousel closes
+                        if (scheduledDates.length > 0) {
+                          setTimeout(() => {
+                            setSelectedDate(scheduledDates[0]);
+                          }, 2100);
+                        }
                       } else {
                         throw new Error("Failed to create posts");
                       }

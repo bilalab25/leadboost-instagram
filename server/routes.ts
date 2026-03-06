@@ -61,6 +61,7 @@ import multer from "multer";
 import cloudinary from "./cloudinary";
 import { db } from "./db";
 import {
+  brands,
   brandDesigns,
   brandAssets,
   posIntegrations,

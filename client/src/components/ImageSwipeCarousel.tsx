@@ -280,6 +280,19 @@ export default function ImageSwipeCarousel({
         </Button>
       </div>
 
+      {approved.length > 0 && (
+        <Button
+          onClick={() => onComplete(approved, rejected)}
+          className="w-full max-w-sm bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-semibold rounded-xl h-12 shadow-md"
+          disabled={!!swipeDirection}
+        >
+          <Check className="w-4 h-4 mr-2" />
+          {isSpanish
+            ? `Listo — Agregar ${approved.length} al Calendario`
+            : `Done — Add ${approved.length} to Calendar`}
+        </Button>
+      )}
+
       <p className="text-xs text-muted-foreground text-center max-w-xs">
         {isSpanish
           ? "Toca para ver la imagen completa. Desliza a la derecha para aprobar, a la izquierda para rechazar."
