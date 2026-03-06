@@ -1793,3 +1793,25 @@ export const insertWaitlistSchema = createInsertSchema(waitlist).omit({
 
 export type InsertWaitlist = z.infer<typeof insertWaitlistSchema>;
 export type Waitlist = typeof waitlist.$inferSelect;
+
+export const brandProducts = pgTable("brand_product", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  price: varchar("price"),
+  image: varchar("image"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBrandProductSchema = createInsertSchema(brandProducts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertBrandProduct = z.infer<typeof insertBrandProductSchema>;
+export type BrandProduct = typeof brandProducts.$inferSelect;

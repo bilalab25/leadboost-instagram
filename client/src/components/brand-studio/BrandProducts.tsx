@@ -1,62 +1,63 @@
 import { useState } from "react";
 import { TabsContent } from "@radix-ui/react-tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Database, Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { Database, Plus, Trash2, Image as ImageIcon, Loader2 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-
-type BrandProduct = {
-  id: string;
-  name: string;
-  description: string;
-  image?: string;
-};
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useBrand } from "@/hooks/useBrand";
+import type { BrandProduct } from "@shared/schema";
 
 export default function BrandProducts() {
   const { isSpanish } = useLanguage();
+  const { activeBrandId } = useBrand();
+  const queryClient = useQueryClient();
 
-  const [products, setProducts] = useState<BrandProduct[]>([]);
   const [form, setForm] = useState({
     name: "",
     description: "",
     image: "",
-    price: 0,
+    price: "",
+  });
+
+  const { data: products = [], isLoading } = useQuery<BrandProduct[]>({
+    queryKey: ["/api/brands", activeBrandId, "products"],
+    queryFn: () =>
+      fetch(`/api/brands/${activeBrandId}/products`, { credentials: "include" }).then((r) => r.json()),
+    enabled: !!activeBrandId,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: typeof form) =>
+      apiRequest("POST", `/api/brands/${activeBrandId}/products`, { ...data, brandId: activeBrandId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/brands", activeBrandId, "products"] });
+      setForm({ name: "", description: "", image: "", price: "" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiRequest("DELETE", `/api/brands/${activeBrandId}/products/${id}`, { brandId: activeBrandId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/brands", activeBrandId, "products"] });
+    },
   });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAddProduct = () => {
-    if (!form.name.trim() || !form.description.trim()) return;
-
-    const newProduct: BrandProduct = {
-      id: crypto.randomUUID(),
-      name: form.name.trim(),
-      description: form.description.trim(),
-      image: form.image.trim() || undefined,
-    };
-
-    setProducts((prev) => [newProduct, ...prev]);
-    setForm({
-      name: "",
-      description: "",
-      image: "",
-      price: 0,
-    });
-  };
-
-  const handleRemoveProduct = (id: string) => {
-    setProducts((prev) => prev.filter((product) => product.id !== id));
+    if (!form.name.trim() || !activeBrandId) return;
+    createMutation.mutate(form);
   };
 
   return (
@@ -73,18 +74,12 @@ export default function BrandProducts() {
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="name">
-                {isSpanish
-                  ? "Nombre del producto/servicio"
-                  : "Product/Service Name"}
+                {isSpanish ? "Nombre del producto/servicio" : "Product/Service Name"}
               </Label>
               <Input
                 id="name"
                 name="name"
-                placeholder={
-                  isSpanish
-                    ? "Ej. Latte rosa signature"
-                    : "E.g. Signature pink latte"
-                }
+                placeholder={isSpanish ? "Ej. Latte rosa signature" : "E.g. Signature pink latte"}
                 value={form.name}
                 onChange={handleChange}
               />
@@ -97,11 +92,7 @@ export default function BrandProducts() {
               <Textarea
                 id="description"
                 name="description"
-                placeholder={
-                  isSpanish
-                    ? "Describe el producto..."
-                    : "Describe the product..."
-                }
+                placeholder={isSpanish ? "Describe el producto..." : "Describe the product..."}
                 value={form.description}
                 onChange={handleChange}
                 rows={4}
@@ -109,12 +100,13 @@ export default function BrandProducts() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="description">
-                {isSpanish ? "Precio (opcional)" : "Price (optiona)"}
+              <Label htmlFor="price">
+                {isSpanish ? "Precio (opcional)" : "Price (optional)"}
               </Label>
               <Input
                 id="price"
                 name="price"
+                placeholder="$0.00"
                 value={form.price}
                 onChange={handleChange}
               />
@@ -122,9 +114,7 @@ export default function BrandProducts() {
 
             <div className="grid gap-2">
               <Label htmlFor="image">
-                {isSpanish
-                  ? "URL de imagen (opcional)"
-                  : "Image URL (optional)"}
+                {isSpanish ? "URL de imagen (opcional)" : "Image URL (optional)"}
               </Label>
               <Input
                 id="image"
@@ -138,9 +128,14 @@ export default function BrandProducts() {
             <div>
               <Button
                 onClick={handleAddProduct}
+                disabled={createMutation.isPending || !form.name.trim()}
                 className="flex items-center gap-2"
               >
-                <Plus className="h-4 w-4" />
+                {createMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
                 {isSpanish ? "Agregar producto" : "Add Product"}
               </Button>
             </div>
@@ -151,11 +146,13 @@ export default function BrandProducts() {
               {isSpanish ? "Productos agregados" : "Added Products"}
             </h3>
 
-            {products.length === 0 ? (
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : products.length === 0 ? (
               <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground text-center">
-                {isSpanish
-                  ? "Aún no hay productos agregados."
-                  : "No products added yet."}
+                {isSpanish ? "Aún no hay productos agregados." : "No products added yet."}
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
@@ -177,17 +174,23 @@ export default function BrandProducts() {
 
                     <CardContent className="p-4 space-y-3">
                       <div>
-                        <h4 className="font-semibold">{product.name}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {product.description}
-                        </p>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">{product.name}</h4>
+                          {product.price && (
+                            <span className="text-sm font-medium text-primary">{product.price}</span>
+                          )}
+                        </div>
+                        {product.description && (
+                          <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
+                        )}
                       </div>
 
                       <div className="flex justify-end">
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleRemoveProduct(product.id)}
+                          onClick={() => deleteMutation.mutate(product.id)}
+                          disabled={deleteMutation.isPending}
                           className="flex items-center gap-2"
                         >
                           <Trash2 className="h-4 w-4" />

@@ -25,6 +25,7 @@ import {
   brandDesigns,
   brandAssets,
   brandEssence,
+  brandProducts,
   campaignDesigns,
   integrations,
   socialPostingFrequency,
@@ -91,6 +92,8 @@ import {
   type SocialPostingFrequency,
   type InsertConversationHistory,
   type ConversationHistory,
+  type BrandProduct,
+  type InsertBrandProduct,
 } from "@shared/schema";
 import { db } from "./db";
 import {
@@ -493,6 +496,12 @@ export interface IStorage {
   getBrandInvitationById(
     id: string,
   ): Promise<SelectBrandInvitation | undefined>;
+
+  // Brand product operations
+  getBrandProducts(brandId: string): Promise<BrandProduct[]>;
+  createBrandProduct(product: InsertBrandProduct): Promise<BrandProduct>;
+  updateBrandProduct(id: string, brandId: string, updates: Partial<InsertBrandProduct>): Promise<BrandProduct | undefined>;
+  deleteBrandProduct(id: string, brandId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2820,6 +2829,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(brandEssence.brandId, brandId))
       .limit(1);
     return result;
+  }
+
+  async getBrandProducts(brandId: string): Promise<BrandProduct[]> {
+    return db
+      .select()
+      .from(brandProducts)
+      .where(eq(brandProducts.brandId, brandId))
+      .orderBy(brandProducts.createdAt);
+  }
+
+  async createBrandProduct(product: InsertBrandProduct): Promise<BrandProduct> {
+    const [created] = await db.insert(brandProducts).values(product).returning();
+    return created;
+  }
+
+  async updateBrandProduct(
+    id: string,
+    brandId: string,
+    updates: Partial<InsertBrandProduct>,
+  ): Promise<BrandProduct | undefined> {
+    const [updated] = await db
+      .update(brandProducts)
+      .set(updates)
+      .where(and(eq(brandProducts.id, id), eq(brandProducts.brandId, brandId)))
+      .returning();
+    return updated;
+  }
+
+  async deleteBrandProduct(id: string, brandId: string): Promise<boolean> {
+    const [deleted] = await db
+      .delete(brandProducts)
+      .where(and(eq(brandProducts.id, id), eq(brandProducts.brandId, brandId)))
+      .returning();
+    return !!deleted;
   }
 }
 

@@ -12221,6 +12221,57 @@ All content must be in English.`;
     });
   });
 
+  // ─── Brand Products ─────────────────────────────────────────────────────────
+
+  app.get("/api/brands/:brandId/products", isAuthenticated, requireBrand, async (req, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const products = await storage.getBrandProducts(brandId);
+      res.json(products);
+    } catch (err) {
+      console.error("GET /api/brands/:brandId/products error:", err);
+      res.status(500).json({ error: "Failed to fetch products" });
+    }
+  });
+
+  app.post("/api/brands/:brandId/products", isAuthenticated, requireBrand, async (req, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const { name, description, price, image } = req.body;
+      if (!name?.trim()) return res.status(400).json({ error: "Name is required" });
+      const product = await storage.createBrandProduct({ brandId, name: name.trim(), description: description || null, price: price || null, image: image || null });
+      res.status(201).json(product);
+    } catch (err) {
+      console.error("POST /api/brands/:brandId/products error:", err);
+      res.status(500).json({ error: "Failed to create product" });
+    }
+  });
+
+  app.patch("/api/brands/:brandId/products/:id", isAuthenticated, requireBrand, async (req, res) => {
+    try {
+      const { id, brandId } = req.params;
+      const { name, description, price, image } = req.body;
+      const updated = await storage.updateBrandProduct(id, brandId, { name, description, price, image });
+      if (!updated) return res.status(404).json({ error: "Product not found" });
+      res.json(updated);
+    } catch (err) {
+      console.error("PATCH /api/brands/:brandId/products/:id error:", err);
+      res.status(500).json({ error: "Failed to update product" });
+    }
+  });
+
+  app.delete("/api/brands/:brandId/products/:id", isAuthenticated, requireBrand, async (req, res) => {
+    try {
+      const { id, brandId } = req.params;
+      const deleted = await storage.deleteBrandProduct(id, brandId);
+      if (!deleted) return res.status(404).json({ error: "Product not found" });
+      res.json({ success: true });
+    } catch (err) {
+      console.error("DELETE /api/brands/:brandId/products/:id error:", err);
+      res.status(500).json({ error: "Failed to delete product" });
+    }
+  });
+
   // Make io accessible in routes via app.set
   app.set("io", io);
 
