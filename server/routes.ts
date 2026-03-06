@@ -1167,53 +1167,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   });
 
-  app.post("/api/brands/:brandId/pdf-summary", isAuthenticated, pdfUpload.single("pdf"), async (req: any, res) => {
-    const fs = await import("fs");
-    const filePath = req.file?.path;
-    try {
-      if (!req.file || !filePath) {
-        return res.status(400).json({ message: "No PDF file uploaded" });
-      }
+  app.post(
+    "/api/brands/:brandId/pdf-summary",
+    isAuthenticated,
+    pdfUpload.single("pdf"),
+    async (req: any, res) => {
+      const fs = await import("fs");
+      const filePath = req.file?.path;
+      try {
+        if (!req.file || !filePath) {
+          return res.status(400).json({ message: "No PDF file uploaded" });
+        }
 
-      if (req.file.mimetype !== "application/pdf") {
-        return res.status(400).json({ message: "Only PDF files are allowed" });
-      }
+        if (req.file.mimetype !== "application/pdf") {
+          return res
+            .status(400)
+            .json({ message: "Only PDF files are allowed" });
+        }
 
-      const fileBuffer = fs.readFileSync(filePath);
-      const base64Data = fileBuffer.toString("base64");
+        const fileBuffer = fs.readFileSync(filePath);
+        const base64Data = fileBuffer.toString("base64");
 
-      const { GoogleGenAI } = await import("@google/genai");
-      const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+        const { GoogleGenAI } = await import("@google/genai");
+        const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-      const response = await genAI.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: "Read this PDF document carefully and provide a concise summary paragraph (3-5 sentences) that captures the key information about the brand, its products/services, target audience, and unique value proposition. Write the summary in the same language as the document. Only return the summary paragraph, nothing else." },
-              {
-                inlineData: {
-                  mimeType: "application/pdf",
-                  data: base64Data,
+        const response = await genAI.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: "Read this PDF document carefully and provide a concise summary paragraph (30-40 sentences) that captures the key information about the brand, its products/services, target audience, and unique value proposition. Write the summary in the same language as the document. Only return the summary paragraph, nothing else.",
                 },
-              },
-            ],
-          },
-        ],
-      });
+                {
+                  inlineData: {
+                    mimeType: "application/pdf",
+                    data: base64Data,
+                  },
+                },
+              ],
+            },
+          ],
+        });
 
-      const summary = response.text || "";
-      res.json({ summary });
-    } catch (error) {
-      console.error("Error processing PDF summary:", error);
-      res.status(500).json({ message: "Failed to process PDF" });
-    } finally {
-      if (filePath) {
-        try { fs.unlinkSync(filePath); } catch {}
+        const summary = response.text || "";
+        res.json({ summary });
+      } catch (error) {
+        console.error("Error processing PDF summary:", error);
+        res.status(500).json({ message: "Failed to process PDF" });
+      } finally {
+        if (filePath) {
+          try {
+            fs.unlinkSync(filePath);
+          } catch {}
+        }
       }
-    }
-  });
+    },
+  );
 
   app.get("/api/brands/:id", isAuthenticated, async (req: any, res) => {
     try {
@@ -8758,24 +8769,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const brandImageJobs = new Map<string, {
-    id: string;
-    brandId: string;
-    status: "processing" | "completed" | "failed";
-    progress: number;
-    total: number;
-    images: any[];
-    errors: string[];
-    createdAt: number;
-  }>();
-
-  setInterval(() => {
-    const oneHour = 60 * 60 * 1000;
-    const now = Date.now();
-    for (const [id, job] of brandImageJobs) {
-      if (now - job.createdAt > oneHour) brandImageJobs.delete(id);
+  const brandImageJobs = new Map<
+    string,
+    {
+      id: string;
+      brandId: string;
+      status: "processing" | "completed" | "failed";
+      progress: number;
+      total: number;
+      images: any[];
+      errors: string[];
+      createdAt: number;
     }
-  }, 10 * 60 * 1000);
+  >();
+
+  setInterval(
+    () => {
+      const oneHour = 60 * 60 * 1000;
+      const now = Date.now();
+      for (const [id, job] of brandImageJobs) {
+        if (now - job.createdAt > oneHour) brandImageJobs.delete(id);
+      }
+    },
+    10 * 60 * 1000,
+  );
 
   app.post(
     "/api/brands/:brandId/generate-images",
@@ -8800,7 +8817,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: Date.now(),
         });
 
-        console.log(`[API] Brand image job ${jobId} created for brand ${brandId} (${safeCount} images)`);
+        console.log(
+          `[API] Brand image job ${jobId} created for brand ${brandId} (${safeCount} images)`,
+        );
 
         res.json({ success: true, jobId });
 
@@ -8816,13 +8835,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               job.images = result.images;
               job.errors = result.errors;
               job.progress = safeCount;
-              console.log(`[API] Brand image job ${jobId} completed with ${result.images.length} images`);
+              console.log(
+                `[API] Brand image job ${jobId} completed with ${result.images.length} images`,
+              );
             }
           } catch (error) {
             const job = brandImageJobs.get(jobId);
             if (job) {
               job.status = "failed";
-              job.errors = [error instanceof Error ? error.message : "Unknown error"];
+              job.errors = [
+                error instanceof Error ? error.message : "Unknown error",
+              ];
               console.error(`[API] Brand image job ${jobId} failed:`, error);
             }
           }
@@ -8846,7 +8869,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { brandId, jobId } = req.params;
         const job = brandImageJobs.get(jobId);
         if (!job || job.brandId !== brandId) {
-          return res.status(404).json({ success: false, message: "Job not found or expired" });
+          return res
+            .status(404)
+            .json({ success: false, message: "Job not found or expired" });
         }
         res.json({
           success: true,
@@ -8858,7 +8883,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errors: job.errors,
         });
       } catch (error) {
-        res.status(500).json({ success: false, message: "Failed to check job status" });
+        res
+          .status(500)
+          .json({ success: false, message: "Failed to check job status" });
       }
     },
   );
@@ -8872,8 +8899,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { brandId } = req.params;
         const { approved, rejected } = req.body;
 
-        const hasApproved = approved && Array.isArray(approved) && approved.length > 0;
-        const hasRejected = rejected && Array.isArray(rejected) && rejected.length > 0;
+        const hasApproved =
+          approved && Array.isArray(approved) && approved.length > 0;
+        const hasRejected =
+          rejected && Array.isArray(rejected) && rejected.length > 0;
 
         if (!hasApproved && !hasRejected) {
           return res.status(400).json({ message: "No images provided" });
@@ -8895,17 +8924,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (approved && Array.isArray(approved)) {
           for (const img of approved) {
             if (!img.cloudinaryUrl || !img.publicId) continue;
-            await db
-              .insert(brandAssets)
-              .values({
-                brandDesignId: design[0].id,
-                url: img.cloudinaryUrl,
-                name: img.variationHint || `AI Generated Image`,
-                category: "ai-generated",
-                assetType: "image",
-                publicId: img.publicId,
-                description: img.prompt?.substring(0, 500) || null,
-              });
+            await db.insert(brandAssets).values({
+              brandDesignId: design[0].id,
+              url: img.cloudinaryUrl,
+              name: img.variationHint || `AI Generated Image`,
+              category: "ai-generated",
+              assetType: "image",
+              publicId: img.publicId,
+              description: img.prompt?.substring(0, 500) || null,
+            });
             savedApproved++;
           }
         }
@@ -8913,17 +8940,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (rejected && Array.isArray(rejected)) {
           for (const img of rejected) {
             if (!img.cloudinaryUrl || !img.publicId) continue;
-            await db
-              .insert(brandAssets)
-              .values({
-                brandDesignId: design[0].id,
-                url: img.cloudinaryUrl,
-                name: img.variationHint || `AI Rejected Image`,
-                category: "ai-rejected",
-                assetType: "image",
-                publicId: img.publicId,
-                description: img.prompt?.substring(0, 500) || null,
-              });
+            await db.insert(brandAssets).values({
+              brandDesignId: design[0].id,
+              url: img.cloudinaryUrl,
+              name: img.variationHint || `AI Rejected Image`,
+              category: "ai-rejected",
+              assetType: "image",
+              publicId: img.publicId,
+              description: img.prompt?.substring(0, 500) || null,
+            });
             savedRejected++;
           }
         }
@@ -8986,10 +9011,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const { GoogleGenAI } = await import("@google/genai");
         const ai = new GoogleGenAI({
-          apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || "",
+          apiKey:
+            process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || "",
         });
 
-        const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const daysOfWeek = [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ];
         const createdPosts: any[] = [];
 
         for (let i = 0; i < images.length; i++) {
@@ -9032,7 +9066,9 @@ All content must be in English.`;
                 content = parsed.content || "";
                 hashtags = parsed.hashtags || "";
               } catch (e) {
-                console.log("[API] Failed to parse AI caption JSON, using defaults");
+                console.log(
+                  "[API] Failed to parse AI caption JSON, using defaults",
+                );
               }
             }
 
@@ -9055,14 +9091,19 @@ All content must be in English.`;
 
             createdPosts.push(post);
           } catch (captionError) {
-            console.error(`[API] Failed to generate caption for image ${i}:`, captionError);
+            console.error(
+              `[API] Failed to generate caption for image ${i}:`,
+              captionError,
+            );
             const dayIndex = (new Date().getDay() + i) % 7;
             const post = await createAiGeneratedPost({
               jobId: job.id,
               brandId,
               platform: targetPlatform,
               titulo: isSpanish ? `Post de ${brandName}` : `${brandName} Post`,
-              content: isSpanish ? `Nuevo contenido de ${brandName}` : `New content from ${brandName}`,
+              content: isSpanish
+                ? `Nuevo contenido de ${brandName}`
+                : `New content from ${brandName}`,
               imageUrl,
               cloudinaryPublicId: publicId,
               dia: daysOfWeek[dayIndex],
@@ -9074,7 +9115,9 @@ All content must be in English.`;
           }
         }
 
-        const { updatePostGeneratorJob } = await import("./storage/postGeneratorJobs");
+        const { updatePostGeneratorJob } = await import(
+          "./storage/postGeneratorJobs"
+        );
         await updatePostGeneratorJob(job.id, {
           status: "completed",
           result: { postsGenerated: createdPosts.length },
@@ -9103,19 +9146,40 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const { brandId } = req.params;
-        const { imageUrl, platform, titulo, content, hashtags, scheduledPublishTime } = req.body;
+        const {
+          imageUrl,
+          platform,
+          titulo,
+          content,
+          hashtags,
+          scheduledPublishTime,
+        } = req.body;
 
         if (!imageUrl) {
           return res.status(400).json({ message: "Image URL is required" });
         }
 
-        const { createPostGeneratorJob } = await import("./storage/postGeneratorJobs");
-        const { createAiGeneratedPost } = await import("./storage/aiGeneratedPosts");
+        const { createPostGeneratorJob } = await import(
+          "./storage/postGeneratorJobs"
+        );
+        const { createAiGeneratedPost } = await import(
+          "./storage/aiGeneratedPosts"
+        );
 
         const job = await createPostGeneratorJob(brandId);
 
-        const scheduledDate = scheduledPublishTime ? new Date(scheduledPublishTime) : new Date();
-        const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const scheduledDate = scheduledPublishTime
+          ? new Date(scheduledPublishTime)
+          : new Date();
+        const daysOfWeek = [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ];
         const dia = daysOfWeek[scheduledDate.getDay()];
 
         const post = await createAiGeneratedPost({
@@ -9132,12 +9196,20 @@ All content must be in English.`;
           isSample: false,
         });
 
-        const { updateAiGeneratedPostStatus } = await import("./storage/aiGeneratedPosts");
+        const { updateAiGeneratedPostStatus } = await import(
+          "./storage/aiGeneratedPosts"
+        );
         if (scheduledPublishTime) {
-          await updateAiGeneratedPostStatus(post.id, "accepted", scheduledPublishTime);
+          await updateAiGeneratedPostStatus(
+            post.id,
+            "accepted",
+            scheduledPublishTime,
+          );
         }
 
-        const { updatePostGeneratorJob } = await import("./storage/postGeneratorJobs");
+        const { updatePostGeneratorJob } = await import(
+          "./storage/postGeneratorJobs"
+        );
         await updatePostGeneratorJob(job.id, {
           status: "completed",
           result: { postsGenerated: 1 },
@@ -11291,7 +11363,13 @@ All content must be in English.`;
       try {
         const brandId = req.brandId;
         const userId = req.user.id;
-        const { message, conversationHistory, language, attachmentBase64, attachmentMimeType } = req.body;
+        const {
+          message,
+          conversationHistory,
+          language,
+          attachmentBase64,
+          attachmentMimeType,
+        } = req.body;
 
         if (!message || typeof message !== "string") {
           return res.status(400).json({ error: "Message is required" });
@@ -11319,30 +11397,26 @@ All content must be in English.`;
     },
   );
 
-  app.post(
-    "/api/boosty/transcribe",
-    isAuthenticated,
-    async (req: any, res) => {
-      try {
-        const { audioBase64, mimeType } = req.body;
-        if (!audioBase64) {
-          return res.status(400).json({ error: "audioBase64 is required" });
-        }
-        const buffer = Buffer.from(audioBase64, "base64");
-        const file = new File([buffer], "voice-note.webm", {
-          type: mimeType || "audio/webm",
-        });
-        const transcription = await openai.audio.transcriptions.create({
-          file,
-          model: "whisper-1",
-        });
-        res.json({ transcript: transcription.text });
-      } catch (error) {
-        console.error("Error transcribing voice note:", error);
-        res.status(500).json({ error: "Failed to transcribe audio" });
+  app.post("/api/boosty/transcribe", isAuthenticated, async (req: any, res) => {
+    try {
+      const { audioBase64, mimeType } = req.body;
+      if (!audioBase64) {
+        return res.status(400).json({ error: "audioBase64 is required" });
       }
-    },
-  );
+      const buffer = Buffer.from(audioBase64, "base64");
+      const file = new File([buffer], "voice-note.webm", {
+        type: mimeType || "audio/webm",
+      });
+      const transcription = await openai.audio.transcriptions.create({
+        file,
+        model: "whisper-1",
+      });
+      res.json({ transcript: transcription.text });
+    } catch (error) {
+      console.error("Error transcribing voice note:", error);
+      res.status(500).json({ error: "Failed to transcribe audio" });
+    }
+  });
 
   app.get(
     "/api/boosty/suggestions",
